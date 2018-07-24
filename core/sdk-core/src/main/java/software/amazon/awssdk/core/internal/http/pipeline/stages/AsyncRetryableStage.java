@@ -138,8 +138,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     deliverExceptionToResponseHandler(retryableException);
                     executeRetry(future);
                 } else {
+                    // Don't wrap if we've already got a SdkException
+                    SdkException throwable = err instanceof SdkException ?
+                                             (SdkException) err : SdkClientException.builder().cause(err).build();
                     SdkException retryableException = handleSdkException(
-                        Response.fromFailure(SdkClientException.builder().cause(err).build(), null));
+                        Response.fromFailure(throwable, null));
                     retryHandler.setLastRetriedException(retryableException);
                     // Notify the response handler on each retry. Note that this does not notify
                     // on the last attempt by design. This is done in the generated client code so that

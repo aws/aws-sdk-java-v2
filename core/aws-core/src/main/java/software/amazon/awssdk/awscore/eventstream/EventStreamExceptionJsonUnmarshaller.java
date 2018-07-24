@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.awscore.eventstream;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -29,7 +31,9 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 @SdkProtectedApi
 public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
-        implements Unmarshaller<T, JsonUnmarshallerContext> {
+    implements Unmarshaller<T, JsonUnmarshallerContext> {
+
+    private static final Logger log = LoggerFactory.getLogger(EventStreamExceptionJsonUnmarshaller.class);
 
     private final Map<String, Unmarshaller<? extends T, JsonUnmarshallerContext>> unmarshallers;
     private final Unmarshaller<? extends T, JsonUnmarshallerContext> defaultUnmarshaller;
@@ -44,7 +48,7 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
     }
 
     public static AwsServiceException populateDefaultException(
-            Supplier<? extends AwsServiceException.Builder> exceptionBuilderSupplier, JsonUnmarshallerContext context) {
+        Supplier<? extends AwsServiceException.Builder> exceptionBuilderSupplier, JsonUnmarshallerContext context) {
         String errorMessage;
         String errorCode;
 
@@ -53,19 +57,20 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
             errorMessage = context.getHeader(":error-message");
             errorCode = context.getHeader(":error-code");
         } else if ("exception".equals(messageType)) {
-            errorMessage = null;
+            errorMessage = extractErrorMessageFromPayload(context);
             errorCode = context.getHeader(":exception-type");
         } else {
             throw new IllegalStateException("Unexpected exception message type: " + messageType);
         }
 
+        SdkBytes rawResponse = SdkBytes.fromInputStream(context.getHttpResponse().getContent());
         return exceptionBuilderSupplier.get()
-                .awsErrorDetails(AwsErrorDetails.builder()
-                        .errorMessage(errorMessage)
-                        .errorCode(errorCode)
-                        .rawResponse(SdkBytes.fromInputStream(context.getHttpResponse().getContent()))
-                        .build())
-                .build();
+                                       .awsErrorDetails(AwsErrorDetails.builder()
+                                                                       .errorMessage(errorMessage)
+                                                                       .errorCode(errorCode)
+                                                                       .rawResponse(rawResponse)
+                                                                       .build())
+                                       .build();
     }
 
     @Override
@@ -74,9 +79,26 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
         return unmarshallers.getOrDefault(exceptionType, defaultUnmarshaller).unmarshall(in);
     }
 
+    private static String extractErrorMessageFromPayload(JsonUnmarshallerContext context) {
+        try {
+            do {
+                if (context.testExpression("message", 1)) {
+                    context.nextToken();
+                    return context.getUnmarshaller(String.class).unmarshall(context);
+                }
+            } while (context.nextToken() != null);
+        } catch (IOException e) {
+            log.info("Could not parse error message from content");
+        } catch (Exception e) {
+            // Find bugs doesn't like one catch clause for some reason
+            log.info("Could not parse error message from content");
+        }
+        return null;
+    }
+
     public static final class Builder<T extends AwsServiceException> {
         private final Map<String, Unmarshaller<? extends T, JsonUnmarshallerContext>> unmarshallers =
-                new HashMap<>();
+            new HashMap<>();
 
         private Unmarshaller<? extends T, JsonUnmarshallerContext> defaultUnmarshaller;
 
@@ -91,7 +113,7 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
          * @return This object for method chaining.
          */
         public Builder<T> addUnmarshaller(String type,
-                                       Unmarshaller<? extends T, JsonUnmarshallerContext> unmarshaller) {
+                                          Unmarshaller<? extends T, JsonUnmarshallerContext> unmarshaller) {
             unmarshallers.put(type, unmarshaller);
             return this;
         }
@@ -104,7 +126,7 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
          * @return This object for method chaining.
          */
         public Builder<T> defaultUnmarshaller(Unmarshaller<? extends T, JsonUnmarshallerContext>
-                                                   defaultUnmarshaller) {
+                                                  defaultUnmarshaller) {
             this.defaultUnmarshaller = defaultUnmarshaller;
             return this;
         }
