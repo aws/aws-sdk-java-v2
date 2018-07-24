@@ -150,7 +150,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      false,
                      ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
 
-            eventStreamUtils.getEventStreamMembers()
+            eventStreamUtils.getEventStreamShape()
+                            .getMembers()
                             .forEach(m -> {
                                 String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
                                 builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",

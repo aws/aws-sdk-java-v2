@@ -53,7 +53,7 @@ final class AddModelShapes extends AddShapes implements IntermediateModelShapePr
             ShapeType shapeType = getModelShapeType(shape);
 
             if (shapeType != null) {
-                String javaClassName = getNamingStrategy().getJavaClassName(shapeName);
+                final String javaClassName = getNamingStrategy().getJavaClassName(shapeName);
                 if (shapesToSkip.contains(javaClassName)) {
                     continue;
                 }
@@ -77,9 +77,6 @@ final class AddModelShapes extends AddShapes implements IntermediateModelShapePr
      * @return null if the given shape is neither a structure nor enum model.
      */
     private ShapeType getModelShapeType(final Shape shape) {
-        if (shape.isException()) {
-            return null;
-        }
         if (isStructure(shape)) {
             return ShapeType.Model;
 

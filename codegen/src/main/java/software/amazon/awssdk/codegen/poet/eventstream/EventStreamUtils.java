@@ -70,21 +70,10 @@ public class EventStreamUtils {
      * @return Stream of event subtypes {@link ShapeModel}s.
      */
     public Stream<ShapeModel> getEventSubTypes() {
-        return getEventStreamMembers()
-            .map(MemberModel::getShape);
-    }
-
-    /**
-     * Collect all members defined in the event stream shape. These are all members of the event stream shape and
-     * have the 'event: true' trait applied.
-     *
-     * @return Stream of event subtypes {@link MemberModel}s.
-     */
-    public Stream<MemberModel> getEventStreamMembers() {
         return getEventStreamShape()
             .getMembers()
             .stream()
-            .filter(m -> m.getShape() != null && m.getShape().isEvent());
+            .map(MemberModel::getShape);
     }
 
     /**
