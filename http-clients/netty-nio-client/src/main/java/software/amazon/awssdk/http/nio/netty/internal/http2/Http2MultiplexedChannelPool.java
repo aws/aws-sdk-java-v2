@@ -26,7 +26,6 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
 
@@ -85,9 +84,32 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
             }
         }
         // No available streams, establish new connection and add it to list
-        connections.add(new MultiplexedChannelRecord(connectionPool.acquire(), maxConcurrencyPerConnection)
+        connections.add(new MultiplexedChannelRecord(connectionPool.acquire(),
+                                                     maxConcurrencyPerConnection,
+                                                     this::releaseParentChannel)
                             .acquire(promise));
         return promise;
+    }
+
+    /**
+     * Releases parent channel on failure and cleans up record from connections list.
+     *
+     * @param parentChannel Channel to release. May be null if no channel is established.
+     * @param record Record to cleanup.
+     */
+    private void releaseParentChannel(Channel parentChannel, MultiplexedChannelRecord record) {
+        doInEventLoop(eventLoop, () -> releaseParentChannel0(parentChannel, record));
+    }
+
+    private void releaseParentChannel0(Channel parentChannel, MultiplexedChannelRecord record) {
+        if (parentChannel != null) {
+            try {
+                parentChannel.close();
+            } finally {
+                connectionPool.release(parentChannel);
+            }
+        }
+        connections.remove(record);
     }
 
     @Override
