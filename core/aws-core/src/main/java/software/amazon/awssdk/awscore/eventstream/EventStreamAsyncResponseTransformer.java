@@ -135,7 +135,12 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         publisher.subscribe(new ByteSubscriber(dataSubscriptionFuture));
         dataSubscriptionFuture.thenAccept(dataSubscription -> {
             SdkPublisher<EventT> eventPublisher = new EventPublisher(dataSubscription);
-            eventStreamResponseTransformer.onEventStream(eventPublisher);
+            try {
+                eventStreamResponseTransformer.onEventStream(eventPublisher);
+            } catch (Throwable t) {
+                dataSubscription.cancel();
+                exceptionOccurred(t);
+            }
         });
     }
 
