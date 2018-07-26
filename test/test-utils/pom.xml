@@ -87,4 +87,18 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Disable maven release. -->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <configuration>
+                    <skipStaging>true</skipStaging>
+                </configuration>
+                <version>${nexus-staging-maven-plugin.version}</version>
+            </plugin>
+        </plugins>
+    </build>
 </project>
