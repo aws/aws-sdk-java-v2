@@ -28,8 +28,8 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.ssl.SslContext;
 import java.io.IOException;
 import java.util.Optional;
@@ -78,9 +78,9 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
         pipeline.addLast(ForkedHttp2MultiplexCodecBuilder
                              .forClient(new NoOpChannelInitializer())
-                             // TODO disable frame logging for performance
-                             .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
+                             .frameLogger(SdkHttp2FrameLogger.frameLogger())
                              .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
+                             .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
                              .build());
 
         pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {

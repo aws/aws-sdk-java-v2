@@ -57,7 +57,6 @@ public class SdkHttp2FrameLogger extends Http2FrameLogger {
         log("{} SETTINGS: ack=false settings={}", direction.name(), settings);
     }
 
-
     @Override
     public void logPing(Direction direction, ChannelHandlerContext ctx, long data) {
         log("{} PING: ack=false length={}", direction.name(), data);
@@ -150,5 +149,16 @@ public class SdkHttp2FrameLogger extends Http2FrameLogger {
     private String dataToString(Direction direction, ByteBuf data) {
         return indentArrow(direction) + " " +
                new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * @return Http2FrameLogger if debug logs are enabled, otherwise null.
+     */
+    public static Http2FrameLogger frameLogger() {
+        if (log.isDebugEnabled()) {
+            return new SdkHttp2FrameLogger(LogLevel.DEBUG);
+        } else {
+            return null;
+        }
     }
 }
