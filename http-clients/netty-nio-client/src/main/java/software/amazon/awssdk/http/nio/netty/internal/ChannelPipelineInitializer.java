@@ -76,12 +76,14 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
-        pipeline.addLast(ForkedHttp2MultiplexCodecBuilder
-                             .forClient(new NoOpChannelInitializer())
-                             .frameLogger(SdkHttp2FrameLogger.frameLogger())
-                             .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
-                             .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
-                             .build());
+        ForkedHttp2MultiplexCodecBuilder codecBuilder = ForkedHttp2MultiplexCodecBuilder
+            .forClient(new NoOpChannelInitializer())
+            .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
+            .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576));
+        // If frame logging is enabled, add it
+        SdkHttp2FrameLogger.frameLogger().ifPresent(codecBuilder::frameLogger);
+
+        pipeline.addLast(codecBuilder.build());
 
         pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
             @Override
