@@ -5,9 +5,7 @@
     "endpointPrefix":"kinesis",
     "jsonVersion":"1.1",
     "protocol":"json",
-    "protocolSettings": {
-        "h2": "eventstream"
-    },
+    "protocolSettings":{"h2":"eventstream"},
     "serviceAbbreviation":"Kinesis",
     "serviceFullName":"Amazon Kinesis",
     "serviceId":"Kinesis",
@@ -361,7 +359,7 @@
         {"shape":"ResourceInUseException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Registers a consumer with a Kinesis data stream. When you use this operation, the consumer you register can read data from the stream at a rate of up to 2 MiB per second. This rate is unaffected by the total number of consumers that read from the same stream.</p> <p>You can register up to 5 consumers per stream. A given consumer can only be registered with one stream.</p> <p>This operation has a limit of five transactions per second per account.</p>"
+      "documentation":"<p>Registers a consumer with a Kinesis data stream. When you use this operation, the consumer you register can then call <a>SubscribeToShard</a> to receive data from the stream using enhanced fan-out, at a rate of up to 2 MiB per second for every shard you subscribe to. This rate is unaffected by the total number of consumers that read from the same stream.</p> <p>You can register up to 5 consumers per stream. However, you can request a limit increase using the <a href=\"https://console.aws.amazon.com/support/v1?#/\">Kinesis Data Streams limits form</a>. A given consumer can only be registered with one stream at a time.</p> <p>For an example of how to use this operations, see <a href=\"/streams/latest/dev/building-enhanced-consumers-api.html\">Enhanced Fan-Out Using the Kinesis Data Streams API</a>.</p> <p>The use of this operation has a limit of five transactions per second per account.</p>"
     },
     "RemoveTagsFromStream":{
       "name":"RemoveTagsFromStream",
@@ -443,7 +441,7 @@
         {"shape":"ResourceInUseException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Call this operation from your consumer after you call <a>RegisterStreamConsumer</a> to register the consumer with Kinesis Data Streams. If the call succeeds, your consumer starts receiving events of type <a>SubscribeToShardEvent</a> for up to 5 minutes, after which time you need to call <code>SubscribeToShard</code> again to renew the subscription if you want to continue to receive records.</p> <p>You can make one call to <code>SubscribeToShard</code> per second per <code>ConsumerARN</code>. If your call succeeds, and then you call the operation again less than 5 seconds later, the second call generates a <a>ResourceInUseException</a>. If you call the operation a second time more than 5 seconds after the first call succeeds, the second call succeeds and the first connection gets shut down.</p>"
+      "documentation":"<p>Call this operation from your consumer after you call <a>RegisterStreamConsumer</a> to register the consumer with Kinesis Data Streams. If the call succeeds, your consumer starts receiving events of type <a>SubscribeToShardEvent</a> for up to 5 minutes, after which time you need to call <code>SubscribeToShard</code> again to renew the subscription if you want to continue to receive records.</p> <p>You can make one call to <code>SubscribeToShard</code> per second per <code>ConsumerARN</code>. If your call succeeds, and then you call the operation again less than 5 seconds later, the second call generates a <code>ResourceInUseException</code>. If you call the operation a second time more than 5 seconds after the first call succeeds, the second call succeeds and the first connection gets shut down.</p>"
     },
     "UpdateShardCount":{
       "name":"UpdateShardCount",
@@ -964,6 +962,14 @@
         }
       },
       "documentation":"<p>Represents the input for <a>IncreaseStreamRetentionPeriod</a>.</p>"
+    },
+    "InternalFailureException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "exception":true,
+      "fault":true
     },
     "InvalidArgumentException":{
       "type":"structure",
@@ -1678,10 +1684,20 @@
       "type":"structure",
       "required":["Type"],
       "members":{
-        "Type":{"shape":"ShardIteratorType"},
-        "SequenceNumber":{"shape":"SequenceNumber"},
-        "Timestamp":{"shape":"Timestamp"}
-      }
+        "Type":{
+          "shape":"ShardIteratorType",
+          "documentation":"<p/>"
+        },
+        "SequenceNumber":{
+          "shape":"SequenceNumber",
+          "documentation":"<p/>"
+        },
+        "Timestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p/>"
+        }
+      },
+      "documentation":"<p/>"
     },
     "StopStreamEncryptionInput":{
       "type":"structure",
@@ -1862,15 +1878,28 @@
           "documentation":"<p>The number of milliseconds the read records are from the tip of the stream, indicating how far behind current time the consumer is. A value of zero indicates that record processing is caught up, and there are no new records to process at this moment.</p>"
         }
       },
-      "documentation":"<p>After you call <a>SubscribeToShard</a>, Kinesis Data Streams sends events of this type to your consumer. </p>",
+      "documentation":"<p>After you call <a>SubscribeToShard</a>, Kinesis Data Streams sends events of this type to your consumer.</p>",
       "event":true
     },
     "SubscribeToShardEventStream":{
       "type":"structure",
       "required":["SubscribeToShardEvent"],
       "members":{
-        "SubscribeToShardEvent":{"shape":"SubscribeToShardEvent"}
+        "SubscribeToShardEvent":{
+          "shape":"SubscribeToShardEvent",
+          "documentation":"<p>After you call <a>SubscribeToShard</a>, Kinesis Data Streams sends events of this type to your consumer. For an example of how to handle these events, see <a href=\"/streams/latest/dev/building-enhanced-consumers-api.html\">Enhanced Fan-Out Using the Kinesis Data Streams API</a>.</p>"
+        },
+        "ResourceNotFoundException":{"shape":"ResourceNotFoundException"},
+        "ResourceInUseException":{"shape":"ResourceInUseException"},
+        "KMSDisabledException":{"shape":"KMSDisabledException"},
+        "KMSInvalidStateException":{"shape":"KMSInvalidStateException"},
+        "KMSAccessDeniedException":{"shape":"KMSAccessDeniedException"},
+        "KMSNotFoundException":{"shape":"KMSNotFoundException"},
+        "KMSOptInRequired":{"shape":"KMSOptInRequired"},
+        "KMSThrottlingException":{"shape":"KMSThrottlingException"},
+        "InternalFailureException":{"shape":"InternalFailureException"}
       },
+      "documentation":"<p>This is a tagged union for all of the types of events an enhanced fan-out consumer can receive after a call to <a>SubscribeToShard</a>.</p>",
       "eventstream":true
     },
     "SubscribeToShardInput":{
@@ -1889,7 +1918,10 @@
           "shape":"ShardId",
           "documentation":"<p>The ID of the shard you want to subscribe to. To see a list of all the shards for a given stream, use <a>ListShards</a>.</p>"
         },
-        "StartingPosition":{"shape":"StartingPosition"}
+        "StartingPosition":{
+          "shape":"StartingPosition",
+          "documentation":"<p/>"
+        }
       }
     },
     "SubscribeToShardOutput":{
