@@ -385,7 +385,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         String expectedErrorMsg = "Maximum pending connection acquisitions exceeded.";
 
         SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
-                                                                 .maxConnectionsPerEndpoint(1)
+                                                                 .maxConcurrency(1)
                                                                  .maxPendingConnectionAcquires(1)
                                                                  .build();
 
@@ -407,7 +407,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                   + "cannot get a connection from the pool within the specified maximum time.";
 
         SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
-                                                                 .maxConnectionsPerEndpoint(1)
+                                                                 .maxConcurrency(1)
                                                                  .connectionTimeout(Duration.ofMillis(1))
                                                                  .connectionAcquisitionTimeout(Duration.ofMillis(1))
                                                                  .build();

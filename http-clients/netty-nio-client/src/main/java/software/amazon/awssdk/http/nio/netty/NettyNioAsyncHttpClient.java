@@ -121,12 +121,10 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         try {
             return SslContextBuilder.forClient()
                                     .sslProvider(SslContext.defaultClientProvider())
-                                    // TODO this seems to work fine with H1 too but confirm
                                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                                     .trustManager(getTrustManager())
                                     .build();
         } catch (SSLException e) {
-            // TODO is throwing the right thing here or should we notify the handler?
             throw new RuntimeException(e);
         }
     }
@@ -181,12 +179,20 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     public interface Builder extends SdkAsyncHttpClient.Builder<NettyNioAsyncHttpClient.Builder> {
 
         /**
-         * Max allowed connections per endpoint allowed in the connection pool.
+         * Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections. For HTTP/2
+         * the number of connections that will be used depends on the max streams allowed per connection.
          *
-         * @param maxConnectionsPerEndpoint New value for max connections per endpoint.
+         * <p>
+         * If the maximum number of concurrent requests is exceeded they may be queued in the HTTP client (see
+         * {@link #maxPendingConnectionAcquires(Integer)}</p>) and can cause increased latencies. If the client is overloaded
+         * enough such that the pending connection queue fills up, subsequent requests may be rejected or time out
+         * (see {@link #connectionAcquisitionTimeout(Duration)}).
+         * </p>
+         *
+         * @param maxConcurrency New value for max concurrency.
          * @return This builder for method chaining.
          */
-        Builder maxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint);
+        Builder maxConcurrency(Integer maxConcurrency);
 
         /**
          * The maximum number of pending acquires allowed. Once this exceeds, acquire tries will be failed.
@@ -291,17 +297,17 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         /**
          * Max allowed connections per endpoint allowed in the connection pool.
          *
-         * @param maxConnectionsPerEndpoint New value for max connections per endpoint.
+         * @param maxConcurrency New value for max connections per endpoint.
          * @return This builder for method chaining.
          */
         @Override
-        public Builder maxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint) {
-            standardOptions.put(MAX_CONNECTIONS, maxConnectionsPerEndpoint);
+        public Builder maxConcurrency(Integer maxConcurrency) {
+            standardOptions.put(MAX_CONNECTIONS, maxConcurrency);
             return this;
         }
 
-        public void setMaxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint) {
-            maxConnectionsPerEndpoint(maxConnectionsPerEndpoint);
+        public void setMaxConcurrency(Integer maxConnectionsPerEndpoint) {
+            maxConcurrency(maxConnectionsPerEndpoint);
         }
 
         /**
