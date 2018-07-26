@@ -57,7 +57,6 @@ public class SdkHttp2FrameLogger extends Http2FrameLogger {
         log("{} SETTINGS: ack=false settings={}", direction.name(), settings);
     }
 
-
     @Override
     public void logPing(Direction direction, ChannelHandlerContext ctx, long data) {
         log("{} PING: ack=false length={}", direction.name(), data);
@@ -133,9 +132,14 @@ public class SdkHttp2FrameLogger extends Http2FrameLogger {
     @Override
     public void logData(Direction direction, ChannelHandlerContext ctx, int streamId,
                         ByteBuf data, int padding, boolean endStream) {
-        log("{} DATA: streamId={} padding={} endStream={} length={}\n{}",
-            direction, streamId, padding, endStream, data.nioBuffer().remaining(),
-            dataToString(direction, data));
+        if (log.isTraceEnabled()) {
+            log.trace("{} DATA: streamId={} padding={} endStream={} length={}\n{}",
+                      direction, streamId, padding, endStream, data.nioBuffer().remaining(),
+                      dataToString(direction, data));
+        } else {
+            log("{} DATA: streamId={} padding={} endStream={} length={}\n",
+                direction, streamId, padding, endStream, data.nioBuffer().remaining());
+        }
     }
 
     private void log(String msg, Object... args) {
@@ -143,14 +147,18 @@ public class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     private String dataToString(Direction direction, ByteBuf data) {
-        // StringBuilder builder = new StringBuilder(indentArrow(direction));
-        // for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
-        //     builder.append(String.format("0x%02X", b))
-        //            .append(" ");
-        // }
-        // return builder.toString();
-        // TODO ?
         return indentArrow(direction) + " " +
                new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * @return Http2FrameLogger if debug logs are enabled, otherwise null.
+     */
+    public static Http2FrameLogger frameLogger() {
+        if (log.isDebugEnabled()) {
+            return new SdkHttp2FrameLogger(LogLevel.DEBUG);
+        } else {
+            return null;
+        }
     }
 }

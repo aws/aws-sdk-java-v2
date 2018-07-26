@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 
@@ -47,13 +46,22 @@ public final class MultiplexedChannelRecord {
     private final Future<Channel> connectionFuture;
     private final Map<ChannelId, Channel> childChannels;
     private final AtomicLong availableStreams;
+    private final BiConsumer<Channel, MultiplexedChannelRecord> channelReleaser;
 
     private volatile Channel connection;
 
-    MultiplexedChannelRecord(Future<Channel> connectionFuture, long maxConcurrencyPerConnection) {
+    /**
+     * @param connectionFuture Future for parent socket channel.
+     * @param maxConcurrencyPerConnection Max streams allowed per connection.
+     * @param channelReleaser Method to release a channel and record on failure.
+     */
+    MultiplexedChannelRecord(Future<Channel> connectionFuture,
+                             long maxConcurrencyPerConnection,
+                             BiConsumer<Channel, MultiplexedChannelRecord> channelReleaser) {
         this.connectionFuture = connectionFuture;
         this.availableStreams = new AtomicLong(maxConcurrencyPerConnection);
         this.childChannels = new ConcurrentHashMap<>(saturatedCast(maxConcurrencyPerConnection));
+        this.channelReleaser = channelReleaser;
     }
 
     MultiplexedChannelRecord acquire(Promise<Channel> channelPromise) {
@@ -64,9 +72,11 @@ public final class MultiplexedChannelRecord {
             connectionFuture.addListener((GenericFutureListener<Future<Channel>>) future -> {
                 if (future.isSuccess()) {
                     connection = future.getNow();
+                    connection.attr(CHANNEL_POOL_RECORD).set(this);
                     createChildChannel(channelPromise, connection);
                 } else {
                     channelPromise.setFailure(future.cause());
+                    channelReleaser.accept(connection, this);
                 }
             });
         }
@@ -97,8 +107,6 @@ public final class MultiplexedChannelRecord {
     }
 
     private void createChildChannel0(Promise<Channel> channelPromise, Channel parentChannel) {
-        // Set a reference to the MultiplexedChannelRecord so we can get it when a channel is released back to the pool
-        parentChannel.attr(CHANNEL_POOL_RECORD).set(this);
         // Once protocol future is notified then parent pipeline is configured and ready to go
         parentChannel.attr(PROTOCOL_FUTURE).get()
                      .whenComplete(asyncPromiseNotifyingBiConsumer(bootstrapChildChannel(parentChannel), channelPromise));
@@ -113,19 +121,23 @@ public final class MultiplexedChannelRecord {
     private BiConsumer<Protocol, Promise<Channel>> bootstrapChildChannel(Channel parentChannel) {
         return (s, p) -> new ForkedHttp2StreamChannelBootstrap(parentChannel)
             .open()
-            .addListener(promiseNotifyingListener(p))
             .addListener((GenericFutureListener<Future<Http2StreamChannel>>) future -> {
                 if (future.isSuccess()) {
                     Http2StreamChannel channel = future.getNow();
                     childChannels.put(channel.id(), channel);
+                } else {
+                    if (!connection.isActive()) {
+                        channelReleaser.accept(connection, this);
+                    }
+                    availableStreams.incrementAndGet();
                 }
-            });
+            })
+            .addListener(promiseNotifyingListener(p));
     }
 
-    MultiplexedChannelRecord release(Channel channel) {
+    void release(Channel channel) {
         availableStreams.incrementAndGet();
         childChannels.remove(channel.id());
-        return this;
     }
 
     long availableStreams() {

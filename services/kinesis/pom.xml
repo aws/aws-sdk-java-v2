@@ -56,4 +56,13 @@
         </pluginManagement>
     </build>
 
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon</groupId>
+            <artifactId>flow</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
 </project>
