@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>codegen-generated-classes-test</artifactId>
-    <name>AWS Java SDK :: Codegen Generated Classes Test</name>
+    <name>AWS Java SDK :: Test :: Codegen Generated Classes Test</name>
     <description>
         Tests for code generated classes.
     </description>
@@ -173,15 +173,6 @@
                 <configuration>
                     <skip>true</skip>
                 </configuration>
-            </plugin>
-            <!-- Disable maven release. -->
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <configuration>
-                    <skipStaging>true</skipStaging>
-                </configuration>
-                <version>${nexus-staging-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
