@@ -182,6 +182,13 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections. For HTTP/2
          * the number of connections that will be used depends on the max streams allowed per connection.
          *
+         * <p>
+         * If the maximum number of concurrent requests is exceeded they may be queued in the HTTP client (see
+         * {@link #maxPendingConnectionAcquires(Integer)}</p>) and can cause increased latencies. If the client is overloaded
+         * enough such that the pending connection queue fills up, subsequent requests may be rejected or time out
+         * (see {@link #connectionAcquisitionTimeout(Duration)}).
+         * </p>
+         *
          * @param maxConcurrency New value for max concurrency.
          * @return This builder for method chaining.
          */

@@ -23,6 +23,7 @@ import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -152,13 +153,9 @@ public class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     /**
-     * @return Http2FrameLogger if debug logs are enabled, otherwise null.
+     * @return Http2FrameLogger if debug logs are enabled, otherwise empty {@link Optional}.
      */
-    public static Http2FrameLogger frameLogger() {
-        if (log.isDebugEnabled()) {
-            return new SdkHttp2FrameLogger(LogLevel.DEBUG);
-        } else {
-            return null;
-        }
+    public static Optional<Http2FrameLogger> frameLogger() {
+        return log.isDebugEnabled() ? Optional.of(new SdkHttp2FrameLogger(LogLevel.DEBUG)) : Optional.empty();
     }
 }

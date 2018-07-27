@@ -42,12 +42,6 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.2</version>
                 <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Multi-Release>true</Multi-Release>
-                            <Main-Class>com.example.Main</Main-Class>
-                        </manifestEntries>
-                    </archive>
                     <finalName>aws-flow-java</finalName>
                 </configuration>
             </plugin>
