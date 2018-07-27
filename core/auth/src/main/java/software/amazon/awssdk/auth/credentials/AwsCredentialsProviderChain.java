@@ -20,11 +20,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -46,7 +45,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class AwsCredentialsProviderChain implements AwsCredentialsProvider, SdkAutoCloseable {
-    private static final Logger log = LoggerFactory.getLogger(AwsCredentialsProviderChain.class);
+    private static final Logger log = Logger.loggerFor(AwsCredentialsProviderChain.class);
 
     private final List<AwsCredentialsProvider> credentialsProviders;
 
@@ -91,14 +90,15 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
             try {
                 AwsCredentials credentials = provider.resolveCredentials();
 
-                log.debug("Loading credentials from {}", provider.toString());
+                log.debug(() -> "Loading credentials from " + provider);
 
                 lastUsedProvider = provider;
                 return credentials;
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
                 String message = provider + ": " + e.getMessage();
-                log.debug("Unable to load credentials from " + message, e);
+                log.debug(() -> "Unable to load credentials from " + message , e);
+
                 if (exceptionMessages == null) {
                     exceptionMessages = new ArrayList<>();
                 }

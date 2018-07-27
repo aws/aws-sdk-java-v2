@@ -37,9 +37,9 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
-public class EndpointAddressInterceptor implements ExecutionInterceptor {
+public final class EndpointAddressInterceptor implements ExecutionInterceptor {
 
-    private static List<Class<?>> ACCELERATE_DISABLED_OPERATIONS = Arrays.asList(
+    private static final List<Class<?>> ACCELERATE_DISABLED_OPERATIONS = Arrays.asList(
             ListBucketsRequest.class, CreateBucketRequest.class, DeleteBucketRequest.class);
 
     @Override
