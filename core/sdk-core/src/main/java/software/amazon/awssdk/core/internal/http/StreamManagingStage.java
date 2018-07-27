@@ -22,8 +22,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -32,6 +30,7 @@ import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.io.ResettableInputStream;
 import software.amazon.awssdk.core.io.SdkBufferedInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Instruments the request input stream for both retry purposes (to allow for mark/reset) and progress reporting. Handles
@@ -42,7 +41,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @SdkInternalApi
 public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, Response<OutputT>> {
 
-    private static final Logger log = LoggerFactory.getLogger(StreamManagingStage.class);
+    private static final Logger log = Logger.loggerFor(StreamManagingStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
 
@@ -58,7 +57,7 @@ public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHt
                                    context);
         } finally {
             // Always close so any progress tracking would get the final events propagated.
-            toBeClosed.ifPresent(i -> closeQuietly(i, log));
+            toBeClosed.ifPresent(i -> closeQuietly(i, log.logger()));
         }
     }
 
@@ -97,9 +96,7 @@ public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHt
                 // ResettableInputStream supports mark-and-reset without memory buffering
                 return new ResettableInputStream((FileInputStream) content);
             } catch (IOException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("For the record; ignore otherwise", e);
-                }
+                log.debug(() -> "For the record; ignore otherwise", e);
             }
         }
         return content;

@@ -83,10 +83,10 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
      * @throws IOException If any problems were encountered reading the response contents from
      *                     the HTTP method object.
      */
-    @SuppressWarnings("deprecation")
     private OutputT handleSuccessResponse(HttpResponse httpResponse, RequestExecutionContext context)
             throws IOException, InterruptedException {
         try {
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + httpResponse.getStatusCode());
             return successResponseHandler.handle(httpResponse, context.executionAttributes());
         } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
@@ -138,5 +138,4 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
                     .ifPresent(s -> IoUtils.closeQuietly(s, log));
         }
     }
-
 }
