@@ -24,13 +24,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A wrapper class of InputStream that implements chunked-encoding.
@@ -46,7 +45,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
     private static final String CHUNK_SIGNATURE_HEADER = ";chunk-signature=";
     private static final int SIGNATURE_LENGTH = 64;
     private static final byte[] FINAL_CHUNK = new byte[0];
-    private static final Logger log = LoggerFactory.getLogger(AwsChunkedEncodingInputStream.class);
+    private static final Logger log = Logger.loggerFor(AwsChunkedEncodingInputStream.class);
 
     private InputStream is = null;
     private final int maxBufferSize;
@@ -140,9 +139,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
         byte[] tmp = new byte[1];
         int count = read(tmp, 0, 1);
         if (count != -1) {
-            if (log.isDebugEnabled()) {
-                log.debug("One byte read from the stream.");
-            }
+            log.debug(() -> "One byte read from the stream.");
             int unsignedByte = (int) tmp[0] & 0xFF;
             return unsignedByte;
         } else {
@@ -172,9 +169,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
         int count = currentChunkIterator.read(b, off, len);
         if (count > 0) {
             isAtStart = false;
-            if (log.isTraceEnabled()) {
-                log.trace(count + " byte read from the stream.");
-            }
+            log.trace(() -> count + " byte read from the stream.");
         }
         return count;
     }
@@ -215,16 +210,12 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
             throw new UnsupportedOperationException("Chunk-encoded stream only supports mark() at the start of the stream.");
         }
         if (is.markSupported()) {
-            if (log.isDebugEnabled()) {
-                log.debug("AwsChunkedEncodingInputStream marked at the start of the stream "
-                        + "(will directly mark the wrapped stream since it's mark-supported).");
-            }
+            log.debug(() -> "AwsChunkedEncodingInputStream marked at the start of the stream "
+                            + "(will directly mark the wrapped stream since it's mark-supported).");
             is.mark(readlimit);
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("AwsChunkedEncodingInputStream marked at the start of the stream "
-                        + "(initializing the buffer since the wrapped stream is not mark-supported).");
-            }
+            log.debug(() -> "AwsChunkedEncodingInputStream marked at the start of the stream "
+                            + "(initializing the buffer since the wrapped stream is not mark-supported).");
             decodedStreamBuffer = new DecodedStreamBuffer(maxBufferSize);
         }
     }
@@ -242,15 +233,11 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
         // Reset the wrapped stream if it is mark-supported,
         // otherwise use our buffered data.
         if (is.markSupported()) {
-            if (log.isDebugEnabled()) {
-                log.debug("AwsChunkedEncodingInputStream reset "
-                        + "(will reset the wrapped stream because it is mark-supported).");
-            }
+            log.debug(() -> "AwsChunkedEncodingInputStream reset "
+                            + "(will reset the wrapped stream because it is mark-supported).");
             is.reset();
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("AwsChunkedEncodingInputStream reset (will use the buffer of the decoded stream).");
-            }
+            log.debug(() -> "AwsChunkedEncodingInputStream reset (will use the buffer of the decoded stream).");
             if (null == decodedStreamBuffer) {
                 throw new IOException("Cannot reset the stream because the mark is not set.");
             }

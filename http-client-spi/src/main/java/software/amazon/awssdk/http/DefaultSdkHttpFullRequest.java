@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -147,6 +148,19 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
                 .method(httpMethod)
                 .headers(headers)
                 .content(content);
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultSdkHttpFullRequest")
+                       .add("httpMethod", httpMethod)
+                       .add("protocol", protocol)
+                       .add("host", host)
+                       .add("port", port)
+                       .add("encodedPath", path)
+                       .add("headers", headers.keySet())
+                       .add("queryParameters", queryParameters.keySet())
+                       .build();
     }
 
     /**
