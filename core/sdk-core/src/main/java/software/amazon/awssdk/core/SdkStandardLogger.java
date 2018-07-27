@@ -30,5 +30,11 @@ public final class SdkStandardLogger {
      */
     public static final Logger REQUEST_LOGGER = Logger.loggerFor("software.amazon.awssdk.request");
 
+    /**
+     * Logger used for the purpose of logging the request id extracted either from the
+     * http response header or from the response body.
+     */
+    public static final Logger REQUEST_ID_LOGGER = Logger.loggerFor("software.amazon.awssdk.requestId");
+
     private SdkStandardLogger() {}
 }

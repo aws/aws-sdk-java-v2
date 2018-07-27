@@ -30,8 +30,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -42,6 +40,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.util.NamespaceRemovingInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.XmlUtils;
 
 /**
@@ -67,7 +66,7 @@ public final class XpathUtils {
     /** The FQCN of the desired DTMManager implementation. */
     private static final String DTM_MANAGER_IMPL_CLASS_NAME = "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault";
 
-    private static final Logger log = LoggerFactory.getLogger(XpathUtils.class);
+    private static final Logger log = Logger.loggerFor(XpathUtils.class);
 
     /**
      * Shared factory for creating XML Factory
@@ -78,9 +77,7 @@ public final class XpathUtils {
 
         @Override
         public void warning(SAXParseException e) throws SAXException {
-            if (log.isDebugEnabled()) {
-                log.debug("xml parse warning: " + e.getMessage(), e);
-            }
+            log.debug(() -> "xml parse warning: " + e.getMessage(), e);
         }
 
         @Override
@@ -90,9 +87,7 @@ public final class XpathUtils {
 
         @Override
         public void error(SAXParseException e) throws SAXException {
-            if (log.isDebugEnabled()) {
-                log.debug("xml parse error: " + e.getMessage(), e);
-            }
+            log.debug(() -> "xml parse error: " + e.getMessage(), e);
         }
     };
 
@@ -102,12 +97,12 @@ public final class XpathUtils {
         try {
             speedUpDcoumentBuilderFactory();
         } catch (Throwable t) {
-            log.debug("Ingore failure in speeding up DocumentBuilderFactory", t);
+            log.debug(() -> "Ingore failure in speeding up DocumentBuilderFactory", t);
         }
         try {
             speedUpDtmManager();
         } catch (Throwable t) {
-            log.debug("Ingore failure in speeding up DTMManager", t);
+            log.debug(() -> "Ingore failure in speeding up DTMManager", t);
         }
     }
 
@@ -479,7 +474,7 @@ public final class XpathUtils {
         try {
             return Date.from(DateUtils.parseIso8601Date(dateString));
         } catch (Exception e) {
-            log.warn("Unable to parse date '" + dateString + "':  " + e.getMessage(), e);
+            log.warn(() -> "Unable to parse date '" + dateString + "':  " + e.getMessage(), e);
             return null;
         }
     }
