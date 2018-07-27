@@ -145,7 +145,8 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <sourcepath>${basedir}/../core/sdk-core/src</sourcepath>
+                            <sourcepath>${basedir}/../core/profiles/src/main/java/software/amazon/awssdk/profiles;${basedir}/../core/sdk-core/src/main/java/software/amazon/awssdk/core</sourcepath>
+                            <failOnError>false</failOnError>
                         </configuration>
                     </plugin>
                 </plugins>
