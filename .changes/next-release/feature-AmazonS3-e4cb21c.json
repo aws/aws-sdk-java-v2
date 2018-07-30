@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "feature", 
-    "description": "Move `AWSS3V4Signer` to auth module."
-}

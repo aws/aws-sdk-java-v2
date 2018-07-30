@@ -1,5 +1,0 @@
-{
-    "category": "Amazon DynamoDB Streams", 
-    "type": "feature", 
-    "description": "Dynamodb Streams clients are now in `software.amazon.awssdk.services.dynamodb.streams` package."
-}
