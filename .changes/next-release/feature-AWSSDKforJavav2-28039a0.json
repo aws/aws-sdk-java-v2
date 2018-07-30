@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Modules (annotations, auth, sdk-core, aws-core, profiles, regions) are refactored under the core module."
-}

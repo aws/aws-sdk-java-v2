@@ -1,5 +1,0 @@
-{
-    "category": "Amazon DynamoDB", 
-    "type": "feature", 
-    "description": "Add default DynamoDB specific retry policy."
-}

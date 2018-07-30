@@ -1,3 +1,54 @@
+# __2.0.0-preview-11__ __2018-07-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - - Updated `AwsCredentials` to interface implemented by `AwsBasicCredentials` and `AwsSessionCredentials` - Renamed `AwsCredentialsProvider.getCredentials()` to `AwsCredentialsProvider.resolveCredentials()`.
+    - Accept `SdkBytes` and `byte[]` instead of `ByteBuffer` in generated setters.
+    - Add support to disable EC2 instance metadata service usage via environment variable and system property. [#430](https://github.com/aws/aws-sdk-java-v2/issues/430)
+    - Caching `XPathFactory` to improve performance of exception handling for services using XML protocol
+    - Exceptions use builders and are immutable.
+    - Incorporate the [Reactive Streams Technology Compatibility Kit](https://github.com/reactive-streams/reactive-streams-jvm/tree/master/tck) and ensure current implementations are compliant. [#519](https://github.com/aws/aws-sdk-java-v2/issues/519)
+    - Modules (annotations, auth, sdk-core, aws-core, profiles, regions) are refactored under the core module.
+    - Refactor signer interfaces to be independent from Amazon/AWS specific classes. Signer interfaces expose a sign method that takes in the request to sign and ExecutionAttributes instance. Parameters needed for signing are to be passed through ExecutionAttributes. SDK signer implementations have overloaded sign methods that can take either generic ExecutionAttributes or modeled params classes as convenience for customers.
+    - Region class clean up including the following: - Flattened GovCloud - Renamed `Region.value()` to `Region.id()` - Dropped `get` prefix in the method names. eg: `getRegions()` -> `regions()`
+    - Renamed all non-service enums to be singular, not plural.
+    - Renaming `SdkBuilder.apply()` -> `SdkBuilder.applyMutation()` and renaming `ResponseTransformer.apply()` to `ResponseTransformer.transform()`.
+    - Return `SdkBytes` instead of `ByteBuffer` from generated getters.
+    - Update all service models to follow V2 naming convention. eg: `WAFException` -> `WafException`
+    - Update service name in clients, requests and exceptions to match 2.0 naming conventions (eg. DynamoDBClient -> DynamoDbClient)
+    - Various AsyncClient Refactors:\n - Drop async prefix in `SdkAyncClientBuilder`: `SdkAsyncClientBuilder.asyncHttpClientBuilder() -> SdkAsyncClientBuilder.httpClientBuilder()`\n - Create `SdkEventLoopGroup` to allow users to provide `EventLoopGroup` and `ChannelFactory`.
+
+  - ### Deprecations
+    - Deprecating `QueryStringSigner` in favor of `Aws4Signer`.
+
+  - ### Removals
+    - Make paginators resume method private.(We will re-add the feature in the future)
+    - Removing gzipEnabled client configuration.
+
+## __AWS WAF Regional__
+  - ### Features
+    - AWS Waf Regional clients are now in `software.amazon.awssdk.services.waf.regional` package.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add default DynamoDB specific retry policy.
+    - Update DynamoDB default max retry count to 8. Related to [#431](https://github.com/aws/aws-sdk-java-v2/issues/431)
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Dynamodb Streams clients are now in `software.amazon.awssdk.services.dynamodb.streams` package.
+
+## __Amazon S3__
+  - ### Features
+    - Move `AWSS3V4Signer` to auth module.
+
+## __Netty NIO Async HTTP Client__
+  - ### Bugfixes
+    - Fix the Netty async client to stop publishing to the request stream once `Content-Length` is reached.
+
+## __runtime__
+  - ### Features
+    - upgrade Netty 4.1.22.Final to Netty 4.1.26.Final
+
 # __2.0.0-preview-10__ __2018-05-25__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -11,11 +62,11 @@
     - Renamed "Bytes" overload for streaming operations to "AsBytes", and "String" overload for enums to "AsString"
     - Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody
     - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
-    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
-    - Updating default retry policy to include newly added conditions.
     - Renamed `AdvancedServiceConfiguration` to `ServiceConfiguration`
     - Renamed `RequestOverrideConfig` to `RequestOverrideConfiguration` to match `ClientOverrideConfiguration` naming.
     - Simplified configuration of HTTP clients.
+    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
+    - Updating default retry policy to include newly added conditions.
 
   - ### Removals
     - Remove httpRequestTimeout and totalExecutionTimeout features
@@ -23,11 +74,11 @@
 ## __AWS Secrets Manager__
   - ### Features
     - Add AWS Secrets Manager to v2.
-    
+
 ## __Amazon S3__
   - ### Features
     - Renamed `S3AdvancedConfiguration` to `S3Configuration`
-    
+
 # __2.0.0-preview-9__ __2018-03-20__
 ## __AWS Lambda__
   - ### Features
@@ -276,29 +327,6 @@
     - The Netty NIO HTTP client now uses a shared event loop group for better resource management. More options for customizing the event loop group are now available.
     - Using java.time instead of the legacy java.util.Date in generated model classes.
     - Various improvements to the immutability of model POJOs. ByteBuffers are now copied and collections are returned as unmodifiable.
-
-# __2.0.0-preview-10__ __2018-05-25__
-## __AWS SDK for Java v2__
-  - ### Features
-    - Add [SdkHttpResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpResponse.java) to [SdkResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/core/SdkResponse.java) so that customers can retrieve Http data such as headers, status code from the response object.
-    - Add a standard User-Agent when making requests to the metadata service.  User-Agent pattern: aws-sdk-java/<version>
-    - Added Consumer<Builder>-style methods for all client overloads.
-    - Added Consumer<Builder>-style methods for vararg parameters.
-    - AsyncResponseTransformer byte array and string methods now match the sync model.
-    - Include root causes in the exception message from AWSCredentialsProviderChain to ease troubleshooting.
-    - Moved AWS specific retry policies to aws-core module, created AwsServiceException and moved isThrottlingException and isClockSkewException methods to SdkServiceException.
-    - Renamed "Bytes" overload for streaming operations to "AsBytes", and "String" overload for enums to "AsString"
-    - Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody
-    - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
-    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
-    - Updating default retry policy to include newly added conditions.
-
-  - ### Removals
-    - Remove httpRequestTimeout and totalExecutionTimeout features
-
-## __AWS Secrets Manager__
-  - ### Features
-    - Add AWS Secrets Manager to v2.
 
 # __2.0.0-preview-1__ __2017-06-28__
 ## __AWS SDK for Java v2__
