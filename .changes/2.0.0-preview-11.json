@@ -1,0 +1,131 @@
+{
+  "date": "2018-07-30",
+  "version": "2.0.0-preview-11",
+  "entries": [
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Modules (annotations, auth, sdk-core, aws-core, profiles, regions) are refactored under the core module."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Region class clean up including the following: - Flattened GovCloud - Renamed `Region.value()` to `Region.id()` - Dropped `get` prefix in the method names. eg: `getRegions()` -> `regions()`"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Refactor signer interfaces to be independent from Amazon/AWS specific classes. Signer interfaces expose a sign method that takes in the request to sign and ExecutionAttributes instance. Parameters needed for signing are to be passed through ExecutionAttributes. SDK signer implementations have overloaded sign methods that can take either generic ExecutionAttributes or modeled params classes as convenience for customers."
+    },
+    {
+      "category": "AWS WAF Regional",
+      "type": "feature",
+      "description": "AWS Waf Regional clients are now in `software.amazon.awssdk.services.waf.regional` package."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Incorporate the [Reactive Streams Technology Compatibility Kit](https://github.com/reactive-streams/reactive-streams-jvm/tree/master/tck) and ensure current implementations are compliant. [#519](https://github.com/aws/aws-sdk-java-v2/issues/519)"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Various AsyncClient Refactors:\\n - Drop async prefix in `SdkAyncClientBuilder`: `SdkAsyncClientBuilder.asyncHttpClientBuilder() -> SdkAsyncClientBuilder.httpClientBuilder()`\\n - Create `SdkEventLoopGroup` to allow users to provide `EventLoopGroup` and `ChannelFactory`."
+    },
+    {
+      "category": "Amazon DynamoDB",
+      "type": "feature",
+      "description": "Add default DynamoDB specific retry policy."
+    },
+    {
+      "category": "Amazon S3",
+      "type": "feature",
+      "description": "Move `AWSS3V4Signer` to auth module."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Add support to disable EC2 instance metadata service usage via environment variable and system property. [#430](https://github.com/aws/aws-sdk-java-v2/issues/430)"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Update all service models to follow V2 naming convention. eg: `WAFException` -> `WafException`"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Renamed all non-service enums to be singular, not plural."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Caching `XPathFactory` to improve performance of exception handling for services using XML protocol"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Renaming `SdkBuilder.apply()` -> `SdkBuilder.applyMutation()` and renaming `ResponseTransformer.apply()` to `ResponseTransformer.transform()`."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "deprecation",
+      "description": "Deprecating `QueryStringSigner` in favor of `Aws4Signer`."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Accept `SdkBytes` and `byte[]` instead of `ByteBuffer` in generated setters."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Updated `AwsCredentials` to interface implemented by `AwsBasicCredentials` and `AwsSessionCredentials`. Renamed `AwsCredentialsProvider.getCredentials()` to `AwsCredentialsProvider.resolveCredentials()`."
+    },
+    {
+      "category": "Amazon DynamoDB Streams",
+      "type": "feature",
+      "description": "Dynamodb Streams clients are now in `software.amazon.awssdk.services.dynamodb.streams` package."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "removal",
+      "description": "Make paginators resume method private.(We will re-add the feature in the future)"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Exceptions use builders and are immutable."
+    },
+    {
+      "category": "Amazon DynamoDB",
+      "type": "feature",
+      "description": "Update DynamoDB default max retry count to 8. Related to [#431](https://github.com/aws/aws-sdk-java-v2/issues/431)"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Return `SdkBytes` instead of `ByteBuffer` from generated getters."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "upgrade Netty 4.1.22.Final to Netty 4.1.26.Final"
+    },
+    {
+      "category": "Netty NIO Async HTTP Client",
+      "type": "bugfix",
+      "description": "Fix the Netty async client to stop publishing to the request stream once `Content-Length` is reached."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Update service name in clients, requests and exceptions to match 2.0 naming conventions (eg. DynamoDBClient -> DynamoDbClient)"
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "removal",
+      "description": "Removing gzipEnabled client configuration."
+    }
+  ]
+}
