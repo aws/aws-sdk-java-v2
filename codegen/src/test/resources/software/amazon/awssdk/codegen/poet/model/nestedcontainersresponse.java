@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -14,8 +16,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class NestedContainersResponse extends JsonProtocolTestsResponse implements
-                                                                        ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
+public final class NestedContainersResponse extends JsonProtocolTestsResponse implements
+        ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
     private final List<List<String>> listOfListOfStrings;
 
     private final List<List<List<String>>> listOfListOfListOfStrings;
@@ -100,27 +102,27 @@ public class NestedContainersResponse extends JsonProtocolTestsResponse implemen
         }
         NestedContainersResponse other = (NestedContainersResponse) obj;
         return Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
-               && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
-               && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
+                && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
+                && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
     @Override
     public String toString() {
         return ToString.builder("NestedContainersResponse").add("ListOfListOfStrings", listOfListOfStrings())
-                       .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
-                       .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
+                .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
+                .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "ListOfListOfStrings":
-                return Optional.of(clazz.cast(listOfListOfStrings()));
-            case "ListOfListOfListOfStrings":
-                return Optional.of(clazz.cast(listOfListOfListOfStrings()));
-            case "MapOfStringToListOfListOfStrings":
-                return Optional.of(clazz.cast(mapOfStringToListOfListOfStrings()));
-            default:
-                return Optional.empty();
+        case "ListOfListOfStrings":
+            return Optional.ofNullable(clazz.cast(listOfListOfStrings()));
+        case "ListOfListOfListOfStrings":
+            return Optional.ofNullable(clazz.cast(listOfListOfListOfStrings()));
+        case "MapOfStringToListOfListOfStrings":
+            return Optional.ofNullable(clazz.cast(mapOfStringToListOfListOfStrings()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -169,15 +171,15 @@ public class NestedContainersResponse extends JsonProtocolTestsResponse implemen
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToListOfListOfStrings(
-            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
+                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
-        private List<List<String>> listOfListOfStrings;
+        private List<List<String>> listOfListOfStrings = DefaultSdkAutoConstructList.getInstance();
 
-        private List<List<List<String>>> listOfListOfListOfStrings;
+        private List<List<List<String>>> listOfListOfListOfStrings = DefaultSdkAutoConstructList.getInstance();
 
-        private Map<String, List<List<String>>> mapOfStringToListOfListOfStrings;
+        private Map<String, List<List<String>>> mapOfStringToListOfListOfStrings = DefaultSdkAutoConstructMap.getInstance();
 
         private BuilderImpl() {
         }
@@ -216,7 +218,7 @@ public class NestedContainersResponse extends JsonProtocolTestsResponse implemen
 
         @Override
         public final Builder listOfListOfListOfStrings(
-            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
             return this;
         }
@@ -229,7 +231,7 @@ public class NestedContainersResponse extends JsonProtocolTestsResponse implemen
         }
 
         public final void setListOfListOfListOfStrings(
-            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
         }
 
@@ -239,13 +241,13 @@ public class NestedContainersResponse extends JsonProtocolTestsResponse implemen
 
         @Override
         public final Builder mapOfStringToListOfListOfStrings(
-            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
             return this;
         }
 
         public final void setMapOfStringToListOfListOfStrings(
-            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
         }
 

@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.services.stepfunctions.builder.ErrorCodes;
+import software.amazon.awssdk.services.stepfunctions.builder.ErrorCode;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Catches an error from a {@link ParallelState} or a {@link TaskState} and transitions into the specified recovery state. The
@@ -32,10 +32,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class Catcher {
 
-    @JsonProperty(PropertyNames.ERROR_EQUALS)
+    @JsonProperty(PropertyName.ERROR_EQUALS)
     private final List<String> errorEquals;
 
-    @JsonProperty(PropertyNames.RESULT_PATH)
+    @JsonProperty(PropertyName.RESULT_PATH)
     private final String resultPath;
 
     @JsonUnwrapped
@@ -83,10 +83,10 @@ public final class Catcher {
      */
     public static final class Builder implements Buildable<Catcher> {
 
-        @JsonProperty(PropertyNames.ERROR_EQUALS)
+        @JsonProperty(PropertyName.ERROR_EQUALS)
         private List<String> errorEquals = new ArrayList<String>();
 
-        @JsonProperty(PropertyNames.RESULT_PATH)
+        @JsonProperty(PropertyName.RESULT_PATH)
         private String resultPath;
 
         private Transition.Builder transition = Transition.NULL_BUILDER;
@@ -113,7 +113,7 @@ public final class Catcher {
          */
         public Builder catchAll() {
             this.errorEquals.clear();
-            errorEquals(ErrorCodes.ALL);
+            errorEquals(ErrorCode.ALL);
             return this;
         }
 
@@ -136,7 +136,7 @@ public final class Catcher {
          * @param nextStateName Recovery state name.
          * @return This object for method chaining.
          */
-        @JsonProperty(PropertyNames.NEXT)
+        @JsonProperty(PropertyName.NEXT)
         private Builder nextStateName(String nextStateName) {
             return transition(NextStateTransition.builder().nextStateName(nextStateName));
         }

@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -32,11 +32,11 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.glacier.model.UploadArchiveRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -52,7 +52,7 @@ public class UploadArchiveHeaderTest {
     @Before
     public void setup() {
         glacier = GlacierClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
                 .build();
         request = UploadArchiveRequest.builder().vaultName("test").build();
@@ -69,7 +69,7 @@ public class UploadArchiveHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
         glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
-        verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
+        verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class UploadArchiveHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
 
-        request = (UploadArchiveRequest) request.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, "test")).build();
+        request = (UploadArchiveRequest) request.toBuilder().overrideConfiguration(b -> b.putHeader(CONTENT_TYPE, "test")).build();
         glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("test")));
     }

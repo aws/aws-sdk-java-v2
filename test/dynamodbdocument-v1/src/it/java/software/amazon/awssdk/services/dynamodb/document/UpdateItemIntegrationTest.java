@@ -31,7 +31,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.spec.GetItemSpec;
 import software.amazon.awssdk.services.dynamodb.document.utils.NameMap;
 import software.amazon.awssdk.services.dynamodb.document.utils.ValueMap;
@@ -58,7 +58,7 @@ public class UpdateItemIntegrationTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        DynamoDBClient client = DynamoDBClient.builder()
+        DynamoDbClient client = DynamoDbClient.builder()
                                               .credentialsProvider(AwsIntegrationTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                               .build();
         dynamoDb = new DynamoDb(client);

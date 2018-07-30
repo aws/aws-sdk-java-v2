@@ -40,7 +40,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse {
     private final Map<String, List<String>> headers;
     private final AbortableInputStream content;
 
-    DefaultSdkHttpFullResponse(Builder builder) {
+    private DefaultSdkHttpFullResponse(Builder builder) {
         Validate.isTrue(builder.statusCode > 0, "Status code must be positive.");
         this.statusCode = builder.statusCode;
         this.statusText = builder.statusText;
@@ -126,13 +126,16 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse {
         }
 
         @Override
-        public Builder header(String headerName, List<String> headerValues) {
+        public Builder putHeader(String headerName, List<String> headerValues) {
+            Validate.paramNotNull(headerName, "headerName");
+            Validate.paramNotNull(headerValues, "headerValues");
             this.headers.put(headerName, new ArrayList<>(headerValues));
             return this;
         }
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
+            Validate.paramNotNull(headers, "headers");
             this.headers = CollectionUtils.deepCopyMap(headers);
             return this;
         }

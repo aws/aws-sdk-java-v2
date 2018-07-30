@@ -15,10 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
-import static software.amazon.awssdk.core.retry.RetryUtils.isServiceException;
-import static software.amazon.awssdk.core.retry.RetryUtils.toServiceException;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 
@@ -37,20 +34,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.core.util.VersionInfo;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -163,7 +159,7 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
  * {@link CreateTableRequest} for the table represented by your annotated class.
  *
  * <pre class="brush: java">
- * DynamoDBClient dynamoDBClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dynamoDBClient = new AmazonDynamoDbClient();
  * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
  * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class);
  * // Table provision throughput is still required since it cannot be specified in your POJO
@@ -215,7 +211,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     private static final String USER_AGENT_BATCH_OPERATION_NAME =
             DynamoDbMapper.class.getName() + "_batch_operation";
     private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
-    private final DynamoDBClient db;
+    private final DynamoDbClient db;
     private final DynamoDbMapperModelFactory models;
     private final S3Link.Factory s3Links;
     private final AttributeTransformer transformer;
@@ -228,7 +224,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            The service object to use for all service calls.
      * @see DynamoDbMapperConfig#DEFAULT
      */
-    public DynamoDbMapper(final DynamoDBClient dynamoDb) {
+    public DynamoDbMapper(final DynamoDbClient dynamoDb) {
         this(dynamoDb, DynamoDbMapperConfig.DEFAULT, null, null);
     }
 
@@ -243,7 +239,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            be overridden on a per-operation basis.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config) {
 
         this(dynamoDb, config, null, null);
@@ -261,7 +257,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      * @see DynamoDbMapperConfig#DEFAULT
      */
     public DynamoDbMapper(
-            final DynamoDBClient ddb,
+            final DynamoDbClient ddb,
             final AwsCredentialsProvider s3CredentialProvider) {
 
         this(ddb, DynamoDbMapperConfig.DEFAULT, s3CredentialProvider);
@@ -281,7 +277,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            deserializing an object.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config,
             final AttributeTransformer transformer) {
 
@@ -302,7 +298,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            Relevant only if {@link S3Link} is involved.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config,
             final AwsCredentialsProvider s3CredentialProvider) {
 
@@ -325,7 +321,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            Relevant only if {@link S3Link} is involved.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config,
             final AttributeTransformer transformer,
             final AwsCredentialsProvider s3CredentialsProvider) {
@@ -777,26 +773,26 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     }
 
     static <X extends AwsRequest> X applyUserAgent(X request) {
-        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
-                .map(c -> c.toBuilder())
-                .orElse(AwsRequestOverrideConfig.builder())
-                .addApiName(apiName -> apiName.name(USER_AGENT_NAME).version(VersionInfo.SDK_VERSION))
-                .build();
+        final AwsRequestOverrideConfiguration newCfg = request.overrideConfiguration()
+                                                              .map(c -> c.toBuilder())
+                                                              .orElse(AwsRequestOverrideConfiguration.builder())
+                                                              .addApiName(apiName -> apiName.name(USER_AGENT_NAME).version(VersionInfo.SDK_VERSION))
+                                                              .build();
 
         return (X) request.toBuilder()
-                .requestOverrideConfig(newCfg)
+                .overrideConfiguration(newCfg)
                 .build();
     }
 
     static <X extends AwsRequest> X applyBatchOperationUserAgent(X request) {
-        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
-                                                       .map(c -> c.toBuilder())
-                                                       .orElse(AwsRequestOverrideConfig.builder())
-                                                       .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
-                                                       .build();
+        final AwsRequestOverrideConfiguration newCfg = request.overrideConfiguration()
+                                                              .map(c -> c.toBuilder())
+                                                              .orElse(AwsRequestOverrideConfiguration.builder())
+                                                              .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
+                                                              .build();
 
         return (X) request.toBuilder()
-                .requestOverrideConfig(newCfg)
+                .overrideConfiguration(newCfg)
                 .build();
     }
 
@@ -811,7 +807,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new SdkClientException(e.getMessage(), e);
+            throw SdkClientException.builder().message(e.getMessage()).cause(e).build();
         }
     }
 
@@ -836,7 +832,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
         rqBuilder.key(key);
         rqBuilder.tableName(tableName);
-        rqBuilder.consistentRead(config.getConsistentReads() == ConsistentReads.CONSISTENT);
+        rqBuilder.consistentRead(config.getConsistentRead() == ConsistentRead.CONSISTENT);
 
         GetItemRequest rq = rqBuilder.build();
 
@@ -1092,8 +1088,9 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
             if (conditionalExpression != null) {
                 if (!internalAssertions.isEmpty()) {
-                    throw new SdkClientException(
-                            "Condition Expressions cannot be used if a versioned attribute is present");
+                    throw SdkClientException.builder()
+                                            .message("Condition Expressions cannot be used if a versioned attribute is present")
+                                            .build();
                 }
 
                 req = req.toBuilder()
@@ -1300,7 +1297,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     @Override
     public Map<String, List<Object>> batchLoad(Iterable<? extends Object> itemsToGet, DynamoDbMapperConfig config) {
         config = mergeConfig(config);
-        boolean consistentReads = (config.getConsistentReads() == ConsistentReads.CONSISTENT);
+        boolean consistentReads = (config.getConsistentRead() == ConsistentRead.CONSISTENT);
 
         if (itemsToGet == null) {
             return new HashMap<>();
@@ -1527,7 +1524,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             scanResult = db.scan(applyUserAgent(scanRequest));
             count += scanResult.count();
             scanRequest = scanRequest.toBuilder().exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
-        } while (scanResult.lastEvaluatedKey() != null);
+        } while (!(scanResult.lastEvaluatedKey() instanceof SdkAutoConstructMap));
 
         return count;
     }
@@ -1546,7 +1543,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             queryResult = db.query(applyUserAgent(queryRequest));
             count += queryResult.count();
             queryRequest = queryRequest.toBuilder().exclusiveStartKey(queryResult.lastEvaluatedKey()).build();
-        } while (queryResult.lastEvaluatedKey() != null);
+        } while (!(queryResult.lastEvaluatedKey() instanceof SdkAutoConstructMap));
 
         return count;
     }
@@ -1923,7 +1920,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
         public BatchGetItemException(String message, Map<String, KeysAndAttributes> unprocessedKeys,
                                      Map<String, List<Object>> responses) {
-            super(message);
+            super(SdkClientException.builder().message(message));
             this.unprocessedKeys = unprocessedKeys;
             this.responses = responses;
         }

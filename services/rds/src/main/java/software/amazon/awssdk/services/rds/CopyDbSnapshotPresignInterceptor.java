@@ -15,35 +15,29 @@
 
 package software.amazon.awssdk.services.rds;
 
-import java.util.Date;
+import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.util.ImmutableObjectUtils;
-import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
-import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
+import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
+import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
 
 /**
- * Handler for pre-signing {@link CopyDBSnapshotRequest}.
+ * Handler for pre-signing {@link CopyDbSnapshotRequest}.
  */
-public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDBSnapshotRequest> {
+public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
 
     public CopyDbSnapshotPresignInterceptor() {
-        super(CopyDBSnapshotRequest.class);
+        super(CopyDbSnapshotRequest.class);
     }
 
     @SdkTestInternalApi
-    CopyDbSnapshotPresignInterceptor(Date signingOverrideDate) {
-        super(CopyDBSnapshotRequest.class, signingOverrideDate);
+    CopyDbSnapshotPresignInterceptor(Clock signingOverrideClock) {
+        super(CopyDbSnapshotRequest.class, signingOverrideClock);
     }
 
     @Override
-    protected PresignableRequest adaptRequest(final CopyDBSnapshotRequest originalRequest) {
+    protected PresignableRequest adaptRequest(final CopyDbSnapshotRequest originalRequest) {
         return new PresignableRequest() {
-            @Override
-            public void setPreSignedUrl(String preSignedUrl) {
-                ImmutableObjectUtils.setObjectMember(originalRequest, "preSignedUrl", preSignedUrl);
-            }
-
             @Override
             public String getSourceRegion() {
                 return originalRequest.sourceRegion();
@@ -51,7 +45,7 @@ public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<Copy
 
             @Override
             public Request<?> marshall() {
-                return new CopyDBSnapshotRequestMarshaller().marshall(originalRequest);
+                return new CopyDbSnapshotRequestMarshaller().marshall(originalRequest);
             }
         };
     }

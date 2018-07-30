@@ -15,9 +15,13 @@
 
 package software.amazon.awssdk.utils;
 
+import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
 import java.util.Locale;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * <p>Operations on {@link java.lang.String} that are
@@ -104,7 +108,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @see java.lang.String
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.core.util.StringUtils).")
-@SdkInternalApi
+@SdkProtectedApi
 public final class StringUtils {
     // Performance testing notes (JDK 1.4, Jul03, scolebourne)
     // Whitespace:
@@ -123,24 +127,9 @@ public final class StringUtils {
     // (not sure who tested this)
 
     /**
-     * A String for a space character.
-     */
-    public static final String SPACE = " ";
-
-    /**
      * The empty String {@code ""}.
      */
-    public static final String EMPTY = "";
-
-    /**
-     * Represents a failed index search.
-     */
-    public static final int INDEX_NOT_FOUND = -1;
-
-    /**
-     * <p>The maximum size to which the padding constant(s) can expand.</p>
-     */
-    private static final int PAD_LIMIT = 8192;
+    private static final String EMPTY = "";
 
     /**
      * <p>{@code StringUtils} instances should NOT be constructed in
@@ -237,11 +226,7 @@ public final class StringUtils {
      * {@code null}.</p>
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #strip(String)}.</p>
-     *
-     * <p>To trim your choice of characters, use the
-     * {@link #strip(String, String)} methods.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trim(null)          = null
@@ -264,8 +249,7 @@ public final class StringUtils {
      * empty ("") after the trim or if it is {@code null}.
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #stripToNull(String)}.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trimToNull(null)          = null
@@ -291,8 +275,7 @@ public final class StringUtils {
      * is empty ("") after the trim or if it is {@code null}.
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #stripToEmpty(String)}.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trimToEmpty(null)          = ""
@@ -583,5 +566,18 @@ public final class StringUtils {
             inOffset += Character.charCount(codepoint);
         }
         return new String(newCodePoints, 0, outOffset);
+    }
+
+    /**
+     * Encode the given bytes as a string using the given charset
+     * @throws UncheckedIOException with a {@link CharacterCodingException} as the cause if the bytes cannot be encoded using the
+     * provided charset.
+     */
+    public static String fromBytes(byte[] bytes, Charset charset) throws UncheckedIOException {
+        try {
+            return charset.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (CharacterCodingException e) {
+            throw new UncheckedIOException("Cannot encode string.", e);
+        }
     }
 }

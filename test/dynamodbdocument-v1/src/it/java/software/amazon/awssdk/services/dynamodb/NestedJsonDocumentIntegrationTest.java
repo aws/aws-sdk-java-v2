@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -52,12 +53,12 @@ public class NestedJsonDocumentIntegrationTest extends AwsTestBase {
      * http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html
      */
     private static final int MAX_JSON_PATH_DEPTH = 32;
-    private static DynamoDBClient ddb;
+    private static DynamoDbClient ddb;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        ddb = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        ddb = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
 
         ddb.createTable(CreateTableRequest.builder()
                 .tableName(TABLE)
@@ -127,7 +128,7 @@ public class NestedJsonDocumentIntegrationTest extends AwsTestBase {
 
     private int computeDepthOfNestedMapAttribute(AttributeValue mapAttr) {
         int depth = 0;
-        while (mapAttr != null && mapAttr.m() != null) {
+        while (mapAttr != null && mapAttr.m() != null && !(mapAttr.m() instanceof SdkAutoConstructMap)) {
             depth++;
             mapAttr = mapAttr.m().get(JSON_MAP_NESTED_KEY);
         }

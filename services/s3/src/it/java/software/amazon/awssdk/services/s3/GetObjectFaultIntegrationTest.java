@@ -26,11 +26,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -68,7 +68,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     public void handlerThrowsRetryableException_RetriedUpToLimit() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
-                    throw new RetryableException("");
+                    throw RetryableException.builder().build();
                 });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
                 .isInstanceOf(SdkClientException.class);
@@ -79,7 +79,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     public void handlerThrowsNonRetryableException_RequestNotRetried() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
-                    throw new NonRetryableException("");
+                    throw NonRetryableException.builder().build();
                 });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
                 .isInstanceOf(SdkClientException.class);
@@ -170,9 +170,9 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         }
 
         @Override
-        public ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
+        public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
             callCount.incrementAndGet();
-            return delegate.apply(response, inputStream);
+            return delegate.transform(response, inputStream);
         }
 
         @Override

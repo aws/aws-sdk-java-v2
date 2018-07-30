@@ -32,16 +32,16 @@ import org.junit.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
@@ -152,7 +152,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
             return ((GetObjectResponse) context.response())
                     .toBuilder()
-                    .metadata(ImmutableMapParameter.of("x-amz-assert", "injected-value"))
+                    .metadata(ImmutableMap.of("x-amz-assert", "injected-value"))
                     .build();
         }
     }

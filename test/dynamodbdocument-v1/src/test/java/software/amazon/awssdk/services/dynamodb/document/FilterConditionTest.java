@@ -20,10 +20,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
@@ -87,7 +87,7 @@ public class FilterConditionTest {
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
         Assert.assertEquals(ComparisonOperator.NOT_NULL, ddbscanFilter_value.comparisonOperator());
-        Assert.assertEquals(null, ddbscanFilter_value.attributeValueList());
+        Assert.assertTrue(ddbscanFilter_value.attributeValueList() instanceof SdkAutoConstructList);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class FilterConditionTest {
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
         Assert.assertEquals(ComparisonOperator.NULL, ddbscanFilter_value.comparisonOperator());
-        Assert.assertEquals(null, ddbscanFilter_value.attributeValueList());
+        Assert.assertTrue(ddbscanFilter_value.attributeValueList() instanceof SdkAutoConstructList);
     }
 
     @Test
@@ -268,9 +268,8 @@ public class FilterConditionTest {
     }
 
     @Test
-    @Ignore // FIXME: fails with "region cannot be null"
     public void testScanFilter_DuplicateAttribute() {
-        Table fakeTable = new Table(DynamoDBClient.builder().region(Region.US_WEST_2).build(), "fake-table");
+        Table fakeTable = new Table(DynamoDbClient.builder().region(Region.US_WEST_2).build(), "fake-table");
         try {
             fakeTable.scan(
                     new ScanFilter("foo").eq("bar"),

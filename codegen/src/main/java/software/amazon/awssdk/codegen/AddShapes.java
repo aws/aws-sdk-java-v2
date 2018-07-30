@@ -15,12 +15,8 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_DEFAULT_IMPL;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_INTERFACE;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_DEFAULT_IMPL;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_INTERFACE;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.getDataTypeMapping;
-import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
+import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.internal.Utils.isListShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isMapShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
@@ -128,8 +124,6 @@ abstract class AddShapes {
         final List<String> enumValues = shape.getEnumValues();
         if (enumValues != null && !enumValues.isEmpty()) {
             for (String enumValue : enumValues) {
-                // TODO handle useRealName if explicitly mentioned in
-                // the customization.
                 shapeModel.addEnum(
                         new EnumModel(getNamingStrategy().getEnumValueName(enumValue), enumValue));
             }
@@ -162,7 +156,7 @@ abstract class AddShapes {
 
         memberModel.withC2jName(c2jMemberName)
                    .withC2jShape(c2jShapeName)
-                   .withName(capitialize(c2jMemberName))
+                   .withName(capitalize(c2jMemberName))
                    .withVariable(new VariableModel(variableName, variableType, variableDeclarationType)
                                          .withDocumentation(c2jMemberDefinition.getDocumentation()))
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
@@ -172,7 +166,8 @@ abstract class AddShapes {
         memberModel
                 .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, c2jShape))
                 .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, c2jShape))
-                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName))
+                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, c2jShape))
+                .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, c2jShape))
                 .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName))
                 .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
@@ -301,11 +296,11 @@ abstract class AddShapes {
 
             MemberModel listMemberModel = generateMemberModel("member", listMemberDefinition, protocol,
                                                               memberC2jShape, c2jShapes);
-            final String listImpl = getDataTypeMapping(LIST_DEFAULT_IMPL);
+            final String listImpl = getDataTypeMapping(TypeUtils.TypeKey.LIST_DEFAULT_IMPL);
             memberModel.setListModel(
                     new ListModel(getTypeUtils().getJavaDataType(c2jShapes, listMemberC2jShapeName),
                                   memberC2jShape.getListMember().getLocationName(), listImpl,
-                                  getDataTypeMapping(LIST_INTERFACE), listMemberModel));
+                                  getDataTypeMapping(TypeUtils.TypeKey.LIST_INTERFACE), listMemberModel));
         } else if (isMapShape(memberC2jShape)) {
             Member mapKeyMemberDefinition = memberC2jShape.getMapKeyType();
             String mapKeyShapeName = mapKeyMemberDefinition.getShape();
@@ -320,7 +315,7 @@ abstract class AddShapes {
                                                           memberC2jShape, c2jShapes);
             MemberModel mapValueModel = generateMemberModel("value", mapValueMemberDefinition, protocol,
                                                             memberC2jShape, c2jShapes);
-            final String mapImpl = getDataTypeMapping(MAP_DEFAULT_IMPL);
+            final String mapImpl = getDataTypeMapping(TypeUtils.TypeKey.MAP_DEFAULT_IMPL);
 
             String keyLocation = memberC2jShape.getMapKeyType().getLocationName() != null ?
                     memberC2jShape.getMapKeyType().getLocationName() : "key";
@@ -329,7 +324,7 @@ abstract class AddShapes {
                     memberC2jShape.getMapValueType().getLocationName() : "value";
 
             memberModel.setMapModel(new MapModel(mapImpl,
-                                                 getDataTypeMapping(MAP_INTERFACE),
+                                                 getDataTypeMapping(TypeUtils.TypeKey.MAP_INTERFACE),
                                                  keyLocation,
                                                  mapKeyModel,
                                                  valueLocation,

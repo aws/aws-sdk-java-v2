@@ -23,7 +23,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolec2.ProtocolEc2Client;
@@ -41,7 +41,7 @@ public class Ec2ExceptionTests {
     @Before
     public void setupClient() {
         client = ProtocolEc2Client.builder()
-                                  .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                                  .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                   .region(Region.US_EAST_1)
                                   .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                   .build();

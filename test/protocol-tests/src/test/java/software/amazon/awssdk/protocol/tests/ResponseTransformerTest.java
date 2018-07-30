@@ -20,11 +20,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -35,14 +36,12 @@ import java.time.Duration;
 import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
@@ -78,7 +77,7 @@ public class ResponseTransformerTest {
 
     @Test
     public void byteMethodDownloadFailureRetries() {
-        stubForRetries();
+        stubForRetriesTimeoutReadingFromStreams();
 
         ResponseBytes<StreamingOutputOperationResponse> response =
                 testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
@@ -88,7 +87,7 @@ public class ResponseTransformerTest {
 
     @Test
     public void downloadToFileRetriesCorrectly() throws IOException {
-        stubForRetries();
+        stubForRetriesTimeoutReadingFromStreams();
 
         Path tmpDirectory = Files.createTempDirectory("streaming-response-handler-test");
         tmpDirectory.toFile().deleteOnExit();
@@ -102,16 +101,26 @@ public class ResponseTransformerTest {
     }
 
     @Test
+    public void downloadToExistingFileDoesNotRetry() throws IOException {
+        stubForRetriesTimeoutReadingFromStreams();
+
+        assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+            ResponseTransformer
+                .toFile(new File(".."))))
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
     public void downloadToOutputStreamDoesNotRetry() throws IOException {
-        stubForRetries();
+        stubForRetriesTimeoutReadingFromStreams();
 
         assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
                                                                        ResponseTransformer
-                                                                               .toOutputStream(new ByteArrayOutputStream())))
-                .isInstanceOf(SdkClientException.class);
+                                                                           .toOutputStream(new ByteArrayOutputStream())))
+            .isInstanceOf(SdkClientException.class);
     }
 
-    private void stubForRetries() {
+    private void stubForRetriesTimeoutReadingFromStreams() {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).inScenario("retries")
                                                            .whenScenarioStateIs(STARTED)
                                                            .willReturn(aResponse().withStatus(200).withBody("first")
@@ -124,18 +133,11 @@ public class ResponseTransformerTest {
     }
 
     private ProtocolRestJsonClient testClient() {
-        SdkHttpClientFactory httpClientFactory = ApacheSdkHttpClientFactory.builder()
-                                                                           .socketTimeout(Duration.ofSeconds(1))
-                                                                           .build();
-
-        ClientHttpConfiguration httpConfig = ClientHttpConfiguration.builder()
-                                                                    .httpClientFactory(httpClientFactory)
-                                                                    .build();
         return ProtocolRestJsonClient.builder()
                                      .region(Region.US_WEST_1)
                                      .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                     .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
-                                     .httpConfiguration(httpConfig)
+                                     .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
+                                     .httpClientBuilder(ApacheHttpClient.builder().socketTimeout(Duration.ofSeconds(1)))
                                      .build();
     }
 }

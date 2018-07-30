@@ -30,20 +30,20 @@ public class GlacierExecutionInterceptor implements ExecutionInterceptor {
         SdkHttpFullRequest request = context.httpRequest();
         Object originalRequest = context.request();
         return request.toBuilder()
-                      .apply(b -> beforeRequest(originalRequest, b))
+                      .applyMutation(b -> beforeRequest(originalRequest, b))
                       .build();
     }
 
     private SdkHttpFullRequest.Builder beforeRequest(Object originalRequest, SdkHttpFullRequest.Builder mutableRequest) {
-        mutableRequest.header("x-amz-glacier-version", "2012-06-01");
+        mutableRequest.putHeader("x-amz-glacier-version", "2012-06-01");
 
         //  "x-amz-content-sha256" header is required for sig v4 for some streaming operations
-        mutableRequest.header("x-amz-content-sha256", "required");
+        mutableRequest.putHeader("x-amz-content-sha256", "required");
 
         if (originalRequest instanceof UploadMultipartPartRequest) {
             mutableRequest.firstMatchingHeader("Content-Range")
-                          .ifPresent(range -> mutableRequest.header("Content-Length",
-                                                                    Long.toString(parseContentLengthFromRange(range))));
+                          .ifPresent(range -> mutableRequest.putHeader("Content-Length",
+                                                                       Long.toString(parseContentLengthFromRange(range))));
 
         } else if (originalRequest instanceof GetJobOutputRequest || originalRequest instanceof DescribeJobRequest) {
             String resourcePath = mutableRequest.encodedPath();

@@ -1,17 +1,20 @@
 package software.amazon.awssdk.services.json;
 
-import javax.annotation.Generated;
+import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
-import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
-import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.client.SyncClientHandler;
+import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
+import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
@@ -19,6 +22,7 @@ import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -27,6 +31,7 @@ import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersReque
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
+import software.amazon.awssdk.services.json.model.JsonRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -64,10 +69,10 @@ final class DefaultJsonClient implements JsonClient {
 
     private final AwsJsonProtocolFactory protocolFactory;
 
-    private final AwsSyncClientConfiguration clientConfiguration;
+    private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultJsonClient(AwsSyncClientConfiguration clientConfiguration, AdvancedConfiguration serviceConfiguration) {
-        this.clientHandler = new AwsSyncClientHandler(clientConfiguration, serviceConfiguration);
+    protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
+        this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.protocolFactory = init();
         this.clientConfiguration = clientConfiguration;
     }
@@ -293,7 +298,7 @@ final class DefaultJsonClient implements JsonClient {
     public PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
                                                                                               SdkClientException, JsonException {
-        return new PaginatedOperationWithResultKeyIterable(this, paginatedOperationWithResultKeyRequest);
+        return new PaginatedOperationWithResultKeyIterable(this, applyPaginatorUserAgent(paginatedOperationWithResultKeyRequest));
     }
 
     /**
@@ -401,7 +406,8 @@ final class DefaultJsonClient implements JsonClient {
     public PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
                                                                                                     SdkClientException, JsonException {
-        return new PaginatedOperationWithoutResultKeyIterable(this, paginatedOperationWithoutResultKeyRequest);
+        return new PaginatedOperationWithoutResultKeyIterable(this,
+                                                              applyPaginatorUserAgent(paginatedOperationWithoutResultKeyRequest));
     }
 
     /**
@@ -511,5 +517,14 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public void close() {
         clientHandler.close();
+    }
+
+    private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
+        Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
+                                                                                                      .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 }

@@ -44,7 +44,7 @@ public abstract class AwsIntegrationTestBase {
     /**
      * Shared AWS credentials, loaded from a properties file.
      */
-    private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+    private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
 
     /**
      * @return AWSCredentials to use during tests. Setup by base fixture
@@ -73,7 +73,7 @@ public abstract class AwsIntegrationTestBase {
      */
     protected String getResourceAsString(Class<?> clazz, String location) {
         try (InputStream resourceStream = clazz.getResourceAsStream(location)) {
-            String resourceAsString = IoUtils.toString(resourceStream);
+            String resourceAsString = IoUtils.toUtf8String(resourceStream);
             resourceStream.close();
             return resourceAsString;
         } catch (IOException e) {

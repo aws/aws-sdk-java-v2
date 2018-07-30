@@ -24,10 +24,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
@@ -38,7 +39,9 @@ import software.amazon.awssdk.utils.Logger;
 public class DynamoDBTestBase extends AwsTestBase {
     protected static final String ENDPOINT = "http://dynamodb.us-east-1.amazonaws.com/";
 
-    protected static DynamoDBClient dynamo;
+    protected static final Region REGION = Region.US_EAST_1;
+
+    protected static DynamoDbClient dynamo;
 
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
 
@@ -46,13 +49,13 @@ public class DynamoDBTestBase extends AwsTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new SdkClientException("Unable to load credential property file.", e);
+            throw SdkClientException.builder().message("Unable to load credential property file.").cause(e).build();
         }
 
-        dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        dynamo = DynamoDbClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
-    public static DynamoDBClient getClient() {
+    public static DynamoDbClient getClient() {
         if (dynamo == null) {
             setUpTestBase();
         }
@@ -63,7 +66,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         waitForTableToBecomeDeleted(dynamo, tableName);
     }
 
-    public static void waitForTableToBecomeDeleted(DynamoDBClient dynamo, String tableName) {
+    public static void waitForTableToBecomeDeleted(DynamoDbClient dynamo, String tableName) {
         log.info(() -> "Waiting for " + tableName + " to become Deleted...");
 
         long startTime = System.currentTimeMillis();
@@ -82,8 +85,8 @@ public class DynamoDBTestBase extends AwsTestBase {
                 if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }
-            } catch (SdkServiceException exception) {
-                if (exception.errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
+            } catch (AwsServiceException exception) {
+                if (exception.awsErrorDetails().errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                     log.info(() -> "successfully deleted");
                     return;
                 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A class to standardize implementations of {@link Object#toString()} across the SDK.
@@ -29,6 +30,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
  * }</pre>
  */
 @NotThreadSafe
+@SdkProtectedApi
 public final class ToString {
     private final StringBuilder result;
     private final int startingLength;
@@ -63,8 +65,17 @@ public final class ToString {
      */
     public ToString add(String fieldName, Object field) {
         if (field != null) {
-            String value = field.getClass().isArray() ? Arrays.toString((Object[]) field)
-                                                      : String.valueOf(field);
+            String value;
+
+            if (field.getClass().isArray()) {
+                if (field instanceof byte[]) {
+                    value = "0x" + BinaryUtils.toHex((byte[]) field);
+                } else {
+                    value = Arrays.toString((Object[]) field);
+                }
+            } else {
+                value = String.valueOf(field);
+            }
             result.append(fieldName).append("=").append(value).append(", ");
         }
         return this;

@@ -24,12 +24,15 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
@@ -38,18 +41,15 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 class ModelBuilderSpecs {
     private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
-    private final ShapeModelSpec shapeModelSpec;
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
     private final AccessorsFactory accessorsFactory;
 
     ModelBuilderSpecs(IntermediateModel intermediateModel,
                       ShapeModel shapeModel,
-                      ShapeModelSpec shapeModelSpec,
                       TypeProvider typeProvider) {
         this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
-        this.shapeModelSpec = shapeModelSpec;
         this.typeProvider = typeProvider;
         this.poetExtensions = new PoetExtensions(this.intermediateModel);
         this.accessorsFactory = new AccessorsFactory(this.shapeModel, this.intermediateModel, this.typeProvider, poetExtensions);
@@ -75,30 +75,37 @@ class ModelBuilderSpecs {
                   });
 
         if (isException()) {
-            builder.addMethod(MethodSpec.methodBuilder("message")
-                    .returns(builderInterfaceName())
-                    .addParameter(String.class, "message")
-                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT).build());
+            builder.addSuperinterface(parentExceptionBuilder().nestedClass("Builder"));
+            builder.addMethods(ExceptionProperties.builderInterfaceMethods(builderInterfaceName()));
         }
 
         if (isRequest()) {
-            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+            builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                     .returns(builderInterfaceName())
                     .addAnnotation(Override.class)
-                    .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
+                    .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
 
-            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+            builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
         }
 
         return builder.build();
+    }
+
+    private ClassName parentExceptionBuilder() {
+        final String customExceptionBase = intermediateModel.getCustomizationConfig()
+                .getSdkModeledExceptionBaseClassName();
+        if (customExceptionBase != null) {
+            return poetExtensions.getModelClass(customExceptionBase);
+        }
+        return poetExtensions.getModelClass(intermediateModel.getSdkModeledExceptionBaseClassName());
     }
 
     public TypeSpec beanStyleBuilder() {
@@ -108,6 +115,11 @@ class ModelBuilderSpecs {
                 //.addSuperinterface(copyableBuilderSuperInterface())
                 .superclass(builderImplSuperClass())
                 .addModifiers(Modifier.STATIC, Modifier.FINAL);
+
+        if (isException()) {
+            builderClassBuilder.superclass(parentExceptionBuilder().nestedClass("BuilderImpl"));
+        }
+
         builderClassBuilder.addFields(fields());
         builderClassBuilder.addMethod(noargConstructor());
         builderClassBuilder.addMethod(modelCopyConstructor());
@@ -130,12 +142,20 @@ class ModelBuilderSpecs {
     }
 
     private List<FieldSpec> fields() {
-        List<FieldSpec> fields = new ArrayList<>(shapeModelSpec.fields(Modifier.PRIVATE));
-
-        // Inject a message member for the isException message
-        if (isException()) {
-            fields.add(FieldSpec.builder(String.class, "message", Modifier.PRIVATE).build());
-        }
+        List<FieldSpec> fields = shapeModel.getNonStreamingMembers().stream()
+                .map(m -> {
+                    FieldSpec fieldSpec = typeProvider.asField(m, Modifier.PRIVATE);
+                    if (m.isList() && typeProvider.useAutoConstructLists()) {
+                        fieldSpec = fieldSpec.toBuilder()
+                                .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
+                                .build();
+                    } else if (m.isMap() && typeProvider.useAutoConstructMaps()) {
+                        fieldSpec = fieldSpec.toBuilder()
+                                .initializer("$T.getInstance()", DefaultSdkAutoConstructMap.class)
+                                .build();
+                    }
+                    return fieldSpec;
+                }).collect(Collectors.toList());
 
         return fields;
     }
@@ -151,7 +171,7 @@ class ModelBuilderSpecs {
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(classToBuild(), "model");
 
-        if (isRequest() || isResponse()) {
+        if (isRequest() || isResponse() || isException()) {
             copyBuilderCtor.addCode("super(model);");
         }
 
@@ -159,10 +179,6 @@ class ModelBuilderSpecs {
             String name = m.getVariable().getVariableName();
             copyBuilderCtor.addStatement("$N(model.$N)", m.getFluentSetterMethodName(), name);
         });
-
-        if (isException()) {
-            copyBuilderCtor.addStatement("this.message = model.getMessage()");
-        }
 
         return copyBuilderCtor.build();
     }
@@ -178,27 +194,26 @@ class ModelBuilderSpecs {
                   });
 
         if (isException()) {
-            accessors.addAll(exceptionMessageGetters());
-            accessors.addAll(exceptionMessageSetters());
+            accessors.addAll(ExceptionProperties.builderImplMethods(builderImplName()));
         }
 
         if (isRequest()) {
-            accessors.add(MethodSpec.methodBuilder("requestOverrideConfig")
+            accessors.add(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
+                    .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("super.requestOverrideConfig(awsRequestOverrideConfig)")
+                    .addStatement("super.overrideConfiguration(overrideConfiguration)")
                     .addStatement("return this")
                     .build());
 
-            accessors.add(MethodSpec.methodBuilder("requestOverrideConfig")
+            accessors.add(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("super.requestOverrideConfig(builderConsumer)")
+                    .addStatement("super.overrideConfiguration(builderConsumer)")
                     .addStatement("return this")
                     .build());
         }
@@ -242,46 +257,5 @@ class ModelBuilderSpecs {
         superInterfaces.add(ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
                 classToBuild().nestedClass("Builder"), classToBuild()));
         return superInterfaces;
-    }
-
-    private List<MethodSpec> exceptionMessageGetters() {
-        List<MethodSpec> getters = new ArrayList<>();
-
-        // bean style
-        getters.add(MethodSpec.methodBuilder("getMessage")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(String.class)
-                .addStatement("return message")
-                .build());
-
-        getters.add(MethodSpec.methodBuilder("message")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(String.class)
-                .addStatement("return message")
-                .build());
-
-        return getters;
-    }
-
-    private List<MethodSpec> exceptionMessageSetters() {
-        List<MethodSpec> setters = new ArrayList<>();
-
-        // bean style
-        setters.add(MethodSpec.methodBuilder("setMessage")
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(String.class, "message")
-                .addStatement("this.message = message")
-                .build());
-
-        setters.add(MethodSpec.methodBuilder("message")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(builderInterfaceName())
-                .addAnnotation(Override.class)
-                .addParameter(String.class, "message")
-                .addStatement("this.message = message")
-                .addStatement("return this")
-                .build());
-
-        return setters;
     }
 }

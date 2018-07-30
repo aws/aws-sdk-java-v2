@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-10</version>
+        <version>2.0.0-preview-11-SNAPSHOT</version>
     </parent>
     <artifactId>bundle</artifactId>
     <packaging>jar</packaging>
@@ -72,7 +72,7 @@
                             <include>org.reactivestreams:*</include>
                             <include>org.slf4j:*</include>
                             <include>commons-codec:commons-codec</include>
-                            <include>software.amazon.awssdk.ion:ion-java</include>
+                            <include>software.amazon.ion:ion-java</include>
                             <include>software.amazon.awssdk:*</include>
                             <include>commons-logging:*</include>
                         </includes>
@@ -80,23 +80,27 @@
                     <relocations>
                         <relocation>
                             <pattern>com.fasterxml.jackson</pattern>
-                            <shadedPattern>software.amazon.awssdk.thirdparty.jackson</shadedPattern>
+                            <shadedPattern>software.amazon.awssdk.thirdparty.com.fasterxml.jackson</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.apache.http</pattern>
-                            <shadedPattern>software.amazon.awssdk.thirdparty.apache.http</shadedPattern>
+                            <pattern>org.apache</pattern>
+                            <shadedPattern>software.amazon.awssdk.thirdparty.org.apache</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.apache.commons.codec</pattern>
-                            <shadedPattern>software.amazon.awssdk.thirdparty.apache.codec</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>software.amazon.awssdk.ion</pattern>
+                            <pattern>software.amazon.ion</pattern>
                             <shadedPattern>software.amazon.awssdk.thirdparty.ion</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.apache.commons.logging</pattern>
-                            <shadedPattern>software.amazon.awssdk.thirdparty.apache.logging</shadedPattern>
+                            <pattern>io.netty</pattern>
+                            <shadedPattern>software.amazon.awssdk.thirdparty.io.netty</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.typesafe</pattern>
+                            <shadedPattern>software.amazon.awssdk.thirdparty.com.typesafe</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>software.amazon.awssdk.thirdparty.org.slf4j</shadedPattern>
                         </relocation>
                     </relocations>
                     <shadedArtifactAttached>false</shadedArtifactAttached>
@@ -140,7 +144,8 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <sourcepath>${basedir}/../core/src</sourcepath>
+                            <sourcepath>${basedir}/../core/profiles/src/main/java/software/amazon/awssdk/profiles;${basedir}/../core/sdk-core/src/main/java/software/amazon/awssdk/core</sourcepath>
+                            <failOnError>false</failOnError>
                         </configuration>
                     </plugin>
                 </plugins>

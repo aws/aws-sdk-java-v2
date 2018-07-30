@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputExceededException;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
@@ -52,7 +52,7 @@ public class PaginatedScanTaskTest {
     private ExecutorService executorService;
 
     @Mock
-    private DynamoDBClient dynamoDB;
+    private DynamoDbClient dynamoDB;
 
     /**
      * Custom matcher to match argument based on it's segment number
@@ -94,7 +94,7 @@ public class PaginatedScanTaskTest {
             // Ignored or expected.
         }
 
-        executorService.awaitTermination(5, TimeUnit.SECONDS);
+        executorService.awaitTermination(10, TimeUnit.SECONDS);
         assertTrue(executorService.isShutdown());
     }
 

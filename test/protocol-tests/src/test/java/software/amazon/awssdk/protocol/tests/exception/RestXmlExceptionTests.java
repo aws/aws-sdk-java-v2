@@ -25,7 +25,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
@@ -46,7 +46,7 @@ public class RestXmlExceptionTests {
     @Before
     public void setupClient() {
         client = ProtocolRestXmlClient.builder()
-                                  .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                                  .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                   .region(Region.US_EAST_1)
                                   .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                   .build();
@@ -83,8 +83,8 @@ public class RestXmlExceptionTests {
     }
 
     @Test
-    public void illegalArgumentException_nullPathParam() {
-        assertThrowsIllegalArgumentException(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()));
+    public void nullPointerException_nullPathParam() {
+        assertThrowsNullPointerException(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()));
     }
 
     @Test
@@ -103,6 +103,10 @@ public class RestXmlExceptionTests {
 
     private void assertThrowsIllegalArgumentException(Runnable runnable) {
         assertThrowsException(runnable, IllegalArgumentException.class);
+    }
+
+    private void assertThrowsNullPointerException(Runnable runnable) {
+        assertThrowsException(runnable, NullPointerException.class);
     }
 
     private void assertThrowsException(Runnable runnable, Class<? extends Exception> expectedException) {

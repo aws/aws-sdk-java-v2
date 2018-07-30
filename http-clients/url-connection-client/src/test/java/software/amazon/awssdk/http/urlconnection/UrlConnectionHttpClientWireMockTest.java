@@ -20,6 +20,6 @@ import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTestSuite {
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
-        return UrlConnectionSdkHttpClientFactory.builder().build().createHttpClient();
+        return UrlConnectionHttpClient.builder().build();
     }
 }

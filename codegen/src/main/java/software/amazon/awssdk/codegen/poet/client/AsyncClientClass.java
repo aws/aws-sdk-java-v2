@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -25,21 +26,21 @@ import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
-import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
-import software.amazon.awssdk.core.client.AsyncClientHandler;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
-    private final String basePackage;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -47,7 +48,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model.getMetadata().getProtocol());
-        this.basePackage = dependencies.getModel().getMetadata().getFullClientPackageName();
     }
 
     @Override
@@ -61,18 +61,16 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                         .addSuperinterface(interfaceClass)
                                         .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                                     interfaceClass)
+                                        .addMethod(constructor())
                                         .addMethod(nameMethod())
                                         .addMethods(operations())
                                         .addMethod(closeMethod())
                                         .addMethods(protocolSpec.additionalMethods())
                                         .addMethod(protocolSpec.initProtocolFactory(model));
 
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            classBuilder.addMethod(constructorWithAdvancedConfiguration());
-        } else {
-            classBuilder.addMethod(constructor());
+        if (model.hasPaginators()) {
+            classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
-
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();
@@ -81,8 +79,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsAsyncClientConfiguration.class, "clientConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration, null)",
+                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                         .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                        AwsAsyncClientHandler.class) // TODO this will likely differ for APIG clients
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .build();
@@ -94,19 +92,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                          .returns(String.class)
                          .addStatement("return SERVICE_NAME")
-                         .build();
-    }
-
-    private MethodSpec constructorWithAdvancedConfiguration() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsAsyncClientConfiguration.class, "clientConfiguration")
-                         .addParameter(advancedConfiguration, "serviceConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration, serviceConfiguration)",
-                                       AwsAsyncClientHandler.class) // TODO this will likely differ for APIG clients
-                         .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .build();
     }
 
@@ -124,17 +109,21 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         return builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
-                      .addCode(getCustomResponseHandler(opModel, returnType)
-                                   .orElseGet(() -> protocolSpec.responseHandler(opModel)))
-                      .addCode(protocolSpec.errorResponseHandler(opModel))
-                      .addCode(protocolSpec.asyncExecutionHandler(opModel));
-
+                      .beginControlFlow("try")
+                          .addCode(getCustomResponseHandler(opModel, returnType)
+                                       .orElseGet(() -> protocolSpec.responseHandler(opModel)))
+                          .addCode(protocolSpec.errorResponseHandler(opModel))
+                          .addCode(protocolSpec.asyncExecutionHandler(opModel))
+                      .endControlFlow()
+                      .beginControlFlow("catch ($T t)", Throwable.class)
+                          .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
+                      .endControlFlow();
     }
 
     @Override
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
         return builder.addModifiers(Modifier.PUBLIC)
-                      .addStatement("return new $T(this, $L)",
+                      .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
                                     poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
                                     opModel.getInput().getVariableName());
     }

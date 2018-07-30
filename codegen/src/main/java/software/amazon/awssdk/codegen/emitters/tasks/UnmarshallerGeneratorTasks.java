@@ -27,7 +27,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
 
@@ -52,7 +52,7 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
     private GeneratorTask createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
         final Template template = freemarker.getModelUnmarshallerTemplate();
         final ShapeType shapeType = shapeModel.getShapeType();
-        Map<String, Object> dataModel = ImmutableMapParameter.<String, Object>builder()
+        Map<String, Object> dataModel = ImmutableMap.<String, Object>builder()
                 .put("fileHeader", model.getFileHeader())
                 .put("shape", shapeModel)
                 .put("metadata", metadata)

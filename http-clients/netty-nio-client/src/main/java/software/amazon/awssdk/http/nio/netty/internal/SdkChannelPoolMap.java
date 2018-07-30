@@ -24,11 +24,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Replacement for {@link io.netty.channel.pool.AbstractChannelPoolMap}. This implementation guarantees
  * only one instance of a {@link ChannelPool} is created for each key.
  */
+@SdkInternalApi
 public abstract class SdkChannelPoolMap<K, P extends ChannelPool>
         implements ChannelPoolMap<K, P>, Iterable<Map.Entry<K, P>>, Closeable {
 

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import static software.amazon.awssdk.codegen.internal.Constants.APPROVED_SIMPLE_METHOD_VERBS;
+import static software.amazon.awssdk.codegen.internal.Constant.APPROVED_SIMPLE_METHOD_VERBS;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -128,6 +128,10 @@ public final class IntermediateModel {
         }
     }
 
+    public String getCustomRetryPolicy() {
+        return customizationConfig.getCustomRetryPolicy();
+    }
+
     public String getServiceBaseExceptionFqcn() {
         // TODO Move this into Metadata
         return metadata.getProtocol().getProvider().getBaseExceptionFqcn();
@@ -170,7 +174,7 @@ public final class IntermediateModel {
     private String loadDefaultFileHeader() throws IOException {
         try (InputStream inputStream = getClass()
             .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
-            return IoUtils.toString(inputStream)
+            return IoUtils.toUtf8String(inputStream)
                           .replaceFirst("%COPYRIGHT_DATE_RANGE%", getCopyrightDateRange());
         }
     }

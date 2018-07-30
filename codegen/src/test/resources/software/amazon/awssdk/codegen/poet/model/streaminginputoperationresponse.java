@@ -1,13 +1,13 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingInputOperationResponse extends JsonProtocolTestsResponse implements
+public final class StreamingInputOperationResponse extends JsonProtocolTestsResponse implements
                                                                                ToCopyableBuilder<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
     private StreamingInputOperationResponse(BuilderImpl builder) {
         super(builder);

@@ -20,10 +20,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
@@ -90,7 +90,7 @@ public class ExpectedTest {
 
         Assert.assertEquals("foo", ddbExpected_attrName);
         Assert.assertEquals(ComparisonOperator.NOT_NULL, ddbExpected_value.comparisonOperator());
-        Assert.assertEquals(null, ddbExpected_value.attributeValueList());
+        Assert.assertTrue(ddbExpected_value.attributeValueList() instanceof SdkAutoConstructList);
         Assert.assertEquals(null, ddbExpected_value.value());
         Assert.assertEquals(null, ddbExpected_value.exists());
     }
@@ -104,7 +104,7 @@ public class ExpectedTest {
 
         Assert.assertEquals("foo", ddbExpected_attrName);
         Assert.assertEquals(ComparisonOperator.NULL, ddbExpected_value.comparisonOperator());
-        Assert.assertEquals(null, ddbExpected_value.attributeValueList());
+        Assert.assertTrue(ddbExpected_value.attributeValueList() instanceof SdkAutoConstructList);
         Assert.assertEquals(null, ddbExpected_value.value());
         Assert.assertEquals(null, ddbExpected_value.exists());
     }
@@ -295,9 +295,8 @@ public class ExpectedTest {
     }
 
     @Test
-    @Ignore // FIXME: failes with "region cannot be null"
     public void testExpected_DuplicateAttribute() {
-        Table fakeTable = new Table(DynamoDBClient.builder().region(Region.US_WEST_2).build(), "fake-table");
+        Table fakeTable = new Table(DynamoDbClient.builder().region(Region.US_WEST_2).build(), "fake-table");
         try {
             fakeTable.putItem(new Item(),
                               new Expected("foo").eq("bar"),

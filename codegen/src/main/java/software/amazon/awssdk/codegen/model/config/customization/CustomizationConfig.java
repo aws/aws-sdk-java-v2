@@ -22,7 +22,6 @@ import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesCon
 
 public class CustomizationConfig {
 
-    public static final CustomizationConfig DEFAULT = new CustomizationConfig();
     /**
      * List of 'convenience' overloads to generate for model classes. Convenience overloads expose a
      * different type that is adapted to the real type
@@ -91,13 +90,19 @@ public class CustomizationConfig {
     private boolean skipSmokeTests;
 
     /**
-     * A service name that this service client should share models with. The models and non-request marshallers will be generated
-     * into the same directory as the provided service's models.
+     * Exclude the create() method on a client. This is useful for global services that will need a global region configured to
+     * work.
      */
-    private String shareModelsWith;
+    private boolean excludeClientCreateMethod = false;
 
     /**
-     * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOptions}. If
+     * Configurations for the service that share model with other services. The models and non-request marshallers will be
+     * generated into the same directory as the provided service's models.
+     */
+    private ShareModelConfig shareModelConfig;
+
+    /**
+     * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOption}. If
      * present, the client builder will override the hook to return service specific HTTP config and inject this expression into
      * that method. At some point we may want to have a more data driven way to declare these settings but right now we don't
      * have any requirements to necessitate that and referencing handwritten code is simpler. See SWF customization.config
@@ -123,7 +128,22 @@ public class CustomizationConfig {
 
     private Map<String, String> modelMarshallerDefaultValueSupplier;
 
+    private boolean useAutoConstructList = true;
+
+    private boolean useAutoConstructMap = true;
+
+    /**
+     * Custom Retry Policy
+     */
+    private String customRetryPolicy;
+
+    private boolean skipSyncClientGeneration;
+
     private CustomizationConfig() {
+    }
+
+    public static CustomizationConfig create() {
+        return new CustomizationConfig();
     }
 
     public String getCustomServiceNameForRequest() {
@@ -202,12 +222,12 @@ public class CustomizationConfig {
 
     /**
      * Customization to generate a method overload for a member setter that takes a string rather
-     * than an ByteBuffer. Currently only used by Lambda
+     * than an SdkBytes. Currently only used by Lambda
      */
-    public void setStringOverloadForByteBufferMember(
-        StringOverloadForByteBufferMember stringOverloadForByteBufferMember) {
+    public void setStringOverloadForSdkBytesMember(
+        StringOverloadForSdkBytesMember stringOverloadForSdkBytesMember) {
         this.convenienceTypeOverloads
-            .add(stringOverloadForByteBufferMember.getConvenienceTypeOverload());
+            .add(stringOverloadForSdkBytesMember.getConvenienceTypeOverload());
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {
@@ -259,12 +279,20 @@ public class CustomizationConfig {
         this.skipSmokeTests = skipSmokeTests;
     }
 
-    public String getShareModelsWith() {
-        return shareModelsWith;
+    public boolean isExcludeClientCreateMethod() {
+        return excludeClientCreateMethod;
     }
 
-    public void setShareModelsWith(String shareModelsWith) {
-        this.shareModelsWith = shareModelsWith;
+    public void setExcludeClientCreateMethod(boolean excludeClientCreateMethod) {
+        this.excludeClientCreateMethod = excludeClientCreateMethod;
+    }
+
+    public ShareModelConfig getShareModelConfig() {
+        return shareModelConfig;
+    }
+
+    public void setShareModelConfig(ShareModelConfig shareModelConfig) {
+        this.shareModelConfig = shareModelConfig;
     }
 
     public String getServiceSpecificHttpConfig() {
@@ -321,5 +349,37 @@ public class CustomizationConfig {
 
     public void setModelMarshallerDefaultValueSupplier(Map<String, String> modelMarshallerDefaultValueSupplier) {
         this.modelMarshallerDefaultValueSupplier = modelMarshallerDefaultValueSupplier;
+    }
+
+    public boolean isUseAutoConstructList() {
+        return useAutoConstructList;
+    }
+
+    public void setUseAutoConstructList(boolean useAutoConstructList) {
+        this.useAutoConstructList = useAutoConstructList;
+    }
+
+    public boolean isUseAutoConstructMap() {
+        return useAutoConstructMap;
+    }
+
+    public void setUseAutoConstructMap(boolean useAutoConstructMap) {
+        this.useAutoConstructMap = useAutoConstructMap;
+    }
+
+    public String getCustomRetryPolicy() {
+        return customRetryPolicy;
+    }
+
+    public void setCustomRetryPolicy(String customRetryPolicy) {
+        this.customRetryPolicy = customRetryPolicy;
+    }
+
+    public boolean isSkipSyncClientGeneration() {
+        return skipSyncClientGeneration;
+    }
+
+    public void setSkipSyncClientGeneration(boolean skipSyncClientGeneration) {
+        this.skipSyncClientGeneration = skipSyncClientGeneration;
     }
 }

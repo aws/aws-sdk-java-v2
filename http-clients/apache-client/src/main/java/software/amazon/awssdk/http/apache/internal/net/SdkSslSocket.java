@@ -20,7 +20,9 @@ import java.net.SocketAddress;
 import javax.net.ssl.SSLSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class SdkSslSocket extends DelegateSslSocket {
     private static final Logger log = LoggerFactory.getLogger(SdkSslSocket.class);
 

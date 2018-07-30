@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
@@ -34,6 +34,8 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
@@ -41,10 +43,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
+@SdkInternalApi
 public final class RunnableRequest implements AbortableRunnable {
 
     private static final Logger log = LoggerFactory.getLogger(RunnableRequest.class);
@@ -91,12 +95,14 @@ public final class RunnableRequest implements AbortableRunnable {
 
     private void makeRequest(HttpRequest request) {
         log.debug("Writing request: {}", request);
-        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeout()));
+        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
+                                                            TimeUnit.MILLISECONDS));
         channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
-                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeout()));
+                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                          TimeUnit.MILLISECONDS));
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        channel.read();
                    } else {
@@ -139,52 +145,42 @@ public final class RunnableRequest implements AbortableRunnable {
 
 
     private String getMessageForAcquireTimeoutException() {
-        StringBuilder stringBuilder = new StringBuilder();
+        return "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
+                + "connection from the pool within the specified maximum time. This can be due to high request rate.\n"
 
-        stringBuilder
-            .append("Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
-                  + "connection from the pool within the specified maximum time. This can be due to high request rate.\n")
+                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+                + "increase acquire timeout, or slowing the request rate.\n"
 
-            .append("Consider taking any of the following actions to mitigate the issue: increase max connections, "
-                  + "increase acquire timeout, or slowing the request rate.\n")
+                + "Increasing the max connections can increase client throughput (unless the network interface is already "
+                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+                + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+                + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
+                + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
+                + "will still timeout.\n"
 
-            .append("Increasing the max connections can increase client throughput (unless the network interface is already "
-                    + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
-                    + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
-                    + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
-                    + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
-                    + "will still timeout.\n")
-
-            .append("If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-                    + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
-                    + "call AWS, or by increasing the number of hosts sending requests.");
-
-        return stringBuilder.toString();
+                + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+                + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
+                + "call AWS, or by increasing the number of hosts sending requests.";
     }
 
     private String getMessageForTooManyAcquireOperationsError() {
-        StringBuilder  stringBuilder = new StringBuilder();
+        return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n"
 
-        stringBuilder
-            .append("Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n")
+                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+                + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n"
 
-            .append("Consider taking any of the following actions to mitigate the issue: increase max connections, "
-                  + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n")
+                + "Increasing the max connections can increase client throughput (unless the network interface is already "
+                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+                + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+                + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
+                + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
+                + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
+                + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
+                + "number of failed requests.\n"
 
-            .append("Increasing the max connections can increase client throughput (unless the network interface is already "
-                    + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
-                    + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
-                    + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
-                    + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
-                    + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
-                    + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
-                    + "number of failed requests.\n")
-
-            .append("If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-                    + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
-                    + "AWS, or by increasing the number of hosts sending requests.");
-
-        return stringBuilder.toString();
+                + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+                + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
+                + "AWS, or by increasing the number of hosts sending requests.";
     }
 
     private static void closeAndRelease(Channel channel) {
@@ -284,16 +280,23 @@ public final class RunnableRequest implements AbortableRunnable {
     /**
      * Decorator around {@link StreamedHttpRequest} to adapt a publisher of {@link ByteBuffer} (i.e. {@link
      * software.amazon.awssdk.http.async.SdkHttpRequestProvider}) to a publisher of {@link HttpContent}.
+     * <p />
+     * This publisher also prevents the adapted publisher from publishing more content to the subscriber than
+     * the specified 'Content-Length' of the request.
      */
     private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
-
         private final Publisher<ByteBuffer> publisher;
         private final Channel channel;
+        private final Optional<Long> requestContentLength;
+        private long written = 0L;
+        private boolean done;
+        private Subscription subscription;
 
         StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher, Channel channel) {
             super(request);
             this.publisher = publisher;
             this.channel = channel;
+            this.requestContentLength = contentLength(request);
         }
 
         @Override
@@ -301,27 +304,72 @@ public final class RunnableRequest implements AbortableRunnable {
             publisher.subscribe(new Subscriber<ByteBuffer>() {
                 @Override
                 public void onSubscribe(Subscription subscription) {
+                    StreamedRequest.this.subscription = subscription;
                     subscriber.onSubscribe(subscription);
                 }
 
                 @Override
                 public void onNext(ByteBuffer byteBuffer) {
+                    if (done) {
+                        return;
+                    }
+
+                    int newLimit = clampedBufferLimit(byteBuffer.remaining());
+                    byteBuffer.limit(newLimit);
                     ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
                     buffer.writeBytes(byteBuffer);
                     HttpContent content = new DefaultHttpContent(buffer);
+
                     subscriber.onNext(content);
+                    written += newLimit;
+
+                    if (!shouldContinuePublishing()) {
+                        done = true;
+                        subscription.cancel();
+                        subscriber.onComplete();
+                    }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    subscriber.onError(t);
+                    if (!done) {
+                        done = true;
+                        subscriber.onError(t);
+
+                    }
                 }
 
                 @Override
                 public void onComplete() {
-                    subscriber.onComplete();
+                    if (!done) {
+                        done = true;
+                        subscriber.onComplete();
+                    }
                 }
             });
         }
+
+        private int clampedBufferLimit(int bufLen) {
+            return requestContentLength.map(cl ->
+                (int) Math.min(cl - written, bufLen)
+            ).orElse(bufLen);
+        }
+
+        private boolean shouldContinuePublishing() {
+            return requestContentLength.map(cl -> written < cl).orElse(true);
+        }
+
+        private static Optional<Long> contentLength(HttpRequest request) {
+            String value = request.headers().get("Content-Length");
+            if (value != null) {
+                try {
+                    return Optional.of(Long.parseLong(value));
+                } catch (NumberFormatException e) {
+                    log.warn("Unable  to parse 'Content-Length' header. Treating it as non existent.");
+                }
+            }
+            return Optional.empty();
+        }
+
     }
 }

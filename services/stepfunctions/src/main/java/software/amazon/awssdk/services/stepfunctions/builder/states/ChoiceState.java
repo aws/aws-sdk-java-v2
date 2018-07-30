@@ -18,9 +18,9 @@ package software.amazon.awssdk.services.stepfunctions.builder.states;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.services.stepfunctions.builder.ErrorCodes;
+import software.amazon.awssdk.services.stepfunctions.builder.ErrorCode;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * A Choice state adds branching logic to a state machine. A Choice state consists of a list of choices, each of which contains a
@@ -31,19 +31,19 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class ChoiceState implements State {
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.DEFAULT_STATE)
+    @JsonProperty(PropertyName.DEFAULT_STATE)
     private final String defaultStateName;
 
-    @JsonProperty(PropertyNames.CHOICES)
+    @JsonProperty(PropertyName.CHOICES)
     private final List<Choice> choices;
 
-    @JsonProperty(PropertyNames.INPUT_PATH)
+    @JsonProperty(PropertyName.INPUT_PATH)
     private final String inputPath;
 
-    @JsonProperty(PropertyNames.OUTPUT_PATH)
+    @JsonProperty(PropertyName.OUTPUT_PATH)
     private final String outputPath;
 
     private ChoiceState(Builder builder) {
@@ -124,19 +124,19 @@ public final class ChoiceState implements State {
      */
     public static final class Builder implements State.Builder {
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
-        @JsonProperty(PropertyNames.DEFAULT_STATE)
+        @JsonProperty(PropertyName.DEFAULT_STATE)
         private String defaultStateName;
 
-        @JsonProperty(PropertyNames.CHOICES)
+        @JsonProperty(PropertyName.CHOICES)
         private List<Choice.Builder> choices = new ArrayList<Choice.Builder>();
 
-        @JsonProperty(PropertyNames.INPUT_PATH)
+        @JsonProperty(PropertyName.INPUT_PATH)
         private String inputPath;
 
-        @JsonProperty(PropertyNames.OUTPUT_PATH)
+        @JsonProperty(PropertyName.OUTPUT_PATH)
         private String outputPath;
 
         private Builder() {
@@ -155,7 +155,7 @@ public final class ChoiceState implements State {
 
         /**
          * OPTIONAL. Name of state to transition to if no {@link Choice} rules match. If a default state is not provided and no
-         * choices match then a {@link ErrorCodes#NO_CHOICE_MATCHED} error is thrown.
+         * choices match then a {@link ErrorCode#NO_CHOICE_MATCHED} error is thrown.
          *
          * @param defaultStateName Name of default state.
          * @return This object for method chaining.

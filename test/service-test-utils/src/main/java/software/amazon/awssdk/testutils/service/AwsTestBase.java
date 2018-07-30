@@ -62,7 +62,7 @@ public abstract class AwsTestBase {
      */
     protected String getResourceAsString(Class<?> clazz, String location) {
         try (InputStream resourceStream = clazz.getResourceAsStream(location)) {
-            return IoUtils.toString(resourceStream);
+            return IoUtils.toUtf8String(resourceStream);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -83,8 +83,6 @@ public abstract class AwsTestBase {
             protected boolean matchesSafely(SdkServiceException item) {
                 isNotBlank(item.requestId(), "requestId");
                 isNotBlank(item.getMessage(), "message");
-                isNotBlank(item.errorCode(), "errorCode");
-                isNotBlank(item.serviceName(), "serviceName");
                 return sb.length() == 0;
             }
 

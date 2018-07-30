@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.utils.ToString;
@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
  * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link GetFederationTokenRequest} to the
  * AWS Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated
  * asynchronously in the background as they get close to expiring. If the credentials are not successfully updated asynchronously
- * in the background, calls to {@link #getCredentials()} will begin to block in an attempt to update the credentials
+ * in the background, calls to {@link #resolveCredentials()} will begin to block in an attempt to update the credentials
  * synchronously.
  *
  * This provider creates a thread in the background to periodically update credentials. If this provider is no longer needed,
@@ -59,7 +59,7 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
     }
 
     @Override
-    protected Credentials getUpdatedCredentials(STSClient stsClient) {
+    protected Credentials getUpdatedCredentials(StsClient stsClient) {
         return stsClient.getFederationToken(getFederationTokenRequest).credentials();
     }
 
@@ -100,7 +100,7 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
          * {@link GetFederationTokenRequest#builder()} and {@link GetFederationTokenRequest.Builder#build()}.
          */
         public Builder refreshRequest(Consumer<GetFederationTokenRequest.Builder> getFederationTokenRequest) {
-            return refreshRequest(GetFederationTokenRequest.builder().apply(getFederationTokenRequest).build());
+            return refreshRequest(GetFederationTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
         }
     }
 }

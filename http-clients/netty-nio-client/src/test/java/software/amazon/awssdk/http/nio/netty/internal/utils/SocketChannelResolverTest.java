@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelFactory;
 
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -32,23 +32,23 @@ import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 public class SocketChannelResolverTest {
 
     @Test
-    public void canDetectForStandardNioEventLoopGroup() {
-        assertThat(resolveSocketChannelClass(new NioEventLoopGroup())).isEqualTo(NioSocketChannel.class);
+    public void canDetectFactoryForStandardNioEventLoopGroup() {
+        assertThat(resolveSocketChannelFactory(new NioEventLoopGroup()).newChannel()).isInstanceOf(NioSocketChannel.class);
     }
 
     @Test
-    public void canDetectEpollEventLoopGroup() {
+    public void canDetectEpollEventLoopGroupFactory() {
         assumeTrue(Epoll.isAvailable());
-        assertThat(resolveSocketChannelClass(new EpollEventLoopGroup())).isEqualTo(EpollSocketChannel.class);
+        assertThat(resolveSocketChannelFactory(new EpollEventLoopGroup()).newChannel()).isInstanceOf(EpollSocketChannel.class);
     }
 
     @Test
-    public void worksWithDelegateEventLoopGroups() {
-        assertThat(resolveSocketChannelClass(new DelegatingEventLoopGroup(new NioEventLoopGroup()) {})).isEqualTo(NioSocketChannel.class);
+    public void worksWithDelegateEventLoopGroupsFactory() {
+        assertThat(resolveSocketChannelFactory(new DelegatingEventLoopGroup(new NioEventLoopGroup()) {}).newChannel()).isInstanceOf(NioSocketChannel.class);
     }
 
     @Test
-    public void worksWithOioEventLoopGroup() {
-        assertThat(resolveSocketChannelClass(new OioEventLoopGroup())).isEqualTo(OioSocketChannel.class);
+    public void worksWithOioEventLoopGroupFactory() {
+        assertThat(resolveSocketChannelFactory(new OioEventLoopGroup()).newChannel()).isInstanceOf(OioSocketChannel.class);
     }
 }

@@ -30,10 +30,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * {@link EventLoopGroup} that just delegates to another {@link EventLoopGroup}. Useful for extending or building decorators.
  */
+@SdkInternalApi
 public abstract class DelegatingEventLoopGroup implements EventLoopGroup {
 
     private final EventLoopGroup delegate;

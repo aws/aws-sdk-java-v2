@@ -19,7 +19,7 @@
                 request.addParameter("${marshallLocationName}", <@IdempotencyTokenMacro.content getMember member.variable.simpleType/>);
             <#else>
                 if(${getMember}() != null) {
-                    request.addParameter("${marshallLocationName}", StringUtils.from${member.variable.simpleType}(${getMember}()));
+                    request.addParameter("${marshallLocationName}", StringConversion.from${member.variable.simpleType}(${getMember}()));
                 }
             </#if>
         <#elseif member.list>
@@ -31,16 +31,20 @@
             <#local loopVariable = listVariable + "Value"/>
 
             ${listModel.templateType} ${listVariable} = ${getMember}();
-            if (${listVariable} != null) {
+            <#if customConfig.useAutoConstructList>
+                if (!${listVariable}.isEmpty() || !(${listVariable} instanceof software.amazon.awssdk.core.util.SdkAutoConstructList)) {
+            <#else>
+                if (${listVariable} != null) {
+            </#if>
                 int ${listIndex} = 1;
 
                 for (${listModel.memberType} ${loopVariable} : ${listVariable}) {
                     <#if listModel.simple>
                          if (${loopVariable} != null) {
                             <#if listModel.memberAdditionalMarshallingPath?has_content>
-                                request.addParameter("${marshallLocationName}." + ${listIndex} + ".${listModel.memberAdditionalMarshallingPath}", StringUtils.from${listModel.memberType}(${loopVariable}));
+                                request.addParameter("${marshallLocationName}." + ${listIndex} + ".${listModel.memberAdditionalMarshallingPath}", StringConversion.from${listModel.memberType}(${loopVariable}));
                             <#else>
-                                request.addParameter("${marshallLocationName}." + ${listIndex}, StringUtils.from${listModel.memberType}(${loopVariable}));
+                                request.addParameter("${marshallLocationName}." + ${listIndex}, StringConversion.from${listModel.memberType}(${loopVariable}));
                             </#if>
                          }
                     <#else>

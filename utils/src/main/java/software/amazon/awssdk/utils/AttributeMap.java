@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -34,8 +35,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkProtectedApi
 @Immutable
-public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builder, AttributeMap> {
-
+public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builder, AttributeMap>, SdkAutoCloseable {
     private final Map<Key<?>, Object> attributes;
 
     private AttributeMap(Map<? extends Key<?>, ?> attributes) {
@@ -81,19 +81,44 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
         return toBuilder().build();
     }
 
+    @Override
+    public void close() {
+        attributes.values().forEach(v -> IoUtils.closeIfCloseable(v, null));
+        attributes.values().forEach(this::shutdownIfExecutorService);
+    }
+
+    private void shutdownIfExecutorService(Object object) {
+        if (object instanceof ExecutorService) {
+            ExecutorService executor = (ExecutorService) object;
+            executor.shutdown();
+        }
+    }
+
     /**
      * An abstract class extended by pseudo-enums defining the key for data that is stored in the {@link AttributeMap}. For
      * example, a {@code ClientOption<T>} may extend this to define options that can be stored in an {@link AttributeMap}.
      */
     public abstract static class Key<T> {
 
-        private final Class<T> valueClass;
+        private final Class<?> valueType;
+
+        protected Key(Class<T> valueType) {
+            this.valueType = valueType;
+        }
+
+        protected Key(UnsafeValueType unsafeValueType) {
+            this.valueType = unsafeValueType.valueType;
+        }
 
         /**
-         * Configure the class of {@code T}.
+         * Useful for parameterized types.
          */
-        protected Key(Class<T> valueClass) {
-            this.valueClass = valueClass;
+        protected static class UnsafeValueType {
+            private final Class<?> valueType;
+
+            public UnsafeValueType(Class<?> valueType) {
+                this.valueType = valueType;
+            }
         }
 
         /**
@@ -101,18 +126,21 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
          */
         final void validateValue(Object value) {
             if (value != null) {
-                Validate.isAssignableFrom(valueClass, value.getClass(),
+                Validate.isAssignableFrom(valueType, value.getClass(),
                                           "Invalid option: %s. Required value of type %s, but was %s.",
-                                          this, valueClass, value.getClass());
+                                          this, valueType, value.getClass());
             }
         }
 
         /**
          * Validate the provided value is of the correct type and convert it to the proper type for this option.
          */
-        final T convertValue(Object value) {
+        public final T convertValue(Object value) {
             validateValue(value);
-            return valueClass.cast(value);
+
+            @SuppressWarnings("unchecked") // Only actually unchecked if UnsafeValueType is used.
+            T result = (T) valueType.cast(value);
+            return result;
         }
     }
 

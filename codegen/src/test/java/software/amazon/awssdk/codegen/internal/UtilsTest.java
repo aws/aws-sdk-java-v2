@@ -41,6 +41,6 @@ public class UtilsTest {
     @Test
     public void testUnCapitalize() {
         capitalizedToUncapitalized.forEach((capitalized,unCapitalized) ->
-                assertThat(Utils.unCapitialize(capitalized), is(equalTo(unCapitalized))));
+                assertThat(Utils.unCapitalize(capitalized), is(equalTo(unCapitalized))));
     }
 }

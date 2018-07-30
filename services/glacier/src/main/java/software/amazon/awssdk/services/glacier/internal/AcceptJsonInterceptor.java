@@ -25,7 +25,7 @@ public final class AcceptJsonInterceptor implements ExecutionInterceptor {
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         return context.httpRequest()
                       .toBuilder()
-                      .header("Accept", "application/json")
+                      .putHeader("Accept", "application/json")
                       .build();
     }
 }

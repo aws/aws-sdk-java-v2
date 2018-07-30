@@ -50,7 +50,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public final class SyncClientInterface implements ClassSpec {
 
@@ -68,19 +67,24 @@ public final class SyncClientInterface implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createInterfaceBuilder(className)
-                        .addSuperinterface(SdkClient.class)
-                        .addSuperinterface(SdkAutoCloseable.class)
-                        .addJavadoc(getJavadoc())
-                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                                                           .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                                           .initializer("$S", model.getMetadata().getSigningName())
-                                                           .build())
-                        .addMethod(create())
-                        .addMethod(builder())
-                        .addMethods(operations())
-                        .addMethod(serviceMetadata())
-                        .build();
+        TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
+
+        result.addSuperinterface(SdkClient.class)
+              .addJavadoc(getJavadoc())
+              .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                 .initializer("$S", model.getMetadata().getSigningName())
+                                 .build());
+
+        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
+            result.addMethod(create());
+        }
+
+        result.addMethod(builder())
+              .addMethods(operations())
+              .addMethod(serviceMetadata());
+
+        return result.build();
     }
 
     @Override
@@ -227,23 +231,24 @@ public final class SyncClientInterface implements ClassSpec {
         List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
 
         if (opModel.isPaginated()) {
-            paginatedMethodSpecs.add(operationMethodSignature(model,
-                                                              opModel,
-                                                              SimpleMethodOverload.PAGINATED,
-                                                              PaginatorUtils.getPaginatedMethodName(opModel.getMethodName()))
-                                             .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                     opModel.getOperationName()))
-                                             .addModifiers(Modifier.DEFAULT)
-                                             .addStatement("throw new $T()", UnsupportedOperationException.class)
-                                             .build());
-
             if (opModel.getInputShape().isSimpleMethod()) {
                 paginatedMethodSpecs.add(paginatedSimpleMethod(opModel));
-            } else {
-                String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
-                paginatedMethodSpecs.add(ClientClassUtils.consumerBuilderVariant(paginatedMethodSpecs.get(0),
-                                                                                 consumerBuilderJavadoc));
             }
+
+            MethodSpec paginatedMethod =
+                    operationMethodSignature(model,
+                                             opModel,
+                                             SimpleMethodOverload.PAGINATED,
+                                             PaginatorUtils.getPaginatedMethodName(opModel.getMethodName()))
+                            .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(opModel.getOperationName()))
+                            .addModifiers(Modifier.DEFAULT)
+                            .addStatement("throw new $T()", UnsupportedOperationException.class)
+                            .build();
+
+            paginatedMethodSpecs.add(paginatedMethod);
+
+            String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
+            paginatedMethodSpecs.add(ClientClassUtils.consumerBuilderVariant(paginatedMethod, consumerBuilderJavadoc));
         }
 
         return paginatedMethodSpecs;

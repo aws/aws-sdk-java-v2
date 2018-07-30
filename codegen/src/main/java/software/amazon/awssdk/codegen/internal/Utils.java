@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import java.io.Closeable;
@@ -24,9 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
@@ -80,79 +78,26 @@ public final class Utils {
 
     public static boolean isOrContainsEnum(MemberModel member) {
         boolean isEnum = member.getEnumType() != null;
-        boolean isMapWithEnumMember = member.isMap() && (member.getMapModel().getKeyModel().getEnumType() != null ||
-                                                         member.getMapModel().getValueModel().getEnumType() != null);
-        boolean isListWithEnumMember = member.isList() && member.getListModel().getListMemberModel().getEnumType() != null;
-        return isEnum || isMapWithEnumMember || isListWithEnumMember;
+        return isEnum || isMapWithEnumShape(member) || isListWithEnumShape(member);
     }
 
-    public static String getServiceName(ServiceMetadata metadata, CustomizationConfig customizationConfig) {
-        String baseName = metadata.getServiceAbbreviation() == null ?
-                metadata.getServiceFullName() :
-                metadata.getServiceAbbreviation();
-
-        baseName = baseName.replace("Amazon", "");
-        baseName = baseName.replace("AWS", "");
-        baseName = baseName.trim();
-        baseName = baseName.replaceAll("[^A-Za-z0-9]", "");
-
-        if (baseName.endsWith("Service")) {
-            baseName = baseName.replace("Service", "");
-        }
-
-        return baseName;
+    public static boolean isListWithEnumShape(MemberModel member) {
+        return member.isList() && member.getListModel().getListMemberModel().getEnumType() != null;
     }
 
-    public static String pascalCase(String baseName) {
-        return Stream.of(baseName.split("\\s+")).map(StringUtils::lowerCase).map(Utils::capitialize).collect(joining());
+    public static boolean isMapWithEnumShape(MemberModel member) {
+        return member.isMap() && (isMapKeyWithEnumShape(member.getMapModel()) || isMapValueWithEnumShape(member.getMapModel()));
     }
 
-    public static String getClientPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_CLIENT_PATTERN);
+    public static boolean isMapKeyWithEnumShape(MapModel mapModel) {
+        return mapModel.getKeyModel().getEnumType() != null;
     }
 
-    public static String getModelPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
-        }
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_MODEL_PATTERN);
+    public static boolean isMapValueWithEnumShape(MapModel mapModel) {
+        return mapModel.getValueModel().getEnumType() != null;
     }
 
-    public static String getTransformPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
-        }
-        return getRequestTransformPackageName(serviceName, customizationConfig);
-    }
-
-    public static String getRequestTransformPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_TRANSFORM_PATTERN);
-    }
-
-    public static String getPaginatorsPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName, Constants.PACKAGE_NAME_PAGINATORS_PATTERN);
-    }
-
-    public static String getSmokeTestPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_SMOKE_TEST_PATTERN);
-    }
-
-    public static String getAuthPolicyPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_CUSTOM_AUTH_PATTERN);
-    }
-
-    private static String getCustomizedPackageName(String serviceName, String defaultPattern) {
-        return String.format(defaultPattern, StringUtils.lowerCase(serviceName));
-    }
-
-    public static String unCapitialize(String name) {
+    public static String unCapitalize(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
@@ -170,12 +115,32 @@ public final class Utils {
         return sb.toString();
     }
 
-    public static String capitialize(String name) {
+    public static String capitalize(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
         return name.length() < 2 ? StringUtils.upperCase(name) : StringUtils.upperCase(name.substring(0, 1))
                 + name.substring(1);
+    }
+
+    public static String removeLeading(String str, String toRemove) {
+        if (str == null) {
+            return null;
+        }
+        if (str.startsWith(toRemove)) {
+            return str.substring(toRemove.length());
+        }
+        return str;
+    }
+
+    public static String removeTrailing(String str, String toRemove) {
+        if (str == null) {
+            return null;
+        }
+        if (str.endsWith(toRemove)) {
+            return str.substring(0, str.length() - toRemove.length());
+        }
+        return str;
     }
 
     /**

@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
@@ -44,11 +44,13 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @Sharable
+@SdkInternalApi
 class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
@@ -86,7 +88,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             final ByteBuffer bb = copyToByteBuffer(fullContent);
             fullContent.release();
             requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb));
-            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
+            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKey.SUBSCRIBER_KEY).get();
             try {
                 subscriber.onComplete();
                 requestContext.handler().complete();
@@ -220,23 +222,46 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
     }
 
-    private static class FullResponseContentPublisher implements Publisher<ByteBuffer> {
+    static class FullResponseContentPublisher implements Publisher<ByteBuffer> {
         private final ChannelHandlerContext channelContext;
         private final ByteBuffer fullContent;
+        private boolean running = true;
+        private Subscriber<? super ByteBuffer> subscriber;
 
         FullResponseContentPublisher(ChannelHandlerContext channelContext, ByteBuffer fullContent) {
             this.channelContext = channelContext;
             this.fullContent = fullContent;
         }
 
-        // FIXME: According to the spec,the publisher must call
-        // onSubscribe and wait for demand before calling onNext
-        // see item 1.1, 1.9: https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#specification
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-            subscriber.onNext(fullContent);
-            channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
+            if (this.subscriber != null) {
+                subscriber.onComplete();
+                return;
+            }
+            this.subscriber = subscriber;
+            channelContext.channel().attr(ChannelAttributeKey.SUBSCRIBER_KEY)
                     .set(subscriber);
+
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long l) {
+                    if (l <= 0 && running) {
+                        running = false;
+                        subscriber.onError(new IllegalArgumentException("Demand must be positive!"));
+                    } else if (running) {
+                        running = false;
+                        subscriber.onNext(fullContent);
+                        subscriber.onComplete();
+                    }
+                }
+
+                @Override
+                public void cancel() {
+                    running = false;
+                }
+            });
+
         }
     }
 

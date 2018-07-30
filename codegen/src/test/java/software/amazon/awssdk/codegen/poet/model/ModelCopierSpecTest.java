@@ -93,11 +93,11 @@ public class ModelCopierSpecTest {
     public void doesNotReturnACopierForImmutableTypes() {
         ServiceModelCopiers copiers = new ServiceModelCopiers(intermediateModel);
 
-        // Find members that are not Maps, Lists, Dates, or ByteBuffers
+        // Find members that are not Maps, Lists, Dates, or SdkBytes
         List<MemberModel> immutableMembers = testMemberModels.shapeToMemberMap().values().stream()
                 .filter(m -> !(m.isList() || m.isMap()))
                 .filter(m -> !(m.getVariable().getSimpleType().equals("Date")))
-                .filter(m -> !(m.getVariable().getSimpleType().equals("ByteBuffer")))
+                .filter(m -> !(m.getVariable().getSimpleType().equals("SdkBytes")))
                 .collect(Collectors.toList());
 
         // Quick sanity check to ensure we're actually testing something

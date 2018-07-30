@@ -48,7 +48,7 @@ public class RetryRule implements TestRule {
                 retry(base, 1);
             }
 
-            public void retry(final Statement base, int attempts) throws Throwable {
+            void retry(final Statement base, int attempts) throws Throwable {
                 try {
                     base.evaluate();
                 } catch (Exception e) {

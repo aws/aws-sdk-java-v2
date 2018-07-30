@@ -12,6 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.services.rds;
 
 import static junit.framework.Assert.assertEquals;
@@ -19,43 +20,46 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Clock;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.regions.Region;
+import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
-import software.amazon.awssdk.services.rds.model.RDSRequest;
-import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
+import software.amazon.awssdk.services.rds.model.RdsRequest;
+import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}
  */
 public class PresignRequestHandlerTest {
-    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("foo", "bar");
+    private static final AwsBasicCredentials CREDENTIALS = AwsBasicCredentials.create("foo", "bar");
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
-    private static RdsPresignInterceptor<CopyDBSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
-    private final CopyDBSnapshotRequestMarshaller marshaller = new CopyDBSnapshotRequestMarshaller();
+    private static RdsPresignInterceptor<CopyDbSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
+    private final CopyDbSnapshotRequestMarshaller marshaller = new CopyDbSnapshotRequestMarshaller();
 
     @Test
     public void testSetsPresignedUrl() throws URISyntaxException {
-        CopyDBSnapshotRequest request = makeTestRequest();
+        CopyDbSnapshotRequest request = makeTestRequest();
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
         assertNotNull(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
@@ -67,7 +71,7 @@ public class PresignRequestHandlerTest {
         // credentials to RDS and checking that they succeeded. Then the
         // request was recreated with all the same parameters but with test
         // credentials.
-        final CopyDBSnapshotRequest request = CopyDBSnapshotRequest.builder()
+        final CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder()
                 .sourceDBSnapshotIdentifier("arn:aws:rds:us-east-1:123456789012:snapshot:rds:test-instance-ss-2016-12-20-23-19")
                 .targetDBSnapshotIdentifier("test-instance-ss-copy-2")
                 .sourceRegion("us-east-1")
@@ -80,7 +84,10 @@ public class PresignRequestHandlerTest {
         // Note: month is 0-based
         c.set(2016, 11, 21, 18, 7, 35);
 
-        RdsPresignInterceptor<CopyDBSnapshotRequest> interceptor = new CopyDbSnapshotPresignInterceptor(c.getTime());
+        Clock signingDateOverride = Mockito.mock(Clock.class);
+        when(signingDateOverride.millis()).thenReturn(c.getTimeInMillis());
+
+        RdsPresignInterceptor<CopyDbSnapshotRequest> interceptor = new CopyDbSnapshotPresignInterceptor(signingDateOverride);
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
 
@@ -103,7 +110,7 @@ public class PresignRequestHandlerTest {
 
     @Test
     public void testSkipsPresigningIfUrlSet() throws URISyntaxException {
-        CopyDBSnapshotRequest request = CopyDBSnapshotRequest.builder()
+        CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder()
                 .sourceRegion("us-west-2")
                 .preSignedUrl("PRESIGNED")
                 .build();
@@ -116,7 +123,7 @@ public class PresignRequestHandlerTest {
 
     @Test
     public void testSkipsPresigningIfSourceRegionNotSet() throws URISyntaxException {
-        CopyDBSnapshotRequest request = CopyDBSnapshotRequest.builder().build();
+        CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder().build();
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
@@ -125,7 +132,7 @@ public class PresignRequestHandlerTest {
 
     @Test
     public void testParsesDestinationRegionfromRequestEndpoint() throws URISyntaxException {
-        CopyDBSnapshotRequest request = CopyDBSnapshotRequest.builder()
+        CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder()
                 .sourceRegion("us-east-1")
                 .build();
         Region destination = Region.of("us-west-2");
@@ -134,20 +141,20 @@ public class PresignRequestHandlerTest {
         final SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
-        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.value()));
+        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
     }
 
     @Test
     public void testSourceRegionRemovedFromOriginalRequest() throws URISyntaxException {
-        CopyDBSnapshotRequest request = makeTestRequest();
+        CopyDbSnapshotRequest request = makeTestRequest();
         SdkHttpFullRequest marshalled = marshallRequest(request);
         SdkHttpFullRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
     }
 
-    private SdkHttpFullRequest marshallRequest(CopyDBSnapshotRequest request) throws URISyntaxException {
-        Request<CopyDBSnapshotRequest> legacyMarshalled = marshaller.marshall(request);
+    private SdkHttpFullRequest marshallRequest(CopyDbSnapshotRequest request) throws URISyntaxException {
+        Request<CopyDbSnapshotRequest> legacyMarshalled = marshaller.marshall(request);
         legacyMarshalled.setEndpoint(URI.create("https://example.com"));
 
         SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(legacyMarshalled);
@@ -162,14 +169,14 @@ public class PresignRequestHandlerTest {
                          .build();
     }
 
-    private ExecutionAttributes executionAttributes(RDSRequest request) {
-        return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, request.requestOverrideConfig()
-                                                .orElse(AwsRequestOverrideConfig.builder().build()));
+    private ExecutionAttributes executionAttributes(RdsRequest request) {
+        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
+                                        .putAttribute(AwsSignerExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
+                                                                                                         .orElse(AwsRequestOverrideConfiguration.builder().build()));
     }
 
-    private CopyDBSnapshotRequest makeTestRequest() {
-        return CopyDBSnapshotRequest.builder()
+    private CopyDbSnapshotRequest makeTestRequest() {
+        return CopyDbSnapshotRequest.builder()
                 .sourceDBSnapshotIdentifier("arn:aws:rds:us-east-1:123456789012:snapshot:rds:test-instance-ss-2016-12-20-23-19")
                 .targetDBSnapshotIdentifier("test-instance-ss-copy-2")
                 .sourceRegion("us-east-1")
@@ -178,7 +185,7 @@ public class PresignRequestHandlerTest {
     }
 
     private SdkHttpFullRequest modifyHttpRequest(ExecutionInterceptor interceptor,
-                                                 RDSRequest request,
+                                                 RdsRequest request,
                                                  SdkHttpFullRequest httpRequest) {
         InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
         return interceptor.modifyHttpRequest(context, executionAttributes(request));

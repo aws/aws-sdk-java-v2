@@ -32,6 +32,7 @@ import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.pojos.SubClass;
 import software.amazon.awssdk.services.dynamodb.pojos.TestClass;
@@ -130,9 +131,9 @@ public class StandardModelFactoriesV1Test {
 
     @Test
     public void testBinary() {
-        ByteBuffer value = ByteBuffer.wrap("value".getBytes());
-        assertEquals(value.slice(), convert("getByteArray", "value".getBytes()).b());
-        assertEquals(value.slice(), convert("getByteBuffer", value.slice()).b());
+        SdkBytes value = SdkBytes.fromUtf8String("value");
+        assertEquals(value, convert("getByteArray", value.asByteArray()).b());
+        assertEquals(value, convert("getByteBuffer", value.asByteBuffer()).b());
     }
 
     @Test
@@ -234,21 +235,19 @@ public class StandardModelFactoriesV1Test {
 
     @Test
     public void testBinarySet() {
-        final ByteBuffer test = ByteBuffer.wrap("test".getBytes());
-        final ByteBuffer test2 = ByteBuffer.wrap("test2".getBytes());
+        SdkBytes test = SdkBytes.fromUtf8String("test");
+        SdkBytes test2 = SdkBytes.fromUtf8String("test2");
 
-        assertEquals(Collections.singletonList(test.slice()),
-                     convert("getByteArraySet", Collections.singleton("test".getBytes()))
-                             .bs());
+        assertEquals(Collections.singletonList(test),
+                     convert("getByteArraySet", Collections.singleton(test.asByteArray())).bs());
 
-        assertEquals(Collections.singletonList(test.slice()),
-                     convert("getByteBufferSet", Collections.singleton(test.slice()))
-                             .bs());
+        assertEquals(Collections.singletonList(test),
+                     convert("getByteBufferSet", Collections.singleton(test.asByteBuffer())).bs());
 
-        assertEquals(Arrays.asList(test.slice(), test2.slice()),
+        assertEquals(Arrays.asList(test, test2),
                      convert("getByteBufferSet", new TreeSet<ByteBuffer>() {{
-                         add(test.slice());
-                         add(test2.slice());
+                         add(test.asByteBuffer());
+                         add(test2.asByteBuffer());
                      }}).bs());
     }
 

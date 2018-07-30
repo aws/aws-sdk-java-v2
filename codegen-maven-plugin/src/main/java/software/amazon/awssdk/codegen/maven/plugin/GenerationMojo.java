@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -59,7 +58,7 @@ public class GenerationMojo extends AbstractMojo {
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
 
-    @Component
+    @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
     private Path sourcesDirectory;
@@ -73,7 +72,7 @@ public class GenerationMojo extends AbstractMojo {
             try {
                 getLog().info("Loading from: " + p.toString());
                 generateCode(C2jModels.builder()
-                                      .apply(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
+                                      .applyMutation(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
                                       .customizationConfig(loadCustomizationConfig(p))
                                       .serviceModel(loadServiceModel(p))
                                       .waitersModel(loadWaiterModel(p))
@@ -99,7 +98,7 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private int modelSharersLast(Path lhs, Path rhs) {
-        return loadCustomizationConfig(lhs).getShareModelsWith() == null ? -1 : 1;
+        return loadCustomizationConfig(lhs).getShareModelConfig() == null ? -1 : 1;
     }
 
     private boolean isModelFile(Path p, BasicFileAttributes a) {
@@ -122,7 +121,7 @@ public class GenerationMojo extends AbstractMojo {
 
     private CustomizationConfig loadCustomizationConfig(Path root) {
         return loadOptionalModel(CustomizationConfig.class, root.resolve(CUSTOMIZATION_CONFIG_FILE))
-                .orElse(CustomizationConfig.DEFAULT);
+                .orElse(CustomizationConfig.create());
     }
 
     private ServiceModel loadServiceModel(Path root) throws MojoExecutionException {
@@ -130,15 +129,15 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private ServiceExamples loadExamplesModel(Path root) {
-        return loadOptionalModel(ServiceExamples.class, root.resolve(EXAMPLES_FILE)).orElse(ServiceExamples.NONE);
+        return loadOptionalModel(ServiceExamples.class, root.resolve(EXAMPLES_FILE)).orElse(ServiceExamples.none());
     }
 
     private Waiters loadWaiterModel(Path root) {
-        return loadOptionalModel(Waiters.class, root.resolve(WAITERS_FILE)).orElse(Waiters.NONE);
+        return loadOptionalModel(Waiters.class, root.resolve(WAITERS_FILE)).orElse(Waiters.none());
     }
 
     private Paginators loadPaginatorModel(Path root) {
-        return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.NONE);
+        return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.none());
     }
 
     /**

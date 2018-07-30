@@ -2,7 +2,7 @@ ${fileHeader}
 package ${transformPackage};
 
 import static software.amazon.awssdk.core.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -22,11 +22,11 @@ import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.Md5Utils;
-import software.amazon.awssdk.core.util.XmlWriter;
+import software.amazon.awssdk.utils.Md5Utils;
+import software.amazon.awssdk.core.util.xml.XmlWriter;
 import software.amazon.awssdk.core.util.SdkHttpUtils;
 
 /**
@@ -40,7 +40,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
     public Request<${shapeName}> marshall(${shape.variable.variableType} ${shape.variable.variableName}) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         <@RequiredParameterValidationInvocationMacro.content customConfig shape/>
@@ -75,8 +75,8 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
             <#list shape.members as member>
                 <#if (member.http.isStreaming)>
                 <#-- Content is set by StreamingRequestMarshaller -->
-                <#elseif (member.http.isPayload) && member.variable.variableType = "java.nio.ByteBuffer">
-                request.setContent(BinaryUtils.toStream(${shape.variable.variableName}.${member.fluentGetterMethodName}()));
+                <#elseif (member.http.isPayload) && member.variable.variableType = "software.amazon.awssdk.core.SdkBytes">
+                request.setContent(${shape.variable.variableName}.${member.fluentGetterMethodName}().asInputStream());
                 if (!request.getHeaders().containsKey("Content-Type")) {
                     request.addHeader("Content-Type", "binary/octet-stream");
                 }
@@ -113,17 +113,17 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                         <#-- TODO @ReviewBeforeRelease this should probably be done in a request handler -->
                         <#if metadata.serviceName == "Amazon S3">
                         if (!request.getHeaders().containsKey("Content-MD5")) {
-                            request.addHeader("Content-MD5", Md5Utils.md5AsBase64(stringWriter.getBuffer().toString().getBytes(UTF8)));
+                            request.addHeader("Content-MD5", Md5Utils.md5AsBase64(stringWriter.getBuffer().toString().getBytes(UTF_8)));
                         }
                         </#if>
                         request.setContent(new StringInputStream(stringWriter.getBuffer().toString()));
-                        request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF8).length));
+                        request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF_8).length));
                     }
                     if (!request.getHeaders().containsKey("Content-Type")) {
                         request.addHeader("Content-Type", "application/xml");
                     }
                 } catch(Throwable t) {
-                    throw new SdkClientException("Unable to marshall request to XML: " + t.getMessage(), t);
+                    throw SdkClientException.builder().message("Unable to marshall request to XML: " + t.getMessage()).cause(t).build();
                 }
                 <#break>
                 </#if>
@@ -139,12 +139,12 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
             xmlWriter.endElement();
 
             request.setContent(new StringInputStream(stringWriter.getBuffer().toString()));
-            request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF8).length));
+            request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF_8).length));
             if (!request.getHeaders().containsKey("Content-Type")) {
                 request.addHeader("Content-Type", "application/xml");
             }
         } catch(Throwable t) {
-            throw new SdkClientException("Unable to marshall request to XML: " + t.getMessage(), t);
+            throw SdkClientException.builder().message("Unable to marshall request to XML: " + t.getMessage()).cause(t).build();
         }
         </#if>
 

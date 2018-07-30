@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.iam.IAMClient;
+import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.AttachRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.CreatePolicyRequest;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.marketplacecommerceanalytics.model.Genera
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.sns.SNSClient;
+import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -57,8 +57,8 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private MarketplaceCommerceAnalyticsClient client;
     private S3Client s3;
-    private SNSClient sns;
-    private IAMClient iam;
+    private SnsClient sns;
+    private IamClient iam;
 
     private String topicArn;
     private String roleArn;
@@ -81,9 +81,9 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                                                    .region(Region.US_EAST_1)
                                                    .build();
 
-        sns = SNSClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_EAST_1).build();
+        sns = SnsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_EAST_1).build();
 
-        iam = IAMClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.AWS_GLOBAL).build();
+        iam = IamClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.AWS_GLOBAL).build();
     }
 
     private void setupResources() throws IOException, Exception {

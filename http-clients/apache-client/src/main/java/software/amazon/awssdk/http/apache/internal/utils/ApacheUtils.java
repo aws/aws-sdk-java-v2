@@ -29,8 +29,10 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
+@SdkInternalApi
 public final class ApacheUtils {
 
     private ApacheUtils() {

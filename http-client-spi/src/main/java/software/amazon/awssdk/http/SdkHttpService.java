@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
@@ -22,19 +23,20 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * HTTP implementations on the classpath. HTTP implementations that wish to be discovered by the default HTTP provider chain
  * should implement this interface and declare that implementation as a service in the
  * META-INF/service/software.amazon.awssdk.http.SdkHttpService resource. See
- * <a href="https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>Service Loader</a> for more
+ * <a href="https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html">Service Loader</a> for more
  * information.
  *
  * <p>
- * This interface is simply a factory for {@link SdkHttpClientFactory}. Implementations must be thread safe.
+ * This interface is simply a factory for {@link SdkHttpClient.Builder}. Implementations must be thread safe.
  * </p>
  */
 @ThreadSafe
+@SdkProtectedApi
 public interface SdkHttpService {
 
     /**
-     * @return An {@link SdkHttpClientFactory} capable of creating {@link SdkHttpClient} instances. This factory should be thread
+     * @return An {@link SdkHttpClient.Builder} capable of creating {@link SdkHttpClient} instances. This factory should be thread
      * safe.
      */
-    SdkHttpClientFactory createHttpClientFactory();
+    SdkHttpClient.Builder createHttpClientBuilder();
 }

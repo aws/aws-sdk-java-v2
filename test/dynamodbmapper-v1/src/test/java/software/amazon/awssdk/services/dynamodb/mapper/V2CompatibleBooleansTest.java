@@ -30,8 +30,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ConversionSchema;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ConversionSchemas;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAttribute;
@@ -59,7 +59,7 @@ public class V2CompatibleBooleansTest {
     private static final String HASH_KEY = "1234";
 
     @Mock
-    private DynamoDBClient ddb;
+    private DynamoDbClient ddb;
 
     /**
      * Mapper with default config.
@@ -328,8 +328,8 @@ public class V2CompatibleBooleansTest {
      */
     private GetItemResponse createGetItemResponse(String attributeName, AttributeValue attributeValue) {
         return GetItemResponse.builder().item(
-                ImmutableMapParameter.of("hashKey", AttributeValue.builder().s(HASH_KEY).build(),
-                        attributeName, attributeValue)).build();
+                ImmutableMap.of("hashKey", AttributeValue.builder().s(HASH_KEY).build(),
+                                attributeName, attributeValue)).build();
     }
 
     @DynamoDbTable(tableName = "UnitTestTable")

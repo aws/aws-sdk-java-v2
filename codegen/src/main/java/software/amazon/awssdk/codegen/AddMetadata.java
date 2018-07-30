@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen;
 
-import software.amazon.awssdk.codegen.internal.Constants;
+import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -25,6 +25,8 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 
 /**
  * Constructs the metadata that is required for generating the java client from the service meta data.
@@ -42,6 +44,7 @@ final class AddMetadata {
 
         final Metadata metadata = new Metadata();
 
+        final NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
         final ServiceMetadata serviceMetadata = serviceModel.getMetadata();
 
         final String serviceName;
@@ -60,34 +63,34 @@ final class AddMetadata {
                             Utils.getDefaultEndpointWithoutHttpProtocol(codeGenConfig.getEndpoint()))
                     .withDefaultRegion(codeGenConfig.getDefaultRegion());
         } else {
-            serviceName = Utils.getServiceName(serviceMetadata, customizationConfig);
+            serviceName = namingStrategy.getServiceName();
             rootPackageName = AWS_PACKAGE_PREFIX;
         }
 
         metadata.withApiVersion(serviceMetadata.getApiVersion())
-                .withAsyncClient(String.format(Constants.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
-                .withAsyncInterface(String.format(Constants.ASYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
-                .withAsyncBuilder(String.format(Constants.ASYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
-                .withAsyncBuilderInterface(String.format(Constants.ASYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
-                .withBaseBuilderInterface(String.format(Constants.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
-                .withBaseBuilder(String.format(Constants.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
+                .withAsyncClient(String.format(Constant.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
+                .withAsyncInterface(String.format(Constant.ASYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
+                .withAsyncBuilder(String.format(Constant.ASYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
+                .withAsyncBuilderInterface(String.format(Constant.ASYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
+                .withBaseBuilderInterface(String.format(Constant.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
+                .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
                 .withRootPackageName(rootPackageName)
-                .withClientPackageName(Utils.getClientPackageName(serviceName, customizationConfig))
-                .withModelPackageName(Utils.getModelPackageName(serviceName, customizationConfig))
-                .withTransformPackageName(Utils.getTransformPackageName(serviceName, customizationConfig))
-                .withRequestTransformPackageName(Utils.getRequestTransformPackageName(serviceName, customizationConfig))
-                .withPaginatorsPackageName(Utils.getPaginatorsPackageName(serviceName, customizationConfig))
-                .withSmokeTestsPackageName(Utils.getSmokeTestPackageName(serviceName, customizationConfig))
+                .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
+                .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
+                .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
+                .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
+                .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
+                .withSmokeTestsPackageName(namingStrategy.getSmokeTestPackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
-                .withSyncClient(String.format(Constants.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
-                .withSyncInterface(String.format(Constants.SYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
-                .withSyncBuilder(String.format(Constants.SYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
-                .withSyncBuilderInterface(String.format(Constants.SYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
-                .withBaseExceptionName(String.format(Constants.BASE_EXCEPTION_NAME_PATTERN, serviceName))
-                .withBaseRequestName(String.format(Constants.BASE_REQUEST_NAME_PATTERN, serviceName))
-                .withBaseResponseName(String.format(Constants.BASE_RESPONSE_NAME_PATTERN, serviceName))
+                .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
+                .withSyncInterface(String.format(Constant.SYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
+                .withSyncBuilder(String.format(Constant.SYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
+                .withSyncBuilderInterface(String.format(Constant.SYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
+                .withBaseExceptionName(String.format(Constant.BASE_EXCEPTION_NAME_PATTERN, serviceName))
+                .withBaseRequestName(String.format(Constant.BASE_REQUEST_NAME_PATTERN, serviceName))
+                .withBaseResponseName(String.format(Constant.BASE_RESPONSE_NAME_PATTERN, serviceName))
                 .withProtocol(Protocol.fromValue(serviceMetadata.getProtocol()))
                 .withJsonVersion(serviceMetadata.getJsonVersion())
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())

@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services.iam;
 
 import java.util.UUID;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateUserRequest;
 import software.amazon.awssdk.services.iam.model.DeleteAccessKeyRequest;
@@ -44,13 +44,13 @@ import software.amazon.awssdk.services.iam.model.SigningCertificate;
 import software.amazon.awssdk.services.iam.model.User;
 
 public class IAMUtil {
-    private static final IAMClient client;
+    private static final IamClient client;
     public static String TEST_PATH = "/IntegrationTests/IAM/";
 
     static {
         try {
             IntegrationTestBase.setUpCredentials();
-            client = IAMClient.builder()
+            client = IamClient.builder()
                               .credentialsProvider(IntegrationTestBase.CREDENTIALS_PROVIDER_CHAIN)
                               .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
                               .region(Region.AWS_GLOBAL)

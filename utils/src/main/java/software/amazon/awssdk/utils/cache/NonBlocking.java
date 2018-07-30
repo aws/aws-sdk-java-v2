@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils.cache;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.ExecutorUtils;
 
 /**
@@ -25,6 +26,7 @@ import software.amazon.awssdk.utils.ExecutorUtils;
  *
  * Multiple calls to {@link #prefetch(Runnable)} will still only result in one background task performing the update.
  */
+@SdkProtectedApi
 public class NonBlocking implements CachedSupplier.PrefetchStrategy {
     /**
      * Whether we are currently refreshing the supplier. This is used to make sure only one caller is blocking at a time.

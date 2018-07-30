@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Represents a value that can be one of two types.
@@ -25,6 +26,7 @@ import java.util.function.Function;
  * @param <L> Left type
  * @param <R> Right type
  */
+@SdkProtectedApi
 public final class Either<L, R> {
 
     private final Optional<L> left;
@@ -105,7 +107,7 @@ public final class Either<L, R> {
     }
 
     /**
-     * Create a new Optional&lt;Either&rt; from two possibly null values.
+     * Create a new {@code Optional<Either>} from two possibly null values.
      *
      * If both values are null, {@link Optional#empty()} is returned. Only one of the left or right values
      * is allowed to be non-null, otherwise an {@link IllegalArgumentException} is thrown.

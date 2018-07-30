@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
@@ -28,7 +29,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -42,19 +42,18 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.client.SyncClientHandler;
+import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 public class SyncClientClass implements ClassSpec {
 
     private final IntermediateModel model;
-    private final String basePackage;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         this.model = taskParams.getModel();
-        this.basePackage = model.getMetadata().getFullClientPackageName();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model.getMetadata().getProtocol());
@@ -72,15 +71,10 @@ public class SyncClientClass implements ClassSpec {
                                                     interfaceClass)
                                         .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
                                         .addField(protocolSpec.protocolFactory(model))
-                                        .addField(AwsSyncClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+                                        .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+                                        .addMethod(constructor())
                                         .addMethod(nameMethod())
                                         .addMethods(operations());
-
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            classBuilder.addMethod(constructorWithAdvancedConfiguration());
-        } else {
-            classBuilder.addMethod(constructor());
-        }
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
@@ -88,7 +82,9 @@ public class SyncClientClass implements ClassSpec {
 
         classBuilder.addMethod(closeMethod());
 
-        classBuilder.addMethods(protocolSpec.additionalMethods());
+        if (model.hasPaginators()) {
+            classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
+        }
 
         return classBuilder.build();
     }
@@ -110,22 +106,8 @@ public class SyncClientClass implements ClassSpec {
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsSyncClientConfiguration.class, "clientConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration, null)",
-                                       protocolSpec.getClientHandlerClass())
-                         .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
-                         .addStatement("this.clientConfiguration = clientConfiguration")
-                         .build();
-    }
-
-    private MethodSpec constructorWithAdvancedConfiguration() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsSyncClientConfiguration.class, "clientConfiguration")
-                         .addParameter(advancedConfiguration, "serviceConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration, serviceConfiguration)",
+                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                         .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                        protocolSpec.getClientHandlerClass())
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .addStatement("this.clientConfiguration = clientConfiguration")
@@ -168,7 +150,7 @@ public class SyncClientClass implements ClassSpec {
                                                         .addAnnotation(Override.class)
                                                         .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
                                                             opModel.getOperationName()))
-                                                        .addStatement("return new $T(this, $L)",
+                                                        .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
                                                                       poetExtensions.getResponseClassForPaginatedSyncOperation(
                                                                           opModel.getOperationName()),
                                                                       opModel.getInput().getVariableName())

@@ -65,7 +65,7 @@ public class MarshallerSpec implements ClassSpec {
         return TypeSpec.classBuilder(className)
                        .addJavadoc("{@link $T} Marshaller", requestClassName)
                        .addModifiers(Modifier.PUBLIC)
-                       .addAnnotation(PoetUtils.GENERATED)
+                       .addAnnotation(PoetUtils.generatedAnnotation())
                        .addAnnotation(SdkInternalApi.class)
                        .addSuperinterface(
                            ParameterizedTypeName.get(baseMashallerName,
@@ -106,7 +106,8 @@ public class MarshallerSpec implements ClassSpec {
 
         methodSpecBuilder.endControlFlow();
         methodSpecBuilder.beginControlFlow("catch (Exception e)");
-        methodSpecBuilder.addStatement("throw new $T(\"Unable to marshall request to JSON: \" + e.getMessage(), e)", ClassName
+        methodSpecBuilder.addStatement("throw $T.builder().message(\"Unable to marshall request to JSON: \" + " +
+                "e.getMessage()).cause(e).build()", ClassName
             .get(SdkClientException.class));
         methodSpecBuilder.endControlFlow();
         return methodSpecBuilder.build();

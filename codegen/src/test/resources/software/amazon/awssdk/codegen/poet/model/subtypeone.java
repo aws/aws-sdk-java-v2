@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
@@ -14,7 +14,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.Builder, SubTypeOne> {
+public final class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.Builder, SubTypeOne> {
     private final String subTypeOneMember;
 
     private SubTypeOne(BuilderImpl builder) {
@@ -72,10 +72,10 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "SubTypeOneMember":
-                return Optional.of(clazz.cast(subTypeOneMember()));
-            default:
-                return Optional.empty();
+        case "SubTypeOneMember":
+            return Optional.ofNullable(clazz.cast(subTypeOneMember()));
+        default:
+            return Optional.empty();
         }
     }
 

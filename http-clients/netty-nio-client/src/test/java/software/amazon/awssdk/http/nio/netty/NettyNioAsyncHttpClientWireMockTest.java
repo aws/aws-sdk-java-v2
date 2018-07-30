@@ -35,15 +35,23 @@ import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,39 +59,52 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NettyNioAsyncHttpClientWireMockTest {
 
+    private final RecordingNetworkTrafficListener wiremockTrafficListener = new RecordingNetworkTrafficListener();
+
     @Rule
-    public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+    public WireMockRule mockServer = new WireMockRule(wireMockConfig()
+            .dynamicPort()
+            .dynamicHttpsPort()
+            .networkTrafficListener(wiremockTrafficListener));
 
     @Mock
     private SdkRequestContext requestContext;
 
-    private static SdkAsyncHttpClient client = NettySdkHttpClientFactory.builder()
-                                                                        .trustAllCertificates(true)
-                                                                        .build()
-                                                                        .createHttpClient();
+    private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder().buildWithDefaults(mapWithTrustAllCerts());
+
+    @Before
+    public void methodSetup() {
+        wiremockTrafficListener.reset();
+    }
 
     @AfterClass
     public static void tearDown() throws Exception {
@@ -93,18 +114,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
     @Test
     public void customFactoryIsUsed() throws Exception {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroupConfiguration eventLoopGroupConfiguration =
-                EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
-                                                                                              .threadFactory(threadFactory)
-                                                                                              .build())
-                                           .build();
         SdkAsyncHttpClient customClient =
-                NettySdkHttpClientFactory.builder()
-                                         .trustAllCertificates(true)
-                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
-                                         .build()
-                                         .createHttpClient();
+            NettyNioAsyncHttpClient.builder()
+                                   .eventLoopGroupBuilder(SdkEventLoopGroup.builder()
+                                                                           .threadFactory(threadFactory))
+                                   .build();
 
         makeSimpleRequest(customClient);
         customClient.close();
@@ -127,19 +141,12 @@ public class NettyNioAsyncHttpClientWireMockTest {
     public void customThreadCountIsRespected() throws Exception {
         final int threadCount = 10;
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroupConfiguration eventLoopGroupConfiguration =
-                EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
-                                                                                              .threadFactory(threadFactory)
-                                                                                              .numberOfThreads(threadCount)
-                                                                                              .build())
-                                           .build();
         SdkAsyncHttpClient customClient =
-                NettySdkHttpClientFactory.builder()
-                                         .trustAllCertificates(true)
-                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
-                                         .build()
-                                         .createHttpClient();
+                NettyNioAsyncHttpClient.builder()
+                                       .eventLoopGroupBuilder(SdkEventLoopGroup.builder()
+                                                                               .threadFactory(threadFactory)
+                                                                               .numberOfThreads(threadCount))
+                                       .build();
 
         // Have to make enough requests to prime the threads
         for (int i = 0; i < threadCount + 1; i++) {
@@ -158,22 +165,34 @@ public class NettyNioAsyncHttpClientWireMockTest {
         // implementation it creates is platform-dependent and could be a final
         // (i.e. non-spyable) class.
         EventLoopGroup eventLoopGroup = spy(new NioEventLoopGroup(0, threadFactory));
-        EventLoopGroupConfiguration eventLoopGroupConfiguration =
-                EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroup(eventLoopGroup)
-                                           .build();
         SdkAsyncHttpClient customClient =
-                NettySdkHttpClientFactory.builder()
-                                         .trustAllCertificates(true)
-                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
-                                         .build()
-                                         .createHttpClient();
+                NettyNioAsyncHttpClient.builder()
+                                       .eventLoopGroup(SdkEventLoopGroup.create(eventLoopGroup, NioSocketChannel::new))
+                                       .build();
 
         makeSimpleRequest(customClient);
         customClient.close();
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
         Mockito.verify(eventLoopGroup, never()).shutdownGracefully();
+    }
+
+    @Test
+    public void customChannelFactoryIsUsed() throws Exception {
+
+        ChannelFactory channelFactory = mock(ChannelFactory.class);
+
+        when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> new NioSocketChannel());
+
+        SdkAsyncHttpClient customClient =
+            NettyNioAsyncHttpClient.builder()
+                                   .eventLoopGroup(SdkEventLoopGroup.create(new NioEventLoopGroup(), channelFactory))
+                                   .build();
+
+        makeSimpleRequest(customClient);
+        customClient.close();
+
+        Mockito.verify(channelFactory, atLeastOnce()).newChannel();
     }
 
     /**
@@ -245,6 +264,30 @@ public class NettyNioAsyncHttpClientWireMockTest {
         assertThat(recorder.fullResponseAsString()).isEqualTo(reverse(body));
     }
 
+    @Test
+    public void requestContentOnlyEqualToContentLengthHeaderFromProvider() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+        final String content = randomAlphabetic(32);
+        final String streamContent = content + reverse(content);
+        stubFor(any(urlEqualTo("/echo?reversed=true"))
+                .withRequestBody(equalTo(content))
+                .willReturn(aResponse().withBody(reverse(content))));
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+
+        SdkHttpFullRequest request = createRequest(uri, "/echo", streamContent, SdkHttpMethod.POST, singletonMap("reversed", "true"));
+        request = request.toBuilder().putHeader("Content-Length", Integer.toString(content.length())).build();
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+
+
+        client.prepareRequest(request, requestContext, createProvider(streamContent), recorder).run();
+
+        recorder.completeFuture.get(5, TimeUnit.SECONDS);
+
+        // HTTP servers will stop processing the request as soon as it reads
+        // bytes equal to 'Content-Length' so we need to inspect the raw
+        // traffic to ensure that there wasn't anything after that.
+        assertThat(wiremockTrafficListener.requests.toString()).endsWith(content);
+    }
+
     private void assertCanReceiveBasicRequest(URI uri, String body) throws Exception {
         stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withHeader("Some-Header", "With Value").withBody(body)));
 
@@ -293,11 +336,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         };
     }
 
-    private SdkHttpRequest createRequest(URI uri) {
+    private SdkHttpFullRequest createRequest(URI uri) {
         return createRequest(uri, "/", null, SdkHttpMethod.GET, emptyMap());
     }
 
-    private SdkHttpRequest createRequest(URI uri,
+    private SdkHttpFullRequest createRequest(URI uri,
                                          String resourcePath,
                                          String body,
                                          SdkHttpMethod method,
@@ -309,11 +352,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                  .port(uri.getPort())
                                  .method(method)
                                  .encodedPath(resourcePath)
-                                 .apply(b -> params.forEach(b::rawQueryParameter))
-                                 .apply(b -> {
-                                     b.header("Host", uri.getHost());
+                                 .applyMutation(b -> params.forEach(b::putRawQueryParameter))
+                                 .applyMutation(b -> {
+                                     b.putHeader("Host", uri.getHost());
                                      if (contentLength != null) {
-                                         b.header("Content-Length", contentLength);
+                                         b.putHeader("Content-Length", contentLength);
                                      }
                                  }).build();
     }
@@ -341,11 +384,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
     public void testExceptionMessageChanged_WhenPendingAcquireQueueIsFull() throws Exception {
         String expectedErrorMsg = "Maximum pending connection acquisitions exceeded.";
 
-        SdkAsyncHttpClient customClient = NettySdkHttpClientFactory.builder()
-                                                                   .maxConnectionsPerEndpoint(1)
-                                                                   .maxPendingAcquires(1)
-                                                                   .build()
-                                                                   .createHttpClient();
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConnectionsPerEndpoint(1)
+                                                                 .maxPendingConnectionAcquires(1)
+                                                                 .build();
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -353,7 +395,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         }
 
         assertThatThrownBy(() -> {
-            CompletableFuture.allOf(futures.stream().toArray(CompletableFuture[]::new)).join();
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }).hasMessageContaining(expectedErrorMsg);
 
         customClient.close();
@@ -365,11 +407,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         String expectedErrorMsg = "Acquire operation took longer than the configured maximum time. This indicates that a request "
                                   + "cannot get a connection from the pool within the specified maximum time.";
 
-        SdkAsyncHttpClient customClient = NettySdkHttpClientFactory.builder()
-                                                                   .maxConnectionsPerEndpoint(1)
-                                                                   .connectionTimeout(Duration.ofNanos(1))
-                                                                   .build()
-                                                                   .createHttpClient();
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConnectionsPerEndpoint(1)
+                                                                 .connectionTimeout(Duration.ofMillis(1))
+                                                                 .connectionAcquisitionTimeout(Duration.ofMillis(1))
+                                                                 .build();
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
@@ -377,7 +419,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         }
 
         assertThatThrownBy(() -> {
-            CompletableFuture.allOf(futures.stream().toArray(CompletableFuture[]::new)).join();
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }).hasMessageContaining(expectedErrorMsg);
 
         customClient.close();
@@ -391,5 +433,40 @@ public class NettyNioAsyncHttpClientWireMockTest {
         RecordingResponseHandler recorder = new RecordingResponseHandler();
         client.prepareRequest(request, requestContext, createProvider(""), recorder).run();
         return recorder;
+    }
+
+    private static AttributeMap mapWithTrustAllCerts() {
+        return AttributeMap.builder()
+                           .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
+                           .build();
+    }
+
+    private static class RecordingNetworkTrafficListener implements WiremockNetworkTrafficListener {
+        private final StringBuilder requests = new StringBuilder();
+
+
+        @Override
+        public void opened(Socket socket) {
+
+        }
+
+        @Override
+        public void incoming(Socket socket, ByteBuffer byteBuffer) {
+            requests.append(StandardCharsets.UTF_8.decode(byteBuffer));
+        }
+
+        @Override
+        public void outgoing(Socket socket, ByteBuffer byteBuffer) {
+
+        }
+
+        @Override
+        public void closed(Socket socket) {
+
+        }
+
+        public void reset() {
+            requests.setLength(0);
+        }
     }
 }

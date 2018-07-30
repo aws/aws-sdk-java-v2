@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
-import software.amazon.awssdk.services.sqs.SQSClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
@@ -108,7 +108,7 @@ public class Topics {
      *             either a problem with the data in the request, or a server
      *             side issue.
      */
-    public static String subscribeQueue(SNSClient sns, SQSClient sqs, String snsTopicArn, String sqsQueueUrl)
+    public static String subscribeQueue(SnsClient sns, SqsClient sqs, String snsTopicArn, String sqsQueueUrl)
             throws SdkClientException, SdkServiceException {
         return Topics.subscribeQueue(sns, sqs, snsTopicArn, sqsQueueUrl, false);
     }
@@ -179,7 +179,7 @@ public class Topics {
      *             either a problem with the data in the request, or a server
      *             side issue.
      */
-    public static String subscribeQueue(SNSClient sns, SQSClient sqs, String snsTopicArn, String sqsQueueUrl,
+    public static String subscribeQueue(SnsClient sns, SqsClient sqs, String snsTopicArn, String sqsQueueUrl,
                                         boolean extendPolicy)
             throws SdkClientException, SdkServiceException {
         List<String> sqsAttrNames = Arrays.asList(QueueAttributeName.QUEUE_ARN.toString(),
@@ -187,7 +187,7 @@ public class Topics {
         Map<String, String> sqsAttrs =
                 sqs.getQueueAttributes(GetQueueAttributesRequest.builder()
                         .queueUrl(sqsQueueUrl)
-                        .attributeNames(sqsAttrNames)
+                        .attributeNamesWithStrings(sqsAttrNames)
                         .build())
                         .attributesAsStrings();
         String sqsQueueArn = sqsAttrs.get(QueueAttributeName.QUEUE_ARN.toString());
@@ -204,7 +204,7 @@ public class Topics {
 
         Map<String, String> newAttrs = new HashMap<String, String>();
         newAttrs.put(QueueAttributeName.POLICY.toString(), policy.toJson());
-        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributes(newAttrs).build());
+        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributesWithStrings(newAttrs).build());
 
         SubscribeResponse subscribeResult = sns.subscribe(SubscribeRequest.builder()
                 .topicArn(snsTopicArn).protocol("sqs")

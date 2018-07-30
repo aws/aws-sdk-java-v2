@@ -29,6 +29,8 @@ import utils.S3TestUtils;
  * file and creates an S3 client for callers to use.
  */
 public class S3IntegrationTestBase extends AwsTestBase {
+
+    protected static final Region DEFAULT_REGION = Region.US_WEST_2;
     /**
      * The S3 client for all tests to use.
      */
@@ -48,13 +50,13 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static S3ClientBuilder s3ClientBuilder() {
         return S3Client.builder()
-                       .region(Region.US_WEST_2)
+                       .region(DEFAULT_REGION)
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 
     protected static S3AsyncClientBuilder s3AsyncClientBuilder() {
         return S3AsyncClient.builder()
-                            .region(Region.US_WEST_2)
+                            .region(DEFAULT_REGION)
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 
@@ -74,9 +76,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                        .build());
         } catch (S3Exception e) {
             System.err.println("Error attempting to create bucket: " + bucketName);
-            if (e.errorCode().equals("BucketAlreadyOwnedByYou")) {
+            if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
                 System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
-            } else if (e.errorCode().equals("TooManyBuckets")) {
+            } else if (e.awsErrorDetails().errorCode().equals("TooManyBuckets")) {
                 System.err.println("Printing all buckets for debug:");
                 s3.listBuckets().buckets().forEach(System.err::println);
                 if (retryCount < 2) {

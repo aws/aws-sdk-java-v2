@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.services.rds;
 
+import static software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+
 import java.net.URI;
-import java.util.Date;
+import java.time.Clock;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
@@ -27,14 +31,11 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.rds.model.RDSRequest;
+import software.amazon.awssdk.services.rds.model.RdsRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
-
 
 /**
  * Abstract pre-sign handler that follows the pre-signing scheme outlined in the 'RDS Presigned URL for Cross-Region Copying'
@@ -42,15 +43,13 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  *
  * @param <T> The request type.
  */
-abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionInterceptor {
+abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
     private static final String SERVICE_NAME = "rds";
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
 
     protected interface PresignableRequest {
-        void setPreSignedUrl(String preSignedUrl);
-
         String getSourceRegion();
 
         Request<?> marshall();
@@ -58,19 +57,15 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
 
     private final Class<T> requestClassToPreSign;
 
-    private final Date signingOverrideDate;
+    private final Clock signingOverrideClock;
 
     RdsPresignInterceptor(Class<T> requestClassToPreSign) {
         this(requestClassToPreSign, null);
     }
 
-    RdsPresignInterceptor(Class<T> requestClassToPreSign, Date signingOverrideDate) {
+    RdsPresignInterceptor(Class<T> requestClassToPreSign, Clock signingOverrideClock) {
         this.requestClassToPreSign = requestClassToPreSign;
-        if (signingOverrideDate != null) {
-            this.signingOverrideDate = new Date(signingOverrideDate.getTime());
-        } else {
-            this.signingOverrideDate = null;
-        }
+        this.signingOverrideClock = signingOverrideClock;
     }
 
     @Override
@@ -92,7 +87,11 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
             return request;
         }
 
-        String destinationRegion = AwsHostNameUtils.parseRegion(request.host(), SERVICE_NAME);
+        String destinationRegion =
+                AwsHostNameUtils.parseSigningRegion(request.host(), SERVICE_NAME)
+                                .orElseThrow(() -> new IllegalArgumentException("Could not determine region for " +
+                                                                                request.host()))
+                                .id();
 
         URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME);
         Request<?> legacyRequest = presignableRequest.marshall();
@@ -101,23 +100,16 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
         SdkHttpFullRequest requestToPresign =
                 marshalledRequest.encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), marshalledRequest.encodedPath()))
                                  .method(SdkHttpMethod.GET)
-                                 .rawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
+                                 .putRawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
                                  .removeQueryParameter(PARAM_SOURCE_REGION)
                                  .build();
 
-        Context.BeforeTransmission contextToSign = InterceptorContext.builder()
-                                                                     .request(context.request())
-                                                                     .httpRequest(requestToPresign)
-                                                                     .build();
-
-        requestToPresign = presignRequest(contextToSign, executionAttributes, sourceRegion);
+        requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
 
         final String presignedUrl = requestToPresign.getUri().toString();
 
-        presignableRequest.setPreSignedUrl(presignedUrl);
-
         return request.toBuilder()
-                      .rawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)
+                      .putRawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)
                       // Remove the unmodeled params to stop them getting onto the wire
                       .removeQueryParameter(PARAM_SOURCE_REGION)
                       .build();
@@ -125,27 +117,29 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
 
     protected abstract PresignableRequest adaptRequest(T originalRequest);
 
-    private SdkHttpFullRequest presignRequest(Context.BeforeTransmission context,
+    private SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,
                                               ExecutionAttributes attributes,
                                               String signingRegion) {
-        Aws4Signer signer = createNewSignerWithRegion(signingRegion);
-        return signer.presign(context, attributes, null);
-    }
 
-    private Aws4Signer createNewSignerWithRegion(String signingRegion) {
-        Aws4Signer signer = new Aws4Signer(true);
-        signer.setRegionName(signingRegion);
-        signer.setServiceName(SERVICE_NAME);
-        signer.setOverrideDate(signingOverrideDate);
-        return signer;
+        Aws4Signer signer = Aws4Signer.create();
+        Aws4PresignerParams presignerParams = Aws4PresignerParams.builder()
+                                                                 .signingRegion(Region.of(signingRegion))
+                                                                 .signingName(SERVICE_NAME)
+                                                                 .signingClockOverride(signingOverrideClock)
+                                                                 .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                                                 .build();
+
+        return signer.presign(request, presignerParams);
     }
 
     private URI createEndpoint(String regionName, String serviceName) {
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.");
+            throw SdkClientException.builder()
+                                    .message("{" + serviceName + ", " + regionName + "} was not "
+                                            + "found in region metadata. Update to latest version of SDK and try again.")
+                                    .build();
         }
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, Protocol.HTTPS.toString())

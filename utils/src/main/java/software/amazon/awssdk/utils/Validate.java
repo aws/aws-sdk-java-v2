@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * <p>This class assists in validating arguments. The validation methods are
@@ -47,7 +47,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @see java.lang.String#format(String, Object...)
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and software.amazon.awssdk.core.util.ValidationUtils).")
-@SdkInternalApi
+@SdkProtectedApi
 public final class Validate {
     private static final String DEFAULT_IS_NULL_EX_MESSAGE = "The validated object is null";
 
@@ -148,7 +148,7 @@ public final class Validate {
      * <p>Validate the stateful predicate is true for the given object and return the object;
      * otherwise throw an exception with the specified message.</p>
      *
-     * <pre>String value = Validate.validState(someString, s -> s.length() == 0, "must be blank got: %s", someString);</pre>
+     * {@code String value = Validate.validState(someString, s -> s.length() == 0, "must be blank got: %s", someString);}
      *
      *
      * @param <T> the object type
@@ -170,13 +170,11 @@ public final class Validate {
      * <p>Validate the stateful predicate is true for the given object and return the object;
      * otherwise throw an exception with a precanned message that includes the parameter name.</p>
      *
-     * <pre>String value = Validate.validState(someString, s -> s.length() == 0, "someString");</pre>
+     * {@code String value = Validate.validState(someString, s -> s.length() == 0, "someString");}
      *
      * @param <T> the object type
      * @param object  the object to check
      * @param test  the predicate to apply, will return true if the object is valid
-     * @param message  the {@link String#format(String, Object...)} exception message if invalid, not null
-     * @param values  the optional values for the formatted exception message
      * @return the validated object
      * @throws NullPointerException if the object is {@code null}
      */

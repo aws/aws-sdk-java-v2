@@ -55,7 +55,7 @@ public class OperationModifier {
 
     /**
      * @return the shape of the member that represents the wrapped result.
-     * @see {{@link #isUseWrappingResult()}
+     * @see #isUseWrappingResult()
      */
     public String getWrappedResultShape() {
         return wrappedResultShape;
@@ -67,7 +67,7 @@ public class OperationModifier {
 
     /**
      * @return the name of the member that represents the wrapped result.
-     * @see {{@link #isUseWrappingResult()}
+     * @see #isUseWrappingResult()
      */
     public String getWrappedResultMember() {
         return wrappedResultMember;

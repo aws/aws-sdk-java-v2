@@ -22,9 +22,9 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
-import software.amazon.awssdk.core.util.ImmutableMapParameter.Builder;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.ImmutableMap.Builder;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
@@ -32,8 +32,6 @@ import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
@@ -55,7 +53,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     /**
      * Reference to the client being used by the mapper.
      */
-    protected static DynamoDBClient client;
+    protected static DynamoDbClient client;
 
     /**
      * Table name to be used for this testing
@@ -100,7 +98,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     public static void setUp() throws FileNotFoundException, IOException,
                                       InterruptedException {
         setUpCredentials();
-        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         mapper = new DynamoDbMapper(client);
         try {
             client.createTable(CreateTableRequest.builder()
@@ -123,7 +121,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     }
 
     public static void fillInData() {
-        final Builder<String, AttributeValue> record1 = ImmutableMapParameter
+        final Builder<String, AttributeValue> record1 = ImmutableMap
                 .builder();
         record1.put(HASH_KEY, AttributeValue.builder().n(FIRST_CUSTOMER_ID).build())
                .put(RANGE_KEY, AttributeValue.builder().s(ADDRESS_TYPE_WORK).build())
@@ -132,7 +130,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
                .put("city", AttributeValue.builder().s("seattle").build())
                .put("state", AttributeValue.builder().s("WA").build())
                .put("zipcode", AttributeValue.builder().n("98104").build());
-        final Builder<String, AttributeValue> record2 = ImmutableMapParameter
+        final Builder<String, AttributeValue> record2 = ImmutableMap
                 .builder();
         record2.put(HASH_KEY, AttributeValue.builder().n(FIRST_CUSTOMER_ID).build())
                .put(RANGE_KEY, AttributeValue.builder().s(ADDRESS_TYPE_HOME).build())
@@ -187,7 +185,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
                                                             queryExpression);
         assertTrue(results.size() == 1);
 
-        final Builder<String, AttributeValue> builder = ImmutableMapParameter
+        final Builder<String, AttributeValue> builder = ImmutableMap
                 .builder();
         builder.put(":zipcode", AttributeValue.builder().n("98109").build());
 
@@ -211,7 +209,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
                         .withKeyConditionExpression(
                                 "customerId = :customerId AND addressType = :addressType");
         final Builder<String, AttributeValue> builder =
-                ImmutableMapParameter.builder();
+                ImmutableMap.builder();
         builder.put(":customerId", AttributeValue.builder().n(FIRST_CUSTOMER_ID).build())
                .put(":addressType", AttributeValue.builder().s(ADDRESS_TYPE_HOME).build())
         ;
@@ -243,12 +241,12 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
                                                           scanExpression);
         assertTrue(results.size() == 2);
 
-        final Builder<String, AttributeValue> attributeValueMapBuilder = ImmutableMapParameter
+        final Builder<String, AttributeValue> attributeValueMapBuilder = ImmutableMap
                 .builder();
         attributeValueMapBuilder
                 .put(":state", AttributeValue.builder().s("WA").build());
 
-        final Builder<String, String> attributeNameMapBuilder = ImmutableMapParameter
+        final Builder<String, String> attributeNameMapBuilder = ImmutableMap
                 .builder();
         attributeNameMapBuilder.put("#statename", "state");
 
@@ -271,7 +269,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
         customer.setCustomerId(Long.valueOf(FIRST_CUSTOMER_ID));
         customer.setAddressType(ADDRESS_TYPE_WORK);
 
-        Builder<String, ExpectedAttributeValue> expectedMapBuilder = ImmutableMapParameter
+        Builder<String, ExpectedAttributeValue> expectedMapBuilder = ImmutableMap
                 .builder();
         expectedMapBuilder.put("zipcode", ExpectedAttributeValue.builder()
                 .attributeValueList(AttributeValue.builder().n("98052").build())
@@ -280,7 +278,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
         DynamoDbDeleteExpression deleteExpression = new DynamoDbDeleteExpression();
         deleteExpression.setConditionExpression("zipcode = :zipcode");
 
-        final Builder<String, AttributeValue> attributeValueMapBuilder = ImmutableMapParameter
+        final Builder<String, AttributeValue> attributeValueMapBuilder = ImmutableMap
                 .builder();
         attributeValueMapBuilder.put(":zipcode",
                                      AttributeValue.builder().n("98052").build());

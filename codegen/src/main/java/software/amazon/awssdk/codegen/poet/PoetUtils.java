@@ -27,18 +27,21 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.Arrays;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.HasDeprecation;
 
 public final class PoetUtils {
-    public static final AnnotationSpec GENERATED =
-            AnnotationSpec.builder(Generated.class)
-                          .addMember("value", "$S", "software.amazon.awssdk:codegen")
-                          .build();
+    private static final AnnotationSpec GENERATED = AnnotationSpec.builder(Generated.class)
+                                                                  .addMember("value", "$S", "software.amazon.awssdk:codegen")
+                                                                  .build();
 
     private PoetUtils() {
+    }
+
+    public static AnnotationSpec generatedAnnotation() {
+        return GENERATED;
     }
 
     public static MethodSpec.Builder toStringBuilder() {
@@ -69,15 +72,15 @@ public final class PoetUtils {
     }
 
     public static TypeSpec.Builder createEnumBuilder(ClassName name) {
-        return TypeSpec.enumBuilder(name).addAnnotation(GENERATED).addModifiers(Modifier.PUBLIC);
+        return TypeSpec.enumBuilder(name).addAnnotation(PoetUtils.generatedAnnotation()).addModifiers(Modifier.PUBLIC);
     }
 
     public static TypeSpec.Builder createInterfaceBuilder(ClassName name) {
-        return TypeSpec.interfaceBuilder(name).addAnnotation(GENERATED).addModifiers(Modifier.PUBLIC);
+        return TypeSpec.interfaceBuilder(name).addAnnotation(PoetUtils.generatedAnnotation()).addModifiers(Modifier.PUBLIC);
     }
 
     public static TypeSpec.Builder createClassBuilder(ClassName name) {
-        return TypeSpec.classBuilder(name).addAnnotation(GENERATED);
+        return TypeSpec.classBuilder(name).addAnnotation(PoetUtils.generatedAnnotation());
     }
 
     public static ParameterizedTypeName createParameterizedTypeName(ClassName className, String... typeVariables) {

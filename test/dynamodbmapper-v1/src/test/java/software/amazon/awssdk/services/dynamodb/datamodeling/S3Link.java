@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.File;
 import java.io.OutputStream;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -125,8 +125,8 @@ public class S3Link {
         return new S3Link(s3cc, id);
     }
 
-    private static String convertRegionToString(Region region, String bucketName) {
-        return region.value();
+    private static String convertRegionToString(Region region) {
+        return region.id();
     }
 
     public String getKey() {
@@ -421,7 +421,7 @@ public class S3Link {
         }
 
         public S3Link createS3Link(Region s3region, String bucketName, String key) {
-            return createS3Link(convertRegionToString(s3region, bucketName), bucketName, key);
+            return createS3Link(convertRegionToString(s3region), bucketName, key);
         }
 
         public S3Link createS3Link(String s3region, String bucketName, String key) {

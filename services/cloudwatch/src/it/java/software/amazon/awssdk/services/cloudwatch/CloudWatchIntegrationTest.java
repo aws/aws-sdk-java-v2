@@ -38,9 +38,9 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SdkGlobalTime;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
@@ -129,7 +129,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                                                       .dimensions(Dimension.builder().name("InstanceType")
                                                                                            .value("m1.small").build())
                                                                       .metricName(measureName)
-                                                                      .statistics("Average", "Maximum", "Minimum", "Sum")
+                                                                      .statisticsWithStrings("Average", "Maximum", "Minimum", "Sum")
                                                                       .endTime(Instant.now())))
                       .until(r -> r.datapoints().size() == 1)
                       .orFailAfter(Duration.ofMinutes(1));

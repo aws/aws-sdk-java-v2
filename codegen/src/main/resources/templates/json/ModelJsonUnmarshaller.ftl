@@ -4,7 +4,7 @@ package ${transformPackage};
 import java.util.Map;
 import java.util.Map.Entry;
 import java.math.*;
-import java.nio.ByteBuffer;
+import software.amazon.awssdk.core.SdkBytes;
 import javax.annotation.Generated;
 
 import ${metadata.fullModelPackageName}.*;
@@ -30,7 +30,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             if (context.getHeader("${memberModel.http.unmarshallLocationName}") != null) {
                 context.setCurrentHeader("${memberModel.http.unmarshallLocationName}");
                 <#if memberModel.variable.simpleType == "Instant">
-                    ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(software.amazon.awssdk.core.util.DateUtils.parseRfc1123Date(context.readText()));
+                    ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(software.amazon.awssdk.utils.DateUtils.parseRfc1123Date(context.readText()));
                 <#else>
                     ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(<@MemberUnmarshallerDeclarationMacro.content memberModel />.unmarshall(context));
                 </#if>
@@ -52,11 +52,11 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
     <#assign explicitPayloadMember=shape.payloadMember />
     <#if explicitPayloadMember.http.isStreaming>
         <#-- Intentionally left blank, streaming handled by SyncResponseHandler -->
-    <#elseif explicitPayloadMember.variable.variableType == "java.nio.ByteBuffer">
+    <#elseif explicitPayloadMember.variable.variableType == "software.amazon.awssdk.core.SdkBytes">
         java.io.InputStream is = context.getHttpResponse().getContent();
         if(is != null) {
             try {
-                ${shape.variable.variableName}Builder.${explicitPayloadMember.fluentSetterMethodName}(java.nio.ByteBuffer.wrap(software.amazon.awssdk.utils.IoUtils.toByteArray(is)));
+                ${shape.variable.variableName}Builder.${explicitPayloadMember.fluentSetterMethodName}(software.amazon.awssdk.core.SdkBytes.fromInputStream(is));
             } finally {
                 software.amazon.awssdk.utils.IoUtils.closeQuietly(is, null);
             }

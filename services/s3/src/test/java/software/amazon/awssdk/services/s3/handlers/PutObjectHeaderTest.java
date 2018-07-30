@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -32,11 +32,11 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -53,7 +53,7 @@ public class PutObjectHeaderTest {
     @Before
     public void setup() {
         s3Client = S3Client.builder()
-                           .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                           .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                            .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
                            .build();
         putObjectRequest = PutObjectRequest.builder().bucket("test").key("test").build();
@@ -70,7 +70,7 @@ public class PutObjectHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
         s3Client.putObject(PutObjectRequest.builder().bucket("test").key("test").build(), RequestBody.fromBytes("Hello World".getBytes()));
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class PutObjectHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
         s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class PutObjectHeaderTest {
                                     .withBody("{}")));
         String contentType = "hello world";
 
-        putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, contentType)).build();
+        putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().overrideConfiguration(b -> b.putHeader(CONTENT_TYPE, contentType)).build();
         s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
     }

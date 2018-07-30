@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.api.BatchGetItemApi;
 import software.amazon.awssdk.services.dynamodb.document.api.BatchWriteItemApi;
 import software.amazon.awssdk.services.dynamodb.document.api.ListTablesApi;
@@ -46,13 +46,13 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 @ThreadSafe
 public class DynamoDb implements ListTablesApi, BatchGetItemApi,
                                  BatchWriteItemApi {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
 
     private final ListTablesImpl listTablesDelegate;
     private final BatchGetItemImpl batchGetItemDelegate;
     private final BatchWriteItemImpl batchWriteItemDelegate;
 
-    public DynamoDb(DynamoDBClient client) {
+    public DynamoDb(DynamoDbClient client) {
         if (client == null) {
             throw new IllegalArgumentException();
         }
@@ -66,17 +66,17 @@ public class DynamoDb implements ListTablesApi, BatchGetItemApi,
      * Create a DynamoDB object that talks to the specified AWS region. The
      * underlying service client will use all the default client configurations,
      * including the default credentials provider chain. See
-     * {@link DynamoDBClient#DynamoDBClient()} for more information.
+     * {@link DynamoDbClient#DynamoDbClient()} for more information.
      * <p>BatchWriteRetryStrategyTest
      * If you need more control over the client configuration, use
-     * {@link DynamoDb#DynamoDb(DynamoDBClient)} instead.
+     * {@link DynamoDb#DynamoDb(DynamoDbClient)} instead.
      *
      * @param regionEnum
      *            the AWS region enum
-     * @see DynamoDBClient#DynamoDBClient()
+     * @see DynamoDbClient#DynamoDbClient()
      */
     public DynamoDb(Region regionEnum) {
-        this(DynamoDBClient.builder().region(regionEnum).build());
+        this(DynamoDbClient.builder().region(regionEnum).build());
     }
 
     /**

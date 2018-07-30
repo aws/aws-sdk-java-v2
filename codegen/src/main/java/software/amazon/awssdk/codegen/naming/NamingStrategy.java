@@ -21,6 +21,40 @@ import software.amazon.awssdk.codegen.model.service.Shape;
  * Strategy to name various Java constructs based on the naming in the model and potentially customizations.
  */
 public interface NamingStrategy {
+    /**
+     * Retrieve the service name that should be used based on the model.
+     */
+    String getServiceName();
+
+    /**
+     * Retrieve the client package name that should be used based on the service name.
+     */
+    String getClientPackageName(String serviceName);
+
+    /**
+     * Retrieve the model package name that should be used based on the service name.
+     */
+    String getModelPackageName(String serviceName);
+
+    /**
+     * Retrieve the transform package name that should be used based on the service name.
+     */
+    String getTransformPackageName(String serviceName);
+
+    /**
+     * Retrieve the request transform package name that should be used based on the service name.
+     */
+    String getRequestTransformPackageName(String serviceName);
+
+    /**
+     * Retrieve the paginators package name that should be used based on the service name.
+     */
+    String getPaginatorsPackageName(String serviceName);
+
+    /**
+     * Retrieve the smote test package name that should be used based on the service name.
+     */
+    String getSmokeTestPackageName(String serviceName);
 
     /**
      * @param errorShapeName Name of error shape to derive exception class name from.
@@ -101,5 +135,12 @@ public interface NamingStrategy {
      * @param memberName Member name to name fluent setter for.
      * @return Appropriate name to use for fluent setter method (i.e. withFoo) for a model class member.
      */
-    String getFluentSetterMethodName(String memberName);
+    String getFluentSetterMethodName(String memberName, Shape shape);
+
+    /**
+     * @param memberName The full member to get the name for.
+     * @param shape The shape associated with the member.
+     * @return Name of the getter method for an enum model class member.
+     */
+    String getFluentEnumSetterMethodName(String memberName, Shape shape);
 }

@@ -15,9 +15,9 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.core.protocol.*;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -57,7 +57,7 @@ public class ${className} {
     public void marshall(${shapeName} ${shape.variable.variableName}, ProtocolMarshaller protocolMarshaller) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         try {
@@ -66,12 +66,12 @@ public class ${className} {
                 <#assign getter = shape.variable.variableName + "." + member.fluentGetterMethodName + "()" />
 
                 protocolMarshaller.marshall(
-                ${getter},
-                ${member.marshallerBindingFieldName});
+                    ${getter},
+                    ${member.marshallerBindingFieldName});
                 </#list>
             </#if>
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).throwable(e).build();
         }
     }
 

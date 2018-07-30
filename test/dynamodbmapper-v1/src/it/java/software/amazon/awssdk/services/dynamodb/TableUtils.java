@@ -65,7 +65,7 @@ public class TableUtils {
      *             If the thread is interrupted while waiting for the table to
      *             resolve.
      */
-    public static void waitUntilExists(final DynamoDBClient dynamo, final String tableName)
+    public static void waitUntilExists(final DynamoDbClient dynamo, final String tableName)
             throws InterruptedException {
         waitUntilExists(dynamo, tableName, DEFAULT_WAIT_TIMEOUT, DEFAULT_WAIT_INTERVAL);
     }
@@ -91,12 +91,12 @@ public class TableUtils {
      *             If the thread is interrupted while waiting for the table to
      *             resolve.
      */
-    public static void waitUntilExists(final DynamoDBClient dynamo, final String tableName, final int timeout,
+    public static void waitUntilExists(final DynamoDbClient dynamo, final String tableName, final int timeout,
                                        final int interval) throws InterruptedException {
         TableDescription table = waitForTableDescription(dynamo, tableName, null, timeout, interval);
 
         if (table == null) {
-            throw new SdkClientException("Table " + tableName + " never returned a result");
+            throw SdkClientException.builder().message("Table " + tableName + " never returned a result").build();
         }
     }
 
@@ -119,7 +119,7 @@ public class TableUtils {
      *             If the thread is interrupted while waiting for the table to
      *             transition into the <code>ACTIVE</code> state.
      */
-    public static void waitUntilActive(final DynamoDBClient dynamo, final String tableName)
+    public static void waitUntilActive(final DynamoDbClient dynamo, final String tableName)
             throws InterruptedException, TableNeverTransitionedToStateException {
         waitUntilActive(dynamo, tableName, DEFAULT_WAIT_TIMEOUT, DEFAULT_WAIT_INTERVAL);
     }
@@ -147,7 +147,7 @@ public class TableUtils {
      *             If the thread is interrupted while waiting for the table to
      *             transition into the <code>ACTIVE</code> state.
      */
-    public static void waitUntilActive(final DynamoDBClient dynamo, final String tableName, final int timeout,
+    public static void waitUntilActive(final DynamoDbClient dynamo, final String tableName, final int timeout,
                                        final int interval) throws InterruptedException, TableNeverTransitionedToStateException {
         TableDescription table = waitForTableDescription(dynamo, tableName, TableStatus.ACTIVE, timeout, interval);
 
@@ -178,7 +178,7 @@ public class TableUtils {
      * @throws {@link
      *             IllegalArgumentException} If timeout or interval is invalid
      */
-    private static TableDescription waitForTableDescription(final DynamoDBClient dynamo, final String tableName,
+    private static TableDescription waitForTableDescription(final DynamoDbClient dynamo, final String tableName,
                                                             TableStatus desiredStatus, final int timeout, final int interval)
             throws InterruptedException, IllegalArgumentException {
         if (timeout < 0) {
@@ -214,7 +214,7 @@ public class TableUtils {
      * @param createTableRequest The create table request.
      * @return True if created, false otherwise.
      */
-    public static boolean createTableIfNotExists(final DynamoDBClient dynamo, final CreateTableRequest createTableRequest) {
+    public static boolean createTableIfNotExists(final DynamoDbClient dynamo, final CreateTableRequest createTableRequest) {
         try {
             dynamo.createTable(createTableRequest);
             return true;
@@ -232,7 +232,7 @@ public class TableUtils {
      * @param deleteTableRequest The delete table request.
      * @return True if deleted, false otherwise.
      */
-    public static boolean deleteTableIfExists(final DynamoDBClient dynamo, final DeleteTableRequest deleteTableRequest) {
+    public static boolean deleteTableIfExists(final DynamoDbClient dynamo, final DeleteTableRequest deleteTableRequest) {
         try {
             dynamo.deleteTable(deleteTableRequest);
             return true;
@@ -252,7 +252,9 @@ public class TableUtils {
         private static final long serialVersionUID = 8920567021104846647L;
 
         public TableNeverTransitionedToStateException(String tableName, TableStatus desiredStatus) {
-            super("Table " + tableName + " never transitioned to desired state of " + desiredStatus.toString());
+            super(SdkClientException.builder()
+                                    .message("Table " + tableName + " never transitioned to desired state of " +
+                                             desiredStatus.toString()));
         }
 
     }

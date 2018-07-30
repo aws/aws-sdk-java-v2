@@ -16,12 +16,14 @@
 package software.amazon.awssdk.http;
 
 import java.util.concurrent.Callable;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Callable task that can be aborted.
  *
  * @param <T> Return type of task. May be {@link Void}.
  */
+@SdkProtectedApi
 public interface AbortableCallable<T> extends Callable<T>, Abortable {
 
 }

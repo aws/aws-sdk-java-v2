@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.FailedBatch;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
@@ -164,8 +164,8 @@ public interface IDynamoDbMapper {
     /**
      * Saves an item in DynamoDB. The service method used is determined by the
      * {@link DynamoDbMapperConfig#saveBehavior()} value, to use either
-     * {@link DynamoDBClient#putItem(PutItemRequest)} or
-     * {@link DynamoDBClient#updateItem(UpdateItemRequest)}:
+     * {@link DynamoDbClient#putItem(PutItemRequest)} or
+     * {@link DynamoDbClient#updateItem(UpdateItemRequest)}:
      * <ul>
      * <li><b>UPDATE</b> (default) : UPDATE will not affect unmodeled attributes on a save operation
      * and a null value for the modeled attribute will remove it from that item in DynamoDB. Because
@@ -223,7 +223,7 @@ public interface IDynamoDbMapper {
 
     /**
      * Deletes the objects given using one or more calls to the
-     * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
      * performed</b>, as required by the API.
      *
      * @see DynamoDbMapper#batchWrite(Iterable, Iterable)
@@ -232,7 +232,7 @@ public interface IDynamoDbMapper {
 
     /**
      * Deletes the objects given using one or more calls to the
-     * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
      * performed</b>, as required by the API.
      *
      * @see DynamoDbMapper#batchWrite(Iterable, Iterable)
@@ -241,11 +241,11 @@ public interface IDynamoDbMapper {
 
     /**
      * Saves the objects given using one or more calls to the
-     * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
      * performed</b>, as required by the API.
      * <p/>
      * <b>This method ignores any SaveBehavior set on the mapper</b>, and always behaves as if
-     * SaveBehavior.CLOBBER was specified, as the DynamoDBClient.batchWriteItem() request does not
+     * SaveBehavior.CLOBBER was specified, as the DynamoDbClient.batchWriteItem() request does not
      * support updating existing items.
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -259,11 +259,11 @@ public interface IDynamoDbMapper {
 
     /**
      * Saves the objects given using one or more calls to the
-     * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
      * performed</b>, as required by the API.
      * <p/>
      * <b>This method ignores any SaveBehavior set on the mapper</b>, and always behaves as if
-     * SaveBehavior.CLOBBER was specified, as the DynamoDBClient.batchWriteItem() request does not
+     * SaveBehavior.CLOBBER was specified, as the DynamoDbClient.batchWriteItem() request does not
      * support updating existing items. *
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -277,11 +277,11 @@ public interface IDynamoDbMapper {
 
     /**
      * Saves and deletes the objects given using one or more calls to the
-     * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API. <b>No version checks are
      * performed</b>, as required by the API.
      * <p/>
      * <b>This method ignores any SaveBehavior set on the mapper</b>, and always behaves as if
-     * SaveBehavior.CLOBBER was specified, as the DynamoDBClient.batchWriteItem() request does not
+     * SaveBehavior.CLOBBER was specified, as the DynamoDbClient.batchWriteItem() request does not
      * support updating existing items.
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -300,7 +300,7 @@ public interface IDynamoDbMapper {
 
     /**
      * Saves and deletes the objects given using one or more calls to the
-     * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API. Use mapper config to
+     * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API. Use mapper config to
      * control the retry strategy when UnprocessedItems are returned by the BatchWriteItem API
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -315,10 +315,10 @@ public interface IDynamoDbMapper {
      *
      * @param objectsToWrite
      *            A list of objects to save to DynamoDB. <b>No version checks are performed</b>, as
-     *            required by the {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)} API.
+     *            required by the {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)} API.
      * @param objectsToDelete
      *            A list of objects to delete from DynamoDB. <b>No version checks are performed</b>,
-     *            as required by the {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)}
+     *            as required by the {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)}
      *            API.
      * @param config
      *            Only {@link DynamoDbMapperConfig#getTableNameOverride()} and
@@ -357,7 +357,7 @@ public interface IDynamoDbMapper {
      *            set.
      * @param config
      *            Only {@link DynamoDbMapperConfig#getTableNameOverride()} and
-     *            {@link DynamoDbMapperConfig#getConsistentReads()} are considered.
+     *            {@link DynamoDbMapperConfig#getConsistentRead()} are considered.
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
      *         objects for each table can be cast to the associated user defined type that is
@@ -369,7 +369,7 @@ public interface IDynamoDbMapper {
 
     /**
      * Retrieves the attributes for multiple items from multiple tables using their primary keys.
-     * {@link DynamoDBClient#batchGetItem(BatchGetItemRequest)} API.
+     * {@link DynamoDbClient#batchGetItem(BatchGetItemRequest)} API.
      *
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
@@ -391,7 +391,7 @@ public interface IDynamoDbMapper {
      *            Map from class to load to list of primary key attributes.
      * @param config
      *            Only {@link DynamoDbMapperConfig#getTableNameOverride()} and
-     *            {@link DynamoDbMapperConfig#getConsistentReads()} are considered.
+     *            {@link DynamoDbMapperConfig#getConsistentRead()} are considered.
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
      *         objects for each table can be cast to the associated user defined type that is

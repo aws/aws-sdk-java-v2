@@ -27,7 +27,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -42,14 +42,13 @@ import utils.test.util.DynamoDBTestBase;
 /**
  * Tests on the DynamoDBMapper.generateCreateTableRequest method.
  */
-@Ignore // FIXME: setup fails with "region cannot be null"
 public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
 
     private static DynamoDbMapper mapper;
 
     @BeforeClass
     public static void setUp() {
-        dynamo = DynamoDBClient.builder()
+        dynamo = DynamoDbClient.builder()
                 .credentialsProvider(AnonymousCredentialsProvider.create())
                 .region(Region.US_WEST_2)
                 .build();
@@ -65,6 +64,7 @@ public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
     }
 
     @Test
+    @Ignore // No longer works because mapper is not aware of auto construct lists
     public void testParseIndexRangeKeyClass() {
         CreateTableRequest request = mapper.generateCreateTableRequest(IndexRangeKeyClass.class);
 

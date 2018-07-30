@@ -34,6 +34,8 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 public abstract class PaginatorsClassSpec implements ClassSpec {
 
@@ -95,8 +97,8 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
 
     protected MethodSpec.Builder resumeMethodBuilder() {
         return MethodSpec.methodBuilder(RESUME_METHOD)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .addParameter(responseType(), LAST_SUCCESSFUL_PAGE_LITERAL, Modifier.FINAL)
+                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                         .addParameter(responseType(), LAST_SUCCESSFUL_PAGE_LITERAL)
                          .returns(className())
                          .addCode(CodeBlock.builder()
                                            .beginControlFlow("if ($L.$L($L))", NEXT_PAGE_FETCHER_MEMBER,
@@ -165,21 +167,26 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         return shape.getMemberByC2jName(hierarchy[hierarchy.length - 1]);
     }
 
-    protected String hasNextPageMethodBody() {
-        String body;
+    protected CodeBlock hasNextPageMethodBody() {
 
         if (paginatorDefinition.getMoreResults() != null) {
-            body = String.format("return %s.%s.booleanValue()",
+            return CodeBlock.builder()
+                    .add("return $N.$L.booleanValue()",
                                  PREVIOUS_PAGE_METHOD_ARGUMENT,
-                                 fluentGetterMethodForResponseMember(paginatorDefinition.getMoreResults()));
-        } else {
-            // If there is no more_results token, then output_token will be a single value
-            body = String.format("return %s.%s != null",
-                                 PREVIOUS_PAGE_METHOD_ARGUMENT,
-                                 fluentGetterMethodsForOutputToken().get(0));
+                                 fluentGetterMethodForResponseMember(paginatorDefinition.getMoreResults()))
+                    .build();
         }
+        // If there is no more_results token, then output_token will be a single value
+        return CodeBlock.builder()
+                // Auto construct containers are treated as null so terminate
+                // pagination for those cases as well.
+                .add("return $1N.$2L != null && !$3T.class.isInstance($1N.$2L) && !$4T.class.isInstance($1N.$2L)",
+                              PREVIOUS_PAGE_METHOD_ARGUMENT,
+                              fluentGetterMethodsForOutputToken().get(0),
+                              SdkAutoConstructList.class,
+                              SdkAutoConstructMap.class)
+                .build();
 
-        return body;
     }
 
     /*

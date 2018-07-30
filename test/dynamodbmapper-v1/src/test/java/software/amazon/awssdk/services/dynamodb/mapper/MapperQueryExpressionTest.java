@@ -27,8 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexRangeKey;
@@ -54,12 +54,12 @@ public class MapperQueryExpressionTest {
             .attributeValueList(AttributeValue.builder().s("some value").build())
             .comparisonOperator(ComparisonOperator.EQ).build();
 
-    private static DynamoDBClient mockClient;
+    private static DynamoDbClient mockClient;
     private static DynamoDbMapper mapper;
 
     @Before
     public void setUp() throws SecurityException, NoSuchMethodException {
-        mockClient = Mockito.mock(DynamoDBClient.class);
+        mockClient = Mockito.mock(DynamoDbClient.class);
         mapper = new DynamoDbMapper(mockClient);
     }
 
@@ -332,7 +332,7 @@ public class MapperQueryExpressionTest {
                 new DynamoDbQueryExpression<HashRangeClass>()
                         .withHashKeyValues(new HashRangeClass("foo", null))
                         .withRangeKeyConditions(
-                                ImmutableMapParameter.of(
+                                ImmutableMap.of(
                                         "primaryRangeKey", RANGE_KEY_CONDITION,
                                         "indexRangeKey", RANGE_KEY_CONDITION)),
                 "Illegal query expression: Conditions on multiple range keys");

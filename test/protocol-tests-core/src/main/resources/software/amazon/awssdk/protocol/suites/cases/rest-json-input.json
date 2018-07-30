@@ -1,23 +1,5 @@
 [
   {
-    "description": "No parameters set marshalls as empty body",
-    "given": {
-      "input": {
-      }
-    },
-    "when": {
-      "action": "marshall",
-      "operation": "AllTypes"
-    },
-    "then": {
-      "serializedAs": {
-        "body": {
-          "equals": "{}"
-        }
-      }
-    }
-  },
-  {
     "description": "Input with members in path, query parameters, headers, and payload is marshalled correctly",
     "given": {
       "input": {

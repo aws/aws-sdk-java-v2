@@ -19,6 +19,7 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.List;
@@ -144,7 +145,7 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
                 s3.listBucketAnalyticsConfigurations(ListBucketAnalyticsConfigurationsRequest.builder()
                                                                                              .bucket(BUCKET_NAME)
                                                                                              .build());
-        assertNull(result.analyticsConfigurationList());
+        assertTrue(result.analyticsConfigurationList().isEmpty());
     }
 
     @Test

@@ -20,7 +20,6 @@ import com.squareup.javapoet.FieldSpec;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
@@ -48,19 +47,7 @@ class ShapeModelSpec {
 
     public List<FieldSpec> fields(Modifier... modifiers) {
         return shapeModel.getNonStreamingMembers().stream()
-                         .map(m -> asField(m, modifiers))
+                         .map(m -> typeProvider.asField(m, modifiers))
                          .collect(Collectors.toList());
     }
-
-    public FieldSpec asField(MemberModel memberModel, Modifier... modifiers) {
-        FieldSpec.Builder builder = FieldSpec.builder(typeProvider.fieldType(memberModel),
-                                                      memberModel.getVariable().getVariableName());
-
-        if (modifiers != null) {
-            builder.addModifiers(modifiers);
-        }
-
-        return builder.build();
-    }
-
 }

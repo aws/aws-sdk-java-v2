@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -422,8 +423,8 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
         try {
             dynamoMapper.save(testAppendToScalarItem, appendSetConfig);
             fail("Should have thrown a 'Type mismatch' service exception.");
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
         }
     }
 

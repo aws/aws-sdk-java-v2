@@ -26,7 +26,7 @@ import java.io.IOException;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.Condition;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.ConditionDeserializer;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Class representing a choice rule to be included in a {@link ChoiceState}. A choice consists of a condition and a state that
@@ -99,7 +99,7 @@ public final class Choice {
          * @param nextStateName Name of the state.
          * @return This object for method chaining.
          */
-        @JsonProperty(PropertyNames.NEXT)
+        @JsonProperty(PropertyName.NEXT)
         private Builder nextStateName(String nextStateName) {
             return transition(NextStateTransition.builder().nextStateName(nextStateName));
         }
@@ -140,7 +140,7 @@ public final class Choice {
                                           DeserializationContext deserializationContext) throws IOException {
             final JsonNode node = jsonParser.getCodec().readTree(jsonParser);
             return Choice.builder()
-                         .nextStateName(node.get(PropertyNames.NEXT).asText())
+                         .nextStateName(node.get(PropertyName.NEXT).asText())
                          .condition(conditionDeserializer.deserializeCondition(node));
         }
 

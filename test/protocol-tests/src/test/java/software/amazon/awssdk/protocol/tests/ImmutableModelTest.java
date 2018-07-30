@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -84,13 +85,14 @@ public class ImmutableModelTest {
 
         buffer.position(1);
 
-        AllTypesRequest request = AllTypesRequest.builder().blobArg(buffer).build();
+        AllTypesRequest request = AllTypesRequest.builder().blobArg(SdkBytes.fromByteBuffer(buffer)).build();
 
         buffer.array()[1] = ' ';
 
-        assertThat(request.blobArg()).as("Check new read-only blob each time").isNotSameAs(request.blobArg());
-        assertThat(request.blobArg().isReadOnly()).as("Check read-only").isTrue();
-        assertThat(BinaryUtils.copyAllBytesFrom(request.blobArg()))
+        assertThat(request.blobArg().asByteBuffer()).as("Check new read-only blob each time")
+                                                    .isNotSameAs(request.blobArg().asByteBuffer());
+        assertThat(request.blobArg().asByteBuffer().isReadOnly()).as("Check read-only").isTrue();
+        assertThat(BinaryUtils.copyAllBytesFrom(request.blobArg().asByteBuffer()))
                 .as("Check copy contents").containsExactly('e', 'l', 'l', 'o');
     }
 }

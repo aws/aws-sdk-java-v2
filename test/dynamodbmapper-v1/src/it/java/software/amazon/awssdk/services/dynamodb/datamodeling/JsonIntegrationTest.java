@@ -24,14 +24,13 @@ import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.TableNameOverride;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
@@ -43,13 +42,13 @@ public class JsonIntegrationTest extends AwsTestBase {
     private static final String TABLE_NAME = "test-table-"
                                              + UUID.randomUUID().toString();
 
-    private static DynamoDBClient client;
+    private static DynamoDbClient client;
     private static DynamoDbMapper mapper;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
+        client = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         mapper = new DynamoDbMapper(
                 client,
@@ -57,7 +56,7 @@ public class JsonIntegrationTest extends AwsTestBase {
                         .withConversionSchema(ConversionSchemas.V2)
                         .withTableNameOverride(TableNameOverride
                                                        .withTableNameReplacement(TABLE_NAME))
-                        .withConsistentReads(ConsistentReads.CONSISTENT)
+                        .withConsistentReads(DynamoDbMapperConfig.ConsistentRead.CONSISTENT)
                         .build());
 
         CreateTableRequest request = mapper
@@ -94,6 +93,7 @@ public class JsonIntegrationTest extends AwsTestBase {
     }
 
     @Test
+    @Ignore
     public void testIt() {
         final ChildClass child1 = new ChildClass();
         child1.setBool(true);

@@ -32,7 +32,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier;
 import org.w3c.dom.Document;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public final class XmlAsserts {
 
@@ -87,7 +87,9 @@ public final class XmlAsserts {
     private static TransformerFactory transformerFactory() throws TransformerConfigurationException {
         TransformerFactory factory = TransformerFactory.newInstance();
         factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        factory.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+        if (factory.getFeature(XMLConstants.ACCESS_EXTERNAL_DTD)) {
+            factory.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+        }
         return factory;
     }
 }

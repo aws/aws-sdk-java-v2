@@ -22,7 +22,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 
 public class ConfigureS3LinksTest {
@@ -31,7 +31,7 @@ public class ConfigureS3LinksTest {
 
     @Before
     public void setUp() throws Exception {
-        s3cc = new S3ClientCache(AwsCredentials.create("mock", "mock"));
+        s3cc = new S3ClientCache(AwsBasicCredentials.create("mock", "mock"));
     }
 
     @Test
@@ -42,7 +42,7 @@ public class ConfigureS3LinksTest {
 
         assertNotNull(obj.s3());
         assertEquals("nonexisting-test-bucketname2", obj.s3().bucketName());
-        assertSame(Region.AP_SOUTHEAST_1.value(), obj.s3().s3Region().value());
+        assertSame(Region.AP_SOUTHEAST_1.id(), obj.s3().s3Region().id());
         assertSame("ap-southeast-1", obj.s3().getRegion());
     }
 

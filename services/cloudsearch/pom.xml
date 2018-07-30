@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.0.0-preview-10</version>
+        <version>2.0.0-preview-11-SNAPSHOT</version>
     </parent>
     <artifactId>cloudsearch</artifactId>
     <name>AWS Java SDK :: Services :: Amazon CloudSearch</name>
@@ -29,12 +29,4 @@
         with Amazon CloudSearch Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

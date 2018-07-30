@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAttribute;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbDeleteExpression;
@@ -252,15 +252,15 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
         // User-provided OR conditions should work if they completely override
         // the generated conditions for the version field.
         Map<String, ExpectedAttributeValue> goodConditions =
-                ImmutableMapParameter.of(
+                ImmutableMap.of(
                         "otherAttribute", ExpectedAttributeValue.builder().exists(false).build(),
                         "version", ExpectedAttributeValue.builder().exists(false).build()
-                                        );
+                               );
         Map<String, ExpectedAttributeValue> badConditions =
-                ImmutableMapParameter.of(
+                ImmutableMap.of(
                         "otherAttribute", ExpectedAttributeValue.builder().value(AttributeValue.builder().s("non-existent-value").build()).build(),
                         "version", ExpectedAttributeValue.builder().value(AttributeValue.builder().n("-1").build()).build()
-                                        );
+                               );
 
         IntegerVersionField newObj = getUniqueObject(new IntegerVersionField());
         saveExpression.setExpected(badConditions);

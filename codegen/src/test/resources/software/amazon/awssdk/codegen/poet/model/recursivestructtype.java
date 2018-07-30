@@ -9,10 +9,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.RecursiveStructTypeMarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -22,7 +24,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
+public final class RecursiveStructType implements StructuredPojo,
+        ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
     private final String noRecurse;
 
     private final RecursiveStructType recursiveStruct;
@@ -116,27 +119,27 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         }
         RecursiveStructType other = (RecursiveStructType) obj;
         return Objects.equals(noRecurse(), other.noRecurse()) && Objects.equals(recursiveStruct(), other.recursiveStruct())
-               && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
+                && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
     }
 
     @Override
     public String toString() {
         return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse()).add("RecursiveStruct", recursiveStruct())
-                       .add("RecursiveList", recursiveList()).add("RecursiveMap", recursiveMap()).build();
+                .add("RecursiveList", recursiveList()).add("RecursiveMap", recursiveMap()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "NoRecurse":
-                return Optional.of(clazz.cast(noRecurse()));
-            case "RecursiveStruct":
-                return Optional.of(clazz.cast(recursiveStruct()));
-            case "RecursiveList":
-                return Optional.of(clazz.cast(recursiveList()));
-            case "RecursiveMap":
-                return Optional.of(clazz.cast(recursiveMap()));
-            default:
-                return Optional.empty();
+        case "NoRecurse":
+            return Optional.ofNullable(clazz.cast(noRecurse()));
+        case "RecursiveStruct":
+            return Optional.ofNullable(clazz.cast(recursiveStruct()));
+        case "RecursiveList":
+            return Optional.ofNullable(clazz.cast(recursiveList()));
+        case "RecursiveMap":
+            return Optional.ofNullable(clazz.cast(recursiveMap()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -180,7 +183,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
          * @see #recursiveStruct(RecursiveStructType)
          */
         default Builder recursiveStruct(Consumer<Builder> recursiveStruct) {
-            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+            return recursiveStruct(RecursiveStructType.builder().applyMutation(recursiveStruct).build());
         }
 
         /**
@@ -232,9 +235,9 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
         private RecursiveStructType recursiveStruct;
 
-        private List<RecursiveStructType> recursiveList;
+        private List<RecursiveStructType> recursiveList = DefaultSdkAutoConstructList.getInstance();
 
-        private Map<String, RecursiveStructType> recursiveMap;
+        private Map<String, RecursiveStructType> recursiveMap = DefaultSdkAutoConstructMap.getInstance();
 
         private BuilderImpl() {
         }
@@ -276,7 +279,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
         public final Collection<Builder> getRecursiveList() {
             return recursiveList != null ? recursiveList.stream().map(RecursiveStructType::toBuilder)
-                                                        .collect(Collectors.toList()) : null;
+                    .collect(Collectors.toList()) : null;
         }
 
         @Override
@@ -295,8 +298,8 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         @Override
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
-            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().apply(c).build())
-                                .collect(Collectors.toList()));
+            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
+                    .collect(Collectors.toList()));
             return this;
         }
 

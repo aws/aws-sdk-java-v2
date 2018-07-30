@@ -17,25 +17,29 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.QueryStringSigner;
-import software.amazon.awssdk.auth.signer.StaticSignerProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
-import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
-import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -63,22 +67,15 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            ClassName advancedConfiguration = ClassName.get(basePackage,
-                                                            model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-            builder.addField(FieldSpec.builder(advancedConfiguration, "advancedConfiguration")
-                                      .addModifiers(Modifier.PRIVATE)
-                                      .build());
-        }
-
         builder.addMethod(serviceEndpointPrefixMethod());
-        builder.addMethod(serviceDefaultsMethod());
-        builder.addMethod(defaultSignerProviderMethod());
+        builder.addMethod(mergeServiceDefaultsMethod());
+        builder.addMethod(finalizeServiceConfigurationMethod());
+        builder.addMethod(defaultSignerMethod());
+        builder.addMethod(signingNameMethod());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            builder.addMethod(setAdvancedConfigurationMethod())
-                   .addMethod(getAdvancedConfigurationMethod())
-                   .addMethod(beanStyleSetAdvancedConfigurationMethod());
+            builder.addMethod(setServiceConfigurationMethod())
+                   .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
         if (model.getCustomizationConfig().getServiceSpecificHttpConfig() != null) {
@@ -86,6 +83,23 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         return builder.build();
+    }
+
+    private MethodSpec signingNameMethod() {
+        return MethodSpec.methodBuilder("signingName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .returns(String.class)
+                         .addCode("return $S;", model.getMetadata().getSigningName())
+                         .build();
+    }
+
+    private MethodSpec defaultSignerMethod() {
+        return MethodSpec.methodBuilder("defaultSigner")
+                         .returns(Signer.class)
+                         .addModifiers(Modifier.PRIVATE)
+                         .addCode(signerDefinitionMethodBody())
+                         .build();
     }
 
     private MethodSpec serviceEndpointPrefixMethod() {
@@ -97,70 +111,77 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec serviceDefaultsMethod() {
+    private MethodSpec mergeServiceDefaultsMethod() {
+        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                               .returns(SdkClientConfiguration.class)
+                                               .addParameter(SdkClientConfiguration.class, "config")
+                                               .addCode("return config.merge(c -> c.option($T.SIGNER, defaultSigner())\n",
+                                                        SdkAdvancedClientOption.class)
+                                               .addCode("                          .option($T"
+                                                        + ".CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)",
+                                                        SdkClientOption.class, crc32FromCompressedDataEnabled);
+
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
+            builder.addCode(".option($T.RETRY_POLICY, $T.defaultPolicy())", SdkClientOption.class,
+                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+        }
+        builder.addCode(");");
+        return builder.build();
+    }
+
+    private MethodSpec finalizeServiceConfigurationMethod() {
         String requestHandlerDirectory = Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
         String requestHandlerPath = String.format("%s/execution.interceptors", requestHandlerDirectory);
 
-        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
-
-        return MethodSpec.methodBuilder("serviceDefaults")
+        return MethodSpec.methodBuilder("finalizeServiceConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(AwsClientConfigurationDefaults.class)
-                         .addCode("return $T.builder()\n", ServiceBuilderConfigurationDefaults.class)
-                         .addCode("         .defaultSignerProvider(this::defaultSignerProvider)\n")
-                         .addCode("         .addRequestHandlerPath($S)\n", requestHandlerPath)
-                         .addCode("         .crc32FromCompressedDataEnabled($L)\n", crc32FromCompressedDataEnabled)
-                         .addCode("         .build();\n")
+                         .returns(SdkClientConfiguration.class)
+                         .addParameter(SdkClientConfiguration.class, "config")
+                         .addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
+                         .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
+                                  List.class, ExecutionInterceptor.class, requestHandlerPath)
+                         .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
+                                  CollectionUtils.class, SdkClientOption.class)
+                         .addCode("return config.toBuilder()\n" +
+                                  "             .option($T.EXECUTION_INTERCEPTORS, interceptors)\n" +
+                                  "             .build();", SdkClientOption.class)
                          .build();
     }
 
-    private MethodSpec setAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec setServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement("this.advancedConfiguration = advancedConfiguration")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
+                         .addStatement("clientConfiguration.option($T.SERVICE_CONFIGURATION, serviceConfiguration)",
+                                       SdkClientOption.class)
                          .addStatement("return thisBuilder()")
                          .build();
     }
 
-    private MethodSpec getAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec beanStyleSetServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
-                         .addModifiers(Modifier.PROTECTED)
-                         .returns(advancedConfiguration)
-                         .addStatement("return advancedConfiguration")
-                         .build();
-    }
-
-    private MethodSpec beanStyleSetAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("setAdvancedConfiguration")
+        return MethodSpec.methodBuilder("setServiceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement("advancedConfiguration(advancedConfiguration)")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
+                         .addStatement("serviceConfiguration(serviceConfiguration)")
                          .build();
     }
 
     private MethodSpec serviceSpecificHttpConfigMethod() {
-        return MethodSpec.methodBuilder("serviceSpecificHttpConfig")
+        return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AttributeMap.class)
                          .addCode("return $L;", model.getCustomizationConfig().getServiceSpecificHttpConfig())
-                         .build();
-    }
-
-    private MethodSpec defaultSignerProviderMethod() {
-        return MethodSpec.methodBuilder("defaultSignerProvider")
-                         .returns(SignerProvider.class)
-                         .addModifiers(Modifier.PRIVATE)
-                         .addCode(signerDefinitionMethodBody())
                          .build();
     }
 
@@ -179,31 +200,16 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock v4SignerDefinitionMethodBody() {
-        return CodeBlock.of("$T signer = new $T();\n" +
-                            "signer.setServiceName($S);\n" +
-                            "signer.setRegionName(signingRegion().value());\n" +
-                            "return $T.create(signer);\n",
-                            Aws4Signer.class,
-                            Aws4Signer.class,
-                            model.getMetadata().getSigningName(),
-                            StaticSignerProvider.class);
+        return CodeBlock.of("return $T.create();", Aws4Signer.class);
     }
 
     private CodeBlock v2SignerDefinitionMethodBody() {
-        return CodeBlock.of("return $T.create(new $T());\n",
-                            StaticSignerProvider.class,
-                            QueryStringSigner.class);
+        return CodeBlock.of("return $T.create();", QueryStringSigner.class);
     }
 
     private CodeBlock s3SignerDefinitionMethodBody() {
-        return CodeBlock.of("$T signer = new $T();\n" +
-                            "signer.setServiceName(\"$L\");\n" +
-                            "signer.setRegionName(signingRegion().value());\n" +
-                            "return $T.create(signer);\n",
-                            ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
-                            ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
-                            model.getMetadata().getSigningName(),
-                            StaticSignerProvider.class);
+        return CodeBlock.of("return $T.create();\n",
+                            ClassName.get("software.amazon.awssdk.auth.signer", "AwsS3V4Signer"));
     }
 
     @Override

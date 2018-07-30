@@ -22,10 +22,12 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utilities for IO operations.
  */
+@SdkProtectedApi
 public final class IoUtils {
 
     private static final int BUFFER_SIZE = 1024 * 4;
@@ -56,7 +58,7 @@ public final class IoUtils {
      * Reads and returns the rest of the given input stream as a string.
      * Caller is responsible for closing the given input stream.
      */
-    public static String toString(InputStream is) throws IOException {
+    public static String toUtf8String(InputStream is) throws IOException {
         return new String(toByteArray(is), StandardCharsets.UTF_8);
     }
 
@@ -80,7 +82,7 @@ public final class IoUtils {
 
     /**
      * Closes the given Closeable quietly.
-     * @param is the given closeable
+     * @param maybeCloseable the given closeable
      * @param log logger used to log any failure should the close fail
      */
     public static void closeIfCloseable(Object maybeCloseable, Logger log) {

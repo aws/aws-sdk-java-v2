@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class Waiters {
 
-    public static final Waiters NONE = new Waiters(Collections.emptyMap());
+    private static final Waiters NONE = new Waiters(Collections.emptyMap());
 
     private final Map<String, WaiterDefinition> waiters;
 
@@ -34,6 +34,10 @@ public class Waiters {
         this.waiters = waiters;
     }
 
+    public static Waiters none() {
+        return NONE;
+    }
+
     public Map<String, WaiterDefinition> getWaiters() {
         return waiters;
     }
@@ -41,5 +45,4 @@ public class Waiters {
     public WaiterDefinition getWaiterDefinition(String waiterName) {
         return waiters.get(waiterName);
     }
-
 }
