@@ -64,5 +64,10 @@ public final class ProfileProperty {
      */
     public static final String REGION = "region";
 
+    /**
+     * Property name for specifying the identification number of the MFA device
+     */
+    public static final String MFA_SERIAL = "mfa_serial";
+
     private ProfileProperty() {}
 }
