@@ -1,5 +1,0 @@
-{
-    "category": "runtime", 
-    "type": "feature", 
-    "description": "upgrade Netty 4.1.22.Final to Netty 4.1.26.Final"
-}
