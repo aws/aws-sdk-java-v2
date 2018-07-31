@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.async;
+package software.amazon.awssdk.utils.async;
 
 import java.util.LinkedList;
 import java.util.Queue;

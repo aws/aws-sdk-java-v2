@@ -13,17 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.async;
+package software.amazon.awssdk.utils.async;
 
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public class DelegatingSubscription implements Subscription {
 
     private final Subscription s;
 
-    private DelegatingSubscription(Subscription s) {
+     protected DelegatingSubscription(Subscription s) {
         this.s = s;
     }
 
@@ -37,7 +38,4 @@ public class DelegatingSubscription implements Subscription {
         s.cancel();
     }
 
-    public static DelegatingSubscription create(Subscription s) {
-        return new DelegatingSubscription(s);
-    }
 }

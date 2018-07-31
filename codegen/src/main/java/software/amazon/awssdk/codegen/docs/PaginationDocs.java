@@ -25,7 +25,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.internal.async.SequentialSubscriber;
+import software.amazon.awssdk.utils.async.SequentialSubscriber;
 
 public class PaginationDocs {
 
