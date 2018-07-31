@@ -125,7 +125,7 @@ We need your help in making this SDK great. Please participate in the community 
 [aws-iam-credentials]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-roles.html
 [aws]: http://aws.amazon.com/
 [blog]: https://aws.amazon.com/blogs/developer/category/java/
-[docs-api]: http://aws-java-sdk-javadoc.s3-website-us-west-2.amazonaws.com/latest/overview-summary.html
+[docs-api]: https://sdk.amazonaws.com/java/api/latest/overview-summary.html
 [docs-guide]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/welcome.html
 [docs-guide-source]: https://github.com/awsdocs/aws-java-developer-guide-v2
 [docs-java-env]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/setup-install.html##java-dg-java-env
