@@ -16,17 +16,29 @@
 package software.amazon.awssdk.core.exception;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
+/**
+ * Signals that an api call could not complete within the specified timeout.
+ *
+ * @see ClientOverrideConfiguration#apiCallTimeout()
+ */
 @SdkPublicApi
-public class ClientExecutionTimeoutException extends SdkClientException {
+public final class ApiCallTimeoutException extends SdkClientException {
 
-    private static final long serialVersionUID = 4861767589924758934L;
+    private static final long serialVersionUID = 1L;
 
-    protected ClientExecutionTimeoutException(Builder b) {
+    private ApiCallTimeoutException(Builder b) {
         super(b);
     }
 
-    public static ClientExecutionTimeoutException create(String message, Throwable cause) {
+    public static ApiCallTimeoutException create(long timeout) {
+        return builder().message(String.format("Client execution did not complete before the specified timeout configuration: "
+                                               + "%s millis", timeout))
+                        .build();
+    }
+
+    public static ApiCallTimeoutException create(String message, Throwable cause) {
         return builder().message(message).cause(cause).build();
     }
 
@@ -47,14 +59,14 @@ public class ClientExecutionTimeoutException extends SdkClientException {
         Builder cause(Throwable cause);
 
         @Override
-        ClientExecutionTimeoutException build();
+        ApiCallTimeoutException build();
     }
 
     protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
 
         protected BuilderImpl() {}
 
-        protected BuilderImpl(ClientExecutionTimeoutException ex) {
+        protected BuilderImpl(ApiCallTimeoutException ex) {
             super(ex);
         }
 
@@ -71,8 +83,8 @@ public class ClientExecutionTimeoutException extends SdkClientException {
         }
 
         @Override
-        public ClientExecutionTimeoutException build() {
-            return new ClientExecutionTimeoutException(this);
+        public ApiCallTimeoutException build() {
+            return new ApiCallTimeoutException(this);
         }
     }
 }

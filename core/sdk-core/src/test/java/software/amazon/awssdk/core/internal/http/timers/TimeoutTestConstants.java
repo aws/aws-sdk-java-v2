@@ -23,8 +23,8 @@ import java.time.Duration;
 public class TimeoutTestConstants {
 
     public static final int TEST_TIMEOUT = 25 * 1000;
-    public static final Duration CLIENT_EXECUTION_TIMEOUT = Duration.ofSeconds(5);
-    public static final int SLOW_REQUEST_HANDLER_TIMEOUT = 100;
+    public static final Duration API_CALL_TIMEOUT = Duration.ofSeconds(1);
+    public static final int SLOW_REQUEST_HANDLER_TIMEOUT = 2;
 
     /**
      * ScheduledThreadPoolExecutor isn't exact and can be delayed occasionally. For tests where we

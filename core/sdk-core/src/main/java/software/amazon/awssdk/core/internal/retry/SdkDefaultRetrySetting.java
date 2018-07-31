@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.http.HttpStatusCode;
 
@@ -64,6 +65,7 @@ public final class SdkDefaultRetrySetting {
         Set<Class<? extends Exception>> retryableExceptions = new HashSet<>();
         retryableExceptions.add(RetryableException.class);
         retryableExceptions.add(IOException.class);
+        retryableExceptions.add(ApiCallAttemptTimeoutException.class);
         RETRYABLE_EXCEPTIONS = unmodifiableSet(retryableExceptions);
     }
 

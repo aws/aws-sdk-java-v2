@@ -13,30 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http.timers.client;
+package software.amazon.awssdk.core.internal.http.timers;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Abortable;
 
 @SdkInternalApi
-public interface ClientExecutionAbortTrackerTask {
+public interface TimeoutTask extends Runnable {
 
     /**
-     * Client execution timer task needs to abort the current running HTTP request when executed.
+     * @param abortable the abortable request
      */
-    void setCurrentHttpRequest(Abortable newRequest);
+    void abortable(Abortable abortable);
 
     /**
-     * @return True if client execution has been aborted by the timer task. False otherwise
+     * @return True if abortable request has been aborted by the timer task. False otherwise
      */
-    boolean hasTimeoutExpired();
+    boolean hasExecuted();
 
     /**
-     * @return True if the timer task has been scheduled. False if the client execution timeout is
+     * @return True if the timer task has been scheduled. False if client execution timeout is
      *         disabled for this request
      */
     boolean isEnabled();
-
-    void cancelTask();
 
 }

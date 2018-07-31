@@ -631,6 +631,22 @@ public final class Validate {
     }
 
     /**
+     * Asserts that the given duration is positive (non-negative and non-zero) or null.
+     *
+     * @param duration Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive or null.
+     */
+    public static Duration isPositiveOrNull(Duration duration, String fieldName) {
+        if (duration == null) {
+            return null;
+        }
+
+        return isPositive(duration, fieldName);
+    }
+
+
+    /**
      * Asserts that the given duration is positive (non-negative and non-zero).
      *
      * @param duration Number to validate

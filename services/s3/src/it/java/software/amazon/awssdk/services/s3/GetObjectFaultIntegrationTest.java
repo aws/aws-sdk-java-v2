@@ -27,7 +27,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -101,7 +101,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
                     return null;
                 });
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler))
-                .isInstanceOf(ClientExecutionTimeoutException.class);
+                .isInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
     }
 
@@ -124,13 +124,13 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
                     return null;
                 });
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler))
-                .isInstanceOf(ClientExecutionTimeoutException.class);
+                .isInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
     }
 
     /**
      * If a response handler does not preserve the interrupt status or throw an {@link InterruptedException} then
-     * we can't translate the exception to a {@link ClientExecutionTimeoutException}.
+     * we can't translate the exception to a {@link ApiCallTimeoutException}.
      */
     @Test
     public void handlerSquashsInterrupt_DoesNotThrowClientTimeoutException() throws Exception {
@@ -145,7 +145,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
                     return null;
                 });
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler))
-                .isNotInstanceOf(ClientExecutionTimeoutException.class);
+                .isNotInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
     }
 

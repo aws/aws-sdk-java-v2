@@ -30,16 +30,21 @@ public final class ValidSdkObjects {
     private ValidSdkObjects() {}
 
     public static SdkHttpFullRequest.Builder sdkHttpFullRequest() {
+        return sdkHttpFullRequest(80);
+    }
+
+    public static SdkHttpFullRequest.Builder sdkHttpFullRequest(int port) {
         return SdkHttpFullRequest.builder()
                                  .protocol("http")
-                                 .host("test.com")
-                                 .port(80)
+                                 .host("localhost")
+                                 .putHeader("Host", "localhost")
+                                 .port(port)
                                  .method(SdkHttpMethod.GET);
     }
 
     public static <T> Request<T> legacyRequest() {
         DefaultRequest<T> request = new DefaultRequest<>("testService");
-        request.setEndpoint(URI.create("http://test.com"));
+        request.setEndpoint(URI.create("http://localhost"));
         return request;
     }
 
