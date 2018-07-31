@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -44,9 +43,9 @@ public final class ProfileFileLocation {
      */
     public static Optional<Path> configurationFileLocation() {
         return resolveProfileFilePath(
-            SdkSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                            .orElse(Paths.get(ProfileFileLocation.userHomeDirectory(),
-                                                              ".aws", "config").toString()));
+                ProfileFileSystemSetting.AWS_CONFIG_FILE.getStringValue()
+                                                        .orElse(Paths.get(ProfileFileLocation.userHomeDirectory(),
+                                                                          ".aws", "config").toString()));
     }
 
     /**
@@ -55,9 +54,9 @@ public final class ProfileFileLocation {
      */
     public static Optional<Path> credentialsFileLocation() {
         return resolveProfileFilePath(
-            SdkSystemSetting.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
-                                                        .orElse(Paths.get(userHomeDirectory(),
-                                                                          ".aws", "credentials").toString()));
+                ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
+                                                                    .orElse(Paths.get(userHomeDirectory(),
+                                                                                      ".aws", "credentials").toString()));
     }
 
     /**

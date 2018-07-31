@@ -16,9 +16,9 @@
 package software.amazon.awssdk.regions.providers;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 
@@ -28,7 +28,7 @@ import software.amazon.awssdk.regions.Region;
 @SdkProtectedApi
 public final class AwsProfileRegionProvider implements AwsRegionProvider {
 
-    private final String profileName = SdkSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+    private final String profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
     @Override
     public Region getRegion() {
