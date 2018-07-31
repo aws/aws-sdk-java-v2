@@ -19,12 +19,16 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.Response;
@@ -43,6 +47,8 @@ import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.utils.async.DelegatingSubscriber;
+import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -122,6 +128,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
         private final SdkHttpFullRequest request;
         private final Completable completable;
+        private final AtomicBoolean isCancelled = new AtomicBoolean(false);
 
         private volatile SdkHttpResponse response;
         private volatile boolean isSuccess = false;
@@ -150,14 +157,26 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         public void onStream(Publisher<ByteBuffer> publisher) {
             if (isSuccess) {
                 // TODO handle exception as non retryable
-                responseHandler.onStream(publisher);
+                responseHandler.onStream(subscriber ->
+                                             publisher.subscribe(new OnCancelSubscriber(subscriber, this::onCancel)));
             } else {
                 errorResponseHandler.onStream(publisher);
             }
         }
 
+        /**
+         * If the subscriber cancels the subscription we treat it as an error and notify the future accordingly.
+         */
+        private void onCancel() {
+            this.isCancelled.set(true);
+            completable.completeExceptionally(SdkClientException.create("Subscriber cancelled before all events were published"));
+        }
+
         @Override
         public void exceptionOccurred(Throwable throwable) {
+            if (isCancelled.get()) {
+                return;
+            }
             // Note that we don't notify the response handler here, we do that in AsyncRetryableStage where we
             // have more context of what's going on and can deliver exceptions more reliably.
             completable.completeExceptionally(throwable);
@@ -165,6 +184,9 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public Response<OutputT> complete() {
+            if (isCancelled.get()) {
+                return null;
+            }
             try {
                 SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
                 final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
@@ -186,6 +208,39 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             }
         }
 
+    }
+
+    /**
+     * Decorator around a {@link Subscriber} to notify if a cancellation occurs.
+     */
+    private class OnCancelSubscriber extends DelegatingSubscriber<ByteBuffer, ByteBuffer> {
+
+        private final Runnable onCancel;
+
+        /**
+         * @param subscriber Subscriber to delegate to.
+         * @param onCancel Runnable to execute if a cancellation occurs.
+         */
+        private OnCancelSubscriber(Subscriber<? super ByteBuffer> subscriber, Runnable onCancel) {
+            super(subscriber);
+            this.onCancel = onCancel;
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            super.onSubscribe(new DelegatingSubscription(subscription) {
+                @Override
+                public void cancel() {
+                    onCancel.run();
+                    super.cancel();
+                }
+            });
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            subscriber.onNext(byteBuffer);
+        }
     }
 
     /**
