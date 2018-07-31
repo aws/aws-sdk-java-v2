@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2",
-    "type": "removal", 
-    "description": "Make paginators resume method private.(We will re-add the feature in the future)"
-}
