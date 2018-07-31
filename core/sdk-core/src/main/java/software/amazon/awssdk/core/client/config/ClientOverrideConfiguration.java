@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.client.config;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +48,8 @@ public final class ClientOverrideConfiguration
     private final RetryPolicy retryPolicy;
     private final List<ExecutionInterceptor> executionInterceptors;
     private final AttributeMap advancedOptions;
+    private final Duration apiCallAttemptTimeout;
+    private final Duration apiCallTimeout;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -56,6 +59,8 @@ public final class ClientOverrideConfiguration
         this.retryPolicy = builder.retryPolicy();
         this.executionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.executionInterceptors()));
         this.advancedOptions = builder.advancedOptions();
+        this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
+        this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
     }
 
     @Override
@@ -63,6 +68,8 @@ public final class ClientOverrideConfiguration
         return new DefaultClientOverrideConfigurationBuilder().advancedOptions(advancedOptions.toBuilder())
                                                               .headers(headers)
                                                               .retryPolicy(retryPolicy)
+                                                              .apiCallTimeout(apiCallTimeout)
+                                                              .apiCallAttemptTimeout(apiCallAttemptTimeout)
                                                               .executionInterceptors(executionInterceptors);
     }
 
@@ -112,11 +119,51 @@ public final class ClientOverrideConfiguration
         return executionInterceptors;
     }
 
+    /**
+     * The amount of time to allow the client to complete the execution of an API call. This timeout covers the entire client
+     * execution except for marshalling. This includes request handler execution, all HTTP requests including retries,
+     * unmarshalling, etc. This value should always be positive, if present.
+     *
+     * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
+     * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
+     * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
+     * execution timeout feature should not be used when absolute precision is needed.
+     *
+     * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
+     * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+     *
+     * @see Builder#apiCallTimeout(Duration)
+     */
+    public Optional<Duration> apiCallTimeout() {
+        return Optional.ofNullable(apiCallTimeout);
+    }
+
+    /**
+     * The amount of time to wait for the http request to complete before giving up and timing out. This value should always be
+     * positive, if present.
+     *
+     * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
+     * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
+     * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
+     * feature should not be used when absolute precision is needed.
+     *
+     * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
+     * request
+     * (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+     *
+     * @see Builder#apiCallAttemptTimeout(Duration)
+     */
+    public Optional<Duration> apiCallAttemptTimeout() {
+        return Optional.ofNullable(apiCallAttemptTimeout);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
                        .add("headers", headers)
                        .add("retryPolicy", retryPolicy)
+                       .add("apiCallTimeout", apiCallTimeout)
+                       .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
                        .add("executionInterceptors", executionInterceptors)
                        .add("advancedOptions", advancedOptions)
                        .build();
@@ -241,6 +288,43 @@ public final class ClientOverrideConfiguration
         Builder advancedOptions(Map<SdkAdvancedClientOption<?>, ?> advancedOptions);
 
         AttributeMap advancedOptions();
+
+        /**
+         * Configure the amount of time to allow the client to complete the execution of an API call. This timeout covers the
+         * entire client execution except for marshalling. This includes request handler execution, all HTTP requests including
+         * retries, unmarshalling, etc. This value should always be positive, if present.
+         *
+         * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
+         * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
+         * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
+         * execution timeout feature should not be used when absolute precision is needed.
+         *
+         * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
+         * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * @see ClientOverrideConfiguration#apiCallTimeout()
+         */
+        Builder apiCallTimeout(Duration apiCallTimeout);
+
+        Duration apiCallTimeout();
+
+        /**
+         * Configure the amount of time to wait for the http request to complete before giving up and timing out. This value
+         * should always be positive, if present.
+         *
+         * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
+         * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
+         * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
+         * feature should not be used when absolute precision is needed.
+         *
+         * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
+         * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * @see ClientOverrideConfiguration#apiCallAttemptTimeout()
+         */
+        Builder apiCallAttemptTimeout(Duration apiCallAttemptTimeout);
+
+        Duration apiCallAttemptTimeout();
     }
 
     /**
@@ -251,6 +335,8 @@ public final class ClientOverrideConfiguration
         private RetryPolicy retryPolicy;
         private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
+        private Duration apiCallTimeout;
+        private Duration apiCallAttemptTimeout;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -338,6 +424,36 @@ public final class ClientOverrideConfiguration
         @Override
         public AttributeMap advancedOptions() {
             return advancedOptions.build();
+        }
+
+        @Override
+        public Builder apiCallTimeout(Duration apiCallTimeout) {
+            this.apiCallTimeout = apiCallTimeout;
+            return this;
+        }
+
+        public void setApiCallTimeout(Duration apiCallTimeout) {
+            apiCallTimeout(apiCallTimeout);
+        }
+
+        @Override
+        public Duration apiCallTimeout() {
+            return apiCallTimeout;
+        }
+
+        @Override
+        public Builder apiCallAttemptTimeout(Duration apiCallAttemptTimeout) {
+            this.apiCallAttemptTimeout = apiCallAttemptTimeout;
+            return this;
+        }
+
+        public void setApiCallAttemptTimeout(Duration apiCallAttemptTimeout) {
+            apiCallAttemptTimeout(apiCallAttemptTimeout);
+        }
+
+        @Override
+        public Duration apiCallAttemptTimeout() {
+            return apiCallAttemptTimeout;
         }
 
         @Override

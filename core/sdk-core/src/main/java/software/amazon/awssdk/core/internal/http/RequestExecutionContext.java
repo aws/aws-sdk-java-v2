@@ -23,8 +23,7 @@ import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
-import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
@@ -41,8 +40,7 @@ public final class RequestExecutionContext {
     private final SdkHttpRequestProvider requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
-
-    private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
+    private TimeoutTracker apiCallTimeoutTracker;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -97,19 +95,20 @@ public final class RequestExecutionContext {
     }
 
     /**
-     * @return Tracker task for the {@link ClientExecutionTimer}.
+     * @return Tracker task for the {@link TimeoutTracker}.
      */
-    public ClientExecutionAbortTrackerTask clientExecutionTrackerTask() {
-        return clientExecutionTrackerTask;
+    public TimeoutTracker apiCallTimeoutTracker() {
+        return apiCallTimeoutTracker;
     }
 
     /**
-     * Sets the tracker task for the {@link ClientExecutionTimer}. Should
+     * Sets the tracker task for the . Should
      * be called once per request lifecycle.
      */
-    public void clientExecutionTrackerTask(ClientExecutionAbortTrackerTask clientExecutionTrackerTask) {
-        this.clientExecutionTrackerTask = clientExecutionTrackerTask;
+    public void apiCallTimeoutTracker(TimeoutTracker timeoutTracker) {
+        this.apiCallTimeoutTracker = timeoutTracker;
     }
+
 
     /**
      * An SDK-internal implementation of {@link Builder}.

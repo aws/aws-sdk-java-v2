@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.http;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
@@ -47,7 +46,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersT
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
-import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -69,7 +67,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     public AmazonSyncHttpClient(SdkClientConfiguration clientConfiguration) {
         this.httpClientDependencies = HttpClientDependencies.builder()
                                                             .clientConfiguration(clientConfiguration)
-                                                            .clientExecutionTimer(new ClientExecutionTimer())
                                                             .capacityManager(createCapacityManager())
                                                             .build();
     }
@@ -100,14 +97,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     @Override
     public void close() {
         httpClientDependencies.close();
-    }
-
-    /**
-     * For unit testing only.
-     */
-    @SdkTestInternalApi
-    public ClientExecutionTimer getClientExecutionTimer() {
-        return this.httpClientDependencies.clientExecutionTimer();
     }
 
     /**

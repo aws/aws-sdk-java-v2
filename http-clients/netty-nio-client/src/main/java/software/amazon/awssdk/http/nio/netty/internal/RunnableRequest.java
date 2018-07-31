@@ -86,6 +86,7 @@ public final class RunnableRequest implements AbortableRunnable {
 
     @Override
     public void abort() {
+        log.trace("aborting the request");
         if (channel != null) {
             closeAndRelease(channel);
         }
@@ -221,6 +222,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private static void closeAndRelease(Channel channel) {
+        log.trace("closing and releasing channel {}", channel.id().asLongText());
         RequestContext requestCtx = channel.attr(REQUEST_CONTEXT_KEY).get();
         channel.close().addListener(ignored -> requestCtx.channelPool().release(channel));
     }
