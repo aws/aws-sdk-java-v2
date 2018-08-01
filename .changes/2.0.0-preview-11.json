@@ -126,6 +126,11 @@
       "category": "AWS SDK for Java v2",
       "type": "removal",
       "description": "Removing gzipEnabled client configuration."
+    },
+    {
+      "category": "AWS SDK for Java v2",
+      "type": "feature",
+      "description": "Use auto constructed containers for list and map members. [#497](https://github.com/aws/aws-sdk-java-v2/pull/497), [#529](https://github.com/aws/aws-sdk-java-v2/pull/529), [#600](https://github.com/aws/aws-sdk-java-v2/pull/600)"
     }
   ]
 }
