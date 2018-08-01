@@ -1,7 +1,6 @@
 # __2.0.0-preview-11__ __2018-07-30__
 ## __AWS SDK for Java v2__
   - ### Features
-    - Updated `AwsCredentials` to interface implemented by `AwsBasicCredentials` and `AwsSessionCredentials`. Renamed `AwsCredentialsProvider.getCredentials()` to `AwsCredentialsProvider.resolveCredentials()`.
     - Accept `SdkBytes` and `byte[]` instead of `ByteBuffer` in generated setters.
     - Add support to disable EC2 instance metadata service usage via environment variable and system property. [#430](https://github.com/aws/aws-sdk-java-v2/issues/430)
     - Caching `XPathFactory` to improve performance of exception handling for services using XML protocol
@@ -15,6 +14,8 @@
     - Return `SdkBytes` instead of `ByteBuffer` from generated getters.
     - Update all service models to follow V2 naming convention. eg: `WAFException` -> `WafException`
     - Update service name in clients, requests and exceptions to match 2.0 naming conventions (eg. DynamoDBClient -> DynamoDbClient)
+    - Updated `AwsCredentials` to interface implemented by `AwsBasicCredentials` and `AwsSessionCredentials`. Renamed `AwsCredentialsProvider.getCredentials()` to `AwsCredentialsProvider.resolveCredentials()`.
+    - Use auto constructed containers for list and map members. [#497](https://github.com/aws/aws-sdk-java-v2/pull/497), [#529](https://github.com/aws/aws-sdk-java-v2/pull/529), [#600](https://github.com/aws/aws-sdk-java-v2/pull/600)
     - Various AsyncClient Refactors:\n - Drop async prefix in `SdkAyncClientBuilder`: `SdkAsyncClientBuilder.asyncHttpClientBuilder() -> SdkAsyncClientBuilder.httpClientBuilder()`\n - Create `SdkEventLoopGroup` to allow users to provide `EventLoopGroup` and `ChannelFactory`.
     - upgrade Netty 4.1.22.Final to Netty 4.1.26.Final
 
@@ -59,11 +60,11 @@
     - Renamed "Bytes" overload for streaming operations to "AsBytes", and "String" overload for enums to "AsString"
     - Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody
     - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
-    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
-    - Updating default retry policy to include newly added conditions.
     - Renamed `AdvancedServiceConfiguration` to `ServiceConfiguration`
     - Renamed `RequestOverrideConfig` to `RequestOverrideConfiguration` to match `ClientOverrideConfiguration` naming.
     - Simplified configuration of HTTP clients.
+    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
+    - Updating default retry policy to include newly added conditions.
 
   - ### Removals
     - Remove httpRequestTimeout and totalExecutionTimeout features
@@ -71,11 +72,11 @@
 ## __AWS Secrets Manager__
   - ### Features
     - Add AWS Secrets Manager to v2.
-    
+
 ## __Amazon S3__
   - ### Features
     - Renamed `S3AdvancedConfiguration` to `S3Configuration`
-    
+
 # __2.0.0-preview-9__ __2018-03-20__
 ## __AWS Lambda__
   - ### Features
