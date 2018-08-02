@@ -47,9 +47,7 @@ public class SubscribeToShardIntegrationTest {
     @Before
     public void setup() throws InterruptedException {
         client = KinesisAsyncClient.builder()
-                                   // TODO credentials and region (whitelisting)
-                                   .credentialsProvider(ProfileCredentialsProvider.create("justin-kinesis"))
-                                   .region(Region.US_EAST_2)
+                                   .region(Region.EU_CENTRAL_1)
                                    .build();
         client.createStream(r -> r.streamName(STREAM_NAME)
                                   .shardCount(4)).join();
