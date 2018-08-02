@@ -67,7 +67,7 @@
         <dependency>
             <groupId>software.amazon</groupId>
             <artifactId>flow</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0</version>
         </dependency>
 
         <dependency>
