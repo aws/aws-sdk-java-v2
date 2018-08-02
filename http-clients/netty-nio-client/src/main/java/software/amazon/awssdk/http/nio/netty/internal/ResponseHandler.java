@@ -215,8 +215,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));
-                        runAndLogError("Could not release channel back to the pool",
-                            () -> closeAndRelease(channelContext));
                     }
                 }
 
