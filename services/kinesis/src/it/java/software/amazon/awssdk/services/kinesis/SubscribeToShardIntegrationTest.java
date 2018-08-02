@@ -121,7 +121,7 @@ public class SubscribeToShardIntegrationTest {
                                     }).join();
             fail("Expected exception");
         } catch (CompletionException e) {
-            assertThat(e.getCause()).hasMessageContaining("cancelled");
+            assertThat(e.getCause().getCause()).hasMessageContaining("cancelled");
             assertThat(terminalCalled).as("complete or onComplete was called when it shouldn't have been")
                                       .isFalse();
         }

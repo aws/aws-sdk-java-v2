@@ -148,13 +148,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
-                channelPoolRef.set(
-                    new ReleaseOnceChannelPool(
-                        new HandlerRemovingChannelPool(
-                            new HttpOrHttp2ChannelPool(bootstrap,
-                                                       new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef),
-                                                       configuration.maxConnections(),
-                                                       configuration))));
+                ChannelPipelineInitializer handler =
+                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef);
+                channelPoolRef.set(new ReleaseOnceChannelPool(
+                    new HandlerRemovingChannelPool(
+                        new HttpOrHttp2ChannelPool(bootstrap, handler,
+                                                   configuration.maxConnections(), configuration))));
                 return channelPoolRef.get();
             }
         };

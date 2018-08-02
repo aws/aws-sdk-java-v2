@@ -51,7 +51,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
-import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
 @Sharable
@@ -211,12 +210,13 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 private void onCancel() {
                     try {
                         isCancelled.set(true);
-                        requestContext.handler().exceptionOccurred(new RuntimeException("Cancelled subscription"));
+                        requestContext.handler().exceptionOccurred(
+                            new RuntimeException("Subscriber cancelled before all events were published"));
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
-                                       () -> closeAndRelease(channelContext));
+                            () -> closeAndRelease(channelContext));
                         runAndLogError("Could not release channel back to the pool",
-                                       () -> closeAndRelease(channelContext));
+                            () -> closeAndRelease(channelContext));
                     }
                 }
 
