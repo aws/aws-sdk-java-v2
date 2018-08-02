@@ -80,6 +80,8 @@ public class ReleaseOnceChannelPool implements ChannelPool {
     }
 
     private boolean shouldRelease(Channel channel) {
+        // IS_RELEASED may be null if this channel was not acquired by this pool. This can happen
+        // for HTTP/2 when we release the parent socket channel
         return channel.attr(IS_RELEASED).get() == null
                || channel.attr(IS_RELEASED).get().compareAndSet(false, true);
     }
