@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -50,6 +51,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
+import software.amazon.awssdk.utils.async.DelegatingSubscriber;
+import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
 @Sharable
 @SdkInternalApi
@@ -176,6 +179,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         private final StreamedHttpResponse response;
         private final ChannelHandlerContext channelContext;
         private final RequestContext requestContext;
+        private final AtomicBoolean isCancelled = new AtomicBoolean(false);
 
         private PublisherAdapter(StreamedHttpResponse response, ChannelHandlerContext channelContext,
                                  RequestContext requestContext) {
@@ -189,13 +193,30 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             response.subscribe(new Subscriber<HttpContent>() {
                 @Override
                 public void onSubscribe(Subscription subscription) {
+                    subscriber.onSubscribe(new OnCancelSubscription(resolveSubscription(subscription),
+                                                                    this::onCancel));
+                }
+
+                private Subscription resolveSubscription(Subscription subscription) {
                     // For HTTP2 we send a RST_STREAM frame on cancel to stop the service from sending more data
                     if (Protocol.HTTP2.equals(ChannelAttributeKey.getProtocolNow(channelContext.channel()))) {
-                        subscriber.onSubscribe(new Http2ResetSendingSubscription(channelContext, subscription));
+                        return new Http2ResetSendingSubscription(channelContext, subscription);
                     } else {
                         // TODO I believe the behavior for H1 is to finish reading the data. Do we want to do this
                         // or abort the connection?
-                        subscriber.onSubscribe(subscription);
+                        return subscription;
+                    }
+                }
+
+                private void onCancel() {
+                    try {
+                        isCancelled.set(true);
+                        requestContext.handler().exceptionOccurred(new RuntimeException("Cancelled subscription"));
+                    } finally {
+                        runAndLogError("Could not release channel back to the pool",
+                                       () -> closeAndRelease(channelContext));
+                        runAndLogError("Could not release channel back to the pool",
+                                       () -> closeAndRelease(channelContext));
                     }
                 }
 
@@ -210,6 +231,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onError(Throwable t) {
+                    if (isCancelled.get()) {
+                        return;
+                    }
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onError.", subscriber.toString()),
                             () -> subscriber.onError(t));
@@ -222,6 +246,11 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onComplete() {
+                    // For HTTP/2 it's possible to get an onComplete after we cancel due to the channel becoming
+                    // inactive. We guard against that here and just ignore the signal (see HandlerPublisher)
+                    if (isCancelled.get()) {
+                        return;
+                    }
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
                                        subscriber::onComplete);
@@ -231,6 +260,25 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     }
                 }
             });
+        }
+    }
+
+    /**
+     * Decorator around a {@link Subscription} to notify if a cancellation occurs.
+     */
+    private static class OnCancelSubscription extends DelegatingSubscription {
+
+        private final Runnable onCancel;
+
+        private OnCancelSubscription(Subscription subscription, Runnable onCancel) {
+            super(subscription);
+            this.onCancel = onCancel;
+        }
+
+        @Override
+        public void cancel() {
+            onCancel.run();
+            super.cancel();
         }
     }
 
@@ -276,7 +324,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
         }
     }
-
 
     private static class LastHttpContentSwallower extends SimpleChannelInboundHandler<HttpObject> {
 

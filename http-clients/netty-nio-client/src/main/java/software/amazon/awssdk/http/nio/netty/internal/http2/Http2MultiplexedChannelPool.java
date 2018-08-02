@@ -126,7 +126,12 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     private void release0(Channel channel, Promise<Void> promise) {
         if (channel.parent() == null) {
             // This is the socket channel, close and release from underlying connection pool
-            releaseParentChannel(channel);
+            try {
+                releaseParentChannel(channel);
+            } finally {
+                // This channel doesn't technically belong to this pool as it was never acquired directly
+                promise.setFailure(new IllegalArgumentException("Channel does not belong to this pool"));
+            }
         } else {
             Channel parentChannel = channel.parent();
             MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
