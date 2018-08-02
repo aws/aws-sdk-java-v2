@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
  * A copy of the License is located at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *  http://aws.amazon.com/apache2.0
  *
  * or in the "license" file accompanying this file. This file is distributed
  * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
@@ -24,6 +24,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.SucceededFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChannelPool;
 
 /**
@@ -31,6 +32,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2MultiplexedChan
  * cause issues in {@link FixedChannelPool} and {@link Http2MultiplexedChannelPool} which has a simple
  * mechanism to track leased connections.
  */
+@SdkInternalApi
 public class ReleaseOnceChannelPool implements ChannelPool {
 
     private static final AttributeKey<AtomicBoolean> IS_RELEASED = AttributeKey.newInstance("isReleased");
@@ -53,7 +55,7 @@ public class ReleaseOnceChannelPool implements ChannelPool {
 
     private GenericFutureListener<Future<Channel>> onAcquire() {
         return future -> {
-            if(future.isSuccess()) {
+            if (future.isSuccess()) {
                 future.getNow().attr(IS_RELEASED).set(new AtomicBoolean(false));
             }
         };
