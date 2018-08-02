@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Caching `XPathFactory` to improve performance of exception handling for services using XML protocol"
-}

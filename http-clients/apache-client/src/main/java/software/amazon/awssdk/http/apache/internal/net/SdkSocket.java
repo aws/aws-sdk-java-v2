@@ -18,19 +18,16 @@ package software.amazon.awssdk.http.apache.internal.net;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public class SdkSocket extends DelegateSocket {
-    private static final Logger log = LoggerFactory.getLogger(SdkSocket.class);
+    private static final Logger log = Logger.loggerFor(SdkSocket.class);
 
     public SdkSocket(Socket sock) {
         super(sock);
-        if (log.isDebugEnabled()) {
-            log.debug("created: " + endpoint());
-        }
+        log.debug(() -> "created: " + endpoint());
     }
 
     /**
@@ -42,47 +39,33 @@ public class SdkSocket extends DelegateSocket {
 
     @Override
     public void connect(SocketAddress endpoint) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("connecting to: {}", endpoint);
-        }
+        log.trace(() -> "connecting to: " + endpoint);
         sock.connect(endpoint);
-        if (log.isDebugEnabled()) {
-            log.debug("connected to: {}", endpoint());
-        }
+        log.debug(() -> "connected to: " + endpoint);
     }
 
     @Override
     public void connect(SocketAddress endpoint, int timeout) throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("connecting to: {}", endpoint);
-        }
+        log.trace(() -> "connecting to: " + endpoint);
         sock.connect(endpoint, timeout);
-        if (log.isDebugEnabled()) {
-            log.debug("connected to: {}", endpoint());
-        }
+        log.debug(() -> "connected to: " + endpoint);
     }
 
     @Override
     public void close() throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("closing {}", endpoint());
-        }
+        log.debug(() -> "closing " + endpoint());
         sock.close();
     }
 
     @Override
     public void shutdownInput() throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("shutting down input of {}", endpoint());
-        }
+        log.debug(() -> "shutting down input of " + endpoint());
         sock.shutdownInput();
     }
 
     @Override
     public void shutdownOutput() throws IOException {
-        if (log.isDebugEnabled()) {
-            log.debug("shutting down output of {}", endpoint());
-        }
+        log.debug(() -> "shutting down output of " + endpoint());
         sock.shutdownOutput();
     }
 }

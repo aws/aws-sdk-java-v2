@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
@@ -80,6 +81,9 @@ public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
      */
     public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
+        SdkStandardLogger.REQUEST_ID_LOGGER.debug(() -> X_AMZN_REQUEST_ID_HEADER + " : " +
+                                                        Optional.ofNullable(response.getHeader(X_AMZN_REQUEST_ID_HEADER))
+                                                                .orElse("not available"));
 
         JsonParser jsonParser = null;
 

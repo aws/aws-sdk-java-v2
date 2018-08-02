@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "removal", 
-    "description": "Removing gzipEnabled client configuration."
-}

@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.0.0-preview-11-SNAPSHOT</version>
+        <version>2.0.0-preview-12-SNAPSHOT</version>
     </parent>
     <artifactId>servicecatalog</artifactId>
     <name>AWS Java SDK :: Services :: AWS Service Catalog</name>
