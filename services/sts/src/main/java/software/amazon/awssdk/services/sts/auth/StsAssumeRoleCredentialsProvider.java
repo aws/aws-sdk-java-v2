@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.sts.auth;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -38,16 +40,16 @@ import software.amazon.awssdk.utils.Validate;
  */
 @ThreadSafe
 public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
-    private final AssumeRoleRequest assumeRoleRequest;
+    private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**
      * @see #builder()
      */
     private StsAssumeRoleCredentialsProvider(Builder builder) {
         super(builder, "sts-assume-role-credentials-provider");
-        Validate.notNull(builder.assumeRoleRequest, "Assume role request must not be null.");
+        Validate.notNull(builder.assumeRoleRequestSupplier, "Assume role request must not be null.");
 
-        this.assumeRoleRequest = builder.assumeRoleRequest;
+        this.assumeRoleRequestSupplier = builder.assumeRoleRequestSupplier;
     }
 
     /**
@@ -59,13 +61,15 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
 
     @Override
     protected Credentials getUpdatedCredentials(StsClient stsClient) {
+        AssumeRoleRequest assumeRoleRequest = assumeRoleRequestSupplier.get();
+        Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         return stsClient.assumeRole(assumeRoleRequest).credentials();
     }
 
     @Override
     public String toString() {
         return ToString.builder("StsAssumeRoleCredentialsProvider")
-                       .add("refreshRequest", assumeRoleRequest)
+                       .add("refreshRequest", assumeRoleRequestSupplier)
                        .build();
     }
 
@@ -75,7 +79,7 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
      */
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleCredentialsProvider> {
-        private AssumeRoleRequest assumeRoleRequest;
+        private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
@@ -89,7 +93,18 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
          * @return This object for chained calls.
          */
         public Builder refreshRequest(AssumeRoleRequest assumeRoleRequest) {
-            this.assumeRoleRequest = assumeRoleRequest;
+            return refreshRequest(() -> assumeRoleRequest);
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleRequest)}, but takes a {@link Supplier} to supply the request to
+         * STS.
+         *
+         * @param assumeRoleRequestSupplier A supplier
+         * @return This object for chained calls.
+         */
+        public Builder refreshRequest(Supplier<AssumeRoleRequest> assumeRoleRequestSupplier) {
+            this.assumeRoleRequestSupplier = assumeRoleRequestSupplier;
             return this;
         }
 

@@ -6,12 +6,12 @@
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.0.0-preview-11-SNAPSHOT</version>
+        <version>2.0.0-preview-12-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>codegen-generated-classes-test</artifactId>
-    <name>AWS Java SDK :: Codegen Generated Classes Test</name>
+    <name>AWS Java SDK :: Test :: Codegen Generated Classes Test</name>
     <description>
         Tests for code generated classes.
     </description>

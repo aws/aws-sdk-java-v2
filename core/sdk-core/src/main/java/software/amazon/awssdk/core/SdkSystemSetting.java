@@ -23,34 +23,6 @@ import software.amazon.awssdk.utils.SystemSetting;
  */
 @SdkProtectedApi
 public enum SdkSystemSetting implements SystemSetting {
-
-    /**
-     * Configure the default configuration file used in the ProfileFile. When not explicitly
-     * overridden in a client (eg. by specifying the region or credentials provider), this will be the location used when an
-     * AWS client is created.
-     *
-     * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
-     * SDK via a configuration file.
-     */
-    AWS_CONFIG_FILE("aws.configFile", null),
-
-    /**
-     * Configure the default profile that should be loaded from the {@link #AWS_CONFIG_FILE}
-     *
-     * @see #AWS_CONFIG_FILE
-     */
-    AWS_PROFILE("aws.profile", "default"),
-
-    /**
-     * Configure the default credentials file used in the ProfileFile. When not explicitly
-     * overridden in a client (eg. by specifying the region or credentials provider), this will be the location used when an
-     * AWS client is created.
-     *
-     * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
-     * SDK via a credentials file.
-     */
-    AWS_SHARED_CREDENTIALS_FILE("aws.sharedCredentialsFile", null),
-
     /**
      * Configure the AWS access key ID.
      *

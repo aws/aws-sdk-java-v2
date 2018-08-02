@@ -24,6 +24,7 @@ import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -52,7 +53,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
      */
     private ProfileCredentialsProvider(BuilderImpl builder) {
         this.profileName = builder.profileName != null ? builder.profileName
-                                                       : SdkSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+                                                       : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
         // Load the profiles file
         this.profileFile = Optional.ofNullable(builder.profileFile)
