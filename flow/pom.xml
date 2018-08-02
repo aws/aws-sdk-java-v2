@@ -14,6 +14,11 @@
         <version>2.0.0</version>
     </parent>
 
+    <name>AWS Event Stream</name>
+    <description>The AWS Event Stream decoder library.</description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
