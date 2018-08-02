@@ -23,6 +23,12 @@
     <suppress checks=".*"
               files=".*[\\/](test|it)[\\/]java[\\/].+\.java$"/>
 
+    <!-- TODO: Disable these suppressions. -->
+    <suppress checks=".*"
+              files=".(flow)[\\/].+\.java$"/>
+
+
+
     <!-- ignore missing annotation checks under test/codegen directory -->
     <suppress checks="MissingSdkAnnotationCheck"
               files=".(codegen|test)[\\/].+\.java$"/>
