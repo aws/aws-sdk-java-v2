@@ -29,6 +29,10 @@ public final class Logger {
         this.log = log;
     }
 
+    public org.slf4j.Logger logger() {
+        return log;
+    }
+
     /**
      * Checks if info is enabled and if so logs the supplied message
      * @param msg - supplier for the log message

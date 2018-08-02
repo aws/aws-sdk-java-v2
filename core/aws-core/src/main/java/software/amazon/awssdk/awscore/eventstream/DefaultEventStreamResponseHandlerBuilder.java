@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.internal.async.SequentialSubscriber;
+import software.amazon.awssdk.utils.async.SequentialSubscriber;
 
 /**
  * Base class for event stream response handler builders.

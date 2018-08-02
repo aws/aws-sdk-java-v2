@@ -23,12 +23,12 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.internal.async.BufferingSubscriber;
-import software.amazon.awssdk.core.internal.async.DelegatingSubscriber;
-import software.amazon.awssdk.core.internal.async.FilteringSubscriber;
-import software.amazon.awssdk.core.internal.async.FlatteningSubscriber;
-import software.amazon.awssdk.core.internal.async.LimitingSubscriber;
-import software.amazon.awssdk.core.internal.async.SequentialSubscriber;
+import software.amazon.awssdk.utils.async.BufferingSubscriber;
+import software.amazon.awssdk.utils.async.DelegatingSubscriber;
+import software.amazon.awssdk.utils.async.FilteringSubscriber;
+import software.amazon.awssdk.utils.async.FlatteningSubscriber;
+import software.amazon.awssdk.utils.async.LimitingSubscriber;
+import software.amazon.awssdk.utils.async.SequentialSubscriber;
 
 /**
  * Interface that is implemented by the Async auto-paginated responses.

@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>codegen-generated-classes-test</artifactId>
-    <name>AWS Java SDK :: Codegen Generated Classes Test</name>
+    <name>AWS Java SDK :: Test :: Codegen Generated Classes Test</name>
     <description>
         Tests for code generated classes.
     </description>

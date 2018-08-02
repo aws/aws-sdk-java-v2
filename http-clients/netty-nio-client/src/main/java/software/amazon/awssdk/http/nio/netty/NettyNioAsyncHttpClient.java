@@ -53,6 +53,7 @@ import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer
 import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.internal.ReleaseOnceChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
@@ -147,11 +148,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
-                channelPoolRef.set(new HandlerRemovingChannelPool(
-                    new HttpOrHttp2ChannelPool(bootstrap,
-                                               new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef),
-                                               configuration.maxConnections(),
-                                               configuration)));
+                ChannelPipelineInitializer handler =
+                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef);
+                channelPoolRef.set(new ReleaseOnceChannelPool(
+                    new HandlerRemovingChannelPool(
+                        new HttpOrHttp2ChannelPool(bootstrap, handler,
+                                                   configuration.maxConnections(), configuration))));
                 return channelPoolRef.get();
             }
         };

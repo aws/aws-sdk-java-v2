@@ -20,29 +20,24 @@ import io.netty.handler.codec.http2.DefaultHttp2ResetFrame;
 import io.netty.handler.codec.http2.Http2Error;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.async.DelegatingSubscription;
 
 /**
  * Wrapper around a {@link Subscription} to send a RST_STREAM frame on cancel.
  */
 @SdkInternalApi
-public class Http2ResetSendingSubscription implements Subscription {
+public class Http2ResetSendingSubscription extends DelegatingSubscription {
 
     private final ChannelHandlerContext ctx;
-    private final Subscription delegate;
 
     public Http2ResetSendingSubscription(ChannelHandlerContext ctx, Subscription delegate) {
+        super(delegate);
         this.ctx = ctx;
-        this.delegate = delegate;
-    }
-
-    @Override
-    public void request(long l) {
-        delegate.request(l);
     }
 
     @Override
     public void cancel() {
         ctx.write(new DefaultHttp2ResetFrame(Http2Error.CANCEL));
-        delegate.cancel();
+        super.cancel();
     }
 }

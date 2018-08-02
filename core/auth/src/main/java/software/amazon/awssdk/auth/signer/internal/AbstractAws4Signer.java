@@ -27,8 +27,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -40,6 +38,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -53,7 +52,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
     public static final String EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(hash(""));
 
-    private static final Logger LOG = LoggerFactory.getLogger(Aws4Signer.class);
+    private static final Logger LOG = Logger.loggerFor(Aws4Signer.class);
     private static final int SIGNER_CACHE_MAX_SIZE = 300;
     private static final FifoCache<SignerKey> SIGNER_CACHE =
         new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
@@ -176,23 +175,21 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private String createCanonicalRequest(SdkHttpFullRequest.Builder request,
                                           String contentSha256,
                                           boolean doubleUrlEncode) {
-        final String canonicalRequest = request.method().toString() +
-                                        SignerConstant.LINE_SEPARATOR +
-                                        // This would optionally double url-encode the resource path
-                                        getCanonicalizedResourcePath(request.encodedPath(), doubleUrlEncode) +
-                                        SignerConstant.LINE_SEPARATOR +
-                                        getCanonicalizedQueryString(request.rawQueryParameters()) +
-                                        SignerConstant.LINE_SEPARATOR +
-                                        getCanonicalizedHeaderString(request.headers()) +
-                                        SignerConstant.LINE_SEPARATOR +
-                                        getSignedHeadersString(request.headers()) +
-                                        SignerConstant.LINE_SEPARATOR +
-                                        contentSha256;
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("AWS4 Canonical Request: '\"" + canonicalRequest + "\"");
-        }
+        String canonicalRequest = request.method().toString() +
+                                  SignerConstant.LINE_SEPARATOR +
+                                  // This would optionally double url-encode the resource path
+                                  getCanonicalizedResourcePath(request.encodedPath(), doubleUrlEncode) +
+                                  SignerConstant.LINE_SEPARATOR +
+                                  getCanonicalizedQueryString(request.rawQueryParameters()) +
+                                  SignerConstant.LINE_SEPARATOR +
+                                  getCanonicalizedHeaderString(request.headers()) +
+                                  SignerConstant.LINE_SEPARATOR +
+                                  getSignedHeadersString(request.headers()) +
+                                  SignerConstant.LINE_SEPARATOR +
+                                  contentSha256;
 
+        LOG.trace(() -> "AWS4 Canonical Request: " + canonicalRequest);
         return canonicalRequest;
     }
 
@@ -212,10 +209,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                     SignerConstant.LINE_SEPARATOR +
                                     BinaryUtils.toHex(hash(canonicalRequest));
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("AWS4 String to Sign: '\"" + stringToSign + "\"");
-        }
-
+        LOG.debug(() -> "AWS4 String to sign: " + stringToSign);
         return stringToSign;
     }
 
@@ -237,10 +231,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             return signerKey.getSigningKey();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Generating a new signing key as the signing key not available in the cache for the date "
-                      + TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
-        }
+        LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
+                        TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
         byte[] signingKey = newSigningKey(credentials,
                                           signerRequestParams.getFormattedSigningDate(),
                                           signerRequestParams.getRegionName(),

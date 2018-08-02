@@ -13,24 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.async;
+package software.amazon.awssdk.utils.async;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class LimitingSubscriber<T> extends DelegatingSubscriber<T, T> {
+public class FilteringSubscriber<T> extends DelegatingSubscriber<T, T> {
 
-    private final int limit;
-    private final AtomicInteger delivered = new AtomicInteger(0);
+    private final Predicate<T> predicate;
 
     private Subscription subscription;
 
-    public LimitingSubscriber(Subscriber<? super T> subscriber, int limit) {
-        super(subscriber);
-        this.limit = limit;
+    public FilteringSubscriber(Subscriber<? super T> sourceSubscriber, Predicate<T> predicate) {
+        super(sourceSubscriber);
+        this.predicate = predicate;
     }
 
     @Override
@@ -41,13 +40,11 @@ public class LimitingSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     @Override
     public void onNext(T t) {
-        // We may get more events even after cancelling so we ignore them.
-        if (delivered.get() < limit) {
+        if (predicate.test(t)) {
             subscriber.onNext(t);
-        }
-        // If we've met the limit then we can cancel the subscription
-        if (delivered.incrementAndGet() >= limit) {
-            subscription.cancel();
+        } else {
+            // Consumed a demand but didn't deliver. Request other to make up for it
+            subscription.request(1);
         }
     }
 }

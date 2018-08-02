@@ -1,5 +1,5 @@
 {
     "category": "AWS SDK for Java v2", 
     "type": "feature", 
-    "description": "Exceptions use builders and are immutable."
+    "description": "Add mfa_serial to ProfileProperty"
 }

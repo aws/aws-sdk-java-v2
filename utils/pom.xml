@@ -30,6 +30,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams</artifactId>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
             <version>[${awsjavasdk.version}]</version>

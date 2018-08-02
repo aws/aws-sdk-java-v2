@@ -13,38 +13,34 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.async;
+package software.amazon.awssdk.utils.async;
 
-import java.util.function.Predicate;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class FilteringSubscriber<T> extends DelegatingSubscriber<T, T> {
+public abstract class DelegatingSubscriber<T, U> implements Subscriber<T> {
 
-    private final Predicate<T> predicate;
+    protected final Subscriber<? super U> subscriber;
 
-    private Subscription subscription;
-
-    public FilteringSubscriber(Subscriber<? super T> sourceSubscriber, Predicate<T> predicate) {
-        super(sourceSubscriber);
-        this.predicate = predicate;
+    protected DelegatingSubscriber(Subscriber<? super U> subscriber) {
+        this.subscriber = subscriber;
     }
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        super.onSubscribe(subscription);
-        this.subscription = subscription;
+        subscriber.onSubscribe(subscription);
     }
 
     @Override
-    public void onNext(T t) {
-        if (predicate.test(t)) {
-            subscriber.onNext(t);
-        } else {
-            // Consumed a demand but didn't deliver. Request other to make up for it
-            subscription.request(1);
-        }
+    public void onError(Throwable throwable) {
+        subscriber.onError(throwable);
     }
+
+    @Override
+    public void onComplete() {
+        subscriber.onComplete();
+    }
+
 }
