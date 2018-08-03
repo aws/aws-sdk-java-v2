@@ -17,9 +17,9 @@ package software.amazon.awssdk.awscore.protocol.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkProtectedApi
 public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
@@ -49,9 +49,9 @@ public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
      * @return Error Code of exceptional response or null if it can't be determined
      */
     @Override
-    public String parseErrorMessage(HttpResponse httpResponse, JsonNode jsonNode) {
+    public String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode) {
         // If X_AMZN_ERROR_MESSAGE is present, prefer that. Otherwise check the JSON body.
-        final String headerMessage = httpResponse.getHeader(X_AMZN_ERROR_MESSAGE);
+        final String headerMessage = httpResponse.firstMatchingHeader(X_AMZN_ERROR_MESSAGE).orElse(null);
         if (headerMessage != null) {
             return headerMessage;
         }

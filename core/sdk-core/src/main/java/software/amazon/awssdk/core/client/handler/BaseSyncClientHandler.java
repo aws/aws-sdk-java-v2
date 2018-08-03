@@ -20,14 +20,13 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkProtectedApi
 public abstract class BaseSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
@@ -120,9 +119,9 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         }
 
         @Override
-        public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+        public ReturnT handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
             OutputT resp = httpResponseHandler.handle(response, executionAttributes);
-            return responseTransformer.apply(resp, new AbortableInputStream(response.getContent(), response));
+            return responseTransformer.apply(resp, response.content().get());
         }
 
         @Override

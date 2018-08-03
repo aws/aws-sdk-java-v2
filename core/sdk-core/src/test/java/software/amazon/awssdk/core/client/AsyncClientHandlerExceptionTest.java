@@ -40,7 +40,6 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.EmptySdkResponse;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
@@ -97,7 +96,7 @@ public class AsyncClientHandlerExceptionTest {
 
         when(marshaller.marshall(eq(request))).thenReturn(new DefaultRequest<>(null));
 
-        when(responseHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class)))
+        when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(EmptySdkResponse.builder().build());
 
         when(asyncHttpClient.prepareRequest(any(SdkHttpRequest.class),
@@ -132,7 +131,7 @@ public class AsyncClientHandlerExceptionTest {
     @Test
     public void responseHandlerThrowsReportedThroughFuture() throws Exception {
         final RuntimeException e = new RuntimeException("Could not handle response");
-        when(responseHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
+        when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
         doVerify(() -> clientHandler.execute(executionParams), e);
     }
 

@@ -18,35 +18,31 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.internal.http.Crc32Validation;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Pair;
 
-/**
- * Adapt our new {@link SdkHttpFullResponse} representation, to the legacy {@link HttpResponse} representation.
- */
 @SdkInternalApi
-public class HttpResponseAdaptingStage
-    implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, Pair<SdkHttpFullRequest, HttpResponse>> {
+public final class Crc32ValidationStage
+    implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
 
     private final boolean calculateCrc32FromCompressedData;
 
-    public HttpResponseAdaptingStage(HttpClientDependencies dependencies) {
+    public Crc32ValidationStage(HttpClientDependencies dependencies) {
 
         //TODO: move CRC32_FROM_COMPRESSED_DATA_ENABLED to aws-core once this stage gets removed
         this.calculateCrc32FromCompressedData = dependencies.clientConfiguration().option(CRC32_FROM_COMPRESSED_DATA_ENABLED);
     }
 
     @Override
-    public Pair<SdkHttpFullRequest, HttpResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
-                                                          RequestExecutionContext context) throws Exception {
+    public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
+                                                                 RequestExecutionContext context) throws Exception {
         return Pair.of(input.left(),
-                       SdkHttpResponseAdapter.adapt(calculateCrc32FromCompressedData, input.left(), input.right()));
+                       Crc32Validation.validate(calculateCrc32FromCompressedData, input.right()));
     }
 
 }

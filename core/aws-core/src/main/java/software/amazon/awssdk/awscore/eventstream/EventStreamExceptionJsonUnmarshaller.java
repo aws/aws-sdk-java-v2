@@ -63,7 +63,9 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
             throw new IllegalStateException("Unexpected exception message type: " + messageType);
         }
 
-        SdkBytes rawResponse = SdkBytes.fromInputStream(context.getHttpResponse().getContent());
+        SdkBytes rawResponse =
+            context.getHttpResponse().content().map(SdkBytes::fromInputStream).orElse(null);
+
         return exceptionBuilderSupplier.get()
                                        .awsErrorDetails(AwsErrorDetails.builder()
                                                                        .errorMessage(errorMessage)

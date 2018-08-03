@@ -43,7 +43,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
 <#if shape.hasStatusCodeMember >
     <#list shape.members as memberModel>
         <#if memberModel.http.isStatusCode() >
-        ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(context.getHttpResponse().getStatusCode());
+        ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(context.getHttpResponse().statusCode());
         </#if>
     </#list>
 </#if>
@@ -53,7 +53,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
     <#if explicitPayloadMember.http.isStreaming>
         <#-- Intentionally left blank, streaming handled by SyncResponseHandler -->
     <#elseif explicitPayloadMember.variable.variableType == "software.amazon.awssdk.core.SdkBytes">
-        java.io.InputStream is = context.getHttpResponse().getContent();
+        java.io.InputStream is = context.getHttpResponse().content().orElse(null);
         if(is != null) {
             try {
                 ${shape.variable.variableName}Builder.${explicitPayloadMember.fluentSetterMethodName}(software.amazon.awssdk.core.SdkBytes.fromInputStream(is));
