@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -29,10 +30,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesResponse;
+import software.amazon.awssdk.services.protocoljsonrpc.model.ProtocolJsonRpcException;
 
 public class AwsJsonRetryTest {
 
@@ -120,5 +123,34 @@ public class AwsJsonRetryTest {
 
         AllTypesResponse allTypesResponse = client.allTypes(AllTypesRequest.builder().build());
         assertThat(allTypesResponse).isNotNull();
+    }
+
+    @Test
+    public void retryPolicyNone_shouldNotRetry() {
+        stubFor(post(urlEqualTo(PATH))
+                    .inScenario("retry at 500")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willSetStateTo("first attempt")
+                    .willReturn(aResponse()
+                                    .withStatus(500)));
+
+        stubFor(post(urlEqualTo(PATH))
+                    .inScenario("retry at 500")
+                    .whenScenarioStateIs("first attempt")
+                    .willSetStateTo("second attempt")
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody(JSON_BODY)));
+
+        ProtocolJsonRpcClient clientWithNoRetry =
+            ProtocolJsonRpcClient.builder()
+                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
+                                                                                                                  "skid")))
+                                 .region(Region.US_EAST_1)
+                                 .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                 .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.none()))
+                                 .build();
+
+        assertThatThrownBy(() -> clientWithNoRetry.allTypes(AllTypesRequest.builder().build())).isInstanceOf(ProtocolJsonRpcException.class);
     }
 }

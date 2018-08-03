@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Retry condition implementation that retries if the exception or the cause of the exception matches the classes defined.
@@ -73,5 +74,31 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
      */
     public static RetryOnExceptionsCondition create(Class<? extends Exception>... exceptionsToRetryOn) {
         return new RetryOnExceptionsCondition(Arrays.stream(exceptionsToRetryOn).collect(Collectors.toSet()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final RetryOnExceptionsCondition that = (RetryOnExceptionsCondition) o;
+
+        return exceptionsToRetryOn.equals(that.exceptionsToRetryOn);
+    }
+
+    @Override
+    public int hashCode() {
+        return exceptionsToRetryOn.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("RetryOnExceptionsCondition")
+                       .add("exceptionsToRetryOn", exceptionsToRetryOn)
+                       .build();
     }
 }
