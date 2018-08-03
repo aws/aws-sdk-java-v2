@@ -42,7 +42,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 public class SyncClientClass implements ClassSpec {
@@ -69,7 +69,7 @@ public class SyncClientClass implements ClassSpec {
                                         .addSuperinterface(interfaceClass)
                                         .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                                     interfaceClass)
-                                        .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
+                                        .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
                                         .addField(protocolSpec.protocolFactory(model))
                                         .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
                                         .addMethod(constructor())

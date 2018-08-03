@@ -21,9 +21,12 @@ import com.squareup.javapoet.MethodSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 
 public interface ProtocolSpec {
@@ -45,8 +48,8 @@ public interface ProtocolSpec {
         return executionHandler(opModel);
     }
 
-    default Class<? extends SyncClientHandler> getClientHandlerClass() {
-        return AwsSyncClientHandler.class;
+    default Class<? extends AsyncClientHandler> getClientHandlerClass() {
+        return AwsAsyncClientHandler.class;
     }
 
     Optional<MethodSpec> createErrorResponseHandler();
