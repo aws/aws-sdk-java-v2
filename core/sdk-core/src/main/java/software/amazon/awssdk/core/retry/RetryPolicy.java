@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.conditions.AndRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -54,7 +55,8 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         this.throttlingBackoffStrategy = builder.throttlingBackoffStrategy;
         this.numRetries = builder.numRetries;
         this.retryConditionFromBuilder = builder.retryCondition;
-        this.retryCondition = AndRetryCondition.create(MaxNumberOfRetriesCondition.create(numRetries), retryConditionFromBuilder);
+        this.retryCondition = AndRetryCondition.create(MaxNumberOfRetriesCondition.create(numRetries),
+                                                       retryConditionFromBuilder);
     }
 
     public RetryCondition retryCondition() {
@@ -74,7 +76,52 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     }
 
     public Builder toBuilder() {
-        return builder().numRetries(numRetries).retryCondition(retryConditionFromBuilder).backoffStrategy(backoffStrategy);
+        return builder().numRetries(numRetries)
+                        .retryCondition(retryConditionFromBuilder)
+                        .backoffStrategy(backoffStrategy)
+                        .throttlingBackoffStrategy(throttlingBackoffStrategy);
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("RetryPolicy")
+                       .add("numRetries", numRetries)
+                       .add("retryCondition", retryCondition)
+                       .add("backoffStrategy", backoffStrategy)
+                       .add("throttlingBackoffStrategy", throttlingBackoffStrategy)
+                       .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final RetryPolicy that = (RetryPolicy) o;
+
+        if (!retryCondition.equals(that.retryCondition)) {
+            return false;
+        }
+        if (!backoffStrategy.equals(that.backoffStrategy)) {
+            return false;
+        }
+        if (!throttlingBackoffStrategy.equals(that.throttlingBackoffStrategy)) {
+            return false;
+        }
+        return numRetries.equals(that.numRetries);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = retryCondition.hashCode();
+        result = 31 * result + backoffStrategy.hashCode();
+        result = 31 * result + throttlingBackoffStrategy.hashCode();
+        result = 31 * result + numRetries.hashCode();
+        return result;
     }
 
     public static Builder builder() {
@@ -84,6 +131,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     public static RetryPolicy defaultRetryPolicy() {
         return RetryPolicy.builder()
                           .backoffStrategy(BackoffStrategy.defaultStrategy())
+                          .throttlingBackoffStrategy(BackoffStrategy.defaultThrottlingStrategy())
                           .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                           .retryCondition(RetryCondition.defaultRetryCondition())
                           .build();
@@ -91,7 +139,9 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
 
     public static RetryPolicy none() {
         return RetryPolicy.builder()
+                          .numRetries(0)
                           .backoffStrategy(BackoffStrategy.none())
+                          .throttlingBackoffStrategy(BackoffStrategy.none())
                           .retryCondition(RetryCondition.none())
                           .build();
     }
@@ -104,6 +154,10 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         Builder backoffStrategy(BackoffStrategy backoffStrategy);
 
         BackoffStrategy backoffStrategy();
+
+        Builder throttlingBackoffStrategy(BackoffStrategy backoffStrategy);
+
+        BackoffStrategy throttlingBackoffStrategy();
 
         Builder retryCondition(RetryCondition retryCondition);
 
@@ -155,13 +209,19 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
             return backoffStrategy;
         }
 
-        public Builder throttlingBackoffStrategy(BackoffStrategy backoffStrategy) {
-            this.backoffStrategy = backoffStrategy;
+        @Override
+        public Builder throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy) {
+            this.throttlingBackoffStrategy = throttlingBackoffStrategy;
             return this;
         }
 
+        @Override
         public BackoffStrategy throttlingBackoffStrategy() {
-            return backoffStrategy;
+            return throttlingBackoffStrategy;
+        }
+
+        public void setThrottlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy) {
+            this.throttlingBackoffStrategy = throttlingBackoffStrategy;
         }
 
         @Override

@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -54,5 +55,31 @@ public final class RetryOnStatusCodeCondition implements RetryCondition {
 
     public static RetryOnStatusCodeCondition create(Integer... statusCodesToRetryOn) {
         return new RetryOnStatusCodeCondition(Arrays.stream(statusCodesToRetryOn).collect(Collectors.toSet()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final RetryOnStatusCodeCondition that = (RetryOnStatusCodeCondition) o;
+
+        return statusCodesToRetryOn.equals(that.statusCodesToRetryOn);
+    }
+
+    @Override
+    public int hashCode() {
+        return statusCodesToRetryOn.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("RetryOnStatusCodeCondition")
+                       .add("statusCodesToRetryOn", statusCodesToRetryOn)
+                       .build();
     }
 }

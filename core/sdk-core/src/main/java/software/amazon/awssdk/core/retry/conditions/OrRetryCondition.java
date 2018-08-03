@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.core.retry.conditions;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Composite retry condition that evaluates to true if any containing condition evaluates to true.
@@ -27,7 +28,7 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 @SdkPublicApi
 public final class OrRetryCondition implements RetryCondition {
 
-    private List<RetryCondition> conditions = new ArrayList<>();
+    private Set<RetryCondition> conditions = new HashSet<>();
 
     private OrRetryCondition(RetryCondition... conditions) {
         Collections.addAll(this.conditions, conditions);
@@ -43,5 +44,31 @@ public final class OrRetryCondition implements RetryCondition {
 
     public static OrRetryCondition create(RetryCondition... conditions) {
         return new OrRetryCondition(conditions);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final OrRetryCondition that = (OrRetryCondition) o;
+
+        return conditions.equals(that.conditions);
+    }
+
+    @Override
+    public int hashCode() {
+        return conditions.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("OrRetryCondition")
+                       .add("conditions", conditions)
+                       .build();
     }
 }
