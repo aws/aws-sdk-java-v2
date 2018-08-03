@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -54,7 +54,7 @@ public final class JsonUnmarshallerContextImpl extends JsonUnmarshallerContext {
      *  [ (C, START_OBJECT), (B, START_ARRAY), (A, START_OBJECT) ]
      */
     private final Stack<JsonFieldTokenPair> stack = new Stack<JsonFieldTokenPair>();
-    private final HttpResponse httpResponse;
+    private final SdkHttpFullResponse httpResponse;
     private final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallerMap;
     /** The current JsonToken that the private JsonParser is currently pointing to. **/
     private JsonToken currentToken;
@@ -79,10 +79,10 @@ public final class JsonUnmarshallerContextImpl extends JsonUnmarshallerContext {
      * after it is removed from the stack.
      */
     private String lastParsedParentElement;
-    private Map<String, String> metadata = new HashMap<String, String>();
+    private Map<String, String> metadata = new HashMap<>();
 
     public JsonUnmarshallerContextImpl(JsonParser jsonParser, Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> mapper,
-                                       HttpResponse httpResponse) {
+                                       SdkHttpFullResponse httpResponse) {
         this.jsonParser = jsonParser;
         this.unmarshallerMap = mapper;
         this.httpResponse = httpResponse;
@@ -94,11 +94,11 @@ public final class JsonUnmarshallerContextImpl extends JsonUnmarshallerContext {
             return null;
         }
 
-        return httpResponse.getHeaders().get(header);
+        return httpResponse.firstMatchingHeader(header).orElse(null);
     }
 
     @Override
-    public HttpResponse getHttpResponse() {
+    public SdkHttpFullResponse getHttpResponse() {
         return httpResponse;
     }
 

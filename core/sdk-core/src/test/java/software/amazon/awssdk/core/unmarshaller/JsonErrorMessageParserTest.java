@@ -23,8 +23,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import utils.ValidSdkObjects;
 
 public class JsonErrorMessageParserTest {
 
@@ -32,14 +33,14 @@ public class JsonErrorMessageParserTest {
 
     private static final String MESSAGE_CONTENT = "boom";
 
-    private HttpResponse response;
+    private SdkHttpFullResponse response;
 
     private ObjectNode jsonNode;
 
     @Before
     public void setup() {
         jsonNode = JsonNodeFactory.instance.objectNode();
-        response = new HttpResponse(null);
+        response = ValidSdkObjects.sdkHttpFullResponse().build();
     }
 
     @Test

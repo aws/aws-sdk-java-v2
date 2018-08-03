@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.exception;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 @SdkPublicApi
 public class AwsErrorDetails {
@@ -28,7 +28,7 @@ public class AwsErrorDetails {
 
     private final String serviceName;
 
-    private final HttpResponse sdkHttpResponse;
+    private final SdkHttpResponse sdkHttpResponse;
 
     private final SdkBytes rawResponse;
 
@@ -74,7 +74,7 @@ public class AwsErrorDetails {
     /**
      * Returns a map of HTTP headers associated with the error response.
      */
-    public HttpResponse sdkHttpResponse() {
+    public SdkHttpResponse sdkHttpResponse() {
         return sdkHttpResponse;
     }
 
@@ -146,19 +146,19 @@ public class AwsErrorDetails {
         String serviceName();
 
         /**
-         * Specifies the {@link HttpResponse} returned on the error response from the service.
+         * Specifies the {@link SdkHttpResponse} returned on the error response from the service.
          *
-         * @param HttpResponse The HTTP response from the service.
+         * @param sdkHttpResponse The HTTP response from the service.
          * @return This object for method chaining.
          */
-        Builder sdkHttpResponse(HttpResponse sdkHttpResponse);
+        Builder sdkHttpResponse(SdkHttpResponse sdkHttpResponse);
 
         /**
          * The HTTP response returned from the service.
          *
-         * @return {@link HttpResponse}.
+         * @return {@link SdkHttpResponse}.
          */
-        HttpResponse sdkHttpResponse();
+        SdkHttpResponse sdkHttpResponse();
 
         /**
          * Specifies raw http response from the service.
@@ -188,7 +188,7 @@ public class AwsErrorDetails {
         private String errorMessage;
         private String errorCode;
         private String serviceName;
-        private HttpResponse sdkHttpResponse;
+        private SdkHttpResponse sdkHttpResponse;
         private SdkBytes rawResponse;
 
         private BuilderImpl() {}
@@ -235,13 +235,13 @@ public class AwsErrorDetails {
         }
 
         @Override
-        public Builder sdkHttpResponse(HttpResponse sdkHttpResponse) {
+        public Builder sdkHttpResponse(SdkHttpResponse sdkHttpResponse) {
             this.sdkHttpResponse = sdkHttpResponse;
             return this;
         }
 
         @Override
-        public HttpResponse sdkHttpResponse() {
+        public SdkHttpResponse sdkHttpResponse() {
             return sdkHttpResponse;
         }
 

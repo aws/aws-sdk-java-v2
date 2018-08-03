@@ -28,9 +28,9 @@ import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Base class for tests that use a WireMock server
@@ -54,7 +54,7 @@ public abstract class WireMockTestBase {
 
     protected HttpResponseHandler<AwsServiceException> stubErrorHandler() throws Exception {
         HttpResponseHandler<AwsServiceException> errorHandler = mock(AwsJsonErrorResponseHandler.class);
-        when(errorHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class))).thenReturn(mockException());
+        when(errorHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenReturn(mockException());
         return errorHandler;
     }
 

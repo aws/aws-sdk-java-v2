@@ -227,7 +227,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private AbortableInputStream toAbortableInputStream(HttpResponse apacheHttpResponse, HttpRequestBase apacheRequest)
             throws IOException {
-        return new AbortableInputStream(apacheHttpResponse.getEntity().getContent(), apacheRequest::abort);
+        return AbortableInputStream.create(apacheHttpResponse.getEntity().getContent(), apacheRequest::abort);
     }
 
     private Map<String, List<String>> transformHeaders(HttpResponse apacheHttpResponse) {

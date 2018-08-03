@@ -67,15 +67,6 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
     }
 
     @Test
-    public void invocationIdIsCapturedInTheLog() throws Exception {
-        WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo(RESOURCE)).willReturn(WireMock.aResponse().withStatus(418)));
-
-        executeRequest();
-
-        assertThat(debugEvents()).anySatisfy(hasMessageContaining("Invocation Id"));
-    }
-
-    @Test
     public void invalidXmlLogsXmlContentToInfo() throws Exception {
         String content = RandomStringUtils.randomAlphanumeric(10);
         WireMock.stubFor(WireMock.get(WireMock.urlPathEqualTo(RESOURCE)).willReturn(WireMock.aResponse().withStatus(418).withBody(content)));

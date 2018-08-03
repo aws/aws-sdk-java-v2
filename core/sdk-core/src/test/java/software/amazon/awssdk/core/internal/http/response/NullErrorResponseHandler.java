@@ -16,14 +16,14 @@
 package software.amazon.awssdk.core.internal.http.response;
 
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class NullErrorResponseHandler implements HttpResponseHandler<SdkServiceException> {
 
     @Override
-    public SdkServiceException handle(HttpResponse response,
+    public SdkServiceException handle(SdkHttpFullResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
         return SdkServiceException.builder().build();
     }

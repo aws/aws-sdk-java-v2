@@ -26,12 +26,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.HttpStatusFamily;
@@ -80,7 +78,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) throws Exception {
         Completable completable = new Completable();
-        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, completable);
+        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(completable);
 
         SdkHttpRequestProvider requestProvider = context.requestProvider() == null
                 ? new SimpleRequestProvider(request, context.executionAttributes())
@@ -120,18 +118,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      * Detects whether the response succeeded or failed and delegates to appropriate response handler.
      */
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
-        private final SdkHttpFullRequest request;
         private final Completable completable;
 
         private volatile SdkHttpResponse response;
         private volatile boolean isSuccess = false;
 
         /**
-         * @param request  Request being made
          * @param completable   Future to notify when response has been handled.
          */
-        private ResponseHandler(SdkHttpFullRequest request, Completable completable) {
-            this.request = request;
+        private ResponseHandler(Completable completable) {
             this.completable = completable;
         }
 
@@ -167,8 +162,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         public Response<OutputT> complete() {
             try {
                 SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
-                final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
-                Response<OutputT> toReturn = handleResponse(httpResponse);
+                Response<OutputT> toReturn = handleResponse(httpFullResponse);
                 completable.complete(toReturn);
                 return toReturn;
             } catch (Exception e) {
@@ -177,7 +171,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             }
         }
 
-        private Response<OutputT> handleResponse(HttpResponse httpResponse) {
+        private Response<OutputT> handleResponse(SdkHttpFullResponse httpResponse) {
             if (isSuccess) {
                 OutputT response = responseHandler.complete();
                 return Response.fromSuccess(response, httpResponse);

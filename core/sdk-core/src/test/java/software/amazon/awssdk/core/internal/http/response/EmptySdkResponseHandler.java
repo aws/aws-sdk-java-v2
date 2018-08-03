@@ -17,15 +17,15 @@ package software.amazon.awssdk.core.internal.http.response;
 
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.http.EmptySdkResponse;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class EmptySdkResponseHandler implements HttpResponseHandler<SdkResponse> {
 
 
     @Override
-    public SdkResponse handle(HttpResponse response,
+    public SdkResponse handle(SdkHttpFullResponse response,
                               ExecutionAttributes executionAttributes)
             throws Exception {
         return EmptySdkResponse.builder().build();

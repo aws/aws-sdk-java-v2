@@ -16,10 +16,9 @@
 package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
 public class JsonErrorCodeParser implements ErrorCodeParser {
@@ -45,8 +44,8 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      *
      * @return Error Code of exceptional response or null if it can't be determined
      */
-    public String parseErrorCode(HttpResponse response, JsonContent jsonContent) {
-        String errorCodeFromHeader = parseErrorCodeFromHeader(response.getHeaders());
+    public String parseErrorCode(SdkHttpFullResponse response, JsonContent jsonContent) {
+        String errorCodeFromHeader = parseErrorCodeFromHeader(response);
         if (errorCodeFromHeader != null) {
             return errorCodeFromHeader;
         } else if (jsonContent != null) {
@@ -60,8 +59,8 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * Attempt to parse the error code from the response headers. Returns null if information is not
      * present in the header.
      */
-    private String parseErrorCodeFromHeader(Map<String, String> httpHeaders) {
-        String headerValue = httpHeaders.get(X_AMZN_ERROR_TYPE);
+    private String parseErrorCodeFromHeader(SdkHttpFullResponse response) {
+        String headerValue = response.firstMatchingHeader(X_AMZN_ERROR_TYPE).orElse(null);
         if (headerValue != null) {
             int separator = headerValue.indexOf(':');
             if (separator != -1) {

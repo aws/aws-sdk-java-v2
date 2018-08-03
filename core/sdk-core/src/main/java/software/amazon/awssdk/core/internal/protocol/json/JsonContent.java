@@ -19,11 +19,12 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -52,18 +53,19 @@ public class JsonContent {
      * Static factory method to create a JsonContent object from the contents of the HttpResponse
      * provided
      */
-    public static JsonContent createJsonContent(HttpResponse httpResponse,
+    public static JsonContent createJsonContent(SdkHttpFullResponse httpResponse,
                                                 JsonFactory jsonFactory) {
-        byte[] rawJsonContent = null;
-        try {
-            if (httpResponse.getContent() != null) {
-                rawJsonContent = IoUtils.toByteArray(httpResponse.getContent());
+
+        byte[] rawJsonContent = httpResponse.content().map(c -> {
+            try {
+                return IoUtils.toByteArray(c);
+            } catch (IOException e) {
+                LOG.debug("Unable to read HTTP response content", e);
             }
-        } catch (Exception e) {
-            LOG.debug("Unable to read HTTP response content", e);
-        }
+            return null;
+        }).orElse(null);
         return new JsonContent(rawJsonContent, new ObjectMapper(jsonFactory)
-                .configure(JsonParser.Feature.ALLOW_COMMENTS, true));
+            .configure(JsonParser.Feature.ALLOW_COMMENTS, true));
     }
 
     private static JsonNode parseJsonContent(byte[] rawJsonContent, ObjectMapper mapper) {
