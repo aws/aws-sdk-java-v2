@@ -58,9 +58,6 @@ public class SequentialSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onComplete() {
-        // TODO Update spotbugs version when new version is released and remove this filter the spotbugs-suppressions.xml file
-        // SpotBugs incorrectly reports NP_NONNULL_PARAM_VIOLATION when passing null. The fix is not released yet
-        // https://github.com/spotbugs/spotbugs/issues/484
         future.complete(null);
     }
 }

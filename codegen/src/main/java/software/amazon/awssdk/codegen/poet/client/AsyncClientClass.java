@@ -88,7 +88,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
         if (model.hasPaginators()) {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
-
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();

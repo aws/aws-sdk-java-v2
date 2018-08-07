@@ -27,8 +27,6 @@
     <suppress checks=".*"
               files=".(flow)[\\/].+\.java$"/>
 
-
-
     <!-- ignore missing annotation checks under test/codegen directory -->
     <suppress checks="MissingSdkAnnotationCheck"
               files=".(codegen|test)[\\/].+\.java$"/>
@@ -41,12 +39,9 @@
     <suppress checks=".*"
               files=".*BetterFixedChannelPool\.java$"/>
 
+    <!-- TODO want to contribute this back to Netty -->
     <suppress checks=".*"
               files=".*[\\/]io[\\/]netty[\\/]handler[\\/]codec[\\/]http2[\\/].*\.java$"/>
-
-    <!-- Kinesis has some generated code in source for H2 which fails checkstyle -->
-    <suppress checks=".*"
-              files=".*[\\/]software/amazon/awssdk/services/kinesis[\\/].+\.java$"/>
 
     <!-- Assumes getter/setter match JSON property -->
     <suppress checks="AbbreviationAsWordInName"
