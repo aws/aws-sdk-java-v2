@@ -68,4 +68,8 @@ public final class NettyConfiguration {
     public int writeTimeoutMillis() {
         return saturatedCast(configuration.get(SdkHttpConfigurationOption.WRITE_TIMEOUT).toMillis());
     }
+
+    public boolean disableSocketLinger() {
+        return configuration.containsKey(SdkHttpConfigurationOption.DISABLE_SOCKET_LINGER);
+    }
 }
