@@ -45,6 +45,7 @@ import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.KinesisException;
 import software.amazon.awssdk.services.kinesis.model.Record;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
@@ -74,6 +75,7 @@ public class SubscribeToShardUnmarshallingTest {
     public void setup() {
         this.client = KinesisAsyncClient.builder()
                                         .credentialsProvider(() -> CREDENTIALS)
+                                        .region(Region.US_EAST_1)
                                         .httpClient(sdkHttpClient)
                                         .build();
     }
