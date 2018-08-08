@@ -103,6 +103,8 @@ public class Metadata {
 
     private String baseResponseName;
 
+    private boolean supportsH2;
+
     public String getApiVersion() {
         return apiVersion;
     }
@@ -716,5 +718,13 @@ public class Metadata {
 
     private String joinPackageNames(String lhs, String rhs) {
         return StringUtils.isBlank(rhs) ? lhs : lhs + '.' + rhs;
+    }
+
+    public boolean supportsH2() {
+        return supportsH2;
+    }
+
+    public void withSupportsH2(boolean supportsH2) {
+        this.supportsH2 = supportsH2;
     }
 }

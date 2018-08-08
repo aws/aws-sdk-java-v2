@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
+import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
@@ -171,7 +173,63 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
             Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().applyMutation(aPostOperationWithOutputRequest)
-                                                                       .build());
+                .build());
+    }
+
+    /**
+     * Invokes the EventStreamOperation operation asynchronously.
+     *
+     * @param eventStreamOperationRequest
+     * @return A Java Future containing the result of the EventStreamOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.EventStreamOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
+            EventStreamOperationResponseHandler asyncResponseHandler) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the EventStreamOperation operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link EventStreamOperationRequest.Builder} avoiding the
+     * need to create one manually via {@link EventStreamOperationRequest#builder()}
+     * </p>
+     *
+     * @param eventStreamOperationRequest
+     *        A {@link Consumer} that will call methods on {@link EventStreamOperationRequest.Builder} to create a
+     *        request.
+     * @return A Java Future containing the result of the EventStreamOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.EventStreamOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<Void> eventStreamOperation(
+            Consumer<EventStreamOperationRequest.Builder> eventStreamOperationRequest,
+            EventStreamOperationResponseHandler asyncResponseHandler) {
+        return eventStreamOperation(EventStreamOperationRequest.builder().applyMutation(eventStreamOperationRequest).build(),
+                asyncResponseHandler);
     }
 
     /**
@@ -235,7 +293,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
             Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder()
-                                                                         .applyMutation(getWithoutRequiredMembersRequest).build());
+                .applyMutation(getWithoutRequiredMembersRequest).build());
     }
 
     /**
@@ -318,7 +376,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                     .applyMutation(paginatedOperationWithResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -565,7 +623,7 @@ public interface JsonAsyncClient extends SdkClient {
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                              .applyMutation(paginatedOperationWithResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -622,7 +680,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                           .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -775,7 +833,7 @@ public interface JsonAsyncClient extends SdkClient {
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                                    .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+                .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -840,7 +898,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestBody requestBody) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
-                                                                     .build(), requestBody);
+                .build(), requestBody);
     }
 
     /**
@@ -905,7 +963,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path sourcePath) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
-                                                                     .build(), sourcePath);
+                .build(), sourcePath);
     }
 
     /**
@@ -972,7 +1030,7 @@ public interface JsonAsyncClient extends SdkClient {
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
-                                                                       .build(), asyncResponseTransformer);
+                .build(), asyncResponseTransformer);
     }
 
     /**
@@ -1035,6 +1093,6 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
-                                                                       .build(), destinationPath);
+                .build(), destinationPath);
     }
 }

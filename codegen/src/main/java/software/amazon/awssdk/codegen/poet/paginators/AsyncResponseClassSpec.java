@@ -37,11 +37,11 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 
 /**
  * Java poet {@link ClassSpec} to generate the response class for async paginated operations.
@@ -51,7 +51,6 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
     private static final String SUBSCRIBER = "subscriber";
     private static final String SUBSCRIBE_METHOD = "subscribe";
     private static final String LAST_PAGE_FIELD = "isLastPage";
-    private static final String LAST_PAGE_METHOD = "withLastPage";
 
     public AsyncResponseClassSpec(IntermediateModel model, String c2jOperationName, PaginatorDefinition paginatorDefinition) {
         super(model, c2jOperationName, paginatorDefinition);

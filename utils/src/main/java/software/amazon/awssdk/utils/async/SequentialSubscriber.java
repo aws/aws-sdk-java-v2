@@ -13,27 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.pagination.async;
+package software.amazon.awssdk.utils.async;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A simple implementation of {@link Subscriber} that requests data one at a time.
  *
  * @param <T> Type of data requested
  */
-@SdkProtectedApi
+@SdkInternalApi
 public class SequentialSubscriber<T> implements Subscriber<T> {
 
     private final Consumer<T> consumer;
     private final CompletableFuture<?> future;
     private Subscription subscription;
 
-    public SequentialSubscriber(Consumer<T> consumer, CompletableFuture<Void> future) {
+    public SequentialSubscriber(Consumer<T> consumer,
+                                CompletableFuture<Void> future) {
         this.consumer = consumer;
         this.future = future;
     }
@@ -57,9 +58,6 @@ public class SequentialSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onComplete() {
-        // TODO Update spotbugs version when new version is released and remove this filter the spotbugs-suppressions.xml file
-        // SpotBugs incorrectly reports NP_NONNULL_PARAM_VIOLATION when passing null. The fix is not released yet
-        // https://github.com/spotbugs/spotbugs/issues/484
         future.complete(null);
     }
 }

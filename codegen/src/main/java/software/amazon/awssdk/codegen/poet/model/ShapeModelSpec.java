@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
 /**
@@ -47,6 +48,8 @@ class ShapeModelSpec {
 
     public List<FieldSpec> fields(Modifier... modifiers) {
         return shapeModel.getNonStreamingMembers().stream()
+                         // Exceptions can be members of event stream shapes, need to filter those out of the models
+                         .filter(m -> m.getShape() == null || m.getShape().getShapeType() != ShapeType.Exception)
                          .map(m -> typeProvider.asField(m, modifiers))
                          .collect(Collectors.toList());
     }

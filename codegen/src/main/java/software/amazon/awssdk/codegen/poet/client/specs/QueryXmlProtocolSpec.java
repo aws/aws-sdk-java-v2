@@ -87,7 +87,8 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock responseHandler(OperationModel opModel) {
+    public CodeBlock responseHandler(IntermediateModel model,
+                                     OperationModel opModel) {
         ClassName unmarshaller = poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
         ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
@@ -159,14 +160,20 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
                                        asyncRequestBody +
-                                       ".withInput($L) $L);",
+                                       ".withInput($L) $L)$L;",
                                        ClientExecutionParams.class,
                                        requestType,
                                        pojoResponseType,
                                        marshaller,
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "",
+                                       // If it's a streaming operation we also need to notify the handler on exception
+                                       opModel.hasStreamingOutput() ? ".whenComplete((r, e) -> {\n"
+                                                                      + "    if (e != null) {\n"
+                                                                      + "        asyncResponseTransformer.exceptionOccurred(e);\n"
+                                                                      + "    }\n"
+                                                                      + "})" : "")
                         .build();
     }
 

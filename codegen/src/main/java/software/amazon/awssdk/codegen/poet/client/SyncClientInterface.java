@@ -122,6 +122,8 @@ public final class SyncClientInterface implements ClassSpec {
 
     private Iterable<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
+                    .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpec)
                     .flatMap(List::stream)
                     .collect(toList());

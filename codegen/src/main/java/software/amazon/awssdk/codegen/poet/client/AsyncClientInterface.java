@@ -40,6 +40,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -277,9 +278,12 @@ public class AsyncClientInterface implements ClassSpec {
         }
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
-            final ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
+            ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
+                .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
             builder.addParameter(asyncResponseHandlerType, "asyncResponseTransformer");
+        } else if (opModel.hasEventStreamOutput()) {
+            ClassName responseHandlerClass = EventStreamUtils.create(poetExtensions, opModel).responseHandlerType();
+            builder.addParameter(responseHandlerClass, "asyncResponseHandler");
         }
         return operationBody(builder, opModel).build();
     }
@@ -368,6 +372,9 @@ public class AsyncClientInterface implements ClassSpec {
     private TypeName getAsyncReturnType(OperationModel opModel, ClassName responsePojoType) {
         if (opModel.hasStreamingOutput()) {
             return completableFutureType(STREAMING_TYPE_VARIABLE);
+        } else if (opModel.hasEventStreamOutput()) {
+            // Event streaming doesn't support transforming into a result type so it just returns void.
+            return completableFutureType(ClassName.get(Void.class));
         } else {
             return completableFutureType(responsePojoType);
         }

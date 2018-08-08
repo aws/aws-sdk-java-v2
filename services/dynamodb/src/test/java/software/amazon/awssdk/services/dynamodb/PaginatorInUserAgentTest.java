@@ -83,7 +83,7 @@ public class PaginatorInUserAgentTest {
                                     .withStatus(500)));
         try {
             QueryPublisher queryPublisher = dynamoDbAsyncClient.queryPaginator(b -> b.tableName("test"));
-            queryPublisher.items().forEach(a -> a.get("")).get();
+            queryPublisher.items().subscribe(a -> a.get("")).get();
         } catch (Exception e) {
             //expected
         }

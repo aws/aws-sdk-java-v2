@@ -67,10 +67,8 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, 
      *
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
-    @Override
     public <T> JsonResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
-                                                                                Unmarshaller<T, JsonUnmarshallerContext>
-                                                                                    responseUnmarshaller) {
+                                                            Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return JSON_FACTORY.createResponseHandler(operationMetadata, responseUnmarshaller);
     }
 

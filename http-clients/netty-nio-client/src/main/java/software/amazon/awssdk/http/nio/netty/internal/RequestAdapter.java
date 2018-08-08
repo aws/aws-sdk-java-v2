@@ -29,9 +29,9 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 public final class RequestAdapter {
 
     public HttpRequest adapt(SdkHttpRequest sdkRequest) {
-        String uri = sdkRequest.getUri().toString();
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
         HttpHeaders headers = new DefaultHttpHeaders();
+        String uri = sdkRequest.getUri().toString();
         DefaultHttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, uri, headers);
         sdkRequest.headers().forEach(request.headers()::add);
         return request;

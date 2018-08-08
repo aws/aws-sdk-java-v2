@@ -493,4 +493,34 @@ public class ValidateTest  {
         assertEquals("foo", Validate.paramNotNull("foo", "someField"));
     }
 
+    @Test
+    public void getOrDefault_ParamNotNull_ReturnsParam() {
+        assertEquals("foo", Validate.getOrDefault("foo", () -> "bar"));
+    }
+
+    @Test
+    public void getOrDefault_ParamNull_ReturnsDefaultValue() {
+        assertEquals("bar", Validate.getOrDefault(null, () -> "bar"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getOrDefault_DefaultValueNull_ThrowsException() {
+        Validate.getOrDefault("bar", null);
+    }
+
+    @Test
+    public void mutuallyExclusive_AllNull_DoesNotThrow() {
+        Validate.mutuallyExclusive("error", null, null, null);
+    }
+
+    @Test
+    public void mutuallyExclusive_OnlyOneProvided_DoesNotThrow() {
+        Validate.mutuallyExclusive("error", null, "foo", null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void mutuallyExclusive_MultipleProvided_DoesNotThrow() {
+        Validate.mutuallyExclusive("error", null, "foo", "bar");
+    }
+
 }

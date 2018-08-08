@@ -35,7 +35,8 @@ public class AwsGeneratorTasks implements Iterable<GeneratorTask> {
     private Iterable<GeneratorTask> createAwsTasks(GeneratorTaskParams params) {
         // TODO Move AsyncClientGeneratorTasks to common generic tasks (mostly CommonGeneratorTasks class)
         return new CompositeIterable<>(new AsyncClientGeneratorTasks(params),
-                                       new PaginatorsGeneratorTasks(params));
+                                       new PaginatorsGeneratorTasks(params),
+                                       new EventStreamGeneratorTasks(params));
     }
 
     @Override

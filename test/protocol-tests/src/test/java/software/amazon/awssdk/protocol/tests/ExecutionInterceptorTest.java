@@ -45,7 +45,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -55,6 +54,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -543,7 +543,7 @@ public class ExecutionInterceptorTest {
         }
 
         @Override
-        public void onStream(Publisher<ByteBuffer> publisher) {
+        public void onStream(SdkPublisher<ByteBuffer> publisher) {
             publisher.subscribe(new Subscriber<ByteBuffer>() {
                 private Subscription s;
 
