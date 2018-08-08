@@ -1624,7 +1624,7 @@
       "members":{
         "graphqlApi":{
           "shape":"GraphqlApi",
-          "documentation":"<p>The udpated <code>GraphqlApi</code> object.</p>"
+          "documentation":"<p>The updated <code>GraphqlApi</code> object.</p>"
         }
       }
     },

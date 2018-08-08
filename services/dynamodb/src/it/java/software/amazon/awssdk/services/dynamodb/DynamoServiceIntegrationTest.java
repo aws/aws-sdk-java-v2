@@ -148,7 +148,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
     @Test
     public void testErrorHandling() throws Exception {
 
-        DeleteTableRequest request = DeleteTableRequest.builder().tableName("non-existant-table").build();
+        DeleteTableRequest request = DeleteTableRequest.builder().tableName("non-existent-table").build();
         try {
             dynamo.deleteTable(request);
             fail("Expected an exception to be thrown");

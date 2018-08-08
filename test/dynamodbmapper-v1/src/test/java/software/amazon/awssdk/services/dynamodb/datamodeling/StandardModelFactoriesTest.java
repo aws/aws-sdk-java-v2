@@ -1616,7 +1616,7 @@ public class StandardModelFactoriesTest {
     }
 
     /**
-     * Pojo field assersions.
+     * Pojo field assertions.
      */
     private static enum PojoAsserts {
         hashKey(KeyType.HASH, null),

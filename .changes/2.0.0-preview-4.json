@@ -35,7 +35,7 @@
         {
             "category": "AWS SDK for Java v2",
             "type": "bugfix",
-            "description": "Many improvments and fixes to the Netty NIO based transport."
+            "description": "Many improvements and fixes to the Netty NIO based transport."
         },
         {
             "category": "AWS SDK for Java v2",

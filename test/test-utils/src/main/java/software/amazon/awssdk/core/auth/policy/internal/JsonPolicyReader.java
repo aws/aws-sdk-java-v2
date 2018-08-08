@@ -37,7 +37,7 @@ public class JsonPolicyReader {
 
     private static final String PRINCIPAL_SCHEMA_SERVICE = "Service";
 
-    private static final String PRINICIPAL_SCHEMA_FEDERATED = "Federated";
+    private static final String PRINCIPAL_SCHEMA_FEDERATED = "Federated";
 
     /**
      * Converts the specified JSON string to an AWS policy object.
@@ -247,12 +247,12 @@ public class JsonPolicyReader {
             return new Principal(principalNode.asText());
         } else if (schema.equalsIgnoreCase(PRINCIPAL_SCHEMA_SERVICE)) {
             return new Principal(schema, principalNode.asText());
-        } else if (schema.equalsIgnoreCase(PRINICIPAL_SCHEMA_FEDERATED)) {
+        } else if (schema.equalsIgnoreCase(PRINCIPAL_SCHEMA_FEDERATED)) {
             if (Principal.WebIdentityProvider.fromString(principalNode.asText()) != null) {
                 return new Principal(
                         Principal.WebIdentityProvider.fromString(principalNode.asText()));
             } else {
-                return new Principal(PRINICIPAL_SCHEMA_FEDERATED, principalNode.asText());
+                return new Principal(PRINCIPAL_SCHEMA_FEDERATED, principalNode.asText());
             }
         }
         throw new IllegalArgumentException("Schema " + schema + " is not a valid value for the principal.");

@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 @SdkInternalApi
 public final class SdkCborGenerator extends SdkJsonGenerator {
 
-    private static final int CBOR_TAG_TIMESTAP = 1;
+    private static final int CBOR_TAG_TIMESTAMP = 1;
 
     public SdkCborGenerator(JsonFactory factory, String contentType) {
         super(factory, contentType);
@@ -47,7 +47,7 @@ public final class SdkCborGenerator extends SdkJsonGenerator {
 
         CBORGenerator generator = (CBORGenerator) getGenerator();
         try {
-            generator.writeTag(CBOR_TAG_TIMESTAP);
+            generator.writeTag(CBOR_TAG_TIMESTAMP);
             generator.writeNumber(instant.toEpochMilli());
         } catch (IOException e) {
             throw new JsonGenerationException(e);
