@@ -18,20 +18,38 @@ package software.amazon.awssdk.services.kinesis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
+import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
+import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
+import software.amazon.awssdk.services.kinesis.model.Record;
 import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.services.kinesis.model.StreamStatus;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
@@ -50,7 +68,7 @@ public class SubscribeToShardIntegrationTest {
                                    .region(Region.EU_CENTRAL_1)
                                    .build();
         client.createStream(r -> r.streamName(STREAM_NAME)
-                                  .shardCount(4)).join();
+                                  .shardCount(1)).join();
         waitForStreamToBeActive();
         String streamARN = client.describeStream(r -> r.streamName(STREAM_NAME)).join()
                                  .streamDescription()
@@ -58,7 +76,8 @@ public class SubscribeToShardIntegrationTest {
         this.shardId = client.listShards(r -> r.streamName(STREAM_NAME))
                              .join()
                              .shards().get(0).shardId();
-        this.consumerArn = client.registerStreamConsumer(r -> r.streamARN(streamARN).consumerName(CONSUMER_NAME)).join()
+        this.consumerArn = client.registerStreamConsumer(r -> r.streamARN(streamARN)
+                                                               .consumerName(CONSUMER_NAME)).join()
                                  .consumer()
                                  .consumerARN();
         waitForConsumerToBeActive();
@@ -71,12 +90,40 @@ public class SubscribeToShardIntegrationTest {
     }
 
     @Test
+    public void subscribeToShard_ReceivesAllData() {
+        List<SdkBytes> producedData = new ArrayList<>();
+        ScheduledExecutorService producer = Executors.newScheduledThreadPool(1);
+        // Delay it a bit to allow us to subscribe first
+        producer.scheduleAtFixedRate(() -> putRecord().ifPresent(producedData::add), 10, 1, TimeUnit.SECONDS);
+
+        List<SdkBytes> receivedData = new ArrayList<>();
+        // Add every event's data to the receivedData list
+        Consumer<SubscribeToShardEvent> eventConsumer = s -> receivedData.addAll(
+            s.records().stream()
+             .map(Record::data)
+             .collect(Collectors.toList()));
+        client.subscribeToShard(r -> r.consumerARN(consumerArn)
+                                      .shardId(shardId)
+                                      .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                                SubscribeToShardResponseHandler.builder()
+                                                               .onEventStream(p -> p.filter(SubscribeToShardEvent.class)
+                                                                                    .subscribe(eventConsumer))
+                                                               .build())
+              .join();
+        producer.shutdown();
+        // Make sure we all the data we received was data we published, we may have published more
+        // if the producer isn't shutdown immediately after we finish subscribing.
+        assertThat(producedData).containsSequence(receivedData);
+
+    }
+
+    @Test
     public void cancelledSubscription_DoesNotCallTerminalMethods() {
         AtomicBoolean terminalCalled = new AtomicBoolean(false);
         try {
             client.subscribeToShard(r -> r.consumerARN(consumerArn)
                                           .shardId(shardId)
-                                          .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
+                                          .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
                                     new SubscribeToShardResponseHandler() {
                                         @Override
                                         public void responseReceived(SubscribeToShardResponse response) {
@@ -151,6 +198,27 @@ public class SubscribeToShardIntegrationTest {
                 return;
             }
         } while (true);
+    }
+
+    /**
+     * Puts a random record to the stream.
+     *
+     * @return Record data that was put.
+     */
+    private Optional<SdkBytes> putRecord() {
+        try {
+            SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(50));
+            client.putRecord(PutRecordRequest.builder()
+                                             .streamName(STREAM_NAME)
+                                             .data(data)
+                                             .partitionKey(UUID.randomUUID().toString())
+                                             .build())
+                  .join();
+            return Optional.of(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
 }

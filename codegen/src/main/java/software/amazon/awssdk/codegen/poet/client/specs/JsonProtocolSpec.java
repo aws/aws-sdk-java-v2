@@ -26,6 +26,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 
@@ -228,38 +229,59 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                               : "";
         CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
-            builder.add("$T<$T, $T> asyncResponseTransformer = new $T<>(\n"
-                        + "asyncResponseHandler, responseHandler, eventResponseHandler, exceptionHandler);\n",
-                        ClassName.get(AsyncResponseTransformer.class),
-                        ClassName.get(SdkResponse.class),
-                        ClassName.get(Void.class),
-                        ClassName.get(EventStreamAsyncResponseTransformer.class));
+            ClassName eventStreamBaseClass = EventStreamUtils.create(poetExtensions, opModel).eventStreamBaseClass();
+            ParameterizedTypeName transformerType = ParameterizedTypeName.get(ClassName.get(EventStreamAsyncResponseTransformer.class),
+
+                                                                              pojoResponseType, eventStreamBaseClass);
+            builder.addStatement("$1T<$2T> future = new $1T<>()",
+                                 ClassName.get(CompletableFuture.class),
+                                 ClassName.get(Void.class));
+            builder.add("$T asyncResponseTransformer = $T.<$T, $T>builder()\n" +
+                        "     .eventStreamResponseTransformer(asyncResponseHandler)\n"
+                        + "   .eventUnmarshaller(eventResponseHandler)\n"
+                        + "   .initialResponseUnmarshaller(responseHandler)\n"
+                        + "   .exceptionUnmarshaller(exceptionHandler)\n"
+                        + "   .future(future)\n"
+                        + "   .executor(executor)\n"
+                        + "   .build();",
+                        transformerType,
+                        ClassName.get(EventStreamAsyncResponseTransformer.class),
+                        pojoResponseType,
+                        eventStreamBaseClass);
         }
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
         String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
-        return builder.add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
-                           ".withMarshaller(new $T($L))\n" +
-                           ".withResponseHandler($L)\n" +
-                           ".withErrorResponseHandler(errorResponseHandler)\n" +
-                           asyncRequestBody +
-                           ".withInput($L)$L)$L;",
-                           ClientExecutionParams.class,
-                           requestType,
-                           opModel.hasEventStreamOutput() ? SdkResponse.class : pojoResponseType,
-                           marshaller,
-                           protocolFactory,
-                           opModel.hasEventStreamOutput() ? "voidResponseHandler" : "responseHandler",
-                           opModel.getInput().getVariableName(),
-                           isStreaming ? ", asyncResponseTransformer" : "",
-                           // If it's a streaming operation we also need to notify the handler on exception.
-                           isStreaming ? String.format(".whenComplete((r, e) -> {%n"
-                                                       + "     if (e != null) {%n"
-                                                       + "         %s.exceptionOccurred(e);%n"
-                                                       + "     }%n"
-                                                       + "})", customerResponseHandler)
-                                       : "")
-                      .build();
+        builder.add("\n\n$L clientHandler.execute(new $T<$T, $T>()\n" +
+                    ".withMarshaller(new $T($L))\n" +
+                    ".withResponseHandler($L)\n" +
+                    ".withErrorResponseHandler(errorResponseHandler)\n" +
+                    asyncRequestBody +
+                    ".withInput($L)$L)$L;",
+                    // If the operation has an event stream output we use a different future so we don't return the one
+                    // from the client.
+                    opModel.hasEventStreamOutput() ? "" : "return",
+                    ClientExecutionParams.class,
+                    requestType,
+                    opModel.hasEventStreamOutput() ? SdkResponse.class : pojoResponseType,
+                    marshaller,
+                    protocolFactory,
+                    opModel.hasEventStreamOutput() ? "voidResponseHandler" : "responseHandler",
+                    opModel.getInput().getVariableName(),
+                    isStreaming ? ", asyncResponseTransformer" : "",
+                    // If it's a streaming operation we also need to notify the handler on exception.
+                    isStreaming ? String.format(".whenComplete((r, e) -> {%n"
+                                                + "     if (e != null) {%n"
+                                                + "         %s.exceptionOccurred(e);%n"
+                                                + "         %s"
+                                                + "     }%n"
+                                                + "})", customerResponseHandler,
+                                                opModel.hasEventStreamOutput() ? "future.completeExceptionally(e);" : "")
+                                : "");
+        if (opModel.hasEventStreamOutput()) {
+            builder.addStatement("return future");
+        }
+        return builder.build();
     }
 
     private ClassName getUnmarshallerType(OperationModel opModel) {
