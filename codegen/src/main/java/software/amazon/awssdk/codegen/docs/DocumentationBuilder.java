@@ -208,7 +208,7 @@ public final class DocumentationBuilder {
     }
 
     /**
-     * Builds the Javadoc string with the current configuraton.
+     * Builds the Javadoc string with the current configuration.
      *
      * @return Formatted Javadoc string.
      */

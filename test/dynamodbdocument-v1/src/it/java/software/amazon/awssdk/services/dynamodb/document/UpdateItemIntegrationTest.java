@@ -266,7 +266,7 @@ public class UpdateItemIntegrationTest {
                             // leading to an intentional failure in the update condition
                             .withString(":zipcode", "98104")
                             );
-            fail("Update Should fail as the zip code mentioned in the conditon expression doesn't match");
+            fail("Update Should fail as the zip code mentioned in the condition expression doesn't match");
         } catch (SdkServiceException e) {
             assertTrue(e.getMessage().contains("conditional request failed"));
         }

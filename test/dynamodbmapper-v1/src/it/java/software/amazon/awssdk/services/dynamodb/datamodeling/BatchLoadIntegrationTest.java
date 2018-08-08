@@ -162,7 +162,7 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         // The request only contains invalid key pairs
         List<KeyPair> keyPairs = new LinkedList<KeyPair>();
         Class<?> clazz = getUniqueNumericObject().getClass();
-        keyPairs.add(new KeyPair().withHashKey("non-existant-key"));
+        keyPairs.add(new KeyPair().withHashKey("non-existent-key"));
         itemsToGet.clear();
         itemsToGet.put(clazz, keyPairs);
         response = mapper.batchLoad(itemsToGet);
@@ -203,7 +203,7 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         DynamoDbMapper mapper = new DynamoDbMapper(mockClient);
         try {
             mapper.batchLoad(objs);
-            fail("Expecting an expection due to exceed of number of retries.");
+            fail("Expecting an exception due to exceed of number of retries.");
         } catch (Exception e) {
             e.printStackTrace();
             long endTime = System.currentTimeMillis();

@@ -2,7 +2,7 @@
 
 Operations on the asynchronous clients return [`CompleteableFuture<T>`][1] where `T` is the response type for the operation. This is somewhat curious in that [`CompleteableFuture`][1] is a concrete implementation rather than an interface. The alternative to returning a [`CompleteableFuture`][1] would be to return a [`CompletionStage`][2], an interface intended to allow chaining of asynchronous operations.
 
-The key advantage of [`CompleteableFuture`][1] is that it implements both the [`CompletionStage`][2] and [`Future`][3] interfaces - giving users of the SDK maximum flexibilty when it comes to handling responses from their asynchronous calls.
+The key advantage of [`CompleteableFuture`][1] is that it implements both the [`CompletionStage`][2] and [`Future`][3] interfaces - giving users of the SDK maximum flexibility when it comes to handling responses from their asynchronous calls.
 
 Currently [`CompleteableFuture`][1] is the only implementation of [`CompletionStage`][2] that ships with the JDK. Whilst it's possible that future implementations will be added  [`CompletionStage`][2] will always be tied to [`CompleteableFuture`][1] via the  [`#toCompletableFuture`][4] method. Additionally, [`CompleteableFuture`][1] is not a `final` class and thus could be extended if there was a requirement to do so.
 

@@ -37,7 +37,7 @@ public @interface DynamoDbScalarAttribute {
     String attributeName() default "";
 
     /**
-     * The scalar attirbute type.
+     * The scalar attribute type.
      * @see software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
      */
     ScalarAttributeType type();

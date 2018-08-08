@@ -502,7 +502,7 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
 
 
     /**
-     * Tests that we can invoke the notificaiton related operations correctly.
+     * Tests that we can invoke the notification related operations correctly.
      */
 
     @Test
