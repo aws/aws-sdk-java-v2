@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.eventstream;
 
 import static java.util.Collections.singletonList;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.ByteArrayInputStream;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -107,6 +109,18 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     private final AtomicReference<Throwable> error = new AtomicReference<>();
 
     /**
+     * The name of the aws service
+     */
+    private final String serviceName;
+
+    /**
+     * Request Id for the streaming request. The value is populated when the initial response is received from the service.
+     * As request id is not sent in event messages (including exceptions), this can be returned by the SDK along with
+     * received exception details.
+     */
+    private String requestId = null;
+
+    /**
      * @param eventStreamResponseTransformer Response transformer provided by customer.
      * @param initialResponseUnmarshaller Unmarshaller for the initial-response event stream message.
      * @param eventUnmarshaller Unmarshaller for the various event types.
@@ -115,12 +129,14 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
         HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller,
         HttpResponseHandler<? extends EventT> eventUnmarshaller,
-        HttpResponseHandler<? extends Throwable> exceptionUnmarshaller) {
+        HttpResponseHandler<? extends Throwable> exceptionUnmarshaller,
+        String serviceName) {
 
         this.eventStreamResponseTransformer = eventStreamResponseTransformer;
         this.initialResponseUnmarshaller = initialResponseUnmarshaller;
         this.eventUnmarshaller = eventUnmarshaller;
         this.exceptionUnmarshaller = exceptionUnmarshaller;
+        this.serviceName = serviceName;
     }
 
     @Override
@@ -128,6 +144,11 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         // We use a void unmarshaller and unmarshall the actual response in the message
         // decoder when we receive the initial-response frame. TODO not clear
         // how we would handle REST protocol which would unmarshall the response from the HTTP headers
+        if (response != null && response.sdkHttpResponse() != null) {
+            this.requestId = response.sdkHttpResponse()
+                                     .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
+                                     .orElse(null);
+        }
     }
 
     @Override
@@ -205,8 +226,17 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                                                             EMPTY_EXECUTION_ATTRIBUTES));
                     }
                 } else if (isError(m) || isException(m)) {
-                    Throwable exception = exceptionUnmarshaller.handle(adaptMessageToResponse(m, true),
-                                                                       EMPTY_EXECUTION_ATTRIBUTES);
+                    SdkHttpFullResponse errorResponse = adaptMessageToResponse(m, true);
+                    if (requestId != null) {
+                        errorResponse = errorResponse.toBuilder()
+                                                     .putHeader(X_AMZN_REQUEST_ID_HEADER, requestId)
+                                                     .build();
+                    }
+
+                    Throwable exception = exceptionUnmarshaller.handle(errorResponse,
+                                                                       new ExecutionAttributes()
+                                                                           .putAttribute(SdkExecutionAttribute.SERVICE_NAME,
+                                                                                         serviceName));
                     runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
                 }
             } catch (Exception e) {

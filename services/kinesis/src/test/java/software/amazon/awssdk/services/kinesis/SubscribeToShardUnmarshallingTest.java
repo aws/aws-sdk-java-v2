@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -48,6 +48,7 @@ import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.KinesisException;
 import software.amazon.awssdk.services.kinesis.model.Record;
+import software.amazon.awssdk.services.kinesis.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
@@ -63,8 +64,8 @@ import software.amazon.eventstream.Message;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SubscribeToShardUnmarshallingTest {
-
     private static final AwsBasicCredentials CREDENTIALS = AwsBasicCredentials.create("akid", "skid");
+    private static final String REQUEST_ID = "a79394c5-59ee-4b36-8127-880aaefa91fc";
 
     @Mock
     private SdkAsyncHttpClient sdkHttpClient;
@@ -81,37 +82,56 @@ public class SubscribeToShardUnmarshallingTest {
     }
 
     @Test
-    public void exceptionWithMessage_UnmarshalledCorrectly() throws InterruptedException {
+    public void exceptionWithMessage_UnmarshalledCorrectly() throws Throwable {
+        String errorCode = "ResourceNotFoundException";
         AbortableInputStream content = new MessageWriter()
             .writeInitialResponse(new byte[0])
-            .writeException("{\"message\": \"foo\"}")
+            .writeException("{\"message\": \"foo\"}", errorCode)
             .toInputStream();
 
         stubResponse(SdkHttpFullResponse.builder()
                                         .statusCode(200)
                                         .content(content)
+                                        .putHeader("x-amzn-requestid", REQUEST_ID)
                                         .build());
 
-        assertThatThrownBy(this::subscribeToShard)
-            .isInstanceOf(KinesisException.class)
-            .hasMessageContaining("foo");
+        try {
+            subscribeToShard();
+            fail("Expected ResourceNotFoundException exception");
+        } catch (ResourceNotFoundException e) {
+            assertThat(e.requestId()).isEqualTo(REQUEST_ID);
+            assertThat(e.statusCode()).isEqualTo(500);
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo(errorCode);
+            assertThat(e.awsErrorDetails().errorMessage()).isEqualTo("foo");
+            assertThat(e.awsErrorDetails().serviceName()).isEqualTo("kinesis");
+        }
     }
 
     @Test
     public void errorWithMessage_UnmarshalledCorrectly() throws Throwable {
+        String errorCode = "InternalError";
+        String message = "error message";
         AbortableInputStream content = new MessageWriter()
             .writeInitialResponse(new byte[0])
-            .writeError("bar")
+            .writeError(errorCode, message)
             .toInputStream();
 
         stubResponse(SdkHttpFullResponse.builder()
                                         .statusCode(200)
                                         .content(content)
+                                        .putHeader("x-amzn-requestid", REQUEST_ID)
                                         .build());
 
-        assertThatThrownBy(this::subscribeToShard)
-            .isInstanceOf(KinesisException.class)
-            .hasMessageContaining("bar");
+        try {
+            subscribeToShard();
+            fail("Expected ResourceNotFoundException exception");
+        } catch (KinesisException e) {
+            assertThat(e.requestId()).isEqualTo(REQUEST_ID);
+            assertThat(e.statusCode()).isEqualTo(500);
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo(errorCode);
+            assertThat(e.awsErrorDetails().errorMessage()).isEqualTo(message);
+            assertThat(e.awsErrorDetails().serviceName()).isEqualTo("kinesis");
+        }
     }
 
     @Test
@@ -204,15 +224,17 @@ public class SubscribeToShardUnmarshallingTest {
             return this;
         }
 
-        public MessageWriter writeException(String payload) {
-            new Message(ImmutableMap.of(":message-type", HeaderValue.fromString("exception")),
+        public MessageWriter writeException(String payload, String modeledExceptionName) {
+            new Message(ImmutableMap.of(":message-type", HeaderValue.fromString("exception"),
+                                        ":exception-type", HeaderValue.fromString(modeledExceptionName)),
                         payload.getBytes(StandardCharsets.UTF_8)).encode(baos);
             return this;
         }
 
-        public MessageWriter writeError(String message) {
+        public MessageWriter writeError(String errorCode, String errorMessage) {
             new Message(ImmutableMap.of(":message-type", HeaderValue.fromString("error"),
-                                        ":error-message", HeaderValue.fromString(message)),
+                                        ":error-code", HeaderValue.fromString(errorCode),
+                                        ":error-message", HeaderValue.fromString(errorMessage)),
                         new byte[0]).encode(baos);
             return this;
         }

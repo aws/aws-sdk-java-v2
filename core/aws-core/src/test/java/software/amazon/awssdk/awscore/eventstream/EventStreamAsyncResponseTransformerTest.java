@@ -57,7 +57,7 @@ public class EventStreamAsyncResponseTransformerTest {
 
         AsyncResponseTransformer<SdkResponse, Void> transformer =
                 new EventStreamAsyncResponseTransformer<>(new SubscribingResponseHandler(), null, null,
-                                                          (response, executionAttributes) -> exception);
+                                                          (response, executionAttributes) -> exception, null);
         transformer.responseReceived(null);
         transformer.onStream(SdkPublisher.adapt(bytePublisher));
 
