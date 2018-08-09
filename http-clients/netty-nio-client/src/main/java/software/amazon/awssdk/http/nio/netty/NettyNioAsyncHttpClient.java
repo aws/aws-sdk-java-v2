@@ -425,6 +425,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             eventLoopGroupBuilder(eventLoopGroupBuilder);
         }
 
+        public Builder setDisableSocketLinger() {
+            standardOptions.put(SdkHttpConfigurationOption.DISABLE_SOCKET_LINGER, Boolean.TRUE);
+            return this;
+        }
+
         @Override
         public Builder protocol(Protocol protocol) {
             standardOptions.put(SdkHttpConfigurationOption.PROTOCOL, protocol);
