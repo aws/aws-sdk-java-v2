@@ -35,6 +35,7 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
+import software.amazon.awssdk.http.nio.netty.internal.SdkSocketOption;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -74,16 +76,19 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final ChannelPoolMap<URI, ChannelPool> pools;
+    private final SdkSocketOption sdkSocketOption;
     private final NettyConfiguration configuration;
     private final long maxStreams;
     private Protocol protocol;
 
-    NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
+    NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap, SdkSocketOption sdkSocketOption) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
         this.maxStreams = 200;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
+        this.sdkSocketOption = sdkSocketOption;
+
     }
 
     private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
@@ -145,8 +150,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         .channelFactory(sdkEventLoopGroup.channelFactory())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
                         // TODO run some performance tests with and without this.
-                        .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
+
+                for (Map.Entry<ChannelOption<?>, Object> channelOptionObjectEntry : sdkSocketOption.getSocketOptions()) {
+                    bootstrap.option((ChannelOption<Object>)channelOptionObjectEntry.getKey(), channelOptionObjectEntry.getValue());
+                }
+
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
                 ChannelPipelineInitializer handler =
                     new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef);
@@ -290,6 +299,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+        private SdkSocketOption sdkSocketOption;
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
 
@@ -425,11 +435,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             protocol(protocol);
         }
 
+        public Builder setSocketOption(SdkSocketOption socketOption) {
+            this.sdkSocketOption = sdkSocketOption;
+            return  this;
+        }
+
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
-                                                                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+                                                                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS), sdkSocketOption);
         }
     }
 }

@@ -99,6 +99,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .build();
 
+
     private final String name;
 
     private SdkHttpConfigurationOption(String name, Class<T> clzz) {
