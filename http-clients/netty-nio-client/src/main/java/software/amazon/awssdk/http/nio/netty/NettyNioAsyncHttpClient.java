@@ -299,7 +299,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private SdkSocketOptions sdkSocketOptions;
+        private SdkSocketOptions sdkSocketOptions = new SdkSocketOptions();
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
 
@@ -444,7 +444,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
-                                                                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS), sdkSocketOptions);
+                                                                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
+                                               sdkSocketOptions);
         }
     }
 }
