@@ -77,9 +77,6 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
             new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
 
-    public static final AttributeMap.Key<Boolean> DISABLE_SOCKET_LINGER =
-            new SdkHttpConfigurationOption<>("SO_LINGER", Boolean.class);
-
     private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
@@ -101,7 +98,6 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .build();
-
 
     private final String name;
 

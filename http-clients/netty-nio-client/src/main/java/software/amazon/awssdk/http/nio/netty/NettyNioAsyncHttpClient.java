@@ -59,7 +59,7 @@ import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
-import software.amazon.awssdk.http.nio.netty.internal.SdkSocketOption;
+import software.amazon.awssdk.http.nio.netty.internal.SdkSocketOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -76,18 +76,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final ChannelPoolMap<URI, ChannelPool> pools;
-    private final SdkSocketOption sdkSocketOption;
+    private final SdkSocketOptions sdkSocketOptions;
     private final NettyConfiguration configuration;
     private final long maxStreams;
     private Protocol protocol;
 
-    NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap, SdkSocketOption sdkSocketOption) {
+    NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap, SdkSocketOptions sdkSocketOptions) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
         this.maxStreams = 200;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
-        this.sdkSocketOption = sdkSocketOption;
+        this.sdkSocketOptions = sdkSocketOptions;
 
     }
 
@@ -152,8 +152,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         // TODO run some performance tests with and without this.
                         .remoteAddress(key.getHost(), key.getPort());
 
-                for (Map.Entry<ChannelOption<?>, Object> channelOptionObjectEntry : sdkSocketOption.getSocketOptions()) {
-                    bootstrap.option((ChannelOption<Object>)channelOptionObjectEntry.getKey(), channelOptionObjectEntry.getValue());
+                for (Map.Entry<ChannelOption, Object> entry : sdkSocketOptions.getSocketOptions()) {
+                    bootstrap.option(entry.getKey(), entry.getValue());
                 }
 
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
@@ -299,7 +299,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private SdkSocketOption sdkSocketOption;
+        private SdkSocketOptions sdkSocketOptions;
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
 
@@ -425,11 +425,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             eventLoopGroupBuilder(eventLoopGroupBuilder);
         }
 
-        public Builder setDisableSocketLinger() {
-            standardOptions.put(SdkHttpConfigurationOption.DISABLE_SOCKET_LINGER, Boolean.TRUE);
-            return this;
-        }
-
         @Override
         public Builder protocol(Protocol protocol) {
             standardOptions.put(SdkHttpConfigurationOption.PROTOCOL, protocol);
@@ -440,16 +435,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             protocol(protocol);
         }
 
-        public Builder setSocketOption(SdkSocketOption socketOption) {
-            this.sdkSocketOption = sdkSocketOption;
-            return  this;
+        public Builder addSocketOption(ChannelOption channelOption, Object value) {
+            this.sdkSocketOptions.addOption(channelOption, value);
+            return this;
         }
 
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
-                                                                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS), sdkSocketOption);
+                                                                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS), sdkSocketOptions);
         }
     }
 }
