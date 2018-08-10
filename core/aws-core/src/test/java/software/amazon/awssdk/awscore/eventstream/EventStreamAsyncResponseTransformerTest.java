@@ -78,9 +78,9 @@ public class EventStreamAsyncResponseTransformerTest {
         };
         AsyncResponseTransformer<SdkResponse, Void> transformer =
             EventStreamAsyncResponseTransformer.builder()
-                                               .eventStreamResponseTransformer(
+                                               .eventStreamResponseHandler(
                                                    onEventStream(p -> p.subscribe(requestOneSubscriber)))
-                                               .eventUnmarshaller((r, e) -> new Object())
+                                               .eventResponseHandler((r, e) -> new Object())
                                                .executor(Executors.newSingleThreadExecutor())
                                                .future(new CompletableFuture<>())
                                                .build();
@@ -118,8 +118,8 @@ public class EventStreamAsyncResponseTransformerTest {
 
         AsyncResponseTransformer<SdkResponse, Void> transformer =
             EventStreamAsyncResponseTransformer.builder()
-                                               .eventStreamResponseTransformer(new SubscribingResponseHandler())
-                                               .exceptionUnmarshaller((response, executionAttributes) -> exception)
+                                               .eventStreamResponseHandler(new SubscribingResponseHandler())
+                                               .exceptionResponseHandler((response, executionAttributes) -> exception)
                                                .executor(Executors.newSingleThreadExecutor())
                                                .future(new CompletableFuture<>())
                                                .build();

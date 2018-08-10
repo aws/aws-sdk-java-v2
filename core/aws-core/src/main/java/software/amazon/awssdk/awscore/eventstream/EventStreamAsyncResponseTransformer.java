@@ -66,22 +66,22 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     /**
      * {@link EventStreamResponseHandler} provided by customer.
      */
-    private final EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer;
+    private final EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler;
 
     /**
      * Unmarshalls the initial response.
      */
-    private final HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller;
+    private final HttpResponseHandler<? extends ResponseT> initialResponseHandler;
 
     /**
      * Unmarshalls the event POJO.
      */
-    private final HttpResponseHandler<? extends EventT> eventUnmarshaller;
+    private final HttpResponseHandler<? extends EventT> eventResponseHandler;
 
     /**
      * Unmarshalls exception events.
      */
-    private final HttpResponseHandler<? extends Throwable> exceptionUnmarshaller;
+    private final HttpResponseHandler<? extends Throwable> exceptionResponseHandler;
 
     /**
      * Remaining demand (i.e number of unmarshalled events) we need to provide to the customers subscriber.
@@ -145,26 +145,26 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     @Deprecated
     @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
     public EventStreamAsyncResponseTransformer(
-        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
-        HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller,
-        HttpResponseHandler<? extends EventT> eventUnmarshaller,
-        HttpResponseHandler<? extends Throwable> exceptionUnmarshaller) {
-        this(eventStreamResponseTransformer, initialResponseUnmarshaller, eventUnmarshaller, exceptionUnmarshaller,
+        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler,
+        HttpResponseHandler<? extends ResponseT> initialResponseHandler,
+        HttpResponseHandler<? extends EventT> eventResponseHandler,
+        HttpResponseHandler<? extends Throwable> exceptionResponseHandler) {
+        this(eventStreamResponseHandler, initialResponseHandler, eventResponseHandler, exceptionResponseHandler,
              Executors.newSingleThreadScheduledExecutor(), new CompletableFuture<>());
     }
 
     private EventStreamAsyncResponseTransformer(
-        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
-        HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller,
-        HttpResponseHandler<? extends EventT> eventUnmarshaller,
-        HttpResponseHandler<? extends Throwable> exceptionUnmarshaller,
+        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler,
+        HttpResponseHandler<? extends ResponseT> initialResponseHandler,
+        HttpResponseHandler<? extends EventT> eventResponseHandler,
+        HttpResponseHandler<? extends Throwable> exceptionResponseHandler,
         Executor executor,
         CompletableFuture<Void> future) {
 
-        this.eventStreamResponseTransformer = eventStreamResponseTransformer;
-        this.initialResponseUnmarshaller = initialResponseUnmarshaller;
-        this.eventUnmarshaller = eventUnmarshaller;
-        this.exceptionUnmarshaller = exceptionUnmarshaller;
+        this.eventStreamResponseHandler = eventStreamResponseHandler;
+        this.initialResponseHandler = initialResponseHandler;
+        this.eventResponseHandler = eventResponseHandler;
+        this.exceptionResponseHandler = exceptionResponseHandler;
         this.executor = executor;
         this.future = future;
     }
@@ -187,7 +187,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         dataSubscriptionFuture.thenAccept(dataSubscription -> {
             SdkPublisher<EventT> eventPublisher = new EventPublisher(dataSubscription);
             try {
-                eventStreamResponseTransformer.onEventStream(eventPublisher);
+                eventStreamResponseHandler.onEventStream(eventPublisher);
             } catch (Throwable t) {
                 exceptionOccurred(t);
                 dataSubscription.cancel();
@@ -204,9 +204,9 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                 // If we have a Subscriber at this point notify it as well
                 if (subscriberRef.get() != null) {
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
-                                   () -> subscriberRef.get().onError(throwable));
+                        () -> subscriberRef.get().onError(throwable));
                 }
-                eventStreamResponseTransformer.exceptionOccurred(throwable);
+                eventStreamResponseHandler.exceptionOccurred(throwable);
             }
         }
     }
@@ -232,8 +232,8 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         synchronized (this) {
             isDone = true;
             runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
-                           () -> subscriberRef.get().onComplete());
-            eventStreamResponseTransformer.complete();
+                () -> subscriberRef.get().onComplete());
+            eventStreamResponseHandler.complete();
             future.complete(null);
         }
     }
@@ -248,16 +248,16 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             // TODO: Can we move all of the dispatching to a single unmarshaller?
             if (isEvent(m)) {
                 if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
-                    eventStreamResponseTransformer.responseReceived(
-                        initialResponseUnmarshaller.handle(adaptMessageToResponse(m),
-                                                           EMPTY_EXECUTION_ATTRIBUTES));
+                    eventStreamResponseHandler.responseReceived(
+                        initialResponseHandler.handle(adaptMessageToResponse(m),
+                                                      EMPTY_EXECUTION_ATTRIBUTES));
                 } else {
                     // Add to queue to be delivered later by the executor
-                    eventsToDeliver.add(eventUnmarshaller.handle(adaptMessageToResponse(m),
-                                                                 EMPTY_EXECUTION_ATTRIBUTES));
+                    eventsToDeliver.add(eventResponseHandler.handle(adaptMessageToResponse(m),
+                                                                    EMPTY_EXECUTION_ATTRIBUTES));
                 }
             } else if (isError(m) || isException(m)) {
-                Throwable exception = exceptionUnmarshaller.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES);
+                Throwable exception = exceptionResponseHandler.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES);
                 runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
             }
         } catch (Exception e) {
@@ -477,10 +477,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     public static final class Builder<ResponseT, EventT> {
 
-        private EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer;
-        private HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller;
-        private HttpResponseHandler<? extends EventT> eventUnmarshaller;
-        private HttpResponseHandler<? extends Throwable> exceptionUnmarshaller;
+        private EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler;
+        private HttpResponseHandler<? extends ResponseT> initialResponseHandler;
+        private HttpResponseHandler<? extends EventT> eventResponseHandler;
+        private HttpResponseHandler<? extends Throwable> exceptionResponseHandler;
         private Executor executor;
         private CompletableFuture<Void> future;
 
@@ -488,38 +488,41 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         }
 
         /**
-         * @param eventStreamResponseTransformer Response transformer provided by customer.
+         * @param eventStreamResponseHandler Response handler provided by customer.
          * @return This object for method chaining.
          */
-        public Builder<ResponseT, EventT> eventStreamResponseTransformer(EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer) {
-            this.eventStreamResponseTransformer = eventStreamResponseTransformer;
+        public Builder<ResponseT, EventT> eventStreamResponseHandler(
+            EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler) {
+            this.eventStreamResponseHandler = eventStreamResponseHandler;
             return this;
         }
 
         /**
-         * @param initialResponseUnmarshaller Unmarshaller for the initial-response event stream message.
+         * @param initialResponseHandler Response handler for the initial-response event stream message.
          * @return This object for method chaining.
          */
-        public Builder<ResponseT, EventT> initialResponseUnmarshaller(HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller) {
-            this.initialResponseUnmarshaller = initialResponseUnmarshaller;
+        public Builder<ResponseT, EventT> initialResponseHandler(
+            HttpResponseHandler<? extends ResponseT> initialResponseHandler) {
+            this.initialResponseHandler = initialResponseHandler;
             return this;
         }
 
         /**
-         * @param eventUnmarshaller Unmarshaller for the various event types.
+         * @param eventResponseHandler Response handler for the various event types.
          * @return This object for method chaining.
          */
-        public Builder<ResponseT, EventT> eventUnmarshaller(HttpResponseHandler<? extends EventT> eventUnmarshaller) {
-            this.eventUnmarshaller = eventUnmarshaller;
+        public Builder<ResponseT, EventT> eventResponseHandler(HttpResponseHandler<? extends EventT> eventResponseHandler) {
+            this.eventResponseHandler = eventResponseHandler;
             return this;
         }
 
         /**
-         * @param exceptionUnmarshaller Unmarshaller for error and exception messages.
+         * @param exceptionResponseHandler Response handler for error and exception messages.
          * @return This object for method chaining.
          */
-        public Builder<ResponseT, EventT> exceptionUnmarshaller(HttpResponseHandler<? extends Throwable> exceptionUnmarshaller) {
-            this.exceptionUnmarshaller = exceptionUnmarshaller;
+        public Builder<ResponseT, EventT> exceptionResponseHandler(
+            HttpResponseHandler<? extends Throwable> exceptionResponseHandler) {
+            this.exceptionResponseHandler = exceptionResponseHandler;
             return this;
         }
 
@@ -542,10 +545,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         }
 
         public EventStreamAsyncResponseTransformer<ResponseT, EventT> build() {
-            return new EventStreamAsyncResponseTransformer<>(eventStreamResponseTransformer,
-                                                             initialResponseUnmarshaller,
-                                                             eventUnmarshaller,
-                                                             exceptionUnmarshaller,
+            return new EventStreamAsyncResponseTransformer<>(eventStreamResponseHandler,
+                                                             initialResponseHandler,
+                                                             eventResponseHandler,
+                                                             exceptionResponseHandler,
                                                              executor,
                                                              future);
         }
