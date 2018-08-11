@@ -33,6 +33,11 @@ public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
      */
     private static final String X_AMZN_ERROR_MESSAGE = "x-amzn-error-message";
 
+    /**
+     * Error message header returned by event stream errors
+     */
+    private static final String EVENT_ERROR_MESSAGE = ":error-message";
+
     private SdkJsonErrorMessageParser errorMessageParser;
 
     /**
@@ -50,11 +55,16 @@ public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
      */
     @Override
     public String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode) {
-        // If X_AMZN_ERROR_MESSAGE is present, prefer that. Otherwise check the JSON body.
         final String headerMessage = httpResponse.firstMatchingHeader(X_AMZN_ERROR_MESSAGE).orElse(null);
         if (headerMessage != null) {
             return headerMessage;
         }
+
+        final String eventHeaderMessage = httpResponse.firstMatchingHeader(EVENT_ERROR_MESSAGE).orElse(null);
+        if (eventHeaderMessage != null) {
+            return eventHeaderMessage;
+        }
+
         return errorMessageParser.parseErrorMessage(httpResponse, jsonNode);
     }
 

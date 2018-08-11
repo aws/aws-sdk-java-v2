@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
+@ReviewBeforeRelease("Not currently used, keeping for backwards compatibility. Remove at GA.")
 @SdkProtectedApi
 public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
     implements Unmarshaller<T, JsonUnmarshallerContext> {
