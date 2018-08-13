@@ -46,5 +46,6 @@ public final class AwsClientOptionValidation extends SdkClientOptionValidation {
                 c.option(AwsClientOption.SERVICE_SIGNING_NAME));
         require("overrideConfiguration.advancedOption[ENABLE_DEFAULT_REGION_DETECTION]",
                 c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION));
+
     }
 }

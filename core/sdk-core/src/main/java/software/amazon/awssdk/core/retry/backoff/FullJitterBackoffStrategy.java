@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Random;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -118,5 +119,37 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
         public FullJitterBackoffStrategy build() {
             return new FullJitterBackoffStrategy(this);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final FullJitterBackoffStrategy that = (FullJitterBackoffStrategy) o;
+
+        if (!baseDelay.equals(that.baseDelay)) {
+            return false;
+        }
+        return maxBackoffTime.equals(that.maxBackoffTime);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = baseDelay.hashCode();
+        result = 31 * result + maxBackoffTime.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("FullJitterBackoffStrategy")
+                       .add("baseDelay", baseDelay)
+                       .add("maxBackoffTime", maxBackoffTime)
+                       .build();
     }
 }

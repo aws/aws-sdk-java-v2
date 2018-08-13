@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonSystem;
@@ -41,12 +41,12 @@ public class IonErrorCodeParser implements ErrorCodeParser {
         this.ionSystem = ionSystem;
     }
 
-    private static String getRequestId(HttpResponse response) {
-        return response.getHeaders().get(X_AMZN_REQUEST_ID_HEADER);
+    private static String getRequestId(SdkHttpFullResponse response) {
+        return response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null);
     }
 
     @Override
-    public String parseErrorCode(HttpResponse response, JsonContent jsonContents) {
+    public String parseErrorCode(SdkHttpFullResponse response, JsonContent jsonContents) {
         IonReader reader = ionSystem.newReader(jsonContents.getRawContent());
         try {
             IonType type = reader.next();

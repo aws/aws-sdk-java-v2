@@ -30,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
-import software.amazon.awssdk.awscore.eventstream.EventStreamExceptionJsonUnmarshaller;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
@@ -158,19 +157,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
                             });
             builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
                         + ".build());\n", eventStreamUtils.eventStreamBaseClass());
-
-            builder.add("\n\n$T<$T> exceptionHandler = $L.createResponseHandler(\n" +
-                        "    new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),\n" +
-                        "    $T.builder()\n" +
-                        "        .defaultUnmarshaller(x -> $T.populateDefaultException($T::builder, x))\n" +
-                        "        .build());",
-                        HttpResponseHandler.class,
-                        WildcardTypeName.subtypeOf(Throwable.class),
-                        protocolFactory,
-                        EventStreamExceptionJsonUnmarshaller.class,
-                        EventStreamExceptionJsonUnmarshaller.class,
-                        baseExceptionClassName(model));
-
         }
         return builder.build();
     }
@@ -237,9 +223,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
                         "     .eventStreamResponseHandler(asyncResponseHandler)\n"
                         + "   .eventResponseHandler(eventResponseHandler)\n"
                         + "   .initialResponseHandler(responseHandler)\n"
-                        + "   .exceptionResponseHandler(exceptionHandler)\n"
+                        + "   .exceptionResponseHandler(errorResponseHandler)\n"
                         + "   .future(future)\n"
                         + "   .executor(executor)\n"
+                        + "   .serviceName(serviceName())\n"
                         + "   .build();",
                         transformerType,
                         ClassName.get(EventStreamAsyncResponseTransformer.class),

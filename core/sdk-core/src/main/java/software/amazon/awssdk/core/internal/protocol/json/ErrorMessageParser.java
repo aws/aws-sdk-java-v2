@@ -17,10 +17,10 @@ package software.amazon.awssdk.core.internal.protocol.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
 public interface ErrorMessageParser {
 
-    String parseErrorMessage(HttpResponse httpResponse, JsonNode jsonNode);
+    String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode);
 }

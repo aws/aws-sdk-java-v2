@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.internal.http.response;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.http.HttpStatusFamily;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Wrapper around protocol specific error handler to deal with some default scenarios and fill in common information.
@@ -37,17 +37,17 @@ public class SdkErrorResponseHandler implements HttpResponseHandler<SdkException
     }
 
     @Override
-    public SdkServiceException handle(HttpResponse response,
+    public SdkServiceException handle(SdkHttpFullResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
         final SdkServiceException.Builder exception =
                 (SdkServiceException.Builder) handleServiceException(response, executionAttributes).toBuilder();
-        exception.statusCode(response.getStatusCode());
-
+        exception.statusCode(response.statusCode());
         return exception.build();
     }
 
-    private SdkException handleServiceException(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
-        final int statusCode = response.getStatusCode();
+    private SdkException handleServiceException(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws
+                                                                                                                       Exception {
+        final int statusCode = response.statusCode();
         try {
             return delegate.handle(response, executionAttributes);
         } catch (InterruptedException e) {
@@ -61,8 +61,8 @@ public class SdkErrorResponseHandler implements HttpResponseHandler<SdkException
                 return exception.build();
             } else if (HttpStatusFamily.of(statusCode) == HttpStatusFamily.SERVER_ERROR) {
                 SdkServiceException.Builder exception = SdkServiceException.builder()
-                                                                   .message(response.getStatusText())
-                                                                   .statusCode(statusCode);
+                                                                           .message(response.statusText().orElse(null))
+                                                                           .statusCode(statusCode);
                 return exception.build();
             } else {
                 throw e;

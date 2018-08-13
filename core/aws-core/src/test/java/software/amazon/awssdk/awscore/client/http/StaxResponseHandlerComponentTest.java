@@ -26,7 +26,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.junit.Rule;
@@ -35,9 +34,10 @@ import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class StaxResponseHandlerComponentTest {
 
@@ -68,8 +68,9 @@ public class StaxResponseHandlerComponentTest {
 
         StaxResponseHandler<EmptyAwsResponse> responseHandler = new StaxResponseHandler<>(dummyUnmarshaller());
 
-        HttpResponse response = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
-        response.setContent(new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8"))));
+        SdkHttpFullResponse response = ValidSdkObjects.sdkHttpFullResponse()
+                                                      .content(AbortableInputStream.create(new ByteArrayInputStream(payload.getBytes(StandardCharsets.UTF_8))))
+                                                      .build();
 
         try {
             responseHandler.handle(response, new ExecutionAttributes());

@@ -39,4 +39,11 @@ public interface SdkHttpResponse extends SdkHttpHeaders {
      * <p>This will always be positive.</p>
      */
     int statusCode();
+
+    /**
+     * If we get back any 2xx status code, then we know we should treat the service call as successful.
+     */
+    default boolean isSuccessful() {
+        return HttpStatusFamily.of(statusCode()) == HttpStatusFamily.SUCCESSFUL;
+    }
 }

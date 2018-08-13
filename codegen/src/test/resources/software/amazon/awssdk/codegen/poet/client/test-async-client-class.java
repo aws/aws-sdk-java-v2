@@ -12,7 +12,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
-import software.amazon.awssdk.awscore.eventstream.EventStreamExceptionJsonUnmarshaller;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
@@ -44,7 +43,6 @@ import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHa
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
-import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.JsonRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
@@ -227,21 +225,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                       .addUnmarshaller("EventTwo", EventTwoUnmarshaller.getInstance())
                                                       .defaultUnmarshaller((in) -> EventStream.UNKNOWN).build());
 
-            HttpResponseHandler<? extends Throwable> exceptionHandler = jsonProtocolFactory
-                .createResponseHandler(
-                    new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                    EventStreamExceptionJsonUnmarshaller
-                        .builder()
-                        .defaultUnmarshaller(
-                            x -> EventStreamExceptionJsonUnmarshaller.populateDefaultException(
-                                JsonException::builder, x)).build());
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(jsonProtocolFactory);
             CompletableFuture<Void> future = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
                 .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
                                                                       .eventResponseHandler(eventResponseHandler).initialResponseHandler(responseHandler)
-                                                                      .exceptionResponseHandler(exceptionHandler).future(future).executor(executor).build();
+                                                                      .exceptionResponseHandler(errorResponseHandler).future(future).executor(executor).serviceName(serviceName())
+                                                                      .build();
 
             clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, SdkResponse>()

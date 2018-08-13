@@ -31,9 +31,30 @@ public final class AbortableInputStream extends FilterInputStream implements Abo
 
     private final Abortable abortable;
 
-    public AbortableInputStream(InputStream delegate, Abortable abortable) {
+    private AbortableInputStream(InputStream delegate, Abortable abortable) {
         super(paramNotNull(delegate, "delegate"));
         this.abortable = paramNotNull(abortable, "abortable");
+    }
+
+    /**
+     * Creates an instance of {@link AbortableInputStream}.
+     *
+     * @param delegate the delegated input stream
+     * @param abortable the abortable
+     * @return a new instance of AbortableInputStream
+     */
+    public static AbortableInputStream create(InputStream delegate, Abortable abortable) {
+        return new AbortableInputStream(delegate, abortable);
+    }
+
+    /**
+     * Creates an instance of {@link AbortableInputStream} that ignores abort.
+     *
+     * @param delegate the delegated input stream
+     * @return a new instance of AbortableInputStream
+     */
+    public static AbortableInputStream create(InputStream delegate) {
+        return new AbortableInputStream(delegate, () -> { });
     }
 
     @Override

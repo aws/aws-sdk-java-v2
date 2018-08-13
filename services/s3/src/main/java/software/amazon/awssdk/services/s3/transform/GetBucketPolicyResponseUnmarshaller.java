@@ -15,14 +15,19 @@
 
 package software.amazon.awssdk.services.s3.transform;
 
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
-public final class GetBucketPolicyResponseUnmarshaller implements Unmarshaller<GetBucketPolicyResponse, HttpResponse> {
+public final class GetBucketPolicyResponseUnmarshaller implements Unmarshaller<GetBucketPolicyResponse, SdkHttpFullResponse> {
     @Override
-    public GetBucketPolicyResponse unmarshall(HttpResponse response) throws Exception {
-        return GetBucketPolicyResponse.builder().policy(IoUtils.toUtf8String(response.getContent())).build();
+    public GetBucketPolicyResponse unmarshall(SdkHttpFullResponse response) throws Exception {
+        GetBucketPolicyResponse.Builder builder = GetBucketPolicyResponse.builder();
+
+        response.content().ifPresent(FunctionalUtils.safeConsumer(c -> builder.policy(IoUtils.toUtf8String(c))));
+
+        return builder.build();
     }
 }

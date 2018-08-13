@@ -5,7 +5,7 @@
         {
             "category": "AWS SDK for Java v2",
             "type": "feature",
-            "description": "Substantial improvments to start up time and cold start latencies"
+            "description": "Substantial improvements to start up time and cold start latencies"
         },
         {
             "category": "AWS SDK for Java v2",

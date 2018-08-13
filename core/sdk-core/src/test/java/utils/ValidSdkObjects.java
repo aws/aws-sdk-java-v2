@@ -19,6 +19,7 @@ import java.net.URI;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
@@ -40,5 +41,10 @@ public final class ValidSdkObjects {
         DefaultRequest<T> request = new DefaultRequest<>("testService");
         request.setEndpoint(URI.create("http://test.com"));
         return request;
+    }
+
+    public static SdkHttpFullResponse.Builder sdkHttpFullResponse() {
+        return SdkHttpFullResponse.builder()
+                                  .statusCode(200);
     }
 }

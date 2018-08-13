@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Response wrapper to provide access to not only the original SDK response
@@ -30,9 +30,9 @@ public final class Response<T> {
     private final boolean isSuccess;
     private final T response;
     private final SdkException exception;
-    private final HttpResponse httpResponse;
+    private final SdkHttpFullResponse httpResponse;
 
-    private Response(boolean isSuccess, T response, SdkException exception, HttpResponse httpResponse) {
+    private Response(boolean isSuccess, T response, SdkException exception, SdkHttpFullResponse httpResponse) {
         this.isSuccess = isSuccess;
         this.response = response;
         this.exception = exception;
@@ -47,7 +47,7 @@ public final class Response<T> {
         return exception;
     }
 
-    public HttpResponse httpResponse() {
+    public SdkHttpFullResponse httpResponse() {
         return httpResponse;
     }
 
@@ -60,11 +60,11 @@ public final class Response<T> {
         return !isSuccess;
     }
 
-    public static <T> Response<T> fromSuccess(T response, HttpResponse httpResponse) {
+    public static <T> Response<T> fromSuccess(T response, SdkHttpFullResponse httpResponse) {
         return new Response<>(true, response, null, httpResponse);
     }
 
-    public static <T> Response<T> fromFailure(SdkException exception, HttpResponse httpResponse) {
+    public static <T> Response<T> fromFailure(SdkException exception, SdkHttpFullResponse httpResponse) {
         return new Response<>(false, null, exception, httpResponse);
     }
 }

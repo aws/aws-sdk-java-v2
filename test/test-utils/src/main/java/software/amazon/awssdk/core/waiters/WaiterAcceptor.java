@@ -23,11 +23,11 @@ public abstract class WaiterAcceptor<OutputT, ErrorT extends RuntimeException> {
     /**
      * Default method definition that matches the response
      * state with the expected state defined by the acceptor.
-     * Overriden by each acceptor definition of matches.
+     * Overridden by each acceptor definition of matches.
      *
      * @param output Response got by the execution of the operation
      * @return False by default.
-     *     When overriden, returns True if it matches, False
+     *     When overridden, returns True if it matches, False
      *     otherwise
      */
     public boolean matches(OutputT output) {
@@ -37,11 +37,11 @@ public abstract class WaiterAcceptor<OutputT, ErrorT extends RuntimeException> {
     /**
      * Default method definition that matches the exception
      * with the expected state defined by the acceptor.
-     * Overriden by each acceptor definition of matches.
+     * Overridden by each acceptor definition of matches.
      *
      * @param output Exception thrown by the execution of the operation
      * @return False by default.
-     *     When overriden, returns True if it matches, False otherwise
+     *     When overridden, returns True if it matches, False otherwise
      */
     public boolean matches(ErrorT output) {
         return false;

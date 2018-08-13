@@ -112,7 +112,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         InputStream mockContent = mock(InputStream.class);
         when(abortableCallable.call()).thenReturn(SdkHttpFullResponse.builder()
                                                                      .statusCode(200)
-                                                                     .content(new AbortableInputStream(mockContent, () -> { }))
+                                                                     .content(AbortableInputStream.create(mockContent))
                                                                      .build());
         interruptCurrentThreadAfterDelay(1000);
         try {

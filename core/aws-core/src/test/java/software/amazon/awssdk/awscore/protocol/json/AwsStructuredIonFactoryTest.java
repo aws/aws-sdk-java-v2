@@ -31,9 +31,9 @@ import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredIonFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.ion.IonStruct;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;
@@ -61,23 +61,23 @@ public class AwsStructuredIonFactoryTest {
         return payload;
     }
 
-    private static HttpResponse createResponse(IonStruct payload) throws Exception {
+    private static SdkHttpFullResponse createResponse(IonStruct payload) throws Exception {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         IonWriter writer = system.newBinaryWriter(bytes);
         payload.writeTo(writer);
         writer.close();
 
-        HttpResponse error = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
-        error.setContent(new ByteArrayInputStream(bytes.toByteArray()));
-        return error;
+        return ValidSdkObjects.sdkHttpFullResponse()
+                              .content(AbortableInputStream.create(new ByteArrayInputStream(bytes.toByteArray())))
+                              .build();
     }
 
     @Test
     public void handlesErrorsUsingHttpHeader() throws Exception {
         IonStruct payload = createPayload();
 
-        HttpResponse error = createResponse(payload);
-        error.addHeader("x-amzn-ErrorType", ERROR_TYPE);
+        SdkHttpFullResponse error =
+            createResponse(payload).toBuilder().putHeader("x-amzn-ErrorType", ERROR_TYPE).build();
 
         AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
@@ -89,7 +89,7 @@ public class AwsStructuredIonFactoryTest {
         IonStruct payload = createPayload();
         payload.add("__type", system.newString(ERROR_TYPE));
 
-        HttpResponse error = createResponse(payload);
+        SdkHttpFullResponse error = createResponse(payload);
 
         AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
@@ -101,7 +101,7 @@ public class AwsStructuredIonFactoryTest {
         IonStruct payload = createPayload();
         payload.addTypeAnnotation(ERROR_PREFIX + ERROR_TYPE);
 
-        HttpResponse error = createResponse(payload);
+        SdkHttpFullResponse error = createResponse(payload);
 
         AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
@@ -114,7 +114,7 @@ public class AwsStructuredIonFactoryTest {
         payload.addTypeAnnotation(ERROR_PREFIX + ERROR_TYPE);
         payload.addTypeAnnotation(ERROR_PREFIX + "foo");
 
-        HttpResponse error = createResponse(payload);
+        SdkHttpFullResponse error = createResponse(payload);
 
         handleError(error);
     }
@@ -126,14 +126,14 @@ public class AwsStructuredIonFactoryTest {
         payload.addTypeAnnotation(ERROR_PREFIX + ERROR_TYPE);
         payload.addTypeAnnotation("bar");
 
-        HttpResponse error = createResponse(payload);
+        SdkHttpFullResponse error = createResponse(payload);
 
         AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
         assertEquals(ERROR_MESSAGE, exception.awsErrorDetails().errorMessage());
     }
 
-    private AwsServiceException handleError(HttpResponse error) throws Exception {
+    private AwsServiceException handleError(SdkHttpFullResponse error) throws Exception {
         List<AwsJsonErrorUnmarshaller> unmarshallers = new LinkedList<>();
         unmarshallers.add(new AwsJsonErrorUnmarshaller(InvalidParameterException.class, ERROR_TYPE));
 

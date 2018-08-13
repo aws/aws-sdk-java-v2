@@ -15,11 +15,16 @@
 
 package software.amazon.awssdk.awscore.eventstream;
 
+import static java.util.Collections.singletonList;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -38,10 +43,12 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
@@ -142,6 +149,18 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private final CompletableFuture<Void> future;
 
+    /**
+     * The name of the aws service
+     */
+    private final String serviceName;
+
+    /**
+     * Request Id for the streaming request. The value is populated when the initial response is received from the service.
+     * As request id is not sent in event messages (including exceptions), this can be returned by the SDK along with
+     * received exception details.
+     */
+    private String requestId = null;
+
     @Deprecated
     @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
     public EventStreamAsyncResponseTransformer(
@@ -150,7 +169,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         HttpResponseHandler<? extends EventT> eventResponseHandler,
         HttpResponseHandler<? extends Throwable> exceptionResponseHandler) {
         this(eventStreamResponseHandler, initialResponseHandler, eventResponseHandler, exceptionResponseHandler,
-             Executors.newSingleThreadScheduledExecutor(), new CompletableFuture<>());
+             Executors.newSingleThreadScheduledExecutor(), new CompletableFuture<>(), "");
     }
 
     private EventStreamAsyncResponseTransformer(
@@ -159,7 +178,8 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         HttpResponseHandler<? extends EventT> eventResponseHandler,
         HttpResponseHandler<? extends Throwable> exceptionResponseHandler,
         Executor executor,
-        CompletableFuture<Void> future) {
+        CompletableFuture<Void> future,
+        String serviceName) {
 
         this.eventStreamResponseHandler = eventStreamResponseHandler;
         this.initialResponseHandler = initialResponseHandler;
@@ -167,6 +187,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         this.exceptionResponseHandler = exceptionResponseHandler;
         this.executor = executor;
         this.future = future;
+        this.serviceName = serviceName;
     }
 
     @Override
@@ -174,6 +195,11 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         // We use a void unmarshaller and unmarshall the actual response in the message
         // decoder when we receive the initial-response frame. TODO not clear
         // how we would handle REST protocol which would unmarshall the response from the HTTP headers
+        if (response != null && response.sdkHttpResponse() != null) {
+            this.requestId = response.sdkHttpResponse()
+                                     .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
+                                     .orElse(null);
+        }
     }
 
     @Override
@@ -249,15 +275,17 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             if (isEvent(m)) {
                 if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
                     eventStreamResponseHandler.responseReceived(
-                        initialResponseHandler.handle(adaptMessageToResponse(m),
+                        initialResponseHandler.handle(adaptMessageToResponse(m, false),
                                                       EMPTY_EXECUTION_ATTRIBUTES));
                 } else {
                     // Add to queue to be delivered later by the executor
-                    eventsToDeliver.add(eventResponseHandler.handle(adaptMessageToResponse(m),
+                    eventsToDeliver.add(eventResponseHandler.handle(adaptMessageToResponse(m, false),
                                                                     EMPTY_EXECUTION_ATTRIBUTES));
                 }
             } else if (isError(m) || isException(m)) {
-                Throwable exception = exceptionResponseHandler.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES);
+                SdkHttpFullResponse errorResponse = adaptMessageToResponse(m, true);
+                Throwable exception = exceptionResponseHandler.handle(
+                    errorResponse, new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, serviceName));
                 runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
             }
         } catch (Exception e) {
@@ -290,16 +318,30 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     }
 
     /**
-     * Transforms an event stream message into a {@link HttpResponse} so we can reuse our existing generated unmarshallers.
+     * Transforms an event stream message into a {@link SdkHttpFullResponse} so we can reuse our existing generated unmarshallers.
      *
-     * @param m Message to transform.
+     * @param message Message to transform.
      */
-    private HttpResponse adaptMessageToResponse(Message m) {
-        HttpResponse response = new HttpResponse(null);
-        response.setContent(new ByteArrayInputStream(m.getPayload()));
-        // TODO we'll probably need to handle other typed headers at some point
-        m.getHeaders().forEach((k, v) -> response.addHeader(k, v.getString()));
-        return response;
+    private SdkHttpFullResponse adaptMessageToResponse(Message message, boolean isException) {
+
+        Map<String, List<String>> headers =
+            message.getHeaders()
+                   .entrySet()
+                   .stream()
+                   .collect(HashMap::new, (m, e) -> m.put(e.getKey(), singletonList(e.getValue().getString())), Map::putAll);
+
+        if (requestId != null) {
+            headers.put(X_AMZN_REQUEST_ID_HEADER, singletonList(requestId));
+        }
+
+        //TODO: fix the hard-coded status code
+        int statusCode = isException ? 500 : 200;
+
+        return SdkHttpFullResponse.builder()
+                                  .content(AbortableInputStream.create(new ByteArrayInputStream(message.getPayload())))
+                                  .headers(headers)
+                                  .statusCode(statusCode)
+                                  .build();
     }
 
     /**
@@ -483,6 +525,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         private HttpResponseHandler<? extends Throwable> exceptionResponseHandler;
         private Executor executor;
         private CompletableFuture<Void> future;
+        private String serviceName;
 
         private Builder() {
         }
@@ -544,13 +587,23 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             return this;
         }
 
+        /**
+         * @param serviceName Descriptive name for the service to be used in exception unmarshalling.
+         * @return This object for method chaining.
+         */
+        public Builder<ResponseT, EventT> serviceName(String serviceName) {
+            this.serviceName = serviceName;
+            return this;
+        }
+
         public EventStreamAsyncResponseTransformer<ResponseT, EventT> build() {
             return new EventStreamAsyncResponseTransformer<>(eventStreamResponseHandler,
                                                              initialResponseHandler,
                                                              eventResponseHandler,
                                                              exceptionResponseHandler,
                                                              executor,
-                                                             future);
+                                                             future,
+                                                             serviceName);
         }
     }
 

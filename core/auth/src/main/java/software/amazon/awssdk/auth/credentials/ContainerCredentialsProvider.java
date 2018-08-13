@@ -134,7 +134,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
             if (!ALLOWED_HOSTS.contains(uri.getHost())) {
 
                 throw SdkClientException.builder()
-                                        .message(String.format("The full URI (%s) contained withing environment " +
+                                        .message(String.format("The full URI (%s) contained within environment " +
                                                  "variable %s has an invalid host. Host can only be one of [%s].",
                                                  uri,
                                                  SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI
