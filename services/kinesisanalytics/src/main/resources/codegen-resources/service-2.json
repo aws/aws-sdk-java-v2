@@ -7,6 +7,7 @@
     "protocol":"json",
     "serviceAbbreviation":"Kinesis Analytics",
     "serviceFullName":"Amazon Kinesis Analytics",
+    "serviceId":"Kinesis Analytics",
     "signatureVersion":"v4",
     "targetPrefix":"KinesisAnalytics_20150814",
     "timestampFormat":"unixTimestamp",

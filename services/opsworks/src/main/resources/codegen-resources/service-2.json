@@ -6,6 +6,7 @@
     "jsonVersion":"1.1",
     "protocol":"json",
     "serviceFullName":"AWS OpsWorks",
+    "serviceId":"OpsWorks",
     "signatureVersion":"v4",
     "targetPrefix":"OpsWorks_20130218",
     "uid":"opsworks-2013-02-18"

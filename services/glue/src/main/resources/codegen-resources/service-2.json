@@ -6,6 +6,7 @@
     "jsonVersion":"1.1",
     "protocol":"json",
     "serviceFullName":"AWS Glue",
+    "serviceId":"Glue",
     "signatureVersion":"v4",
     "targetPrefix":"AWSGlue",
     "uid":"glue-2017-03-31"

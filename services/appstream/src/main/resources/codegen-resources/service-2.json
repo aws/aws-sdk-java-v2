@@ -6,6 +6,7 @@
     "jsonVersion":"1.1",
     "protocol":"json",
     "serviceFullName":"Amazon AppStream",
+    "serviceId": "AppStream",
     "signatureVersion":"v4",
     "signingName":"appstream",
     "targetPrefix":"PhotonAdminProxyService",
