@@ -69,12 +69,12 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>servermigration</artifactId>
+                <artifactId>sms</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>simpleworkflow</artifactId>
+                <artifactId>swf</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -204,12 +204,12 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>logs</artifactId>
+                <artifactId>cloudwatchlogs</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>events</artifactId>
+                <artifactId>cloudwatchevents</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -249,7 +249,7 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>kinesisfirehose</artifactId>
+                <artifactId>firehose</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -389,12 +389,12 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>iotdata</artifactId>
+                <artifactId>iotdataplane</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>api-gateway</artifactId>
+                <artifactId>apigateway</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -409,22 +409,22 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>dms</artifactId>
+                <artifactId>databasemigration</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>marketplacemeteringservice</artifactId>
+                <artifactId>marketplacemetering</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>cognitoidp</artifactId>
+                <artifactId>cognitoidentityprovider</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>discovery</artifactId>
+                <artifactId>applicationdiscovery</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -454,7 +454,7 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>stepfunctions</artifactId>
+                <artifactId>sfn</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -480,6 +480,26 @@
             </dependency>
             <dependency>
                 <artifactId>shield</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>costexplorer</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>serverlessapplicationrepository</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>resourcegroups</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>mturk</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>

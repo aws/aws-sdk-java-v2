@@ -7,6 +7,7 @@
     "protocol":"json",
     "serviceAbbreviation":"CodeDeploy",
     "serviceFullName":"AWS CodeDeploy",
+    "serviceId": "CodeDeploy",
     "signatureVersion":"v4",
     "targetPrefix":"CodeDeploy_20141006",
     "timestampFormat":"unixTimestamp",

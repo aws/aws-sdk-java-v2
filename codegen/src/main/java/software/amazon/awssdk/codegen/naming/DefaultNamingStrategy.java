@@ -32,7 +32,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -77,14 +76,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    @ReviewBeforeRelease("Always use service ID as the base.")
     public String getServiceName() {
-        String baseName = Stream.of(serviceModel.getMetadata().getServiceId(),
-                                    serviceModel.getMetadata().getServiceAbbreviation(),
-                                    serviceModel.getMetadata().getServiceFullName())
+        String baseName = Stream.of(serviceModel.getMetadata().getServiceId())
                                 .filter(Objects::nonNull)
+                                .filter(s -> !s.trim().isEmpty())
                                 .findFirst()
-                                .orElseThrow(() -> new IllegalStateException("No non-null service name descriptor."));
+                                .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the c2j model."));
 
         baseName = pascalCase(splitOnWordBoundaries(baseName));
 
