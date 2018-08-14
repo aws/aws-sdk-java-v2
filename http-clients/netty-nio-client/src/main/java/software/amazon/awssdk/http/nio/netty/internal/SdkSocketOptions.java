@@ -25,8 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public class SdkSocketOptions {
 
     private Map<ChannelOption, Object> options;
-
-
+    
     public SdkSocketOptions() {
         options = new HashMap<>();
     }
