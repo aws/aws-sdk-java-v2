@@ -45,7 +45,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
 
-        ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
+        ExecutionContext executionContext = createExecutionContext(executionParams);
 
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
@@ -59,7 +59,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
-        ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
+        ExecutionContext executionContext = createExecutionContext(executionParams);
 
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);

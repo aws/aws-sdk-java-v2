@@ -23,6 +23,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -33,19 +34,20 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 public class EventStreamResponseHandlerSpec implements ClassSpec {
 
     private final PoetExtensions poetExt;
-    private final EventStreamUtils eventStreamUtils;
+    private final OperationModel operationModel;
     private final String apiName;
     private final ClassName responsePojoType;
     private final ClassName responseHandlerBuilderType;
     private final ClassName eventStreamBaseClass;
 
-    public EventStreamResponseHandlerSpec(GeneratorTaskParams params, EventStreamUtils eventStreamUtils) {
+    public EventStreamResponseHandlerSpec(GeneratorTaskParams params, OperationModel operationModel) {
         this.poetExt = params.getPoetExtensions();
-        this.eventStreamUtils = eventStreamUtils;
-        this.apiName = eventStreamUtils.getApiName();
-        this.responsePojoType = eventStreamUtils.responsePojoType();
-        this.responseHandlerBuilderType = eventStreamUtils.responseHandlerBuilderType();
-        this.eventStreamBaseClass = eventStreamUtils.eventStreamBaseClass();
+        this.operationModel = operationModel;
+        this.apiName = poetExt.getApiName(operationModel);
+        this.responsePojoType = poetExt.responsePojoType(operationModel);
+        this.responseHandlerBuilderType = poetExt.eventStreamResponseHandlerBuilderType(operationModel);
+        this.eventStreamBaseClass = poetExt.getModelClassFromShape(
+            EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape()));
     }
 
     @Override
@@ -58,14 +60,14 @@ public class EventStreamResponseHandlerSpec implements ClassSpec {
                         .addSuperinterface(superResponseHandlerInterface)
                         .addJavadoc("Response handler for the $L API.", apiName)
                         .addMethod(builderMethodSpec())
-                        .addType(new EventStreamResponseHandlerBuilderInterfaceSpec(eventStreamUtils).poetSpec())
-                        .addType(new EventStreamVisitorInterfaceSpec(eventStreamUtils, poetExt).poetSpec())
+                        .addType(new EventStreamResponseHandlerBuilderInterfaceSpec(poetExt, operationModel).poetSpec())
+                        .addType(new EventStreamVisitorInterfaceSpec(poetExt, operationModel).poetSpec())
                         .build();
     }
 
     @Override
     public ClassName className() {
-        return eventStreamUtils.responseHandlerType();
+        return poetExt.eventStreamResponseHandlerType(operationModel);
     }
 
     private MethodSpec builderMethodSpec() {

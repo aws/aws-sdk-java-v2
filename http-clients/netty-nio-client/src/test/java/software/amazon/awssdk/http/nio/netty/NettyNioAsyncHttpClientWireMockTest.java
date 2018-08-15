@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
@@ -314,8 +315,8 @@ public class NettyNioAsyncHttpClientWireMockTest {
         return new SdkHttpRequestProvider() {
 
             @Override
-            public long contentLength() {
-                return body.length();
+            public Optional<Long> contentLength() {
+                return Optional.of(Long.valueOf(body.length()));
             }
 
             @Override

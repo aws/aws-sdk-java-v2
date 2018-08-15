@@ -17,7 +17,7 @@
     <name>AWS Event Stream</name>
     <description>The AWS Event Stream decoder library.</description>
     <url>https://aws.amazon.com/sdkforjava</url>
-    
+
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -52,8 +52,7 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, 
         }
     }
 
-    @SdkTestInternalApi
-    StructuredJsonGenerator createGenerator() {
+    private StructuredJsonGenerator createGenerator() {
         return JSON_FACTORY.createWriter(CONTENT_TYPE);
     }
 

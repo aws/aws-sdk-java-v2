@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.async;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
@@ -28,6 +29,6 @@ public interface SdkHttpRequestProvider extends Publisher<ByteBuffer> {
     /**
      * @return The content length of the data being produced.
      */
-    long contentLength();
+    Optional<Long> contentLength();
 
 }

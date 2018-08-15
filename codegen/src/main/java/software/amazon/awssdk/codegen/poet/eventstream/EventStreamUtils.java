@@ -15,185 +15,143 @@
 
 package software.amazon.awssdk.codegen.poet.eventstream;
 
-import com.squareup.javapoet.ClassName;
 import java.util.Objects;
 import java.util.stream.Stream;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
 /**
  * Utils for event streaming code generation.
  */
 public class EventStreamUtils {
 
-    private final OperationModel operation;
-    private final PoetExtensions poetExt;
-
-    private EventStreamUtils(PoetExtensions poetExt, OperationModel eventStreamOperation) {
-        this.operation = eventStreamOperation;
-        this.poetExt = poetExt;
+    private EventStreamUtils() {
     }
 
     /**
-     * @return The correctly cased name of the API.
-     */
-    public String getApiName() {
-        return Utils.capitalize(operation.getOperationName());
-    }
-
-    /**
-     * Retrieve the event stream {@link ShapeModel} for the operation. I.E. The shape that has the 'eventstream: true' trait
-     * applied.
+     * Get eventstream member from a request shape model. If shape doesn't have any eventstream member,
+     * throw an IllegalStateException.
      *
-     * @return ShapeModel for event stream member.
+     * @param requestShape request shape of an operation
+     * @return eventstream member (shape with "eventstream" trait set to true) in the request shape.
+     * If there is no eventstream member, thrown IllegalStateException.
      */
-    public ShapeModel getEventStreamShape() {
-        ShapeModel outputShape = operation.getOutputShape();
-        return outputShape.getMembers()
-                          .stream()
-                          .map(MemberModel::getShape)
-                          .filter(Objects::nonNull)
-                          .filter(ShapeModel::isEventStream)
-                          .findFirst()
-                          .orElseThrow(() -> new IllegalStateException("Did not find event stream member on " +
-                                                                       outputShape.getC2jName()));
+    public static ShapeModel getEventStreamInRequest(ShapeModel requestShape) {
+        return eventStreamFrom(requestShape);
     }
 
     /**
-     * Collect all subtypes defined in the event stream. These are all members of the event stream shape and
-     * have the 'event: true' trait applied.
+     * Get eventstream member from a response shape model. If shape doesn't have any eventstream member,
+     * throw an IllegalStateException.
      *
-     * @return Stream of event subtypes {@link ShapeModel}s.
+     * @param responseShape response shape of an operation
+     * @return eventstream member (shape with "eventstream" trait set to true) in the response shape.
+     * If there is no eventstream member, thrown IllegalStateException.
      */
-    public Stream<ShapeModel> getEventSubTypes() {
-        return getEventStreamMembers()
-            .map(MemberModel::getShape);
+    public static ShapeModel getEventStreamInResponse(ShapeModel responseShape) {
+        return eventStreamFrom(responseShape);
     }
 
     /**
-     * Collect all members defined in the event stream shape. These are all members of the event stream shape and
-     * have the 'event: true' trait applied.
+     * Get event stream shape from a request/response shape model. Otherwise return empty optional.
      *
-     * @return Stream of event subtypes {@link MemberModel}s.
+     * @param shapeModel request or response shape of an operation
+     * @return Optional containing the Eventstream shape
      */
-    public Stream<MemberModel> getEventStreamMembers() {
-        return getEventStreamShape()
-            .getMembers()
-            .stream()
-            .filter(m -> m.getShape() != null && m.getShape().isEvent());
+    private static ShapeModel eventStreamFrom(ShapeModel shapeModel) {
+        if (shapeModel == null || shapeModel.getMembers() == null) {
+            return null;
+        }
+
+        return shapeModel.getMembers()
+                         .stream()
+                         .map(MemberModel::getShape)
+                         .filter(Objects::nonNull)
+                         .filter(ShapeModel::isEventStream)
+                         .findFirst()
+                         .orElseThrow(() -> new IllegalStateException(String.format(
+                             "%s has no event stream member", shapeModel.getC2jName())));
     }
 
     /**
-     * @return The {@link ClassName} for the response pojo.
-     */
-    public ClassName responsePojoType() {
-        return poetExt.getModelClass(operation.getOutputShape().getShapeName());
-    }
-
-    /**
-     * @return {@link ClassName} for the base class of all event sub types. This will be the 'eventstream' shape, i.e. the tagged
-     * union like structure containing all event types.
-     */
-    public ClassName eventStreamBaseClass() {
-        return poetExt.getModelClass(getEventStreamShape().getShapeName());
-    }
-
-    /**
-     * @return {@link ClassName} for generated event stream response handler interface.
-     */
-    public ClassName responseHandlerType() {
-        return poetExt.getModelClass(getApiName() + "ResponseHandler");
-    }
-
-    /**
-     * @return {@link ClassName} for the builder interface for the response handler interface
-     */
-    public ClassName responseHandlerBuilderType() {
-        return responseHandlerType().nestedClass("Builder");
-    }
-
-    /**
-     * @return {@link ClassName} for the event stream visitor interface.
-     */
-    public ClassName responseHandlerVisitorType() {
-        return responseHandlerType().nestedClass("Visitor");
-    }
-
-    /**
-     * @return {@link ClassName} for the builder interface for the event stream visitor interface.
-     */
-    public ClassName responseHandlerVisitorBuilderType() {
-        return responseHandlerVisitorType().nestedClass("Builder");
-    }
-
-    /**
-     * Creates a new util object.
+     * Returns the event stream {@link ShapeModel} that contains the given event.
      *
-     * @param poetExt Poet extensions.
-     * @param eventStreamOperation The event stream operation being generated.
-     * @return New {@link EventStreamUtils}.
+     * @param model Intermediate model
+     * @param eventShape shape with "event: true" trait
+     * @return the event stream shape (eventstream: true) that contains the given event.
      */
-    public static EventStreamUtils create(PoetExtensions poetExt, OperationModel eventStreamOperation) {
-        return new EventStreamUtils(poetExt, eventStreamOperation);
-    }
-
-    /**
-     * Creates an {@link EventStreamUtils} from a given eventstream shape (i.e. the tagged union like container of event shapes).
-     *
-     * @param poetExt Poet extensions.
-     * @param model Intermediate model.
-     * @param eventStreamShape Eventstream shape.
-     * @return New {@link EventStreamUtils}.
-     */
-    public static EventStreamUtils createFromEventStreamShape(PoetExtensions poetExt,
-                                                              IntermediateModel model,
-                                                              ShapeModel eventStreamShape) {
-        return new EventStreamUtils(poetExt, findEventStreamOperation(model, eventStreamShape));
-    }
-
-    /**
-     * Creates an {@link EventStreamUtils} from a given event sub type shape.
-     *
-     * @param poetExt Poet extensions.
-     * @param model Intermediate model.
-     * @param eventSubTypeShape Event sub type (i.e. member of eventstream shape).
-     * @return New {@link EventStreamUtils}.
-     */
-    public static EventStreamUtils createFromEventShape(PoetExtensions poetExt,
-                                                        IntermediateModel model,
-                                                        ShapeModel eventSubTypeShape) {
-        ShapeModel parentEventStreamShape = findBaseEventStreamShape(model, eventSubTypeShape);
-        return createFromEventStreamShape(poetExt, model, parentEventStreamShape);
-    }
-
-    private static ShapeModel findBaseEventStreamShape(IntermediateModel model, ShapeModel eventStreamShape) {
+    public static ShapeModel getBaseEventStreamShape(IntermediateModel model, ShapeModel eventShape) {
         return model.getShapes().values()
                     .stream()
                     .filter(ShapeModel::isEventStream)
-                    .filter(s -> s.getMembers().stream().anyMatch(m -> m.getShape().equals(eventStreamShape)))
+                    .filter(s -> s.getMembers().stream().anyMatch(m -> m.getShape().equals(eventShape)))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException(
-                        String.format("Event shape %s not referenced in model by eventstream shape",
-                                      eventStreamShape.getC2jName())));
+                        String.format("Event shape %s not referenced in model by any eventstream shape",
+                                      eventShape.getC2jName())));
     }
 
-    private static OperationModel findEventStreamOperation(IntermediateModel model, ShapeModel eventSubTypeShape) {
+    /**
+     * Returns the stream of event members ('event: true') excluding exceptions
+     * from the input event stream shape ('eventstream: true').
+     */
+    public static Stream<ShapeModel> getEvents(ShapeModel eventStreamShape) {
+        if (eventStreamShape == null || eventStreamShape.getMembers() == null) {
+            return Stream.empty();
+        }
+
+        return eventStreamShape.getMembers()
+                               .stream()
+                               .filter(m -> m.getShape() != null && m.getShape().isEvent())
+                               .map(MemberModel::getShape);
+    }
+
+    /**
+     * Returns the first operation that contains the given event stream shape. The event stream can be in operation
+     * request or response shape.
+     */
+    public static OperationModel findOperationWithEventStream(IntermediateModel model, ShapeModel eventStreamShape) {
         return model.getOperations().values()
                     .stream()
-                    .filter(o -> o.getOutputShape() != null && o.getOutputShape().getMembers() != null)
-                    .filter(o -> o.getOutputShape().getMembers()
-                                  .stream()
-                                  .filter(m -> m.getShape() != null)
-                                  .filter(m -> m.getShape().equals(eventSubTypeShape))
-                                  .anyMatch(m -> m.getShape().isEventStream()))
+                    .filter(op -> operationContainsEventStream(op, eventStreamShape))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException(String.format(
-                        "%s is an eventstream shape but has no corresponding operation in the model",
-                        eventSubTypeShape.getC2jName())));
+                    .orElseThrow(() -> new IllegalStateException(String.format(
+                        "%s is an event shape but has no corresponding operation in the model", eventStreamShape.getC2jName())));
     }
 
+    /**
+     * Returns true if the #childEventStreamShape is a member of the #parentShape. Otherwise false.
+     */
+    public static boolean doesShapeContainsEventStream(ShapeModel parentShape, ShapeModel childEventStreamShape) {
+        return parentShape != null
+               && parentShape.getMembers() != null
+               && parentShape.getMembers().stream()
+                             .filter(m -> m.getShape() != null)
+                             .filter(m -> m.getShape().equals(childEventStreamShape))
+                             .anyMatch(m -> m.getShape().isEventStream());
+
+    }
+
+    /**
+     * Returns true if the given event shape is a sub-member of any operation request.
+     */
+    public static boolean isRequestEvent(IntermediateModel model, ShapeModel eventShape) {
+        try {
+            ShapeModel eventStreamShape = getBaseEventStreamShape(model, eventShape);
+            return model.getOperations().values()
+                        .stream()
+                        .filter(o -> doesShapeContainsEventStream(o.getInputShape(), eventStreamShape))
+                        .findAny()
+                        .isPresent();
+        } catch (IllegalStateException e) {
+            return false;
+        }
+    }
+
+    private static boolean operationContainsEventStream(OperationModel opModel, ShapeModel eventStreamShape) {
+        return doesShapeContainsEventStream(opModel.getInputShape(), eventStreamShape) ||
+               doesShapeContainsEventStream(opModel.getOutputShape(), eventStreamShape);
+    }
 }

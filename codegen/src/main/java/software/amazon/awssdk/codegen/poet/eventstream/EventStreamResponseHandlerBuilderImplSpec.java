@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.eventstream.DefaultEventStreamResponseHandlerBuilder;
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandlerFromBuilder;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
@@ -35,21 +36,24 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 public class EventStreamResponseHandlerBuilderImplSpec extends EventStreamResponseHandlerBuilderInterfaceSpec {
 
     private final PoetExtensions poetExt;
+    private final OperationModel operationModel;
     private final ClassName responseHandlerType;
     private final ClassName responseHandlerBuilderType;
     private final ClassName eventStreamBaseClass;
 
-    public EventStreamResponseHandlerBuilderImplSpec(GeneratorTaskParams params, EventStreamUtils eventStreamUtils) {
-        super(eventStreamUtils);
+    public EventStreamResponseHandlerBuilderImplSpec(GeneratorTaskParams params, OperationModel operationModel) {
+        super(params.getPoetExtensions(), operationModel);
         this.poetExt = params.getPoetExtensions();
-        this.responseHandlerType = eventStreamUtils.responseHandlerType();
-        this.responseHandlerBuilderType = eventStreamUtils.responseHandlerBuilderType();
-        this.eventStreamBaseClass = eventStreamUtils.eventStreamBaseClass();
+        this.operationModel = operationModel;
+        this.responseHandlerType = poetExt.eventStreamResponseHandlerType(operationModel);
+        this.responseHandlerBuilderType = poetExt.eventStreamResponseHandlerBuilderType(operationModel);
+        this.eventStreamBaseClass = poetExt.getModelClassFromShape(
+            EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape()));
     }
 
     @Override
     protected TypeSpec.Builder createTypeSpecBuilder() {
-        ClassName responsePojoType = eventStreamUtils.responsePojoType();
+        ClassName responsePojoType = poetExt.responsePojoType(operationModel);
         ParameterizedTypeName superBuilderClass =
             ParameterizedTypeName.get(ClassName.get(DefaultEventStreamResponseHandlerBuilder.class),
                                       responsePojoType, eventStreamBaseClass, responseHandlerBuilderType);
@@ -82,7 +86,7 @@ public class EventStreamResponseHandlerBuilderImplSpec extends EventStreamRespon
 
     @Override
     public ClassName className() {
-        String className = String.format("Default%sResponseHandlerBuilder", eventStreamUtils.getApiName());
+        String className = String.format("Default%sResponseHandlerBuilder", poetExt.getApiName(operationModel));
         return poetExt.getModelClass(className);
     }
 

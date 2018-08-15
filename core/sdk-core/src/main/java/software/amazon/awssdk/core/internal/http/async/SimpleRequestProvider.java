@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.async;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
@@ -56,8 +57,8 @@ public final class SimpleRequestProvider implements SdkHttpRequestProvider {
     }
 
     @Override
-    public long contentLength() {
-        return length;
+    public Optional<Long> contentLength() {
+        return Optional.of(Long.valueOf(length));
     }
 
     @Override

@@ -46,6 +46,7 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
+//TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
 
     private final IntermediateModel model;
@@ -126,6 +127,7 @@ public class SyncClientClass implements ClassSpec {
 
     private List<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpecs)
                     .flatMap(List::stream)

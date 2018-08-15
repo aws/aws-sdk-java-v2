@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.eventstream;
 
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -63,10 +64,24 @@ public final class EventStreamTaggedUnionJsonUnmarshaller<BaseEventT>
          * @param unmarshaller Unmarshaller of a event subtype.
          * @return This object for method chaining.
          */
-        public Builder addUnmarshaller(String type,
+        public Builder putUnmarshaller(String type,
                                        Unmarshaller<? extends BaseEventT, JsonUnmarshallerContext> unmarshaller) {
             unmarshallers.put(type, unmarshaller);
             return this;
+        }
+
+        /**
+         * Registers a new {@link Unmarshaller} with the given type.
+         *
+         * @param type Value of ':event-type' header this unmarshaller handles.
+         * @param unmarshaller Unmarshaller of a event subtype.
+         * @return This object for method chaining.
+         */
+        @Deprecated
+        @ReviewBeforeRelease("Remove at GA infavor of putUnmarshaller method")
+        public Builder addUnmarshaller(String type,
+                                       Unmarshaller<? extends BaseEventT, JsonUnmarshallerContext> unmarshaller) {
+            return putUnmarshaller(type, unmarshaller);
         }
 
         /**

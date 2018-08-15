@@ -19,6 +19,7 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpRequest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 
@@ -31,19 +32,22 @@ public final class RequestContext {
     private final HttpRequest nettyRequest;
     private final SdkHttpResponseHandler handler;
     private final NettyConfiguration configuration;
+    private final SdkRequestContext sdkRequestContext;
 
     public RequestContext(ChannelPool channelPool,
                           SdkHttpRequest sdkRequest,
                           SdkHttpRequestProvider requestProvider,
                           HttpRequest nettyRequest,
                           SdkHttpResponseHandler handler,
-                          NettyConfiguration configuration) {
+                          NettyConfiguration configuration,
+                          SdkRequestContext sdkRequestContext) {
         this.channelPool = channelPool;
         this.sdkRequest = sdkRequest;
         this.requestProvider = requestProvider;
         this.nettyRequest = nettyRequest;
         this.handler = handler;
         this.configuration = configuration;
+        this.sdkRequestContext = sdkRequestContext;
     }
 
     public SdkHttpResponseHandler handler() {
@@ -68,5 +72,9 @@ public final class RequestContext {
 
     NettyConfiguration configuration() {
         return configuration;
+    }
+
+    public SdkRequestContext sdkRequestContext() {
+        return sdkRequestContext;
     }
 }

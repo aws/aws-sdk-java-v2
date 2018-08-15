@@ -19,10 +19,13 @@ public class RestJsonProtocolMetadataProvider extends BaseJsonProtocolMetadataPr
     public static final long serialVersionUID = 1L;
 
     /**
-     * For Rest-JSON, sending an empty content type is our best option. See TT0059807265.
+     * For Rest-JSON, we used to set empty content type in V1. This is to support a single service having an issue.
+     * See TT0059807265.
+     *
+     * Removing the customization in V2. If the service team still has issue, we can add customization for that specific service.
      */
     @Override
     public String getContentType() {
-        return "";
+        return null;
     }
 }

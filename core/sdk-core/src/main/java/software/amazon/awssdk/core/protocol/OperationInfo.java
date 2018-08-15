@@ -31,6 +31,7 @@ public final class OperationInfo {
     private final String serviceName;
     private final boolean hasExplicitPayloadMember;
     private final boolean hasPayloadMembers;
+    private final boolean hasStreamingInput;
 
     private OperationInfo(Builder builder) {
         this.requestUri = builder.requestUri;
@@ -39,6 +40,7 @@ public final class OperationInfo {
         this.serviceName = builder.serviceName;
         this.hasExplicitPayloadMember = builder.hasExplicitPayloadMember;
         this.hasPayloadMembers = builder.hasPayloadMembers;
+        this.hasStreamingInput = builder.hasStreamingInput;
     }
 
     /**
@@ -89,6 +91,13 @@ public final class OperationInfo {
     }
 
     /**
+     * @return True if the operation has streaming input.
+     */
+    public boolean hasStreamingInput() {
+        return hasStreamingInput;
+    }
+
+    /**
      * @return Builder instance to construct a {@link OperationInfo}.
      */
     public static Builder builder() {
@@ -106,6 +115,7 @@ public final class OperationInfo {
         private String serviceName;
         private boolean hasExplicitPayloadMember;
         private boolean hasPayloadMembers;
+        private boolean hasStreamingInput;
 
         private Builder() {
         }
@@ -137,6 +147,11 @@ public final class OperationInfo {
 
         public Builder hasPayloadMembers(boolean hasPayloadMembers) {
             this.hasPayloadMembers = hasPayloadMembers;
+            return this;
+        }
+
+        public Builder hasStreamingInput(boolean hasStreamingInput) {
+            this.hasStreamingInput = hasStreamingInput;
             return this;
         }
 
