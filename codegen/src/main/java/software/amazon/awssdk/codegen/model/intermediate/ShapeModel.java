@@ -176,10 +176,52 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     }
 
     /**
+     * @return The list of members whose are not marked with either eventheader or eventpayload trait.
+     */
+    @JsonIgnore
+    public List<MemberModel> getUnboundEventMembers() {
+        if (members == null) {
+            return new ArrayList<>();
+        }
+
+        return members.stream()
+                      .filter(m -> !m.isEventHeader())
+                      .filter(m -> !m.isEventPayload())
+                      .collect(Collectors.toList());
+    }
+
+    /**
      * @return True if the shape has an explicit payload member or implicit payload member(s).
      */
     public boolean hasPayloadMembers() {
-        return hasPayloadMember || getUnboundMembers().size() > 0;
+        return hasPayloadMember ||
+               getExplicitEventPayloadMember() != null ||
+               getUnboundMembers().size() > 0 ||
+               getUnboundEventMembers().size() > 0;
+    }
+
+    /**
+     * Explicit event payload member will have "eventpayload" trait set to true.
+     * There can be at most only one member that can be declared as explicit payload.
+     *
+     * @return the member that has the 'eventpayload' trait set to true. If none found, return null.
+     */
+    public MemberModel getExplicitEventPayloadMember() {
+        if (members == null) {
+            return null;
+        }
+
+        return members.stream()
+                      .filter(m -> m.isEventPayload())
+                      .findFirst()
+                      .orElse(null);
+    }
+
+    /**
+     * If all members in shape have eventheader trait, then there is no payload
+     */
+    public boolean hasNoEventPayload() {
+        return members == null || members.stream().allMatch(m -> m.isEventHeader());
     }
 
     public boolean isHasStreamingMember() {

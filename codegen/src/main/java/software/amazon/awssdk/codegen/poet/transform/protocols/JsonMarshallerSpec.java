@@ -43,10 +43,10 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
     private final ShapeModel shapeModel;
     private final PoetExtensions poetExtensions;
 
-    public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeMode) {
+    public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
         this.metadata = model.getMetadata();
         this.poetExtensions = new PoetExtensions(model);
-        this.shapeModel = shapeMode;
+        this.shapeModel = shapeModel;
     }
 
     @Override
@@ -93,7 +93,8 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                                                                     .add("$T.builder()", OperationInfo.class);
         initializationCodeBlockBuilder.add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
                                       .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
-                                      .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember())
+                                      .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
+                                                                            shapeModel.getExplicitEventPayloadMember() != null)
                                       .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
@@ -101,18 +102,18 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                                           .add(".serviceName($S)", metadata.getServiceName());
         }
 
+        if (shapeModel.isHasStreamingMember()) {
+            initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
+        }
+
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
 
-        FieldSpec instance = FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
-                                      .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                                      .initializer(codeBlock)
-                                      .build();
+        FieldSpec.Builder instance = FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
+                                              .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
+                                              .initializer(codeBlock);
 
-        FieldSpec protocolFactory = protocolFactory();
-
-        fields.add(instance);
-        fields.add(protocolFactory);
+        fields.add(instance.build());
+        fields.add(protocolFactory());
         return fields;
     }
-
 }

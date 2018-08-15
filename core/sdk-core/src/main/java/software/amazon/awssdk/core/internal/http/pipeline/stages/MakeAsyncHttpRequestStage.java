@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
+import software.amazon.awssdk.core.internal.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -102,10 +104,13 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
-        AbortableRunnable abortableRunnable = sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext
-                                                                                    .builder().build(),
-                                                                                requestProvider,
-                                                                                handler);
+        AbortableRunnable abortableRunnable = sdkAsyncHttpClient.prepareRequest(
+            requestWithContentLength,
+            SdkRequestContext.builder()
+                             .fullDuplex(isFullDuplex(context.executionAttributes()))
+                             .build(),
+            requestProvider,
+            handler);
 
         // Set the abortable so that the abortable request can be aborted after timeout if timeout is enabled
         completable.abortable(abortableRunnable);
@@ -118,10 +123,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         return completable.completableFuture;
     }
 
+    private boolean isFullDuplex(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX) != null &&
+               executionAttributes.getAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX);
+    }
+
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpRequestProvider requestProvider) {
         if (shouldSetContentLength(request, requestProvider)) {
             return request.toBuilder()
-                          .putHeader("Content-Length", String.valueOf(requestProvider.contentLength()))
+                          .putHeader("Content-Length", String.valueOf(requestProvider.contentLength().get()))
                           .build();
         }
         return request;
@@ -130,6 +140,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private boolean shouldSetContentLength(SdkHttpFullRequest request, SdkHttpRequestProvider requestProvider) {
         return requestProvider != null
                && !request.firstMatchingHeader("Content-Length").isPresent()
+               && requestProvider.contentLength().isPresent()
                // Can cause issues with signing if content length is present for these method
                && request.method() != SdkHttpMethod.GET
                && request.method() != SdkHttpMethod.HEAD;

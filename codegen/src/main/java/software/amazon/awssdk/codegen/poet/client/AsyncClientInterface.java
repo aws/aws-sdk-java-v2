@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 public class AsyncClientInterface implements ClassSpec {
 
     public static final TypeVariableName STREAMING_TYPE_VARIABLE = TypeVariableName.get("ReturnT");
+    protected static final String EVENT_PUBLISHER_PARAM_NAME = "requestStream";
 
     protected final IntermediateModel model;
     protected final ClassName className;
@@ -279,15 +281,21 @@ public class AsyncClientInterface implements ClassSpec {
 
         if (opModel.hasStreamingInput()) {
             builder.addParameter(ClassName.get(AsyncRequestBody.class), "requestBody");
+        } else if (opModel.hasEventStreamInput()) {
+            String eventStreamShapeName = EventStreamUtils.getEventStreamInRequest(opModel.getInputShape())
+                                                          .getShapeName();
+            ClassName shapeClass = ClassName.get(modelPackage, eventStreamShapeName);
+            ParameterizedTypeName requestPublisher = ParameterizedTypeName.get(ClassName.get(Publisher.class), shapeClass);
+            builder.addParameter(requestPublisher, EVENT_PUBLISHER_PARAM_NAME);
         }
+
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
             ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
                 .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
             builder.addParameter(asyncResponseHandlerType, "asyncResponseTransformer");
         } else if (opModel.hasEventStreamOutput()) {
-            ClassName responseHandlerClass = EventStreamUtils.create(poetExtensions, opModel).responseHandlerType();
-            builder.addParameter(responseHandlerClass, "asyncResponseHandler");
+            builder.addParameter(poetExtensions.eventStreamResponseHandlerType(opModel), "asyncResponseHandler");
         }
         return operationBody(builder, opModel).build();
     }

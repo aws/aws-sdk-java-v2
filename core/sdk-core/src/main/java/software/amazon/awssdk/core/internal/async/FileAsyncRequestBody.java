@@ -23,6 +23,7 @@ import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -61,9 +62,9 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public long contentLength() {
+    public Optional<Long> contentLength() {
         try {
-            return Files.size(path);
+            return Optional.of(Files.size(path));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

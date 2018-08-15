@@ -74,6 +74,10 @@ public class MemberModel extends DocumentationModel {
 
     private String beanStyleSetterName;
 
+    private boolean eventPayload;
+
+    private boolean eventHeader;
+
     public String getName() {
         return name;
     }
@@ -274,6 +278,22 @@ public class MemberModel extends DocumentationModel {
         this.deprecated = deprecated;
     }
 
+    public boolean isEventPayload() {
+        return eventPayload;
+    }
+
+    public void setEventPayload(boolean eventPayload) {
+        this.eventPayload = eventPayload;
+    }
+
+    public boolean isEventHeader() {
+        return eventHeader;
+    }
+
+    public void setEventHeader(boolean eventHeader) {
+        this.eventHeader = eventHeader;
+    }
+
     public ListModel getListModel() {
         return listModel;
     }
@@ -448,7 +468,8 @@ public class MemberModel extends DocumentationModel {
     }
 
     public boolean getIsBinary() {
-        return http.getIsStreaming() || (http.getIsPayload() && isSdkBytesType());
+        return http.getIsStreaming() ||
+               (isSdkBytesType() && (http.getIsPayload() || isEventPayload()));
     }
 
     /**

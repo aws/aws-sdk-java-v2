@@ -112,7 +112,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
                                                     sdkRequest, requestProvider,
                                                     requestAdapter.adapt(sdkRequest),
-                                                    handler, configuration);
+                                                    handler, configuration,
+                                                    sdkRequestContext);
         return new RunnableRequest(context);
     }
 

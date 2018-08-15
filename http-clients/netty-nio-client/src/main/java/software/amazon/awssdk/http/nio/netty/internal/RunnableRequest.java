@@ -127,12 +127,18 @@ public final class RunnableRequest implements AbortableRunnable {
                        // Starting read so add the idle read timeout handler, removed when channel is released
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
-                       // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
-                       channel.read();
                    } else {
                        handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
                });
+
+        if (context.sdkRequestContext().fullDuplex()) {
+            channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                               TimeUnit.MILLISECONDS));
+        }
+
+        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
+        channel.read();
     }
 
     private URI endpoint() {

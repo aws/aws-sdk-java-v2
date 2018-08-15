@@ -41,7 +41,7 @@ public interface ProtocolSpec {
     /**
      * Execution handler invocation only differs for protocols that support streaming outputs (REST-JSON, REST-XML).
      */
-    default CodeBlock asyncExecutionHandler(OperationModel opModel) {
+    default CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
         return executionHandler(opModel);
     }
 

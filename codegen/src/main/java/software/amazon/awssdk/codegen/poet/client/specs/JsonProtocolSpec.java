@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
+import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
@@ -38,11 +39,13 @@ import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -106,13 +109,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
     @Override
     public CodeBlock responseHandler(IntermediateModel model, OperationModel opModel) {
         ClassName unmarshaller = getUnmarshallerType(opModel);
-        // TODO for rest-json we need to use the real response handler since response members will be bound to headers, for
-        // aws-json we need to have a dummy response handler since the response members will be in the initial-response
-        // event message
         TypeName pojoResponseType = getPojoResponseType(opModel);
 
-        // TODO remove this once kinesis supports CBOR for event streaming
-        String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
+        String protocolFactory = protocolFactoryLiteral(opModel);
         CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
             responseHandlersForEventStreaming(opModel, unmarshaller, pojoResponseType, protocolFactory, builder);
@@ -133,7 +132,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock errorResponseHandler(OperationModel opModel) {
-        String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
+        String protocolFactory = protocolFactoryLiteral(opModel);
+
         return CodeBlock
             .builder()
             .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L);",
@@ -174,7 +174,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock asyncExecutionHandler(OperationModel opModel) {
+    public CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
+        final boolean isRestJson = isRestJson(intermediateModel);
         TypeName pojoResponseType = getPojoResponseType(opModel);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
@@ -183,7 +184,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                               : "";
         CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
-            ClassName eventStreamBaseClass = EventStreamUtils.create(poetExtensions, opModel).eventStreamBaseClass();
+            ShapeModel shapeModel = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
+            ClassName eventStreamBaseClass = poetExtensions.getModelClassFromShape(shapeModel);
             ParameterizedTypeName transformerType = ParameterizedTypeName.get(
                 ClassName.get(EventStreamAsyncResponseTransformer.class), pojoResponseType, eventStreamBaseClass);
             builder.addStatement("$1T<$2T> future = new $1T<>()",
@@ -202,12 +204,19 @@ public class JsonProtocolSpec implements ProtocolSpec {
                         ClassName.get(EventStreamAsyncResponseTransformer.class),
                         pojoResponseType,
                         eventStreamBaseClass);
+
+            if (isRestJson) {
+                builder.add(restAsyncResponseTransformer(pojoResponseType, eventStreamBaseClass));
+            }
         }
+
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
-        String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
+        String protocolFactory = protocolFactoryLiteral(opModel);
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         builder.add("\n\n$L clientHandler.execute(new $T<$T, $T>()\n" +
                     ".withMarshaller(new $T($L))\n" +
+                    "$L" +
+                    "$L" +
                     ".withResponseHandler($L)\n" +
                     ".withErrorResponseHandler(errorResponseHandler)\n" +
                     asyncRequestBody +
@@ -217,18 +226,61 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     opModel.hasEventStreamOutput() ? "" : "return",
                     ClientExecutionParams.class,
                     requestType,
-                    opModel.hasEventStreamOutput() ? SdkResponse.class : pojoResponseType,
+                    opModel.hasEventStreamOutput() && !isRestJson ? SdkResponse.class : pojoResponseType,
                     marshaller,
                     protocolFactory,
-                    opModel.hasEventStreamOutput() ? "voidResponseHandler" : "responseHandler",
+                    opModel.hasEventStreamInput() ? CodeBlock.builder()
+                                                             .add(".withAsyncRequestBody($T.fromPublisher(adapted))",
+                                                                  AsyncRequestBody.class)
+                                                             .build()
+                                                             .toString()
+                                                  : "",
+                    opModel.hasEventStreamInput() && opModel.hasEventStreamOutput() ? CodeBlock
+                        .builder().add(".withFullDuplex(true)").build() : "",
+                    opModel.hasEventStreamOutput() && !isRestJson ? "voidResponseHandler" : "responseHandler",
                     opModel.getInput().getVariableName(),
-                    isStreaming ? ", asyncResponseTransformer" : "",
+                    asyncResponseTransformerVariable(isStreaming, isRestJson, opModel),
                     whenCompleteBody(opModel, customerResponseHandler));
         if (opModel.hasEventStreamOutput()) {
             builder.addStatement("return future");
         }
         return builder.build();
     }
+
+    private String asyncResponseTransformerVariable(boolean isStreaming, boolean isRestJson, OperationModel opModel) {
+        if (isStreaming) {
+            if (opModel.hasEventStreamOutput() && isRestJson) {
+                return  ", restAsyncResponseTransformer";
+            } else {
+                return  ", asyncResponseTransformer";
+            }
+        }
+        return "";
+    }
+
+    /**
+     * For Rest services, we need to use the {@link RestEventStreamAsyncResponseTransformer} instead of
+     * {@link EventStreamAsyncResponseTransformer} class. This method has the code to create a restAsyncResponseTransformer
+     * variable.
+     *
+     * @param pojoResponseType Type of operation response shape
+     * @param eventStreamBaseClass Class name for the base class of all events in the operation
+     */
+    private CodeBlock restAsyncResponseTransformer(TypeName pojoResponseType, ClassName eventStreamBaseClass) {
+        ParameterizedTypeName restTransformerType = ParameterizedTypeName.get(
+            ClassName.get(RestEventStreamAsyncResponseTransformer.class), pojoResponseType, eventStreamBaseClass);
+        return CodeBlock.builder()
+                        .add("$T restAsyncResponseTransformer = $T.<$T, $T>builder()\n"
+                             + ".eventStreamAsyncResponseTransformer(asyncResponseTransformer)\n"
+                             + ".eventStreamResponseHandler(asyncResponseHandler)\n"
+                             + ".build();",
+                             restTransformerType,
+                             ClassName.get(RestEventStreamAsyncResponseTransformer.class),
+                             pojoResponseType,
+                             eventStreamBaseClass)
+                        .build();
+    }
+
 
     /**
      * For streaming operations we need to notify the response handler or response transformer on exception so
@@ -346,7 +398,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
         return ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
     }
 
-
     /**
      * Add responseHandlers for event streaming operations
      */
@@ -372,8 +423,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     protocolFactory,
                     JsonOperationMetadata.class,
                     VoidJsonUnmarshaller.class);
-        EventStreamUtils eventStreamUtils = EventStreamUtils.create(poetExtensions, opModel);
-        ClassName eventStreamBaseClass = eventStreamUtils.eventStreamBaseClass();
+
+        ShapeModel eventStream = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
+        ClassName eventStreamBaseClass = poetExtensions.getModelClassFromShape(eventStream);
         builder
             .add("\n\n$T<$T> eventResponseHandler = $L.createResponseHandler(new $T()" +
                  "                                   .withPayloadJson($L)" +
@@ -386,15 +438,31 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  true,
                  false,
                  ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
-
-        eventStreamUtils.getEventStreamMembers()
-                        .forEach(m -> {
-                            String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
-                            builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",
-                                        m.getC2jName(),
+        EventStreamUtils.getEvents(eventStream)
+                        .forEach(shape -> {
+                            String unmarshallerClassName = shape.getVariable().getVariableType() + "Unmarshaller";
+                            builder.add(".putUnmarshaller(\"$L\", $T.getInstance())\n",
+                                        shape.getC2jName(),
                                         poetExtensions.getTransformClass(unmarshallerClassName));
                         });
         builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
-                    + ".build());\n", eventStreamUtils.eventStreamBaseClass());
+                    + ".build());\n", eventStreamBaseClass);
+    }
+
+    private String protocolFactoryLiteral(OperationModel opModel) {
+        // TODO Fix once below kinesis TODO is done
+        if (opModel.hasEventStreamInput() && opModel.hasEventStreamOutput()) {
+            return "protocolFactory";
+
+            // TODO remove this once kinesis supports CBOR for event streaming
+        } else if (opModel.hasEventStreamOutput()) {
+            return "jsonProtocolFactory";
+        }
+
+        return "protocolFactory";
+    }
+
+    private boolean isRestJson(IntermediateModel model) {
+        return Protocol.REST_JSON.equals(model.getMetadata().getProtocol());
     }
 }

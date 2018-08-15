@@ -41,6 +41,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private Marshaller<Request<InputT>, InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
+    private boolean fullDuplex;
 
     public Marshaller<Request<InputT>, InputT> getMarshaller() {
         return marshaller;
@@ -87,6 +88,18 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> withAsyncRequestBody(AsyncRequestBody asyncRequestBody) {
         this.asyncRequestBody = asyncRequestBody;
+        return this;
+    }
+
+    public boolean isFullDuplex() {
+        return fullDuplex;
+    }
+
+    /**
+     * Sets whether the API is a full duplex ie, request and response are streamed in parallel.
+     */
+    public ClientExecutionParams<InputT, OutputT> withFullDuplex(boolean fullDuplex) {
+        this.fullDuplex = fullDuplex;
         return this;
     }
 }

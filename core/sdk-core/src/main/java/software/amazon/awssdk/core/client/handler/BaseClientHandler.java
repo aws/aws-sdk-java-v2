@@ -128,7 +128,10 @@ public abstract class BaseClientHandler {
             new SdkErrorResponseHandler(params.getErrorResponseHandler()));
     }
 
-    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
+        ClientExecutionParams<InputT, OutputT> params) {
+
+        SdkRequest originalRequest = params.getInput();
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
                                                                                .filter(c -> c instanceof

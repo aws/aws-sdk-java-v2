@@ -25,7 +25,9 @@ import javax.lang.model.element.Modifier;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 /**
@@ -33,14 +35,16 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
  */
 public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec {
 
-    final EventStreamUtils eventStreamUtils;
+    private final PoetExtensions poetExtensions;
+    private final OperationModel opModel;
     private final ClassName responsePojoType;
     private final ClassName responseHandlerType;
 
-    EventStreamResponseHandlerBuilderInterfaceSpec(EventStreamUtils eventStreamUtils) {
-        this.eventStreamUtils = eventStreamUtils;
-        this.responsePojoType = eventStreamUtils.responsePojoType();
-        this.responseHandlerType = eventStreamUtils.responseHandlerType();
+    public EventStreamResponseHandlerBuilderInterfaceSpec(PoetExtensions poetExt, OperationModel operationModel) {
+        this.poetExtensions = poetExt;
+        this.opModel = operationModel;
+        this.responsePojoType = poetExt.responsePojoType(operationModel);
+        this.responseHandlerType = poetExt.eventStreamResponseHandlerType(operationModel);
     }
 
     @Override
@@ -57,7 +61,10 @@ public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec
     protected TypeSpec.Builder createTypeSpecBuilder() {
         ParameterizedTypeName superBuilderInterface = ParameterizedTypeName.get(
             ClassName.get(EventStreamResponseHandler.class).nestedClass("Builder"),
-            responsePojoType, eventStreamUtils.eventStreamBaseClass(), className());
+            responsePojoType,
+            poetExtensions.getModelClassFromShape(EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape())),
+            className());
+
         return PoetUtils.createInterfaceBuilder(className()).addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                         .addJavadoc("Builder for {@link $1T}. This can be used to create the {@link $1T} in a more "
                                     + "functional way, you may also directly implement the {@link $1T} interface if "
@@ -81,7 +88,7 @@ public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec
             .param("visitor", "Visitor that will be invoked for each incoming event.")
             .returns("This builder for method chaining")
             .build();
-        ClassName visitorInterface = eventStreamUtils.responseHandlerVisitorType();
+        ClassName visitorInterface = poetExtensions.eventStreamResponseHandlerVisitorType(opModel);
         return builder.addModifiers(Modifier.ABSTRACT)
                       .addJavadoc(javadocs,
                                   Publisher.class, visitorInterface, Supplier.class);
@@ -91,12 +98,12 @@ public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec
      * Creates the {@link MethodSpec.Builder} for the 'subscriber' method that may be customized by subclass.
      */
     private MethodSpec.Builder createSubscriberMethodSpecBuilder() {
-        ClassName visitorInterface = eventStreamUtils.responseHandlerVisitorType();
+        ClassName visitorInterface = poetExtensions.eventStreamResponseHandlerVisitorType(opModel);
         return MethodSpec.methodBuilder("subscriber")
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(ParameterSpec.builder(visitorInterface, "visitor")
                                                     .build())
-                         .returns(eventStreamUtils.responseHandlerBuilderType());
+                         .returns(poetExtensions.eventStreamResponseHandlerBuilderType(opModel));
     }
 
     /**
@@ -107,7 +114,7 @@ public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec
     protected MethodSpec.Builder applyBuildMethodSpecUpdates(MethodSpec.Builder builder) {
         return builder.addModifiers(Modifier.ABSTRACT)
                       .addJavadoc("@return A {@link $T} implementation that can be used in the $L API call.",
-                                  responseHandlerType, eventStreamUtils.getApiName());
+                                  responseHandlerType, poetExtensions.getApiName(opModel));
     }
 
     /**
@@ -121,6 +128,6 @@ public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec
 
     @Override
     public ClassName className() {
-        return eventStreamUtils.responseHandlerBuilderType();
+        return poetExtensions.eventStreamResponseHandlerBuilderType(opModel);
     }
 }

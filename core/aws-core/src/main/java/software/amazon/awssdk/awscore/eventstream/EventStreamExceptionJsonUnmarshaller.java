@@ -16,7 +16,9 @@
 package software.amazon.awssdk.awscore.eventstream;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -36,6 +38,7 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
     implements Unmarshaller<T, JsonUnmarshallerContext> {
 
     private static final Logger log = LoggerFactory.getLogger(EventStreamExceptionJsonUnmarshaller.class);
+    private static final List<String> DEFAULT_ERROR_MESSAGE_LOCATIONS = Arrays.asList("message", "Message");
 
     private final Map<String, Unmarshaller<? extends T, JsonUnmarshallerContext>> unmarshallers;
     private final Unmarshaller<? extends T, JsonUnmarshallerContext> defaultUnmarshaller;
@@ -86,7 +89,7 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
     private static String extractErrorMessageFromPayload(JsonUnmarshallerContext context) {
         try {
             do {
-                if (context.testExpression("message", 1)) {
+                if (isErrorMessage(context)) {
                     context.nextToken();
                     return context.getUnmarshaller(String.class).unmarshall(context);
                 }
@@ -98,6 +101,14 @@ public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
             log.info("Could not parse error message from content");
         }
         return null;
+    }
+
+    private static boolean isErrorMessage(JsonUnmarshallerContext context) {
+        return DEFAULT_ERROR_MESSAGE_LOCATIONS.stream()
+                                              .map(m -> context.testExpression(m, 1))
+                                              .filter(Boolean::booleanValue)
+                                              .findAny()
+                                              .isPresent();
     }
 
     public static final class Builder<T extends AwsServiceException> {

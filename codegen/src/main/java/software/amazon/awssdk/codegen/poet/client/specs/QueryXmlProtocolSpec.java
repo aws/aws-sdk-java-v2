@@ -142,7 +142,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock asyncExecutionHandler(OperationModel opModel) {
+    public CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
         ClassName pojoResponseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");

@@ -61,7 +61,8 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     }
 
     @Override
-    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration);
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
+        ClientExecutionParams<InputT, OutputT> executionParams) {
+        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration);
     }
 }

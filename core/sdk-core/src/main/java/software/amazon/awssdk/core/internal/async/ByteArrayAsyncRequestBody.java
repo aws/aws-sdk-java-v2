@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -39,8 +40,8 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public long contentLength() {
-        return bytes.length;
+    public Optional<Long> contentLength() {
+        return Optional.of(Long.valueOf(bytes.length));
     }
 
     @Override

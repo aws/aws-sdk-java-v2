@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.handler;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
@@ -59,7 +60,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
+        ExecutionContext executionContext = createExecutionContext(executionParams);
 
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
@@ -75,7 +76,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
-        ExecutionContext context = createExecutionContext(executionParams.getInput());
+        ExecutionContext context = createExecutionContext(executionParams);
 
         return execute(executionParams, context, new UnmarshallingSdkHttpResponseHandler<>(asyncResponseTransformer, context,
                                                                                            executionParams.getResponseHandler()));
@@ -274,7 +275,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         }
 
         @Override
-        public long contentLength() {
+        public Optional<Long> contentLength() {
             return asyncRequestBody.contentLength();
         }
 
