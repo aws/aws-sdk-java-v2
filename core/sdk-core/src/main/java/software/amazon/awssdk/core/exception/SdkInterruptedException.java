@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkPublicApi
@@ -31,6 +33,13 @@ public final class SdkInterruptedException extends InterruptedException {
 
     public SdkInterruptedException() {
         this.responseStream = null;
+    }
+
+    public SdkInterruptedException(Response<?> response) {
+        this.responseStream = Optional.ofNullable(response)
+                                      .map(Response::httpResponse)
+                                      .map(HttpResponse::getContent)
+                                      .orElse(null);
     }
 
     public SdkInterruptedException(SdkHttpFullResponse response) {

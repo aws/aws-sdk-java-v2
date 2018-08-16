@@ -247,7 +247,8 @@ public class SubscribeToShardUnmarshallingTest {
         }
 
         public AbortableInputStream toInputStream() {
-            return AbortableInputStream.create(new ByteArrayInputStream(baos.toByteArray()));
+            return new AbortableInputStream(new ByteArrayInputStream(baos.toByteArray()), () -> {
+            });
         }
     }
 }

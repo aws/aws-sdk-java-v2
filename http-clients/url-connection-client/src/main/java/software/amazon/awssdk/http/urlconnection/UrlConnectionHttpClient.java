@@ -116,8 +116,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             return SdkHttpFullResponse.builder()
                                       .statusCode(responseCode)
                                       .statusText(connection.getResponseMessage())
-                                      // TODO: Don't ignore abort?
-                                      .content(AbortableInputStream.create(content))
+                                      .content(new AbortableInputStream(content, () -> { /* TODO: Don't ignore abort? */ }))
                                       .headers(extractHeaders(connection))
                                       .build();
         }

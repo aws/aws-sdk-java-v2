@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.core.http;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,27 +29,55 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.unitils.util.ReflectionUtils;
-import software.amazon.awssdk.core.internal.http.Crc32Validation;
+import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.StringInputStream;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
-public class Crc32ValidationTest {
+public class SdkHttpFullResponseAdapterTest {
+
+    private final SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
 
     @Test
-    public void adapt_InputStreamWithNoGzipOrCrc32_NotWrappedWhenAdapted() {
+    public void adapt_SingleHeaderValue_AdaptedCorrectly() throws Exception {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .putHeader("FooHeader", "headerValue")
+                                                              .statusCode(200)
+                                                              .build();
+
+        HttpResponse adapted = adapt(httpResponse);
+
+        assertThat(adapted.getHeader("FooHeader"), equalTo("headerValue"));
+    }
+
+    @Test
+    public void adapt_StatusTextAndStatusCode_AdaptedCorrectly() throws Exception {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusText("OK")
+                                                              .statusCode(200)
+                                                              .build();
+
+        HttpResponse adapted = adapt(httpResponse);
+
+        assertThat(adapted.getStatusText(), equalTo("OK"));
+        assertThat(adapted.getStatusCode(), equalTo(200));
+    }
+
+    @Test
+    public void adapt_InputStreamWithNoGzipOrCrc32_NotWrappedWhenAdapted() throws UnsupportedEncodingException {
         InputStream content = new StringInputStream("content");
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
-                                                              .content(AbortableInputStream.create(content))
+                                                              .content(new AbortableInputStream(content, () -> { }))
                                                               .build();
 
-        SdkHttpFullResponse adapted = adapt(httpResponse);
+        HttpResponse adapted = adapt(httpResponse);
 
-        InputStream in = getField(adapted.content().get(), "in");
-        assertThat(in).isEqualTo(content);
+        assertThat(getField(adapted.getContent(), "in"), equalTo(content));
     }
 
     @Test
@@ -56,13 +86,12 @@ public class Crc32ValidationTest {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
                                                               .putHeader("x-amz-crc32", "1234")
-                                                              .content(AbortableInputStream.create(content))
+                                                              .content(new AbortableInputStream(content, () -> { }))
                                                               .build();
 
-        SdkHttpFullResponse adapted = adapt(httpResponse);
+        HttpResponse adapted = adapt(httpResponse);
 
-        InputStream in = getField(adapted.content().get(), "in");
-        assertThat(in).isInstanceOf((Crc32ChecksumValidatingInputStream.class));
+        assertThat(adapted.getContent(), instanceOf(Crc32ChecksumValidatingInputStream.class));
     }
 
     @Test
@@ -71,11 +100,11 @@ public class Crc32ValidationTest {
             SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                                   .statusCode(200)
                                                                   .putHeader("Content-Encoding", "gzip")
-                                                                  .content(AbortableInputStream.create(content))
+                                                                  .content(new AbortableInputStream(content, () -> {
+                                                                  }))
                                                                   .build();
-            SdkHttpFullResponse adapted = adapt(httpResponse);
-            InputStream in = getField(adapted.content().get(), "in");
-            assertThat(in).isInstanceOf((GZIPInputStream.class));
+            HttpResponse adapted = adapt(httpResponse);
+            assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
         }
     }
 
@@ -86,12 +115,12 @@ public class Crc32ValidationTest {
                                                                   .statusCode(200)
                                                                   .putHeader("Content-Encoding", "gzip")
                                                                   .putHeader("x-amz-crc32", "1234")
-                                                                  .content(AbortableInputStream.create(content))
+                                                                  .content(new AbortableInputStream(content, () -> {
+                                                                  }))
                                                                   .build();
 
-            SdkHttpFullResponse adapted = Crc32Validation.validate(true, httpResponse);
-            InputStream in = getField(adapted.content().get(), "in");
-            assertThat(in).isInstanceOf((GZIPInputStream.class));
+            HttpResponse adapted = SdkHttpResponseAdapter.adapt(true, request, httpResponse);
+            assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
         }
     }
 
@@ -101,12 +130,12 @@ public class Crc32ValidationTest {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
                                                               .putHeader("Content-Encoding", "gzip")
-                                                              .content(AbortableInputStream.create(content))
+                                                              .content(new AbortableInputStream(content, () -> { }))
                                                               .build();
 
-        SdkHttpFullResponse adapted = adapt(httpResponse);
-        InputStream in = getField(adapted.content().get(), "in");
-        assertThat(in).isInstanceOf((GZIPInputStream.class));
+        HttpResponse adapted = adapt(httpResponse);
+
+        assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
     }
 
     @Test
@@ -116,8 +145,8 @@ public class Crc32ValidationTest {
                                                               .putHeader("x-amz-crc32", "1234")
                                                               .build();
 
-        SdkHttpFullResponse adapted = adapt(httpResponse);
-        assertThat(adapted.content().isPresent()).isFalse();
+        HttpResponse adapted = adapt(httpResponse);
+        assertThat(adapted.getContent(), equalTo(null));
     }
 
     @Test
@@ -127,12 +156,12 @@ public class Crc32ValidationTest {
                                                               .putHeader("Content-Encoding", "gzip")
                                                               .build();
 
-        SdkHttpFullResponse adapted = adapt(httpResponse);
-        assertThat(adapted.content().isPresent()).isFalse();
+        HttpResponse adapted = adapt(httpResponse);
+        assertThat(adapted.getContent(), equalTo(null));
     }
 
-    private SdkHttpFullResponse adapt(SdkHttpFullResponse httpResponse) {
-        return Crc32Validation.validate(false, httpResponse);
+    private HttpResponse adapt(SdkHttpFullResponse httpResponse) {
+        return SdkHttpResponseAdapter.adapt(false, request, httpResponse);
     }
 
     @SuppressWarnings("unchecked")

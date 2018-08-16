@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
 
 /**
  * Used effectively as the API to access the context of performing the
@@ -52,7 +52,7 @@ public abstract class JsonUnmarshallerContext {
      * Returns the original HttpResponse constructed for this request. Returns
      * null by default.
      */
-    public SdkHttpFullResponse getHttpResponse() {
+    public HttpResponse getHttpResponse() {
         return null;
     }
 

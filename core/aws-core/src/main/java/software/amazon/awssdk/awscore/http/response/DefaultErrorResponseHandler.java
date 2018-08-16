@@ -28,12 +28,13 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.xml.XpathUtils;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -67,7 +68,7 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
     }
 
     @Override
-    public AwsServiceException handle(SdkHttpFullResponse errorResponse,
+    public AwsServiceException handle(HttpResponse errorResponse,
                                       ExecutionAttributes executionAttributes) throws Exception {
         AwsServiceException exception = createServiceException(errorResponse);
 
@@ -84,16 +85,15 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
                                 .serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
 
         if (awsErrorDetails.errorCode() == null) {
-            awsErrorDetails.errorCode(errorResponse.statusCode() + " " + errorResponse.statusText().orElse(null));
+            awsErrorDetails.errorCode(errorResponse.getStatusCode() + " " + errorResponse.getStatusText());
         }
 
         return exceptionBuilder.awsErrorDetails(awsErrorDetails.build()).build();
     }
 
-    private AwsServiceException createServiceException(SdkHttpFullResponse errorResponse) throws Exception {
-
+    private AwsServiceException createServiceException(HttpResponse errorResponse) throws Exception {
         // Try to parse the error response as XML
-        final Document document = documentFromContent(errorResponse.content().orElse(null), idString(errorResponse));
+        final Document document = documentFromContent(errorResponse.getContent(), idString(errorResponse));
 
         /*
          * We need to select which exception unmarshaller is the correct one to
@@ -106,7 +106,7 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
             AwsServiceException exception = unmarshaller.unmarshall(document);
 
             if (exception != null) {
-                return exception.toBuilder().statusCode(errorResponse.statusCode()).build();
+                return exception.toBuilder().statusCode(errorResponse.getStatusCode()).build();
             }
         }
         return null;
@@ -141,13 +141,18 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
         }
     }
 
-    private String idString(SdkHttpFullResponse errorResponse) {
+    private String idString(HttpResponse errorResponse) {
         StringBuilder idString = new StringBuilder();
         try {
-            //TODO: do we need to add invocation Id here? json error repsonse handler doesn't do that
-            errorResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
-                         .ifPresent(s -> idString.append("Request Id:").append(s));
-
+            errorResponse.getRequest()
+                    .firstMatchingHeader(ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID)
+                    .ifPresent(h -> idString.append("Invocation Id:").append(h));
+            if (errorResponse.getHeaders().containsKey(X_AMZN_REQUEST_ID_HEADER)) {
+                if (idString.length() > 0) {
+                    idString.append(", ");
+                }
+                idString.append("Request Id:").append(errorResponse.getHeaders().get(X_AMZN_REQUEST_ID_HEADER));
+            }
         } catch (NullPointerException npe) {
             log.debug("Error getting Request or Invocation ID from response", npe);
         }

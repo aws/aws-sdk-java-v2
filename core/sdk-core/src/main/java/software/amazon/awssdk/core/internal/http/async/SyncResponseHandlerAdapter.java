@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
@@ -45,16 +46,16 @@ public final class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandl
 
     private final HttpResponseHandler<T> responseHandler;
     private ByteArrayOutputStream baos;
+    private final Function<SdkHttpFullResponse, HttpResponse> httpResponseAdapter;
     private final ExecutionAttributes executionAttributes;
     private SdkHttpFullResponse.Builder httpResponse;
-    private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
 
     public SyncResponseHandlerAdapter(HttpResponseHandler<T> responseHandler,
-                                      Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator,
+                                      Function<SdkHttpFullResponse, HttpResponse> httpResponseAdapter,
                                       ExecutionAttributes executionAttributes) {
         this.responseHandler = responseHandler;
+        this.httpResponseAdapter = httpResponseAdapter;
         this.executionAttributes = executionAttributes;
-        this.crc32Validator = crc32Validator;
     }
 
     @Override
@@ -85,10 +86,10 @@ public final class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandl
             if (baos != null) {
                 // Ignore aborts - we already have all of the content.
                 ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
-                AbortableInputStream abortableContent = AbortableInputStream.create(content);
+                AbortableInputStream abortableContent = new AbortableInputStream(content, () -> { });
                 httpResponse.content(abortableContent);
             }
-            return responseHandler.handle(crc32Validator.apply(httpResponse.build()), executionAttributes);
+            return responseHandler.handle(httpResponseAdapter.apply(httpResponse.build()), executionAttributes);
         } catch (Exception e) {
             throw ThrowableUtils.failure(e);
         }

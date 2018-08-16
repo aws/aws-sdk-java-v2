@@ -85,7 +85,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
 <#if shape.hasStatusCodeMember >
     <#list shape.members as memberModel>
         <#if memberModel.http.isStatusCode() >
-        ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(context.getHttpResponse().statusCode());
+        ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(context.getHttpResponse().getStatusCode());
         </#if>
 
         <#if !memberModel.http.location?? || memberModel.http.location != "headers">

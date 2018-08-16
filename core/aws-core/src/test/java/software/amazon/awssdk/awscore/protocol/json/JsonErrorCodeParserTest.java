@@ -21,10 +21,9 @@ import static org.junit.Assert.assertNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
-import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonErrorCodeParser;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class JsonErrorCodeParserTest {
 
@@ -49,12 +48,14 @@ public class JsonErrorCodeParserTest {
         return new JsonContent(null, node);
     }
 
-    private static SdkHttpFullResponse httpResponseWithoutHeaders() {
-        return ValidSdkObjects.sdkHttpFullResponse().build();
+    private static HttpResponse httpResponseWithoutHeaders() {
+        return new HttpResponse(null);
     }
 
-    private static SdkHttpFullResponse httpResponseWithHeaders(String header, String value) {
-        return ValidSdkObjects.sdkHttpFullResponse().putHeader(header, value).build();
+    private static HttpResponse httpResponseWithHeaders(String header, String value) {
+        HttpResponse response = new HttpResponse(null);
+        response.addHeader(header, value);
+        return response;
     }
 
     @Test

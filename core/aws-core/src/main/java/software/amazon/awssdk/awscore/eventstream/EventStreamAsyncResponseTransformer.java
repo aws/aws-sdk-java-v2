@@ -15,16 +15,12 @@
 
 package software.amazon.awssdk.awscore.eventstream;
 
-import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -43,12 +39,11 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
@@ -283,7 +278,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                                                     EMPTY_EXECUTION_ATTRIBUTES));
                 }
             } else if (isError(m) || isException(m)) {
-                SdkHttpFullResponse errorResponse = adaptMessageToResponse(m, true);
+                HttpResponse errorResponse = adaptMessageToResponse(m, true);
                 Throwable exception = exceptionResponseHandler.handle(
                     errorResponse, new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, serviceName));
                 runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
@@ -318,30 +313,23 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     }
 
     /**
-     * Transforms an event stream message into a {@link SdkHttpFullResponse} so we can reuse our existing generated unmarshallers.
+     * Transforms an event stream message into a {@link HttpResponse} so we can reuse our existing generated unmarshallers.
      *
-     * @param message Message to transform.
+     * @param m Message to transform.
      */
-    private SdkHttpFullResponse adaptMessageToResponse(Message message, boolean isException) {
-
-        Map<String, List<String>> headers =
-            message.getHeaders()
-                   .entrySet()
-                   .stream()
-                   .collect(HashMap::new, (m, e) -> m.put(e.getKey(), singletonList(e.getValue().getString())), Map::putAll);
+    private HttpResponse adaptMessageToResponse(Message m, boolean isException) {
+        HttpResponse response = new HttpResponse(null);
+        response.setContent(new ByteArrayInputStream(m.getPayload()));
+        m.getHeaders().forEach((k, v) -> response.addHeader(k, v.getString()));
 
         if (requestId != null) {
-            headers.put(X_AMZN_REQUEST_ID_HEADER, singletonList(requestId));
+            response.addHeader(X_AMZN_REQUEST_ID_HEADER, requestId);
         }
 
         //TODO: fix the hard-coded status code
-        int statusCode = isException ? 500 : 200;
+        response.setStatusCode(isException ? 500 : 200);
 
-        return SdkHttpFullResponse.builder()
-                                  .content(AbortableInputStream.create(new ByteArrayInputStream(message.getPayload())))
-                                  .headers(headers)
-                                  .statusCode(statusCode)
-                                  .build();
+        return response;
     }
 
     /**

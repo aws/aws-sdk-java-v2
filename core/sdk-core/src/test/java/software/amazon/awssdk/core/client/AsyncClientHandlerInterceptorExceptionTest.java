@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.EmptySdkResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -115,7 +117,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
 
         when(marshaller.marshall(eq(request))).thenReturn(new DefaultRequest<>(null));
 
-        when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
+        when(responseHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(EmptySdkResponse.builder().build());
 
         Answer<AbortableRunnable> prepareRequestAnswer;

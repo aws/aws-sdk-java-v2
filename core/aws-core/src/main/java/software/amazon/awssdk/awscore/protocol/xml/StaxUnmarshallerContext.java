@@ -56,7 +56,7 @@ public final class StaxUnmarshallerContext {
      *            The source of XML events for this unmarshalling context.
      */
     public StaxUnmarshallerContext(XMLEventReader eventReader) {
-        this(eventReader, new HashMap<>());
+        this(eventReader, null);
     }
 
     /**
@@ -69,12 +69,9 @@ public final class StaxUnmarshallerContext {
      *            The set of response headers associated with this unmarshaller
      *            context.
      */
-    public StaxUnmarshallerContext(XMLEventReader eventReader, Map<String, List<String>> headers) {
+    public StaxUnmarshallerContext(XMLEventReader eventReader, Map<String, String> headers) {
         this.eventReader = eventReader;
-
-        this.headers = headers.entrySet().stream()
-                              .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().get(0)),
-                                       Map::putAll);
+        this.headers = headers;
     }
 
     public void setCurrentHeader(String currentHeader) {

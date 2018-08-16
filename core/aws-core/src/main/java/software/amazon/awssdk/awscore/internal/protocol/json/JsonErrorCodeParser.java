@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
 public class JsonErrorCodeParser implements ErrorCodeParser {
@@ -62,7 +62,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      *
      * @return Error Code of exceptional response or null if it can't be determined
      */
-    public String parseErrorCode(SdkHttpFullResponse response, JsonContent jsonContent) {
+    public String parseErrorCode(HttpResponse response, JsonContent jsonContent) {
         String errorCodeFromHeader = parseErrorCodeFromHeader(response);
         if (errorCodeFromHeader != null) {
             return errorCodeFromHeader;
@@ -77,8 +77,8 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * Attempt to parse the error code from the response headers. Returns null if information is not
      * present in the header.
      */
-    private String parseErrorCodeFromHeader(SdkHttpFullResponse response) {
-        Map<String, List<String>> filteredHeaders = response.headers().entrySet().stream()
+    private String parseErrorCodeFromHeader(HttpResponse response) {
+        Map<String, String> filteredHeaders = response.getHeaders().entrySet().stream()
                                                             .filter(e -> errorCodeHeaders.contains(e.getKey()))
                                                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -91,7 +91,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
         }
 
         String headerKey = filteredHeaders.keySet().stream().findFirst().get();
-        String headerValue = filteredHeaders.get(headerKey).get(0);
+        String headerValue = filteredHeaders.get(headerKey);
 
         if (X_AMZN_ERROR_TYPE.equals(headerKey)) {
             return parseErrorCodeFromXAmzErrorType(headerValue);

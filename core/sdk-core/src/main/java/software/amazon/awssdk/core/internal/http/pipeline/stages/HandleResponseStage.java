@@ -25,11 +25,11 @@ import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -40,7 +40,7 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @ReviewBeforeRelease("Should this be broken up? It's doing quite a lot...")
 @SdkInternalApi
-public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFullResponse, Response<OutputT>> {
+public class HandleResponseStage<OutputT> implements RequestPipeline<HttpResponse, Response<OutputT>> {
     private static final Logger log = LoggerFactory.getLogger(HandleResponseStage.class);
 
     private final HttpResponseHandler<OutputT> successResponseHandler;
@@ -53,7 +53,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
     }
 
     @Override
-    public Response<OutputT> execute(SdkHttpFullResponse httpResponse, RequestExecutionContext context) throws Exception {
+    public Response<OutputT> execute(HttpResponse httpResponse, RequestExecutionContext context) throws Exception {
         boolean didRequestFail = true;
         try {
             Response<OutputT> response = handleResponse(httpResponse, context);
@@ -64,7 +64,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         }
     }
 
-    private Response<OutputT> handleResponse(SdkHttpFullResponse httpResponse,
+    private Response<OutputT> handleResponse(HttpResponse httpResponse,
                                              RequestExecutionContext context)
             throws IOException, InterruptedException {
         if (httpResponse.isSuccessful()) {
@@ -83,10 +83,10 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
      * @throws IOException If any problems were encountered reading the response contents from
      *                     the HTTP method object.
      */
-    private OutputT handleSuccessResponse(SdkHttpFullResponse httpResponse, RequestExecutionContext context)
+    private OutputT handleSuccessResponse(HttpResponse httpResponse, RequestExecutionContext context)
             throws IOException, InterruptedException {
         try {
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + httpResponse.statusCode());
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + httpResponse.getStatusCode());
             return successResponseHandler.handle(httpResponse, context.executionAttributes());
         } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
@@ -97,7 +97,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
 
             String errorMessage =
                     "Unable to unmarshall response (" + e.getMessage() + "). Response Code: "
-                    + httpResponse.statusCode() + ", Response Text: " + httpResponse.statusText().orElse(null);
+                    + httpResponse.getStatusCode() + ", Response Text: " + httpResponse.getStatusText();
             throw SdkClientException.builder().message(errorMessage).cause(e).build();
         }
     }
@@ -108,7 +108,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
      *
      * @throws IOException If any problems are encountering reading the error response.
      */
-    private SdkException handleErrorResponse(SdkHttpFullResponse httpResponse,
+    private SdkException handleErrorResponse(HttpResponse httpResponse,
                                              RequestExecutionContext context)
             throws IOException, InterruptedException {
         try {
@@ -121,7 +121,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         } catch (Exception e) {
             String errorMessage = String.format("Unable to unmarshall error response (%s). " +
                                                 "Response Code: %d, Response Text: %s", e.getMessage(),
-                                                httpResponse.statusCode(), httpResponse.statusText().orElse("null"));
+                                                httpResponse.getStatusCode(), httpResponse.getStatusText());
             throw SdkClientException.builder().message(errorMessage).cause(e).build();
         }
     }
@@ -129,12 +129,12 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
     /**
      * Close the input stream if required.
      */
-    private void closeInputStreamIfNeeded(SdkHttpFullResponse httpResponse,
+    private void closeInputStreamIfNeeded(HttpResponse httpResponse,
                                           boolean didRequestFail) {
         // Always close on failed requests. Close on successful unless streaming operation.
         if (didRequestFail || !successResponseHandler.needsConnectionLeftOpen()) {
             Optional.ofNullable(httpResponse)
-                    .flatMap(SdkHttpFullResponse::content) // If no content, no need to close
+                    .map(HttpResponse::getContent) // If no content, no need to close
                     .ifPresent(s -> IoUtils.closeQuietly(s, log));
         }
     }

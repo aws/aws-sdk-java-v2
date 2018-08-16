@@ -29,12 +29,11 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.XmlUtils;
@@ -81,19 +80,20 @@ public final class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
 
     /**
-     * @see HttpResponseHandler#handle(SdkHttpFullResponse, ExecutionAttributes)
+     * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
     @Override
-    public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response XML.");
-
-        InputStream content = response.content().orElse(
-            AbortableInputStream.create(new ByteArrayInputStream("<eof/>".getBytes(StandardCharsets.UTF_8))));
+        InputStream content = response.getContent();
+        if (content == null) {
+            content = new ByteArrayInputStream("<eof/>".getBytes(StandardCharsets.UTF_8));
+        }
 
         XMLEventReader eventReader = XmlUtils.xmlInputFactory().createXMLEventReader(content);
 
         try {
-            StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.headers());
+            StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
             unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
             unmarshallerContext.registerMetadataExpression("requestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
             registerAdditionalMetadataExpressions(unmarshallerContext);
@@ -152,11 +152,10 @@ public final class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      */
     public static <ResponseT extends SdkResponse> HttpResponseHandler<ResponseT> createStreamingResponseHandler(
         Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller) {
-        UnsafeFunction<SdkHttpFullResponse, ResponseT> unmarshallFunction =
-            response -> unmarshallStreaming(unmarshaller, response);
+        UnsafeFunction<HttpResponse, ResponseT> unmarshallFunction = response -> unmarshallStreaming(unmarshaller, response);
         return new HttpResponseHandler<ResponseT>() {
             @Override
-            public ResponseT handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+            public ResponseT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
                 return unmarshallFunction.apply(response);
             }
 
@@ -178,12 +177,12 @@ public final class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      * @throws Exception if error occurs during unmarshalling.
      */
     private static <ResponseT extends SdkResponse> ResponseT unmarshallStreaming(Unmarshaller<ResponseT,
-        StaxUnmarshallerContext> unmarshaller, SdkHttpFullResponse response) throws Exception {
+        StaxUnmarshallerContext> unmarshaller, HttpResponse response) throws Exception {
         // Create a dummy event reader to make unmarshallers happy
         XMLEventReader eventReader = XmlUtils.xmlInputFactory().createXMLEventReader(
             new ByteArrayInputStream("<eof/>".getBytes(StandardCharsets.UTF_8)));
 
-        StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.headers());
+        StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
         unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
         unmarshallerContext.registerMetadataExpression("requestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
 

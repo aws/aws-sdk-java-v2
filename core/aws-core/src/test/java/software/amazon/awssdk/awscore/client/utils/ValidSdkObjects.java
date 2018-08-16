@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.awscore.client.utils;
 
+import java.net.URI;
+import software.amazon.awssdk.core.DefaultRequest;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
@@ -34,8 +36,9 @@ public final class ValidSdkObjects {
                                  .method(SdkHttpMethod.GET);
     }
 
-    public static SdkHttpFullResponse.Builder sdkHttpFullResponse() {
-        return SdkHttpFullResponse.builder()
-                                  .statusCode(200);
+    public static <T> Request<T> legacyRequest() {
+        DefaultRequest<T> request = new DefaultRequest<>("testService");
+        request.setEndpoint(URI.create("http://test.com"));
+        return request;
     }
 }

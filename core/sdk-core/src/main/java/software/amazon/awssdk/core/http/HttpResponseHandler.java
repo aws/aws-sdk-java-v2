@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.http;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Responsible for handling an HTTP response and returning an object of type T.
@@ -48,7 +47,7 @@ public interface HttpResponseHandler<T> {
      */
     @ReviewBeforeRelease("This should not use the legacy HTTP response representation. "
                          + "Also, can it throw something more specific?")
-    T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception;
+    T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception;
 
     /**
      * Indicates if this response handler requires that the underlying HTTP
@@ -57,7 +56,7 @@ public interface HttpResponseHandler<T> {
      * <p>
      * For example, if the object returned by this response handler manually
      * manages the stream of data from the HTTP connection, and doesn't read all
-     * the data from the connection in the {@link #handle(SdkHttpFullResponse, ExecutionAttributes)} method,
+     * the data from the connection in the {@link #handle(HttpResponse, ExecutionAttributes)} method,
      * this method can be used to prevent the underlying connection from being
      * prematurely closed.
      * <p>
