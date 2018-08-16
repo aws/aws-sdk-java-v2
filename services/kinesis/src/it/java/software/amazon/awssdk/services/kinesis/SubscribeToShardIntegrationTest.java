@@ -54,8 +54,8 @@ public class SubscribeToShardIntegrationTest {
     private static final String STREAM_NAME = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
     private static KinesisAsyncClient client;
-    private String consumerArn;
-    private String shardId;
+    private static String consumerArn;
+    private static String shardId;
 
     @BeforeClass
     public static void setupFixture() throws InterruptedException {
@@ -67,13 +67,13 @@ public class SubscribeToShardIntegrationTest {
         String streamARN = client.describeStream(r -> r.streamName(STREAM_NAME)).join()
                                  .streamDescription()
                                  .streamARN();
-        this.shardId = client.listShards(r -> r.streamName(STREAM_NAME))
-                             .join()
-                             .shards().get(0).shardId();
-        this.consumerArn = client.registerStreamConsumer(r -> r.streamARN(streamARN)
-                                                               .consumerName(CONSUMER_NAME)).join()
-                                 .consumer()
-                                 .consumerARN();
+        shardId = client.listShards(r -> r.streamName(STREAM_NAME))
+                        .join()
+                        .shards().get(0).shardId();
+        consumerArn = client.registerStreamConsumer(r -> r.streamARN(streamARN)
+                                                          .consumerName(CONSUMER_NAME)).join()
+                            .consumer()
+                            .consumerARN();
         waitForConsumerToBeActive();
     }
 
@@ -166,21 +166,21 @@ public class SubscribeToShardIntegrationTest {
         }
     }
 
-    private void waitForConsumerToBeActive() throws InterruptedException {
+    private static void waitForConsumerToBeActive() throws InterruptedException {
         waitUntilTrue(() -> ConsumerStatus.ACTIVE == client.describeStreamConsumer(r -> r.consumerARN(consumerArn))
                                                            .join()
                                                            .consumerDescription()
                                                            .consumerStatus());
     }
 
-    private void waitForStreamToBeActive() throws InterruptedException {
+    private static void waitForStreamToBeActive() throws InterruptedException {
         waitUntilTrue(() -> StreamStatus.ACTIVE == client.describeStream(r -> r.streamName(STREAM_NAME))
                                                          .join()
                                                          .streamDescription()
                                                          .streamStatus());
     }
 
-    private void waitUntilTrue(Supplier<Boolean> state) throws InterruptedException {
+    private static void waitUntilTrue(Supplier<Boolean> state) throws InterruptedException {
         int attempt = 0;
         do {
             if (attempt > 10) {
