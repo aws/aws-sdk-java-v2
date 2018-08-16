@@ -135,6 +135,8 @@
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.2</reactive-streams.version>
 
+        <awsflow.version>1.1</awsflow.version>
+
         <!-- Sonar -->
         <root.offset>..</root.offset>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
