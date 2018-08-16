@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,20 +31,16 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
-import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.Record;
 import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.services.kinesis.model.StreamStatus;
@@ -58,14 +53,13 @@ public class SubscribeToShardIntegrationTest {
 
     private static final String STREAM_NAME = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
-    private KinesisAsyncClient client;
+    private static KinesisAsyncClient client;
     private String consumerArn;
     private String shardId;
 
-    @Before
-    public void setup() throws InterruptedException {
+    @BeforeClass
+    public static void setupFixture() throws InterruptedException {
         client = KinesisAsyncClient.builder()
-                                   .region(Region.EU_CENTRAL_1)
                                    .build();
         client.createStream(r -> r.streamName(STREAM_NAME)
                                   .shardCount(1)).join();
@@ -83,8 +77,8 @@ public class SubscribeToShardIntegrationTest {
         waitForConsumerToBeActive();
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDownFixture() {
         client.deleteStream(r -> r.streamName(STREAM_NAME)
                                   .enforceConsumerDeletion(true)).join();
     }
