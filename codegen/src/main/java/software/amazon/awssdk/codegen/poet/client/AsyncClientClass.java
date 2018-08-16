@@ -25,6 +25,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import java.util.concurrent.Executor;
 import javax.lang.model.element.Modifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -60,25 +62,25 @@ public final class AsyncClientClass extends AsyncClientInterface {
     @Override
     public TypeSpec poetSpec() {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
-        Builder classBuilder = PoetUtils.createClassBuilder(className)
-                                        .addAnnotation(SdkInternalApi.class)
-                                        .addModifiers(Modifier.FINAL)
-                                        .addField(FieldSpec.builder(ClassName.get(Logger.class), "log")
-                                                           .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                                                           .initializer("$T.getLogger($T.class)", LoggerFactory.class,
-                                                                        className)
-                                                           .build())
-                                        .addField(AsyncClientHandler.class, "clientHandler", Modifier.PRIVATE, Modifier.FINAL)
-                                        .addField(protocolSpec.protocolFactory(model))
-                                        .addSuperinterface(interfaceClass)
-                                        .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
-                                                    interfaceClass)
-                                        .addMethod(constructor())
-                                        .addMethod(nameMethod())
-                                        .addMethods(operations())
-                                        .addMethod(closeMethod())
-                                        .addMethods(protocolSpec.additionalMethods())
-                                        .addMethod(protocolSpec.initProtocolFactory(model));
+        Builder classBuilder = PoetUtils.createClassBuilder(className);
+        classBuilder.addAnnotation(SdkInternalApi.class)
+                    .addModifiers(Modifier.FINAL)
+                    .addField(FieldSpec.builder(ClassName.get(Logger.class), "log")
+                                       .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                       .initializer("$T.getLogger($T.class)", LoggerFactory.class,
+                                                    className)
+                                       .build())
+                    .addField(AsyncClientHandler.class, "clientHandler", Modifier.PRIVATE, Modifier.FINAL)
+                    .addField(protocolSpec.protocolFactory(model))
+                    .addSuperinterface(interfaceClass)
+                    .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
+                                interfaceClass)
+                    .addMethod(constructor(classBuilder))
+                    .addMethod(nameMethod())
+                    .addMethods(operations())
+                    .addMethod(closeMethod())
+                    .addMethods(protocolSpec.additionalMethods())
+                    .addMethod(protocolSpec.initProtocolFactory(model));
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -88,13 +90,12 @@ public final class AsyncClientClass extends AsyncClientInterface {
         if (model.hasPaginators()) {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
-
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();
     }
 
-    private MethodSpec constructor() {
+    private MethodSpec constructor(Builder classBuilder) {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                                                .addModifiers(Modifier.PROTECTED)
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
@@ -109,7 +110,18 @@ public final class AsyncClientClass extends AsyncClientInterface {
         if (model.getMetadata().isCborProtocol()) {
             builder.addStatement("this.jsonProtocolFactory = init(false)");
         }
+        if (hasOperationWithEventStreamOutput()) {
+            classBuilder.addField(FieldSpec.builder(ClassName.get(Executor.class), "executor",
+                                                    Modifier.PRIVATE, Modifier.FINAL)
+                                           .build());
+            builder.addStatement("this.executor = clientConfiguration.option($T.FUTURE_COMPLETION_EXECUTOR)",
+                                 SdkAdvancedAsyncClientOption.class);
+        }
         return builder.build();
+    }
+
+    private boolean hasOperationWithEventStreamOutput() {
+        return model.getOperations().values().stream().anyMatch(OperationModel::hasEventStreamOutput);
     }
 
     private MethodSpec nameMethod() {

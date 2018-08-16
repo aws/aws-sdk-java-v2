@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
@@ -30,6 +29,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -77,18 +77,18 @@ public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
 
 
     /**
-     * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
+     * @see HttpResponseHandler#handle(SdkHttpFullResponse, ExecutionAttributes)
      */
-    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+    public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
         SdkStandardLogger.REQUEST_ID_LOGGER.debug(() -> X_AMZN_REQUEST_ID_HEADER + " : " +
-                                                        Optional.ofNullable(response.getHeader(X_AMZN_REQUEST_ID_HEADER))
+                                                        response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
                                                                 .orElse("not available"));
 
         JsonParser jsonParser = null;
 
         if (shouldParsePayloadAsJson()) {
-            jsonParser = jsonFactory.createParser(response.getContent());
+            jsonParser = jsonFactory.createParser(response.content().orElse(null));
         }
 
         try {
@@ -100,8 +100,8 @@ public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
 
             // Make sure we read all the data to get an accurate CRC32 calculation.
             // See https://github.com/aws/aws-sdk-java/issues/1018
-            if (shouldParsePayloadAsJson() && response.getContent() != null) {
-                IoUtils.drainInputStream(response.getContent());
+            if (shouldParsePayloadAsJson() && response.content().isPresent()) {
+                IoUtils.drainInputStream(response.content().get());
             }
 
             SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Done parsing service response.");

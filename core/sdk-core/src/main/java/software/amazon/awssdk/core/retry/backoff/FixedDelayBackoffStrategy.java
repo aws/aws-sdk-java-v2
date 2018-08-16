@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.Validate.isNotNegative;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Simple backoff strategy that always uses a fixed delay for the delay before the next retry attempt.
@@ -40,5 +41,31 @@ public final class FixedDelayBackoffStrategy implements BackoffStrategy {
 
     public static FixedDelayBackoffStrategy create(Duration fixedBackoff) {
         return new FixedDelayBackoffStrategy(fixedBackoff);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final FixedDelayBackoffStrategy that = (FixedDelayBackoffStrategy) o;
+
+        return fixedBackoff.equals(that.fixedBackoff);
+    }
+
+    @Override
+    public int hashCode() {
+        return fixedBackoff.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("FixedDelayBackoffStrategy")
+                       .add("fixedBackoff", fixedBackoff)
+                       .build();
     }
 }

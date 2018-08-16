@@ -16,10 +16,15 @@
 package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
 public class JsonErrorCodeParser implements ErrorCodeParser {
@@ -30,6 +35,17 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      */
     public static final String X_AMZN_ERROR_TYPE = "x-amzn-ErrorType";
 
+    static final String ERROR_CODE_HEADER = ":error-code";
+
+    static final String EXCEPTION_TYPE_HEADER = ":exception-type";
+
+    private static final Logger log = LoggerFactory.getLogger(JsonErrorCodeParser.class);
+
+    /**
+     * List of header keys that represent the error code sent by service.
+     * Response should only contain one of these headers
+     */
+    private final List<String> errorCodeHeaders;
     private final String errorCodeFieldName;
 
     public JsonErrorCodeParser() {
@@ -38,6 +54,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
 
     public JsonErrorCodeParser(String errorCodeFieldName) {
         this.errorCodeFieldName = errorCodeFieldName == null ? "__type" : errorCodeFieldName;
+        this.errorCodeHeaders = Arrays.asList(X_AMZN_ERROR_TYPE, ERROR_CODE_HEADER, EXCEPTION_TYPE_HEADER);
     }
 
     /**
@@ -45,8 +62,8 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      *
      * @return Error Code of exceptional response or null if it can't be determined
      */
-    public String parseErrorCode(HttpResponse response, JsonContent jsonContent) {
-        String errorCodeFromHeader = parseErrorCodeFromHeader(response.getHeaders());
+    public String parseErrorCode(SdkHttpFullResponse response, JsonContent jsonContent) {
+        String errorCodeFromHeader = parseErrorCodeFromHeader(response);
         if (errorCodeFromHeader != null) {
             return errorCodeFromHeader;
         } else if (jsonContent != null) {
@@ -60,8 +77,30 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * Attempt to parse the error code from the response headers. Returns null if information is not
      * present in the header.
      */
-    private String parseErrorCodeFromHeader(Map<String, String> httpHeaders) {
-        String headerValue = httpHeaders.get(X_AMZN_ERROR_TYPE);
+    private String parseErrorCodeFromHeader(SdkHttpFullResponse response) {
+        Map<String, List<String>> filteredHeaders = response.headers().entrySet().stream()
+                                                            .filter(e -> errorCodeHeaders.contains(e.getKey()))
+                                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (filteredHeaders.isEmpty()) {
+            return null;
+        }
+
+        if (filteredHeaders.size() > 1) {
+            log.warn("Response contains multiple headers representing the error code: " + filteredHeaders.keySet());
+        }
+
+        String headerKey = filteredHeaders.keySet().stream().findFirst().get();
+        String headerValue = filteredHeaders.get(headerKey).get(0);
+
+        if (X_AMZN_ERROR_TYPE.equals(headerKey)) {
+            return parseErrorCodeFromXAmzErrorType(headerValue);
+        }
+
+        return headerValue;
+    }
+
+    private String parseErrorCodeFromXAmzErrorType(String headerValue) {
         if (headerValue != null) {
             int separator = headerValue.indexOf(':');
             if (separator != -1) {

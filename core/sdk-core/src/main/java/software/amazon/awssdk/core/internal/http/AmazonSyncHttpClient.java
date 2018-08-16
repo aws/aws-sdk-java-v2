@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -36,9 +35,9 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactio
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.Crc32ValidationStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpResponseAdaptingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
@@ -52,6 +51,7 @@ import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTi
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
@@ -193,7 +193,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
 
     private static class NoOpResponseHandler<T> implements HttpResponseHandler<T> {
         @Override
-        public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+        public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
             return null;
         }
 
@@ -269,7 +269,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                              .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                              .then(MakeHttpRequestStage::new)
                                              .then(AfterTransmissionExecutionInterceptorsStage::new)
-                                             .then(HttpResponseAdaptingStage::new)
+                                             .then(Crc32ValidationStage::new)
                                              .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
                                              .then(() -> new HandleResponseStage<>(
                                                  getNonNullResponseHandler(responseHandler),

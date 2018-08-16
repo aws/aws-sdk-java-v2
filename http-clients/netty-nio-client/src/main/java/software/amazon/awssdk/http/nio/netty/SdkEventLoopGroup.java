@@ -118,7 +118,7 @@ public final class SdkEventLoopGroup {
                                                                                 .build());
         return new NioEventLoopGroup(numThreads, threadFactory);
         /*
-        Need to investigate why epoll is raising channel inactive after succesful response that causes
+        Need to investigate why epoll is raising channel inactive after successful response that causes
         problems with retries.
 
         if (Epoll.isAvailable() && isNotAwsLambda()) {

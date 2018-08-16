@@ -109,7 +109,7 @@ public abstract class DynamoDbTypeConverterFactory {
     }
 
     /**
-     * Delegate factory to allow selected types to be overriden.
+     * Delegate factory to allow selected types to be overridden.
      */
     private static class OverrideFactory extends DelegateFactory {
         private final ConverterMap overrides;

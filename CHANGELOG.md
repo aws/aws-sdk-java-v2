@@ -1,15 +1,3 @@
-# __2.0.0__ __2018-08-02__
-## __AWS SDK for Java v2__
-  - ### Features
-    - Add mfa_serial to ProfileProperty
-    - HTTP/2 is now supported as a transport.
-    - Improve logging for debuggability. see `SdkStandardLogger`.
-    - Removed sdk-core dependency from the profiles module. This allows reading from profile files without pulling in the rest of the SDK.
-
-## __Amazon Kinesis__
-  - ### Features
-    - This update introduces SubscribeToShard and RegisterStreamConsumer APIs which allows for retrieving records on a data stream over HTTP2 with enhanced fan-out capabilities. With this new feature the Java SDK now supports event streaming natively which will allow you to define payload and exception structures on the client over a persistent connection. For more information, see Developing Consumers with Enhanced Fan-Out in the Kinesis Developer Guide.
-
 # __2.0.0-preview-11__ __2018-07-30__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -318,7 +306,7 @@
 
   - ### Bugfixes
     - Fixed a bug in default credential provider chain where it would erroneously abort at the ProfileCredentialsProvider. See [Issue #135](https://github.com/aws/aws-sdk-java-v2/issues/135)
-    - Many improvments and fixes to the Netty NIO based transport.
+    - Many improvements and fixes to the Netty NIO based transport.
     - Several fixes around S3's endpoint resolution, particularly with advanced options like path style addressing and accelerate mode. See [Issue #130](https://github.com/aws/aws-sdk-java-v2/issues/130)
     - Several fixes around serialization and deserialization of immutable objects. See [Issue #122](https://github.com/aws/aws-sdk-java-v2/issues/122)
     - Type parameters are now correctly included for [StreamingResponseHandler](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java) on the client interface.
@@ -333,7 +321,7 @@
   - ### Features
     - New pluggable HTTP implementation built on top of Java's HttpUrlConnection. Good choice for simple applications with low throughput requirements. Better cold start latency than the default Apache implementation.
     - Simple convenience methods have been added for operations that require no input parameters.
-    - Substantial improvments to start up time and cold start latencies
+    - Substantial improvements to start up time and cold start latencies
     - The Netty NIO HTTP client now uses a shared event loop group for better resource management. More options for customizing the event loop group are now available.
     - Using java.time instead of the legacy java.util.Date in generated model classes.
     - Various improvements to the immutability of model POJOs. ByteBuffers are now copied and collections are returned as unmodifiable.

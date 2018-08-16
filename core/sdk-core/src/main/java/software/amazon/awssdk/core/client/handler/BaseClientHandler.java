@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.internal.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
@@ -128,7 +127,7 @@ public abstract class BaseClientHandler {
             OutputT sdkResponse = delegate.handle(response, executionAttributes);
 
             return (OutputT) sdkResponse.toBuilder()
-                                        .sdkHttpResponse(DefaultSdkHttpResponse.from(response))
+                                        .sdkHttpResponse(response)
                                         .build();
         };
     }
@@ -180,7 +179,7 @@ public abstract class BaseClientHandler {
     /**
      * Decorate response handlers by running after unmarshalling Interceptors and adding http response metadata.
      */
-    static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
+    <OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
         HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
         return addHttpResponseMetadataResponseHandler(interceptorCallingResponseHandler);

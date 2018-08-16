@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.retry.conditions;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -38,5 +39,31 @@ public final class MaxNumberOfRetriesCondition implements RetryCondition {
 
     public static MaxNumberOfRetriesCondition create(int maxNumberOfRetries) {
         return new MaxNumberOfRetriesCondition(maxNumberOfRetries);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final MaxNumberOfRetriesCondition that = (MaxNumberOfRetriesCondition) o;
+
+        return maxNumberOfRetries == that.maxNumberOfRetries;
+    }
+
+    @Override
+    public int hashCode() {
+        return maxNumberOfRetries;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("MaxNumberOfRetriesCondition")
+                       .add("maxNumberOfRetries", maxNumberOfRetries)
+                       .build();
     }
 }

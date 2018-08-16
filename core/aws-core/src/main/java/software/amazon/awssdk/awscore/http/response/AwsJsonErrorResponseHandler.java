@@ -23,12 +23,12 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
 import software.amazon.awssdk.awscore.internal.protocol.json.ErrorCodeParser;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.JsonErrorResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Implementation of HttpResponseHandler that handles a error response from AWS
@@ -58,7 +58,7 @@ public final class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<
     }
 
     @Override
-    public AwsServiceException handle(HttpResponse response,
+    public AwsServiceException handle(SdkHttpFullResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
 
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
@@ -80,8 +80,8 @@ public final class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<
         }
 
         exception.awsErrorDetails(errorDetails.build());
-        exception.statusCode(response.getStatusCode());
-        exception.requestId(getRequestIdFromHeaders(response.getHeaders()));
+        exception.statusCode(response.statusCode());
+        exception.requestId(getRequestIdFromHeaders(response.headers()));
 
         return exception.build();
     }

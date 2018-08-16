@@ -16,23 +16,24 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Pair;
 
 /**
- * Invoke the {@link ExecutionInterceptor#beforeUnmarshalling} callback to allow for pre-processing on the {@link HttpResponse}
+ * Invoke the {@link ExecutionInterceptor#beforeUnmarshalling} callback to allow for pre-processing on the {@link SdkHttpResponse}
  * before it is handed off to the unmarshaller.
  */
 @SdkInternalApi
 public class BeforeUnmarshallingExecutionInterceptorsStage
-    implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, HttpResponse> {
+    implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, SdkHttpFullResponse> {
 
     @Override
-    public HttpResponse execute(Pair<SdkHttpFullRequest, HttpResponse> input,
+    public SdkHttpFullResponse execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                 RequestExecutionContext context) throws Exception {
         context.interceptorChain().beforeUnmarshalling(context.executionContext().interceptorContext(),
                                                        context.executionAttributes());

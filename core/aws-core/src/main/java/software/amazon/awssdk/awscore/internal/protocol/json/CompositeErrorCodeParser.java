@@ -17,8 +17,8 @@ package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
 public class CompositeErrorCodeParser implements ErrorCodeParser {
@@ -29,7 +29,7 @@ public class CompositeErrorCodeParser implements ErrorCodeParser {
     }
 
     @Override
-    public String parseErrorCode(HttpResponse response, JsonContent jsonContent) {
+    public String parseErrorCode(SdkHttpFullResponse response, JsonContent jsonContent) {
         for (ErrorCodeParser parser : parsers) {
             String errorCode = parser.parseErrorCode(response, jsonContent);
             if (errorCode != null) {

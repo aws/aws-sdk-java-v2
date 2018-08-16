@@ -34,15 +34,18 @@ public class RetryPolicyTest {
     @Mock
     private BackoffStrategy backoffStrategy;
 
-    public void nullRetryCondition_UsesDefaultRetryCondition() {
-        RetryPolicy policy = RetryPolicy.builder().retryCondition(null).backoffStrategy(backoffStrategy).build();
+    @Mock
+    private BackoffStrategy throttlingBackoffStrategy;
 
-        assertThat(policy.toBuilder().retryCondition()).isEqualToComparingFieldByField(RetryCondition.defaultRetryCondition());
-    }
+    @Test
+    public void nullConditionProvided_useDefault() {
+        RetryPolicy policy = RetryPolicy.builder().build();
+        RetryPolicy defaultRetryPolicy = RetryPolicy.defaultRetryPolicy();
 
-    public void nullBackoffStrategy_UsesDefaultBackoffStrategy() {
-        RetryPolicy policy = RetryPolicy.builder().retryCondition(retryCondition).backoffStrategy(backoffStrategy).build();
-        assertThat(policy.toBuilder().backoffStrategy()).isEqualToComparingFieldByField(BackoffStrategy.defaultStrategy());
+        assertThat(policy).isEqualTo(defaultRetryPolicy);
+        assertThat(policy.retryCondition()).isEqualTo(defaultRetryPolicy.retryCondition());
+        assertThat(policy.backoffStrategy()).isEqualTo(BackoffStrategy.defaultStrategy());
+        assertThat(policy.throttlingBackoffStrategy()).isEqualTo(BackoffStrategy.defaultThrottlingStrategy());
     }
 
     @Test
@@ -59,7 +62,22 @@ public class RetryPolicyTest {
         policy.backoffStrategy().computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY);
 
         verify(backoffStrategy).computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY);
-
     }
 
+    @Test
+    public void throttlingDelay_delegatesToThrottlingBackoffStrategy() {
+        RetryPolicy policy = RetryPolicy.builder().throttlingBackoffStrategy(throttlingBackoffStrategy).build();
+        policy.throttlingBackoffStrategy().computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY);
+        verify(throttlingBackoffStrategy).computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY);
+    }
+
+    @Test
+    public void nonRetryPolicy_shouldUseNullCondition() {
+        RetryPolicy noneRetry = RetryPolicy.none();
+
+        assertThat(noneRetry.retryCondition().shouldRetry(RetryPolicyContext.builder().build())).isFalse();
+        assertThat(noneRetry.numRetries()).isZero();
+        assertThat(noneRetry.backoffStrategy()).isEqualTo(BackoffStrategy.none());
+        assertThat(noneRetry.throttlingBackoffStrategy()).isEqualTo(BackoffStrategy.none());
+    }
 }

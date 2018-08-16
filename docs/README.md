@@ -1,7 +1,10 @@
 # AWS SDK for Java 2.0 Docs
 
+## 1.11 to 2.0 Changelog
+- [Launch Changelog](LaunchChangelog.md)
+
 ## New Contributions
-[GettingStarted](GettingStarted.md)
+- [Getting Started](GettingStarted.md)
 
 ## Style Conventions
 - [Client Configuration](ClientConfiguraion.md)

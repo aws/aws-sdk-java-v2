@@ -20,13 +20,13 @@ import static java.util.Collections.singletonList;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
 public final class RetryHandler {
@@ -47,7 +47,7 @@ public final class RetryHandler {
         this.retryCapacity = retryCapacity;
     }
 
-    public boolean shouldRetry(HttpResponse httpResponse,
+    public boolean shouldRetry(SdkHttpFullResponse httpResponse,
                                SdkHttpFullRequest request,
                                RequestExecutionContext context,
                                SdkException exception,
@@ -70,7 +70,7 @@ public final class RetryHandler {
                                                     .exception(exception)
                                                     .retriesAttempted(retriesAttempted)
                                                     .executionAttributes(context.executionAttributes())
-                                                    .httpStatusCode(httpResponse == null ? null : httpResponse.getStatusCode())
+                                                    .httpStatusCode(httpResponse == null ? null : httpResponse.statusCode())
                                                     .build();
         // Finally, pass all the context information to the RetryCondition and let it decide whether it should be retried.
         if (!retryPolicy.retryCondition().shouldRetry(retryPolicyContext)) {
