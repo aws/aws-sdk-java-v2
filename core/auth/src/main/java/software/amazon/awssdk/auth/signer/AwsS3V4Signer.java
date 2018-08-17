@@ -220,9 +220,9 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
      */
     private boolean isPayloadSigningEnabled(SdkHttpFullRequest.Builder request, AwsS3V4SignerParams signerParams) {
         /**
-         * If we aren't using https we should always sign the payload.
+         * If we aren't using https we should always sign the payload unless there is no payload
          */
-        if (!request.protocol().equals("https")) {
+        if (!request.protocol().equals("https") && request.content() != null) {
             return true;
         }
 
