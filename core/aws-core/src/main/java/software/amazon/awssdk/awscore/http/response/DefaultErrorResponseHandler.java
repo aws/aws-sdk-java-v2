@@ -144,7 +144,6 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
     private String idString(SdkHttpFullResponse errorResponse) {
         StringBuilder idString = new StringBuilder();
         try {
-            //TODO: do we need to add invocation Id here? json error repsonse handler doesn't do that
             errorResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
                          .ifPresent(s -> idString.append("Request Id:").append(s));
 
