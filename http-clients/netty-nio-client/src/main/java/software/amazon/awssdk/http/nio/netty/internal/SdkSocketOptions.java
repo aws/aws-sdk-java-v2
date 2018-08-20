@@ -27,9 +27,8 @@ public class SdkSocketOptions {
     private Map<ChannelOption, Object> options;
 
     public SdkSocketOptions() {
-        options = new HashMap<ChannelOption, Object>() {{
-            put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
-        }};
+        options = new HashMap<>();
+        options.put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
     }
 
     public <T> SdkSocketOptions addOption(ChannelOption<T> channelOption, T channelOptionValue) {
