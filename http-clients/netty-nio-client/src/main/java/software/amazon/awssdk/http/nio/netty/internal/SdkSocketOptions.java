@@ -20,14 +20,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 @SdkInternalApi
 public class SdkSocketOptions {
 
     private Map<ChannelOption, Object> options;
-    
+
     public SdkSocketOptions() {
-        options = new HashMap<>();
+        options = new HashMap<ChannelOption, Object>() {{
+            put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
+        }};
     }
 
     public <T> SdkSocketOptions addOption(ChannelOption<T> channelOption, T channelOptionValue) {
@@ -37,7 +40,6 @@ public class SdkSocketOptions {
     }
 
     public Set<Map.Entry<ChannelOption, Object>> getSocketOptions() {
-        options.put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
         return options.entrySet();
     }
 }
