@@ -1,4 +1,5 @@
-# AWS SDK for Java 2.0 Developer Preview [![Build Status](https://travis-ci.org/aws/aws-sdk-java-v2.svg?branch=master)](https://travis-ci.org/aws/aws-sdk-java-v2)
+# AWS SDK for Java 2.0 Developer Preview 
+[![Build Status](https://travis-ci.org/aws/aws-sdk-java-v2.svg?branch=master)](https://travis-ci.org/aws/aws-sdk-java-v2) ![Build Status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTFJSRXBBN1hkU1ZEQzZ4M1hoaWlFUExuNER3WjNpVllSQ09Qam1YdFlTSDNTd3RpZzNia3F0VkJRUTBwZlQwR1BEelpSV2dWVnp4YTBCOFZKRzRUR004PSIsIml2UGFyYW1ldGVyU3BlYyI6ImdHdEp1UHhKckpDRmhmQU4iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
 
 The **AWS SDK for Java 2.0 Developer Preview** is a rewrite of 1.0 with some great new features. As with version 1.0,
 it enables you to easily work with [Amazon Web Services][aws] but also includes features like non-blocking IO and pluggable
