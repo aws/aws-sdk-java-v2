@@ -1,0 +1,6 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+    - mvn clean install -Dmaven.wagon.httpconnectionManager.maxPerRoute=2
