@@ -41,7 +41,6 @@ public class SdkChannelOptionsTest {
         Map<ChannelOption, Object> expectedOptions = new HashMap<>();
         expectedOptions.put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
         expectedOptions.put(ChannelOption.SO_LINGER, 0);
-
         assertEquals(expectedOptions, channelOptions.channelOptions());
     }
 }
