@@ -16,28 +16,28 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.ChannelOption;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
-public class SdkSocketOptions {
+@SdkProtectedApi
+public class SdkChannelOptions {
 
     private Map<ChannelOption, Object> options;
 
-    public SdkSocketOptions() {
+    public SdkChannelOptions() {
         options = new HashMap<>();
         options.put(ChannelOption.TCP_NODELAY, Boolean.TRUE);
     }
 
-    public <T> SdkSocketOptions addOption(ChannelOption<T> channelOption, T channelOptionValue) {
+    public <T> SdkChannelOptions putOption(ChannelOption<T> channelOption, T channelOptionValue) {
         channelOption.validate(channelOptionValue);
         options.put(channelOption, channelOptionValue);
         return this;
     }
 
-    public Set<Map.Entry<ChannelOption, Object>> getSocketOptions() {
-        return options.entrySet();
+    public Map<ChannelOption, Object> channelOptions() {
+        return Collections.unmodifiableMap(options);
     }
 }
