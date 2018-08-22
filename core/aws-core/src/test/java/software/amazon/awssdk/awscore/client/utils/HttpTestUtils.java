@@ -56,7 +56,7 @@ public class HttpTestUtils {
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
                                      .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
-                                     .option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
+                                     .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
                                      .build();
     }
 

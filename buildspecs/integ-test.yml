@@ -1,0 +1,6 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+    - mvn clean verify -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -pl !:dynamodbmapper-v1 -Dfailsafe.rerunFailingTestsCount=1 -Dmaven.wagon.httpconnectionManager.maxPerRoute=2

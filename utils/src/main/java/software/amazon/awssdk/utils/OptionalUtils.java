@@ -51,4 +51,12 @@ public final class OptionalUtils {
 
         return Optional.empty();
     }
+
+    public static <T> Optional<T> firstPresent(Optional<T> firstValue, Supplier<T> fallbackValue) {
+        if (firstValue.isPresent()) {
+            return firstValue;
+        }
+
+        return Optional.ofNullable(fallbackValue.get());
+    }
 }

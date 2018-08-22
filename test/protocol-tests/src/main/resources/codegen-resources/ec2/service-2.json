@@ -6,6 +6,7 @@
     "protocol":"ec2",
     "serviceAbbreviation":"AmazonProtocolEc2",
     "serviceFullName":"AWS DR Tools EC2 Protocol Tests",
+    "serviceId":"AmazonProtocolEc2",
     "signatureVersion":"v4",
     "timestampFormat":"unixTimestamp"
   },

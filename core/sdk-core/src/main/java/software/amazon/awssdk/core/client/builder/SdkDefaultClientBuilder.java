@@ -20,11 +20,13 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -216,7 +218,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeAsyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .option(FUTURE_COMPLETION_EXECUTOR, resolveAsyncFutureCompletionExecutor(config))
-                     .option(ASYNC_RETRY_EXECUTOR_SERVICE, resolveAsyncRetryExecutorService())
                      .option(ASYNC_HTTP_CLIENT, resolveAsyncHttpClient(config))
                      .build();
     }
@@ -226,6 +227,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
+                     .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService())
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .build();
     }
@@ -275,10 +277,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize which async executor service will be used for retries in the created client.
+     * Finalize which scheduled executor service will be used for retries in the created client.
      */
-    private ScheduledExecutorService resolveAsyncRetryExecutorService() {
-        return Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().threadNamePrefix("sdk-retry").build());
+    private ScheduledExecutorService resolveScheduledExecutorService() {
+        return Executors.newScheduledThreadPool(5, new ThreadFactoryBuilder()
+            .threadNamePrefix("sdk-ScheduledExecutor").build());
     }
 
     /**
@@ -316,6 +319,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(SIGNER, overrideConfig.advancedOption(SIGNER).orElse(null));
         clientConfiguration.option(USER_AGENT_SUFFIX, overrideConfig.advancedOption(USER_AGENT_SUFFIX).orElse(null));
         clientConfiguration.option(USER_AGENT_PREFIX, overrideConfig.advancedOption(USER_AGENT_PREFIX).orElse(null));
+        clientConfiguration.option(API_CALL_TIMEOUT, overrideConfig.apiCallTimeout().orElse(null));
+        clientConfiguration.option(API_CALL_ATTEMPT_TIMEOUT, overrideConfig.apiCallAttemptTimeout().orElse(null));
         return thisBuilder();
     }
 

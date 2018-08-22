@@ -41,7 +41,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQuer
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
-import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -57,7 +56,6 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
 
     public AmazonAsyncHttpClient(SdkClientConfiguration clientConfiguration) {
         this.httpClientDependencies = HttpClientDependencies.builder()
-                                                            .clientExecutionTimer(new ClientExecutionTimer())
                                                             .clientConfiguration(clientConfiguration)
                                                             .capacityManager(createCapacityManager())
                                                             .build();

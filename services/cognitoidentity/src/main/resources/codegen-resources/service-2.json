@@ -7,6 +7,7 @@
     "protocol":"json",
     "serviceFullName":"Amazon Cognito Identity",
     "signatureVersion":"v4",
+    "serviceId": "Cognito Identity",
     "targetPrefix":"AWSCognitoIdentityService",
     "uid":"cognito-identity-2014-06-30"
   },

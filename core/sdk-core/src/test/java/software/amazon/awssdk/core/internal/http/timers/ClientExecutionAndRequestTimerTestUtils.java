@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.http.timers;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.Collections;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.signer.NoOpSigner;
@@ -47,13 +45,6 @@ public class ClientExecutionAndRequestTimerTestUtils {
      * Can take a little bit for ScheduledThreadPoolExecutor to update it's internal state
      */
     private static final int WAIT_BEFORE_ASSERT_ON_EXECUTOR = 500;
-
-    /**
-     * Assert that the executor backing {@link ClientExecutionTimer} was never created or used
-     */
-    public static void assertClientExecutionTimerExecutorNotCreated(ClientExecutionTimer clientExecutionTimer) {
-        assertNull(clientExecutionTimer.getExecutor());
-    }
 
     /**
      * Waits until a little after the thread pools keep alive time and then asserts that all thre
@@ -88,11 +79,6 @@ public class ClientExecutionAndRequestTimerTestUtils {
      */
     public static void assertTimerNeverTriggered(ScheduledThreadPoolExecutor timerExecutor) {
         assertNumberOfTasksTriggered(timerExecutor, 0);
-    }
-
-    public static void assertNumberOfTasksTriggered(ClientExecutionTimer clientExecutionTimer,
-                                                    int expectedNumberOfTasks) {
-        assertNumberOfTasksTriggered(clientExecutionTimer.getExecutor(), expectedNumberOfTasks);
     }
 
     private static void assertNumberOfTasksTriggered(ScheduledThreadPoolExecutor timerExecutor,
@@ -153,5 +139,4 @@ public class ClientExecutionAndRequestTimerTestUtils {
             }
         }.start();
     }
-
 }

@@ -5,6 +5,7 @@
     "endpointPrefix":"iot",
     "protocol":"rest-json",
     "serviceFullName":"AWS IoT",
+    "serviceId" : "IoT",
     "signatureVersion":"v4",
     "signingName":"execute-api",
     "uid":"iot-2015-05-28"

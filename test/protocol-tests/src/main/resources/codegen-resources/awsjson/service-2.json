@@ -7,6 +7,7 @@
     "protocol":"json",
     "serviceAbbreviation":"AmazonProtocolJsonRpc",
     "serviceFullName":"AWS DR Tools JSON Protocol Tests",
+    "serviceId":"AmazonProtocolJsonRpc",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsJsonRpcService",
     "timestampFormat":"unixTimestamp"

@@ -6,6 +6,7 @@
     "jsonVersion":"1.1",
     "protocol":"json",
     "serviceFullName":"AWS CodeBuild",
+    "serviceId": "CodeBuild",
     "signatureVersion":"v4",
     "targetPrefix":"CodeBuild_20161006",
     "uid":"codebuild-2016-10-06"

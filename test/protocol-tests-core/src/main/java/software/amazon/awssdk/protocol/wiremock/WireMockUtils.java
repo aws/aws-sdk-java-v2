@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocol.wiremock;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -22,6 +24,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.util.List;
@@ -56,5 +59,9 @@ public final class WireMockUtils {
         List<LoggedRequest> requests = findAll(
                 new RequestPatternBuilder(RequestMethod.ANY, urlMatching(".*")));
         return requests;
+    }
+
+    public static void verifyRequestCount(int expectedCount, WireMockRule wireMock) {
+        wireMock.verify(expectedCount, anyRequestedFor(anyUrl()));
     }
 }

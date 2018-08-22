@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,15 +36,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
-import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.Record;
 import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.services.kinesis.model.StreamStatus;
@@ -56,7 +51,7 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHan
 
 public class SubscribeToShardIntegrationTest {
 
-    private static final String STREAM_NAME = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
+    private String streamName;
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
     private KinesisAsyncClient client;
     private String consumerArn;
@@ -64,16 +59,17 @@ public class SubscribeToShardIntegrationTest {
 
     @Before
     public void setup() throws InterruptedException {
+        streamName = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
         client = KinesisAsyncClient.builder()
                                    .region(Region.EU_CENTRAL_1)
                                    .build();
-        client.createStream(r -> r.streamName(STREAM_NAME)
+        client.createStream(r -> r.streamName(streamName)
                                   .shardCount(1)).join();
         waitForStreamToBeActive();
-        String streamARN = client.describeStream(r -> r.streamName(STREAM_NAME)).join()
+        String streamARN = client.describeStream(r -> r.streamName(streamName)).join()
                                  .streamDescription()
                                  .streamARN();
-        this.shardId = client.listShards(r -> r.streamName(STREAM_NAME))
+        this.shardId = client.listShards(r -> r.streamName(streamName))
                              .join()
                              .shards().get(0).shardId();
         this.consumerArn = client.registerStreamConsumer(r -> r.streamARN(streamARN)
@@ -85,7 +81,7 @@ public class SubscribeToShardIntegrationTest {
 
     @After
     public void tearDown() {
-        client.deleteStream(r -> r.streamName(STREAM_NAME)
+        client.deleteStream(r -> r.streamName(streamName)
                                   .enforceConsumerDeletion(true)).join();
     }
 
@@ -180,7 +176,7 @@ public class SubscribeToShardIntegrationTest {
     }
 
     private void waitForStreamToBeActive() throws InterruptedException {
-        waitUntilTrue(() -> StreamStatus.ACTIVE == client.describeStream(r -> r.streamName(STREAM_NAME))
+        waitUntilTrue(() -> StreamStatus.ACTIVE == client.describeStream(r -> r.streamName(streamName))
                                                          .join()
                                                          .streamDescription()
                                                          .streamStatus());
@@ -209,7 +205,7 @@ public class SubscribeToShardIntegrationTest {
         try {
             SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(50));
             client.putRecord(PutRecordRequest.builder()
-                                             .streamName(STREAM_NAME)
+                                             .streamName(streamName)
                                              .data(data)
                                              .partitionKey(UUID.randomUUID().toString())
                                              .build())
