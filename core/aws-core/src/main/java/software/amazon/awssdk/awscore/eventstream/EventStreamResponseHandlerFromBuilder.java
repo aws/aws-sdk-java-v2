@@ -69,7 +69,7 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
     }
 
     @Override
-    public void exceptionOccurred(Throwable throwable) {
+    public void onError(Throwable throwable) {
         errorConsumer.accept(throwable);
     }
 

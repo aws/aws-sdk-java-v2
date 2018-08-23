@@ -288,7 +288,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private String streamingOutputWhenComplete(String responseHandlerName) {
         return String.format(".whenComplete((r, e) -> {%n"
                              + "     if (e != null) {%n"
-                             + "         %s.exceptionOccurred(e);%n"
+                             + "         %s.onError(e);%n"
                              + "     }%n"
                              + "})", responseHandlerName);
     }
@@ -306,7 +306,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         return String.format(".whenComplete((r, e) -> {%n"
                              + "     if (e != null) {%n"
                              + "         try {"
-                             + "             %s.exceptionOccurred(e);%n"
+                             + "             %s.onError(e);%n"
                              + "         } finally {"
                              + "             future.completeExceptionally(e);"
                              + "         }"

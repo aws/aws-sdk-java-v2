@@ -13,21 +13,35 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.async;
+package software.amazon.awssdk.core.async;
 
-import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * A {@link Publisher} of HTTP content data that allows streaming operations for asynchronous HTTP clients.
+ * Requests elements from a subscriber until the subscription is completed.
  */
 @SdkProtectedApi
-public interface SdkHttpRequestProvider extends Publisher<ByteBuffer> {
+public class DrainingSubscriber<T> implements Subscriber<T> {
+    private Subscription subscription;
 
-    /**
-     * @return The content length of the data being produced.
-     */
-    long contentLength();
+    @Override
+    public void onSubscribe(Subscription subscription) {
+        this.subscription = subscription;
+        subscription.request(Long.MAX_VALUE);
+    }
 
+    @Override
+    public void onNext(T t) {
+        subscription.request(1);
+    }
+
+    @Override
+    public void onError(Throwable throwable) {
+    }
+
+    @Override
+    public void onComplete() {
+    }
 }

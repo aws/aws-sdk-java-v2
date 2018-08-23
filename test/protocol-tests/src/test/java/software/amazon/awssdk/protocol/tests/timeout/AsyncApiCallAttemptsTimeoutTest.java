@@ -250,14 +250,27 @@ public class AsyncApiCallAttemptsTimeoutTest {
             this.delegate = AsyncResponseTransformer.toBytes();
         }
 
+        @Override
+        public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
+            return delegate.prepare()
+                    .thenApply(r -> {
+                        try {
+                            Thread.sleep(1_000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        return r;
+                    });
+        }
+
         public int currentCallCount() {
             return callCount.get();
         }
 
         @Override
-        public void responseReceived(ResponseT response) {
+        public void onResponse(ResponseT response) {
             callCount.incrementAndGet();
-            delegate.responseReceived(response);
+            delegate.onResponse(response);
         }
 
         @Override
@@ -266,18 +279,8 @@ public class AsyncApiCallAttemptsTimeoutTest {
         }
 
         @Override
-        public void exceptionOccurred(Throwable throwable) {
-            delegate.exceptionOccurred(throwable);
-        }
-
-        @Override
-        public ResponseBytes<ResponseT> complete() {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return delegate.complete();
+        public void onError(Throwable throwable) {
+            delegate.onError(throwable);
         }
     }
 }

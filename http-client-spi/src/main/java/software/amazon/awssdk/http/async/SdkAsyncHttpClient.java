@@ -15,55 +15,44 @@
 
 package software.amazon.awssdk.http.async;
 
+import java.util.concurrent.CompletableFuture;
+
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.ConfigurationProvider;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Interface to take a representation of an HTTP request, asynchronously make an HTTP call, and return a representation of an
- * HTTP response.
- *
- * <p>Implementations MUST be thread safe.</p>
- *
- * <p><b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b></p>
- */
+* Interface to take a representation of an HTTP request, asynchronously make an HTTP call, and return a representation of an
+* HTTP response.
+*
+* <p>Implementations MUST be thread safe.</p>
+*
+* <p><b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b></p>
+*/
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
 public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvider {
-    /**
-     * Create an {@link AbortableRunnable} that can be used to execute the HTTP request.
-     *
-     * @param request         HTTP request (without content).
-     * @param context         Request context containing additional dependencies.
-     * @param requestProvider Representation of an HTTP requestProvider.
-     * @param handler         The handler that will be called when data is received.
-     * @return Task that can execute an HTTP requestProvider and can be aborted.
-     */
-    @ReviewBeforeRelease("Should we wrap this in a container for more flexibility?")
-    AbortableRunnable prepareRequest(SdkHttpRequest request,
-                                     SdkRequestContext context,
-                                     SdkHttpRequestProvider requestProvider,
-                                     SdkHttpResponseHandler handler);
 
     /**
-     * Interface for creating an {@link SdkAsyncHttpClient} with service specific defaults applied.
+     * Execute the request.
      *
-     * <p>Implementations must be thread safe.</p>
+     * @param request The request object.
+     *
+     * @return The future holding the result of the request execution. Upon success execution of the request, the future is
+     * completed with {@code null}, otherwise it is completed exceptionally.
      */
+    CompletableFuture<Void> execute(AsyncExecuteRequest request);
+
     @FunctionalInterface
     interface Builder<T extends SdkAsyncHttpClient.Builder<T>> extends SdkBuilder<T, SdkAsyncHttpClient> {
         /**
-         * Create a {@link SdkAsyncHttpClient} without defaults applied. This is useful for reusing an HTTP client across multiple
-         * services.
+         * Create a {@link SdkAsyncHttpClient} without defaults applied. This is useful for reusing an HTTP client across
+         * multiple services.
          */
         default SdkAsyncHttpClient build() {
             return buildWithDefaults(AttributeMap.empty());
@@ -73,8 +62,8 @@ public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvi
          * Create an {@link SdkAsyncHttpClient} with service specific defaults applied. Applying service defaults is optional
          * and some options may not be supported by a particular implementation.
          *
-         * @param serviceDefaults Service specific defaults. Keys will be one of the constants defined in
-         *                        {@link SdkHttpConfigurationOption}.
+         * @param serviceDefaults Service specific defaults. Keys will be one of the constants defined in {@link
+         *                        SdkHttpConfigurationOption}.
          * @return Created client
          */
         SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults);

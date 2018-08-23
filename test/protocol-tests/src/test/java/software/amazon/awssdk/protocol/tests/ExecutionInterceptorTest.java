@@ -37,6 +37,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -535,10 +536,17 @@ public class ExecutionInterceptorTest {
 
     private static class NoOpAsyncResponseTransformer
             implements AsyncResponseTransformer<StreamingOutputOperationResponse, Object> {
-        private StreamingOutputOperationResponse response;
+        private volatile StreamingOutputOperationResponse response;
+        private volatile CompletableFuture<Object> cf;
 
         @Override
-        public void responseReceived(StreamingOutputOperationResponse response) {
+        public CompletableFuture<Object> prepare() {
+            cf = new CompletableFuture<>();
+            return cf;
+        }
+
+        @Override
+        public void onResponse(StreamingOutputOperationResponse response) {
             this.response = response;
         }
 
@@ -565,22 +573,15 @@ public class ExecutionInterceptorTest {
 
                 @Override
                 public void onComplete() {
-
+                    cf.complete(response);
                 }
             });
         }
 
         @Override
-        public void exceptionOccurred(Throwable throwable) {
+        public void onError(Throwable throwable) {
             throwable.printStackTrace();
-        }
-
-        @Override
-        public Object complete() {
-            // TODO: If I throw an exception here, the future isn't completed exceptionally.
-            // TODO: We have to return "response" here. We should verify other response types are cool once we switch this off of
-            // being the unmarshaller
-            return response;
+            cf.completeExceptionally(throwable);
         }
     }
 }

@@ -46,7 +46,6 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -115,11 +114,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     private volatile boolean isDone = false;
 
     /**
-     * Holds a reference to any exception delivered to exceptionOccurred.
-     */
-    private final AtomicReference<Throwable> error = new AtomicReference<>();
-
-    /**
      * Executor to deliver events to the subscriber
      */
     private final Executor executor;
@@ -161,6 +155,8 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private String requestId = null;
 
+    private CompletableFuture<Void> transformFuture;
+
     @Deprecated
     @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
     public EventStreamAsyncResponseTransformer(
@@ -191,7 +187,13 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     }
 
     @Override
-    public void responseReceived(SdkResponse response) {
+    public CompletableFuture<Void> prepare() {
+        transformFuture = new CompletableFuture<>();
+        return transformFuture;
+    }
+
+    @Override
+    public void onResponse(SdkResponse response) {
         // We use a void unmarshaller and unmarshall the actual response in the message
         // decoder when we receive the initial-response frame. TODO not clear
         // how we would handle REST protocol which would unmarshall the response from the HTTP headers
@@ -215,39 +217,25 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             try {
                 eventStreamResponseHandler.onEventStream(eventPublisher);
             } catch (Throwable t) {
-                exceptionOccurred(t);
+                onError(t);
                 dataSubscription.cancel();
             }
         });
     }
 
     @Override
-    public void exceptionOccurred(Throwable throwable) {
+    public void onError(Throwable throwable) {
         synchronized (this) {
             if (!isDone) {
                 isDone = true;
-                error.set(throwable);
                 // If we have a Subscriber at this point notify it as well
                 if (subscriberRef.get() != null) {
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                         () -> subscriberRef.get().onError(throwable));
                 }
-                eventStreamResponseHandler.exceptionOccurred(throwable);
+                eventStreamResponseHandler.onError(throwable);
+                transformFuture.completeExceptionally(throwable);
             }
-        }
-    }
-
-    @Override
-    public Void complete() {
-        if (error.get() == null) {
-            // Add the special on complete event to signal drainEvents to complete the subscriber
-            eventsToDeliver.add(ON_COMPLETE_EVENT);
-            drainEventsIfNotAlready();
-            return null;
-        } else {
-            // Need to propagate the failure up so the future is completed exceptionally. This should only happen
-            // when there is a frame level exception that the upper layers don't know about.
-            throw ThrowableUtils.failure(error.get());
         }
     }
 
@@ -285,7 +273,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                 SdkHttpFullResponse errorResponse = adaptMessageToResponse(m, true);
                 Throwable exception = exceptionResponseHandler.handle(
                     errorResponse, new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, serviceName));
-                runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
+                runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> onError(exception));
             }
         } catch (Exception e) {
             throw SdkClientException.builder().cause(e).build();
@@ -393,8 +381,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         @Override
         public void onComplete() {
-            // Notified in onEventComplete method because we have more context on what we've delivered to
-            // the event stream subscriber there.
+            // Add the special on complete event to signal drainEvents to complete the subscriber
+            eventsToDeliver.add(ON_COMPLETE_EVENT);
+            drainEventsIfNotAlready();
+            transformFuture.complete(null);
         }
     }
 

@@ -57,7 +57,7 @@ public class FullResponseContentPublisherTckTest extends PublisherVerification<B
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new ResponseHandler.FullResponseContentPublisher(mockCtx, ByteBuffer.wrap(CONTENT));
+        return new ResponseHandler.FullResponseContentPublisher(mockCtx, ByteBuffer.wrap(CONTENT), null);
     }
 
     @Override

@@ -27,13 +27,16 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.SdkBytes;
@@ -42,8 +45,10 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.KinesisException;
@@ -177,43 +182,34 @@ public class SubscribeToShardUnmarshallingTest {
     }
 
     private void stubResponse(SdkHttpFullResponse response) {
-        ArgumentCaptor<SdkHttpResponseHandler> captor = ArgumentCaptor.forClass(SdkHttpResponseHandler.class);
-        when(sdkHttpClient.prepareRequest(any(SdkHttpRequest.class),
-                                          any(SdkRequestContext.class),
-                                          any(SdkHttpRequestProvider.class),
-                                          captor.capture()))
-            .thenReturn(new AbortableRunnable() {
+        when(sdkHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
+            CompletableFuture<Void> cf = new CompletableFuture<>();
+            AsyncExecuteRequest req = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class);
+            SdkAsyncHttpResponseHandler value = req.responseHandler();
+            value.onHeaders(response);
+            value.onStream(subscriber -> subscriber.onSubscribe(new Subscription() {
                 @Override
-                public void run() {
-                    SdkHttpResponseHandler value = captor.getValue();
-                    value.headersReceived(response);
-                    value.onStream(subscriber -> subscriber.onSubscribe(new Subscription() {
-                        @Override
-                        public void request(long l) {
-                            try {
-                                response.content().ifPresent(c -> {
-                                    byte[] bytes = invokeSafely(() -> IoUtils.toByteArray(c));
-                                    subscriber.onNext(ByteBuffer.wrap(bytes));
-                                });
-                            } finally {
-                                subscriber.onComplete();
-                                value.complete();
-                            }
-                        }
-
-                        @Override
-                        public void cancel() {
-                        }
-                    }));
+                public void request(long l) {
+                    try {
+                        response.content().ifPresent(c -> {
+                            byte[] bytes = invokeSafely(() -> IoUtils.toByteArray(c));
+                            subscriber.onNext(ByteBuffer.wrap(bytes));
+                        });
+                    } finally {
+                        subscriber.onComplete();
+                        cf.complete(null);
+                    }
                 }
 
                 @Override
-                public void abort() {
+                public void cancel() {
                 }
-            });
+            }));
+            return cf;
+        });
     }
 
-    public static class MessageWriter {
+        public static class MessageWriter {
 
         private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 

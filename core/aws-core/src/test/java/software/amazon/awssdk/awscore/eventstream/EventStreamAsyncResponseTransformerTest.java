@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -123,10 +124,19 @@ public class EventStreamAsyncResponseTransformerTest {
                                                .executor(Executors.newSingleThreadExecutor())
                                                .future(new CompletableFuture<>())
                                                .build();
-        transformer.responseReceived(null);
+        CompletableFuture<Void> cf = transformer.prepare();
+        transformer.onResponse(null);
         transformer.onStream(SdkPublisher.adapt(bytePublisher));
 
-        assertThatThrownBy(transformer::complete).isSameAs(exception);
+        assertThatThrownBy(() -> {
+            try {
+                cf.join();
+            } catch (CompletionException e) {
+                if (e.getCause() instanceof SdkServiceException) {
+                    throw ((SdkServiceException) e.getCause());
+                }
+            }
+        }).isSameAs(exception);
     }
 
     private static class SubscribingResponseHandler implements EventStreamResponseHandler<Object, Object> {
@@ -142,7 +152,7 @@ public class EventStreamAsyncResponseTransformerTest {
         }
 
         @Override
-        public void exceptionOccurred(Throwable throwable) {
+        public void onError(Throwable throwable) {
         }
 
         @Override
@@ -163,7 +173,7 @@ public class EventStreamAsyncResponseTransformerTest {
             }
 
             @Override
-            public void exceptionOccurred(Throwable throwable) {
+            public void onError(Throwable throwable) {
             }
 
             @Override

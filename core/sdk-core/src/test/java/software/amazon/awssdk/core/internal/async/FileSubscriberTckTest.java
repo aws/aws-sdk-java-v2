@@ -25,6 +25,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
@@ -45,8 +47,7 @@ public class FileSubscriberTckTest extends SubscriberWhiteboxVerification<ByteBu
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> whiteboxSubscriberProbe) {
         Path tempFile = getNewTempFile();
-
-        return new FileSubscriber(openChannel(tempFile), tempFile) {
+        return new FileSubscriber(openChannel(tempFile), tempFile, new CompletableFuture<>()) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);

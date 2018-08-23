@@ -73,6 +73,8 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         } else {
             configureHttp11(ch, pipeline);
         }
+
+        pipeline.addLast(new FutureCancelHandler());
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {

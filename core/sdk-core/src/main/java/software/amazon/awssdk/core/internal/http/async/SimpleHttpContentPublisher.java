@@ -25,20 +25,20 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
- * Implementation of {@link SdkHttpRequestProvider} that provides all it's data at once. Useful for
+ * Implementation of {@link SdkHttpContentPublisher} that provides all it's data at once. Useful for
  * non streaming operations that are already marshalled into memory.
  */
 @SdkInternalApi
-public final class SimpleRequestProvider implements SdkHttpRequestProvider {
+public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher {
 
     private final byte[] content;
     private final int length;
 
-    public SimpleRequestProvider(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+    public SimpleHttpContentPublisher(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         this.content = request.content().map(content -> {
             try {
                 content.mark(getReadLimit(executionAttributes));

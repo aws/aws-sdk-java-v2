@@ -24,9 +24,9 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
-import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.noOpResponseHandler;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -35,14 +35,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
-import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import utils.ValidSdkObjects;
 
@@ -55,8 +56,7 @@ public class MakeAsyncHttpRequestStageTest {
     @Mock
     private ScheduledExecutorService timeoutExecutor;
 
-    @Mock
-    private AbortableRunnable abortableRunnable;
+    private CompletableFuture<Void> clientExecuteFuture = CompletableFuture.completedFuture(null);
 
     @Mock
     private ScheduledFuture future;
@@ -65,13 +65,13 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Before
     public void setup() {
-        when(sdkAsyncHttpClient.prepareRequest(any(), any(), any(), any())).thenReturn(abortableRunnable);
+        when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
         when(timeoutExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
     }
 
     @Test
     public void apiCallAttemptTimeoutEnabled_shouldInvokeExecutor() throws Exception {
-        stage = new MakeAsyncHttpRequestStage(noOpResponseHandler(), noOpResponseHandler(),
+        stage = new MakeAsyncHttpRequestStage<>(AsyncResponseHandlerTestUtils.noOpResponseHandler(), AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                               clientDependencies(Duration.ofMillis(1000)));
         stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
 
@@ -80,7 +80,7 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Test
     public void apiCallAttemptTimeoutNotEnabled_shouldNotInvokeExecutor() throws Exception {
-        stage = new MakeAsyncHttpRequestStage<Object>(noOpResponseHandler(), noOpResponseHandler(), clientDependencies(null));
+        stage = new MakeAsyncHttpRequestStage<>(AsyncResponseHandlerTestUtils.noOpResponseHandler(), AsyncResponseHandlerTestUtils.noOpResponseHandler(), clientDependencies(null));
         stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestContext());
 
         verify(timeoutExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
@@ -88,6 +88,7 @@ public class MakeAsyncHttpRequestStageTest {
 
     private HttpClientDependencies clientDependencies(Duration timeout) {
         SdkClientConfiguration configuration = SdkClientConfiguration.builder()
+                                                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
                                                                      .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
                                                                      .option(SCHEDULED_EXECUTOR_SERVICE, timeoutExecutor)
                                                                      .option(API_CALL_ATTEMPT_TIMEOUT, timeout)
