@@ -26,6 +26,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -97,12 +99,18 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void customResponseHandler_InterceptorRecievesResponsePojo() throws Exception {
+        final CompletableFuture<String> cf = new CompletableFuture<>();
         try (S3AsyncClient asyncWithInterceptor = createClientWithInterceptor(new AssertingExecutionInterceptor())) {
             String result = asyncWithInterceptor
                     .getObject(getObjectRequest, new AsyncResponseTransformer<GetObjectResponse, String>() {
 
                         @Override
-                        public void responseReceived(GetObjectResponse response) {
+                        public CompletableFuture<String> prepare() {
+                            return cf;
+                        }
+
+                        @Override
+                        public void onResponse(GetObjectResponse response) {
                             // POJO returned by modifyResponse should be delivered to the AsyncResponseTransformer
                             assertThat(response.metadata()).hasEntrySatisfying("x-amz-assert",
                                                                                s -> assertThat(s).isEqualTo("injected-value"));
@@ -111,16 +119,18 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
                         @Override
                         public void onStream(SdkPublisher<ByteBuffer> publisher) {
                             publisher.subscribe(new SimpleSubscriber(b -> {
-                            }));
+                            }) {
+                                @Override
+                                public void onComplete() {
+                                    super.onComplete();
+                                    cf.complete("result");
+                                }
+                            });
                         }
 
                         @Override
                         public void exceptionOccurred(Throwable throwable) {
-                        }
-
-                        @Override
-                        public String complete() {
-                            return "result";
+                            cf.completeExceptionally(throwable);
                         }
                     }).join();
             assertThat(result).isEqualTo("result");

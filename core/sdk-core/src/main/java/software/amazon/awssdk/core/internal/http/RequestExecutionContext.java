@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
-    private final SdkHttpRequestProvider requestProvider;
+    private final SdkHttpContentPublisher requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
@@ -55,7 +55,7 @@ public final class RequestExecutionContext {
         return new Builder();
     }
 
-    public SdkHttpRequestProvider requestProvider() {
+    public SdkHttpContentPublisher requestProvider() {
         return requestProvider;
     }
 
@@ -115,11 +115,11 @@ public final class RequestExecutionContext {
      */
     public static final class Builder {
 
-        private SdkHttpRequestProvider requestProvider;
+        private SdkHttpContentPublisher requestProvider;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
-        public Builder requestProvider(SdkHttpRequestProvider requestProvider) {
+        public Builder requestProvider(SdkHttpContentPublisher requestProvider) {
             this.requestProvider = requestProvider;
             return this;
         }

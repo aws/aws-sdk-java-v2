@@ -34,6 +34,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.not;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -71,7 +72,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -81,9 +81,9 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -96,9 +96,6 @@ public class NettyNioAsyncHttpClientWireMockTest {
             .dynamicPort()
             .dynamicHttpsPort()
             .networkTrafficListener(wiremockTrafficListener));
-
-    @Mock
-    private SdkRequestContext requestContext;
 
     private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder().buildWithDefaults(mapWithTrustAllCerts());
 
@@ -207,7 +204,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
         SdkHttpRequest request = createRequest(uri);
         RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.prepareRequest(request, requestContext, createProvider(""), recorder).run();
+        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
     }
 
@@ -256,7 +253,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         SdkHttpRequest request = createRequest(uri, "/echo", body, SdkHttpMethod.POST, singletonMap("reversed", "true"));
 
         RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.prepareRequest(request, requestContext, createProvider(body), recorder).run();
+        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider(body)).responseHandler(recorder).build());
 
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
 
@@ -278,8 +275,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         request = request.toBuilder().putHeader("Content-Length", Integer.toString(content.length())).build();
         RecordingResponseHandler recorder = new RecordingResponseHandler();
 
-
-        client.prepareRequest(request, requestContext, createProvider(streamContent), recorder).run();
+        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider(streamContent)).responseHandler(recorder).build());
 
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
 
@@ -295,7 +291,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         SdkHttpRequest request = createRequest(uri);
 
         RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.prepareRequest(request, requestContext, createProvider(""), recorder).run();
+        client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
 
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
 
@@ -309,10 +305,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
         verify(1, getRequestedFor(urlMatching("/")));
     }
 
-    private SdkHttpRequestProvider createProvider(String body) {
+    private SdkHttpContentPublisher createProvider(String body) {
         Stream<ByteBuffer> chunks = splitStringBySize(body).stream()
                                                            .map(chunk -> ByteBuffer.wrap(chunk.getBytes(UTF_8)));
-        return new SdkHttpRequestProvider() {
+        return new SdkHttpContentPublisher() {
 
             @Override
             public Optional<Long> contentLength() {
@@ -430,7 +426,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body).withFixedDelay(1000)));
         SdkHttpRequest request = createRequest(uri);
         RecordingResponseHandler recorder = new RecordingResponseHandler();
-        client.prepareRequest(request, requestContext, createProvider(""), recorder).run();
+        client.execute(AsyncExecuteRequest.builder()
+                                          .request(request)
+                                          .requestContentPublisher(createProvider(""))
+                                          .responseHandler(recorder)
+                                          .build());
         return recorder;
     }
 

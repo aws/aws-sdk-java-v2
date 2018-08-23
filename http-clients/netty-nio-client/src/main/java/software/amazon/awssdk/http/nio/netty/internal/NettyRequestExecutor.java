@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.Protocol.HTTP1_1;
+import static software.amazon.awssdk.http.Protocol.HTTP2;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
@@ -23,6 +27,7 @@ import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpContent;
@@ -35,13 +40,17 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -49,77 +58,109 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
-import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @SdkInternalApi
-public final class RunnableRequest implements AbortableRunnable {
-
-    private static final Logger log = LoggerFactory.getLogger(RunnableRequest.class);
+public final class NettyRequestExecutor {
+    private static final Logger log = LoggerFactory.getLogger(NettyRequestExecutor.class);
+    private static final RequestAdapter REQUEST_ADAPTER = new RequestAdapter();
+    private static final AtomicLong EXECUTION_COUNTER = new AtomicLong(0L);
+    private final long executionId = EXECUTION_COUNTER.incrementAndGet();
     private final RequestContext context;
-    private volatile Channel channel;
+    private CompletableFuture<Void> executeFuture;
+    private Channel channel;
 
-    public RunnableRequest(RequestContext context) {
+    public NettyRequestExecutor(RequestContext context) {
         this.context = context;
     }
 
-    @Override
-    public void run() {
-        context.channelPool().acquire().addListener((Future<Channel> channelFuture) -> {
-            if (channelFuture.isSuccess()) {
-                try {
-                    channel = channelFuture.getNow();
-                    channel.attr(REQUEST_CONTEXT_KEY).set(context);
-                    channel.attr(RESPONSE_COMPLETE_KEY).set(false);
-                    makeRequest(context.nettyRequest());
-                } catch (Exception e) {
-                    handleFailure(() -> "Failed to make request to " + endpoint(), e);
-                }
-            } else {
-                handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
-            }
-        });
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Void> execute() {
+        Future<Channel> channelFuture = context.channelPool().acquire();
+        executeFuture = createExecuteFuture(channelFuture);
+        channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
+        return executeFuture;
     }
 
-    @Override
-    public void abort() {
-        log.trace("aborting the request");
-        if (channel != null) {
-            closeAndRelease(channel);
+    /**
+     * Convenience method to create the execution future and set up the cancellation logic.
+     *
+     * @param channelFuture The Netty future holding the channel.
+     *
+     * @return The created execution future.
+     */
+    private CompletableFuture<Void> createExecuteFuture(Future<Channel> channelFuture) {
+        final CompletableFuture<Void> future = new CompletableFuture<>();
+
+        future.whenComplete((r, t) -> {
+            if (t == null) {
+                return;
+            }
+
+            channelFuture.addListener((Future<Channel> f) -> {
+                if (!f.isSuccess()) {
+                    return;
+                }
+
+                Channel ch = f.getNow();
+                ch.eventLoop().submit(() -> {
+                    ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                });
+            });
+        });
+
+        return future;
+    }
+
+    private void makeRequestListener(Future<Channel> channelFuture) {
+        if (channelFuture.isSuccess()) {
+            channel = channelFuture.getNow();
+            configureChannel();
+            configurePipeline();
+            makeRequest();
+        } else {
+            handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
     }
 
-    private void makeRequest(HttpRequest request) {
-        log.debug("Writing request: {}", request);
-
-        runOrFail(() -> {
-            configurePipeline();
-            writeRequest(request);
-        },
-            () -> "Failed to make request to " + endpoint());
+    private void configureChannel() {
+        channel.attr(EXECUTION_ID_KEY).set(executionId);
+        channel.attr(EXECUTE_FUTURE_KEY).set(executeFuture);
+        channel.attr(REQUEST_CONTEXT_KEY).set(context);
+        channel.attr(RESPONSE_COMPLETE_KEY).set(false);
+        channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
     private void configurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
-        if (Protocol.HTTP2.equals(protocol)) {
-            channel.pipeline().addLast(new Http2ToHttpInboundAdapter());
-            channel.pipeline().addLast(new HttpToHttp2OutboundAdapter());
-        } else if (!Protocol.HTTP1_1.equals(protocol)) {
-            throw new RuntimeException("Unknown protocol: " + protocol);
+        ChannelPipeline pipeline = channel.pipeline();
+        if (HTTP2.equals(protocol)) {
+            pipeline.addLast(new Http2ToHttpInboundAdapter());
+            pipeline.addLast(new HttpToHttp2OutboundAdapter());
+        } else if (!HTTP1_1.equals(protocol)) {
+            String errorMsg = "Unknown protocol: " + protocol;
+            closeAndRelease(channel);
+            handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+            return;
         }
-        channel.config().setOption(ChannelOption.AUTO_READ, false);
-        channel.pipeline().addLast(new HttpStreamsClientHandler());
-        channel.pipeline().addLast(new ResponseHandler());
+        pipeline.addLast(new HttpStreamsClientHandler());
+        pipeline.addLast(new ResponseHandler());
+    }
+
+    private void makeRequest() {
+        HttpRequest request = REQUEST_ADAPTER.adapt(context.executeRequest().request());
+        writeRequest(request);
     }
 
     private void writeRequest(HttpRequest request) {
         channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
                                                             TimeUnit.MILLISECONDS));
-
-        channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
+        StreamedRequest streamedRequest = new StreamedRequest(request,
+                                                              context.executeRequest().requestContentPublisher(),
+                                                              channel);
+        channel.writeAndFlush(streamedRequest)
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
@@ -128,11 +169,13 @@ public final class RunnableRequest implements AbortableRunnable {
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
                    } else {
+                       // TODO: Are there cases where we can keep the channel open?
+                       closeAndRelease(channel);
                        handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
                });
 
-        if (context.sdkRequestContext().fullDuplex()) {
+        if (context.executeRequest().fullDuplex()) {
             channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                TimeUnit.MILLISECONDS));
         }
@@ -142,26 +185,14 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private URI endpoint() {
-        return context.sdkRequest().getUri();
-    }
-
-    private void runOrFail(Runnable runnable, Supplier<String> errorMsgSupplier) {
-        try {
-            runnable.run();
-        } catch (Exception e) {
-            handleFailure(errorMsgSupplier, e);
-        }
+        return context.executeRequest().request().getUri();
     }
 
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
-        Throwable throwable = decorateException(cause);
-        runAndLogError("Exception thrown from AsyncResponseHandler",
-            () -> context.handler().exceptionOccurred(throwable));
-        if (channel != null) {
-            runAndLogError("Unable to release channel back to the pool.",
-                () -> closeAndRelease(channel));
-        }
+        cause = decorateException(cause);
+        context.handler().onError(cause);
+        executeFuture.completeExceptionally(cause);
     }
 
     private Throwable decorateException(Throwable originalCause) {
@@ -170,7 +201,6 @@ public final class RunnableRequest implements AbortableRunnable {
         } else if (isTooManyPendingAcquiresException(originalCause)) {
             return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
         } else if (originalCause instanceof ReadTimeoutException) {
-            // wrap it with IOException to be retried by SDK
             return new IOException("Read timed out", originalCause);
         } else if (originalCause instanceof WriteTimeoutException) {
             return new IOException("Write timed out", originalCause);
@@ -227,24 +257,14 @@ public final class RunnableRequest implements AbortableRunnable {
                 + "AWS, or by increasing the number of hosts sending requests.";
     }
 
-    private static void closeAndRelease(Channel channel) {
-        log.trace("closing and releasing channel {}", channel.id().asLongText());
-        RequestContext requestCtx = channel.attr(REQUEST_CONTEXT_KEY).get();
-        channel.close().addListener(ignored -> requestCtx.channelPool().release(channel));
-    }
-
     /**
-     * Runs a given {@link UnsafeRunnable} and logs an error without throwing.
+     * Close and release the channel back to the pool.
      *
-     * @param errorMsg Message to log with exception thrown.
-     * @param runnable Action to perform.
+     * @param channel The channel.
      */
-    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
-        try {
-            runnable.run();
-        } catch (Exception e) {
-            log.error(errorMsg, e);
-        }
+    private void closeAndRelease(Channel channel) {
+        log.trace("closing and releasing channel {}", channel.id().asLongText());
+        channel.close().addListener(ignored -> context.channelPool().release(channel));
     }
 
     /**
@@ -333,7 +353,7 @@ public final class RunnableRequest implements AbortableRunnable {
 
     /**
      * Decorator around {@link StreamedHttpRequest} to adapt a publisher of {@link ByteBuffer} (i.e. {@link
-     * software.amazon.awssdk.http.async.SdkHttpRequestProvider}) to a publisher of {@link HttpContent}.
+     * software.amazon.awssdk.http.async.SdkHttpContentPublisher}) to a publisher of {@link HttpContent}.
      * <p />
      * This publisher also prevents the adapted publisher from publishing more content to the subscriber than
      * the specified 'Content-Length' of the request.
@@ -390,7 +410,6 @@ public final class RunnableRequest implements AbortableRunnable {
                     if (!done) {
                         done = true;
                         subscriber.onError(t);
-
                     }
                 }
 
@@ -425,6 +444,5 @@ public final class RunnableRequest implements AbortableRunnable {
             }
             return Optional.empty();
         }
-
     }
 }

@@ -19,20 +19,26 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 
-public final class RecordingResponseHandler implements SdkHttpResponseHandler<Void> {
+public final class RecordingResponseHandler implements SdkAsyncHttpResponseHandler {
 
     List<SdkHttpResponse> responses = new ArrayList<>();
     private StringBuilder bodyParts = new StringBuilder();
     CompletableFuture<Void> completeFuture = new CompletableFuture<>();
 
     @Override
-    public void headersReceived(SdkHttpResponse response) {
+    public void onHeaders(SdkHttpResponse response) {
         responses.add(response);
     }
 
@@ -42,22 +48,27 @@ public final class RecordingResponseHandler implements SdkHttpResponseHandler<Vo
             byte[] b = new byte[byteBuffer.remaining()];
             byteBuffer.duplicate().get(b);
             bodyParts.append(new String(b, StandardCharsets.UTF_8));
-        }));
+        }) {
+
+            @Override
+            public void onError(Throwable t) {
+                completeFuture.completeExceptionally(t);
+            }
+
+            @Override
+            public void onComplete() {
+                completeFuture.complete(null);
+            }
+        });
     }
 
     @Override
-    public void exceptionOccurred(Throwable throwable) {
-        completeFuture.completeExceptionally(throwable);
-    }
+    public void onError(Throwable error) {
+        completeFuture.completeExceptionally(error);
 
-    @Override
-    public Void complete() {
-        completeFuture.complete(null);
-        return null;
     }
 
     String fullResponseAsString() {
         return bodyParts.toString();
     }
-
 }

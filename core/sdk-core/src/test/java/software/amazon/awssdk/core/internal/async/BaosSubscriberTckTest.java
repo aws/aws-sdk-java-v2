@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.core.internal.async;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
@@ -35,7 +36,7 @@ public class BaosSubscriberTckTest extends SubscriberWhiteboxVerification<ByteBu
 
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> whiteboxSubscriberProbe) {
-        return new BaosSubscriber(new ByteArrayOutputStream()) {
+        return new BaosSubscriber(new CompletableFuture<>()) {
 
             @Override
             public void onSubscribe(Subscription s) {

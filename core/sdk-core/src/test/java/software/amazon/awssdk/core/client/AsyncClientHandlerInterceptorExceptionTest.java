@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -54,12 +55,10 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import utils.HttpTestUtils;
 
 /**
@@ -118,51 +117,33 @@ public class AsyncClientHandlerInterceptorExceptionTest {
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(EmptySdkResponse.builder().build());
 
-        Answer<AbortableRunnable> prepareRequestAnswer;
+        Answer<CompletableFuture<Void>> prepareRequestAnswer;
         if (hook != Hook.ON_EXECUTION_FAILURE) {
             prepareRequestAnswer = invocationOnMock -> {
-                SdkHttpResponseHandler handler = invocationOnMock.getArgumentAt(3, SdkHttpResponseHandler.class);
-                return new AbortableRunnable() {
-                    @Override
-                    public void run() {
-                        handler.headersReceived(SdkHttpFullResponse.builder()
-                                .statusCode(200)
-                                .build());
-                        handler.complete();
-                    }
-
-                    @Override
-                    public void abort() {
-                    }
-                };
+                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+                handler.onHeaders(SdkHttpFullResponse.builder()
+                        .statusCode(200)
+                        .build());
+                handler.onStream(new EmptyPublisher<>());
+                return CompletableFuture.completedFuture(null);
             };
         } else {
             prepareRequestAnswer = invocationOnMock -> {
-                SdkHttpResponseHandler handler = invocationOnMock.getArgumentAt(3, SdkHttpResponseHandler.class);
-                return new AbortableRunnable() {
-                    @Override
-                    public void run() {
-                        handler.exceptionOccurred(new RuntimeException("Something went horribly wrong!"));
-                    }
-
-                    @Override
-                    public void abort() {
-                    }
-                };
+                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+                RuntimeException error = new RuntimeException("Something went horribly wrong!");
+                handler.onError(error);
+                return CompletableFutureUtils.failedFuture(error);
             };
         }
 
-        when(asyncHttpClient.prepareRequest(any(SdkHttpRequest.class),
-                                            any(SdkRequestContext.class),
-                                            any(SdkHttpRequestProvider.class),
-                                            any(SdkHttpResponseHandler.class)))
-                                           .thenAnswer(prepareRequestAnswer);
+        when(asyncHttpClient.execute(any(AsyncExecuteRequest.class)))
+                .thenAnswer(prepareRequestAnswer);
     }
 
     @Test
     public void test() {
         if (hook != Hook.ON_EXECUTION_FAILURE) {
-            doVerify(() -> clientHandler.execute(executionParams), (t) -> t.getCause().getMessage().equals(hook.name()));
+            doVerify(() -> clientHandler.execute(executionParams), (t) -> t.getCause().getCause().getMessage().equals(hook.name()));
         } else {
             // ON_EXECUTION_FAILURE is handled differently because we don't
             // want an exception thrown from the interceptor to replace the
@@ -182,7 +163,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
     private void doVerify(Supplier<CompletableFuture<?>> s, Predicate<Throwable> assertFn) {
         CompletableFuture<?> cf = s.get();
         try {
-            cf.get();
+            cf.join();
             Assert.fail("get() method did not fail as expected.");
         } catch (Throwable t) {
             assertTrue(assertFn.test(t));

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -59,12 +60,9 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -400,9 +398,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         @Override
-        public AbortableRunnable prepareRequest(SdkHttpRequest request, SdkRequestContext context,
-                                                SdkHttpRequestProvider requestProvider, SdkHttpResponseHandler handler) {
-            return delegate.prepareRequest(request, context, requestProvider, handler);
+        public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+            return delegate.execute(request);
         }
 
         @Override

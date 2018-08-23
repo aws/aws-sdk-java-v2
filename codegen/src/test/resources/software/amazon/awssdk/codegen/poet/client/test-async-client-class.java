@@ -282,8 +282,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             });
             return future;
         } catch (Throwable t) {
-            runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseHandler.exceptionOccurred(t));
+            runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring", () -> asyncResponseHandler.exceptionOccurred(t));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -764,7 +763,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             });
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseTransformer.exceptionOccurred(t));
+                    () -> asyncResponseTransformer.exceptionOccurred(t));
             return CompletableFutureUtils.failedFuture(t);
         }
     }

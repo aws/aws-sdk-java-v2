@@ -16,6 +16,8 @@
 package software.amazon.awssdk.awscore.eventstream;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -43,8 +45,13 @@ public class RestEventStreamAsyncResponseTransformer<ResponseT extends SdkRespon
     }
 
     @Override
-    public void responseReceived(ResponseT response) {
-        delegate.responseReceived(response);
+    public CompletableFuture<Void> prepare() {
+        return delegate.prepare();
+    }
+
+    @Override
+    public void onResponse(ResponseT response) {
+        delegate.onResponse(response);
         eventStreamResponseHandler.responseReceived(response);
     }
 
@@ -56,11 +63,6 @@ public class RestEventStreamAsyncResponseTransformer<ResponseT extends SdkRespon
     @Override
     public void exceptionOccurred(Throwable throwable) {
         delegate.exceptionOccurred(throwable);
-    }
-
-    @Override
-    public Void complete() {
-        return delegate.complete();
     }
 
     public static <ResponseT extends SdkResponse, EventT> Builder<ResponseT, EventT> builder() {
