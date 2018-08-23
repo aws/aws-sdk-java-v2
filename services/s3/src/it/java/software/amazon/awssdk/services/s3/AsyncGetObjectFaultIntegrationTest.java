@@ -21,6 +21,7 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -96,9 +97,22 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         }
 
         @Override
-        public void responseReceived(ResponseT response) {
+        public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
+            return delegate.prepare()
+                    .thenApply(r -> {
+                        try {
+                            Thread.sleep(2_000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();;
+                        }
+                        return r;
+                    });
+        }
+
+        @Override
+        public void onResponse(ResponseT response) {
             callCount.incrementAndGet();
-            delegate.responseReceived(response);
+            delegate.onResponse(response);
         }
 
         @Override
@@ -109,16 +123,6 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         @Override
         public void exceptionOccurred(Throwable throwable) {
             delegate.exceptionOccurred(throwable);
-        }
-
-        @Override
-        public ResponseBytes<ResponseT> complete() {
-            try {
-                Thread.sleep(2_000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return delegate.complete();
         }
     }
 }

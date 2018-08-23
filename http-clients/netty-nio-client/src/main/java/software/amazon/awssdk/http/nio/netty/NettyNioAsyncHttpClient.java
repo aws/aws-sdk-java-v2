@@ -36,6 +36,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
@@ -43,19 +44,15 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
+import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.ReleaseOnceChannelPool;
-import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
-import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
@@ -71,7 +68,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
-    private final RequestAdapter requestAdapter = new RequestAdapter();
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final ChannelPoolMap<URI, ChannelPool> pools;
     private final SdkChannelOptions sdkChannelOptions;
@@ -92,29 +88,27 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         return builder.sdkChannelOptions;
     }
 
-    private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
-        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
-                        "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
-        return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupBuilder)
-                     .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
-                     .orElseGet(SharedSdkEventLoopGroup::get);
+    @Override
+    public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+        RequestContext ctx = createRequestContext(request);
+        return new NettyRequestExecutor(ctx).execute();
     }
 
     public static Builder builder() {
         return new DefaultBuilder();
     }
 
-    @Override
-    public AbortableRunnable prepareRequest(SdkHttpRequest sdkRequest,
-                                            SdkRequestContext sdkRequestContext,
-                                            SdkHttpRequestProvider requestProvider,
-                                            SdkHttpResponseHandler handler) {
-        RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
-                                                    sdkRequest, requestProvider,
-                                                    requestAdapter.adapt(sdkRequest),
-                                                    handler, configuration,
-                                                    sdkRequestContext);
-        return new RunnableRequest(context);
+    private RequestContext createRequestContext(AsyncExecuteRequest request) {
+        ChannelPool pool = pools.get(poolKey(request.request()));
+        return new RequestContext(pool, request, configuration);
+    }
+
+    private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
+        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
+                "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
+        return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupBuilder)
+                .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
+                .orElseGet(SharedSdkEventLoopGroup::get);
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {

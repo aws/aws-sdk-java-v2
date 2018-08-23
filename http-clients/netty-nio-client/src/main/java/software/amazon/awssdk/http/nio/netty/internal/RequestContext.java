@@ -16,65 +16,42 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.pool.ChannelPool;
-import io.netty.handler.codec.http.HttpRequest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 @SdkInternalApi
 public final class RequestContext {
 
     private final ChannelPool channelPool;
-    private final SdkHttpRequest sdkRequest;
-    private final SdkHttpRequestProvider requestProvider;
-    private final HttpRequest nettyRequest;
-    private final SdkHttpResponseHandler handler;
+    private final AsyncExecuteRequest executeRequest;
     private final NettyConfiguration configuration;
-    private final SdkRequestContext sdkRequestContext;
 
-    public RequestContext(ChannelPool channelPool,
-                          SdkHttpRequest sdkRequest,
-                          SdkHttpRequestProvider requestProvider,
-                          HttpRequest nettyRequest,
-                          SdkHttpResponseHandler handler,
-                          NettyConfiguration configuration,
-                          SdkRequestContext sdkRequestContext) {
+    public RequestContext(ChannelPool channelPool, AsyncExecuteRequest executeRequest, NettyConfiguration configuration) {
         this.channelPool = channelPool;
-        this.sdkRequest = sdkRequest;
-        this.requestProvider = requestProvider;
-        this.nettyRequest = nettyRequest;
-        this.handler = handler;
+        this.executeRequest = executeRequest;
         this.configuration = configuration;
-        this.sdkRequestContext = sdkRequestContext;
-    }
-
-    public SdkHttpResponseHandler handler() {
-        return handler;
     }
 
     public ChannelPool channelPool() {
         return channelPool;
     }
 
-    public SdkHttpRequest sdkRequest() {
-        return this.sdkRequest;
+    public AsyncExecuteRequest executeRequest() {
+        return executeRequest;
     }
 
-    public SdkHttpRequestProvider sdkRequestProvider() {
-        return requestProvider;
+    /**
+     * Convenience method to retrieve the {@link SdkAsyncHttpResponseHandler} contained in the {@link AsyncExecuteRequest}
+     * returned by {@link #executeRequest}.
+     *
+     * @return The response handler for this request.
+     */
+    public SdkAsyncHttpResponseHandler handler() {
+        return executeRequest().responseHandler();
     }
 
-    public HttpRequest nettyRequest() {
-        return nettyRequest;
-    }
-
-    NettyConfiguration configuration() {
+    public NettyConfiguration configuration() {
         return configuration;
-    }
-
-    public SdkRequestContext sdkRequestContext() {
-        return sdkRequestContext;
     }
 }

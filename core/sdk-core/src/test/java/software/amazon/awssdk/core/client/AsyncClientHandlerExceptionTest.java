@@ -30,14 +30,19 @@ import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -49,8 +54,10 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import utils.HttpTestUtils;
 
@@ -99,38 +106,26 @@ public class AsyncClientHandlerExceptionTest {
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(EmptySdkResponse.builder().build());
 
-        when(asyncHttpClient.prepareRequest(any(SdkHttpRequest.class),
-                                            any(SdkRequestContext.class),
-                                            any(SdkHttpRequestProvider.class),
-                                            any(SdkHttpResponseHandler.class)))
-                                           .thenAnswer((Answer<AbortableRunnable>) invocationOnMock -> {
-                    SdkHttpResponseHandler handler = invocationOnMock.getArgumentAt(3, SdkHttpResponseHandler.class);
-                    return new AbortableRunnable() {
-                        @Override
-                        public void run() {
-                            handler.headersReceived(SdkHttpFullResponse.builder()
-                                    .statusCode(200)
-                                    .build());
-                            handler.complete();
-                        }
-
-                        @Override
-                        public void abort() {
-                        }
-                    };
-                });
+        when(asyncHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
+            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+            handler.onHeaders(SdkHttpFullResponse.builder()
+                    .statusCode(200)
+                    .build());
+            handler.onStream(new EmptyPublisher<>());
+            return CompletableFuture.completedFuture(null);
+        });
     }
 
     @Test
     public void marshallerThrowsReportedThroughFuture() throws ExecutionException, InterruptedException {
-        final RuntimeException e = new RuntimeException("Could not marshall");
+        final SdkClientException e = SdkClientException.create("Could not marshall");
         when(marshaller.marshall(any(SdkRequest.class))).thenThrow(e);
         doVerify(() -> clientHandler.execute(executionParams), e);
     }
 
     @Test
     public void responseHandlerThrowsReportedThroughFuture() throws Exception {
-        final RuntimeException e = new RuntimeException("Could not handle response");
+        final SdkClientException e = SdkClientException.create("Could not handle response");
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
         doVerify(() -> clientHandler.execute(executionParams), e);
     }
