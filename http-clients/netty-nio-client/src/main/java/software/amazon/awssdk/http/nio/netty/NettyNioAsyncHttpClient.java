@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -279,7 +278,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @param protocol Protocol to use.
          * @return This builder for method chaining.
          */
-        @ReviewBeforeRelease("Decide if we want to expose this to customers")
         Builder protocol(Protocol protocol);
     }
 
