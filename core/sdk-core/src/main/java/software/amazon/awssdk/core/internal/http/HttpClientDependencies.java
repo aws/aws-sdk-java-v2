@@ -71,7 +71,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
      */
     public void updateTimeOffset(int timeOffset) {
         this.timeOffset = timeOffset;
-        // TODO think about why we update global. I assume because it's more likely to have the client's clock skewed.
         SdkGlobalTime.setGlobalTimeOffset(timeOffset);
     }
 
