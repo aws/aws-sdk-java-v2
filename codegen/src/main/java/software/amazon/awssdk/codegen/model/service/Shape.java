@@ -48,8 +48,6 @@ public class Shape {
 
     private Member mapValueType;
 
-    // TODO: There are two properties min and max. Check if this is needed.
-
     @JsonProperty(value = "error")
     private ErrorTrait errorTrait;
 

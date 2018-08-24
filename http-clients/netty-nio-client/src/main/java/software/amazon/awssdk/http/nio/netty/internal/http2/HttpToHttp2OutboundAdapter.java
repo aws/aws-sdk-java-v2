@@ -100,8 +100,6 @@ public class HttpToHttp2OutboundAdapter extends ChannelOutboundHandlerAdapter {
                 ctx.flush();
             }
         } catch (Throwable t) {
-            // TODO is this okay?
-            // onError(ctx, t);
             promiseAggregator.setFailure(t);
         } finally {
             if (release) {

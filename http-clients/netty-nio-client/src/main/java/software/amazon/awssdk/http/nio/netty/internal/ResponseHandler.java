@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
@@ -211,7 +212,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         isCancelled.set(true);
                         requestContext.handler().exceptionOccurred(
-                            new RuntimeException("Subscriber cancelled before all events were published"));
+                            new SdkCancellationException("Subscriber cancelled before all events were published"));
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));

@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * See {@link NonRetryableException} for marking non-retryable exceptions.
  */
 @SdkPublicApi
-public final class RetryableException extends SdkException {
+public final class RetryableException extends SdkClientException {
 
     protected RetryableException(Builder b) {
         super(b);
@@ -45,7 +45,7 @@ public final class RetryableException extends SdkException {
         return new BuilderImpl();
     }
 
-    public interface Builder extends SdkException.Builder {
+    public interface Builder extends SdkClientException.Builder {
         @Override
         Builder message(String message);
 
@@ -56,7 +56,7 @@ public final class RetryableException extends SdkException {
         RetryableException build();
     }
 
-    protected static final class BuilderImpl extends SdkException.BuilderImpl implements Builder {
+    protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
 
         protected BuilderImpl() {}
 

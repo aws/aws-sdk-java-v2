@@ -271,7 +271,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private void handleMessage(Message m) {
         try {
-            // TODO: Can we move all of the dispatching to a single unmarshaller?
             if (isEvent(m)) {
                 if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
                     eventStreamResponseHandler.responseReceived(

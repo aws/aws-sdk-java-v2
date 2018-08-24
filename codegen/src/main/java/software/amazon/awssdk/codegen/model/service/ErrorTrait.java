@@ -27,8 +27,6 @@ public class ErrorTrait {
 
     private Integer httpStatusCode;
 
-    // TODO senderFault are also in this struct. Determine if they are needed
-
     public String getErrorCode() {
         return errorCode;
     }

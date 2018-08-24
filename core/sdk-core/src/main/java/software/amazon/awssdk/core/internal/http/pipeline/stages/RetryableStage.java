@@ -27,7 +27,6 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
@@ -114,11 +113,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                     } else {
                         retryHandler.setLastRetriedException(handleUnmarshalledException(response));
                     }
-                } catch (SdkServiceException e) {
-                    // TODO This can be cleaned up a bit if we have separate hierarchies for service and client exceptions
-                    // as we can just catch the client exception below.
-                    throw e;
-                } catch (SdkException | IOException e) {
+                } catch (SdkClientException | IOException e) {
                     retryHandler.setLastRetriedException(handleThrownException(e));
                 }
             }
