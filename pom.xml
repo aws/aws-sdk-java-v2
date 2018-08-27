@@ -641,7 +641,7 @@
             <id>quick</id>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
-                <findbugs.skip>true</findbugs.skip>
+                <spotbugs.skip>true</spotbugs.skip>
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
             </properties>
