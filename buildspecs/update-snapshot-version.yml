@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+    - git config --global user.name "AWS"
+    - git config --global user.email "<>"
+
+  build:
+    commands:
+    - CURRENT_SNAPSHOT=$(cat pom.xml | grep "<version>" | head -1 | cut -d\> -f 2 | cut -d\< -f 1)
+    - echo $CURRENT_SNAPSHOT
+    - VERSION=`echo "$CURRENT_SNAPSHOT" | cut -d "-" -f1`
+    - echo $VERSION
+    - BUILD=`echo "$CURRENT_SNAPSHOT" | cut -d "-" -f3`
+    - NEXT_BUILD=$(( BUILD + 1))
+    - RELEASE_VERSION=$VERSION-preview-$BUILD
+    - NEXT_SNAPSHOT=$VERSION-preview-${NEXT_BUILD}-SNAPSHOT
+    - echo Next snapshot version - $NEXT_SNAPSHOT
+    - scripts/finalize-release-changes --release-version $RELEASE_VERSION --release-date $(date +%Y-%m-%d) --generate-changelog
+    - mvn versions:set -DnewVersion=$NEXT_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
+    - sed -i -E "s/(<version>).+(<\/version>)/\1$RELEASE_VERSION\2/" README.md
+    - git commit -am "Update to next snapshot version $NEXT_SNAPSHOT"
+    - git status
+    - git push https://$GIT_ACCESS_TOKEN@github.com/aws/aws-sdk-java-v2.git master
