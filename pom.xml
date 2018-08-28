@@ -754,10 +754,6 @@
                                     <packages>software.amazon.awssdk.services.ec2*</packages>
                                 </group>
                                 <group>
-                                    <title>SimpleDB</title>
-                                    <packages>software.amazon.awssdk.services.simpledb*</packages>
-                                </group>
-                                <group>
                                     <title>SQS</title>
                                     <packages>software.amazon.awssdk.services.sqs*</packages>
                                 </group>
