@@ -116,7 +116,6 @@
         <module>servicecatalog</module>
         <module>ses</module>
         <module>shield</module>
-        <module>simpledb</module>
         <module>swf</module>
         <module>snowball</module>
         <module>sns</module>
