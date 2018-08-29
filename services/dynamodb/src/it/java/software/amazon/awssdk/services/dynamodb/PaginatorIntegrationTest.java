@@ -15,9 +15,13 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
@@ -27,10 +31,12 @@ import org.junit.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
@@ -41,7 +47,7 @@ import utils.resources.tables.BasicTempTable;
 import utils.test.util.DynamoDBTestBase;
 import utils.test.util.TableUtils;
 
-public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
+public class PaginatorIntegrationTest extends DynamoDBTestBase {
 
     private static final String TABLE_NAME = "java-sdk-scan-paginator-test" + System.currentTimeMillis();
     private static final String HASH_KEY_NAME = BasicTempTable.HASH_KEY_NAME;
@@ -74,6 +80,29 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
     @AfterClass
     public static void cleanUpFixture() {
         dynamo.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
+    }
+
+    @Test
+    public void batchGetItem_allProcessed_shouldNotHaveNextPage() {
+        Map<String, KeysAndAttributes> attributes = new HashMap<>();
+        Map<String, AttributeValue> keys;
+        KeysAndAttributes keysAndAttributes;
+        List<Map<String, AttributeValue>> keysList = new ArrayList<>();
+
+        for (int i = 0; i < ITEM_COUNT; i++) {
+            keys = new HashMap<>();
+            keys.put(HASH_KEY_NAME, AttributeValue.builder().n(String.valueOf(i)).build());
+            keysList.add(keys);
+        }
+
+        keysAndAttributes = KeysAndAttributes.builder().keys(keysList).build();
+
+        attributes.put(TABLE_NAME, keysAndAttributes);
+
+        Iterator<BatchGetItemResponse> iterator =
+            dynamo.batchGetItemPaginator(b -> b.requestItems(attributes)).iterator();
+        assertThat(iterator.next().unprocessedKeys().isEmpty()).isTrue();
+        assertThat(iterator.hasNext()).isFalse();
     }
 
     @Test
@@ -126,16 +155,16 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
 
         // Iterate once
         assertEquals(ITEM_COUNT, scanResponses.stream()
-                                                     .mapToInt(response -> response.count())
-                                                     .sum());
+                                              .mapToInt(response -> response.count())
+                                              .sum());
 
         // Iterate second time
         assertEquals(ITEM_COUNT, scanResponses.stream()
-                                                     .mapToInt(response -> response.count())
-                                                     .sum());
+                                              .mapToInt(response -> response.count())
+                                              .sum());
 
         // Number of pages
-        assertEquals(Math.ceil((double) ITEM_COUNT/results_per_page), scanResponses.stream().count(), 0);
+        assertEquals(Math.ceil((double) ITEM_COUNT / results_per_page), scanResponses.stream().count(), 0);
     }
 
     @Test
@@ -151,7 +180,7 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
         assertEquals(ITEM_COUNT, items.stream().distinct().count());
     }
 
-    @Test (expected = IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void iteration_On_SameStream_ThrowsError() {
         int results_per_page = 2;
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(results_per_page).build();
