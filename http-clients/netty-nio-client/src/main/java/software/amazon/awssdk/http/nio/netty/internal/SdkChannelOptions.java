@@ -23,7 +23,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public class SdkChannelOptions {
-
     private Map<ChannelOption, Object> options;
 
     public SdkChannelOptions() {
