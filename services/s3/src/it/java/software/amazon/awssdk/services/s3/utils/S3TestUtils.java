@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package utils;
+package software.amazon.awssdk.services.s3.utils;
 
 import java.io.InputStream;
 import java.security.DigestInputStream;

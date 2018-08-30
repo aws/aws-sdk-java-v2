@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
+import software.amazon.awssdk.awscore.internal.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -66,7 +67,7 @@ public class StaxResponseHandlerComponentTest {
         stubFor(get(urlPathEqualTo("/payload.dtd")).willReturn(aResponse().withBody(entityString)));
         stubFor(get(urlPathEqualTo("/?hello-world")).willReturn(aResponse()));
 
-        StaxResponseHandler<EmptyAwsResponse> responseHandler = new StaxResponseHandler<>(dummyUnmarshaller());
+        StaxResponseHandler<EmptyAwsResponse> responseHandler = new StaxResponseHandler<>(dummyUnmarshaller(), new StaxOperationMetadata());
 
         SdkHttpFullResponse response = ValidSdkObjects.sdkHttpFullResponse()
                                                       .content(AbortableInputStream.create(new ByteArrayInputStream(payload.getBytes(StandardCharsets.UTF_8))))

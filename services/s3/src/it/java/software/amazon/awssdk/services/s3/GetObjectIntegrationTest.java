@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
-import static utils.S3TestUtils.assertMd5MatchesEtag;
+import static software.amazon.awssdk.services.s3.utils.S3TestUtils.assertMd5MatchesEtag;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

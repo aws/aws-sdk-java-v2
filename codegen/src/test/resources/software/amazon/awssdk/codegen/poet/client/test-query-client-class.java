@@ -9,10 +9,12 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
+import software.amazon.awssdk.awscore.internal.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
@@ -76,8 +78,8 @@ final class DefaultQueryClient implements QueryClient {
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, QueryException {
 
-        StaxResponseHandler<APostOperationResponse> responseHandler = new StaxResponseHandler<APostOperationResponse>(
-                new APostOperationResponseUnmarshaller());
+        HttpResponseHandler<APostOperationResponse> responseHandler = new StaxResponseHandler<>(
+                new APostOperationResponseUnmarshaller(), new StaxOperationMetadata().withHasStreamingSuccessResponse(false));
 
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 
@@ -111,8 +113,9 @@ final class DefaultQueryClient implements QueryClient {
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
                                                                                     SdkClientException, QueryException {
 
-        StaxResponseHandler<APostOperationWithOutputResponse> responseHandler = new StaxResponseHandler<APostOperationWithOutputResponse>(
-                new APostOperationWithOutputResponseUnmarshaller());
+        HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = new StaxResponseHandler<>(
+                new APostOperationWithOutputResponseUnmarshaller(),
+                new StaxOperationMetadata().withHasStreamingSuccessResponse(false));
 
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 

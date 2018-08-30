@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
-import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.utils.IoUtils;
 
 public final class IntermediateModel {
@@ -196,7 +196,7 @@ public final class IntermediateModel {
     }
 
     private String getResponseMetadataClassName() {
-        return SdkResponseMetadata.class.getName();
+        return AwsResponseMetadata.class.getName();
     }
 
     @JsonIgnore
