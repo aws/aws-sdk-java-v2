@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
+import software.amazon.awssdk.awscore.http.response.AwsJsonResponseHandler;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
@@ -53,9 +54,9 @@ public abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonF
     public <T> JsonResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
-        return new JsonResponseHandler<>(responseUnmarshaller, unmarshallers, jsonFactory,
-                                         operationMetadata.isHasStreamingSuccessResponse(),
-                                         operationMetadata.isPayloadJson());
+        return new AwsJsonResponseHandler(responseUnmarshaller, unmarshallers, jsonFactory,
+                                          operationMetadata.isHasStreamingSuccessResponse(),
+                                          operationMetadata.isPayloadJson());
     }
 
     @Override

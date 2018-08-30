@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.handlers;
+package software.amazon.awssdk.services.s3.utils;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static utils.S3MockUtils.mockListBucketsResponse;
-import static utils.S3MockUtils.mockListObjectsResponse;
+import static software.amazon.awssdk.services.s3.S3MockUtils.mockListBucketsResponse;
+import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
 import java.net.URI;
 import org.junit.Before;
@@ -34,6 +34,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.handlers.EndpointAddressInterceptor;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 

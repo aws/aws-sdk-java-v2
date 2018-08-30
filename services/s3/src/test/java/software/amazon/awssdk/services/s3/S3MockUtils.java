@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package utils;
+package software.amazon.awssdk.services.s3;
 
 import java.io.UnsupportedEncodingException;
 import software.amazon.awssdk.http.AbortableInputStream;

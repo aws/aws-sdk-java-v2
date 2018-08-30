@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.bucketaddressingsep;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static utils.S3MockUtils.mockListObjectsResponse;
+import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
