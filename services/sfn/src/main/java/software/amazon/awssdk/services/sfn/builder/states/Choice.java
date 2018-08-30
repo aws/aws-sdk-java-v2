@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import java.io.IOException;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.conditions.Condition;
 import software.amazon.awssdk.services.sfn.builder.conditions.ConditionDeserializer;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
  *
  * @see <a href="https://states-language.net/spec.html#choice-state>https://states-language.net/spec.html#choice-state</a>
  */
+@SdkPublicApi
 public final class Choice {
 
     @JsonUnwrapped

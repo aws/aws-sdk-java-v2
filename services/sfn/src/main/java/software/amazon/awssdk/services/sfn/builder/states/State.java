@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sfn.builder.StateMachine;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
  *
  * <p>This interface should not be implemented outside the SDK.</p>
  */
+@SdkInternalApi
 public interface State {
 
     /**

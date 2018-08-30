@@ -24,8 +24,8 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 /**
  * Holder class used to atomically store a session with its expiration time.
  */
-@ThreadSafe
 @SdkInternalApi
+@ThreadSafe
 final class SessionCredentialsHolder {
 
     private final AwsSessionCredentials sessionCredentials;

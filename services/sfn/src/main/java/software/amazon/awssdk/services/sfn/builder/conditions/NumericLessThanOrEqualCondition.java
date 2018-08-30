@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
 import software.amazon.awssdk.services.sfn.builder.states.Choice;
 
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.sfn.builder.states.Choice;
  * @see <a href="https://states-language.net/spec.html#choice-state">https://states-language.net/spec.html#choice-state</a>
  * @see Choice
  */
+@SdkPublicApi
 public final class NumericLessThanOrEqualCondition implements BinaryCondition<String> {
 
     @JsonProperty(PropertyName.VARIABLE)

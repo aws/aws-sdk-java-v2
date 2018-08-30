@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.cloudsearchdomain;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -26,7 +27,8 @@ import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
 /**
  * Ensures that all SearchRequests use <code>POST</code> instead of <code>GET</code>, moving the query parameters to be form data.
  */
-public class SwitchToPostInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class SwitchToPostInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();

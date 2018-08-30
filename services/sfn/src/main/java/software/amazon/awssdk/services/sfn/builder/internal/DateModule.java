@@ -27,10 +27,12 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import java.util.Date;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Contains Jackson module for serializing dates to ISO8601 format per the <a href="https://states-language.net/spec.html#timestamps">spec</a>.
  */
+@SdkInternalApi
 public final class DateModule {
 
     public static final SimpleModule INSTANCE = new SimpleModule();

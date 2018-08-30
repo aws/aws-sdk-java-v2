@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
  * doesn't support non-global regions.
  */
 @SdkProtectedApi
-public class GlobalServiceExecutionInterceptor implements ExecutionInterceptor {
+public final class GlobalServiceExecutionInterceptor implements ExecutionInterceptor {
     @Override
     public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
         if (hasCause(context.exception(), UnknownHostException.class) &&

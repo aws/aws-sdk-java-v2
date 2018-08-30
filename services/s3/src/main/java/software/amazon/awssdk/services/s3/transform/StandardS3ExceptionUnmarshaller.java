@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.transform;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 
@@ -22,6 +23,7 @@ import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
  * The unmarshaller used to read S3 exceptions when no more-specific exception unmarshaller is found. This is the S3 equivalent
  * of {@link StandardErrorUnmarshaller}.
  */
+@SdkProtectedApi
 public final class StandardS3ExceptionUnmarshaller extends S3ExceptionUnmarshaller {
     public StandardS3ExceptionUnmarshaller(Class<? extends AwsServiceException> exceptionClass) {
         super(exceptionClass, null);

@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.services.sfn.builder.internal.validation;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * Thrown if the state machine is invalid. Details about violations are in the exception message.
  */
+@SdkInternalApi
 public final class ValidationException extends RuntimeException {
 
     ValidationException(String message) {

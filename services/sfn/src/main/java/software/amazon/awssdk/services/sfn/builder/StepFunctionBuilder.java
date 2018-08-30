@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sfn.builder;
 
 import java.util.Date;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.conditions.AndCondition;
 import software.amazon.awssdk.services.sfn.builder.conditions.BooleanEqualsCondition;
 import software.amazon.awssdk.services.sfn.builder.conditions.Condition;
@@ -59,6 +60,7 @@ import software.amazon.awssdk.services.sfn.builder.states.WaitState;
 /**
  * Fluent API for creating a {@link StateMachine} object.
  */
+@SdkPublicApi
 public final class StepFunctionBuilder {
 
     private StepFunctionBuilder() {

@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sfn.builder.states;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
 
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
  *
  * @see <a href="https://states-language.net/spec.html#parallel-state">https://states-language.net/spec.html#parallel-state</a>
  */
+@SdkPublicApi
 public final class Branch {
 
     @JsonProperty(PropertyName.START_AT)

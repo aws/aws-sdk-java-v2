@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sfn.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
 import software.amazon.awssdk.services.sfn.builder.states.Choice;
 
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.sfn.builder.states.Choice;
  * @see <a href="https://states-language.net/spec.html#choice-state">https://states-language.net/spec.html#choice-state</a>
  * @see Choice
  */
+@SdkPublicApi
 public final class BooleanEqualsCondition implements BinaryCondition<Boolean> {
 
     @JsonProperty(PropertyName.VARIABLE)

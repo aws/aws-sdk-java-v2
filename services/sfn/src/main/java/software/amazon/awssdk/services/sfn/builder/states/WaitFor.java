@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sfn.builder.states;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 
 /**
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
  *
  * <p>This interface should not be implemented outside the SDK.</p>
  */
+@SdkInternalApi
 public interface WaitFor {
 
     /**
