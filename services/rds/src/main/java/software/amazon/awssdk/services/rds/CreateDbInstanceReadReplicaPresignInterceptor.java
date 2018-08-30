@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.rds;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.services.rds.model.CreateDbInstanceReadReplicaRequest;
 import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplicaRequestMarshaller;
@@ -22,7 +23,9 @@ import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplica
 /**
  * Handler for pre-signing {@link CreateDbInstanceReadReplicaRequest}.
  */
-public class CreateDbInstanceReadReplicaPresignInterceptor extends RdsPresignInterceptor<CreateDbInstanceReadReplicaRequest> {
+@SdkProtectedApi
+public final class CreateDbInstanceReadReplicaPresignInterceptor extends
+                                                                 RdsPresignInterceptor<CreateDbInstanceReadReplicaRequest> {
     public CreateDbInstanceReadReplicaPresignInterceptor() {
         super(CreateDbInstanceReadReplicaRequest.class);
     }

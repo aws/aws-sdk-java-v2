@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sfn.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
 
 /**
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
  *
  * @see <a href="https://states-language.net/spec.html#transition">https://states-language.net/spec.html#transition</a>
  */
+@SdkPublicApi
 public final class EndTransition implements Transition {
 
     // Required for proper serialization

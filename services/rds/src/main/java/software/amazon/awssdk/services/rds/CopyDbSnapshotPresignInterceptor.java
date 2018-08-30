@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.rds;
 
 import java.time.Clock;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
@@ -24,7 +25,8 @@ import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarsha
 /**
  * Handler for pre-signing {@link CopyDbSnapshotRequest}.
  */
-public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
+@SdkProtectedApi
+public final class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
 
     public CopyDbSnapshotPresignInterceptor() {
         super(CopyDbSnapshotRequest.class);

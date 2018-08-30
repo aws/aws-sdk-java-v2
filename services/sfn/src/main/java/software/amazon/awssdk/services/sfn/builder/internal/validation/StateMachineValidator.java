@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sfn.builder.ErrorCode;
 import software.amazon.awssdk.services.sfn.builder.StateMachine;
 import software.amazon.awssdk.services.sfn.builder.conditions.BinaryCondition;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.services.sfn.builder.states.WaitState;
  * // TODO Does not check max nesting.
  * // TODO Does not validate ARNs against a regex
  */
+@SdkInternalApi
 public class StateMachineValidator {
 
     private final ProblemReporter problemReporter = new ProblemReporter();

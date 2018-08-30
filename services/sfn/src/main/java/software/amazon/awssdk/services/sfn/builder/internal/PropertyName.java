@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.services.sfn.builder.internal;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * JSON property names used for serialization/deserialization.
  */
+@SdkInternalApi
 public class PropertyName {
 
     // Common property names

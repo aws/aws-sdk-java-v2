@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.machinelearning.internal;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -30,7 +31,8 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * extracts the PredictRequest's PredictEndpoint "parameter" and swaps it in as
  * the endpoint to send the request to.
  */
-public class PredictEndpointInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class PredictEndpointInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {

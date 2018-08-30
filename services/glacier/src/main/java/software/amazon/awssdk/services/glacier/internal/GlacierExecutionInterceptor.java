@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.glacier.internal;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -23,7 +24,8 @@ import software.amazon.awssdk.services.glacier.model.DescribeJobRequest;
 import software.amazon.awssdk.services.glacier.model.GetJobOutputRequest;
 import software.amazon.awssdk.services.glacier.model.UploadMultipartPartRequest;
 
-public class GlacierExecutionInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class GlacierExecutionInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
