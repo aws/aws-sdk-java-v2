@@ -34,8 +34,7 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import software.amazon.awssdk.core.util.PaginatorUtils;
 
 public abstract class PaginatorsClassSpec implements ClassSpec {
 
@@ -178,14 +177,11 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         }
         // If there is no more_results token, then output_token will be a single value
         return CodeBlock.builder()
-                // Auto construct containers are treated as null so terminate
-                // pagination for those cases as well.
-                .add("return $1N.$2L != null && !$3T.class.isInstance($1N.$2L) && !$4T.class.isInstance($1N.$2L)",
-                              PREVIOUS_PAGE_METHOD_ARGUMENT,
-                              fluentGetterMethodsForOutputToken().get(0),
-                              SdkAutoConstructList.class,
-                              SdkAutoConstructMap.class)
-                .build();
+                        .add("return $3T.isOutputTokenAvailable($1N.$2L)",
+                             PREVIOUS_PAGE_METHOD_ARGUMENT,
+                             fluentGetterMethodsForOutputToken().get(0),
+                             PaginatorUtils.class)
+                        .build();
 
     }
 

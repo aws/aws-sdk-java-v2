@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
@@ -116,6 +118,7 @@ public class SubscribeToShardIntegrationTest {
     @Test
     public void cancelledSubscription_DoesNotCallTerminalMethods() {
         AtomicBoolean terminalCalled = new AtomicBoolean(false);
+        AtomicReference<Throwable> exceptionOccurredThrowable = new AtomicReference<>();
         try {
             client.subscribeToShard(r -> r.consumerARN(consumerArn)
                                           .shardId(shardId)
@@ -153,6 +156,7 @@ public class SubscribeToShardIntegrationTest {
                                         @Override
                                         public void exceptionOccurred(Throwable throwable) {
                                             // Expected to be called
+                                            exceptionOccurredThrowable.set(throwable);
                                         }
 
                                         @Override
@@ -162,7 +166,8 @@ public class SubscribeToShardIntegrationTest {
                                     }).join();
             fail("Expected exception");
         } catch (CompletionException e) {
-            assertThat(e.getCause().getCause()).hasMessageContaining("cancelled");
+            assertThat(e.getCause().getCause()).isInstanceOf(SdkCancellationException.class);
+            assertThat(exceptionOccurredThrowable.get().getCause().getCause()).isInstanceOf(SdkCancellationException.class);
             assertThat(terminalCalled).as("complete or onComplete was called when it shouldn't have been")
                                       .isFalse();
         }

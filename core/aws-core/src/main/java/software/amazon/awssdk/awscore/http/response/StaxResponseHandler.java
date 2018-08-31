@@ -114,7 +114,7 @@ public final class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
     /**
      * Create the default {@link SdkResponseMetadata}. Subclasses may override this to create a
-     * subclass of {@link SdkResponseMetadata}. Currently only SimpleDB does this.
+     * subclass of {@link SdkResponseMetadata}.
      */
     protected SdkResponseMetadata getResponseMetadata(Map<String, String> metadata) {
         return new SdkResponseMetadata(metadata);
