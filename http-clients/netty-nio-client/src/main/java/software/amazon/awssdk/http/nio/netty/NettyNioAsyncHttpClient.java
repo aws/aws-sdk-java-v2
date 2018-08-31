@@ -35,6 +35,7 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.http.nio.netty.internal.ReleaseOnceChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
@@ -73,6 +75,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final ChannelPoolMap<URI, ChannelPool> pools;
+    private final SdkChannelOptions sdkChannelOptions;
     private final NettyConfiguration configuration;
     private final long maxStreams;
     private Protocol protocol;
@@ -83,6 +86,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.maxStreams = 200;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
+        this.sdkChannelOptions = channelOptions(builder);
+    }
+
+    private SdkChannelOptions channelOptions(DefaultBuilder builder) {
+        return builder.sdkChannelOptions;
     }
 
     private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
@@ -144,8 +152,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         .channelFactory(sdkEventLoopGroup.channelFactory())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
                         // TODO run some performance tests with and without this.
-                        .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
+
+                for (Map.Entry<ChannelOption, Object> entry : sdkChannelOptions.channelOptions().entrySet()) {
+                    bootstrap.option(entry.getKey(), entry.getValue());
+                }
+
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
                 ChannelPipelineInitializer handler =
                     new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef);
@@ -279,6 +291,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return This builder for method chaining.
          */
         Builder protocol(Protocol protocol);
+
+        /**
+         * Add new socket channel option which will be used to create Netty Http client. This allows custom configuration
+         * for Netty.
+         * @param channelOption {@link ChannelOption} to set
+         * @param value See {@link ChannelOption} to find the type of value for each option
+         * @return This builder for method chaining.
+         * @see SdkEventLoopGroup.Builder
+         */
+        Builder putChannelOption(ChannelOption channelOption, Object value);
     }
 
     /**
@@ -288,6 +310,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+        private SdkChannelOptions sdkChannelOptions = new SdkChannelOptions();
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
 
@@ -421,6 +444,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setProtocol(Protocol protocol) {
             protocol(protocol);
+        }
+
+        @Override
+        public Builder putChannelOption(ChannelOption channelOption, Object value) {
+            this.sdkChannelOptions.putOption(channelOption, value);
+            return this;
         }
 
         @Override
