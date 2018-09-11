@@ -1,0 +1,5 @@
+{
+    "category": "AWS Security Token Service", 
+    "type": "feature", 
+    "description": "Added supplier functionality to StsAssumeRoleWithSamlCredentialProvider.  This allows for the saml assertion to be refreshed before getting new credentials from STS."
+}
