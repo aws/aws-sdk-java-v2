@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * checked to see if they are compatible with DNS addressing.
  */
 @SdkProtectedApi
-public class BucketUtils {
+public final class BucketUtils {
 
     private static final int MIN_BUCKET_NAME_LENGTH = 3;
     private static final int MAX_BUCKET_NAME_LENGTH = 63;

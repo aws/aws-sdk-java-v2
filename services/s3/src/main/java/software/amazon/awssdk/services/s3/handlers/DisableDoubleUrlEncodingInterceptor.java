@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -24,7 +25,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
  * Don't double-url-encode path elements for S3. S3 expects path elements to be encoded only once in
  * the canonical URI.
  */
-public class DisableDoubleUrlEncodingInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class DisableDoubleUrlEncodingInterceptor implements ExecutionInterceptor {
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {

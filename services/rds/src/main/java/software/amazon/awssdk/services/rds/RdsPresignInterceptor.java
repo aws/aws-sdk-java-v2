@@ -19,6 +19,7 @@ import static software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttr
 
 import java.net.URI;
 import java.time.Clock;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
@@ -43,13 +44,14 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  *
  * @param <T> The request type.
  */
-abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
+@SdkPublicApi
+public abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
     private static final String SERVICE_NAME = "rds";
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
 
-    protected interface PresignableRequest {
+    public interface PresignableRequest {
         String getSourceRegion();
 
         Request<?> marshall();
@@ -59,17 +61,18 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
 
     private final Clock signingOverrideClock;
 
-    RdsPresignInterceptor(Class<T> requestClassToPreSign) {
+    public RdsPresignInterceptor(Class<T> requestClassToPreSign) {
         this(requestClassToPreSign, null);
     }
 
-    RdsPresignInterceptor(Class<T> requestClassToPreSign, Clock signingOverrideClock) {
+    public RdsPresignInterceptor(Class<T> requestClassToPreSign, Clock signingOverrideClock) {
         this.requestClassToPreSign = requestClassToPreSign;
         this.signingOverrideClock = signingOverrideClock;
     }
 
     @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+    public final SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                                      ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
         SdkRequest originalRequest = context.request();
         if (!requestClassToPreSign.isInstance(originalRequest)) {
@@ -115,6 +118,12 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
                       .build();
     }
 
+    /**
+     * Adapts the request to the {@link PresignableRequest}.
+     *
+     * @param originalRequest the original request
+     * @return a PresignableRequest
+     */
     protected abstract PresignableRequest adaptRequest(T originalRequest);
 
     private SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,

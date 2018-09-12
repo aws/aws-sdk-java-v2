@@ -1,22 +1,25 @@
 {
   "pagination": {
-    "DescribeUsers": {
+    "DescribeDocumentVersions": {
       "input_token": "Marker",
-      "output_token": "Marker",
       "limit_key": "Limit",
-      "result_key": "Users"
+      "output_token": "Marker",
+      "result_key": "DocumentVersions"
     },
     "DescribeFolderContents": {
       "input_token": "Marker",
-      "output_token": "Marker",
       "limit_key": "Limit",
-      "result_key": ["Folders", "Documents"]
+      "output_token": "Marker",
+      "result_key": [
+        "Folders",
+        "Documents"
+      ]
     },
-    "DescribeDocumentVersions": {
+    "DescribeUsers": {
       "input_token": "Marker",
-      "output_token": "Marker",
       "limit_key": "Limit",
-      "result_key": "DocumentVersions"
+      "output_token": "Marker",
+      "result_key": "Users"
     }
   }
 }

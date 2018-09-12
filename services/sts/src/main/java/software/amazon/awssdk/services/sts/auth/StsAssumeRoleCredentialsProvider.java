@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -38,8 +39,9 @@ import software.amazon.awssdk.utils.Validate;
  *
  * This is created using {@link StsAssumeRoleCredentialsProvider#builder()}.
  */
+@SdkPublicApi
 @ThreadSafe
-public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
+public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
     private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**

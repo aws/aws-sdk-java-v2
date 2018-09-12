@@ -17,10 +17,12 @@ package software.amazon.awssdk.services.sfn.builder.internal.validation;
 
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Captures reported problems and creates appropriate exception with all problems identified via {@link #getException()}.
  */
+@SdkInternalApi
 final class ProblemReporter {
 
     private final List<Problem> problems = new ArrayList<Problem>();

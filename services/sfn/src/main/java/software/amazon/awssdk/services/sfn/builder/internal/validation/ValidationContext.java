@@ -19,6 +19,7 @@ import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 import java.util.Collection;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.utils.StringUtils;
  * Contains context about the current validation scope and factory methods
  * for new sub-contexts and for reporting various common problems.
  */
+@SdkInternalApi
 final class ValidationContext {
 
     private final ValidationContext parentContext;

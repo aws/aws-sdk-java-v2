@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sts.auth;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -37,8 +38,9 @@ import software.amazon.awssdk.utils.Validate;
  *
  * This is created using {@link StsAssumeRoleWithWebIdentityCredentialsProvider#builder()}.
  */
+@SdkPublicApi
 @ThreadSafe
-public class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredentialsProvider {
+public final class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredentialsProvider {
     private final AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest;
 
     /**

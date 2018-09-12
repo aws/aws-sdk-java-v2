@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -27,10 +28,11 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 /**
  * Interceptor to enable chunked encoding on specific upload operations.
  */
+@SdkProtectedApi
 @ReviewBeforeRelease("Check if there are other operations that should have chuncked encoding enabled by default."
                      + "Do we even require this? By default chunked encoding is enabled. See AwsS3V4SignerParams class"
                      + "Maybe we need interceptor for payload signing as its disabled by default. See JAVA-2775")
-public class EnableChunkedEncodingInterceptor implements ExecutionInterceptor {
+public final class EnableChunkedEncodingInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
