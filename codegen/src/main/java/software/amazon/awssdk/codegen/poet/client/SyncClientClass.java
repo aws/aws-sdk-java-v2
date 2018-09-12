@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
@@ -86,6 +87,10 @@ public class SyncClientClass implements ClassSpec {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
 
+        if (model.containsRequestSigners()) {
+            classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
         return classBuilder.build();
     }
 
@@ -132,12 +137,13 @@ public class SyncClientClass implements ClassSpec {
         ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
-                                  .addAnnotation(Override.class)
-                                  .addCode(getCustomResponseHandler(opModel, returnType)
-                                               .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
-                                  .addCode(protocolSpec.errorResponseHandler(opModel))
-                                  .addCode(protocolSpec.executionHandler(opModel))
-                                  .build());
+                                       .addAnnotation(Override.class)
+                                       .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+                                       .addCode(getCustomResponseHandler(opModel, returnType)
+                                                    .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
+                                       .addCode(protocolSpec.errorResponseHandler(opModel))
+                                       .addCode(protocolSpec.executionHandler(opModel))
+                                       .build());
 
         methods.addAll(paginatedMethods(opModel));
 

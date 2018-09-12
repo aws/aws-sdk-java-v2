@@ -192,14 +192,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  opModel.getInput().getVariableName());
 
         if (opModel.hasStreamingInput()) {
-            return codeBlock.add(".withMarshaller(new $T(new $T(protocolFactory), requestBody)));",
-                                 ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
-                                 marshaller)
-                            .build();
+            codeBlock.add(".withMarshaller(new $T(new $T(protocolFactory), requestBody))",
+                          ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
+                          marshaller);
+        } else {
+            codeBlock.add(".withMarshaller(new $T(protocolFactory))", marshaller);
         }
 
-        return codeBlock.add(".withMarshaller(new $T(protocolFactory))$L);", marshaller,
-                             opModel.hasStreamingOutput() ? ", responseTransformer" : "")
+        return codeBlock.add("$L);", opModel.hasStreamingOutput() ? ", responseTransformer" : "")
                         .build();
     }
 

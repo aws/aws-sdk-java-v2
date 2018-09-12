@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -74,7 +75,15 @@ public final class AwsClientHandlerUtils {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signer(clientConfig.option(AwsAdvancedClientOption.SIGNER))
+                               .signer(computeSigner(originalRequest, clientConfig))
                                .build();
+    }
+
+    // Signer at request level gets priority over client config signer
+    private static Signer computeSigner(SdkRequest originalRequest,
+                                        SdkClientConfiguration clientConfiguration) {
+        return originalRequest.overrideConfiguration()
+                              .flatMap(config -> config.signer())
+                              .orElse(clientConfiguration.option(AwsAdvancedClientOption.SIGNER));
     }
 }

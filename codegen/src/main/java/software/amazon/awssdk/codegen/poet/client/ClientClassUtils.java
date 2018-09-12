@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.Validate;
 
@@ -122,4 +123,58 @@ final class ClientClassUtils {
                          .build();
     }
 
+    static MethodSpec applySignerOverrideMethod(PoetExtensions poetExtensions, IntermediateModel model) {
+        final String signerOverrideVariable = "signerOverride";
+
+        TypeVariableName typeVariableName =
+            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
+
+        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
+            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
+
+        CodeBlock codeBlock = CodeBlock.builder()
+                                       .beginControlFlow("if (request.overrideConfiguration().flatMap(c -> c.signer())"
+                                                         + ".isPresent())")
+                                       .addStatement("return request")
+                                       .endControlFlow()
+                                       .addStatement("$T $L = b -> b.signer(signer).build()",
+                                                     parameterizedTypeName,
+                                                     signerOverrideVariable)
+                                       .addStatement("$1T overrideConfiguration =\n"
+                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
+                                                     + ".applyMutation($2L).build())\n"
+                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
+                                                     + ".applyMutation($2L).build()))",
+                                                     AwsRequestOverrideConfiguration.class,
+                                                     signerOverrideVariable)
+                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
+                                                     + "(overrideConfiguration).build()")
+                                       .build();
+
+        return MethodSpec.methodBuilder("applySignerOverride")
+                         .addModifiers(Modifier.PRIVATE)
+                         .addParameter(typeVariableName, "request")
+                         .addParameter(Signer.class, "signer")
+                         .addTypeVariable(typeVariableName)
+                         .addCode(codeBlock)
+                         .returns(typeVariableName)
+                         .build();
+    }
+
+    static CodeBlock callApplySignerOverrideMethod(OperationModel opModel) {
+        CodeBlock.Builder code = CodeBlock.builder();
+        ShapeModel inputShape = opModel.getInputShape();
+
+        if (inputShape.getRequestSignerClassFqcn() != null) {
+            try {
+                code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
+                                  opModel.getInput().getVariableName(),
+                                  Class.forName(inputShape.getRequestSignerClassFqcn()));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return code.build();
+    }
 }

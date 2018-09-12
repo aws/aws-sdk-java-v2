@@ -224,12 +224,15 @@ public class AsyncClientInterface implements ClassSpec {
         if (opModel.getInputShape().isSimpleMethod()) {
             methodOverloads.add(noArgSimpleMethod(opModel));
         }
-        if (opModel.hasStreamingInput()) {
+        if (opModel.hasStreamingInput() && opModel.hasStreamingOutput()) {
+            MethodSpec streamingMethod = streamingInputOutputFileSimpleMethod(opModel);
+            methodOverloads.add(streamingMethod);
+            methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingMethod, consumerBuilderFileJavadoc));
+        } else if (opModel.hasStreamingInput()) {
             MethodSpec streamingInputMethod = streamingInputFileSimpleMethod(opModel);
             methodOverloads.add(streamingInputMethod);
             methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingInputMethod, consumerBuilderFileJavadoc));
-        }
-        if (opModel.hasStreamingOutput()) {
+        } else if (opModel.hasStreamingOutput()) {
             MethodSpec streamingOutputMethod = streamingOutputFileSimpleMethod(opModel);
             methodOverloads.add(streamingOutputMethod);
             methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingOutputMethod, consumerBuilderFileJavadoc));
@@ -332,6 +335,27 @@ public class AsyncClientInterface implements ClassSpec {
                               opModel.getInput().getVariableName(),
                               ClassName.get(AsyncResponseTransformer.class))
                 .build();
+    }
+
+    /**
+     * Generate a simple method for operations with streaming input and output members.
+     * Streaming input member takes a {@link Path} containing the data to upload and
+     * the streaming output member takes a {@link Path} where data will be downloaded to.
+     */
+    private MethodSpec streamingInputOutputFileSimpleMethod(OperationModel opModel) {
+        ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        return interfaceMethodSignature(opModel)
+            .returns(completableFutureType(getPojoResponseType(opModel)))
+            .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
+            .addParameter(requestType, opModel.getInput().getVariableName())
+            .addParameter(ClassName.get(Path.class), "sourcePath")
+            .addParameter(ClassName.get(Path.class), "destinationPath")
+            .addStatement("return $L($L, $T.fromFile(sourcePath), $T.toFile(destinationPath))",
+                          opModel.getMethodName(),
+                          opModel.getInput().getVariableName(),
+                          ClassName.get(AsyncRequestBody.class),
+                          ClassName.get(AsyncResponseTransformer.class))
+            .build();
     }
 
     /**

@@ -215,4 +215,11 @@ public final class IntermediateModel {
     public boolean hasPaginators() {
         return paginators.size() > 0;
     }
+
+    public boolean containsRequestSigners() {
+        return getShapes().values().stream()
+                          .filter(ShapeModel::isRequestSignerAware)
+                          .findAny()
+                          .isPresent();
+    }
 }
