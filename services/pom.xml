@@ -93,6 +93,7 @@
         <module>kms</module>
         <module>lambda</module>
         <module>lightsail</module>
+        <module>lexruntime</module>
         <module>lexmodelbuilding</module>
         <module>cloudwatchlogs</module>
         <module>machinelearning</module>

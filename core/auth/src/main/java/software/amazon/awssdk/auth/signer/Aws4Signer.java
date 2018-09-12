@@ -28,9 +28,9 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * Signer implementation that signs requests with the AWS4 signing protocol.
  */
 @SdkPublicApi
-public final class Aws4Signer extends AbstractAws4Signer<Aws4SignerParams, Aws4PresignerParams> {
+public class Aws4Signer extends AbstractAws4Signer<Aws4SignerParams, Aws4PresignerParams> {
 
-    private Aws4Signer() {
+    protected Aws4Signer() {
     }
 
     public static Aws4Signer create() {

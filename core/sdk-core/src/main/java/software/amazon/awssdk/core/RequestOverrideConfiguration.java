@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -37,12 +38,11 @@ import software.amazon.awssdk.utils.Validate;
 public abstract class RequestOverrideConfiguration {
 
     private final Map<String, List<String>> headers;
-
     private final Map<String, List<String>> rawQueryParameters;
-
     private final List<ApiName> apiNames;
     private final Duration apiCallTimeout;
     private final Duration apiCallAttemptTimeout;
+    private final Signer signer;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -50,6 +50,7 @@ public abstract class RequestOverrideConfiguration {
         this.apiNames = Collections.unmodifiableList(new ArrayList<>(builder.apiNames()));
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
+        this.signer = builder.signer();
     }
 
     /**
@@ -115,6 +116,14 @@ public abstract class RequestOverrideConfiguration {
      */
     public Optional<Duration> apiCallAttemptTimeout() {
         return Optional.ofNullable(apiCallAttemptTimeout);
+    }
+
+    /**
+     * @return the signer for signing the request. This signer get priority over the signer set on the client while
+     * signing the requests. If this value is not set, then the client level signer is used for signing the request.
+     */
+    public Optional<Signer> signer() {
+        return Optional.ofNullable(signer);
     }
 
     /**
@@ -278,6 +287,17 @@ public abstract class RequestOverrideConfiguration {
         Duration apiCallAttemptTimeout();
 
         /**
+         * Sets the signer to use for signing the request. This signer get priority over the signer set on the client while
+         * signing the requests. If this value is null, then the client level signer is used for signing the request.
+         *
+         * @param signer Signer for signing the request
+         * @return This object for method chaining
+         */
+        B signer(Signer signer);
+
+        Signer signer();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -287,12 +307,11 @@ public abstract class RequestOverrideConfiguration {
 
     protected abstract static class BuilderImpl<B extends Builder> implements Builder<B> {
         private Map<String, List<String>> headers = new HashMap<>();
-
         private Map<String, List<String>> rawQueryParameters = new HashMap<>();
-
         private List<ApiName> apiNames = new ArrayList<>();
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
+        private Signer signer;
 
         protected BuilderImpl() {
         }
@@ -393,6 +412,21 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public Duration apiCallAttemptTimeout() {
             return apiCallAttemptTimeout;
+        }
+
+        @Override
+        public B signer(Signer signer) {
+            this.signer = signer;
+            return (B) this;
+        }
+
+        public void setSigner(Signer signer) {
+            signer(signer);
+        }
+
+        @Override
+        public Signer signer() {
+            return signer;
         }
     }
 }

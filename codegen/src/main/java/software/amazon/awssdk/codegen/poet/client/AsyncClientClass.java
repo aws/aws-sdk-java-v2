@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -90,6 +91,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
         if (model.hasPaginators()) {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
+
+        if (model.containsRequestSigners()) {
+            classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();
@@ -148,6 +154,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
                       .beginControlFlow("try")
+                          .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                           .addCode(getCustomResponseHandler(opModel, returnType)
                                        .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
                           .addCode(protocolSpec.errorResponseHandler(opModel))

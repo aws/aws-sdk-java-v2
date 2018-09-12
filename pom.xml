@@ -1061,8 +1061,12 @@
                                     <packages>software.amazon.awssdk.services.batch*</packages>
                                 </group>
                                 <group>
-                                    <title>Lex</title>
-                                    <packages>software.amazon.awssdk.services.lex*</packages>
+                                    <title>Lex Runtime</title>
+                                    <packages>software.amazon.awssdk.services.lexruntime*</packages>
+                                </group>
+                                <group>
+                                    <title>Lex Model Building</title>
+                                    <packages>software.amazon.awssdk.services.lexmodelbuilding*</packages>
                                 </group>
                                 <group>
                                     <title>Mechanical Turk Requester</title>
