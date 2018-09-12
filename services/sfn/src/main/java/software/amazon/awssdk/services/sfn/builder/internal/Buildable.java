@@ -20,12 +20,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Interface to build a particular type.
  *
  * @param <T> Type to build.
  */
+@SdkInternalApi
 public interface Buildable<T> {
 
     T build();

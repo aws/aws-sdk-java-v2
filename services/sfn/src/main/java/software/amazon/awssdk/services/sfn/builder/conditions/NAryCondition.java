@@ -16,12 +16,14 @@
 package software.amazon.awssdk.services.sfn.builder.conditions;
 
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Base interface for n-ary conditions like {@link AndCondition}.
  *
  * <p>This interface should not be implemented outside of the SDK.</p>
  */
+@SdkInternalApi
 public interface NAryCondition extends Condition {
 
     /**

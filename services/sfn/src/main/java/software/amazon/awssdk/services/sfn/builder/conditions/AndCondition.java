@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sfn.builder.conditions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
 import software.amazon.awssdk.services.sfn.builder.states.Choice;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.sfn.builder.states.ChoiceState;
  * @see <a href="https://states-language.net/spec.html#choice-state">https://states-language.net/spec.html#choice-state</a>
  * @see Choice
  */
+@SdkPublicApi
 public final class AndCondition implements NAryCondition {
 
     @JsonProperty(PropertyName.AND)

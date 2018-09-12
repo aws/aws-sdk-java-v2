@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.services.s3.transform;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
+@SdkProtectedApi
 public final class GetBucketPolicyResponseUnmarshaller implements Unmarshaller<GetBucketPolicyResponse, SdkHttpFullResponse> {
     @Override
     public GetBucketPolicyResponse unmarshall(SdkHttpFullResponse response) throws Exception {

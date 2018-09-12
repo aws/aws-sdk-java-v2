@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.sfn.builder.states.Choice;
  *
  * <p>This interface should not be implemented outside of the SDK.</p>
  */
+@SdkInternalApi
 public interface Condition {
 
     /**

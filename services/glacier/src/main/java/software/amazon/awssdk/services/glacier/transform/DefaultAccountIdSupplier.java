@@ -16,7 +16,9 @@
 package software.amazon.awssdk.services.glacier.transform;
 
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class DefaultAccountIdSupplier {
 
     /**

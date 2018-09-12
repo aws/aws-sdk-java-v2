@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 import software.amazon.awssdk.services.sfn.builder.internal.DateModule;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.services.sfn.builder.states.State;
  *
  * @see <a href="https://states-language.net/spec.html#toplevelfields">https://states-language.net/spec.html#toplevelfields</a>
  */
+@SdkPublicApi
 public final class StateMachine {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
