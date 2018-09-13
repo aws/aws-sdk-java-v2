@@ -191,16 +191,16 @@ public class IntermediateModelBuilder {
                  }
 
                  if (model.getMetadata().getProtocol() == Protocol.API_GATEWAY) {
-                     linkCustomAuthorizationToRequestShapeForApiGatewayProtocol(model, c2jOperation, shape);
+                     linkAuthorizationToRequestShapeForApiGatewayProtocol(model, c2jOperation, shape);
                  } else {
-                     linkCustomAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthType(), shape);
+                     linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthType(), shape);
                  }
              });
     }
 
-    private void linkCustomAuthorizationToRequestShapeForApiGatewayProtocol(IntermediateModel model,
-                                                                            Operation c2jOperation,
-                                                                            ShapeModel shape) {
+    private void linkAuthorizationToRequestShapeForApiGatewayProtocol(IntermediateModel model,
+                                                                      Operation c2jOperation,
+                                                                      ShapeModel shape) {
         if (AuthType.CUSTOM.equals(c2jOperation.getAuthType())) {
             AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
             if (auth == null) {
@@ -216,7 +216,7 @@ public class IntermediateModelBuilder {
         }
     }
 
-    private void linkCustomAuthorizationToRequestShapeForAwsProtocol(AuthType authType, ShapeModel shape) {
+    private void linkAuthorizationToRequestShapeForAwsProtocol(AuthType authType, ShapeModel shape) {
         switch (authType) {
             case V4:
                 shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4Signer");

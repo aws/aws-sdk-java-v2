@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.signer;
 import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.signer.internal.BaseAws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -32,10 +33,9 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * integrity over a non-secure transport.
  */
 @SdkPublicApi
-public final class Aws4UnsignedPayloadSigner extends Aws4Signer {
+public final class Aws4UnsignedPayloadSigner extends BaseAws4Signer {
 
     private Aws4UnsignedPayloadSigner() {
-        super();
     }
 
     public static Aws4UnsignedPayloadSigner create() {
@@ -54,15 +54,15 @@ public final class Aws4UnsignedPayloadSigner extends Aws4Signer {
         return super.sign(request, signingParams);
     }
 
-    private SdkHttpFullRequest addContentSha256Header(SdkHttpFullRequest request) {
-        return request.toBuilder().putHeader(X_AMZ_CONTENT_SHA256, "required").build();
-    }
-
     @Override
     protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, Aws4SignerParams signerParams) {
         if ("https".equals(mutableRequest.protocol())) {
             return "UNSIGNED-PAYLOAD";
         }
         return super.calculateContentHash(mutableRequest, signerParams);
+    }
+
+    private SdkHttpFullRequest addContentSha256Header(SdkHttpFullRequest request) {
+        return request.toBuilder().putHeader(X_AMZ_CONTENT_SHA256, "required").build();
     }
 }
