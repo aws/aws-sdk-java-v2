@@ -116,7 +116,7 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
-    public byte[] signWithMac(String stringData, Mac mac) {
+    protected byte[] signWithMac(String stringData, Mac mac) {
         try {
             return mac.doFinal(stringData.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
@@ -127,7 +127,7 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
-    public byte[] sign(String stringData, byte[] key,
+    protected byte[] sign(String stringData, byte[] key,
                        SigningAlgorithm algorithm) throws SdkClientException {
         try {
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
@@ -161,11 +161,11 @@ public abstract class AbstractAwsSigner implements Signer {
      * @return The hashed bytes from the specified string.
      * @throws SdkClientException If the hash cannot be computed.
      */
-    public static byte[] hash(String text) throws SdkClientException {
+    static byte[] hash(String text) throws SdkClientException {
         return AbstractAwsSigner.doHash(text);
     }
 
-    protected byte[] hash(InputStream input) throws SdkClientException {
+    byte[] hash(InputStream input) throws SdkClientException {
         try {
             MessageDigest md = getMessageDigestInstance();
             @SuppressWarnings("resource")
@@ -191,7 +191,7 @@ public abstract class AbstractAwsSigner implements Signer {
      * @return The hashed bytes from the specified data.
      * @throws SdkClientException If the hash cannot be computed.
      */
-    public byte[] hash(byte[] data) throws SdkClientException {
+    byte[] hash(byte[] data) throws SdkClientException {
         try {
             MessageDigest md = getMessageDigestInstance();
             md.update(data);
