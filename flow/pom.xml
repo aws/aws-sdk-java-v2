@@ -54,6 +54,11 @@
                 <version>3.0.2</version>
                 <configuration>
                     <finalName>aws-flow-java</finalName>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.eventstream</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>

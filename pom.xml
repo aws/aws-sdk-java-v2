@@ -115,6 +115,7 @@
         <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <checkstyle.version>7.8.2</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
@@ -127,8 +128,8 @@
         <freemarker.version>2.3.9</freemarker.version>
         <aspectj.version>1.8.2</aspectj.version>
 
-        <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.5</httpcomponents.httpclient.version>
+        <jre.version>1.10</jre.version>
+        <httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->
@@ -356,6 +357,31 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
+                    <!--<executions>-->
+                        <!--<execution>-->
+                            <!--<id>default-compile</id>-->
+                            <!--<configuration>-->
+                                <!--&lt;!&ndash; compile everything to ensure module-info contains right entries &ndash;&gt;-->
+                                <!--&lt;!&ndash; required when JAVA_HOME is JDK 8 or below &ndash;&gt;-->
+                                <!--<jdkToolchain>-->
+                                    <!--<version>9</version>-->
+                                <!--</jdkToolchain>-->
+                                <!--<release>9</release>-->
+                            <!--</configuration>-->
+                        <!--</execution>-->
+                        <!--<execution>-->
+                            <!--<id>base-compile</id>-->
+                            <!--<goals>-->
+                                <!--<goal>compile</goal>-->
+                            <!--</goals>-->
+                            <!--&lt;!&ndash; recompile everything for target VM except the module-info.java &ndash;&gt;-->
+                            <!--<configuration>-->
+                                <!--<excludes>-->
+                                    <!--<exclude>module-info.java</exclude>-->
+                                <!--</excludes>-->
+                            <!--</configuration>-->
+                        <!--</execution>-->
+                    <!--</executions>-->
                     <configuration>
                         <source>${jre.version}</source>
                         <target>${jre.version}</target>
@@ -522,6 +548,7 @@
                         <failsOnError>true</failsOnError>
                         <logViolationsToConsole>true</logViolationsToConsole>
                         <failOnViolation>true</failOnViolation>
+                        <excludes>**/module-info.java</excludes>
                     </configuration>
                 </plugin>
             </plugins>
