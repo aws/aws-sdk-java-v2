@@ -519,6 +519,16 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
+                <artifactId>secretsmanager</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>organizations</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
                 <artifactId>alexaforbusiness</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
