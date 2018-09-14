@@ -509,6 +509,16 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
+                <artifactId>mediastore</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>mediastoredata</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
                 <artifactId>alexaforbusiness</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
