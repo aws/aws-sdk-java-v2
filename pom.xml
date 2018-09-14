@@ -522,6 +522,7 @@
                         <failsOnError>true</failsOnError>
                         <logViolationsToConsole>true</logViolationsToConsole>
                         <failOnViolation>true</failOnViolation>
+                        <excludes>**/module-info.java</excludes>
                     </configuration>
                 </plugin>
                 <plugin>

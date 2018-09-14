@@ -24,13 +24,28 @@
         <artifactId>services</artifactId>
         <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
-
     <artifactId>route53domains</artifactId>
     <name>AWS Java SDK :: Services :: Amazon Route53 Domains</name>
     <description>The AWS Java SDK for Amazon Route53 module holds the client classes that are used for communicating
         with Amazon Route53 Domain Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.route53domains
+                            </Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 
 </project>

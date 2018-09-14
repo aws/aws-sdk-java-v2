@@ -1,7 +1,7 @@
 ${fileHeader}
 package ${metadata.fullSmokeTestsPackageName};
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;

@@ -9,7 +9,7 @@ package ${dataModel.transformPackage};
 
 import java.util.Map;
 import java.util.List;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import ${metadata.fullModelPackageName}.*;

@@ -2,7 +2,7 @@ ${fileHeader}
 package ${transformPackage};
 
 import org.w3c.dom.Node;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.util.XpathUtils;

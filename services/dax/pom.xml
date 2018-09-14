@@ -25,8 +25,24 @@
     </parent>
     <artifactId>dax</artifactId>
     <name>AWS Java SDK :: Services :: Amazon DynamoDB Accelerator (DAX)</name>
-    <description>The AWS Java SDK for Amazon DynamoDB Accelerator (DAX) module holds the client classes that are used for
+    <description>The AWS Java SDK for Amazon DynamoDB Accelerator (DAX) module holds the client classes that are used
+        for
         communicating with Amazon DynamoDB Accelerator (DAX).
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.dax</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

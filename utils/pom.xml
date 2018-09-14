@@ -82,6 +82,9 @@
                 <configuration>
                     <archive>
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.utils</Automatic-Module-Name>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
@@ -100,5 +103,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

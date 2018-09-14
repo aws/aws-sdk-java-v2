@@ -17,16 +17,31 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>software.amazon.awssdk</groupId>
-    <artifactId>services</artifactId>
-    <version>2.0.0-preview-13-SNAPSHOT</version>
-  </parent>
-  <artifactId>lexruntime</artifactId>
-  <name>AWS Java SDK :: Services :: Amazon Lex Runtime</name>
-  <description>The AWS Java SDK for Amazon Lex Runtime module holds the client classes that are used for
-    communicating with Amazon Lex Runtime Service
-  </description>
-  <url>https://aws.amazon.com/sdkforjava</url>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>services</artifactId>
+        <version>2.0.0-preview-13-SNAPSHOT</version>
+    </parent>
+    <artifactId>lexruntime</artifactId>
+    <name>AWS Java SDK :: Services :: Amazon Lex Runtime</name>
+    <description>The AWS Java SDK for Amazon Lex Runtime module holds the client classes that are used for
+        communicating with Amazon Lex Runtime Service
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.lexruntime</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -24,12 +24,27 @@
         <artifactId>services</artifactId>
         <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
-
     <artifactId>firehose</artifactId>
     <name>AWS Java SDK :: Services :: Amazon Kinesis Firehose</name>
-    <description>The AWS Java SDK for Amazon Kinesis Firehose module holds the client classes that are used for communicating
+    <description>The AWS Java SDK for Amazon Kinesis Firehose module holds the client classes that are used for
+        communicating
         with Amazon Kinesis Firehose Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.firehose</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

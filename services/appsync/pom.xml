@@ -25,6 +25,21 @@
     </parent>
 
     <artifactId>appsync</artifactId>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.appsync</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <name>AWS Java SDK :: Services :: AWS AppSync</name>
     <description>The AWS Java SDK for Amazon AppSync module holds the client classes that are used for communicating
         with Amazon AppSync.

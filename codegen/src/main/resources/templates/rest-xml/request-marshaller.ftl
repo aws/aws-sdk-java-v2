@@ -13,7 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.Request;
