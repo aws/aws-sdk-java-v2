@@ -1,5 +1,0 @@
-{
-    "category": "AWS STS", 
-    "type": "feature", 
-    "description": "Add the ability to provide a Supplier<AssumeRoleRequest> to StsAssumeRoleCredentialsProvider"
-}

@@ -1,0 +1,76 @@
+{
+    "date": "2018-09-18",
+    "version": "2.0.0-preview-12",
+    "entries": [
+        {
+            "category": "Aamazon S3",
+            "type": "bugfix",
+            "description": "Fix NPE for S3 GET request using http protocol. see [#612](https://github.com/aws/aws-sdk-java-v2/issues/612)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix Response Fetcher hasNextPage to check if the output token is non null or non empty if it is a collection or map type. Related to [#677](https://github.com/aws/aws-sdk-java-v2/issues/677)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "RetryPolicy bug fix: adding throttlingBackoffStrategy to `RetryPolicy.Builder`. see [#646](https://github.com/aws/aws-sdk-java-v2/issues/646)"
+        },
+        {
+            "category": "runtime",
+            "type": "bugfix",
+            "description": "Netty 4.1.26.Final -> 4.1.28.Final"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Improve logging for debuggability. see `SdkStandardLogger`."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Replacing legacy `HttpResponse` with `SdkHttpFullResponse`."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Refactored all services to make module names match the service id from the service model"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Update service models to be current as of 2018-09-07."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Removed sdk-core dependency from the profiles module. This allows reading from profile files without pulling in the rest of the SDK."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Implement apiCallAttemptTimeout and apiCallTimeout feature for asynchrounous calls. Customers can specify timeout via `ClientOverrideConfiguaration.Builder#apiCallTimeout(Duration)` or `RequestOverrideConfiguration.Builder#apiCallAttemptTimeout(Duration)`. Note: this feature is only implemented for asynchrounous api calls."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add mfa_serial to ProfileProperty"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Allow clients to add Socket Channel Option"
+        },
+        {
+            "category": "AWS STS",
+            "type": "feature",
+            "description": "Add the ability to provide a Supplier<AssumeRoleRequest> to StsAssumeRoleCredentialsProvider"
+        },
+        {
+            "category": "Amazon SimpleDB",
+            "type": "removal",
+            "description": "Amazon SimpleDB module is removed from the SDK 2.0. To use SimpleDB, use SDK 1.11.x. Note that you can run SDK 1.11 and 2.0 in the same application."
+        }
+    ]
+}
