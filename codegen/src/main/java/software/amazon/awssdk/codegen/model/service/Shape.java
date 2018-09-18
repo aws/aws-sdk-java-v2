@@ -48,8 +48,6 @@ public class Shape {
 
     private Member mapValueType;
 
-    // TODO: There are two properties min and max. Check if this is needed.
-
     @JsonProperty(value = "error")
     private ErrorTrait errorTrait;
 
@@ -62,6 +60,12 @@ public class Shape {
     private boolean fault;
 
     private boolean deprecated;
+
+    @JsonProperty(value = "eventstream")
+    private boolean isEventStream;
+
+    @JsonProperty(value = "event")
+    private boolean isEvent;
 
     public boolean isFault() {
         return fault;
@@ -217,5 +221,21 @@ public class Shape {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public boolean isEventStream() {
+        return isEventStream;
+    }
+
+    public void setIsEventStream(boolean eventStream) {
+        isEventStream = eventStream;
+    }
+
+    public boolean isEvent() {
+        return isEvent;
+    }
+
+    public void setIsEvent(boolean event) {
+        isEvent = event;
     }
 }

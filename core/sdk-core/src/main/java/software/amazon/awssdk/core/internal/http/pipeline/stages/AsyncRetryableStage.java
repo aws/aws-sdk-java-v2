@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeCompletableFuture;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -26,21 +28,27 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOption;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.Response;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.utils.OptionalUtils;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
@@ -52,18 +60,23 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
     private static final Logger log = LoggerFactory.getLogger(AsyncRetryableStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
-    private final ScheduledExecutorService retrySubmitter;
+    private final ScheduledExecutorService scheduledExecutor;
+    private final SdkHttpResponseHandler<OutputT> responseHandler;
     private final HttpClientDependencies dependencies;
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
+    private final SdkClientConfiguration clientConfig;
 
-    public AsyncRetryableStage(HttpClientDependencies dependencies,
+    public AsyncRetryableStage(SdkHttpResponseHandler<OutputT> responseHandler,
+                               HttpClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
+        this.responseHandler = responseHandler;
         this.dependencies = dependencies;
-        this.retrySubmitter = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE);
+        this.scheduledExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
         this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         this.retryCapacity = dependencies.retryCapacity();
         this.requestPipeline = requestPipeline;
+        this.clientConfig = dependencies.clientConfiguration();
     }
 
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws
@@ -108,6 +121,14 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         public CompletableFuture<Response<OutputT>> execute() throws Exception {
             CompletableFuture<Response<OutputT>> future = new CompletableFuture<>();
+
+            long apiCallTimeoutInMillis = getApiCallTimeoutInMillis(context.requestConfig());
+            TimeoutTracker timeoutTracker = timeCompletableFuture(future,
+                                                                  scheduledExecutor,
+                                                                  ApiCallTimeoutException.create(apiCallTimeoutInMillis),
+                                                                  apiCallTimeoutInMillis);
+            context.apiCallTimeoutTracker(timeoutTracker);
+
             execute(future);
             return future;
         }
@@ -125,11 +146,26 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     retryHandler.releaseRetryCapacity();
                     future.complete(resp);
                 } else if (resp != null) {
-                    retryHandler.setLastRetriedException(handleSdkException(resp));
+                    SdkException retryableException = handleSdkException(resp);
+                    retryHandler.setLastRetriedException(retryableException);
+                    // Notify the response handler on each retry. Note that this does not notify
+                    // on the last attempt by design. This is done in the generated client code so that
+                    // any exceptions that happen before we get to the retryable stage are also delivered to the
+                    // response handler
+                    deliverExceptionToResponseHandler(retryableException);
                     executeRetry(future);
                 } else {
-                    SdkClientException exception = SdkClientException.builder().cause(err).build();
-                    retryHandler.setLastRetriedException(handleSdkException(Response.fromFailure(exception, null)));
+                    // Don't wrap if we've already got a SdkException
+                    SdkException throwable = err instanceof SdkException ?
+                                             (SdkException) err : SdkClientException.builder().cause(err).build();
+                    SdkException retryableException = handleSdkException(
+                        Response.fromFailure(throwable, null));
+                    retryHandler.setLastRetriedException(retryableException);
+                    // Notify the response handler on each retry. Note that this does not notify
+                    // on the last attempt by design. This is done in the generated client code so that
+                    // any exceptions that happen before we get to the retryable stage are also delivered to the
+                    // response handler
+                    deliverExceptionToResponseHandler(retryableException);
                     executeRetry(future);
                 }
             } catch (Exception e) {
@@ -138,15 +174,22 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             return null;
         }
 
+        /**
+         * Notify the response handler on each retry. Note that this does not notify on the last attempt by design. This is done
+         * in the generated client code so that any exceptions that happen before we get to the retryable stage are also
+         * delivered to the response handler.
+         */
+        private void deliverExceptionToResponseHandler(SdkException retryableException) {
+            responseHandler.exceptionOccurred(retryableException);
+        }
+
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {
             final int retriesAttempted = requestCount - 2;
             Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
-            if (log.isDebugEnabled()) {
-                log.debug("Retryable error detected, will retry in " + delay + "ms, attempt number: " +
-                          retriesAttempted);
-            }
-            retrySubmitter.schedule(() -> {
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected, will retry in " + delay.toMillis() + "ms,"
+                                                         + " attempt number " + retriesAttempted);
+            scheduledExecutor.schedule(() -> {
                 execute(future);
                 return null;
             }, delay.toMillis(), TimeUnit.MILLISECONDS);
@@ -204,5 +247,14 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         private int readLimit() {
             return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
         }
+    }
+
+    private long getApiCallTimeoutInMillis(RequestOverrideConfiguration requestConfig) {
+        return OptionalUtils.firstPresent(
+            requestConfig.apiCallTimeout(),
+            () -> clientConfig.option(SdkClientOption.API_CALL_TIMEOUT))
+                            .map(Duration::toMillis)
+                            .orElse(0L);
+
     }
 }

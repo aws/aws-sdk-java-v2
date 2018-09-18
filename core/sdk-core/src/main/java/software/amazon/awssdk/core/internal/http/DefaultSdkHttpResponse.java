@@ -15,14 +15,11 @@
 
 package software.amazon.awssdk.core.internal.http;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
 
@@ -41,21 +38,6 @@ public final class DefaultSdkHttpResponse implements SdkHttpResponse {
         this.headers = CollectionUtils.deepUnmodifiableMap(headers);
         this.statusCode = statusCode;
         this.statusText = statusText;
-    }
-
-    /**
-     * Static factory to create an {@link DefaultSdkHttpResponse} from the details in a {@link
-     * HttpResponse}.
-     */
-    public static DefaultSdkHttpResponse from(HttpResponse httpResponse) {
-
-        // Legacy HttpResponse only supports a single value for a header
-        Map<String, List<String>> headers =
-            httpResponse.getHeaders().entrySet().stream()
-                        .collect(HashMap::new, (m, e) -> m.put(e.getKey(), Collections.singletonList(e.getValue())),
-                                 Map::putAll);
-
-        return new DefaultSdkHttpResponse(headers, httpResponse.getStatusCode(), httpResponse.getStatusText());
     }
 
     @Override

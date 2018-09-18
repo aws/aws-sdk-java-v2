@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOption;
@@ -29,7 +27,6 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
@@ -42,6 +39,7 @@ import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
@@ -49,7 +47,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @SdkInternalApi
 public final class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
 
-    private static final Logger log = LoggerFactory.getLogger(RetryableStage.class);
+    private static final Logger log = Logger.loggerFor(RetryableStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
 
@@ -115,11 +113,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                     } else {
                         retryHandler.setLastRetriedException(handleUnmarshalledException(response));
                     }
-                } catch (SdkServiceException e) {
-                    // TODO This can be cleaned up a bit if we have separate hierarchies for service and client exceptions
-                    // as we can just catch the client exception below.
-                    throw e;
-                } catch (SdkException | IOException e) {
+                } catch (SdkClientException | IOException e) {
                     retryHandler.setLastRetriedException(handleThrownException(e));
                 }
             }
@@ -170,9 +164,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                                                                .build();
             boolean willRetry = retryHandler.shouldRetry(null, request, context, sdkClientException, requestCount);
 
-            if (log.isDebugEnabled()) {
-                log.debug(sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), e);
-            }
+            log.debug(() -> sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), e);
 
             if (!willRetry) {
                 throw sdkClientException;
@@ -206,9 +198,8 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             final int retriesAttempted = requestCount - 2;
             Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
-            if (log.isDebugEnabled()) {
-                log.debug("Retriable error detected, " + "will retry in " + delay + "ms, attempt number: " + retriesAttempted);
-            }
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected, will retry in " + delay.toMillis() + "ms,"
+                                                         + " attempt number " + retriesAttempted);
             TimeUnit.MILLISECONDS.sleep(delay.toMillis());
         }
     }

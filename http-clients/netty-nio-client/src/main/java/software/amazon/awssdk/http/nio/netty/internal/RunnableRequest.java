@@ -22,6 +22,7 @@ import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpContent;
@@ -29,9 +30,12 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Optional;
@@ -44,7 +48,10 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
+import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
@@ -65,7 +72,6 @@ public final class RunnableRequest implements AbortableRunnable {
             if (channelFuture.isSuccess()) {
                 try {
                     channel = channelFuture.getNow();
-                    initializePerRequestHandlers();
                     channel.attr(REQUEST_CONTEXT_KEY).set(context);
                     channel.attr(RESPONSE_COMPLETE_KEY).set(false);
                     makeRequest(context.nettyRequest());
@@ -78,16 +84,9 @@ public final class RunnableRequest implements AbortableRunnable {
         });
     }
 
-    /**
-     * Add any per-request handlers to the pipeline.
-     */
-    private void initializePerRequestHandlers() {
-        channel.pipeline().addLast(new HttpStreamsClientHandler());
-        channel.pipeline().addLast(new ResponseHandler());
-    }
-
     @Override
     public void abort() {
+        log.trace("aborting the request");
         if (channel != null) {
             closeAndRelease(channel);
         }
@@ -95,12 +94,37 @@ public final class RunnableRequest implements AbortableRunnable {
 
     private void makeRequest(HttpRequest request) {
         log.debug("Writing request: {}", request);
+
+        runOrFail(() -> {
+            configurePipeline();
+            writeRequest(request);
+        },
+            () -> "Failed to make request to " + endpoint());
+    }
+
+    private void configurePipeline() {
+        Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
+        if (Protocol.HTTP2.equals(protocol)) {
+            channel.pipeline().addLast(new Http2ToHttpInboundAdapter());
+            channel.pipeline().addLast(new HttpToHttp2OutboundAdapter());
+        } else if (!Protocol.HTTP1_1.equals(protocol)) {
+            throw new RuntimeException("Unknown protocol: " + protocol);
+        }
+        channel.config().setOption(ChannelOption.AUTO_READ, false);
+        channel.pipeline().addLast(new HttpStreamsClientHandler());
+        channel.pipeline().addLast(new ResponseHandler());
+    }
+
+    private void writeRequest(HttpRequest request) {
         channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
                                                             TimeUnit.MILLISECONDS));
+
         channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
+                   // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
+                       // Starting read so add the idle read timeout handler, removed when channel is released
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
@@ -115,34 +139,48 @@ public final class RunnableRequest implements AbortableRunnable {
         return context.sdkRequest().getUri();
     }
 
+    private void runOrFail(Runnable runnable, Supplier<String> errorMsgSupplier) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            handleFailure(errorMsgSupplier, e);
+        }
+    }
+
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
+        Throwable throwable = decorateException(cause);
         runAndLogError("Exception thrown from AsyncResponseHandler",
-            () -> context.handler().exceptionOccurred(modifyHighBurstTrafficException(cause)));
+            () -> context.handler().exceptionOccurred(throwable));
         if (channel != null) {
-            runAndLogError("Unable to release channel back to the pool.", () -> closeAndRelease(channel));
+            runAndLogError("Unable to release channel back to the pool.",
+                () -> closeAndRelease(channel));
         }
     }
 
-    private Throwable modifyHighBurstTrafficException(Throwable originalCause) {
-        String originalMessage = originalCause.getMessage();
-        String newMessage = null;
-
-        if (originalCause instanceof TimeoutException &&
-            originalMessage.contains("Acquire operation took longer")) {
-            newMessage = getMessageForAcquireTimeoutException();
-
-        } else if (originalCause instanceof IllegalStateException &&
-                   originalMessage.contains("Too many outstanding acquire operations")) {
-            newMessage = getMessageForTooManyAcquireOperationsError();
-
-        } else {
-            return originalCause;
+    private Throwable decorateException(Throwable originalCause) {
+        if (isAcquireTimeoutException(originalCause)) {
+            return new Throwable(getMessageForAcquireTimeoutException(), originalCause);
+        } else if (isTooManyPendingAcquiresException(originalCause)) {
+            return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
+        } else if (originalCause instanceof ReadTimeoutException) {
+            // wrap it with IOException to be retried by SDK
+            return new IOException("Read timed out", originalCause);
+        } else if (originalCause instanceof WriteTimeoutException) {
+            return new IOException("Write timed out", originalCause);
         }
 
-        return new Throwable(newMessage, originalCause);
+        return originalCause;
     }
 
+    private boolean isAcquireTimeoutException(Throwable originalCause) {
+        return originalCause instanceof TimeoutException && originalCause.getMessage().contains("Acquire operation took longer");
+    }
+
+    private boolean isTooManyPendingAcquiresException(Throwable originalCause) {
+        return originalCause instanceof IllegalStateException &&
+               originalCause.getMessage().contains("Too many outstanding acquire operations");
+    }
 
     private String getMessageForAcquireTimeoutException() {
         return "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
@@ -184,6 +222,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private static void closeAndRelease(Channel channel) {
+        log.trace("closing and releasing channel {}", channel.id().asLongText());
         RequestContext requestCtx = channel.attr(REQUEST_CONTEXT_KEY).get();
         channel.close().addListener(ignored -> requestCtx.channelPool().release(channel));
     }
@@ -212,18 +251,21 @@ public final class RunnableRequest implements AbortableRunnable {
             this.request = request;
         }
 
+        @Override
         public HttpRequest setMethod(HttpMethod method) {
             this.request.setMethod(method);
             return this;
         }
 
+        @Override
         public HttpRequest setUri(String uri) {
             this.request.setUri(uri);
             return this;
         }
 
+        @Override
         public HttpMethod getMethod() {
-            return this.request.getMethod();
+            return this.request.method();
         }
 
         @Override
@@ -231,8 +273,9 @@ public final class RunnableRequest implements AbortableRunnable {
             return request.method();
         }
 
+        @Override
         public String getUri() {
-            return this.request.getUri();
+            return this.request.uri();
         }
 
         @Override
@@ -240,9 +283,9 @@ public final class RunnableRequest implements AbortableRunnable {
             return request.uri();
         }
 
-
+        @Override
         public HttpVersion getProtocolVersion() {
-            return this.request.getProtocolVersion();
+            return this.request.protocolVersion();
         }
 
         @Override
@@ -250,17 +293,20 @@ public final class RunnableRequest implements AbortableRunnable {
             return request.protocolVersion();
         }
 
+        @Override
         public HttpRequest setProtocolVersion(HttpVersion version) {
             this.request.setProtocolVersion(version);
             return this;
         }
 
+        @Override
         public HttpHeaders headers() {
             return this.request.headers();
         }
 
+        @Override
         public DecoderResult getDecoderResult() {
-            return this.request.getDecoderResult();
+            return this.request.decoderResult();
         }
 
         @Override
@@ -268,10 +314,12 @@ public final class RunnableRequest implements AbortableRunnable {
             return request.decoderResult();
         }
 
+        @Override
         public void setDecoderResult(DecoderResult result) {
             this.request.setDecoderResult(result);
         }
 
+        @Override
         public String toString() {
             return this.getClass().getName() + "(" + this.request.toString() + ")";
         }
@@ -285,6 +333,7 @@ public final class RunnableRequest implements AbortableRunnable {
      * the specified 'Content-Length' of the request.
      */
     private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
+
         private final Publisher<ByteBuffer> publisher;
         private final Channel channel;
         private final Optional<Long> requestContentLength;

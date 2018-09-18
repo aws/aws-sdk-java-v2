@@ -29,6 +29,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
 import software.amazon.awssdk.codegen.model.service.Member;
+import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
@@ -45,6 +46,9 @@ public class DefaultNamingStrategyTest {
 
     @Mock
     private Member member;
+
+    @Mock
+    private ServiceMetadata serviceMetadata;
 
     private DefaultNamingStrategy strat = new DefaultNamingStrategy(serviceModel, null);
 
@@ -226,6 +230,46 @@ public class DefaultNamingStrategyTest {
         assertThat(strat.getResponseClassName("CAPSByIndex")).isEqualTo("CapsByIndexResponse");
 
         assertThat(strat.getRequestClassName("FollowedByS3")).isEqualTo("FollowedByS3Request");
+    }
+
+    @Test
+    public void getServiceName_Uses_ServiceId() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getServiceId()).thenReturn("Foo");
+        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
+        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
+
+        assertThat(strat.getServiceName()).isEqualTo("Foo");
+    }
+
+    @Test (expected = IllegalStateException.class)
+    public void getServiceName_ThrowsException_WhenServiceIdIsNull() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getServiceId()).thenReturn(null);
+        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
+        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
+
+        strat.getServiceName();
+    }
+
+    @Test (expected = IllegalStateException.class)
+    public void getServiceName_ThrowsException_WhenServiceIdIsEmpty() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getServiceId()).thenReturn("");
+        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
+        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
+
+        strat.getServiceName();
+    }
+
+    @Test (expected = IllegalStateException.class)
+    public void getServiceName_ThrowsException_WhenServiceIdHasWhiteSpace() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getServiceId()).thenReturn("  ");
+        when(serviceMetadata.getServiceAbbreviation()).thenReturn("Abbr");
+        when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
+
+        strat.getServiceName();
     }
 
     private void validateConversion(String input, String expectedOutput) {

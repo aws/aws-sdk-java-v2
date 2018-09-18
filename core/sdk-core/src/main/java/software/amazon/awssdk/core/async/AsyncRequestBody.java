@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
@@ -50,7 +49,6 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @see FileAsyncRequestBody
  * @see ByteArrayAsyncRequestBody
  */
-@ReviewBeforeRelease("This is exactly the same of SdkHttpRequestProvider. Can we just have one?")
 @SdkPublicApi
 public interface AsyncRequestBody extends Publisher<ByteBuffer> {
 

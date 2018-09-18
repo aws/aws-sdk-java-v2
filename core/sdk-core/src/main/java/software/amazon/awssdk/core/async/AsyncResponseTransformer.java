@@ -33,9 +33,10 @@ import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
  */
 @SdkPublicApi
 public interface AsyncResponseTransformer<ResponseT, ReturnT> {
+
     /**
-     * Called when the initial response (headers/status code) has been received and the POJO response has
-     * been unmarshalled. This is guaranteed to be called before {@link #onStream(Publisher)}.
+     * Called when the initial response has been received and the POJO response has
+     * been unmarshalled. This is guaranteed to be called before onStream.
      *
      * <p>In the event of a retryable error, this callback may be called multiple times. It
      * also may never be invoked if the request never succeeds.</p>
@@ -45,9 +46,8 @@ public interface AsyncResponseTransformer<ResponseT, ReturnT> {
     void responseReceived(ResponseT response);
 
     /**
-     * Called when the HTTP client is ready to start sending data to the response handler. Implementations
-     * must subscribe to the {@link Publisher} and request data via a {@link org.reactivestreams.Subscription} as
-     * they can handle it.
+     * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
+     * a {@link org.reactivestreams.Subscription} as they can handle it.
      *
      * <p>
      * If at any time the subscriber wishes to stop receiving data, it may call {@link Subscription#cancel()}. This
@@ -63,7 +63,7 @@ public interface AsyncResponseTransformer<ResponseT, ReturnT> {
      * automatic retry is performed.
      * </p>
      */
-    void onStream(Publisher<ByteBuffer> publisher);
+    void onStream(SdkPublisher<ByteBuffer> publisher);
 
     /**
      * Called when an exception occurs while establishing the connection or streaming the response. Implementations

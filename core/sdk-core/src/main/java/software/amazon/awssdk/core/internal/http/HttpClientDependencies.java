@@ -22,19 +22,17 @@ import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
-import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
- * Client scoped dependencies of {@link AmazonSyncHttpClient}. May be injected into constructors of {@link
- * RequestPipeline} implementations by {@link RequestPipelineBuilder}.
+ * Client scoped dependencies of {@link AmazonSyncHttpClient} and {@link AmazonAsyncHttpClient}.
+ * May be injected into constructors of {@link RequestPipeline} implementations by {@link RequestPipelineBuilder}.
  */
 @SdkInternalApi
 public final class HttpClientDependencies implements SdkAutoCloseable {
     private final SdkClientConfiguration clientConfiguration;
     private final CapacityManager capacityManager;
-    private final ClientExecutionTimer clientExecutionTimer;
 
     /**
      * Time offset may be mutated by {@link RequestPipeline} implementations if a clock skew is detected.
@@ -44,7 +42,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
     private HttpClientDependencies(Builder builder) {
         this.clientConfiguration = paramNotNull(builder.clientConfiguration, "ClientConfiguration");
         this.capacityManager = paramNotNull(builder.capacityManager, "CapacityManager");
-        this.clientExecutionTimer = paramNotNull(builder.clientExecutionTimer, "ClientExecutionTimer");
     }
 
     public static Builder builder() {
@@ -63,13 +60,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
     }
 
     /**
-     * @return Controller for the ClientExecution timeout feature.
-     */
-    public ClientExecutionTimer clientExecutionTimer() {
-        return clientExecutionTimer;
-    }
-
-    /**
      * @return Current time offset. This is mutable and should not be cached.
      */
     public int timeOffset() {
@@ -81,14 +71,12 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
      */
     public void updateTimeOffset(int timeOffset) {
         this.timeOffset = timeOffset;
-        // TODO think about why we update global. I assume because it's more likely to have the client's clock skewed.
         SdkGlobalTime.setGlobalTimeOffset(timeOffset);
     }
 
     @Override
     public void close() {
         this.clientConfiguration.close();
-        this.clientExecutionTimer.close();
     }
 
     /**
@@ -97,7 +85,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
     public static class Builder {
         private SdkClientConfiguration clientConfiguration;
         private CapacityManager capacityManager;
-        private ClientExecutionTimer clientExecutionTimer;
 
         private Builder() {}
 
@@ -108,11 +95,6 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
 
         public Builder capacityManager(CapacityManager capacityManager) {
             this.capacityManager = capacityManager;
-            return this;
-        }
-
-        public Builder clientExecutionTimer(ClientExecutionTimer clientExecutionTimer) {
-            this.clientExecutionTimer = clientExecutionTimer;
             return this;
         }
 

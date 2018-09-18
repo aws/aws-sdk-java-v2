@@ -7,7 +7,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.0.0-preview-11</version>
+        <version>2.0.0-preview-12-SNAPSHOT</version>
     </parent>
 
     <artifactId>aws-core</artifactId>
@@ -63,6 +63,11 @@
         <dependency>
             <groupId>software.amazon.ion</groupId>
             <artifactId>ion-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon</groupId>
+            <artifactId>flow</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <dependency>
@@ -136,6 +141,11 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>${commons-lang.verson}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

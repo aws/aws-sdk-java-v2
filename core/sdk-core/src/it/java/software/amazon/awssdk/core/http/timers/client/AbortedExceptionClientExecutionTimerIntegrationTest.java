@@ -36,7 +36,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.exception.AbortedException;
-import software.amazon.awssdk.core.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
@@ -90,7 +90,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         execute(httpClient, createMockGetRequest());
     }
 
-    @Test(expected = ClientExecutionTimeoutException.class)
+    @Test(expected = ApiCallTimeoutException.class)
     public void clientExecutionTimeoutEnabled_aborted_exception_occurs_timeout_expired() throws Exception {
         // Simulate a slow HTTP request
         when(abortableCallable.call()).thenAnswer(i -> {
@@ -112,7 +112,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         InputStream mockContent = mock(InputStream.class);
         when(abortableCallable.call()).thenReturn(SdkHttpFullResponse.builder()
                                                                      .statusCode(200)
-                                                                     .content(new AbortableInputStream(mockContent, () -> { }))
+                                                                     .content(AbortableInputStream.create(mockContent))
                                                                      .build());
         interruptCurrentThreadAfterDelay(1000);
         try {

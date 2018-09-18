@@ -16,7 +16,11 @@
 package software.amazon.awssdk.core.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.dataformat.cbor.CBORGenerator;
+import java.io.IOException;
+import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**
  * Thin wrapper around Jackson's JSON generator for CBOR.
@@ -24,9 +28,30 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class SdkCborGenerator extends SdkJsonGenerator {
 
-    private static final int CBOR_TAG_TIMESTAP = 1;
+    private static final int CBOR_TAG_TIMESTAMP = 1;
 
     public SdkCborGenerator(JsonFactory factory, String contentType) {
         super(factory, contentType);
+    }
+
+    /**
+     * Jackson doesn't have native support for timestamp. As per the RFC 7049
+     * (https://tools.ietf.org/html/rfc7049#section-2.4.1) we will need to
+     * write a tag and write the epoch.
+     */
+    @Override
+    public StructuredJsonGenerator writeValue(Instant instant) {
+        if (!(getGenerator() instanceof CBORGenerator)) {
+            throw new IllegalStateException("SdkCborGenerator is not created with a CBORGenerator.");
+        }
+
+        CBORGenerator generator = (CBORGenerator) getGenerator();
+        try {
+            generator.writeTag(CBOR_TAG_TIMESTAMP);
+            generator.writeNumber(instant.toEpochMilli());
+        } catch (IOException e) {
+            throw new JsonGenerationException(e);
+        }
+        return this;
     }
 }

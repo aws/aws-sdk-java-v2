@@ -60,6 +60,11 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("MaxConnections", Integer.class);
 
     /**
+     * HTTP protocol to use.
+     */
+    public static final SdkHttpConfigurationOption<Protocol> PROTOCOL =
+        new SdkHttpConfigurationOption<>("Protocol", Protocol.class);
+    /**
      * Maximum number of requests allowed to wait for a connection.
      */
     public static final SdkHttpConfigurationOption<Integer> MAX_PENDING_CONNECTION_ACQUIRES =
@@ -80,6 +85,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
+    private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
+
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
             .put(READ_TIMEOUT, DEFAULT_SOCKET_READ_TIMEOUT)
@@ -88,6 +95,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(CONNECTION_ACQUIRE_TIMEOUT, DEFAULT_CONNECTION_ACQUIRE_TIMEOUT)
             .put(MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
             .put(MAX_PENDING_CONNECTION_ACQUIRES, DEFAULT_MAX_CONNECTION_ACQUIRES)
+            .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .build();
 

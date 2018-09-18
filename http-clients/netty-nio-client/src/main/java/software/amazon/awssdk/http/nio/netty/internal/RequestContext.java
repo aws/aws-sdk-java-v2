@@ -46,23 +46,23 @@ public final class RequestContext {
         this.configuration = configuration;
     }
 
-    SdkHttpResponseHandler handler() {
+    public SdkHttpResponseHandler handler() {
         return handler;
     }
 
-    ChannelPool channelPool() {
+    public ChannelPool channelPool() {
         return channelPool;
     }
 
-    SdkHttpRequest sdkRequest() {
+    public SdkHttpRequest sdkRequest() {
         return this.sdkRequest;
     }
 
-    SdkHttpRequestProvider sdkRequestProvider() {
+    public SdkHttpRequestProvider sdkRequestProvider() {
         return requestProvider;
     }
 
-    HttpRequest nettyRequest() {
+    public HttpRequest nettyRequest() {
         return nettyRequest;
     }
 

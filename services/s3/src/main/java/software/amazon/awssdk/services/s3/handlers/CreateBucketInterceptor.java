@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -25,7 +26,8 @@ import software.amazon.awssdk.services.s3.internal.BucketUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
-public class CreateBucketInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class CreateBucketInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {

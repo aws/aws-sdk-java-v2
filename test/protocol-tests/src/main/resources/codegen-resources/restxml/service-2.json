@@ -6,6 +6,7 @@
     "protocol":"rest-xml",
     "serviceAbbreviation":"AmazonProtocolRestXml",
     "serviceFullName":"AWS DR Tools Rest-XML Protocol Tests",
+    "serviceId":"AmazonProtocolRestXml",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsRestXmlService",
     "timestampFormat":"unixTimestamp"

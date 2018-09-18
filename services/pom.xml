@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-11</version>
+        <version>2.0.0-preview-12-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -33,7 +33,7 @@
 
     <modules>
         <module>acm</module>
-        <module>api-gateway</module>
+        <module>apigateway</module>
         <module>applicationautoscaling</module>
         <module>appstream</module>
         <module>athena</module>
@@ -54,7 +54,7 @@
         <module>codepipeline</module>
         <module>codestar</module>
         <module>cognitoidentity</module>
-        <module>cognitoidp</module>
+        <module>cognitoidentityprovider</module>
         <module>cognitosync</module>
         <module>config</module>
         <module>costandusagereport</module>
@@ -63,8 +63,8 @@
         <module>devicefarm</module>
         <module>directconnect</module>
         <module>directory</module>
-        <module>discovery</module>
-        <module>dms</module>
+        <module>applicationdiscovery</module>
+        <module>databasemigration</module>
         <module>dynamodb</module>
         <module>ec2</module>
         <module>ecr</module>
@@ -77,7 +77,7 @@
         <module>elasticsearch</module>
         <module>elastictranscoder</module>
         <module>emr</module>
-        <module>events</module>
+        <module>cloudwatchevents</module>
         <module>gamelift</module>
         <module>glacier</module>
         <module>greengrass</module>
@@ -86,20 +86,21 @@
         <module>importexport</module>
         <module>inspector</module>
         <module>iot</module>
-        <module>iotdata</module>
+        <module>iotdataplane</module>
         <module>kinesis</module>
         <module>kinesisanalytics</module>
-        <module>kinesisfirehose</module>
+        <module>firehose</module>
         <module>kms</module>
         <module>lambda</module>
         <module>lightsail</module>
+        <module>lexruntime</module>
         <module>lexmodelbuilding</module>
-        <module>logs</module>
+        <module>cloudwatchlogs</module>
         <module>machinelearning</module>
         <module>marketplacecommerceanalytics</module>
         <module>marketplaceentitlement</module>
-        <module>marketplacemeteringservice</module>
-        <module>mechanicalturkrequester</module>
+        <module>marketplacemetering</module>
+        <module>mturk</module>
         <module>opsworks</module>
         <module>opsworkscm</module>
         <module>organizations</module>
@@ -112,17 +113,16 @@
         <module>route53</module>
         <module>route53domains</module>
         <module>s3</module>
-        <module>servermigration</module>
+        <module>sms</module>
         <module>servicecatalog</module>
         <module>ses</module>
         <module>shield</module>
-        <module>simpledb</module>
-        <module>simpleworkflow</module>
+        <module>swf</module>
         <module>snowball</module>
         <module>sns</module>
         <module>sqs</module>
         <module>ssm</module>
-        <module>stepfunctions</module>
+        <module>sfn</module>
         <module>storagegateway</module>
         <module>sts</module>
         <module>support</module>
@@ -133,7 +133,7 @@
         <module>appsync</module>
         <module>alexaforbusiness</module>
         <module>migrationhub</module>
-        <module>cost-explorer</module>
+        <module>costexplorer</module>
         <module>cloud9</module>
         <module>cloudhsmv2</module>
         <module>comprehend</module>
@@ -144,12 +144,13 @@
         <module>medialive</module>
         <module>mediapackage</module>
         <module>mediastore</module>
+        <module>mediastoredata</module>
         <module>mobile</module>
         <module>mq</module>
         <module>pricing</module>
-        <module>resource-groups</module>
+        <module>resourcegroups</module>
         <module>sagemaker</module>
-        <module>serverlessrepo</module>
+        <module>serverlessapplicationrepository</module>
         <module>servicediscovery</module>
         <module>translate</module>
         <module>workmail</module>

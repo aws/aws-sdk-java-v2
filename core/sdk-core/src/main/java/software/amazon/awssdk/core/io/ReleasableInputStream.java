@@ -17,11 +17,10 @@ package software.amazon.awssdk.core.io;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.io.Releasable;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * An input stream that can have the close operation disabled (to avoid
@@ -40,7 +39,7 @@ import software.amazon.awssdk.core.internal.io.Releasable;
 @NotThreadSafe
 @SdkProtectedApi
 public class ReleasableInputStream extends SdkFilterInputStream {
-    private static final Logger log = LoggerFactory.getLogger(ReleasableInputStream.class);
+    private static final Logger log = Logger.loggerFor(ReleasableInputStream.class);
     /**
      * True if the close method is disabled; false otherwise. Default is false.
      * In case the close method is disabled, caller would be responsible to
@@ -99,9 +98,7 @@ public class ReleasableInputStream extends SdkFilterInputStream {
         try {
             in.close();
         } catch (Exception ex) {
-            if (log.isDebugEnabled()) {
-                log.debug("FYI", ex);
-            }
+            log.debug(() -> "Ignore failure in closing the input stream", ex);
         }
         if (in instanceof Releasable) {
             // This allows any underlying stream that has the close operation

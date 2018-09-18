@@ -21,9 +21,9 @@ import static org.junit.Assert.assertThat;
 
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class NullResponseHandler implements HttpResponseHandler<SdkResponse> {
 
@@ -34,7 +34,7 @@ public class NullResponseHandler implements HttpResponseHandler<SdkResponse> {
     }
 
     @Override
-    public SdkResponse handle(HttpResponse response,
+    public SdkResponse handle(SdkHttpFullResponse response,
                                                    ExecutionAttributes executionAttributes) throws Exception {
         return null;
     }

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.config;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -70,9 +71,10 @@ public final class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(Boolean.class);
 
     /**
-     * The executor used for scheduling async retry attempts.
+     * The internal SDK scheduled executor service that is used for scheduling tasks such as async retry attempts
+     * and timeout task.
      */
-    public static final SdkClientOption<ScheduledExecutorService> ASYNC_RETRY_EXECUTOR_SERVICE =
+    public static final SdkClientOption<ScheduledExecutorService> SCHEDULED_EXECUTOR_SERVICE =
             new SdkClientOption<>(ScheduledExecutorService.class);
 
     /**
@@ -86,6 +88,16 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<SdkHttpClient> SYNC_HTTP_CLIENT =
             new SdkClientOption<>(SdkHttpClient.class);
+
+    /**
+     * @see ClientOverrideConfiguration#apiCallAttemptTimeout()
+     */
+    public static final SdkClientOption<Duration> API_CALL_ATTEMPT_TIMEOUT = new SdkClientOption<>(Duration.class);
+
+    /**
+     * @see ClientOverrideConfiguration#apiCallTimeout()
+     */
+    public static final SdkClientOption<Duration> API_CALL_TIMEOUT = new SdkClientOption<>(Duration.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

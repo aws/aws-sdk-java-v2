@@ -6,13 +6,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyResponse;
@@ -81,12 +80,12 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
     private boolean isLastPage;
 
     public PaginatedOperationWithResultKeyPublisher(JsonProtocolTestsAsyncClient client,
-            PaginatedOperationWithResultKeyRequest firstRequest) {
+                                                    PaginatedOperationWithResultKeyRequest firstRequest) {
         this(client, firstRequest, false);
     }
 
     private PaginatedOperationWithResultKeyPublisher(JsonProtocolTestsAsyncClient client,
-            PaginatedOperationWithResultKeyRequest firstRequest, boolean isLastPage) {
+                                                     PaginatedOperationWithResultKeyRequest firstRequest, boolean isLastPage) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.isLastPage = isLastPage;
@@ -111,7 +110,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
             return Collections.emptyIterator();
         };
         return PaginatedItemsPublisher.builder().nextPageFetcher(new PaginatedOperationWithResultKeyResponseFetcher())
-                .iteratorFunction(getIterator).isLastPage(isLastPage).build();
+                                      .iteratorFunction(getIterator).isLastPage(isLastPage).build();
     }
 
     /**
@@ -124,7 +123,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
     private final PaginatedOperationWithResultKeyPublisher resume(PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithResultKeyPublisher(client, firstRequest.toBuilder()
-                    .nextToken(lastSuccessfulPage.nextToken()).build());
+                                                                                    .nextToken(lastSuccessfulPage.nextToken()).build());
         }
         return new PaginatedOperationWithResultKeyPublisher(client, firstRequest, true) {
             @Override
@@ -135,16 +134,15 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
     }
 
     private class PaginatedOperationWithResultKeyResponseFetcher implements
-            AsyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
+                                                                 AsyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
         @Override
         public boolean hasNextPage(final PaginatedOperationWithResultKeyResponse previousPage) {
-            return previousPage.nextToken() != null && !SdkAutoConstructList.class.isInstance(previousPage.nextToken())
-                    && !SdkAutoConstructMap.class.isInstance(previousPage.nextToken());
+            return PaginatorUtils.isOutputTokenAvailable(previousPage.nextToken());
         }
 
         @Override
         public CompletableFuture<PaginatedOperationWithResultKeyResponse> nextPage(
-                final PaginatedOperationWithResultKeyResponse previousPage) {
+            final PaginatedOperationWithResultKeyResponse previousPage) {
             if (previousPage == null) {
                 return client.paginatedOperationWithResultKey(firstRequest);
             }

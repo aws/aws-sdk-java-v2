@@ -61,13 +61,6 @@
         <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE,REC_CATCH_EXCEPTION" />
     </Match>
 
-    <!-- NP_NONNULL_PARAM_VIOLATION false postive - https://github.com/spotbugs/spotbugs/issues/484 -->
-    <Match>
-        <Class name="software.amazon.awssdk.core.pagination.async.SequentialSubscriber" />
-        <Method name="onComplete" />
-        <Bug pattern="NP_NONNULL_PARAM_VIOLATION" />
-    </Match>
-
     <!-- False positive -->
     <Match>
         <Class name="software.amazon.awssdk.core.ResponseBytes" />
@@ -101,6 +94,14 @@
             <Class name="software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler" />
         </Or>
         <Bug pattern="RI_REDUNDANT_INTERFACES" />
+    </Match>
+
+    <Match>
+        <Or>
+            <Package name="io.netty.handler.codec.http2"/>
+            <Class name="software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool" />
+        </Or>
+        <Bug pattern="BC_UNCONFIRMED_CAST,SIC_INNER_SHOULD_BE_STATIC_ANON,DLS_DEAD_LOCAL_STORE,DM_CONVERT_CASE,NM_CLASS_NOT_EXCEPTION,NP_NULL_ON_SOME_PATH"/>
     </Match>
 
 </FindBugsFilter>

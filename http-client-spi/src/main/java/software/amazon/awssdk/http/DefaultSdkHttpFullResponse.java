@@ -41,8 +41,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse {
     private final AbortableInputStream content;
 
     private DefaultSdkHttpFullResponse(Builder builder) {
-        Validate.isTrue(builder.statusCode > 0, "Status code must be positive.");
-        this.statusCode = builder.statusCode;
+        this.statusCode = Validate.isPositive(builder.statusCode, "Status code must be positive.");
         this.statusText = builder.statusText;
         this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.content = builder.content;

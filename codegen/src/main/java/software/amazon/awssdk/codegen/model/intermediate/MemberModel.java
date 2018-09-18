@@ -553,5 +553,4 @@ public class MemberModel extends DocumentationModel {
                .append("</p>")
                .append(LF);
     }
-
 }

@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Removed sdk-core dependency from the profiles module. This allows reading from profile files without pulling in the rest of the SDK."
+}

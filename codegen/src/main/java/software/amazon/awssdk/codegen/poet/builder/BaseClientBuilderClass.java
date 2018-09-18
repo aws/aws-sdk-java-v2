@@ -37,6 +37,8 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -80,6 +82,8 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (model.getCustomizationConfig().getServiceSpecificHttpConfig() != null) {
             builder.addMethod(serviceSpecificHttpConfigMethod());
+        } else if (model.getMetadata().supportsH2()) {
+            builder.addMethod(enableH2HttpConfigMethod());
         }
 
         return builder.build();
@@ -182,6 +186,17 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AttributeMap.class)
                          .addCode("return $L;", model.getCustomizationConfig().getServiceSpecificHttpConfig())
+                         .build();
+    }
+
+    private MethodSpec enableH2HttpConfigMethod() {
+        return MethodSpec.methodBuilder("serviceHttpConfig")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .returns(AttributeMap.class)
+                         .addCode("return $T.builder()\n"
+                                  + ".put($T.PROTOCOL, $T.HTTP2)\n"
+                                  + ".build();", AttributeMap.class, SdkHttpConfigurationOption.class, Protocol.class)
                          .build();
     }
 

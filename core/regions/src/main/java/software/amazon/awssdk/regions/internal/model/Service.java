@@ -112,7 +112,7 @@ public final class Service {
     }
 
     /**
-     * A convienient method that returns true if a service has a partition
+     * A convenient method that returns true if a service has a partition
      * wide endpoint available.
      */
     public boolean isPartitionWideEndpointAvailable() {

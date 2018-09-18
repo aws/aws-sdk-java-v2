@@ -23,13 +23,21 @@
     <suppress checks=".*"
               files=".*[\\/](test|it)[\\/]java[\\/].+\.java$"/>
 
+    <!-- TODO: Disable these suppressions. -->
+    <suppress checks=".*"
+              files=".(flow)[\\/].+\.java$"/>
+
     <!-- ignore missing annotation checks under test/codegen directory -->
     <suppress checks="MissingSdkAnnotationCheck"
               files=".(codegen|test)[\\/].+\.java$"/>
 
-    <!-- TODO: Remove this once we add the annotations on the services-->
-    <suppress checks="MissingSdkAnnotationCheck"
-              files=".(services)[\\/].+\.java$"/>
+    <!-- TODO want to contribute this back to Netty -->
+    <suppress checks=".*"
+              files=".*BetterFixedChannelPool\.java$"/>
+
+    <!-- TODO want to contribute this back to Netty -->
+    <suppress checks=".*"
+              files=".*[\\/]io[\\/]netty[\\/]handler[\\/]codec[\\/]http2[\\/].*\.java$"/>
 
     <!-- Assumes getter/setter match JSON property -->
     <suppress checks="AbbreviationAsWordInName"

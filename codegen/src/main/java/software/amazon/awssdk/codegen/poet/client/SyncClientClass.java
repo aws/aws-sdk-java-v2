@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
@@ -86,6 +87,10 @@ public class SyncClientClass implements ClassSpec {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
 
+        if (model.containsRequestSigners()) {
+            classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
         return classBuilder.build();
     }
 
@@ -104,18 +109,24 @@ public class SyncClientClass implements ClassSpec {
     }
 
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PROTECTED)
-                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                       protocolSpec.getClientHandlerClass())
-                         .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
-                         .addStatement("this.clientConfiguration = clientConfiguration")
-                         .build();
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(Modifier.PROTECTED)
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
+                                                             protocolSpec.getClientHandlerClass())
+                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        if (model.getMetadata().isJsonProtocol()) {
+            builder.addStatement("this.$N = init($L)", protocolSpec.protocolFactory(model).name,
+                                 model.getMetadata().isCborProtocol());
+        } else {
+            builder.addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name);
+        }
+        return builder.build();
     }
 
     private List<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpecs)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
@@ -126,12 +137,13 @@ public class SyncClientClass implements ClassSpec {
         ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
-                                  .addAnnotation(Override.class)
-                                  .addCode(getCustomResponseHandler(opModel, returnType)
-                                               .orElseGet(() -> protocolSpec.responseHandler(opModel)))
-                                  .addCode(protocolSpec.errorResponseHandler(opModel))
-                                  .addCode(protocolSpec.executionHandler(opModel))
-                                  .build());
+                                       .addAnnotation(Override.class)
+                                       .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+                                       .addCode(getCustomResponseHandler(opModel, returnType)
+                                                    .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
+                                       .addCode(protocolSpec.errorResponseHandler(opModel))
+                                       .addCode(protocolSpec.executionHandler(opModel))
+                                       .build());
 
         methods.addAll(paginatedMethods(opModel));
 

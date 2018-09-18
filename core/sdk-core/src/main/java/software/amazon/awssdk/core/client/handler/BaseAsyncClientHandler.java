@@ -25,13 +25,13 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
-import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
+import software.amazon.awssdk.core.internal.http.Crc32Validation;
 import software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
@@ -46,12 +46,14 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public abstract class BaseAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
     private final SdkClientConfiguration clientConfiguration;
     private final AmazonAsyncHttpClient client;
+    private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
 
     protected BaseAsyncClientHandler(SdkClientConfiguration clientConfiguration,
                                      AmazonAsyncHttpClient client) {
         super(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
+        this.crc32Validator = response -> Crc32Validation.validate(isCalculateCrc32FromCompressedData(), response);
     }
 
     @Override
@@ -62,10 +64,10 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
 
-        return execute(executionParams, executionContext, responseAdapter -> new SyncResponseHandlerAdapter<>(
-            decoratedResponseHandlers,
-            responseAdapter,
-            executionContext.executionAttributes()));
+        SdkHttpResponseHandler<OutputT> sdkHttpResponseHandler =
+            new SyncResponseHandlerAdapter<>(decoratedResponseHandlers, crc32Validator, executionContext.executionAttributes());
+
+        return execute(executionParams, executionContext, sdkHttpResponseHandler);
     }
 
     @Override
@@ -74,17 +76,15 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
         ExecutionContext context = createExecutionContext(executionParams.getInput());
-        ResponseHandlerFactory<ReturnT> sdkHttpResponseHandler = responseAdapter ->
-            new UnmarshallingSdkHttpResponseHandler<>(asyncResponseTransformer, context,
-                                                      executionParams.getResponseHandler());
 
-        return execute(executionParams, context, sdkHttpResponseHandler);
+        return execute(executionParams, context, new UnmarshallingSdkHttpResponseHandler<>(asyncResponseTransformer, context,
+                                                                                           executionParams.getResponseHandler()));
     }
 
     private <InputT extends SdkRequest, OutputT, ReturnT> CompletableFuture<ReturnT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
-        ResponseHandlerFactory<ReturnT> sdkHttpResponseHandlerFactory) {
+        SdkHttpResponseHandler<ReturnT> sdkHttpResponseHandler) {
 
         try {
             InputT inputT = finalizeSdkRequest(executionContext);
@@ -96,14 +96,11 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                     ? null
                     : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestBody());
 
-            HttpResponseAdapter responseAdapter
-                    = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
-
             SdkHttpResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
-                    sdkHttpResponseHandlerFactory.apply(responseAdapter), executionContext);
+                sdkHttpResponseHandler, executionContext);
 
             SdkHttpResponseHandler<? extends SdkException> errorHandler =
-                    resolveErrorResponseHandler(executionParams, responseAdapter, executionContext);
+                    resolveErrorResponseHandler(executionParams, executionContext, crc32Validator);
 
             return invoke(marshalled, requestProvider, inputT,
                     executionContext, successResponseHandler, errorHandler)
@@ -126,13 +123,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     /**
      * Error responses are never streaming so we always use {@link SyncResponseHandlerAdapter}.
      *
-     * @param responseAdapter Adapter to convert an SdkHttpFullResponse to a legacy HttpResponse.
      * @return Async handler for error responses.
      */
     private SdkHttpResponseHandler<? extends SdkException> resolveErrorResponseHandler(
         ClientExecutionParams<?, ?> executionParams,
-        Function<SdkHttpFullResponse, HttpResponse> responseAdapter,
-        ExecutionContext executionContext) {
+        ExecutionContext executionContext,
+        Function<SdkHttpFullResponse, SdkHttpFullResponse> responseAdapter) {
         SyncResponseHandlerAdapter<? extends SdkException> result =
             new SyncResponseHandlerAdapter<>(executionParams.getErrorResponseHandler(),
                                              responseAdapter,
@@ -160,21 +156,6 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                      .execute(responseHandler);
     }
 
-    /**
-     * Adapter interface from {@link SdkHttpFullResponse} to {@link HttpResponse}
-     */
-    private interface HttpResponseAdapter extends Function<SdkHttpFullResponse, HttpResponse> {
-    }
-
-    /**
-     * Factory interface for obtaining an {@link SdkHttpResponseHandler} given an {@link HttpResponseAdapter}.
-     *
-     * @param <ReturnT> Type param for {@link SdkHttpResponseHandler}
-     */
-    private interface ResponseHandlerFactory<ReturnT> extends
-                                                      Function<HttpResponseAdapter, SdkHttpResponseHandler<ReturnT>> {
-    }
-
     private static final class InterceptorCallingHttpResponseHandler<T> implements SdkHttpResponseHandler<T> {
         private final SdkHttpResponseHandler<T> delegate;
         private final ExecutionContext context;
@@ -184,7 +165,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             this.context = context;
         }
 
-        private static SdkHttpFullResponse beforeUnmarshalling(SdkHttpFullResponse response, ExecutionContext context) {
+        private SdkHttpFullResponse beforeUnmarshalling(SdkHttpFullResponse response, ExecutionContext context) {
             // Update interceptor context to include response
             InterceptorContext interceptorContext =
                 context.interceptorContext().copy(b -> b.httpResponse(response));
@@ -233,7 +214,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
      * @param <OutputT> Unmarshalled POJO response type.
      * @param <ReturnT> Return type of {@link AsyncResponseTransformer}
      */
-    private static class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
+    private class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
         implements SdkHttpResponseHandler<ReturnT> {
 
         private final AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer;
@@ -248,14 +229,14 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             this.responseHandler = responseHandler;
         }
 
-
         @Override
         public void headersReceived(SdkHttpResponse response) {
-            HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, ((SdkHttpFullResponse) response));
             try {
                 // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
                 // provide them to HttpResponseHandler
-                OutputT resp = decorateResponseHandlers(responseHandler, executionContext).handle(httpResponse, null);
+                OutputT resp =
+                    decorateResponseHandlers(responseHandler, executionContext)
+                        .handle((SdkHttpFullResponse) response, null);
 
                 asyncResponseTransformer.responseReceived(resp);
             } catch (Exception e) {
@@ -265,7 +246,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         @Override
         public void onStream(Publisher<ByteBuffer> publisher) {
-            asyncResponseTransformer.onStream(publisher);
+            asyncResponseTransformer.onStream(SdkPublisher.adapt(publisher));
         }
 
         @Override

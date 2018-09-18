@@ -15,15 +15,18 @@
 
 package software.amazon.awssdk.core;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -35,15 +38,19 @@ import software.amazon.awssdk.utils.Validate;
 public abstract class RequestOverrideConfiguration {
 
     private final Map<String, List<String>> headers;
-
     private final Map<String, List<String>> rawQueryParameters;
-
     private final List<ApiName> apiNames;
+    private final Duration apiCallTimeout;
+    private final Duration apiCallAttemptTimeout;
+    private final Signer signer;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.rawQueryParameters = CollectionUtils.deepUnmodifiableMap(builder.rawQueryParameters());
         this.apiNames = Collections.unmodifiableList(new ArrayList<>(builder.apiNames()));
+        this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
+        this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
+        this.signer = builder.signer();
     }
 
     /**
@@ -71,6 +78,52 @@ public abstract class RequestOverrideConfiguration {
      */
     public List<ApiName> apiNames() {
         return apiNames;
+    }
+
+    /**
+     * The amount of time to allow the client to complete the execution of an API call. This timeout covers the entire client
+     * execution except for marshalling. This includes request handler execution, all HTTP requests including retries,
+     * unmarshalling, etc. This value should always be positive, if present.
+     *
+     * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
+     * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
+     * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
+     * execution timeout feature should not be used when absolute precision is needed.
+     *
+     * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
+     * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+     *
+     * @see Builder#apiCallTimeout(Duration)
+     */
+    public Optional<Duration> apiCallTimeout() {
+        return Optional.ofNullable(apiCallTimeout);
+    }
+
+    /**
+     * The amount of time to wait for the http request to complete before giving up and timing out. This value should always be
+     * positive, if present.
+     *
+     * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
+     * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
+     * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
+     * feature should not be used when absolute precision is needed.
+     *
+     * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
+     * request
+     * (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+     *
+     * @see Builder#apiCallAttemptTimeout(Duration)
+     */
+    public Optional<Duration> apiCallAttemptTimeout() {
+        return Optional.ofNullable(apiCallAttemptTimeout);
+    }
+
+    /**
+     * @return the signer for signing the request. This signer get priority over the signer set on the client while
+     * signing the requests. If this value is not set, then the client level signer is used for signing the request.
+     */
+    public Optional<Signer> signer() {
+        return Optional.ofNullable(signer);
     }
 
     /**
@@ -197,6 +250,54 @@ public abstract class RequestOverrideConfiguration {
         B addApiName(Consumer<ApiName.Builder> apiNameConsumer);
 
         /**
+         * Configure the amount of time to allow the client to complete the execution of an API call. This timeout covers the
+         * entire client execution except for marshalling. This includes request handler execution, all HTTP requests including
+         * retries, unmarshalling, etc. This value should always be positive, if present.
+         *
+         * <p>The api call timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
+         * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
+         * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
+         * execution timeout feature should not be used when absolute precision is needed.
+         *
+         * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
+         * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * @see RequestOverrideConfiguration#apiCallTimeout()
+         */
+        B apiCallTimeout(Duration apiCallTimeout);
+
+        Duration apiCallTimeout();
+
+        /**
+         * Configure the amount of time to wait for the http request to complete before giving up and timing out. This value
+         * should always be positive, if present.
+         *
+         * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
+         * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
+         * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
+         * feature should not be used when absolute precision is needed.
+         *
+         * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
+         * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * @see RequestOverrideConfiguration#apiCallAttemptTimeout()
+         */
+        B apiCallAttemptTimeout(Duration apiCallAttemptTimeout);
+
+        Duration apiCallAttemptTimeout();
+
+        /**
+         * Sets the signer to use for signing the request. This signer get priority over the signer set on the client while
+         * signing the requests. If this value is null, then the client level signer is used for signing the request.
+         *
+         * @param signer Signer for signing the request
+         * @return This object for method chaining
+         */
+        B signer(Signer signer);
+
+        Signer signer();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -206,10 +307,11 @@ public abstract class RequestOverrideConfiguration {
 
     protected abstract static class BuilderImpl<B extends Builder> implements Builder<B> {
         private Map<String, List<String>> headers = new HashMap<>();
-
         private Map<String, List<String>> rawQueryParameters = new HashMap<>();
-
         private List<ApiName> apiNames = new ArrayList<>();
+        private Duration apiCallTimeout;
+        private Duration apiCallAttemptTimeout;
+        private Signer signer;
 
         protected BuilderImpl() {
         }
@@ -280,6 +382,51 @@ public abstract class RequestOverrideConfiguration {
             apiNameConsumer.accept(b);
             addApiName(b.build());
             return (B) this;
+        }
+
+        @Override
+        public B apiCallTimeout(Duration apiCallTimeout) {
+            this.apiCallTimeout = apiCallTimeout;
+            return (B) this;
+        }
+
+        public void setApiCallTimeout(Duration apiCallTimeout) {
+            apiCallTimeout(apiCallTimeout);
+        }
+
+        @Override
+        public Duration apiCallTimeout() {
+            return apiCallTimeout;
+        }
+
+        @Override
+        public B apiCallAttemptTimeout(Duration apiCallAttemptTimeout) {
+            this.apiCallAttemptTimeout = apiCallAttemptTimeout;
+            return (B) this;
+        }
+
+        public void setApiCallAttemptTimeout(Duration apiCallAttemptTimeout) {
+            apiCallAttemptTimeout(apiCallAttemptTimeout);
+        }
+
+        @Override
+        public Duration apiCallAttemptTimeout() {
+            return apiCallAttemptTimeout;
+        }
+
+        @Override
+        public B signer(Signer signer) {
+            this.signer = signer;
+            return (B) this;
+        }
+
+        public void setSigner(Signer signer) {
+            signer(signer);
+        }
+
+        @Override
+        public Signer signer() {
+            return signer;
         }
     }
 }

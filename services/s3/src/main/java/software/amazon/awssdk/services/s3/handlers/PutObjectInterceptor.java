@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -25,8 +26,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 /**
  * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object request.
  */
+@SdkProtectedApi
 @ReviewBeforeRelease("This should be generalized for all streaming requests when we refactor the marshallers.")
-public class PutObjectInterceptor implements ExecutionInterceptor {
+public final class PutObjectInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         if (context.request() instanceof PutObjectRequest) {

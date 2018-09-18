@@ -40,6 +40,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -70,11 +71,12 @@ public class AsyncClientInterface implements ClassSpec {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
 
         result.addSuperinterface(SdkClient.class)
-              .addJavadoc(getJavadoc())
               .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                  .initializer("$S", model.getMetadata().getSigningName())
                                  .build());
+
+        PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
         if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
             result.addMethod(create());
@@ -222,12 +224,15 @@ public class AsyncClientInterface implements ClassSpec {
         if (opModel.getInputShape().isSimpleMethod()) {
             methodOverloads.add(noArgSimpleMethod(opModel));
         }
-        if (opModel.hasStreamingInput()) {
+        if (opModel.hasStreamingInput() && opModel.hasStreamingOutput()) {
+            MethodSpec streamingMethod = streamingInputOutputFileSimpleMethod(opModel);
+            methodOverloads.add(streamingMethod);
+            methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingMethod, consumerBuilderFileJavadoc));
+        } else if (opModel.hasStreamingInput()) {
             MethodSpec streamingInputMethod = streamingInputFileSimpleMethod(opModel);
             methodOverloads.add(streamingInputMethod);
             methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingInputMethod, consumerBuilderFileJavadoc));
-        }
-        if (opModel.hasStreamingOutput()) {
+        } else if (opModel.hasStreamingOutput()) {
             MethodSpec streamingOutputMethod = streamingOutputFileSimpleMethod(opModel);
             methodOverloads.add(streamingOutputMethod);
             methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingOutputMethod, consumerBuilderFileJavadoc));
@@ -277,9 +282,12 @@ public class AsyncClientInterface implements ClassSpec {
         }
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
-            final ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
+            ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
+                .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
             builder.addParameter(asyncResponseHandlerType, "asyncResponseTransformer");
+        } else if (opModel.hasEventStreamOutput()) {
+            ClassName responseHandlerClass = EventStreamUtils.create(poetExtensions, opModel).responseHandlerType();
+            builder.addParameter(responseHandlerClass, "asyncResponseHandler");
         }
         return operationBody(builder, opModel).build();
     }
@@ -330,6 +338,27 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     /**
+     * Generate a simple method for operations with streaming input and output members.
+     * Streaming input member takes a {@link Path} containing the data to upload and
+     * the streaming output member takes a {@link Path} where data will be downloaded to.
+     */
+    private MethodSpec streamingInputOutputFileSimpleMethod(OperationModel opModel) {
+        ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        return interfaceMethodSignature(opModel)
+            .returns(completableFutureType(getPojoResponseType(opModel)))
+            .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
+            .addParameter(requestType, opModel.getInput().getVariableName())
+            .addParameter(ClassName.get(Path.class), "sourcePath")
+            .addParameter(ClassName.get(Path.class), "destinationPath")
+            .addStatement("return $L($L, $T.fromFile(sourcePath), $T.toFile(destinationPath))",
+                          opModel.getMethodName(),
+                          opModel.getInput().getVariableName(),
+                          ClassName.get(AsyncRequestBody.class),
+                          ClassName.get(AsyncResponseTransformer.class))
+            .build();
+    }
+
+    /**
      * Factory method for creating a {@link com.squareup.javapoet.MethodSpec.Builder} with correct return type.
      *
      * @return MethodSpec with only return type set.
@@ -368,6 +397,9 @@ public class AsyncClientInterface implements ClassSpec {
     private TypeName getAsyncReturnType(OperationModel opModel, ClassName responsePojoType) {
         if (opModel.hasStreamingOutput()) {
             return completableFutureType(STREAMING_TYPE_VARIABLE);
+        } else if (opModel.hasEventStreamOutput()) {
+            // Event streaming doesn't support transforming into a result type so it just returns void.
+            return completableFutureType(ClassName.get(Void.class));
         } else {
             return completableFutureType(responsePojoType);
         }

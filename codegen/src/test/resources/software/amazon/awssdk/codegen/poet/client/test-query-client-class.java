@@ -43,8 +43,8 @@ final class DefaultQueryClient implements QueryClient {
 
     protected DefaultQueryClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.exceptionUnmarshallers = init();
         this.clientConfiguration = clientConfiguration;
+        this.exceptionUnmarshallers = init();
     }
 
     @Override

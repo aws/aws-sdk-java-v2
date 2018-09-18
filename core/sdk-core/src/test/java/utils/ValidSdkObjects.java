@@ -19,6 +19,7 @@ import java.net.URI;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
@@ -29,16 +30,26 @@ public final class ValidSdkObjects {
     private ValidSdkObjects() {}
 
     public static SdkHttpFullRequest.Builder sdkHttpFullRequest() {
+        return sdkHttpFullRequest(80);
+    }
+
+    public static SdkHttpFullRequest.Builder sdkHttpFullRequest(int port) {
         return SdkHttpFullRequest.builder()
                                  .protocol("http")
-                                 .host("test.com")
-                                 .port(80)
+                                 .host("localhost")
+                                 .putHeader("Host", "localhost")
+                                 .port(port)
                                  .method(SdkHttpMethod.GET);
     }
 
     public static <T> Request<T> legacyRequest() {
         DefaultRequest<T> request = new DefaultRequest<>("testService");
-        request.setEndpoint(URI.create("http://test.com"));
+        request.setEndpoint(URI.create("http://localhost"));
         return request;
+    }
+
+    public static SdkHttpFullResponse.Builder sdkHttpFullResponse() {
+        return SdkHttpFullResponse.builder()
+                                  .statusCode(200);
     }
 }

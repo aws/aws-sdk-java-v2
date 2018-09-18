@@ -59,6 +59,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private ShapeCustomizationInfo customization = new ShapeCustomizationInfo();
 
+    private boolean isEventStream;
+
+    private boolean isEvent;
+
     public ShapeModel(@JsonProperty("c2jName") String c2jName) {
         this.c2jName = c2jName;
     }
@@ -272,7 +276,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      */
     public List<MemberModel> getNonStreamingMembers() {
         return getMembers().stream()
+                           // Filter out binary streaming members
                            .filter(m -> !m.getHttp().getIsStreaming())
+                           // Filter out event stream members (if shape is null then it's primitive and we should include it).
+                           .filter(m -> m.getShape() == null || !m.getShape().isEventStream)
                            .collect(Collectors.toList());
     }
 
@@ -449,4 +456,29 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         this.requestSignerClassFqcn = authorizerClass;
     }
 
+    /**
+     * @return True if the shape is an 'eventstream' shape. The eventstream shape is the tagged union like
+     * container that holds individual 'events'.
+     */
+    public boolean isEventStream() {
+        return this.isEventStream;
+    }
+
+    public ShapeModel withIsEventStream(boolean isEventStream) {
+        this.isEventStream = isEventStream;
+        return this;
+    }
+
+    /**
+     * @return True if the shape is an 'event'. I.E. It is a member of the eventstream and represents one logical event
+     * that can be delivered on the event stream.
+     */
+    public boolean isEvent() {
+        return this.isEvent;
+    }
+
+    public ShapeModel withIsEvent(boolean isEvent) {
+        this.isEvent = isEvent;
+        return this;
+    }
 }

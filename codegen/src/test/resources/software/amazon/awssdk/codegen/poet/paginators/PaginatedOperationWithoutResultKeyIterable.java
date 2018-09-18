@@ -6,8 +6,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse;
@@ -110,8 +109,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
             SyncPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
         @Override
         public boolean hasNextPage(PaginatedOperationWithoutResultKeyResponse previousPage) {
-            return previousPage.nextToken() != null && !SdkAutoConstructList.class.isInstance(previousPage.nextToken())
-                    && !SdkAutoConstructMap.class.isInstance(previousPage.nextToken());
+            return PaginatorUtils.isOutputTokenAvailable(previousPage.nextToken());
         }
 
         @Override

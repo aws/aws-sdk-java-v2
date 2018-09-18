@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.http;
 
+import static software.amazon.awssdk.utils.Validate.paramNotNull;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
@@ -24,13 +26,12 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.protocol.json.VoidJsonUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of HttpResponseHandler that handles a successful response from a
@@ -65,34 +66,29 @@ public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
                                Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> simpleTypeUnmarshallers,
                                JsonFactory jsonFactory, boolean needsConnectionLeftOpen,
                                boolean isPayloadJson) {
-        /*
-         * Even if the invoked operation just returns null, we still need an
-         * unmarshaller to run so we can pull out response metadata.
-         *
-         * We might want to pass this in through the client class so that we
-         * don't have to do this check here.
-         */
-        this.responseUnmarshaller =
-                responseUnmarshaller != null ? responseUnmarshaller : new VoidJsonUnmarshaller<>();
+        this.responseUnmarshaller = paramNotNull(responseUnmarshaller, "responseUnmarshaller");
 
         this.needsConnectionLeftOpen = needsConnectionLeftOpen;
         this.isPayloadJson = isPayloadJson;
 
-        this.simpleTypeUnmarshallers = Validate.paramNotNull(simpleTypeUnmarshallers, "simple type unmarshallers");
-        this.jsonFactory = Validate.paramNotNull(jsonFactory, "JSONFactory");
+        this.simpleTypeUnmarshallers = paramNotNull(simpleTypeUnmarshallers, "simple type unmarshallers");
+        this.jsonFactory = paramNotNull(jsonFactory, "JSONFactory");
     }
 
 
     /**
-     * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
+     * @see HttpResponseHandler#handle(SdkHttpFullResponse, ExecutionAttributes)
      */
-    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+    public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
+        SdkStandardLogger.REQUEST_ID_LOGGER.debug(() -> X_AMZN_REQUEST_ID_HEADER + " : " +
+                                                        response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
+                                                                .orElse("not available"));
 
         JsonParser jsonParser = null;
 
         if (shouldParsePayloadAsJson()) {
-            jsonParser = jsonFactory.createParser(response.getContent());
+            jsonParser = jsonFactory.createParser(response.content().orElse(null));
         }
 
         try {
@@ -104,8 +100,8 @@ public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
 
             // Make sure we read all the data to get an accurate CRC32 calculation.
             // See https://github.com/aws/aws-sdk-java/issues/1018
-            if (shouldParsePayloadAsJson() && response.getContent() != null) {
-                IoUtils.drainInputStream(response.getContent());
+            if (shouldParsePayloadAsJson() && response.content().isPresent()) {
+                IoUtils.drainInputStream(response.content().get());
             }
 
             SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Done parsing service response.");

@@ -15,35 +15,41 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeCompletableFuture;
+
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.HttpStatusFamily;
+import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
+import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.SdkRequestContext;
+import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.OptionalUtils;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -52,12 +58,14 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 public final class MakeAsyncHttpRequestStage<OutputT>
     implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
 
-    private static final Logger log = LoggerFactory.getLogger(MakeAsyncHttpRequestStage.class);
+    private static final Logger log = Logger.loggerFor(MakeAsyncHttpRequestStage.class);
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final SdkHttpResponseHandler<OutputT> responseHandler;
     private final SdkHttpResponseHandler<? extends SdkException> errorResponseHandler;
     private final Executor futureCompletionExecutor;
+    private final ScheduledExecutorService timeoutExecutor;
+    private final Duration apiCallAttemptTimeout;
 
     public MakeAsyncHttpRequestStage(SdkHttpResponseHandler<OutputT> responseHandler,
                                      SdkHttpResponseHandler<? extends SdkException> errorResponseHandler,
@@ -67,6 +75,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         this.futureCompletionExecutor =
                 dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
+        this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
+        this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     /**
@@ -80,8 +90,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) throws Exception {
-        Completable completable = new Completable();
-        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, completable);
+
+        long timeout = apiCallAttemptTimeoutInMillis(context.requestConfig());
+        Completable completable = new Completable(timeout);
+
+        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(completable);
 
         SdkHttpRequestProvider requestProvider = context.requestProvider() == null
                 ? new SimpleRequestProvider(request, context.executionAttributes())
@@ -89,13 +102,19 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
-        sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext.builder().build(),
-                                          requestProvider,
-                                          handler)
-                          .run();
+        AbortableRunnable abortableRunnable = sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext
+                                                                                    .builder().build(),
+                                                                                requestProvider,
+                                                                                handler);
 
-        // TODO client execution timer
-        //        context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
+        // Set the abortable so that the abortable request can be aborted after timeout if timeout is enabled
+        completable.abortable(abortableRunnable);
+
+        if (context.apiCallTimeoutTracker() != null && context.apiCallTimeoutTracker().isEnabled()) {
+            context.apiCallTimeoutTracker().abortable(abortableRunnable);
+        }
+
+        abortableRunnable.run();
         return completable.completableFuture;
     }
 
@@ -118,44 +137,29 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     }
 
     /**
-     * Runs a given {@link UnsafeRunnable} and logs an error without throwing.
-     *
-     * @param errorMsg Message to log with exception thrown.
-     * @param runnable Action to perform.
-     */
-    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
-        try {
-            runnable.run();
-        } catch (Exception e) {
-            log.error(errorMsg, e);
-        }
-    }
-
-    /**
      * Detects whether the response succeeded or failed and delegates to appropriate response handler.
      */
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
-        private final SdkHttpFullRequest request;
         private final Completable completable;
 
         private volatile SdkHttpResponse response;
         private volatile boolean isSuccess = false;
 
         /**
-         * @param request  Request being made
          * @param completable   Future to notify when response has been handled.
          */
-        private ResponseHandler(SdkHttpFullRequest request, Completable completable) {
-            this.request = request;
+        private ResponseHandler(Completable completable) {
             this.completable = completable;
         }
 
         @Override
         public void headersReceived(SdkHttpResponse response) {
-            if (HttpStatusFamily.of(response.statusCode()) == HttpStatusFamily.SUCCESSFUL) {
+            if (response.isSuccessful()) {
+                SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + response.statusCode());
                 isSuccess = true;
                 responseHandler.headersReceived(response);
             } else {
+                SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + response.statusCode());
                 errorResponseHandler.headersReceived(response);
             }
             this.response = response;
@@ -173,8 +177,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void exceptionOccurred(Throwable throwable) {
-            runAndLogError("SdkHttpResponseHandler threw an exception.",
-                () -> responseHandler.exceptionOccurred(throwable));
+            // Note that we don't notify the response handler here, we do that in AsyncRetryableStage where we
+            // have more context of what's going on and can deliver exceptions more reliably.
             completable.completeExceptionally(throwable);
         }
 
@@ -182,8 +186,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         public Response<OutputT> complete() {
             try {
                 SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
-                final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
-                Response<OutputT> toReturn = handleResponse(httpResponse);
+                Response<OutputT> toReturn = handleResponse(httpFullResponse);
                 completable.complete(toReturn);
                 return toReturn;
             } catch (Exception e) {
@@ -192,7 +195,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             }
         }
 
-        private Response<OutputT> handleResponse(HttpResponse httpResponse) {
+        private Response<OutputT> handleResponse(SdkHttpFullResponse httpResponse) {
             if (isSuccess) {
                 OutputT response = responseHandler.complete();
                 return Response.fromSuccess(response, httpResponse);
@@ -209,8 +212,21 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      */
     private class Completable {
         private final CompletableFuture<Response<OutputT>> completableFuture = new CompletableFuture<>();
+        private TimeoutTracker timeoutTracker;
 
-        public void complete(Response<OutputT> result) {
+        Completable(long timeoutInMills) {
+            timeoutTracker = timeCompletableFuture(completableFuture, timeoutExecutor,
+                                                   ApiCallAttemptTimeoutException.create(timeoutInMills),
+                                                   timeoutInMills);
+        }
+
+        void abortable(Abortable abortable) {
+            if (timeoutTracker != null) {
+                timeoutTracker.abortable(abortable);
+            }
+        }
+
+        void complete(Response<OutputT> result) {
             try {
                 futureCompletionExecutor.execute(() -> completableFuture.complete(result));
             } catch (RejectedExecutionException e) {
@@ -218,7 +234,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             }
         }
 
-        public void completeExceptionally(Throwable exception) {
+        void completeExceptionally(Throwable exception) {
             try {
                 futureCompletionExecutor.execute(() -> completableFuture.completeExceptionally(exception));
             } catch (RejectedExecutionException e) {
@@ -234,5 +250,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                   "client's async configuration setting or you can reduce the amount of work " +
                                                   "performed on the async execution thread.", e);
         }
+    }
+
+    private long apiCallAttemptTimeoutInMillis(RequestOverrideConfiguration requestConfig) {
+        return OptionalUtils.firstPresent(
+            requestConfig.apiCallAttemptTimeout(), () -> apiCallAttemptTimeout)
+                            .map(Duration::toMillis)
+                            .orElse(0L);
     }
 }

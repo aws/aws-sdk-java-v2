@@ -16,15 +16,13 @@
 package software.amazon.awssdk.core.internal.http;
 
 import com.fasterxml.jackson.core.JsonFactory;
-
 import java.util.List;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Default implementation of {@link JsonErrorResponseHandler} that handles an error response from a
@@ -49,15 +47,15 @@ public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler<SdkSer
     }
 
     @Override
-    public SdkServiceException handle(HttpResponse response,
+    public SdkServiceException handle(SdkHttpFullResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
 
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
 
-        SdkServiceException.Builder exception = createException(response.getStatusCode(), jsonContent).toBuilder();
+        SdkServiceException.Builder exception = createException(response.statusCode(), jsonContent).toBuilder();
 
-        exception.statusCode(response.getStatusCode());
-        exception.requestId(getRequestIdFromHeaders(response.getHeaders()));
+        exception.statusCode(response.statusCode());
+        exception.requestId(getRequestIdFromHeaders(response.headers()));
 
         return exception.build();
     }

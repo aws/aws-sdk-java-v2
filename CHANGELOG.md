@@ -1,7 +1,6 @@
 # __2.0.0-preview-11__ __2018-07-30__
 ## __AWS SDK for Java v2__
   - ### Features
-    - - Updated `AwsCredentials` to interface implemented by `AwsBasicCredentials` and `AwsSessionCredentials` - Renamed `AwsCredentialsProvider.getCredentials()` to `AwsCredentialsProvider.resolveCredentials()`.
     - Accept `SdkBytes` and `byte[]` instead of `ByteBuffer` in generated setters.
     - Add support to disable EC2 instance metadata service usage via environment variable and system property. [#430](https://github.com/aws/aws-sdk-java-v2/issues/430)
     - Caching `XPathFactory` to improve performance of exception handling for services using XML protocol
@@ -15,7 +14,10 @@
     - Return `SdkBytes` instead of `ByteBuffer` from generated getters.
     - Update all service models to follow V2 naming convention. eg: `WAFException` -> `WafException`
     - Update service name in clients, requests and exceptions to match 2.0 naming conventions (eg. DynamoDBClient -> DynamoDbClient)
+    - Updated `AwsCredentials` to interface implemented by `AwsBasicCredentials` and `AwsSessionCredentials`. Renamed `AwsCredentialsProvider.getCredentials()` to `AwsCredentialsProvider.resolveCredentials()`.
+    - Use auto constructed containers for list and map members. [#497](https://github.com/aws/aws-sdk-java-v2/pull/497), [#529](https://github.com/aws/aws-sdk-java-v2/pull/529), [#600](https://github.com/aws/aws-sdk-java-v2/pull/600)
     - Various AsyncClient Refactors:\n - Drop async prefix in `SdkAyncClientBuilder`: `SdkAsyncClientBuilder.asyncHttpClientBuilder() -> SdkAsyncClientBuilder.httpClientBuilder()`\n - Create `SdkEventLoopGroup` to allow users to provide `EventLoopGroup` and `ChannelFactory`.
+    - upgrade Netty 4.1.22.Final to Netty 4.1.26.Final
 
   - ### Deprecations
     - Deprecating `QueryStringSigner` in favor of `Aws4Signer`.
@@ -44,10 +46,6 @@
 ## __Netty NIO Async HTTP Client__
   - ### Bugfixes
     - Fix the Netty async client to stop publishing to the request stream once `Content-Length` is reached.
-
-## __runtime__
-  - ### Features
-    - upgrade Netty 4.1.22.Final to Netty 4.1.26.Final
 
 # __2.0.0-preview-10__ __2018-05-25__
 ## __AWS SDK for Java v2__
@@ -308,7 +306,7 @@
 
   - ### Bugfixes
     - Fixed a bug in default credential provider chain where it would erroneously abort at the ProfileCredentialsProvider. See [Issue #135](https://github.com/aws/aws-sdk-java-v2/issues/135)
-    - Many improvments and fixes to the Netty NIO based transport.
+    - Many improvements and fixes to the Netty NIO based transport.
     - Several fixes around S3's endpoint resolution, particularly with advanced options like path style addressing and accelerate mode. See [Issue #130](https://github.com/aws/aws-sdk-java-v2/issues/130)
     - Several fixes around serialization and deserialization of immutable objects. See [Issue #122](https://github.com/aws/aws-sdk-java-v2/issues/122)
     - Type parameters are now correctly included for [StreamingResponseHandler](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java) on the client interface.
@@ -323,7 +321,7 @@
   - ### Features
     - New pluggable HTTP implementation built on top of Java's HttpUrlConnection. Good choice for simple applications with low throughput requirements. Better cold start latency than the default Apache implementation.
     - Simple convenience methods have been added for operations that require no input parameters.
-    - Substantial improvments to start up time and cold start latencies
+    - Substantial improvements to start up time and cold start latencies
     - The Netty NIO HTTP client now uses a shared event loop group for better resource management. More options for customizing the event loop group are now available.
     - Using java.time instead of the legacy java.util.Date in generated model classes.
     - Various improvements to the immutability of model POJOs. ByteBuffers are now copied and collections are returned as unmodifiable.

@@ -15,69 +15,129 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.pool.AbstractChannelPoolHandler;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
-import java.util.ArrayList;
-import java.util.List;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
-import software.amazon.awssdk.http.nio.netty.internal.utils.LoggingHandler;
-import software.amazon.awssdk.utils.Logger;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
+import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.Http2Settings;
+import io.netty.handler.codec.http2.Http2SettingsFrame;
+import io.netty.handler.ssl.SslContext;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
+import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
+
+/**
+ * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
+ */
 @SdkInternalApi
 public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
-    private static final Logger log = Logger.loggerFor(ChannelPipelineInitializer.class);
+    private final Protocol protocol;
+    private final SslContext sslCtx;
+    private final long clientMaxStreams;
+    private final AtomicReference<ChannelPool> channelPoolRef;
 
-    private final SslContext sslContext;
-    private final ChannelHandler[] handlers;
-
-    public ChannelPipelineInitializer(SslContext sslContext) {
-        this.sslContext = sslContext;
-
-        List<ChannelHandler> tmpHandlers = new ArrayList<>();
-        if (log.isLoggingLevelEnabled("debug")) {
-            tmpHandlers.add(new LoggingHandler(log::debug));
-        }
-
-        handlers = tmpHandlers.toArray(new ChannelHandler[0]);
+    public ChannelPipelineInitializer(Protocol protocol,
+                                      SslContext sslCtx,
+                                      long clientMaxStreams,
+                                      AtomicReference<ChannelPool> channelPoolRef) {
+        this.protocol = protocol;
+        this.sslCtx = sslCtx;
+        this.clientMaxStreams = clientMaxStreams;
+        this.channelPoolRef = channelPoolRef;
     }
 
     @Override
     public void channelCreated(Channel ch) throws Exception {
-        ChannelPipeline p = ch.pipeline();
-
-        if (sslContext != null) {
-            SslHandler handler = sslContext.newHandler(ch.alloc());
-            p.addLast(handler);
-            handler.handshakeFuture().addListener(future -> {
-                if (!future.isSuccess()) {
-                    log.error(() -> "SSL handshake failed.", future.cause());
-                }
-            });
+        ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
+        ChannelPipeline pipeline = ch.pipeline();
+        if (sslCtx != null) {
+            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
         }
 
-        p.addLast(new HttpClientCodec());
-        p.addLast(handlers);
-        // Disabling auto-read is needed for backpressure to work
-        ch.config().setOption(ChannelOption.AUTO_READ, false);
+        if (protocol == Protocol.HTTP2) {
+            configureHttp2(ch, pipeline);
+        } else {
+            configureHttp11(ch, pipeline);
+        }
     }
 
-    @Override
-    public void channelReleased(Channel ch) throws Exception {
-        // Remove any existing handlers from the pipeline from the previous request.
-        ChannelUtils.removeIfExists(ch.pipeline(),
-                                    HttpStreamsClientHandler.class,
-                                    ResponseHandler.class,
-                                    ReadTimeoutHandler.class,
-                                    WriteTimeoutHandler.class);
+    private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
+        ForkedHttp2MultiplexCodecBuilder codecBuilder = ForkedHttp2MultiplexCodecBuilder
+            .forClient(new NoOpChannelInitializer())
+            .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
+            .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576));
+        // If frame logging is enabled, add it
+        SdkHttp2FrameLogger.frameLogger().ifPresent(codecBuilder::frameLogger);
+
+        pipeline.addLast(codecBuilder.build());
+
+        pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, Http2SettingsFrame msg) throws Exception {
+                Long serverMaxStreams = Optional.ofNullable(msg.settings().maxConcurrentStreams()).orElse(Long.MAX_VALUE);
+                ch.attr(MAX_CONCURRENT_STREAMS).set(Math.min(clientMaxStreams, serverMaxStreams));
+                ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP2);
+            }
+
+            @Override
+            public void channelUnregistered(ChannelHandlerContext ctx) {
+                if (!ch.attr(PROTOCOL_FUTURE).get().isDone()) {
+                    channelError(new IOException("The channel was closed before the protocol could be determined."), ch);
+                }
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                channelError(cause, ch);
+            }
+        });
     }
+
+    private void channelError(Throwable cause, Channel ch) {
+        ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
+        MultiplexedChannelRecord record = ch.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD).get();
+        // Deliver the exception to any child channels registered to this connection.
+        if (record != null) {
+            record.shutdownChildChannels(cause);
+        }
+        // Channel status may still be active at this point even if it's not so queue up the close so that status is
+        // accurately updated
+        ch.eventLoop().submit(() -> {
+            try {
+                if (ch.isActive()) {
+                    ch.close();
+                }
+            } finally {
+                channelPoolRef.get().release(ch);
+            }
+        });
+    }
+
+    private void configureHttp11(Channel ch, ChannelPipeline pipeline) {
+        pipeline.addLast(new HttpClientCodec());
+        ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP1_1);
+    }
+
+    private static class NoOpChannelInitializer extends ChannelInitializer<Channel> {
+        @Override
+        protected void initChannel(Channel ch) throws Exception {
+        }
+    }
+
 }
+
+

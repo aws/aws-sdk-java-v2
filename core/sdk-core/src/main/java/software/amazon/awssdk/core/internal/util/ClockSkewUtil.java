@@ -21,7 +21,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.DateUtils;
 
 @SdkInternalApi
@@ -35,8 +35,8 @@ public final class ClockSkewUtil {
      * Returns the difference between the client's clock time and the service clock time in unit
      * of seconds.
      */
-    public static int parseClockSkewOffset(HttpResponse httpResponse) {
-        Optional<String> dateHeader = Optional.ofNullable(httpResponse.getHeader("Date"));
+    public static int parseClockSkewOffset(SdkHttpFullResponse httpResponse) {
+        Optional<String> dateHeader = httpResponse.firstMatchingHeader("Date");
         try {
             Instant serverDate = dateHeader
                 .filter(h -> !h.isEmpty())

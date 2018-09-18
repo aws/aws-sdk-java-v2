@@ -6,6 +6,7 @@
     "protocol":"query",
     "serviceAbbreviation":"AmazonProtocolQuery",
     "serviceFullName":"AWS DR Tools Query Protocol Tests",
+    "serviceId":"AmazonProtocolQuery",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsQueryService",
     "timestampFormat":"unixTimestamp"

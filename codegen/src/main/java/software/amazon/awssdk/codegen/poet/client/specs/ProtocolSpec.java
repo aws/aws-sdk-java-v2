@@ -32,7 +32,7 @@ public interface ProtocolSpec {
 
     MethodSpec initProtocolFactory(IntermediateModel model);
 
-    CodeBlock responseHandler(OperationModel opModel);
+    CodeBlock responseHandler(IntermediateModel model, OperationModel opModel);
 
     CodeBlock errorResponseHandler(OperationModel opModel);
 

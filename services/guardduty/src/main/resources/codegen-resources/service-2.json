@@ -80,6 +80,29 @@
       } ],
       "documentation" : "Creates a single Amazon GuardDuty detector. A detector is an object that represents the GuardDuty service. A detector must be created in order for GuardDuty to become operational."
     },
+    "CreateFilter" : {
+      "name" : "CreateFilter",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/filter",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "CreateFilterRequest"
+      },
+      "output" : {
+        "shape" : "CreateFilterResponse",
+        "documentation" : "200 response"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "400 response"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "500 response"
+      } ],
+      "documentation" : "Creates a filter using the specified finding criteria."
+    },
     "CreateIPSet" : {
       "name" : "CreateIPSet",
       "http" : {
@@ -217,6 +240,29 @@
         "documentation" : "500 response"
       } ],
       "documentation" : "Deletes a Amazon GuardDuty detector specified by the detector ID."
+    },
+    "DeleteFilter" : {
+      "name" : "DeleteFilter",
+      "http" : {
+        "method" : "DELETE",
+        "requestUri" : "/detector/{detectorId}/filter/{filterName}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "DeleteFilterRequest"
+      },
+      "output" : {
+        "shape" : "DeleteFilterResponse",
+        "documentation" : "200 response"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "400 response"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "500 response"
+      } ],
+      "documentation" : "Deletes the filter specified by the filter name."
     },
     "DeleteIPSet" : {
       "name" : "DeleteIPSet",
@@ -378,6 +424,29 @@
         "documentation" : "500 response"
       } ],
       "documentation" : "Retrieves an Amazon GuardDuty detector specified by the detectorId."
+    },
+    "GetFilter" : {
+      "name" : "GetFilter",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/filter/{filterName}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "GetFilterRequest"
+      },
+      "output" : {
+        "shape" : "GetFilterResponse",
+        "documentation" : "200 response"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "400 response"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "500 response"
+      } ],
+      "documentation" : "Returns the details of the filter specified by the filter name."
     },
     "GetFindings" : {
       "name" : "GetFindings",
@@ -586,6 +655,29 @@
       } ],
       "documentation" : "Lists detectorIds of all the existing Amazon GuardDuty detector resources."
     },
+    "ListFilters" : {
+      "name" : "ListFilters",
+      "http" : {
+        "method" : "GET",
+        "requestUri" : "/detector/{detectorId}/filter",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "ListFiltersRequest"
+      },
+      "output" : {
+        "shape" : "ListFiltersResponse",
+        "documentation" : "200 response"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "400 response"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "500 response"
+      } ],
+      "documentation" : "Returns a paginated list of the current filters."
+    },
     "ListFindings" : {
       "name" : "ListFindings",
       "http" : {
@@ -745,7 +837,7 @@
         "shape" : "InternalServerErrorException",
         "documentation" : "500 response"
       } ],
-      "documentation" : "Disables GuardDuty from monitoring findings of the member accounts specified by the account IDs. After running this command, a master GuardDuty account can run StartMonitoringMembers to re-enable GuardDuty to monitor these members' findings."
+      "documentation" : "Disables GuardDuty from monitoring findings of the member accounts specified by the account IDs. After running this command, a master GuardDuty account can run StartMonitoringMembers to re-enable GuardDuty to monitor these members’ findings."
     },
     "UnarchiveFindings" : {
       "name" : "UnarchiveFindings",
@@ -792,6 +884,29 @@
         "documentation" : "500 response"
       } ],
       "documentation" : "Updates an Amazon GuardDuty detector specified by the detectorId."
+    },
+    "UpdateFilter" : {
+      "name" : "UpdateFilter",
+      "http" : {
+        "method" : "POST",
+        "requestUri" : "/detector/{detectorId}/filter/{filterName}",
+        "responseCode" : 200
+      },
+      "input" : {
+        "shape" : "UpdateFilterRequest"
+      },
+      "output" : {
+        "shape" : "UpdateFilterResponse",
+        "documentation" : "200 response"
+      },
+      "errors" : [ {
+        "shape" : "BadRequestException",
+        "documentation" : "400 response"
+      }, {
+        "shape" : "InternalServerErrorException",
+        "documentation" : "500 response"
+      } ],
+      "documentation" : "Updates the filter specified by the filter name."
     },
     "UpdateFindingsFeedback" : {
       "name" : "UpdateFindingsFeedback",
@@ -891,6 +1006,32 @@
       "type" : "structure",
       "members" : { }
     },
+    "AccessKeyDetails" : {
+      "type" : "structure",
+      "members" : {
+        "AccessKeyId" : {
+          "shape" : "__string",
+          "locationName" : "accessKeyId",
+          "documentation" : "Access key ID of the user."
+        },
+        "PrincipalId" : {
+          "shape" : "__string",
+          "locationName" : "principalId",
+          "documentation" : "The principal ID of the user."
+        },
+        "UserName" : {
+          "shape" : "__string",
+          "locationName" : "userName",
+          "documentation" : "The name of the user."
+        },
+        "UserType" : {
+          "shape" : "__string",
+          "locationName" : "userType",
+          "documentation" : "The type of the user."
+        }
+      },
+      "documentation" : "The IAM access key details (IAM user information) of a user that engaged in the activity that prompted GuardDuty to generate a finding."
+    },
     "AccountDetail" : {
       "type" : "structure",
       "members" : {
@@ -905,7 +1046,8 @@
           "documentation" : "Member account's email address."
         }
       },
-      "documentation" : "An object containing the member's accountId and email address."
+      "documentation" : "An object containing the member's accountId and email address.",
+      "required" : [ "Email", "AccountId" ]
     },
     "AccountDetails" : {
       "type" : "list",
@@ -947,6 +1089,11 @@
           "shape" : "NetworkConnectionAction",
           "locationName" : "networkConnectionAction",
           "documentation" : "Information about the NETWORK_CONNECTION action described in this finding."
+        },
+        "PortProbeAction" : {
+          "shape" : "PortProbeAction",
+          "locationName" : "portProbeAction",
+          "documentation" : "Information about the PORT_PROBE action described in this finding."
         }
       },
       "documentation" : "Information about the activity described in a finding."
@@ -1117,6 +1264,60 @@
           "shape" : "DetectorId",
           "locationName" : "detectorId",
           "documentation" : "The unique ID of the created detector."
+        }
+      }
+    },
+    "CreateFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "FilterAction",
+          "locationName" : "action",
+          "documentation" : "Specifies the action that is to be applied to the findings that match the filter."
+        },
+        "ClientToken" : {
+          "shape" : "__stringMin0Max64",
+          "locationName" : "clientToken",
+          "documentation" : "The idempotency token for the create request.",
+          "idempotencyToken" : true
+        },
+        "Description" : {
+          "shape" : "FilterDescription",
+          "locationName" : "description",
+          "documentation" : "The description of the filter."
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId",
+          "documentation" : "The unique ID of the detector that you want to update."
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria",
+          "documentation" : "Represents the criteria to be used in the filter for querying findings."
+        },
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name",
+          "documentation" : "The name of the filter."
+        },
+        "Rank" : {
+          "shape" : "FilterRank",
+          "locationName" : "rank",
+          "documentation" : "Specifies the position of the filter in the list of current filters. Also specifies the order in which this filter is applied to the findings."
+        }
+      },
+      "documentation" : "CreateFilterRequest request body.",
+      "required" : [ "DetectorId" ]
+    },
+    "CreateFilterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name",
+          "documentation" : "The name of the successfully created filter."
         }
       }
     },
@@ -1292,6 +1493,28 @@
       "required" : [ "DetectorId" ]
     },
     "DeleteDetectorResponse" : {
+      "type" : "structure",
+      "members" : { }
+    },
+    "DeleteFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId",
+          "documentation" : "The unique ID that specifies the detector where you want to delete a filter."
+        },
+        "FilterName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "filterName",
+          "documentation" : "The name of the filter."
+        }
+      },
+      "required" : [ "DetectorId", "FilterName" ]
+    },
+    "DeleteFilterResponse" : {
       "type" : "structure",
       "members" : { }
     },
@@ -1504,6 +1727,30 @@
       "documentation" : "Finding Feedback Value",
       "enum" : [ "USEFUL", "NOT_USEFUL" ]
     },
+    "FilterAction" : {
+      "type" : "string",
+      "documentation" : "The action associated with a filter.",
+      "enum" : [ "NOOP", "ARCHIVE" ]
+    },
+    "FilterDescription" : {
+      "type" : "string",
+      "documentation" : "The filter description"
+    },
+    "FilterName" : {
+      "type" : "string",
+      "documentation" : "The unique identifier for a filter"
+    },
+    "FilterNames" : {
+      "type" : "list",
+      "documentation" : "A list of filter names",
+      "member" : {
+        "shape" : "FilterName"
+      }
+    },
+    "FilterRank" : {
+      "type" : "integer",
+      "documentation" : "Relative position of filter among list of exisiting filters."
+    },
     "Finding" : {
       "type" : "structure",
       "members" : {
@@ -1583,13 +1830,14 @@
           "documentation" : "The time stamp at which a finding was last updated."
         }
       },
-      "documentation" : "Representation of a abnormal or suspicious activity."
+      "documentation" : "Representation of a abnormal or suspicious activity.",
+      "required" : [ "AccountId", "SchemaVersion", "CreatedAt", "Resource", "Severity", "UpdatedAt", "Type", "Region", "Id", "Arn" ]
     },
     "FindingCriteria" : {
       "type" : "structure",
       "members" : {
         "Criterion" : {
-          "shape" : "MapOfCondition",
+          "shape" : "__mapOfCondition",
           "locationName" : "criterion",
           "documentation" : "Represents a map of finding properties that match specified conditions and values when querying findings."
         }
@@ -1623,7 +1871,7 @@
       "type" : "structure",
       "members" : {
         "CountBySeverity" : {
-          "shape" : "MapOfCountBySeverityFindingStatistic",
+          "shape" : "__mapOfCountBySeverityFindingStatistic",
           "locationName" : "countBySeverity",
           "documentation" : "Represents a map of severity to count statistic for a set of findings"
         }
@@ -1694,6 +1942,54 @@
         "UpdatedAt" : {
           "shape" : "UpdatedAt",
           "locationName" : "updatedAt"
+        }
+      }
+    },
+    "GetFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId",
+          "documentation" : "The detector ID that specifies the GuardDuty service where you want to list the details of the specified filter."
+        },
+        "FilterName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "filterName",
+          "documentation" : "The name of the filter whose details you want to get."
+        }
+      },
+      "required" : [ "DetectorId", "FilterName" ]
+    },
+    "GetFilterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "FilterAction",
+          "locationName" : "action",
+          "documentation" : "Specifies the action that is to be applied to the findings that match the filter."
+        },
+        "Description" : {
+          "shape" : "FilterDescription",
+          "locationName" : "description",
+          "documentation" : "The description of the filter."
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria",
+          "documentation" : "Represents the criteria to be used in the filter for querying findings."
+        },
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name",
+          "documentation" : "The name of the filter."
+        },
+        "Rank" : {
+          "shape" : "FilterRank",
+          "locationName" : "rank",
+          "documentation" : "Specifies the position of the filter in the list of current filters. Also specifies the order in which this filter is applied to the findings."
         }
       }
     },
@@ -1943,6 +2239,11 @@
           "shape" : "IamInstanceProfile",
           "locationName" : "iamInstanceProfile"
         },
+        "ImageDescription" : {
+          "shape" : "__string",
+          "locationName" : "imageDescription",
+          "documentation" : "The image description of the EC2 instance."
+        },
         "ImageId" : {
           "shape" : "__string",
           "locationName" : "imageId",
@@ -2062,10 +2363,15 @@
           "locationName" : "detectorId",
           "documentation" : "The unique ID of the detector of the GuardDuty account with which you want to invite members."
         },
+        "DisableEmailNotification" : {
+          "shape" : "__boolean",
+          "locationName" : "disableEmailNotification",
+          "documentation" : "A boolean value that specifies whether you want to disable email notification to the accounts that you’re inviting to GuardDuty as members."
+        },
         "Message" : {
           "shape" : "Message",
           "locationName" : "message",
-          "documentation" : "The invitation message that you want to send to the accounts that you're inviting to GuardDuty as members."
+          "documentation" : "The invitation message that you want to send to the accounts that you’re inviting to GuardDuty as members."
         }
       },
       "documentation" : "InviteMembers request body.",
@@ -2140,6 +2446,43 @@
         "DetectorIds" : {
           "shape" : "DetectorIds",
           "locationName" : "detectorIds"
+        },
+        "NextToken" : {
+          "shape" : "NextToken",
+          "locationName" : "nextToken"
+        }
+      }
+    },
+    "ListFiltersRequest" : {
+      "type" : "structure",
+      "members" : {
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId",
+          "documentation" : "The ID of the detector that specifies the GuardDuty service where you want to list filters."
+        },
+        "MaxResults" : {
+          "shape" : "MaxResults",
+          "location" : "querystring",
+          "locationName" : "maxResults",
+          "documentation" : "Indicates the maximum number of items that you want in the response. The maximum value is 50."
+        },
+        "NextToken" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "nextToken",
+          "documentation" : "Paginates results. Set the value of this parameter to NULL on your first call to the ListFilters operation.For subsequent calls to the operation, fill nextToken in the request with the value of nextToken from the previous response to continue listing data."
+        }
+      },
+      "required" : [ "DetectorId" ]
+    },
+    "ListFiltersResponse" : {
+      "type" : "structure",
+      "members" : {
+        "FilterNames" : {
+          "shape" : "FilterNames",
+          "locationName" : "filterNames"
         },
         "NextToken" : {
           "shape" : "NextToken",
@@ -2360,24 +2703,6 @@
       "type" : "string",
       "documentation" : "The location of the S3 bucket where the list resides. For example (https://s3.us-west-2.amazonaws.com/my-bucket/my-object-key)"
     },
-    "MapOfCondition" : {
-      "type" : "map",
-      "key" : {
-        "shape" : "__string"
-      },
-      "value" : {
-        "shape" : "Condition"
-      }
-    },
-    "MapOfCountBySeverityFindingStatistic" : {
-      "type" : "map",
-      "key" : {
-        "shape" : "__string"
-      },
-      "value" : {
-        "shape" : "CountBySeverityFindingStatistic"
-      }
-    },
     "Master" : {
       "type" : "structure",
       "members" : {
@@ -2448,7 +2773,8 @@
           "locationName" : "updatedAt"
         }
       },
-      "documentation" : "Contains details about the member account."
+      "documentation" : "Contains details about the member account.",
+      "required" : [ "Email", "AccountId", "MasterId", "UpdatedAt", "RelationshipStatus" ]
     },
     "Members" : {
       "type" : "list",
@@ -2459,7 +2785,7 @@
     },
     "Message" : {
       "type" : "string",
-      "documentation" : "The invitation message that you want to send to the accounts that you're inviting to GuardDuty as members."
+      "documentation" : "The invitation message that you want to send to the accounts that you’re inviting to GuardDuty as members."
     },
     "Name" : {
       "type" : "string",
@@ -2516,6 +2842,11 @@
           "locationName" : "ipv6Addresses",
           "documentation" : "A list of EC2 instance IPv6 address information."
         },
+        "NetworkInterfaceId" : {
+          "shape" : "NetworkInterfaceId",
+          "locationName" : "networkInterfaceId",
+          "documentation" : "The ID of the network interface"
+        },
         "PrivateDnsName" : {
           "shape" : "PrivateDnsName",
           "locationName" : "privateDnsName",
@@ -2559,6 +2890,10 @@
       },
       "documentation" : "The network interface information of the EC2 instance."
     },
+    "NetworkInterfaceId" : {
+      "type" : "string",
+      "documentation" : "The ID of the network interface."
+    },
     "NetworkInterfaces" : {
       "type" : "list",
       "documentation" : "The network interface information of the EC2 instance.",
@@ -2599,6 +2934,38 @@
         }
       },
       "documentation" : "ISP Organization information of the remote IP address."
+    },
+    "PortProbeAction" : {
+      "type" : "structure",
+      "members" : {
+        "Blocked" : {
+          "shape" : "__boolean",
+          "locationName" : "blocked",
+          "documentation" : "Port probe blocked information."
+        },
+        "PortProbeDetails" : {
+          "shape" : "__listOfPortProbeDetail",
+          "locationName" : "portProbeDetails",
+          "documentation" : "A list of port probe details objects."
+        }
+      },
+      "documentation" : "Information about the PORT_PROBE action described in this finding."
+    },
+    "PortProbeDetail" : {
+      "type" : "structure",
+      "members" : {
+        "LocalPortDetails" : {
+          "shape" : "LocalPortDetails",
+          "locationName" : "localPortDetails",
+          "documentation" : "Local port information of the connection."
+        },
+        "RemoteIpDetails" : {
+          "shape" : "RemoteIpDetails",
+          "locationName" : "remoteIpDetails",
+          "documentation" : "Remote IP information of the connection."
+        }
+      },
+      "documentation" : "Details about the port probe finding."
     },
     "PrivateDnsName" : {
       "type" : "string",
@@ -2704,6 +3071,10 @@
     "Resource" : {
       "type" : "structure",
       "members" : {
+        "AccessKeyDetails" : {
+          "shape" : "AccessKeyDetails",
+          "locationName" : "accessKeyDetails"
+        },
         "InstanceDetails" : {
           "shape" : "InstanceDetails",
           "locationName" : "instanceDetails"
@@ -2946,7 +3317,8 @@
           "documentation" : "A reason why the account hasn't been processed."
         }
       },
-      "documentation" : "An object containing the unprocessed account and a result string explaining why it was unprocessed."
+      "documentation" : "An object containing the unprocessed account and a result string explaining why it was unprocessed.",
+      "required" : [ "AccountId", "Result" ]
     },
     "UnprocessedAccounts" : {
       "type" : "list",
@@ -2976,6 +3348,55 @@
     "UpdateDetectorResponse" : {
       "type" : "structure",
       "members" : { }
+    },
+    "UpdateFilterRequest" : {
+      "type" : "structure",
+      "members" : {
+        "Action" : {
+          "shape" : "FilterAction",
+          "locationName" : "action",
+          "documentation" : "Specifies the action that is to be applied to the findings that match the filter."
+        },
+        "Description" : {
+          "shape" : "FilterDescription",
+          "locationName" : "description",
+          "documentation" : "The description of the filter."
+        },
+        "DetectorId" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "detectorId",
+          "documentation" : "The unique ID of the detector that specifies the GuardDuty service where you want to update a filter."
+        },
+        "FilterName" : {
+          "shape" : "__string",
+          "location" : "uri",
+          "locationName" : "filterName",
+          "documentation" : "The name of the filter."
+        },
+        "FindingCriteria" : {
+          "shape" : "FindingCriteria",
+          "locationName" : "findingCriteria",
+          "documentation" : "Represents the criteria to be used in the filter for querying findings."
+        },
+        "Rank" : {
+          "shape" : "FilterRank",
+          "locationName" : "rank",
+          "documentation" : "Specifies the position of the filter in the list of current filters. Also specifies the order in which this filter is applied to the findings."
+        }
+      },
+      "documentation" : "UpdateFilterRequest request body.",
+      "required" : [ "DetectorId", "FilterName" ]
+    },
+    "UpdateFilterResponse" : {
+      "type" : "structure",
+      "members" : {
+        "Name" : {
+          "shape" : "FilterName",
+          "locationName" : "name",
+          "documentation" : "The name of the filter."
+        }
+      }
     },
     "UpdateFindingsFeedbackRequest" : {
       "type" : "structure",
@@ -3098,8 +3519,40 @@
     "__integer" : {
       "type" : "integer"
     },
+    "__listOfPortProbeDetail" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "PortProbeDetail"
+      }
+    },
+    "__long" : {
+      "type" : "long"
+    },
+    "__mapOfCondition" : {
+      "type" : "map",
+      "key" : {
+        "shape" : "__string"
+      },
+      "value" : {
+        "shape" : "Condition"
+      }
+    },
+    "__mapOfCountBySeverityFindingStatistic" : {
+      "type" : "map",
+      "key" : {
+        "shape" : "__string"
+      },
+      "value" : {
+        "shape" : "CountBySeverityFindingStatistic"
+      }
+    },
     "__string" : {
       "type" : "string"
+    },
+    "__stringMin0Max64" : {
+      "type" : "string",
+      "min" : 0,
+      "max" : 64
     },
     "__timestamp" : {
       "type" : "timestamp"

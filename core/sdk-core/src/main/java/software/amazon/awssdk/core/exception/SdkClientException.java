@@ -35,6 +35,10 @@ public class SdkClientException extends SdkException {
         super(b);
     }
 
+    public static SdkClientException create(String message) {
+        return SdkClientException.builder().message(message).build();
+    }
+
     public static SdkClientException create(String message, Throwable cause) {
         return SdkClientException.builder().message(message).cause(cause).build();
     }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
 import software.amazon.awssdk.core.internal.protocol.json.JsonErrorUnmarshaller;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Base error response handler for JSON protocol.
@@ -48,8 +50,7 @@ public abstract class JsonErrorResponseHandler<ExceptionT extends SdkServiceExce
      */
     protected abstract ExceptionT createUnknownException();
 
-    protected String getRequestIdFromHeaders(Map<String, String> headers) {
-        return headers.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(X_AMZN_REQUEST_ID_HEADER))
-                      .findFirst().map(Map.Entry::getValue).orElse(null);
+    protected String getRequestIdFromHeaders(Map<String, List<String>> headers) {
+        return SdkHttpUtils.firstMatchingHeader(headers, X_AMZN_REQUEST_ID_HEADER).orElse(null);
     }
 }

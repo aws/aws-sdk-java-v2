@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
@@ -630,6 +631,22 @@ public final class Validate {
     }
 
     /**
+     * Asserts that the given duration is positive (non-negative and non-zero) or null.
+     *
+     * @param duration Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive or null.
+     */
+    public static Duration isPositiveOrNull(Duration duration, String fieldName) {
+        if (duration == null) {
+            return null;
+        }
+
+        return isPositive(duration, fieldName);
+    }
+
+
+    /**
      * Asserts that the given duration is positive (non-negative and non-zero).
      *
      * @param duration Number to validate
@@ -646,5 +663,39 @@ public final class Validate {
         }
 
         return duration;
+    }
+
+    /**
+     * Returns the param if non null, otherwise gets a default value from the provided {@link Supplier}.
+     *
+     * @param param Param to return if non null.
+     * @param defaultValue Supplier of default value.
+     * @param <T> Type of value.
+     * @return Value of param or default value if param was null.
+     */
+    public static <T> T getOrDefault(T param, Supplier<T> defaultValue) {
+        paramNotNull(defaultValue, "defaultValue");
+        return param != null ? param : defaultValue.get();
+    }
+
+    /**
+     * Verify that only one of the objects is non null. If all objects are null this method
+     * does not throw.
+     *
+     * @param message Error message if more than one object is non-null.
+     * @param objs Objects to validate.
+     * @throws IllegalArgumentException if more than one of the objects was non-null.
+     */
+    public static void mutuallyExclusive(String message, Object... objs) {
+        boolean oneProvided = false;
+        for (Object o : objs) {
+            if (o != null) {
+                if (oneProvided) {
+                    throw new IllegalArgumentException(message);
+                } else {
+                    oneProvided = true;
+                }
+            }
+        }
     }
 }

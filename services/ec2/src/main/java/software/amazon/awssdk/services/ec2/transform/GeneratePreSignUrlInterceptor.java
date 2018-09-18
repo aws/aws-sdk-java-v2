@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.ec2.transform;
 import static software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
@@ -37,7 +38,8 @@ import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
  * ExecutionInterceptor that generates a pre-signed URL for copying encrypted snapshots
  * TODO: Is this actually right? What if a different interceptor modifies the message? Should this be treated as a signer?
  */
-public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {

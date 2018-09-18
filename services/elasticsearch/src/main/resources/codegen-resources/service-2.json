@@ -5,6 +5,7 @@
     "endpointPrefix":"es",
     "protocol":"rest-json",
     "serviceFullName":"Amazon Elasticsearch Service",
+    "serviceId":"Elasticsearch Service",
     "signatureVersion":"v4",
     "uid":"es-2015-01-01"
   },
@@ -137,6 +138,89 @@
       ],
       "documentation":"<p> Describe Elasticsearch Limits for a given InstanceType and ElasticsearchVersion. When modifying existing Domain, specify the <code> <a>DomainName</a> </code> to know what Limits are supported for modifying. </p>"
     },
+    "DescribeReservedElasticsearchInstanceOfferings":{
+      "name":"DescribeReservedElasticsearchInstanceOfferings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-01-01/es/reservedInstanceOfferings"
+      },
+      "input":{"shape":"DescribeReservedElasticsearchInstanceOfferingsRequest"},
+      "output":{"shape":"DescribeReservedElasticsearchInstanceOfferingsResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Lists available reserved Elasticsearch instance offerings.</p>"
+    },
+    "DescribeReservedElasticsearchInstances":{
+      "name":"DescribeReservedElasticsearchInstances",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-01-01/es/reservedInstances"
+      },
+      "input":{"shape":"DescribeReservedElasticsearchInstancesRequest"},
+      "output":{"shape":"DescribeReservedElasticsearchInstancesResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Returns information about reserved Elasticsearch instances for this account.</p>"
+    },
+    "GetCompatibleElasticsearchVersions":{
+      "name":"GetCompatibleElasticsearchVersions",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-01-01/es/compatibleVersions"
+      },
+      "input":{"shape":"GetCompatibleElasticsearchVersionsRequest"},
+      "output":{"shape":"GetCompatibleElasticsearchVersionsResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p> Returns a list of upgrade compatible Elastisearch versions. You can optionally pass a <code> <a>DomainName</a> </code> to get all upgrade compatible Elasticsearch versions for that specific domain. </p>"
+    },
+    "GetUpgradeHistory":{
+      "name":"GetUpgradeHistory",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-01-01/es/upgradeDomain/{DomainName}/history"
+      },
+      "input":{"shape":"GetUpgradeHistoryRequest"},
+      "output":{"shape":"GetUpgradeHistoryResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Retrieves the complete history of the last 10 upgrades that were performed on the domain.</p>"
+    },
+    "GetUpgradeStatus":{
+      "name":"GetUpgradeStatus",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2015-01-01/es/upgradeDomain/{DomainName}/status"
+      },
+      "input":{"shape":"GetUpgradeStatusRequest"},
+      "output":{"shape":"GetUpgradeStatusResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Retrieves the latest status of the last upgrade or upgrade eligibility check that was performed on the domain.</p>"
+    },
     "ListDomainNames":{
       "name":"ListDomainNames",
       "http":{
@@ -198,6 +282,24 @@
       ],
       "documentation":"<p>Returns all tags for the given Elasticsearch domain.</p>"
     },
+    "PurchaseReservedElasticsearchInstanceOffering":{
+      "name":"PurchaseReservedElasticsearchInstanceOffering",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2015-01-01/es/purchaseReservedInstanceOffering"
+      },
+      "input":{"shape":"PurchaseReservedElasticsearchInstanceOfferingRequest"},
+      "output":{"shape":"PurchaseReservedElasticsearchInstanceOfferingResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Allows you to purchase reserved Elasticsearch instances.</p>"
+    },
     "RemoveTags":{
       "name":"RemoveTags",
       "http":{
@@ -229,6 +331,24 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Modifies the cluster configuration of the specified Elasticsearch domain, setting as setting the instance type and the number of instances. </p>"
+    },
+    "UpgradeElasticsearchDomain":{
+      "name":"UpgradeElasticsearchDomain",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2015-01-01/es/upgradeDomain"
+      },
+      "input":{"shape":"UpgradeElasticsearchDomainRequest"},
+      "output":{"shape":"UpgradeElasticsearchDomainResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Allows you to either upgrade your domain or perform an Upgrade eligibility check to a compatible Elasticsearch version.</p>"
     }
   },
   "shapes":{
@@ -330,6 +450,61 @@
       "type":"string",
       "documentation":"<p>ARN of the Cloudwatch log group to which log needs to be published.</p>"
     },
+    "CognitoOptions":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies the option to enable Cognito for Kibana authentication.</p>"
+        },
+        "UserPoolId":{
+          "shape":"UserPoolId",
+          "documentation":"<p>Specifies the Cognito user pool ID for Kibana authentication.</p>"
+        },
+        "IdentityPoolId":{
+          "shape":"IdentityPoolId",
+          "documentation":"<p>Specifies the Cognito identity pool ID for Kibana authentication.</p>"
+        },
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>Specifies the role ARN that provides Elasticsearch permissions for accessing Cognito resources.</p>"
+        }
+      },
+      "documentation":"<p>Options to specify the Cognito user and identity pools for Kibana authentication. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html\" target=\"_blank\">Amazon Cognito Authentication for Kibana</a>.</p>"
+    },
+    "CognitoOptionsStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"CognitoOptions",
+          "documentation":"<p>Specifies the Cognito options for the specified Elasticsearch domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>Specifies the status of the Cognito options for the specified Elasticsearch domain.</p>"
+        }
+      },
+      "documentation":"<p>Status of the Cognito options for the specified Elasticsearch domain.</p>"
+    },
+    "CompatibleElasticsearchVersionsList":{
+      "type":"list",
+      "member":{"shape":"CompatibleVersionsMap"}
+    },
+    "CompatibleVersionsMap":{
+      "type":"structure",
+      "members":{
+        "SourceVersion":{
+          "shape":"ElasticsearchVersionString",
+          "documentation":"<p>The current version of Elasticsearch on which a domain is.</p>"
+        },
+        "TargetVersions":{"shape":"ElasticsearchVersionList"}
+      },
+      "documentation":"<p> A map from an <code> <a>ElasticsearchVersion</a> </code> to a list of compatible <code> <a>ElasticsearchVersion</a> </code> s to which the domain can be upgraded. </p>"
+    },
     "CreateElasticsearchDomainRequest":{
       "type":"structure",
       "required":["DomainName"],
@@ -361,6 +536,14 @@
         "VPCOptions":{
           "shape":"VPCOptions",
           "documentation":"<p>Options to specify the subnets and security groups for VPC endpoint. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-creating-vpc\" target=\"_blank\">Creating a VPC</a> in <i>VPC Endpoints for Amazon Elasticsearch Service Domains</i></p>"
+        },
+        "CognitoOptions":{
+          "shape":"CognitoOptions",
+          "documentation":"<p>Options to specify the Cognito user and identity pools for Kibana authentication. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html\" target=\"_blank\">Amazon Cognito Authentication for Kibana</a>.</p>"
+        },
+        "EncryptionAtRestOptions":{
+          "shape":"EncryptionAtRestOptions",
+          "documentation":"<p>Specifies the Encryption At Rest Options.</p>"
         },
         "AdvancedOptions":{
           "shape":"AdvancedOptions",
@@ -510,6 +693,82 @@
       },
       "documentation":"<p> Container for the parameters received from <code> <a>DescribeElasticsearchInstanceTypeLimits</a> </code> operation. </p>"
     },
+    "DescribeReservedElasticsearchInstanceOfferingsRequest":{
+      "type":"structure",
+      "members":{
+        "ReservedElasticsearchInstanceOfferingId":{
+          "shape":"GUID",
+          "documentation":"<p>The offering identifier filter value. Use this parameter to show only the available offering that matches the specified reservation identifier.</p>",
+          "location":"querystring",
+          "locationName":"offeringId"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>Set this value to limit the number of results returned. If not specified, defaults to 100.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>NextToken should be sent in case if earlier API call produced result containing NextToken. It is used for pagination.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      },
+      "documentation":"<p>Container for parameters to <code>DescribeReservedElasticsearchInstanceOfferings</code></p>"
+    },
+    "DescribeReservedElasticsearchInstanceOfferingsResponse":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Provides an identifier to allow retrieval of paginated results.</p>"
+        },
+        "ReservedElasticsearchInstanceOfferings":{
+          "shape":"ReservedElasticsearchInstanceOfferingList",
+          "documentation":"<p>List of reserved Elasticsearch instance offerings</p>"
+        }
+      },
+      "documentation":"<p>Container for results from <code>DescribeReservedElasticsearchInstanceOfferings</code></p>"
+    },
+    "DescribeReservedElasticsearchInstancesRequest":{
+      "type":"structure",
+      "members":{
+        "ReservedElasticsearchInstanceId":{
+          "shape":"GUID",
+          "documentation":"<p>The reserved instance identifier filter value. Use this parameter to show only the reservation that matches the specified reserved Elasticsearch instance ID.</p>",
+          "location":"querystring",
+          "locationName":"reservationId"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>Set this value to limit the number of results returned. If not specified, defaults to 100.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>NextToken should be sent in case if earlier API call produced result containing NextToken. It is used for pagination.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      },
+      "documentation":"<p>Container for parameters to <code>DescribeReservedElasticsearchInstances</code></p>"
+    },
+    "DescribeReservedElasticsearchInstancesResponse":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>Provides an identifier to allow retrieval of paginated results.</p>"
+        },
+        "ReservedElasticsearchInstances":{
+          "shape":"ReservedElasticsearchInstanceList",
+          "documentation":"<p>List of reserved Elasticsearch instances.</p>"
+        }
+      },
+      "documentation":"<p>Container for results from <code>DescribeReservedElasticsearchInstances</code></p>"
+    },
     "DisabledOperationException":{
       "type":"structure",
       "members":{
@@ -550,6 +809,7 @@
       "member":{"shape":"DomainName"},
       "documentation":"<p>A list of Elasticsearch domain names.</p>"
     },
+    "Double":{"type":"double"},
     "EBSOptions":{
       "type":"structure",
       "members":{
@@ -710,6 +970,14 @@
           "shape":"VPCDerivedInfoStatus",
           "documentation":"<p>The <code>VPCOptions</code> for the specified domain. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html\" target=\"_blank\">VPC Endpoints for Amazon Elasticsearch Service Domains</a>.</p>"
         },
+        "CognitoOptions":{
+          "shape":"CognitoOptionsStatus",
+          "documentation":"<p>The <code>CognitoOptions</code> for the specified domain. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html\" target=\"_blank\">Amazon Cognito Authentication for Kibana</a>.</p>"
+        },
+        "EncryptionAtRestOptions":{
+          "shape":"EncryptionAtRestOptionsStatus",
+          "documentation":"<p>Specifies the <code>EncryptionAtRestOptions</code> for the Elasticsearch domain.</p>"
+        },
         "AdvancedOptions":{
           "shape":"AdvancedOptionsStatus",
           "documentation":"<p>Specifies the <code>AdvancedOptions</code> for the domain. See <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-advanced-options\" target=\"_blank\">Configuring Advanced Options</a> for more information.</p>"
@@ -762,6 +1030,10 @@
           "shape":"Boolean",
           "documentation":"<p>The status of the Elasticsearch domain configuration. <code>True</code> if Amazon Elasticsearch Service is processing configuration changes. <code>False</code> if the configuration is active.</p>"
         },
+        "UpgradeProcessing":{
+          "shape":"Boolean",
+          "documentation":"<p>The status of an Elasticsearch domain version upgrade. <code>True</code> if Amazon Elasticsearch Service is undergoing a version upgrade. <code>False</code> if the configuration is active.</p>"
+        },
         "ElasticsearchVersion":{"shape":"ElasticsearchVersionString"},
         "ElasticsearchClusterConfig":{
           "shape":"ElasticsearchClusterConfig",
@@ -782,6 +1054,14 @@
         "VPCOptions":{
           "shape":"VPCDerivedInfo",
           "documentation":"<p>The <code>VPCOptions</code> for the specified domain. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html\" target=\"_blank\">VPC Endpoints for Amazon Elasticsearch Service Domains</a>.</p>"
+        },
+        "CognitoOptions":{
+          "shape":"CognitoOptions",
+          "documentation":"<p>The <code>CognitoOptions</code> for the specified domain. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html\" target=\"_blank\">Amazon Cognito Authentication for Kibana</a>.</p>"
+        },
+        "EncryptionAtRestOptions":{
+          "shape":"EncryptionAtRestOptions",
+          "documentation":"<p> Specifies the status of the <code>EncryptionAtRestOptions</code>.</p>"
         },
         "AdvancedOptions":{
           "shape":"AdvancedOptions",
@@ -828,12 +1108,146 @@
       "documentation":"<p> Status of the Elasticsearch version options for the specified Elasticsearch domain.</p>"
     },
     "ElasticsearchVersionString":{"type":"string"},
+    "EncryptionAtRestOptions":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies the option to enable Encryption At Rest.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p> Specifies the KMS Key ID for Encryption At Rest options.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the Encryption At Rest Options.</p>"
+    },
+    "EncryptionAtRestOptionsStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"EncryptionAtRestOptions",
+          "documentation":"<p> Specifies the Encryption At Rest options for the specified Elasticsearch domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p> Specifies the status of the Encryption At Rest options for the specified Elasticsearch domain.</p>"
+        }
+      },
+      "documentation":"<p> Status of the Encryption At Rest options for the specified Elasticsearch domain.</p>"
+    },
     "EndpointsMap":{
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"ServiceUrl"}
     },
     "ErrorMessage":{"type":"string"},
+    "GUID":{
+      "type":"string",
+      "pattern":"\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}"
+    },
+    "GetCompatibleElasticsearchVersionsRequest":{
+      "type":"structure",
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"querystring",
+          "locationName":"domainName"
+        }
+      },
+      "documentation":"<p> Container for request parameters to <code> <a>GetCompatibleElasticsearchVersions</a> </code> operation. </p>"
+    },
+    "GetCompatibleElasticsearchVersionsResponse":{
+      "type":"structure",
+      "members":{
+        "CompatibleElasticsearchVersions":{
+          "shape":"CompatibleElasticsearchVersionsList",
+          "documentation":"<p> A map of compatible Elasticsearch versions returned as part of the <code> <a>GetCompatibleElasticsearchVersions</a> </code> operation. </p>"
+        }
+      },
+      "documentation":"<p> Container for response returned by <code> <a>GetCompatibleElasticsearchVersions</a> </code> operation. </p>"
+    },
+    "GetUpgradeHistoryRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      },
+      "documentation":"<p> Container for request parameters to <code> <a>GetUpgradeHistory</a> </code> operation. </p>"
+    },
+    "GetUpgradeHistoryResponse":{
+      "type":"structure",
+      "members":{
+        "UpgradeHistories":{
+          "shape":"UpgradeHistoryList",
+          "documentation":"<p> A list of <code> <a>UpgradeHistory</a> </code> objects corresponding to each Upgrade or Upgrade Eligibility Check performed on a domain returned as part of <code> <a>GetUpgradeHistoryResponse</a> </code> object. </p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>Pagination token that needs to be supplied to the next call to get the next page of results</p>"
+        }
+      },
+      "documentation":"<p> Container for response returned by <code> <a>GetUpgradeHistory</a> </code> operation. </p>"
+    },
+    "GetUpgradeStatusRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        }
+      },
+      "documentation":"<p> Container for request parameters to <code> <a>GetUpgradeStatus</a> </code> operation. </p>"
+    },
+    "GetUpgradeStatusResponse":{
+      "type":"structure",
+      "members":{
+        "UpgradeStep":{
+          "shape":"UpgradeStep",
+          "documentation":"<p> Represents one of 3 steps that an Upgrade or Upgrade Eligibility Check does through: <ul> <li>PreUpgradeCheck</li> <li>Snapshot</li> <li>Upgrade</li> </ul> </p>"
+        },
+        "StepStatus":{
+          "shape":"UpgradeStatus",
+          "documentation":"<p> One of 4 statuses that a step can go through returned as part of the <code> <a>GetUpgradeStatusResponse</a> </code> object. The status can take one of the following values: <ul> <li>In Progress</li> <li>Succeeded</li> <li>Succeeded with Issues</li> <li>Failed</li> </ul> </p>"
+        },
+        "UpgradeName":{
+          "shape":"UpgradeName",
+          "documentation":"<p>A string that describes the update briefly</p>"
+        }
+      },
+      "documentation":"<p> Container for response returned by <code> <a>GetUpgradeStatus</a> </code> operation. </p>"
+    },
+    "IdentityPoolId":{
+      "type":"string",
+      "max":55,
+      "min":1,
+      "pattern":"[\\w-]+:[0-9a-f-]+"
+    },
+    "InstanceCount":{
+      "type":"integer",
+      "documentation":"<p>Specifies the number of EC2 instances in the Elasticsearch domain.</p>",
+      "min":1
+    },
     "InstanceCountLimits":{
       "type":"structure",
       "members":{
@@ -850,6 +1264,7 @@
       "documentation":"<p>InstanceLimits represents the list of instance related attributes that are available for given InstanceType. </p>"
     },
     "InstanceRole":{"type":"string"},
+    "Integer":{"type":"integer"},
     "IntegerClass":{"type":"integer"},
     "InternalException":{
       "type":"structure",
@@ -866,6 +1281,16 @@
       "documentation":"<p>An exception for trying to create or access sub-resource that is either invalid or not supported. Gives http status code of 409.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
+    },
+    "Issue":{"type":"string"},
+    "Issues":{
+      "type":"list",
+      "member":{"shape":"Issue"}
+    },
+    "KmsKeyId":{
+      "type":"string",
+      "max":500,
+      "min":1
     },
     "LimitExceededException":{
       "type":"structure",
@@ -1037,10 +1462,11 @@
     },
     "LogType":{
       "type":"string",
-      "documentation":"<p>Type of Log File, it can be one of the following: <ul> <li>INDEX_SLOW_LOGS: Index slow logs contains insert requests that took more time than configured index query log threshold to execute.</li> <li>SEARCH_SLOW_LOGS: Search slow logs contains search queries that took more time than configured search query log threshold to execute.</li> </ul> </p>",
+      "documentation":"<p>Type of Log File, it can be one of the following: <ul> <li>INDEX_SLOW_LOGS: Index slow logs contain insert requests that took more time than configured index query log threshold to execute.</li> <li>SEARCH_SLOW_LOGS: Search slow logs contain search queries that took more time than configured search query log threshold to execute.</li> <li>ES_APPLICATION_LOGS: Elasticsearch application logs contain information about errors and warnings raised during the operation of the service and can be useful for troubleshooting.</li> </ul> </p>",
       "enum":[
         "INDEX_SLOW_LOGS",
-        "SEARCH_SLOW_LOGS"
+        "SEARCH_SLOW_LOGS",
+        "ES_APPLICATION_LOGS"
       ]
     },
     "MaxResults":{
@@ -1104,6 +1530,60 @@
       "type":"string",
       "documentation":"<p>Access policy rules for an Elasticsearch domain service endpoints. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-access-policies\" target=\"_blank\">Configuring Access Policies</a> in the <i>Amazon Elasticsearch Service Developer Guide</i>. The maximum size of a policy document is 100 KB.</p>"
     },
+    "PurchaseReservedElasticsearchInstanceOfferingRequest":{
+      "type":"structure",
+      "required":[
+        "ReservedElasticsearchInstanceOfferingId",
+        "ReservationName"
+      ],
+      "members":{
+        "ReservedElasticsearchInstanceOfferingId":{
+          "shape":"GUID",
+          "documentation":"<p>The ID of the reserved Elasticsearch instance offering to purchase.</p>"
+        },
+        "ReservationName":{
+          "shape":"ReservationToken",
+          "documentation":"<p>A customer-specified identifier to track this reservation.</p>"
+        },
+        "InstanceCount":{
+          "shape":"InstanceCount",
+          "documentation":"<p>The number of Elasticsearch instances to reserve.</p>"
+        }
+      },
+      "documentation":"<p>Container for parameters to <code>PurchaseReservedElasticsearchInstanceOffering</code></p>"
+    },
+    "PurchaseReservedElasticsearchInstanceOfferingResponse":{
+      "type":"structure",
+      "members":{
+        "ReservedElasticsearchInstanceId":{
+          "shape":"GUID",
+          "documentation":"<p>Details of the reserved Elasticsearch instance which was purchased.</p>"
+        },
+        "ReservationName":{
+          "shape":"ReservationToken",
+          "documentation":"<p>The customer-specified identifier used to track this reservation.</p>"
+        }
+      },
+      "documentation":"<p>Represents the output of a <code>PurchaseReservedElasticsearchInstanceOffering</code> operation.</p>"
+    },
+    "RecurringCharge":{
+      "type":"structure",
+      "members":{
+        "RecurringChargeAmount":{
+          "shape":"Double",
+          "documentation":"<p>The monetary amount of the recurring charge.</p>"
+        },
+        "RecurringChargeFrequency":{
+          "shape":"String",
+          "documentation":"<p>The frequency of the recurring charge.</p>"
+        }
+      },
+      "documentation":"<p>Contains the specific price and frequency of a recurring charges for a reserved Elasticsearch instance, or for a reserved Elasticsearch instance offering.</p>"
+    },
+    "RecurringChargeList":{
+      "type":"list",
+      "member":{"shape":"RecurringCharge"}
+    },
     "RemoveTagsRequest":{
       "type":"structure",
       "required":[
@@ -1122,6 +1602,123 @@
       },
       "documentation":"<p>Container for the parameters to the <code><a>RemoveTags</a></code> operation. Specify the <code>ARN</code> for the Elasticsearch domain from which you want to remove the specified <code>TagKey</code>.</p>"
     },
+    "ReservationToken":{
+      "type":"string",
+      "max":64,
+      "min":5
+    },
+    "ReservedElasticsearchInstance":{
+      "type":"structure",
+      "members":{
+        "ReservationName":{
+          "shape":"ReservationToken",
+          "documentation":"<p>The customer-specified identifier to track this reservation.</p>"
+        },
+        "ReservedElasticsearchInstanceId":{
+          "shape":"GUID",
+          "documentation":"<p>The unique identifier for the reservation.</p>"
+        },
+        "ReservedElasticsearchInstanceOfferingId":{
+          "shape":"String",
+          "documentation":"<p>The offering identifier.</p>"
+        },
+        "ElasticsearchInstanceType":{
+          "shape":"ESPartitionInstanceType",
+          "documentation":"<p>The Elasticsearch instance type offered by the reserved instance offering.</p>"
+        },
+        "StartTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The time the reservation started.</p>"
+        },
+        "Duration":{
+          "shape":"Integer",
+          "documentation":"<p>The duration, in seconds, for which the Elasticsearch instance is reserved.</p>"
+        },
+        "FixedPrice":{
+          "shape":"Double",
+          "documentation":"<p>The upfront fixed charge you will paid to purchase the specific reserved Elasticsearch instance offering. </p>"
+        },
+        "UsagePrice":{
+          "shape":"Double",
+          "documentation":"<p>The rate you are charged for each hour for the domain that is using this reserved instance.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"String",
+          "documentation":"<p>The currency code for the reserved Elasticsearch instance offering.</p>"
+        },
+        "ElasticsearchInstanceCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of Elasticsearch instances that have been reserved.</p>"
+        },
+        "State":{
+          "shape":"String",
+          "documentation":"<p>The state of the reserved Elasticsearch instance.</p>"
+        },
+        "PaymentOption":{
+          "shape":"ReservedElasticsearchInstancePaymentOption",
+          "documentation":"<p>The payment option as defined in the reserved Elasticsearch instance offering.</p>"
+        },
+        "RecurringCharges":{
+          "shape":"RecurringChargeList",
+          "documentation":"<p>The charge to your account regardless of whether you are creating any domains using the instance offering.</p>"
+        }
+      },
+      "documentation":"<p>Details of a reserved Elasticsearch instance.</p>"
+    },
+    "ReservedElasticsearchInstanceList":{
+      "type":"list",
+      "member":{"shape":"ReservedElasticsearchInstance"}
+    },
+    "ReservedElasticsearchInstanceOffering":{
+      "type":"structure",
+      "members":{
+        "ReservedElasticsearchInstanceOfferingId":{
+          "shape":"GUID",
+          "documentation":"<p>The Elasticsearch reserved instance offering identifier.</p>"
+        },
+        "ElasticsearchInstanceType":{
+          "shape":"ESPartitionInstanceType",
+          "documentation":"<p>The Elasticsearch instance type offered by the reserved instance offering.</p>"
+        },
+        "Duration":{
+          "shape":"Integer",
+          "documentation":"<p>The duration, in seconds, for which the offering will reserve the Elasticsearch instance.</p>"
+        },
+        "FixedPrice":{
+          "shape":"Double",
+          "documentation":"<p>The upfront fixed charge you will pay to purchase the specific reserved Elasticsearch instance offering. </p>"
+        },
+        "UsagePrice":{
+          "shape":"Double",
+          "documentation":"<p>The rate you are charged for each hour the domain that is using the offering is running.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"String",
+          "documentation":"<p>The currency code for the reserved Elasticsearch instance offering.</p>"
+        },
+        "PaymentOption":{
+          "shape":"ReservedElasticsearchInstancePaymentOption",
+          "documentation":"<p>Payment option for the reserved Elasticsearch instance offering</p>"
+        },
+        "RecurringCharges":{
+          "shape":"RecurringChargeList",
+          "documentation":"<p>The charge to your account regardless of whether you are creating any domains using the instance offering.</p>"
+        }
+      },
+      "documentation":"<p>Details of a reserved Elasticsearch instance offering.</p>"
+    },
+    "ReservedElasticsearchInstanceOfferingList":{
+      "type":"list",
+      "member":{"shape":"ReservedElasticsearchInstanceOffering"}
+    },
+    "ReservedElasticsearchInstancePaymentOption":{
+      "type":"string",
+      "enum":[
+        "ALL_UPFRONT",
+        "PARTIAL_UPFRONT",
+        "NO_UPFRONT"
+      ]
+    },
     "ResourceAlreadyExistsException":{
       "type":"structure",
       "members":{
@@ -1137,6 +1734,11 @@
       "documentation":"<p>An exception for accessing or deleting a resource that does not exist. Gives http status code of 400.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
+    },
+    "RoleArn":{
+      "type":"string",
+      "max":2048,
+      "min":20
     },
     "ServiceUrl":{
       "type":"string",
@@ -1170,6 +1772,7 @@
       },
       "documentation":"<p>Status of a daily automated snapshot.</p>"
     },
+    "StartTimestamp":{"type":"timestamp"},
     "StorageSubTypeName":{
       "type":"string",
       "documentation":"<p> SubType of the given storage type. List of available sub-storage options: For \"instance\" storageType we wont have any storageSubType, in case of \"ebs\" storageType we will have following valid storageSubTypes <ol> <li>standard</li> <li>gp2</li> <li>io1</li> </ol> Refer <code><a>VolumeType</a></code> for more information regarding above EBS storage options. </p>"
@@ -1282,6 +1885,10 @@
           "shape":"VPCOptions",
           "documentation":"<p>Options to specify the subnets and security groups for VPC endpoint. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-creating-vpc\" target=\"_blank\">Creating a VPC</a> in <i>VPC Endpoints for Amazon Elasticsearch Service Domains</i></p>"
         },
+        "CognitoOptions":{
+          "shape":"CognitoOptions",
+          "documentation":"<p>Options to specify the Cognito user and identity pools for Kibana authentication. For more information, see <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-cognito-auth.html\" target=\"_blank\">Amazon Cognito Authentication for Kibana</a>.</p>"
+        },
         "AdvancedOptions":{
           "shape":"AdvancedOptions",
           "documentation":"<p>Modifies the advanced option to allow references to indices in an HTTP request body. Must be <code>false</code> when configuring access to individual sub-resources. By default, the value is <code>true</code>. See <a href=\"http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-advanced-options\" target=\"_blank\">Configuration Advanced Options</a> for more information.</p>"
@@ -1309,6 +1916,116 @@
       "documentation":"<p>The result of an <code>UpdateElasticsearchDomain</code> request. Contains the status of the Elasticsearch domain being updated.</p>"
     },
     "UpdateTimestamp":{"type":"timestamp"},
+    "UpgradeElasticsearchDomainRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "TargetVersion"
+      ],
+      "members":{
+        "DomainName":{"shape":"DomainName"},
+        "TargetVersion":{
+          "shape":"ElasticsearchVersionString",
+          "documentation":"<p>The version of Elasticsearch that you intend to upgrade the domain to.</p>"
+        },
+        "PerformCheckOnly":{
+          "shape":"Boolean",
+          "documentation":"<p> This flag, when set to True, indicates that an Upgrade Eligibility Check needs to be performed. This will not actually perform the Upgrade. </p>"
+        }
+      },
+      "documentation":"<p> Container for request parameters to <code> <a>UpgradeElasticsearchDomain</a> </code> operation. </p>"
+    },
+    "UpgradeElasticsearchDomainResponse":{
+      "type":"structure",
+      "members":{
+        "DomainName":{"shape":"DomainName"},
+        "TargetVersion":{
+          "shape":"ElasticsearchVersionString",
+          "documentation":"<p>The version of Elasticsearch that you intend to upgrade the domain to.</p>"
+        },
+        "PerformCheckOnly":{
+          "shape":"Boolean",
+          "documentation":"<p> This flag, when set to True, indicates that an Upgrade Eligibility Check needs to be performed. This will not actually perform the Upgrade. </p>"
+        }
+      },
+      "documentation":"<p> Container for response returned by <code> <a>UpgradeElasticsearchDomain</a> </code> operation. </p>"
+    },
+    "UpgradeHistory":{
+      "type":"structure",
+      "members":{
+        "UpgradeName":{
+          "shape":"UpgradeName",
+          "documentation":"<p>A string that describes the update briefly</p>"
+        },
+        "StartTimestamp":{
+          "shape":"StartTimestamp",
+          "documentation":"<p>UTC Timestamp at which the Upgrade API call was made in \"yyyy-MM-ddTHH:mm:ssZ\" format.</p>"
+        },
+        "UpgradeStatus":{
+          "shape":"UpgradeStatus",
+          "documentation":"<p> The overall status of the update. The status can take one of the following values: <ul> <li>In Progress</li> <li>Succeeded</li> <li>Succeeded with Issues</li> <li>Failed</li> </ul> </p>"
+        },
+        "StepsList":{
+          "shape":"UpgradeStepsList",
+          "documentation":"<p> A list of <code> <a>UpgradeStepItem</a> </code> s representing information about each step performed as pard of a specific Upgrade or Upgrade Eligibility Check. </p>"
+        }
+      },
+      "documentation":"<p>History of the last 10 Upgrades and Upgrade Eligibility Checks.</p>"
+    },
+    "UpgradeHistoryList":{
+      "type":"list",
+      "member":{"shape":"UpgradeHistory"}
+    },
+    "UpgradeName":{"type":"string"},
+    "UpgradeStatus":{
+      "type":"string",
+      "enum":[
+        "IN_PROGRESS",
+        "SUCCEEDED",
+        "SUCCEEDED_WITH_ISSUES",
+        "FAILED"
+      ]
+    },
+    "UpgradeStep":{
+      "type":"string",
+      "enum":[
+        "PRE_UPGRADE_CHECK",
+        "SNAPSHOT",
+        "UPGRADE"
+      ]
+    },
+    "UpgradeStepItem":{
+      "type":"structure",
+      "members":{
+        "UpgradeStep":{
+          "shape":"UpgradeStep",
+          "documentation":"<p> Represents one of 3 steps that an Upgrade or Upgrade Eligibility Check does through: <ul> <li>PreUpgradeCheck</li> <li>Snapshot</li> <li>Upgrade</li> </ul> </p>"
+        },
+        "UpgradeStepStatus":{
+          "shape":"UpgradeStatus",
+          "documentation":"<p> The status of a particular step during an upgrade. The status can take one of the following values: <ul> <li>In Progress</li> <li>Succeeded</li> <li>Succeeded with Issues</li> <li>Failed</li> </ul> </p>"
+        },
+        "Issues":{
+          "shape":"Issues",
+          "documentation":"<p>A list of strings containing detailed information about the errors encountered in a particular step.</p>"
+        },
+        "ProgressPercent":{
+          "shape":"Double",
+          "documentation":"<p>The Floating point value representing progress percentage of a particular step.</p>"
+        }
+      },
+      "documentation":"<p>Represents a single step of the Upgrade or Upgrade Eligibility Check workflow.</p>"
+    },
+    "UpgradeStepsList":{
+      "type":"list",
+      "member":{"shape":"UpgradeStepItem"}
+    },
+    "UserPoolId":{
+      "type":"string",
+      "max":55,
+      "min":1,
+      "pattern":"[\\w-]+_[0-9a-zA-Z]+"
+    },
     "VPCDerivedInfo":{
       "type":"structure",
       "members":{

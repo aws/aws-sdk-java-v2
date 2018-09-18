@@ -23,8 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -43,6 +42,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
 
 /**
@@ -50,7 +50,8 @@ import software.amazon.awssdk.utils.Md5Utils;
  * This custom request handler will verify that the message is correctly received by SQS, by
  * comparing the returned MD5 with the calculation according to the original request.
  */
-public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
+@SdkProtectedApi
+public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
 
     private static final int INTEGER_SIZE_IN_BYTES = 4;
     private static final byte STRING_TYPE_FIELD_INDEX = 1;
@@ -70,7 +71,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
     private static final String MESSAGE_BODY = "message body";
     private static final String MESSAGE_ATTRIBUTES = "message attributes";
 
-    private static final Logger log = LoggerFactory.getLogger(MessageMD5ChecksumInterceptor.class);
+    private static final Logger log = Logger.loggerFor(MessageMD5ChecksumInterceptor.class);
 
     @Override
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
@@ -201,9 +202,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      * Returns the hex-encoded MD5 hash String of the given message body.
      */
     private static String calculateMessageBodyMd5(String messageBody) {
-        if (log.isDebugEnabled()) {
-            log.debug("Message body: " + messageBody);
-        }
+        log.debug(() -> "Message body: " + messageBody);
         byte[] expectedMd5;
         try {
             expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(StandardCharsets.UTF_8));
@@ -214,9 +213,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                                     .build();
         }
         String expectedMd5Hex = BinaryUtils.toHex(expectedMd5);
-        if (log.isDebugEnabled()) {
-            log.debug("Expected  MD5 of message body: " + expectedMd5Hex);
-        }
+        log.debug(() -> "Expected  MD5 of message body: " + expectedMd5Hex);
         return expectedMd5Hex;
     }
 
@@ -224,9 +221,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      * Returns the hex-encoded MD5 hash String of the given message attributes.
      */
     private static String calculateMessageAttributesMd5(final Map<String, MessageAttributeValue> messageAttributes) {
-        if (log.isDebugEnabled()) {
-            log.debug("Message attributes: " + messageAttributes);
-        }
+        log.debug(() -> "Message attributes: " + messageAttributes);
         List<String> sortedAttributeNames = new ArrayList<>(messageAttributes.keySet());
         Collections.sort(sortedAttributeNames);
 
@@ -272,9 +267,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
         }
 
         String expectedMd5Hex = BinaryUtils.toHex(md5Digest.digest());
-        if (log.isDebugEnabled()) {
-            log.debug("Expected  MD5 of message attributes: " + expectedMd5Hex);
-        }
+        log.debug(() -> "Expected  MD5 of message attributes: " + expectedMd5Hex);
         return expectedMd5Hex;
     }
 

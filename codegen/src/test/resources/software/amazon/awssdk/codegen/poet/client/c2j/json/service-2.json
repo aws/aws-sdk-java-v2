@@ -87,6 +87,21 @@
       },
       "documentation": "Some operation with a streaming output"
     },
+    "StreamingInputOutputOperation": {
+      "name": "StreamingInputOutputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOutputOperation"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "output": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with streaming input and streaming output",
+      "authtype":"v4-unsigned-body"
+    },
     "PaginatedOperationWithResultKey": {
       "name": "PaginatedOperationWithResultKey",
       "http": {
@@ -116,6 +131,16 @@
         "resultWrapper": "PaginatedOperationWithoutResultKeyResult"
       },
       "documentation": "Some paginated operation without result_key in paginators.json file"
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes": {
@@ -219,6 +244,9 @@
     "dateType": {
       "type": "timestamp"
     },
+    "String": {
+      "type": "string"
+    },
     "invalidInputMessage": {
       "type": "string"
     },
@@ -263,9 +291,11 @@
       },
       "documentation": "<p>Response type of a single page</p>"
     },
-    "ItemsList":{
-      "type":"list",
-      "member":{"shape":"subMember"}
+    "ItemsList": {
+      "type": "list",
+      "member": {
+        "shape": "subMember"
+      }
     },
     "PaginatedOperationWithoutResultKeyRequest": {
       "type": "structure",
@@ -292,6 +322,47 @@
         }
       },
       "documentation": "<p>Response type of a single page</p>"
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "EventTwo": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
     }
   },
   "documentation": "A service that is implemented using the query protocol"

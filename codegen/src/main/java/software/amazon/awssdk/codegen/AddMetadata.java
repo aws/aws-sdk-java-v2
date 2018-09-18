@@ -97,7 +97,8 @@ final class AddMetadata {
                 .withSigningName(serviceMetadata.getSigningName())
                 .withAuthType(AuthType.fromValue(serviceMetadata.getSignatureVersion()))
                 .withRequiresApiKey(requiresApiKey(serviceModel))
-                .withUid(serviceMetadata.getUid());
+                .withUid(serviceMetadata.getUid())
+                .withSupportsH2(supportsH2(serviceMetadata));
 
         final String jsonVersion = getJsonVersion(metadata, serviceMetadata);
         metadata.setJsonVersion(jsonVersion);
@@ -106,6 +107,10 @@ final class AddMetadata {
         // them accept stream input
         metadata.setHasApiWithStreamInput(false);
         return metadata;
+    }
+
+    private static boolean supportsH2(ServiceMetadata serviceMetadata) {
+        return serviceMetadata.getProtocolSettings() != null && serviceMetadata.getProtocolSettings().containsKey("h2");
     }
 
     private static String getJsonVersion(Metadata metadata, ServiceMetadata serviceMetadata) {

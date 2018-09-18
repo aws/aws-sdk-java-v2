@@ -70,11 +70,12 @@ public final class SyncClientInterface implements ClassSpec {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
 
         result.addSuperinterface(SdkClient.class)
-              .addJavadoc(getJavadoc())
               .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                  .initializer("$S", model.getMetadata().getSigningName())
                                  .build());
+
+        PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
         if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
             result.addMethod(create());
@@ -122,6 +123,8 @@ public final class SyncClientInterface implements ClassSpec {
 
     private Iterable<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
+                    .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpec)
                     .flatMap(List::stream)
                     .collect(toList());
@@ -288,13 +291,17 @@ public final class SyncClientInterface implements ClassSpec {
 
         List<MethodSpec> simpleMethods = new ArrayList<>();
 
-        if (opModel.hasStreamingInput()) {
+        if (opModel.hasStreamingInput() && opModel.hasStreamingOutput()) {
+            MethodSpec simpleMethod = streamingInputOutputFileSimpleMethod(opModel, responseType, requestType);
+            simpleMethods.add(simpleMethod);
+            simpleMethods.add(ClientClassUtils.consumerBuilderVariant(simpleMethod, fileConsumerBuilderJavadoc));
+
+        } else if (opModel.hasStreamingInput()) {
             MethodSpec simpleMethod = uploadFromFileSimpleMethod(opModel, responseType, requestType);
             simpleMethods.add(simpleMethod);
             simpleMethods.add(ClientClassUtils.consumerBuilderVariant(simpleMethod, fileConsumerBuilderJavadoc));
-        }
 
-        if (opModel.hasStreamingOutput()) {
+        } else if (opModel.hasStreamingOutput()) {
             String inputStreamConsumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.INPUT_STREAM);
             String bytesConsumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.BYTES);
 
@@ -387,6 +394,29 @@ public final class SyncClientInterface implements ClassSpec {
                                        opModel.getInput().getVariableName(),
                                        ClassName.get(ResponseTransformer.class),
                                        "filePath")
+                         .build();
+    }
+
+    /**
+     * Generate a simple method for operations with streaming input and output members.
+     * Streaming input member that reads data from a file and a streaming output member that write response content to a file.
+     */
+    private MethodSpec streamingInputOutputFileSimpleMethod(OperationModel opModel,
+                                                            TypeName responseType,
+                                                            ClassName requestType) {
+        return MethodSpec.methodBuilder(opModel.getMethodName())
+                         .returns(responseType)
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(requestType, opModel.getInput().getVariableName())
+                         .addParameter(ClassName.get(Path.class), "sourcePath")
+                         .addParameter(ClassName.get(Path.class), "destinationPath")
+                         .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
+                         .addExceptions(getExceptionClasses(model, opModel))
+                         .addStatement("return $L($L, $T.fromFile(sourcePath), $T.toFile(destinationPath))",
+                                       opModel.getMethodName(),
+                                       opModel.getInput().getVariableName(),
+                                       ClassName.get(RequestBody.class),
+                                       ClassName.get(ResponseTransformer.class))
                          .build();
     }
 

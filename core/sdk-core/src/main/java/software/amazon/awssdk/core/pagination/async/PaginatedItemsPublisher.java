@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.pagination.async.ItemsSubscription;
 
 /**

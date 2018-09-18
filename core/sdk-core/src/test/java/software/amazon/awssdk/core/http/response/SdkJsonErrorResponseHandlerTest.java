@@ -30,13 +30,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.SdkJsonErrorResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.StringInputStream;
 import utils.ValidSdkObjects;
 
@@ -45,7 +46,7 @@ public class SdkJsonErrorResponseHandlerTest {
     private static final String SERVICE_NAME = "someService";
     private static final String ERROR_MESSAGE = "error";
     private SdkJsonErrorResponseHandler responseHandler;
-    private HttpResponse httpResponse;
+    private SdkHttpFullResponse.Builder httpResponseBuilder;
 
     @Mock
     private SdkJsonErrorMessageParser errorMessageParser;
@@ -58,8 +59,8 @@ public class SdkJsonErrorResponseHandlerTest {
         MockitoAnnotations.initMocks(this);
         when(errorMessageParser.parseErrorMessage(any(), any())).thenReturn(ERROR_MESSAGE);
 
-        httpResponse = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
-        httpResponse.setContent(new StringInputStream("{}"));
+        httpResponseBuilder = ValidSdkObjects.sdkHttpFullResponse()
+                                             .content(AbortableInputStream.create(new StringInputStream("{}")));
 
         responseHandler = new SdkJsonErrorResponseHandler(Collections.singletonList(unmarshaller),
                                                           new JsonFactory());
@@ -71,7 +72,7 @@ public class SdkJsonErrorResponseHandlerTest {
         responseHandler = new SdkJsonErrorResponseHandler(new ArrayList<>(),
                                                           new JsonFactory());
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), new ExecutionAttributes());
 
         assertNotNull(exception);
     }
@@ -81,17 +82,16 @@ public class SdkJsonErrorResponseHandlerTest {
                                                                                       Exception {
         expectUnmarshallerDoesNotMatch();
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), new ExecutionAttributes());
 
         assertNotNull(exception);
     }
 
     @Test
     public void handle_NullContent_ReturnsGenericSdkServiceException() throws Exception {
-        httpResponse.setStatusCode(500);
-        httpResponse.setContent(null);
+        httpResponseBuilder.statusCode(500).content(null);
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, null);
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), null);
 
         // We assert these common properties are set again to make sure that code path is exercised
         // for unknown SdkServiceExceptions as well
@@ -100,10 +100,9 @@ public class SdkJsonErrorResponseHandlerTest {
 
     @Test
     public void handle_EmptyContent_ReturnsGenericSdkServiceException() throws Exception {
-        httpResponse.setStatusCode(500);
-        httpResponse.setContent(new StringInputStream(""));
+        httpResponseBuilder.statusCode(500).content(AbortableInputStream.create(new StringInputStream("test")));
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), new ExecutionAttributes());
 
         assertNotNull(exception);
     }
@@ -113,7 +112,7 @@ public class SdkJsonErrorResponseHandlerTest {
                                                                                       Exception {
         expectUnmarshallerMatches();
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), new ExecutionAttributes());
 
         assertNotNull(exception);
     }
@@ -124,34 +123,34 @@ public class SdkJsonErrorResponseHandlerTest {
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject())).thenThrow(new RuntimeException());
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), new ExecutionAttributes());
 
         assertNotNull(exception);
     }
 
     @Test
     public void handle_UnmarshallerReturnsException_ClientErrorType() throws Exception {
-        httpResponse.setStatusCode(400);
+        httpResponseBuilder.statusCode(400);
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(SdkServiceException.builder().build());
 
         ExecutionAttributes attributes =
                 new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
-        SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), attributes);
 
         assertEquals(400, exception.statusCode());
     }
 
     @Test
     public void handle_UnmarshallerReturnsException_WithRequestId() throws Exception {
-        httpResponse.setStatusCode(500);
-        httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
+
+        httpResponseBuilder.statusCode(500).putHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(SdkServiceException.builder().build());
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        SdkServiceException exception = responseHandler.handle(httpResponseBuilder.build(), new ExecutionAttributes());
 
         assertEquals("1234", exception.requestId());
     }
