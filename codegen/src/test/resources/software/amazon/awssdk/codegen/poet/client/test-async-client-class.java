@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
@@ -216,9 +217,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                         EventStreamOperationResponseHandler asyncResponseHandler) {
         try {
 
-            HttpResponseHandler<EventStreamOperationResponse> responseHandler = jsonProtocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new EventStreamOperationResponseUnmarshaller());
+            HttpResponseHandler<EventStreamOperationResponse> responseHandler = new AttachHttpMetadataResponseHandler(
+                jsonProtocolFactory.createResponseHandler(new JsonOperationMetadata().withPayloadJson(true)
+                                                                                     .withHasStreamingSuccessResponse(false), new EventStreamOperationResponseUnmarshaller()));
 
             HttpResponseHandler<SdkResponse> voidResponseHandler = jsonProtocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
