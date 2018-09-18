@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandle
 import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
 
 @SdkProtectedApi
 public abstract class BaseClientHandler {
@@ -118,21 +117,6 @@ public abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
-    /**
-     * Add {@link SdkHttpResponse} to SdkResponse.
-     */
-    @SuppressWarnings("unchecked")
-    private static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> addHttpResponseMetadataResponseHandler(
-        HttpResponseHandler<OutputT> delegate) {
-        return (response, executionAttributes) -> {
-            OutputT sdkResponse = delegate.handle(response, executionAttributes);
-
-            return (OutputT) sdkResponse.toBuilder()
-                                        .sdkHttpResponse(DefaultSdkHttpResponse.from(response))
-                                        .build();
-        };
-    }
-
     static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
         HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
@@ -183,6 +167,6 @@ public abstract class BaseClientHandler {
     static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
         HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
-        return addHttpResponseMetadataResponseHandler(interceptorCallingResponseHandler);
+        return new AttachHttpMetadataResponseHandler<>(interceptorCallingResponseHandler);
     }
 }
