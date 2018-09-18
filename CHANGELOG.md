@@ -1,3 +1,35 @@
+# __2.0.0-preview-12__ __2018-09-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add mfa_serial to ProfileProperty
+    - Allow clients to add Socket Channel Option
+    - Implement apiCallAttemptTimeout and apiCallTimeout feature for asynchrounous calls. Customers can specify timeout via `ClientOverrideConfiguaration.Builder#apiCallTimeout(Duration)` or `RequestOverrideConfiguration.Builder#apiCallAttemptTimeout(Duration)`. Note: this feature is only implemented for asynchrounous api calls.
+    - Improve logging for debuggability. see `SdkStandardLogger`.
+    - Refactored all services to make module names match the service id from the service model
+    - Removed sdk-core dependency from the profiles module. This allows reading from profile files without pulling in the rest of the SDK.
+    - Replacing legacy `HttpResponse` with `SdkHttpFullResponse`.
+    - Update service models to be current as of 2018-09-07.
+
+  - ### Bugfixes
+    - Fix Response Fetcher hasNextPage to check if the output token is non null or non empty if it is a collection or map type. Related to [#677](https://github.com/aws/aws-sdk-java-v2/issues/677)
+    - RetryPolicy bug fix: adding throttlingBackoffStrategy to `RetryPolicy.Builder`. see [#646](https://github.com/aws/aws-sdk-java-v2/issues/646)
+
+## __AWS STS__
+  - ### Features
+    - Add the ability to provide a Supplier<AssumeRoleRequest> to StsAssumeRoleCredentialsProvider
+
+## __Aamazon S3__
+  - ### Bugfixes
+    - Fix NPE for S3 GET request using http protocol. see [#612](https://github.com/aws/aws-sdk-java-v2/issues/612)
+
+## __Amazon SimpleDB__
+  - ### Removals
+    - Amazon SimpleDB module is removed from the SDK 2.0. To use SimpleDB, use SDK 1.11.x. Note that you can run SDK 1.11 and 2.0 in the same application.
+
+## __runtime__
+  - ### Bugfixes
+    - Netty 4.1.26.Final -> 4.1.28.Final
+
 # __2.0.0-preview-11__ __2018-07-30__
 ## __AWS SDK for Java v2__
   - ### Features
