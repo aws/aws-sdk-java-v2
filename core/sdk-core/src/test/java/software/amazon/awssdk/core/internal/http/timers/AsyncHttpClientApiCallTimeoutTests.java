@@ -147,7 +147,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
     }
 
     @Test
-    public void  slowApiAttempt_ThrowsApiCallAttemptTimeoutException() {
+    public void slowApiAttempt_ThrowsApiCallAttemptTimeoutException() {
         httpClient = testAsyncClientBuilder()
             .apiCallTimeout(API_CALL_TIMEOUT)
             .apiCallAttemptTimeout(Duration.ofMillis(100))
