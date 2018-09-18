@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "bugfix", 
+    "description": "Attach `SdkHttpResponse` to the responses of event streaming operations."
+}

@@ -43,6 +43,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.VoidJsonUnmarshaller;
@@ -112,51 +113,20 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         // TODO remove this once kinesis supports CBOR for event streaming
         String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
-        CodeBlock.Builder builder = CodeBlock
-            .builder()
-            .add("\n\n$T<$T> responseHandler = $L.createResponseHandler(new $T()" +
-                 "                                   .withPayloadJson($L)" +
-                 "                                   .withHasStreamingSuccessResponse($L), new $T());",
-                 HttpResponseHandler.class,
-                 pojoResponseType,
-                 protocolFactory,
-                 JsonOperationMetadata.class,
-                 !opModel.getHasBlobMemberAsPayload(),
-                 opModel.hasStreamingOutput(),
-                 unmarshaller);
+        CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
-            builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler(new $T()" +
-                        "                                   .withPayloadJson(false)" +
-                        "                                   .withHasStreamingSuccessResponse(true), new $T());",
+            responseHandlersForEventStreaming(opModel, unmarshaller, pojoResponseType, protocolFactory, builder);
+        } else {
+            builder.add("\n\n$T<$T> responseHandler = $L.createResponseHandler(new $T()" +
+                        "                                   .withPayloadJson($L)" +
+                        "                                   .withHasStreamingSuccessResponse($L), new $T());",
                         HttpResponseHandler.class,
-                        SdkResponse.class,
+                        pojoResponseType,
                         protocolFactory,
                         JsonOperationMetadata.class,
-                        VoidJsonUnmarshaller.class);
-            EventStreamUtils eventStreamUtils = EventStreamUtils.create(poetExtensions, opModel);
-            ClassName eventStreamBaseClass = eventStreamUtils.eventStreamBaseClass();
-            builder
-                .add("\n\n$T<$T> eventResponseHandler = $L.createResponseHandler(new $T()" +
-                     "                                   .withPayloadJson($L)" +
-                     "                                   .withHasStreamingSuccessResponse($L), "
-                     + "$T.builder()",
-                     HttpResponseHandler.class,
-                     WildcardTypeName.subtypeOf(eventStreamBaseClass),
-                     protocolFactory,
-                     JsonOperationMetadata.class,
-                     true,
-                     false,
-                     ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
-
-            eventStreamUtils.getEventStreamMembers()
-                            .forEach(m -> {
-                                String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
-                                builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",
-                                            m.getC2jName(),
-                                            poetExtensions.getTransformClass(unmarshallerClassName));
-                            });
-            builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
-                        + ".build());\n", eventStreamUtils.eventStreamBaseClass());
+                        !opModel.getHasBlobMemberAsPayload(),
+                        opModel.hasStreamingOutput(),
+                        unmarshaller);
         }
         return builder.build();
     }
@@ -374,5 +344,57 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                     .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf("."));
 
         return ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
+    }
+
+
+    /**
+     * Add responseHandlers for event streaming operations
+     */
+    private void responseHandlersForEventStreaming(OperationModel opModel, ClassName unmarshaller, TypeName pojoResponseType,
+                                                   String protocolFactory, CodeBlock.Builder builder) {
+        builder.add("\n\n$T<$T> responseHandler = new $T($L.createResponseHandler(new $T()" +
+                    "                                    .withPayloadJson($L)" +
+                    "                                    .withHasStreamingSuccessResponse($L), new $T()));",
+                    HttpResponseHandler.class,
+                    pojoResponseType,
+                    AttachHttpMetadataResponseHandler.class,
+                    protocolFactory,
+                    JsonOperationMetadata.class,
+                    !opModel.getHasBlobMemberAsPayload(),
+                    opModel.hasStreamingOutput(),
+                    unmarshaller);
+
+        builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler(new $T()" +
+                    "                                   .withPayloadJson(false)" +
+                    "                                   .withHasStreamingSuccessResponse(true), new $T());",
+                    HttpResponseHandler.class,
+                    SdkResponse.class,
+                    protocolFactory,
+                    JsonOperationMetadata.class,
+                    VoidJsonUnmarshaller.class);
+        EventStreamUtils eventStreamUtils = EventStreamUtils.create(poetExtensions, opModel);
+        ClassName eventStreamBaseClass = eventStreamUtils.eventStreamBaseClass();
+        builder
+            .add("\n\n$T<$T> eventResponseHandler = $L.createResponseHandler(new $T()" +
+                 "                                   .withPayloadJson($L)" +
+                 "                                   .withHasStreamingSuccessResponse($L), "
+                 + "$T.builder()",
+                 HttpResponseHandler.class,
+                 WildcardTypeName.subtypeOf(eventStreamBaseClass),
+                 protocolFactory,
+                 JsonOperationMetadata.class,
+                 true,
+                 false,
+                 ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
+
+        eventStreamUtils.getEventStreamMembers()
+                        .forEach(m -> {
+                            String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
+                            builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",
+                                        m.getC2jName(),
+                                        poetExtensions.getTransformClass(unmarshallerClassName));
+                        });
+        builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
+                    + ".build());\n", eventStreamUtils.eventStreamBaseClass());
     }
 }
