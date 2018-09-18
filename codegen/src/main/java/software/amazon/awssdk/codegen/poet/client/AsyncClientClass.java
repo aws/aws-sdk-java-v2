@@ -158,8 +158,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
         // For streaming operations we also want to notify the response handler of any exception.
         if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
             String paramName = opModel.hasStreamingOutput() ? "asyncResponseTransformer" : "asyncResponseHandler";
+            String errorMethodName = opModel.hasStreamingOutput() ? "onError" : "exceptionOccurred";
             builder.addStatement("runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\",\n" +
-                                 "() -> $L.onError(t))", paramName);
+                                 "() -> $N.$N(t))", paramName, errorMethodName);
         }
 
         return builder.addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)

@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import org.reactivestreams.Publisher;
@@ -86,12 +85,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                                     RequestExecutionContext context) throws Exception {
 
         CompletableFuture<? extends SdkException> errorResponseFuture =
-                errorResponseHandler == null ? null : errorResponseHandler.transformResult();
+                errorResponseHandler == null ? null : errorResponseHandler.prepare();
 
-        //FIXME(dongie): We need to be careful to only call responseHandler.transformResult() exactly once per execute() call
+        //FIXME(dongie): We need to be careful to only call responseHandler.prepare() exactly once per execute() call
         //because it calls prepare() under the hood and we guarantee that we call that once per execution. It would be good
-        //to find a way to prevent multiple calls to transformResult() within a single execution to only call prepare() once.
-        final ResponseHandler handler = new ResponseHandler(responseHandler.transformResult(), errorResponseFuture);
+        //to find a way to prevent multiple calls to prepare() within a single execution to only call prepare() once.
+        final ResponseHandler handler = new ResponseHandler(responseHandler.prepare(), errorResponseFuture);
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                 ? new SimpleHttpContentPublisher(request, context.executionAttributes())
@@ -107,7 +106,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
 
-        CompletableFuture<Response<OutputT>> transformFuture = handler.transformResult();
+        CompletableFuture<Response<OutputT>> transformFuture = handler.prepare();
 
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
         setupAttemptTimer(responseFuture, context);
@@ -125,9 +124,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             if (t == null) {
                 responseFuture.complete(r);
             } else {
-                if (t instanceof CompletionException) {
-                    t = t.getCause();
-                }
                 responseFuture.completeExceptionally(t);
             }
         }, futureCompletionExecutor);
@@ -187,13 +183,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + response.statusCode());
                 errorResponseHandler.onHeaders(response);
             }
-            try {
-                this.response = (SdkHttpFullResponse) response;
-            } catch (ClassCastException e) {
-                // Make SpotBugs happy. Should never happen since SdkHttpFullResponse is the only concrete impl we pass
-                // around.
-                log.error(() -> response + " is not an instance of SdkHttpFullResponse", e);
-            }
+            this.response = toFullResponse(response);
         }
 
         @Override
@@ -222,7 +212,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         }
 
         @Override
-        public CompletableFuture<Response<OutputT>> transformResult() {
+        public CompletableFuture<Response<OutputT>> prepare() {
             return headersFuture.thenCompose(headers -> {
                 if (headers.isSuccessful()) {
                     return transformFuture.thenApply(r -> Response.fromSuccess(r, response));
@@ -238,5 +228,13 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             requestConfig.apiCallAttemptTimeout(), () -> apiCallAttemptTimeout)
                             .map(Duration::toMillis)
                             .orElse(0L);
+    }
+
+    private static SdkHttpFullResponse toFullResponse(SdkHttpResponse response) {
+        SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder()
+                .statusCode(response.statusCode())
+                .headers(response.headers());
+        response.statusText().ifPresent(builder::statusText);
+        return builder.build();
     }
 }

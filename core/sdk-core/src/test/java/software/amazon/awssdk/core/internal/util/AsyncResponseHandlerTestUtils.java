@@ -52,7 +52,7 @@ public class AsyncResponseHandlerTestUtils {
         }
 
         @Override
-        public CompletableFuture<T> transformResult() {
+        public CompletableFuture<T> prepare() {
             return cf;
         }
 
@@ -92,7 +92,7 @@ public class AsyncResponseHandlerTestUtils {
         }
 
         @Override
-        public CompletableFuture<T> transformResult() {
+        public CompletableFuture<T> prepare() {
             return cf.thenApply(r -> {
                 try {
                     Thread.sleep(sleepMillis);

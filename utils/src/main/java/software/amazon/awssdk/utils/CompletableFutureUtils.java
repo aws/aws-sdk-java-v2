@@ -16,6 +16,8 @@
 package software.amazon.awssdk.utils;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -41,5 +43,21 @@ public final class CompletableFutureUtils {
         CompletableFuture<U> cf = new CompletableFuture<>();
         cf.completeExceptionally(t);
         return cf;
+    }
+
+    /**
+     * Wraps the given error in a {@link CompletionException} if necessary.
+     * Useful if an exception needs to be rethrown from within {@link
+     * CompletableFuture#handle(java.util.function.BiFunction)} or similar
+     * methods.
+     *
+     * @param t The error.
+     * @return The error as a CompletionException.
+     */
+    public static CompletionException errorAsCompletionException(Throwable t) {
+        if (t instanceof CompletionException) {
+            return (CompletionException) t;
+        }
+        return new CompletionException(t);
     }
 }

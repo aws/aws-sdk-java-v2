@@ -32,5 +32,5 @@ public interface TransformingAsyncResponseHandler<ResultT> extends SdkAsyncHttpR
      *
      * @return The future holding the transformed response.
      */
-    CompletableFuture<ResultT> transformResult();
+    CompletableFuture<ResultT> prepare();
 }

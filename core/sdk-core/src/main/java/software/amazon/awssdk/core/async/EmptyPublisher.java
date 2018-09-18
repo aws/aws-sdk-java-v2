@@ -22,34 +22,19 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public class EmptyPublisher<T> implements Publisher<T> {
-    @Override
-    public void subscribe(Subscriber<? super T> subscriber) {
-        subscriber.onSubscribe(new EmptySubscription<>(subscriber));
-    }
-
-    private static class EmptySubscription<T> implements Subscription {
-        private final Subscriber<T> subscriber;
-        private volatile boolean done = false;
-
-        EmptySubscription(Subscriber<T> subscriber) {
-            this.subscriber = subscriber;
-        }
-
+    private static final Subscription SUBSCRIPTION = new Subscription() {
         @Override
         public void request(long l) {
-            if (!done) {
-                done = true;
-                if (l <= 0) {
-                    this.subscriber.onError(new IllegalArgumentException("Demand must be positive"));
-                } else {
-                    this.subscriber.onComplete();
-                }
-            }
         }
 
         @Override
         public void cancel() {
-            done = true;
         }
+    };
+
+    @Override
+    public void subscribe(Subscriber<? super T> subscriber) {
+        subscriber.onSubscribe(SUBSCRIPTION);
+        subscriber.onComplete();
     }
 }

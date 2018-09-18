@@ -152,7 +152,7 @@ public class EventStreamAsyncResponseTransformerTest {
         }
 
         @Override
-        public void onError(Throwable throwable) {
+        public void exceptionOccurred(Throwable throwable) {
         }
 
         @Override
@@ -173,7 +173,7 @@ public class EventStreamAsyncResponseTransformerTest {
             }
 
             @Override
-            public void onError(Throwable throwable) {
+            public void exceptionOccurred(Throwable throwable) {
             }
 
             @Override

@@ -39,7 +39,7 @@ public class FutureCancelHandler extends SimpleChannelInboundHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) {
         if (cancelled(ctx, e)) {
             RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-            requestContext.executeRequest().responseHandler().onError(e);
+            requestContext.handler().onError(e);
             ctx.fireExceptionCaught(new IOException("Request cancelled"));
             ctx.close();
             requestContext.channelPool().release(ctx.channel());

@@ -233,7 +233,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                         () -> subscriberRef.get().onError(throwable));
                 }
-                eventStreamResponseHandler.onError(throwable);
+                eventStreamResponseHandler.exceptionOccurred(throwable);
                 transformFuture.completeExceptionally(throwable);
             }
         }

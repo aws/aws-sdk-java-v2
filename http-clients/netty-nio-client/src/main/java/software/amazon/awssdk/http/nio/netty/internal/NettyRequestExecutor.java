@@ -171,7 +171,7 @@ public final class NettyRequestExecutor {
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        channel.read();
                    } else {
-                       // Are there cases where we can keep the channel open?
+                       // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);
                        handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
@@ -185,7 +185,7 @@ public final class NettyRequestExecutor {
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
         cause = decorateException(cause);
-        context.executeRequest().responseHandler().onError(cause);
+        context.handler().onError(cause);
         executeFuture.completeExceptionally(cause);
     }
 

@@ -306,7 +306,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         return String.format(".whenComplete((r, e) -> {%n"
                              + "     if (e != null) {%n"
                              + "         try {"
-                             + "             %s.onError(e);%n"
+                             + "             %s.exceptionOccurred(e);%n"
                              + "         } finally {"
                              + "             future.completeExceptionally(e);"
                              + "         }"

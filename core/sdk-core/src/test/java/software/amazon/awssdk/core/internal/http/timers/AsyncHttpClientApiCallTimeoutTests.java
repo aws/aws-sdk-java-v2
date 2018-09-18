@@ -129,19 +129,6 @@ public class AsyncHttpClientApiCallTimeoutTests {
     }
 
     @Test
-    @Ignore
-    // FIXME(dongie): Partly broken by the SPI changes. This test appears to be broken since introduction, but didn't start failing until now: the code path never calls afterTransmission.
-    public void successfulResponse_SlowAfterResponseRequestHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
-        ExecutionInterceptor interceptor =
-            new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
-        CompletableFuture future = requestBuilder().executionContext(withInterceptors(interceptor))
-                                                   .execute(noOpResponseHandler());
-        assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
-    }
-
-    @Test
     public void successfulResponse_SlowResponseHandler_ThrowsApiCallTimeoutException() {
         stubFor(get(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));

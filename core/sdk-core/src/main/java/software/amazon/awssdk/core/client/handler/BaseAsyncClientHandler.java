@@ -203,8 +203,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         }
 
         @Override
-        public CompletableFuture<T> transformResult() {
-            return delegate.transformResult();
+        public CompletableFuture<T> prepare() {
+            return delegate.prepare();
         }
     }
 
@@ -258,7 +258,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         }
 
         @Override
-        public CompletableFuture<ReturnT> transformResult() {
+        public CompletableFuture<ReturnT> prepare() {
             this.transformFuture = asyncResponseTransformer.prepare();
             return transformFuture;
         }

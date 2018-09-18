@@ -117,25 +117,25 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         public CompletableFuture<Response<OutputT>> execute(CompletableFuture<Response<OutputT>> future) throws Exception {
             beforeExecute();
-            doExecute().whenComplete((resp, err) -> maybeRetry(future, resp, err));
+            doExecute().whenComplete((resp, err) -> retryIfNeeded(future, resp, err));
             return future;
         }
 
-        private void maybeRetry(CompletableFuture<Response<OutputT>> future,
-                                Response<OutputT> resp,
-                                Throwable err) {
+        private void retryIfNeeded(CompletableFuture<Response<OutputT>> future,
+                                   Response<OutputT> resp,
+                                   Throwable err) {
             try {
                 if (resp != null) {
-                    maybeRetryResponse(resp, future);
+                    retryResponseIfNeeded(resp, future);
                 } else {
-                    maybeRetryError(err, future);
+                    retryErrorIfNeeded(err, future);
                 }
             } catch (Throwable t) {
                 future.completeExceptionally(t);
             }
         }
 
-        private void maybeRetryResponse(Response<OutputT> resp, CompletableFuture<Response<OutputT>> future) {
+        private void retryResponseIfNeeded(Response<OutputT> resp, CompletableFuture<Response<OutputT>> future) {
             if (resp.isSuccess()) {
                 retryHandler.releaseRetryCapacity();
                 future.complete(resp);
@@ -156,7 +156,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             }
         }
 
-        private void maybeRetryError(Throwable err, CompletableFuture<Response<OutputT>> future) {
+        private void retryErrorIfNeeded(Throwable err, CompletableFuture<Response<OutputT>> future) {
             if (err instanceof CompletionException) {
                 err = err.getCause();
             }
@@ -166,7 +166,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 return;
             }
 
-            // TODO(dongie): We need to wrap into SdkException in order to call setLastRetriedException. Is this necessary?
+            // TODO We need to wrap into SdkException in order to call setLastRetriedException. Is this necessary?
             // Can it just take a Throwable?
             SdkException sdkException = err instanceof SdkException ?
                     (SdkException) err : SdkClientException.builder().cause(err).build();

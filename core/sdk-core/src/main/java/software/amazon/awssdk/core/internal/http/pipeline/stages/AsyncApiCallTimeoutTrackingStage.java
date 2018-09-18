@@ -13,12 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http;
+package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeCompletableFuture;
 
 import java.time.Duration;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -27,6 +26,8 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -60,9 +61,6 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
 
         requestPipeline.execute(input, context).whenComplete((r, t) -> {
             if (t != null) {
-                if (t instanceof CancellationException) {
-                    t = t.getCause();
-                }
                 future.completeExceptionally(t);
             } else {
                 future.complete(r);

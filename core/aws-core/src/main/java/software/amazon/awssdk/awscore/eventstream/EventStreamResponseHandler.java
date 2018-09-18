@@ -42,7 +42,7 @@ public interface EventStreamResponseHandler<ResponseT, EventT> {
      *
      * <p>
      * If at any time the subscriber wishes to stop receiving data, it may call {@link Subscription#cancel()}. This
-     * will be treated as a failure of the response and the {@link #onError(Throwable)} callback will be invoked.
+     * will be treated as a failure of the response and the {@link #exceptionOccurred(Throwable)} callback will be invoked.
      * </p>
      *
      * <p>This callback may never be called if the response has no content or if an error occurs.</p>
@@ -63,7 +63,7 @@ public interface EventStreamResponseHandler<ResponseT, EventT> {
      *
      * @param throwable Exception that occurred.
      */
-    void onError(Throwable throwable);
+    void exceptionOccurred(Throwable throwable);
 
     /**
      * Called when all data has been successfully published to the {@link org.reactivestreams.Subscriber}. This will

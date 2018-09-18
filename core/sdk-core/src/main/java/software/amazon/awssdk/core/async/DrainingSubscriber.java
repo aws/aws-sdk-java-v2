@@ -24,17 +24,14 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public class DrainingSubscriber<T> implements Subscriber<T> {
-    private Subscription subscription;
 
     @Override
     public void onSubscribe(Subscription subscription) {
-        this.subscription = subscription;
         subscription.request(Long.MAX_VALUE);
     }
 
     @Override
     public void onNext(T t) {
-        subscription.request(1);
     }
 
     @Override

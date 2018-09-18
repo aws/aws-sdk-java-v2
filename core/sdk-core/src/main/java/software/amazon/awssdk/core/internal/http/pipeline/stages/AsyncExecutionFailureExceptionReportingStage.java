@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -41,17 +42,14 @@ public class AsyncExecutionFailureExceptionReportingStage<OutputT>
     public CompletableFuture<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         return wrapped.execute(input, context).handle((o, t) -> {
             if (t != null) {
-                if (t instanceof CompletionException) {
-                    t = t.getCause();
+                Throwable toReport = t;
+
+                if (toReport instanceof CompletionException) {
+                    toReport = toReport.getCause();
                 }
+                reportFailureToInterceptors(context, toReport);
 
-                reportFailureToInterceptors(context, t);
-
-                if (t instanceof RuntimeException) {
-                    throw ((RuntimeException) t);
-                }
-
-                throw new RuntimeException(t);
+                throw CompletableFutureUtils.errorAsCompletionException(t);
             } else {
                 return o;
             }
@@ -63,15 +61,15 @@ public class AsyncExecutionFailureExceptionReportingStage<OutputT>
      * want to replace the execution failure.
      *
      * @param context The execution context.
-     * @param err     The execution failure.
+     * @param failure     The execution failure.
      */
-    private static void reportFailureToInterceptors(RequestExecutionContext context, Throwable err) {
+    private static void reportFailureToInterceptors(RequestExecutionContext context, Throwable failure) {
         try {
             Context.FailedExecution failedContext =
-                    new DefaultFailedExecutionContext(context.executionContext().interceptorContext(), err);
+                    new DefaultFailedExecutionContext(context.executionContext().interceptorContext(), failure);
             context.interceptorChain().onExecutionFailure(failedContext, context.executionAttributes());
         } catch (Throwable t) {
-            log.warn(() -> "Interceptor chain threw an error from onExecutionFailure().", err);
+            log.warn(() -> "Interceptor chain threw an error from onExecutionFailure().", t);
         }
     }
 }

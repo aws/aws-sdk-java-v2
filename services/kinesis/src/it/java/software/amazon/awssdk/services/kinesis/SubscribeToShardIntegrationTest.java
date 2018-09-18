@@ -154,7 +154,7 @@ public class SubscribeToShardIntegrationTest {
                                         }
 
                                         @Override
-                                        public void onError(Throwable throwable) {
+                                        public void exceptionOccurred(Throwable throwable) {
                                             // Expected to be called
                                             exceptionOccurredThrowable.set(throwable);
                                         }

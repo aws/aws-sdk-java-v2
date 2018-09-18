@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.channel.pool.ChannelPool;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 @SdkInternalApi
 public final class RequestContext {
@@ -38,6 +39,16 @@ public final class RequestContext {
 
     public AsyncExecuteRequest executeRequest() {
         return executeRequest;
+    }
+
+    /**
+     * Convenience method to retrieve the {@link SdkAsyncHttpResponseHandler} contained in the {@link AsyncExecuteRequest}
+     * returned by {@link #executeRequest}.
+     *
+     * @return The response handler for this request.
+     */
+    public SdkAsyncHttpResponseHandler handler() {
+        return executeRequest().responseHandler();
     }
 
     public NettyConfiguration configuration() {
