@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.apache;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
@@ -78,6 +79,7 @@ import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHt
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An implementation of {@link SdkHttpClient} that uses Apache HTTP client to communicate with the service. This is the most
@@ -140,10 +142,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                 ProxyConfiguration proxyConfiguration) {
         if (isProxyEnabled(proxyConfiguration)) {
 
-            log.debug(() -> "Configuring Proxy. Proxy Host: " + proxyConfiguration.endpoint());
+            log.debug(() -> "Configuring Proxy. Proxy Host: " + proxyConfiguration.host());
 
-            builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.endpoint().getHost(),
-                                                             proxyConfiguration.endpoint().getPort(),
+            builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.host(),
+                                                             proxyConfiguration.port(),
+                                                             proxyConfiguration.scheme(),
                                                              proxyConfiguration.nonProxyHosts()));
 
             if (isAuthenticatedProxy(proxyConfiguration)) {
@@ -164,9 +167,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private boolean isProxyEnabled(ProxyConfiguration proxyConfiguration) {
-        return proxyConfiguration.endpoint() != null
-               && proxyConfiguration.endpoint().getHost() != null
-               && proxyConfiguration.endpoint().getPort() > 0;
+        return proxyConfiguration.host() != null
+               && proxyConfiguration.port() > 0;
     }
 
     @Override
@@ -240,6 +242,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return ApacheHttpRequestConfig.builder()
                                       .socketTimeout(resolvedOptions.get(READ_TIMEOUT))
                                       .connectionTimeout(resolvedOptions.get(CONNECTION_TIMEOUT))
+                                      .connectionAcquireTimeout(resolvedOptions.get(CONNECTION_ACQUIRE_TIMEOUT))
                                       .proxyConfiguration(builder.proxyConfiguration)
                                       .localAddress(Optional.ofNullable(builder.localAddress).orElse(null))
                                       .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
@@ -272,6 +275,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * means infinity, and is not recommended.
          */
         Builder connectionTimeout(Duration connectionTimeout);
+
+        /**
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * @param connectionAcquisitionTimeout the timeout duration
+         * @return this builder for method chaining.
+         */
+        Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
          * The maximum number of connections allowed in the connection pool. Each built HTTP client has it's own private
@@ -334,6 +344,22 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public void setConnectionTimeout(Duration connectionTimeout) {
             connectionTimeout(connectionTimeout);
+        }
+
+        /**
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * @param connectionAcquisitionTimeout the timeout duration
+         * @return this builder for method chaining.
+         */
+        @Override
+        public Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+            Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
+            standardOptions.put(CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
+            return this;
+        }
+
+        public void setConnectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+            connectionAcquisitionTimeout(connectionAcquisitionTimeout);
         }
 
         @Override

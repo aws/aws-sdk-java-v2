@@ -37,9 +37,9 @@ public class SdkProxyRoutePlanner extends DefaultRoutePlanner {
     private HttpHost proxy;
     private Set<String> hostPatterns;
 
-    public SdkProxyRoutePlanner(String proxyHost, int proxyPort, Set<String> nonProxyHosts) {
+    public SdkProxyRoutePlanner(String proxyHost, int proxyPort, String proxyProtocol, Set<String> nonProxyHosts) {
         super(DefaultSchemePortResolver.INSTANCE);
-        proxy = new HttpHost(proxyHost, proxyPort);
+        proxy = new HttpHost(proxyHost, proxyPort, proxyProtocol);
         this.hostPatterns = nonProxyHosts;
     }
 
