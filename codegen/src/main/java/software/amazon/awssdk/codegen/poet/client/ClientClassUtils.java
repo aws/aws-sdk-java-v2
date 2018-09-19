@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.signer.Signer;
@@ -166,13 +167,9 @@ final class ClientClassUtils {
         ShapeModel inputShape = opModel.getInputShape();
 
         if (inputShape.getRequestSignerClassFqcn() != null) {
-            try {
-                code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                                  opModel.getInput().getVariableName(),
-                                  Class.forName(inputShape.getRequestSignerClassFqcn()));
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
+                              opModel.getInput().getVariableName(),
+                              PoetUtils.classNameFromFqcn(inputShape.getRequestSignerClassFqcn()));
         }
 
         return code.build();
