@@ -17,9 +17,10 @@ package software.amazon.awssdk.core.client.handler;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.core.internal.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
@@ -36,10 +37,10 @@ public final class AttachHttpMetadataResponseHandler<T extends SdkResponse> impl
 
     @Override
     @SuppressWarnings("unchecked")
-    public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         return (T) delegate.handle(response, executionAttributes)
                            .toBuilder()
-                           .sdkHttpResponse(response)
+                           .sdkHttpResponse(DefaultSdkHttpResponse.from(response))
                            .build();
     }
 }
