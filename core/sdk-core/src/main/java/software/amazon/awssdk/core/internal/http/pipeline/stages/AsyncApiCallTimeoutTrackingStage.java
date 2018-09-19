@@ -15,14 +15,12 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeCompletableFuture;
+import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
+import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeAsyncTaskIfNeeded;
 
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
@@ -31,11 +29,10 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.OptionalUtils;
 
 @SdkInternalApi
 public class AsyncApiCallTimeoutTrackingStage<OutputT>
-        implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<OutputT>> {
+    implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<OutputT>> {
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<OutputT>> requestPipeline;
     private final SdkClientConfiguration clientConfig;
     private final ScheduledExecutorService scheduledExecutor;
@@ -51,12 +48,13 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
     public CompletableFuture<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         CompletableFuture<OutputT> future = new CompletableFuture<>();
 
-        long apiCallTimeoutInMillis = getApiCallTimeoutInMillis(context.requestConfig());
+        long apiCallTimeoutInMillis = resolveTimeoutInMillis(() -> context.requestConfig().apiCallTimeout(),
+                                                             clientConfig.option(SdkClientOption.API_CALL_TIMEOUT));
 
-        TimeoutTracker timeoutTracker = timeCompletableFuture(future,
-                scheduledExecutor,
-                ApiCallTimeoutException.create(apiCallTimeoutInMillis),
-                apiCallTimeoutInMillis);
+        TimeoutTracker timeoutTracker = timeAsyncTaskIfNeeded(future,
+                                                              scheduledExecutor,
+                                                              ApiCallTimeoutException.create(apiCallTimeoutInMillis),
+                                                              apiCallTimeoutInMillis);
         context.apiCallTimeoutTracker(timeoutTracker);
 
         requestPipeline.execute(input, context).whenComplete((r, t) -> {
@@ -68,14 +66,5 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
         });
 
         return future;
-    }
-
-    private long getApiCallTimeoutInMillis(RequestOverrideConfiguration requestConfig) {
-        return OptionalUtils
-                .firstPresent(requestConfig.apiCallTimeout(),
-                    () -> clientConfig.option(SdkClientOption.API_CALL_TIMEOUT))
-                .map(Duration::toMillis)
-                .orElse(0L);
-
     }
 }

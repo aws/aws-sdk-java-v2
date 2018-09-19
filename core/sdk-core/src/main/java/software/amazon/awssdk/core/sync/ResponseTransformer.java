@@ -27,10 +27,12 @@ import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
@@ -59,12 +61,12 @@ import software.amazon.awssdk.utils.Logger;
  * <p>
  * Implementations should have proper handling of Thread interrupts. For long running, non-interruptible tasks, it is recommended
  * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
- * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread or throw that
- * {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these things may
- * prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
+ * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread and return or
+ * throw that {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these
+ * things may prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
  *
  * @param <ResponseT> Type of unmarshalled POJO response.
- * @param <ReturnT>   Return type of the {@link #apply(Object, AbortableInputStream)} method. Implementations are free to
+ * @param <ReturnT>   Return type of the {@link #transform(Object, AbortableInputStream)} method. Implementations are free to
  * perform whatever transformations are appropriate.
  */
 @FunctionalInterface
@@ -81,10 +83,14 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      */
     default ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
         try {
-            return transform(response, inputStream);
-        } catch (RetryableException e) {
+            InterruptMonitor.checkInterrupted();
+            ReturnT transform = transform(response, inputStream);
+            InterruptMonitor.checkInterrupted();
+            return transform;
+        } catch (RetryableException | InterruptedException | AbortedException e) {
             throw e;
         } catch (Exception e) {
+            InterruptMonitor.checkInterrupted();
             throw NonRetryableException.builder().cause(e).build();
         }
     }
@@ -112,6 +118,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
         return (resp, in) -> {
             try {
+                InterruptMonitor.checkInterrupted();
                 Files.copy(in, path);
                 return resp;
             } catch (IOException copyException) {
@@ -164,6 +171,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
         return (resp, in) -> {
+            InterruptMonitor.checkInterrupted();
             IoUtils.copy(in, outputStream);
             return resp;
         };
@@ -179,6 +187,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
     static <ResponseT> ResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
         return (response, inputStream) -> {
             try {
+                InterruptMonitor.checkInterrupted();
                 return ResponseBytes.fromByteArray(response, IoUtils.toByteArray(inputStream));
             } catch (IOException e) {
                 throw RetryableException.builder().message("Failed to read response.").cause(e).build();
@@ -211,10 +220,11 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return New {@link ResponseTransformer} which does not close the connection afterwards.
      */
     static <ResponseT, ReturnT> ResponseTransformer<ResponseT, ReturnT> unmanaged(
-            ResponseTransformer<ResponseT, ReturnT> transformer) {
+        ResponseTransformer<ResponseT, ReturnT> transformer) {
         return new ResponseTransformer<ResponseT, ReturnT>() {
             @Override
             public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
+                InterruptMonitor.checkInterrupted();
                 return transformer.apply(response, inputStream);
             }
 

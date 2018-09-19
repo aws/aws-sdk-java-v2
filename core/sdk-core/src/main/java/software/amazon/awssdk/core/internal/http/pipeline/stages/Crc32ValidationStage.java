@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FR
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.Crc32Validation;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
+import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -41,6 +42,7 @@ public final class Crc32ValidationStage
     @Override
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                                  RequestExecutionContext context) throws Exception {
+        InterruptMonitor.checkInterrupted();
         return Pair.of(input.left(),
                        Crc32Validation.validate(calculateCrc32FromCompressedData, input.right()));
     }

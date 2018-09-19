@@ -15,43 +15,41 @@
 
 package software.amazon.awssdk.core.internal.http.timers;
 
-import java.util.concurrent.ScheduledFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Api Call Timeout Tracker to track the {@link TimeoutTask} and the {@link ScheduledFuture}.
+ * {@link TimeoutTask} to be scheduled for synchronous operations.
  */
 @SdkInternalApi
-public final class ApiCallTimeoutTracker implements TimeoutTracker {
+public final class SyncTimeoutTask implements TimeoutTask {
+    private final Thread threadToInterrupt;
+    private volatile boolean hasExecuted;
 
-    private final TimeoutTask timeoutTask;
+    private Abortable abortable;
 
-    private final ScheduledFuture<?> future;
-
-    public ApiCallTimeoutTracker(TimeoutTask timeout, ScheduledFuture<?> future) {
-        this.timeoutTask = Validate.paramNotNull(timeout, "timeoutTask");
-        this.future = Validate.paramNotNull(future, "scheduledFuture");
-    }
-
-    @Override
-    public boolean hasExecuted() {
-        return timeoutTask.hasExecuted();
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    @Override
-    public void cancel() {
-        future.cancel(false);
+    SyncTimeoutTask(Thread threadToInterrupt) {
+        this.threadToInterrupt = Validate.paramNotNull(threadToInterrupt, "threadToInterrupt");
     }
 
     @Override
     public void abortable(Abortable abortable) {
-        timeoutTask.abortable(abortable);
+        this.abortable = abortable;
+    }
+
+    @Override
+    public void run() {
+        hasExecuted = true;
+        threadToInterrupt.interrupt();
+
+        if (abortable != null) {
+            abortable.abort();
+        }
+    }
+
+    @Override
+    public boolean hasExecuted() {
+        return hasExecuted;
     }
 }
