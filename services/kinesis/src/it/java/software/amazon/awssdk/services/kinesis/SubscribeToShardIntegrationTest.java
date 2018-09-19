@@ -41,7 +41,6 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.Record;
@@ -224,7 +223,6 @@ public class SubscribeToShardIntegrationTest {
     private void verifyHttpMetadata(SubscribeToShardResponse response) {
         SdkHttpResponse sdkHttpResponse = response.sdkHttpResponse();
         assertThat(sdkHttpResponse).isNotNull();
-        assertThat(sdkHttpResponse.isSuccessful()).isTrue();
         assertThat(sdkHttpResponse.headers()).isNotEmpty();
     }
 }
