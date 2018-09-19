@@ -53,6 +53,7 @@ public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHt
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         Optional<InputStream> toBeClosed = createManagedStream(request);
         try {
+            InterruptMonitor.checkInterrupted();
             return wrapped.execute(request.toBuilder().content(nonCloseableInputStream(toBeClosed).orElse(null)).build(),
                                    context);
         } finally {

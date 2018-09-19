@@ -53,8 +53,10 @@ public class MakeHttpRequestStage
 
     private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         final AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
-                .prepareRequest(ExecuteRequest.builder().request(request).build());
+            .prepareRequest(ExecuteRequest.builder().request(request).build());
 
+        context.apiCallTimeoutTracker().abortable(requestCallable);
+        context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
         return requestCallable.call();
     }
 }

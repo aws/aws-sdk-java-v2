@@ -18,22 +18,20 @@ package software.amazon.awssdk.core.internal.http.timers;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Asynchronous implementations of {@link TimeoutTask} to be scheduled to fail
+ * Implementation of {@link TimeoutTask} for asynchronous operations to be scheduled to fail
  * the {@link CompletableFuture} and abort the asynchronous requests.
  */
 @SdkInternalApi
-public class AsyncTimeoutTask implements TimeoutTask {
+public final class AsyncTimeoutTask implements TimeoutTask {
     private static final Logger log = Logger.loggerFor(AsyncTimeoutTask.class);
     private final SdkException exception;
     private volatile boolean hasExecuted;
 
     private final CompletableFuture<?> completableFuture;
-    private Abortable abortable;
 
     /**
      * Constructs a new {@link AsyncTimeoutTask}.
@@ -47,29 +45,15 @@ public class AsyncTimeoutTask implements TimeoutTask {
     }
 
     @Override
-    public void abortable(Abortable abortable) {
-        this.abortable = abortable;
-    }
-
-    @Override
     public void run() {
         hasExecuted = true;
         if (!completableFuture.isDone()) {
             completableFuture.completeExceptionally(exception);
-        }
-
-        if (abortable != null) {
-            abortable.abort();
         }
     }
 
     @Override
     public boolean hasExecuted() {
         return hasExecuted;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
     }
 }

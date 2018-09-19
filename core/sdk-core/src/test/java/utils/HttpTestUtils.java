@@ -85,6 +85,8 @@ public class HttpTestUtils {
         private RetryPolicy retryPolicy;
         private SdkHttpClient httpClient;
         private Map<String, String> additionalHeaders = new HashMap<>();
+        private Duration apiCallTimeout;
+        private Duration apiCallAttemptTimeout;
 
         public TestClientBuilder retryPolicy(RetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
@@ -101,12 +103,24 @@ public class HttpTestUtils {
             return this;
         }
 
+        public TestClientBuilder apiCallTimeout(Duration duration) {
+            this.apiCallTimeout = duration;
+            return this;
+        }
+
+        public TestClientBuilder apiCallAttemptTimeout(Duration timeout) {
+            this.apiCallAttemptTimeout = timeout;
+            return this;
+        }
+
         public AmazonSyncHttpClient build() {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
                                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                                      .applyMutation(this::configureRetryPolicy)
                                                                      .applyMutation(this::configureAdditionalHeaders)
+                                                                     .option(SdkClientOption.API_CALL_TIMEOUT, apiCallTimeout)
+                                                                     .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT, apiCallAttemptTimeout)
                                                                      .build());
         }
 

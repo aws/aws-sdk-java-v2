@@ -110,7 +110,6 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         public CompletableFuture<Response<OutputT>> execute() throws Exception {
             CompletableFuture<Response<OutputT>> future = new CompletableFuture<>();
-
             return execute(future);
         }
 
