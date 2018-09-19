@@ -11,7 +11,8 @@ import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
-import software.amazon.awssdk.core.util.PaginatorUtils;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyResponse;
@@ -137,7 +138,8 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
                                                                  AsyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
         @Override
         public boolean hasNextPage(final PaginatedOperationWithResultKeyResponse previousPage) {
-            return PaginatorUtils.isOutputTokenAvailable(previousPage.nextToken());
+            return previousPage.nextToken() != null && !SdkAutoConstructList.class.isInstance(previousPage.nextToken())
+                   && !SdkAutoConstructMap.class.isInstance(previousPage.nextToken());
         }
 
         @Override
