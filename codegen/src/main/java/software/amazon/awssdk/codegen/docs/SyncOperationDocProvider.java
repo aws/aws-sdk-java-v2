@@ -77,7 +77,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
 
         }
         if (opModel.hasStreamingOutput()) {
-            docBuilder.param("streamingHandler", STREAM_RESPONSE_HANDLER_DOCS + getStreamingOutputDocs(),
+            docBuilder.param("responseTransformer", STREAM_RESPONSE_HANDLER_DOCS + getStreamingOutputDocs(),
                              opModel.getOutputShape().getShapeName(), getStreamingOutputDocs());
         }
     }

@@ -477,7 +477,7 @@ final class DefaultJsonClient implements JsonClient {
      *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
-     * @param streamingHandler
+     * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as
      *        parameters to the callback. The callback may return a transformed type which will be the return value of
@@ -525,7 +525,7 @@ final class DefaultJsonClient implements JsonClient {
      * Some operation with a streaming output
      *
      * @param streamingOutputOperationRequest
-     * @param streamingHandler
+     * @param responseTransformer
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOutputOperationResponse and an InputStream to the response content are provided as
      *        parameters to the callback. The callback may return a transformed type which will be the return value of
