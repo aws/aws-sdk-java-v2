@@ -214,8 +214,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 private void onCancel() {
                     try {
                         isCancelled.set(true);
-                        executeFuture.completeExceptionally(
-                            new SdkCancellationException("Subscriber cancelled before all events were published"));
+                        SdkCancellationException e = new SdkCancellationException("Subscriber cancelled before all events were published");
+                        requestContext.handler().onError(e);
+                        executeFuture.completeExceptionally(e);
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));

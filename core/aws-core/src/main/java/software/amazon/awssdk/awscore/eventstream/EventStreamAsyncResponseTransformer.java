@@ -47,6 +47,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
@@ -155,7 +156,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private String requestId = null;
 
-    private CompletableFuture<Void> transformFuture;
+    private volatile CompletableFuture<Void> transformFuture;
 
     @Deprecated
     @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
@@ -232,6 +233,9 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                 if (subscriberRef.get() != null) {
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                         () -> subscriberRef.get().onError(throwable));
+                if (subscriberRef.get() != null && shouldSurfaceErrorToEventSubscriber(throwable)) {
+                    runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
+                            () -> subscriberRef.get().onError(throwable));
                 }
                 eventStreamResponseHandler.exceptionOccurred(throwable);
                 transformFuture.completeExceptionally(throwable);
@@ -329,6 +333,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                   .headers(headers)
                                   .statusCode(statusCode)
                                   .build();
+    }
+
+    private static boolean shouldSurfaceErrorToEventSubscriber(Throwable t) {
+        return !(t instanceof SdkCancellationException);
     }
 
     /**
