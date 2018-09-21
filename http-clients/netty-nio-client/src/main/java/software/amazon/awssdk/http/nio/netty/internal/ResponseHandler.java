@@ -202,8 +202,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     if (Protocol.HTTP2.equals(ChannelAttributeKey.getProtocolNow(channelContext.channel()))) {
                         return new Http2ResetSendingSubscription(channelContext, subscription);
                     } else {
-                        // TODO I believe the behavior for H1 is to finish reading the data. Do we want to do this
-                        // or abort the connection?
                         return subscription;
                     }
                 }
