@@ -166,8 +166,8 @@ public class SubscribeToShardIntegrationTest {
                                     }).join();
             fail("Expected exception");
         } catch (CompletionException e) {
-            assertThat(e.getCause().getCause()).isInstanceOf(SdkCancellationException.class);
-            assertThat(exceptionOccurredThrowable.get().getCause().getCause()).isInstanceOf(SdkCancellationException.class);
+            assertThat(e.getCause()).isInstanceOf(SdkCancellationException.class);
+            assertThat(exceptionOccurredThrowable.get().getCause()).isInstanceOf(SdkCancellationException.class);
             assertThat(terminalCalled).as("complete or onComplete was called when it shouldn't have been")
                                       .isFalse();
         }
