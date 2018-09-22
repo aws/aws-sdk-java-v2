@@ -230,9 +230,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             if (!isDone) {
                 isDone = true;
                 // If we have a Subscriber at this point notify it as well
-                if (subscriberRef.get() != null) {
-                    runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
-                        () -> subscriberRef.get().onError(throwable));
                 if (subscriberRef.get() != null && shouldSurfaceErrorToEventSubscriber(throwable)) {
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                             () -> subscriberRef.get().onError(throwable));
