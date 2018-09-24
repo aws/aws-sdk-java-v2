@@ -74,6 +74,8 @@ public class MemberModel extends DocumentationModel {
 
     private String beanStyleSetterName;
 
+    private boolean isJsonValue;
+
     public String getName() {
         return name;
     }
@@ -451,6 +453,19 @@ public class MemberModel extends DocumentationModel {
         return http.getIsStreaming() || (http.getIsPayload() && isSdkBytesType());
     }
 
+    public boolean isJsonValue() {
+        return isJsonValue;
+    }
+
+    public void setJsonValue(boolean jsonValue) {
+        isJsonValue = jsonValue;
+    }
+
+    public MemberModel withJsonValue(boolean jsonValue) {
+        setJsonValue(jsonValue);
+        return this;
+    }
+
     /**
      * @return Implementation of {@link PathMarshaller} to use if this member is bound the the URI.
      * @throws IllegalStateException If this member is not bound to the URI. Templates should first check
@@ -508,7 +523,7 @@ public class MemberModel extends DocumentationModel {
         } else if (isMap()) {
             return "MAP";
         } else if (!isSimple()) {
-            return "STRUCTURED";
+            return "SDK_POJO";
         } else {
             return TypeUtils.getMarshallingType(variable.getSimpleType());
         }
@@ -525,7 +540,7 @@ public class MemberModel extends DocumentationModel {
         } else if (isMap()) {
             return "Map";
         } else if (!isSimple()) {
-            return "StructuredPojo";
+            return "SdkPojo";
         } else {
             return variable.getVariableType();
         }

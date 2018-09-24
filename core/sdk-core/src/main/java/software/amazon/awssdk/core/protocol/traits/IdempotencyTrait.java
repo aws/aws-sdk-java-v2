@@ -13,19 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol;
+package software.amazon.awssdk.core.protocol.traits;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.util.IdempotentUtils;
 
-/**
- * Interface used by generated marshallers to marshall a Java POJO.
- */
 @SdkProtectedApi
-public interface ProtocolMarshaller<MarshalledT> {
+public final class IdempotencyTrait implements Trait {
 
-    default MarshalledT marshall(SdkPojo pojo) {
-        return null;
+    private IdempotencyTrait() {
     }
 
+    public String resolveValue(String val) {
+        if (val == null) {
+            return IdempotentUtils.getGenerator().get();
+        } else {
+            return val;
+        }
+    }
+
+    public static IdempotencyTrait create() {
+        return new IdempotencyTrait();
+    }
 }

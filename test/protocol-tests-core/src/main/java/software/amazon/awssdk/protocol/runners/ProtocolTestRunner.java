@@ -75,5 +75,6 @@ public final class ProtocolTestRunner {
                             "Unsupported action " + testCase.getWhen().getAction());
             }
         }
+        clientReflector.close();
     }
 }

@@ -162,7 +162,8 @@ abstract class AddShapes {
                    .withVariable(new VariableModel(variableName, variableType, variableDeclarationType)
                                          .withDocumentation(c2jMemberDefinition.getDocumentation()))
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
-                   .withGetterModel(new ReturnTypeModel(variableType));
+                   .withGetterModel(new ReturnTypeModel(variableType))
+                   .withJsonValue(c2jMemberDefinition.getJsonValue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
         memberModel

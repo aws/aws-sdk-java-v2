@@ -30,7 +30,6 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
-import software.amazon.awssdk.codegen.poet.transform.JsonModelMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.MarshallerSpec;
 import software.amazon.awssdk.utils.ImmutableMap;
 
@@ -48,7 +47,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
     }
 
     @Override
-    protected List<GeneratorTask> createTasks() throws Exception {
+    protected List<GeneratorTask> createTasks() {
         info("Emitting marshaller classes");
         return model.getShapes().entrySet().stream()
                     .filter(e -> shouldGenerate(e.getValue()))
@@ -70,9 +69,8 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
     private Stream<GeneratorTask> createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
         if (metadata.isJsonProtocol()) {
             return ShapeType.Request == shapeModel.getShapeType() ?
-                   Stream.of(createPoetGeneratorTask(new JsonModelMarshallerSpec(model, shapeModel, "ModelMarshaller")),
-                             createPoetGeneratorTask(new MarshallerSpec(model, shapeModel))) :
-                   Stream.of(createPoetGeneratorTask(new JsonModelMarshallerSpec(model, shapeModel, "Marshaller")));
+                   Stream.of(createPoetGeneratorTask(new MarshallerSpec(model, shapeModel))) :
+                   Stream.empty();
         }
 
         return Stream.of(

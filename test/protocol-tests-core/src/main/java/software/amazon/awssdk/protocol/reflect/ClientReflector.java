@@ -32,7 +32,7 @@ import software.amazon.awssdk.regions.Region;
 /**
  * Reflection utils to create the client class and invoke operation methods.
  */
-public class ClientReflector {
+public class ClientReflector implements AutoCloseable {
 
     private final IntermediateModel model;
     private final Metadata metadata;
@@ -80,6 +80,13 @@ public class ClientReflector {
         final String operationName = testCase.getWhen().getOperationName();
         Method operationMethod = getOperationMethod(operationName, requestObject.getClass(), ResponseTransformer.class);
         return operationMethod.invoke(client, requestObject, responseHandler);
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (client instanceof AutoCloseable) {
+            ((AutoCloseable) client).close();
+        }
     }
 
     /**

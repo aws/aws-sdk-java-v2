@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Member {
 
     private String shape;
@@ -38,6 +40,9 @@ public class Member {
     private boolean idempotencyToken;
 
     private boolean deprecated;
+
+    @JsonProperty("jsonvalue")
+    private boolean jsonValue;
 
     public String getShape() {
         return shape;
@@ -125,5 +130,13 @@ public class Member {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public boolean getJsonValue() {
+        return jsonValue;
+    }
+
+    public void setJsonValue(boolean jsonValue) {
+        this.jsonValue = jsonValue;
     }
 }

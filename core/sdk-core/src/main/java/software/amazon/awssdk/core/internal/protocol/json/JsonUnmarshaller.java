@@ -15,30 +15,15 @@
 
 package software.amazon.awssdk.core.internal.protocol.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.SdkField;
 
-/**
- * Interface to marshall data according to the JSON protocol specification.
- *
- * @param <T> Type to marshall.
- */
 @SdkInternalApi
-public interface JsonMarshaller<T> {
+public interface JsonUnmarshaller<T> {
 
-    JsonMarshaller<Void> NULL = new JsonMarshaller<Void>() {
-        @Override
-        public void marshall(Void val, JsonMarshallerContext context, String paramName, SdkField<Void> sdkField) {
-        }
-    };
-
-    /**
-     * Marshall the data into the request.
-     *
-     * @param val       Data to marshall (may be null).
-     * @param context   Dependencies needed for marshalling.
-     * @param paramName Optional param/field name. May be null in certain situations.
-     */
-    void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField);
+    T unmarshall(JsonUnmarshallerContext context,
+                 JsonNode jsonContent,
+                 SdkField<T> field);
 
 }

@@ -22,11 +22,13 @@ import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFI
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +37,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.utils.Logger;
@@ -151,6 +154,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
         }
 
         return serviceName;
+    }
+
+    private String screamCase(String word) {
+        return Stream.of(splitOnWordBoundaries(word)).map(s -> s.toUpperCase(Locale.US)).collect(joining("_"));
     }
 
     private String pascalCase(String word) {
@@ -290,6 +297,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         }
 
         return Utils.unCapitalize(memberName);
+    }
+
+    @Override
+    public String getSdkFieldFieldName(MemberModel memberModel) {
+        return screamCase(memberModel.getName()) + "_FIELD";
     }
 
     private String[] splitOnWordBoundaries(String toSplit) {

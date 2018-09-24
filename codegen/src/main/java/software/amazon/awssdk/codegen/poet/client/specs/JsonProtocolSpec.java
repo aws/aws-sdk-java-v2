@@ -104,7 +104,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock responseHandler(IntermediateModel model, OperationModel opModel) {
-        ClassName unmarshaller = getUnmarshallerType(opModel);
         // TODO for rest-json we need to use the real response handler since response members will be bound to headers, for
         // aws-json we need to have a dummy response handler since the response members will be in the initial-response
         // event message
@@ -116,14 +115,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
             .builder()
             .add("\n\n$T<$T> responseHandler = $L.createResponseHandler(new $T()" +
                  "                                   .withPayloadJson($L)" +
-                 "                                   .withHasStreamingSuccessResponse($L), new $T());",
+                 "                                   .withHasStreamingSuccessResponse($L), $T::builder);",
                  HttpResponseHandler.class,
                  pojoResponseType,
                  protocolFactory,
                  JsonOperationMetadata.class,
                  !opModel.getHasBlobMemberAsPayload(),
                  opModel.hasStreamingOutput(),
-                 unmarshaller);
+                 pojoResponseType);
         if (opModel.hasEventStreamOutput()) {
             builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler(new $T()" +
                         "                                   .withPayloadJson(false)" +
@@ -312,10 +311,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
                              + "         }"
                              + "     }%n"
                              + "})", responseHandlerName);
-    }
-
-    private ClassName getUnmarshallerType(OperationModel opModel) {
-        return poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
     }
 
     /**

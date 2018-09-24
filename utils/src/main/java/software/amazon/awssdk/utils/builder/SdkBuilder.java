@@ -21,8 +21,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 /**
  * A mutable object that can be used to create an immutable object of type T.
  *
- * @param <T> the type that the builder will build
  * @param <B> the builder type (this)
+ * @param <T> the type that the builder will build
  */
 @SdkPublicApi
 public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {

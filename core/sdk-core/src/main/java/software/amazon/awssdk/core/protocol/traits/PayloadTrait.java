@@ -13,19 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol;
+package software.amazon.awssdk.core.protocol.traits;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
- * Interface used by generated marshallers to marshall a Java POJO.
+ * Trait that indicates a member is the 'payload' member.
  */
 @SdkProtectedApi
-public interface ProtocolMarshaller<MarshalledT> {
+public final class PayloadTrait implements Trait {
 
-    default MarshalledT marshall(SdkPojo pojo) {
-        return null;
+    private PayloadTrait() {
     }
 
+    public static PayloadTrait create() {
+        return new PayloadTrait();
+    }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.protocol.json;
 
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.SdkField;
 
 @SdkInternalApi
 public final class HeaderMarshaller {
@@ -47,7 +48,7 @@ public final class HeaderMarshaller {
         }
 
         @Override
-        public void marshall(T val, JsonMarshallerContext context, String paramName) {
+        public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
             context.request().addHeader(paramName, converter.apply(val));
         }
     }

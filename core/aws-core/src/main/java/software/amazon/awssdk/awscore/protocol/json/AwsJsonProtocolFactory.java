@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.protocol.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -32,7 +33,10 @@ import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentResolver
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentTypeResolver;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.JsonResponseHandler;
+import software.amazon.awssdk.core.http.NewJsonResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.BaseJsonProtocolFactory;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
@@ -69,6 +73,15 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsReq
         JsonOperationMetadata operationMetadata,
         Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return getSdkFactory().createResponseHandler(operationMetadata, responseUnmarshaller);
+    }
+
+    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
+        JsonOperationMetadata operationMetadata, Supplier<SdkPojo> pojoSupplier) {
+        JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>();
+        return new NewJsonResponseHandler<>(unmarshaller,
+                                            pojoSupplier,
+                                            operationMetadata.isHasStreamingSuccessResponse(),
+                                            operationMetadata.isPayloadJson());
     }
 
     /**

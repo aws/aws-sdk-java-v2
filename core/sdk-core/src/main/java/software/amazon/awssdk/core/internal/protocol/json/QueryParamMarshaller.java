@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.SdkField;
 
 @SdkInternalApi
 public final class QueryParamMarshaller {
@@ -43,15 +44,15 @@ public final class QueryParamMarshaller {
 
     public static final JsonMarshaller<Instant> INSTANT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_INSTANT);
 
-    public static final JsonMarshaller<List> LIST = (list, context, paramName) -> {
+    public static final JsonMarshaller<List> LIST = (list, context, paramName, sdkField) -> {
         for (Object listVal : list) {
-            context.marshall(MarshallLocation.QUERY_PARAM, listVal, paramName);
+            context.marshall(MarshallLocation.QUERY_PARAM, listVal, paramName, null);
         }
     };
 
-    public static final JsonMarshaller<Map> MAP = (val, context, paramName) -> {
+    public static final JsonMarshaller<Map> MAP = (val, context, paramName, sdkField) -> {
         for (Map.Entry<String, ?> mapEntry : ((Map<String, ?>) val).entrySet()) {
-            context.marshall(MarshallLocation.QUERY_PARAM, mapEntry.getValue(), mapEntry.getKey());
+            context.marshall(MarshallLocation.QUERY_PARAM, mapEntry.getValue(), mapEntry.getKey(), null);
         }
     };
 
@@ -67,7 +68,7 @@ public final class QueryParamMarshaller {
         }
 
         @Override
-        public void marshall(T val, JsonMarshallerContext context, String paramName) {
+        public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
             context.request().addParameter(paramName, converter.apply(val));
         }
     }

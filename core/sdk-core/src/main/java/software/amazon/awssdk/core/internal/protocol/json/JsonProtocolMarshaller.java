@@ -19,18 +19,23 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.protocol.MarshallingInfo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.protocol.traits.IdempotencyTrait;
+import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
+import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
 import software.amazon.awssdk.core.util.UriResourcePathUtils;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Implementation of {@link ProtocolRequestMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
@@ -58,11 +63,11 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
         this.request = fillBasicRequestParams(operationInfo, originalRequest);
         this.marshallerContext = JsonMarshallerContext.builder()
-                .jsonGenerator(jsonGenerator)
-                .marshallerRegistry(MARSHALLER_REGISTRY)
-                .protocolHandler(this)
-                .request(request)
-                .build();
+                                                      .jsonGenerator(jsonGenerator)
+                                                      .marshallerRegistry(MARSHALLER_REGISTRY)
+                                                      .protocolHandler(this)
+                                                      .request(request)
+                                                      .build();
     }
 
     private Request<OrigRequestT> fillBasicRequestParams(OperationInfo operationInfo, OrigRequestT originalRequest) {
@@ -80,97 +85,112 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
     }
 
     private static MarshallerRegistry createMarshallerRegistry() {
-        return MarshallerRegistry.builder()
-                .payloadMarshaller(MarshallingType.STRING, SimpleTypeJsonMarshaller.STRING)
-                .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
-                .payloadMarshaller(MarshallingType.LONG, SimpleTypeJsonMarshaller.LONG)
-                .payloadMarshaller(MarshallingType.DOUBLE, SimpleTypeJsonMarshaller.DOUBLE)
-                .payloadMarshaller(MarshallingType.FLOAT, SimpleTypeJsonMarshaller.FLOAT)
-                .payloadMarshaller(MarshallingType.BIG_DECIMAL, SimpleTypeJsonMarshaller.BIG_DECIMAL)
-                .payloadMarshaller(MarshallingType.BOOLEAN, SimpleTypeJsonMarshaller.BOOLEAN)
-                .payloadMarshaller(MarshallingType.INSTANT, SimpleTypeJsonMarshaller.INSTANT)
-                .payloadMarshaller(MarshallingType.SDK_BYTES, SimpleTypeJsonMarshaller.SDK_BYTES)
-                .payloadMarshaller(MarshallingType.STRUCTURED, SimpleTypeJsonMarshaller.STRUCTURED)
-                .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
-                .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
-                .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
+        return MarshallerRegistry
+            .builder()
+            .payloadMarshaller(MarshallingType.STRING, SimpleTypeJsonMarshaller.STRING)
+            .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
+            .payloadMarshaller(MarshallingType.LONG, SimpleTypeJsonMarshaller.LONG)
+            .payloadMarshaller(MarshallingType.DOUBLE, SimpleTypeJsonMarshaller.DOUBLE)
+            .payloadMarshaller(MarshallingType.FLOAT, SimpleTypeJsonMarshaller.FLOAT)
+            .payloadMarshaller(MarshallingType.BIG_DECIMAL, SimpleTypeJsonMarshaller.BIG_DECIMAL)
+            .payloadMarshaller(MarshallingType.BOOLEAN, SimpleTypeJsonMarshaller.BOOLEAN)
+            .payloadMarshaller(MarshallingType.INSTANT, SimpleTypeJsonMarshaller.INSTANT)
+            .payloadMarshaller(MarshallingType.SDK_BYTES, SimpleTypeJsonMarshaller.SDK_BYTES)
+            .payloadMarshaller(MarshallingType.SDK_POJO, SimpleTypeJsonMarshaller.SDK_POJO)
+            .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
+            .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
+            .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
 
-                .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
-                .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
-                .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
-                .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
-                .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
-                .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
-                .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
-                .headerMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
+            .headerMarshaller(MarshallingType.STRING, JsonProtocolMarshaller::marshallStringHeader)
+            .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
+            .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
+            .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
+            .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
+            .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
+            .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
+            .headerMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
 
-                .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
-                .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
-                .queryParamMarshaller(MarshallingType.LONG, QueryParamMarshaller.LONG)
-                .queryParamMarshaller(MarshallingType.DOUBLE, QueryParamMarshaller.DOUBLE)
-                .queryParamMarshaller(MarshallingType.FLOAT, QueryParamMarshaller.FLOAT)
-                .queryParamMarshaller(MarshallingType.BOOLEAN, QueryParamMarshaller.BOOLEAN)
-                .queryParamMarshaller(MarshallingType.INSTANT, QueryParamMarshaller.INSTANT)
-                .queryParamMarshaller(MarshallingType.LIST, QueryParamMarshaller.LIST)
-                .queryParamMarshaller(MarshallingType.MAP, QueryParamMarshaller.MAP)
-                .queryParamMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
+            .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
+            .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
+            .queryParamMarshaller(MarshallingType.LONG, QueryParamMarshaller.LONG)
+            .queryParamMarshaller(MarshallingType.DOUBLE, QueryParamMarshaller.DOUBLE)
+            .queryParamMarshaller(MarshallingType.FLOAT, QueryParamMarshaller.FLOAT)
+            .queryParamMarshaller(MarshallingType.BOOLEAN, QueryParamMarshaller.BOOLEAN)
+            .queryParamMarshaller(MarshallingType.INSTANT, QueryParamMarshaller.INSTANT)
+            .queryParamMarshaller(MarshallingType.LIST, QueryParamMarshaller.LIST)
+            .queryParamMarshaller(MarshallingType.MAP, QueryParamMarshaller.MAP)
+            .queryParamMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
 
-                .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
-                .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
-                .pathParamMarshaller(MarshallingType.LONG, SimpleTypePathMarshaller.LONG)
-                .pathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
+            .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
+            .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
+            .pathParamMarshaller(MarshallingType.LONG, SimpleTypePathMarshaller.LONG)
+            .pathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
 
-                .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
-                .greedyPathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
-                .build();
+            .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
+            .greedyPathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
+            .build();
+    }
+
+    private static void marshallStringHeader(String val, JsonMarshallerContext context, String paramName, SdkField<String> sdkField) {
+        if (val == null) {
+            return;
+        }
+        if (sdkField.containsTrait(JsonValueTrait.class)) {
+            context.request().addHeader(paramName, BinaryUtils.toBase64(val.getBytes(StandardCharsets.UTF_8)));
+        } else {
+            context.request().addHeader(paramName, val);
+        }
     }
 
     /**
      * If there is not an explicit payload member then we need to start the implicit JSON request object. All
      * members bound to the payload will be added as fields to this object.
      */
-    @Override
-    public void startMarshalling() {
+    private void startMarshalling() {
         if (!hasExplicitPayloadMember) {
             jsonGenerator.writeStartObject();
         }
     }
 
-    @Override
-    public <V> void marshall(V val, MarshallingInfo<V> marshallingInfo) {
-        doMarshall(resolveValue(val, marshallingInfo), marshallingInfo);
-    }
-
-    /**
-     * @return The original value if non-null, or if value is null and a default value {@link java.util.function.Supplier}
-     *     is present return the default value. Otherwise return null.
-     */
-    private <V> V resolveValue(V val, MarshallingInfo<V> marshallingInfo) {
-        return val == null && marshallingInfo.defaultValueSupplier() != null ? marshallingInfo.defaultValueSupplier().get() : val;
-    }
-
-    private <V> void doMarshall(V val, MarshallingInfo<V> marshallingInfo) {
-        if (marshallingInfo.isBinary()) {
-            marshallBinaryPayload(val);
-        } else {
-            MARSHALLER_REGISTRY.getMarshaller(marshallingInfo.marshallLocation(), marshallingInfo.marshallingType(), val)
-                    .marshall(val, marshallerContext, marshallingInfo.marshallLocationName());
+    public void doMarshall(SdkPojo pojo) {
+        for (SdkField<?> field : pojo.sdkFields()) {
+            Object val = resolveValue(field.get(pojo), field);
+            if (isBinary(field, val)) {
+                request.setContent(((SdkBytes) val).asInputStream());
+            } else {
+                if (val != null && field.containsTrait(PayloadTrait.class)) {
+                    jsonGenerator.writeStartObject();
+                    doMarshall((SdkPojo) val);
+                    jsonGenerator.writeEndObject();
+                } else {
+                    MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
+                                       .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+                }
+            }
         }
     }
 
-    /**
-     * Binary data should be placed as is, directly into the content.
-     */
-    private void marshallBinaryPayload(Object val) {
-        if (val instanceof SdkBytes) {
-            request.setContent(((SdkBytes) val).asInputStream());
-        } else if (val instanceof InputStream) {
-            request.setContent((InputStream) val);
-        }
+    private boolean isBinary(SdkField<?> field, Object val) {
+        return isExplicitPayloadMember(field) && val instanceof SdkBytes;
+    }
+
+    private boolean isExplicitPayloadMember(SdkField<?> field) {
+        return field.containsTrait(PayloadTrait.class);
     }
 
     @Override
-    public Request<OrigRequestT> finishMarshalling() {
+    public Request<OrigRequestT> marshall(SdkPojo pojo) {
+        startMarshalling();
+        doMarshall(pojo);
+        return finishMarshalling();
+    }
+
+    private Object resolveValue(Object val, SdkField<?> marshallingInfo) {
+        IdempotencyTrait trait = marshallingInfo.getTrait(IdempotencyTrait.class);
+        return trait == null ? val : trait.resolveValue((String) val);
+    }
+
+    private Request<OrigRequestT> finishMarshalling() {
         // Content may already be set if the payload is binary data.
         if (request.getContent() == null) {
             // End the implicit request object if needed.

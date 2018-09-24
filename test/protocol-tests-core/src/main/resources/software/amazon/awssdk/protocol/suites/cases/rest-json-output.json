@@ -55,5 +55,27 @@
         "StreamingMember": "contents"
       }
     }
+  },
+  {
+    "description": "Base 64 string header with JSON trait is decoded",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Encoded-Header": "dG9EZWNvZGU="
+        },
+        "body": "{\"JsonValueMember\":\"dontDecode\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonValuesOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "JsonValueHeaderMember": "toDecode",
+        "JsonValueMember": "dontDecode"
+      }
+    }
   }
 ]

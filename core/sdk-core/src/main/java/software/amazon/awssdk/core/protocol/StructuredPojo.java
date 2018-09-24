@@ -21,7 +21,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * Interface implemented by model classes so that they may marshaller themselves.
  */
 @SdkProtectedApi
-public interface StructuredPojo {
+// todo remove
+public interface StructuredPojo extends SdkPojo {
 
     /**
      * Marshalls this structured data using the given {@link ProtocolMarshaller}.
@@ -29,4 +30,5 @@ public interface StructuredPojo {
      * @param protocolMarshaller Implementation of {@link ProtocolMarshaller} used to marshall this object's data.
      */
     void marshall(ProtocolMarshaller protocolMarshaller);
+
 }

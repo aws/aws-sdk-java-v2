@@ -22,6 +22,8 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
@@ -30,7 +32,7 @@ import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 @SdkInternalApi
 public final class SimpleTypeJsonMarshaller {
 
-    public static final JsonMarshaller<Void> NULL = (val, context, paramName) -> {
+    public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
         // If paramName is non null then we are emitting a field of an object, in that
         // we just don't write the field. If param name is null then we are either in a container
         // or the thing being marshalled is the payload itself in which case we want to preserve
@@ -107,7 +109,17 @@ public final class SimpleTypeJsonMarshaller {
         @Override
         public void marshall(StructuredPojo val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
             jsonGenerator.writeStartObject();
-            val.marshall(context.protocolHandler());
+            context.protocolHandler().doMarshall(val);
+            jsonGenerator.writeEndObject();
+
+        }
+    };
+
+    public static final JsonMarshaller<SdkPojo> SDK_POJO = new BaseJsonMarshaller<SdkPojo>() {
+        @Override
+        public void marshall(SdkPojo val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            jsonGenerator.writeStartObject();
+            context.protocolHandler().doMarshall(val);
             jsonGenerator.writeEndObject();
 
         }
@@ -165,7 +177,7 @@ public final class SimpleTypeJsonMarshaller {
     private abstract static class BaseJsonMarshaller<T> implements JsonMarshaller<T> {
 
         @Override
-        public final void marshall(T val, JsonMarshallerContext context, String paramName) {
+        public final void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
             if (!shouldEmit(val)) {
                 return;
             }

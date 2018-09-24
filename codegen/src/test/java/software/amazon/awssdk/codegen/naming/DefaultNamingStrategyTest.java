@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -270,6 +271,24 @@ public class DefaultNamingStrategyTest {
         when(serviceMetadata.getServiceFullName()).thenReturn("Foo Service");
 
         strat.getServiceName();
+    }
+
+    @Test
+    public void getSdkFieldFieldName_SingleWord() {
+        assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("foo")))
+            .isEqualTo("FOO");
+    }
+
+    @Test
+    public void getSdkFieldFieldName_CamalCaseConvertedToScreamCase() {
+        assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("fooBar")))
+            .isEqualTo("FOO_BAR");
+    }
+
+    @Test
+    public void getSdkFieldFieldName_PascalCaseConvertedToScreamCase() {
+        assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("FooBar")))
+            .isEqualTo("FOO_BAR");
     }
 
     private void validateConversion(String input, String expectedOutput) {

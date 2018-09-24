@@ -96,6 +96,31 @@
         }
       }
     }
+  },
+  {
+    "description": "String header with JSON trait is base 64 encoded",
+    "given": {
+      "input": {
+        "JsonValueHeaderMember": "toEncode",
+        "JsonValueMember": "dontEncode"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "JsonValuesOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "Encoded-Header": "dG9FbmNvZGU="
+          }
+        },
+        "body": {
+          "equals": "{\"JsonValueMember\":\"dontEncode\"}"
+        }
+      }
+    }
   }
   // TODO This is a post process customization for API Gateway
   //  {

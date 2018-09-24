@@ -15,17 +15,11 @@
 
 package software.amazon.awssdk.core.protocol;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import java.util.List;
 
-/**
- * Interface used by generated marshallers to marshall a Java POJO.
- */
-@SdkProtectedApi
-public interface ProtocolMarshaller<MarshalledT> {
+public interface SdkPojo {
 
-    default MarshalledT marshall(SdkPojo pojo) {
+    default List<SdkField<?>> sdkFields() {
         return null;
     }
-
 }

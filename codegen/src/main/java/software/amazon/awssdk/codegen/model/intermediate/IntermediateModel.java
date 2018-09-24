@@ -31,6 +31,8 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
+import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -56,6 +58,9 @@ public final class IntermediateModel {
     @JsonIgnore
     private final Map<String, PaginatorDefinition> paginators;
 
+    @JsonIgnore
+    private final NamingStrategy namingStrategy;
+
     @JsonCreator
     public IntermediateModel(
         @JsonProperty("metadata") Metadata metadata,
@@ -64,7 +69,7 @@ public final class IntermediateModel {
         @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
         @JsonProperty("serviceExamples") ServiceExamples examples) {
 
-        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap());
+        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap(), null);
     }
 
     public IntermediateModel(
@@ -74,7 +79,8 @@ public final class IntermediateModel {
         CustomizationConfig customizationConfig,
         ServiceExamples examples,
         Map<String, AuthorizerModel> customAuthorizers,
-        Map<String, PaginatorDefinition> paginators) {
+        Map<String, PaginatorDefinition> paginators,
+        NamingStrategy namingStrategy) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -82,6 +88,7 @@ public final class IntermediateModel {
         this.examples = examples;
         this.customAuthorizers = customAuthorizers;
         this.paginators = paginators;
+        this.namingStrategy = namingStrategy;
     }
 
     public Metadata getMetadata() {
@@ -114,6 +121,10 @@ public final class IntermediateModel {
 
     public Map<String, PaginatorDefinition> getPaginators() {
         return paginators;
+    }
+
+    public NamingStrategy getNamingStrategy() {
+        return namingStrategy;
     }
 
     /**

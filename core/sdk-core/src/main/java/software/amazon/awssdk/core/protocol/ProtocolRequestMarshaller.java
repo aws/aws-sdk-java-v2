@@ -34,20 +34,7 @@ import software.amazon.awssdk.core.Request;
  * @param <OrigRequestT> Type of the original request object.
  */
 @SdkProtectedApi
-public interface ProtocolRequestMarshaller<OrigRequestT> extends ProtocolMarshaller {
-
-    /**
-     * Hook to perform an initialization that needs to happen at the start of marshalling. Must be called before
-     * any call to {@link #marshall(Object, MarshallingInfo)}.
-     */
-    void startMarshalling();
-
-    /**
-     * Finializes the marshalling and produces a {@link Request} object that can be sent for execution. Must be the last
-     * method called in the marshaller.
-     *
-     * @return Marshalled {@link Request} object.
-     */
-    Request<OrigRequestT> finishMarshalling();
+// todo collapse
+public interface ProtocolRequestMarshaller<OrigRequestT> extends ProtocolMarshaller<Request<OrigRequestT>> {
 
 }
