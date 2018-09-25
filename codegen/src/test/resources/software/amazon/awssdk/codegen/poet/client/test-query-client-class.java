@@ -9,13 +9,13 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
-import software.amazon.awssdk.awscore.internal.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
+import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
@@ -76,7 +76,7 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-                                                                                                     AwsServiceException, SdkClientException, QueryException {
+            AwsServiceException, SdkClientException, QueryException {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = new StaxResponseHandler<>(
                 new APostOperationResponseUnmarshaller(), new StaxOperationMetadata().withHasStreamingSuccessResponse(false));
@@ -84,8 +84,8 @@ final class DefaultQueryClient implements QueryClient {
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller()));
+                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller()));
     }
 
     /**
@@ -111,7 +111,7 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
-                                                                                    SdkClientException, QueryException {
+            SdkClientException, QueryException {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = new StaxResponseHandler<>(
                 new APostOperationWithOutputResponseUnmarshaller(),
@@ -121,9 +121,9 @@ final class DefaultQueryClient implements QueryClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(aPostOperationWithOutputRequest)
-                                 .withMarshaller(new APostOperationWithOutputRequestMarshaller()));
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(aPostOperationWithOutputRequest)
+                        .withMarshaller(new APostOperationWithOutputRequestMarshaller()));
     }
 
     private List<Unmarshaller<AwsServiceException, Node>> init() {

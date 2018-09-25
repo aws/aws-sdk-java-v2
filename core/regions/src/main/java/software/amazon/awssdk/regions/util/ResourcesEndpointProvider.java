@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions.util;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.VersionInfo;
 
 /**
@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.util.VersionInfo;
  * By default, the request won't be retried if the request fails while computing endpoint.
  * </p>
  */
-@SdkInternalApi
+@SdkProtectedApi
 @FunctionalInterface
 public interface ResourcesEndpointProvider {
     /**

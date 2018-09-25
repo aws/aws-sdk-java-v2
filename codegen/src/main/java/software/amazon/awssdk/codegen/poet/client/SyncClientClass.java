@@ -43,8 +43,8 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {

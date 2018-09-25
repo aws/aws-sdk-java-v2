@@ -13,23 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http;
+package software.amazon.awssdk.core.http;
 
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
-import software.amazon.awssdk.core.internal.protocol.json.JsonErrorUnmarshaller;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
+import software.amazon.awssdk.core.protocol.json.JsonErrorUnmarshaller;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Base error response handler for JSON protocol.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class JsonErrorResponseHandler<ExceptionT extends SdkServiceException> implements
                                                                                        HttpResponseHandler<ExceptionT> {
     private static final Logger LOG = LoggerFactory.getLogger(JsonErrorResponseHandler.class);

@@ -13,10 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions.util;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -38,6 +37,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
+import software.amazon.awssdk.regions.internal.util.SocketUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpCredentialsUtilsTest {

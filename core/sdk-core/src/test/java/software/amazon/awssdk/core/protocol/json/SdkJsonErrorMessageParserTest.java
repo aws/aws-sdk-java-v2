@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.ValidSdkObjects;
 

@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions.util;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Parameters that are used in {@link ResourcesEndpointRetryPolicy}.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class ResourcesEndpointRetryParameters {
 
     private final Integer statusCode;

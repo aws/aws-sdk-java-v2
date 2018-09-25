@@ -13,16 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.pagination.async;
+package software.amazon.awssdk.core.pagination.async;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class PaginationSubscription<ResponseT> implements Subscription {
 
     protected AtomicLong outstandingRequests = new AtomicLong(0);

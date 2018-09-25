@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.protocol.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
+import software.amazon.awssdk.core.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 

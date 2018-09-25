@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
@@ -23,9 +23,10 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.BiFunction;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.internal.protocol.json.SdkCborGenerator;
+import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeCborUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.utils.ImmutableMap;
@@ -33,7 +34,7 @@ import software.amazon.awssdk.utils.ImmutableMap;
 /**
  * Creates generators and protocol handlers for CBOR wire format.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class SdkStructuredCborFactory {
 
     protected static final JsonFactory CBOR_FACTORY = new CBORFactory();

@@ -23,7 +23,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
-import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredCborFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredIonFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredJsonFactory;

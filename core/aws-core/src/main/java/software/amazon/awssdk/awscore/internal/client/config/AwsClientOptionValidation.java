@@ -18,8 +18,8 @@ package software.amazon.awssdk.awscore.internal.client.config;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOptionValidation;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 /**
  * A set of static methods used to validate that a {@link SdkClientConfiguration} contains all of

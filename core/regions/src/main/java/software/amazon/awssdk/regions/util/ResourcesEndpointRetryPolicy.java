@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions.util;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Custom retry policy that retrieve information from a local endpoint in EC2 host.
  *
  * Internal use only.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public interface ResourcesEndpointRetryPolicy {
     ResourcesEndpointRetryPolicy NO_RETRY = (retriesAttempted, retryParams) -> false;
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.math.BigDecimal;
@@ -21,9 +21,11 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.BiFunction;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.internal.protocol.json.IonFactory;
+import software.amazon.awssdk.core.internal.protocol.json.SdkIonGenerator;
+import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.utils.ImmutableMap;
@@ -31,7 +33,7 @@ import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonSystemBuilder;
 import software.amazon.ion.system.IonWriterBuilder;
 
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class SdkStructuredIonFactory {
 
     protected static final IonSystem ION_SYSTEM = IonSystemBuilder.standard().build();

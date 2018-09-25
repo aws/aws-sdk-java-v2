@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.internal.protocol.json;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.internal.protocol.json.JsonErrorUnmarshaller;
+import software.amazon.awssdk.core.protocol.json.JsonErrorUnmarshaller;
 
 /**
  * Unmarshaller for JSON error responses from AWS services.

@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.client.config;
+package software.amazon.awssdk.core.client.config;
 
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.client.config.ClientOption;
+
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * This configuration object can be {@link #close()}d to release all closeable resources configured within it.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class SdkClientConfiguration
         implements ToCopyableBuilder<SdkClientConfiguration.Builder, SdkClientConfiguration>, SdkAutoCloseable {
     private final AttributeMap attributes;

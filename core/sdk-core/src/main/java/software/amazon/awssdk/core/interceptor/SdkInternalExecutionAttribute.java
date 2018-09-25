@@ -13,17 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Attributes that can be applied to all sdk requests. Only SDK is allowed to set these values.
  * Customer should not be using this class.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     /**

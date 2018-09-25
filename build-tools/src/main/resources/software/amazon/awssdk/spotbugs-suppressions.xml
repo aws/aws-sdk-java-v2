@@ -27,7 +27,7 @@
     <Match>
         <Or>
             <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.core.internal.protocol.json.JsonContent" />
+            <Class name="software.amazon.awssdk.core.protocol.json.JsonContent" />
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
     </Match>

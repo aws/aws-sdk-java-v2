@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.ion.IonReader;
