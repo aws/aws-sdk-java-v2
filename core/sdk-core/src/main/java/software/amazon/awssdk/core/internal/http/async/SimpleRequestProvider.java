@@ -78,9 +78,9 @@ public final class SimpleRequestProvider implements SdkHttpRequestProvider {
             if (n <= 0) {
                 s.onError(new IllegalArgumentException("Demand must be positive"));
             } else if (running) {
+                running = false;
                 s.onNext(ByteBuffer.wrap(content));
                 s.onComplete();
-                running = false;
             }
         }
 
