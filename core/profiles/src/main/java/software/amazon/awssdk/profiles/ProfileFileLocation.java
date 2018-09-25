@@ -37,15 +37,37 @@ public final class ProfileFileLocation {
     private ProfileFileLocation() {
     }
 
+
+    /**
+     * Resolve the path for the configuration file, regardless of whether it exists or not.
+     *
+     * @see #configurationFileLocation()
+     */
+    public static Path configurationFilePath() {
+        return resolveProfileFilePath(
+            ProfileFileSystemSetting.AWS_CONFIG_FILE.getStringValue()
+                                                    .orElse(Paths.get(ProfileFileLocation.userHomeDirectory(),
+                                                                      ".aws", "config").toString()));
+    }
+
+    /**
+     * Resolve the location for the credentials file, regardless of whether it exists or not.
+     *
+     * @see #credentialsFileLocation()
+     */
+    public static Path credentialsFilePath() {
+        return resolveProfileFilePath(
+            ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
+                                                                .orElse(Paths.get(userHomeDirectory(),
+                                                                                  ".aws", "credentials").toString()));
+    }
+
     /**
      * Load the location for the configuration file, usually ~/.aws/config unless it's overridden using an environment variable
      * or system property.
      */
     public static Optional<Path> configurationFileLocation() {
-        return resolveProfileFilePath(
-                ProfileFileSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                                        .orElse(Paths.get(ProfileFileLocation.userHomeDirectory(),
-                                                                          ".aws", "config").toString()));
+        return resolveIfExists(configurationFilePath());
     }
 
     /**
@@ -53,10 +75,7 @@ public final class ProfileFileLocation {
      * or system property.
      */
     public static Optional<Path> credentialsFileLocation() {
-        return resolveProfileFilePath(
-                ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
-                                                                    .orElse(Paths.get(userHomeDirectory(),
-                                                                                      ".aws", "credentials").toString()));
+        return resolveIfExists(credentialsFilePath());
     }
 
     /**
@@ -96,14 +115,16 @@ public final class ProfileFileLocation {
         // CHECKSTYLE:ON
     }
 
-    private static Optional<Path> resolveProfileFilePath(String path) {
+    private static Path resolveProfileFilePath(String path) {
         // Resolve ~ using the CLI's logic, not whatever Java decides to do with it.
         if (HOME_DIRECTORY_PATTERN.matcher(path).matches()) {
             path = userHomeDirectory() + path.substring(1);
         }
 
-        return Optional.ofNullable(Paths.get(path))
-                       .filter(Files::isRegularFile)
-                       .filter(Files::isReadable);
+        return Paths.get(path);
+    }
+
+    private static Optional<Path> resolveIfExists(Path path) {
+        return Optional.ofNullable(path).filter(Files::isRegularFile).filter(Files::isReadable);
     }
 }
