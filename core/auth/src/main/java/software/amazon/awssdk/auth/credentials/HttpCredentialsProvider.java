@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.credentials.internal;
+package software.amazon.awssdk.auth.credentials;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,16 +21,11 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
-import software.amazon.awssdk.regions.internal.util.HttpResourcesUtils;
-import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.util.HttpResourcesUtils;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ComparableUtils;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -43,7 +38,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Helper class that contains the common behavior of the CredentialsProviders that loads the credentials from a local endpoint on
  * a container (e.g. an EC2 instance).
  */
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final Optional<CachedSupplier<AwsCredentials>> credentialsCache;
 

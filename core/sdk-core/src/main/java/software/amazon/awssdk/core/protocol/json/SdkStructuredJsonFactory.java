@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshall
 /**
  * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.
  * Current implementations include {@link SdkStructuredPlainJsonFactory} and {@link
- * software.amazon.awssdk.core.internal.protocol.json.SdkStructuredCborFactory}
+ * SdkStructuredCborFactory}
  */
 @SdkProtectedApi
 public interface SdkStructuredJsonFactory extends StructuredJsonFactory {

@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.protocol.json.SdkStructuredCborFactory;
+import software.amazon.awssdk.core.protocol.json.SdkStructuredCborFactory;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**

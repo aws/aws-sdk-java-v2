@@ -19,9 +19,10 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.http.JsonErrorResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**

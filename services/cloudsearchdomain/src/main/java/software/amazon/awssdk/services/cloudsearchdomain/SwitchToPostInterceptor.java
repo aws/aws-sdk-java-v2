@@ -15,14 +15,19 @@
 
 package software.amazon.awssdk.services.cloudsearchdomain;
 
+import static java.util.Collections.singletonList;
+import static software.amazon.awssdk.utils.StringUtils.lowerCase;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Ensures that all SearchRequests use <code>POST</code> instead of <code>GET</code>, moving the query parameters to be form data.
@@ -36,9 +41,21 @@ public final class SwitchToPostInterceptor implements ExecutionInterceptor {
         if (originalRequest instanceof SearchRequest && request.method() == SdkHttpMethod.GET) {
             return request.toBuilder()
                           .method(SdkHttpMethod.POST)
-                          .applyMutation(MoveParametersToBodyStage::changeQueryParametersToFormData)
+                          .applyMutation(SwitchToPostInterceptor::changeQueryParametersToFormData)
                           .build();
         }
         return request;
+    }
+
+    // Copied from MoveParametersToBodyStage to avoid importing internal class
+    private static SdkHttpFullRequest.Builder changeQueryParametersToFormData(SdkHttpFullRequest.Builder input) {
+        byte[] params = SdkHttpUtils.encodeAndFlattenFormData(input.rawQueryParameters()).orElse("")
+                .getBytes(StandardCharsets.UTF_8);
+
+        return input.clearQueryParameters()
+                .content(new ByteArrayInputStream(params))
+                .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
+                .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
+                        lowerCase(StandardCharsets.UTF_8.toString())));
     }
 }

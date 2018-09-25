@@ -13,26 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.internal.protocol.xml;
+package software.amazon.awssdk.awscore.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 
 /**
- * Contains information needed to create a {@link StaxResponseHandler}.
+ * Supported protocols for the new marshalling style. Currently only includes JSON based services.
  */
 @SdkProtectedApi
-public final class StaxOperationMetadata {
+public enum AwsJsonProtocol {
 
-    private boolean hasStreamingSuccessResponse;
+    /**
+     * RPC protocol that sends all data in the payload as JSON and sends the X-Amz-Target header to indicate the
+     * operation to invoke.
+     */
+    AWS_JSON,
 
-    public StaxOperationMetadata withHasStreamingSuccessResponse(
-        boolean hasStreamingSuccessResponse) {
-        this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
-        return this;
-    }
-
-    public boolean isHasStreamingSuccessResponse() {
-        return hasStreamingSuccessResponse;
-    }
+    /**
+     * Protocol that supports RESTful bindings. Members can be bound to the headers, query params, path, or payload. Supports
+     * binary and streaming data. Operation is identified by HTTP verb and resource path combination.
+     */
+    REST_JSON,
 }

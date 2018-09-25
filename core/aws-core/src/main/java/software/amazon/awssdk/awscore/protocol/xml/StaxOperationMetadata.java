@@ -13,24 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.client.config;
+package software.amazon.awssdk.awscore.protocol.xml;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 
 /**
- * An option in a {@link SdkClientConfiguration}.
- *
- * @see SdkAdvancedClientOption
- * @see SdkClientOption
+ * Contains information needed to create a {@link StaxResponseHandler}.
  */
 @SdkProtectedApi
-public abstract class ClientOption<T> extends AttributeMap.Key<T> {
-    protected ClientOption(Class<T> valueClass) {
-        super(valueClass);
+public final class StaxOperationMetadata {
+
+    private boolean hasStreamingSuccessResponse;
+
+    public StaxOperationMetadata withHasStreamingSuccessResponse(
+        boolean hasStreamingSuccessResponse) {
+        this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
+        return this;
     }
 
-    protected ClientOption(UnsafeValueType unsafeValueType) {
-        super(unsafeValueType);
+    public boolean isHasStreamingSuccessResponse() {
+        return hasStreamingSuccessResponse;
     }
 }

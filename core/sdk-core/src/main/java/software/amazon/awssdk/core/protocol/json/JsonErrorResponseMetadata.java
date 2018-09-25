@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.protocol.json;
 import java.util.List;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.internal.http.JsonErrorResponseHandler;
+import software.amazon.awssdk.core.http.JsonErrorResponseHandler;
 
 /**
  * Contains various metadata needed to create an appropriate {@link JsonErrorResponseHandler}

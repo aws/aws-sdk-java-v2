@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi

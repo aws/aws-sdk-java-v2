@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkInternalApi
