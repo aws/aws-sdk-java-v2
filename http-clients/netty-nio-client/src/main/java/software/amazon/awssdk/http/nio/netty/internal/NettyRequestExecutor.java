@@ -164,10 +164,12 @@ public final class NettyRequestExecutor {
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
-                   if (wireCall.isSuccess()) {
+                   if (wireCall.isSuccess() && !context.executeRequest().fullDuplex()) {
                        // Starting read so add the idle read timeout handler, removed when channel is released
                        channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                           TimeUnit.MILLISECONDS));
+                       channel.read();
+
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);
@@ -175,13 +177,14 @@ public final class NettyRequestExecutor {
                    }
                });
 
+        // FullDuplex calls need to start reading at the same time we make the request.
         if (context.executeRequest().fullDuplex()) {
             channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                TimeUnit.MILLISECONDS));
+            channel.read();
         }
 
         // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
-        channel.read();
     }
 
     private URI endpoint() {
