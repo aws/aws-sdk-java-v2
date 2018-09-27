@@ -196,8 +196,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     public boolean hasPayloadMembers() {
         return hasPayloadMember ||
                getExplicitEventPayloadMember() != null ||
-               getUnboundMembers().size() > 0 ||
-               getUnboundEventMembers().size() > 0;
+               !getUnboundMembers().isEmpty() ||
+               (isEvent() && !getUnboundEventMembers().isEmpty());
     }
 
     /**
