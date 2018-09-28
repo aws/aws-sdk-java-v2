@@ -21,20 +21,14 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -62,29 +56,28 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     private static final Logger log = LoggerFactory.getLogger(EventStreamAsyncResponseTransformer.class);
 
-    private static final Object ON_COMPLETE_EVENT = new Object();
-
     private static final ExecutionAttributes EMPTY_EXECUTION_ATTRIBUTES = new ExecutionAttributes();
 
     /**
      * {@link EventStreamResponseHandler} provided by customer.
      */
-    private final EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler;
+    private final EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer;
 
     /**
      * Unmarshalls the initial response.
      */
-    private final HttpResponseHandler<? extends ResponseT> initialResponseHandler;
+    private final HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller;
 
     /**
      * Unmarshalls the event POJO.
      */
-    private final HttpResponseHandler<? extends EventT> eventResponseHandler;
+    private final HttpResponseHandler<? extends EventT> eventUnmarshaller;
 
     /**
      * Unmarshalls exception events.
      */
-    private final HttpResponseHandler<? extends Throwable> exceptionResponseHandler;
+    private final HttpResponseHandler<? extends Throwable> exceptionUnmarshaller;
+    private final CompletableFuture<Void> future;
 
     /**
      * Remaining demand (i.e number of unmarshalled events) we need to provide to the customers subscriber.
@@ -96,13 +89,13 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private final AtomicReference<Subscriber<? super EventT>> subscriberRef = new AtomicReference<>();
 
-    private final AtomicReference<Subscription> dataSubscription = new AtomicReference<>();
-
     /**
      * Event stream message decoder that decodes the binary data into "frames". These frames are then passed to the
      * unmarshaller to produce the event POJO.
      */
-    private final MessageDecoder decoder = new MessageDecoder(this::handleMessage);
+    private final MessageDecoder decoder = createDecoder();
+
+    private final String serviceName;
 
     /**
      * Tracks whether we have delivered a terminal notification to the subscriber and response handler
@@ -114,41 +107,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      * Holds a reference to any exception delivered to exceptionOccurred.
      */
     private final AtomicReference<Throwable> error = new AtomicReference<>();
-
-    /**
-     * Executor to deliver events to the subscriber
-     */
-    private final Executor executor;
-
-    /**
-     * Queue of events to deliver to downstream subscriber. Will contain mostly objects
-     * of type EventT, the special {@link #ON_COMPLETE_EVENT} will be added when all events
-     * have been added to the queue.
-     */
-    private final Queue<Object> eventsToDeliver = new LinkedList<>();
-
-    /**
-     * Flag to indicate we are currently delivering events to the subscriber.
-     */
-    private final AtomicBoolean isDelivering = new AtomicBoolean(false);
-
-    /**
-     * Flag to indicate we are currently requesting demand from the data publisher.
-     */
-    private final AtomicBoolean isRequesting = new AtomicBoolean(false);
-
-    /**
-     * Future to notify on completion. Note that we do not notify this future in the event of an error, that
-     * is handled separately by the generated client. Ultimately we need this due to a disconnect between
-     * completion of the request (i.e. finish reading all the data from the wire) and the completion of the event
-     * stream (i.e. deliver the last event to the subscriber).
-     */
-    private final CompletableFuture<Void> future;
-
-    /**
-     * The name of the aws service
-     */
-    private final String serviceName;
 
     /**
      * Request Id for the streaming request. The value is populated when the initial response is received from the service.
@@ -164,15 +122,18 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private String extendedRequestId = null;
 
-    @Deprecated
-    @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
+    /**
+     * @param eventStreamResponseTransformer Response transformer provided by customer.
+     * @param initialResponseUnmarshaller Unmarshaller for the initial-response event stream message.
+     * @param eventUnmarshaller Unmarshaller for the various event types.
+     */
     public EventStreamAsyncResponseTransformer(
-        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler,
-        HttpResponseHandler<? extends ResponseT> initialResponseHandler,
-        HttpResponseHandler<? extends EventT> eventResponseHandler,
-        HttpResponseHandler<? extends Throwable> exceptionResponseHandler) {
-        this(eventStreamResponseHandler, initialResponseHandler, eventResponseHandler, exceptionResponseHandler,
-             Executors.newSingleThreadScheduledExecutor(), new CompletableFuture<>(), "");
+        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
+        HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller,
+        HttpResponseHandler<? extends EventT> eventUnmarshaller,
+        HttpResponseHandler<? extends Throwable> exceptionUnmarshaller) {
+        this(eventStreamResponseTransformer, initialResponseUnmarshaller, eventUnmarshaller, exceptionUnmarshaller,
+              new CompletableFuture<>(), "");
     }
 
     private EventStreamAsyncResponseTransformer(
@@ -180,15 +141,13 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         HttpResponseHandler<? extends ResponseT> initialResponseHandler,
         HttpResponseHandler<? extends EventT> eventResponseHandler,
         HttpResponseHandler<? extends Throwable> exceptionResponseHandler,
-        Executor executor,
         CompletableFuture<Void> future,
         String serviceName) {
 
-        this.eventStreamResponseHandler = eventStreamResponseHandler;
-        this.initialResponseHandler = initialResponseHandler;
-        this.eventResponseHandler = eventResponseHandler;
-        this.exceptionResponseHandler = exceptionResponseHandler;
-        this.executor = executor;
+        this.eventStreamResponseTransformer = eventStreamResponseHandler;
+        this.initialResponseUnmarshaller = initialResponseHandler;
+        this.eventUnmarshaller = eventResponseHandler;
+        this.exceptionUnmarshaller = exceptionResponseHandler;
         this.future = future;
         this.serviceName = serviceName;
     }
@@ -219,10 +178,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         dataSubscriptionFuture.thenAccept(dataSubscription -> {
             SdkPublisher<EventT> eventPublisher = new EventPublisher(dataSubscription);
             try {
-                eventStreamResponseHandler.onEventStream(eventPublisher);
+                eventStreamResponseTransformer.onEventStream(eventPublisher);
             } catch (Throwable t) {
-                exceptionOccurred(t);
                 dataSubscription.cancel();
+                exceptionOccurred(t);
             }
         });
     }
@@ -238,64 +197,61 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                         () -> subscriberRef.get().onError(throwable));
                 }
-                eventStreamResponseHandler.exceptionOccurred(throwable);
+                eventStreamResponseTransformer.exceptionOccurred(throwable);
             }
         }
     }
 
     @Override
     public Void complete() {
-        if (error.get() == null) {
-            // Add the special on complete event to signal drainEvents to complete the subscriber
-            eventsToDeliver.add(ON_COMPLETE_EVENT);
-            drainEventsIfNotAlready();
-            return null;
-        } else {
-            // Need to propagate the failure up so the future is completed exceptionally. This should only happen
-            // when there is a frame level exception that the upper layers don't know about.
-            throw ThrowableUtils.failure(error.get());
-        }
-    }
-
-    /**
-     * Called when all events have been delivered to the downstream subscriber.
-     */
-    private void onEventComplete() {
         synchronized (this) {
-            isDone = true;
-            runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
-                () -> subscriberRef.get().onComplete());
-            eventStreamResponseHandler.complete();
-            future.complete(null);
+            if (!isDone) {
+                isDone = true;
+                // If we have a Subscriber at this point notify it as well
+                if (subscriberRef.get() != null) {
+                    runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
+                        () -> subscriberRef.get().onComplete());
+                }
+                future.complete(null);
+                eventStreamResponseTransformer.complete();
+                return null;
+            } else {
+                // Need to propagate the failure up so the future is completed exceptionally. This should only happen
+                // when there is a frame level exception that the upper layers don't know about.
+                throw ThrowableUtils.failure(error.get());
+            }
         }
     }
 
     /**
-     * Handle the event stream message according to it's type.
+     * Create the event stream {@link MessageDecoder} which will decode the raw bytes into {@link Message} frames.
      *
-     * @param m Decoded message.
+     * @return Decoder.
      */
-    private void handleMessage(Message m) {
-        try {
-            if (isEvent(m)) {
-                if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
-                    eventStreamResponseHandler.responseReceived(
-                        initialResponseHandler.handle(adaptMessageToResponse(m, false),
-                                                      EMPTY_EXECUTION_ATTRIBUTES));
-                } else {
-                    // Add to queue to be delivered later by the executor
-                    eventsToDeliver.add(eventResponseHandler.handle(adaptMessageToResponse(m, false),
-                                                                    EMPTY_EXECUTION_ATTRIBUTES));
+    private MessageDecoder createDecoder() {
+        return new MessageDecoder(m -> {
+            try {
+                // TODO: Can we move all of the dispatching to a single unmarshaller?
+                if (isEvent(m)) {
+                    if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
+                        eventStreamResponseTransformer.responseReceived(
+                            initialResponseUnmarshaller.handle(adaptMessageToResponse(m, false),
+                                                               EMPTY_EXECUTION_ATTRIBUTES));
+                    } else {
+                        remainingDemand.decrementAndGet();
+                        subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m, false),
+                                                                            EMPTY_EXECUTION_ATTRIBUTES));
+                    }
+                } else if (isError(m) || isException(m)) {
+                    HttpResponse errorResponse = adaptMessageToResponse(m, true);
+                    Throwable exception = exceptionUnmarshaller.handle(
+                        errorResponse, new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, serviceName));
+                    runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
                 }
-            } else if (isError(m) || isException(m)) {
-                HttpResponse errorResponse = adaptMessageToResponse(m, true);
-                Throwable exception = exceptionResponseHandler.handle(
-                    errorResponse, new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, serviceName));
-                runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
+            } catch (Exception e) {
+                throw SdkClientException.builder().cause(e).build();
             }
-        } catch (Exception e) {
-            throw SdkClientException.builder().cause(e).build();
-        }
+        });
     }
 
     /**
@@ -353,6 +309,8 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         private final CompletableFuture<Subscription> dataSubscriptionFuture;
 
+        private Subscription subscription;
+
         /**
          * @param dataSubscriptionFuture Future to notify when the {@link Subscription} object is available.
          */
@@ -362,28 +320,16 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         @Override
         public void onSubscribe(Subscription subscription) {
-            dataSubscription.set(subscription);
             dataSubscriptionFuture.complete(subscription);
+            this.subscription = subscription;
         }
 
         @Override
         public void onNext(ByteBuffer buffer) {
-            // Bail out if we've already delivered an exception to the downstream subscriber
-            if (isDone) {
-                return;
-            }
-            synchronized (eventsToDeliver) {
-                decoder.feed(BinaryUtils.copyBytesFrom(buffer));
-                // If we have things to deliver, do so.
-                if (!eventsToDeliver.isEmpty()) {
-                    isRequesting.compareAndSet(true, false);
-                    drainEventsIfNotAlready();
-                } else {
-                    // If we still haven't fulfilled the outstanding demand then keep requesting byte chunks until we do
-                    if (remainingDemand.get() > 0) {
-                        dataSubscription.get().request(1);
-                    }
-                }
+            decoder.feed(BinaryUtils.copyBytesFrom(buffer));
+            // If we still haven't fulfilled the outstanding demand then keep requesting byte chunks until we do
+            if (remainingDemand.get() > 0) {
+                this.subscription.request(1);
             }
         }
 
@@ -395,7 +341,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         @Override
         public void onComplete() {
-            // Notified in onEventComplete method because we have more context on what we've delivered to
+            // Notified in response handler complete method because we have more context on what we've delivered to
             // the event stream subscriber there.
         }
     }
@@ -418,17 +364,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                 subscriber.onSubscribe(new Subscription() {
                     @Override
                     public void request(long l) {
-                        if (isDone) {
-                            return;
-                        }
-                        synchronized (eventsToDeliver) {
-                            remainingDemand.addAndGet(l);
-                            if (!eventsToDeliver.isEmpty()) {
-                                drainEventsIfNotAlready();
-                            } else {
-                                requestDataIfNotAlready();
-                            }
-                        }
+                        // Kick off the first request to the byte buffer publisher which will keep requesting
+                        // bytes until we can fulfill the demand of the event publisher.
+                        dataSubscription.request(1);
+                        remainingDemand.addAndGet(l);
                     }
 
                     @Override
@@ -441,64 +380,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                 throw new IllegalStateException("This publisher may only be subscribed to once");
             }
         }
-    }
-
-    /**
-     * Requests data from the {@link ByteBuffer} {@link Publisher} until we have enough data to fulfill demand. If we are
-     * already requesting data this is a no-op.
-     */
-    private void requestDataIfNotAlready() {
-        if (isRequesting.compareAndSet(false, true)) {
-            dataSubscription.get().request(1);
-        }
-    }
-
-    /**
-     * Drains events from the queue until the demand is met or all events are delivered. If we are already
-     * in the process of delivering events this is a no-op.
-     */
-    private void drainEventsIfNotAlready() {
-        if (isDelivering.compareAndSet(false, true)) {
-            drainEvents();
-        }
-    }
-
-    /**
-     * Drains events from the queue until the demand is met or all events are delivered. This differs
-     * from {@link #drainEventsIfNotAlready()} in that it assumes it has the {@link #isDelivering} 'lease' already.
-     */
-    private void drainEvents() {
-        // If we've already delivered an exception to the subscriber than bail out
-        if (isDone) {
-            return;
-        }
-        synchronized (eventsToDeliver) {
-            if (eventsToDeliver.peek() == ON_COMPLETE_EVENT) {
-                onEventComplete();
-                return;
-            }
-            if (eventsToDeliver.isEmpty() || remainingDemand.get() == 0) {
-                isDelivering.compareAndSet(true, false);
-                // If we still have demand to fulfill then request more if we aren't already requesting
-                if (remainingDemand.get() > 0) {
-                    requestDataIfNotAlready();
-                }
-            } else {
-                // Deliver the event and recursively call ourselves after it's delivered
-                Object event = eventsToDeliver.remove();
-                remainingDemand.decrementAndGet();
-                CompletableFuture.runAsync(() -> deliverEvent(event), executor)
-                                 .thenRunAsync(this::drainEvents, executor);
-            }
-        }
-    }
-
-    /**
-     * Delivers the event to the downstream subscriber. We already know the type so the cast is safe.
-     */
-    @SuppressWarnings("unchecked")
-    private void deliverEvent(Object event) {
-        subscriberRef.get().onNext((EventT) event);
     }
 
     /**
@@ -524,7 +405,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         private HttpResponseHandler<? extends ResponseT> initialResponseHandler;
         private HttpResponseHandler<? extends EventT> eventResponseHandler;
         private HttpResponseHandler<? extends Throwable> exceptionResponseHandler;
-        private Executor executor;
         private CompletableFuture<Void> future;
         private String serviceName;
 
@@ -575,7 +455,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
          * @return This object for method chaining.
          */
         public Builder<ResponseT, EventT> executor(Executor executor) {
-            this.executor = executor;
             return this;
         }
 
@@ -602,10 +481,9 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                                              initialResponseHandler,
                                                              eventResponseHandler,
                                                              exceptionResponseHandler,
-                                                             executor,
                                                              future,
                                                              serviceName);
         }
     }
-
 }
+
