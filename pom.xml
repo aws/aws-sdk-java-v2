@@ -113,7 +113,7 @@
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
-        <maven-bundle-plugin.version>3.5.1</maven-bundle-plugin.version>
+        <maven-bundle-plugin.version>4.0.0</maven-bundle-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <checkstyle.version>7.8.2</checkstyle.version>
