@@ -214,7 +214,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getJavaClassName(String shapeName) {
-        return Arrays.stream(shapeName.split("[._-]|\\W")).map(Utils::capitalize).collect(Collectors.joining());
+        return Arrays.stream(shapeName.split("[._-]|\\W"))
+                     .filter(s -> !StringUtils.isEmpty(s))
+                     .map(Utils::capitalize)
+                     .collect(Collectors.joining());
     }
 
     @Override
