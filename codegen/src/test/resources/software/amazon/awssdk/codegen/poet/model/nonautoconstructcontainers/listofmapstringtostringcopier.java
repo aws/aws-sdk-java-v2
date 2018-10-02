@@ -10,7 +10,7 @@ import software.amazon.awssdk.annotations.Generated;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfMapStringToStringCopier {
-    static List<Map<String, String>> copy(Collection<Map<String, String>> listOfMapStringToStringParam) {
+    static List<Map<String, String>> copy(Collection<? extends Map<String, String>> listOfMapStringToStringParam) {
         if (listOfMapStringToStringParam == null) {
             return null;
         }
