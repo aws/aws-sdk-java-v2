@@ -201,7 +201,7 @@ public class TypeProvider {
     private TypeName listParameterType(ListModel listModel) {
         MemberModel elementModel = listModel.getListMemberModel();
         TypeName listElementType = parameterType(elementModel);
-        if (elementModel.isList()) {
+        if (isContainerType(elementModel)) {
             listElementType = WildcardTypeName.subtypeOf(listElementType);
         }
         return ParameterizedTypeName.get(ClassName.get(Collection.class), listElementType);
@@ -226,5 +226,9 @@ public class TypeProvider {
         }
 
         return valueType;
+    }
+
+    private static boolean isContainerType(MemberModel m) {
+        return m.isList() || m.isMap();
     }
 }

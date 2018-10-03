@@ -164,12 +164,13 @@ public final class NettyRequestExecutor {
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
-                   if (wireCall.isSuccess() && !context.executeRequest().fullDuplex()) {
-                       // Starting read so add the idle read timeout handler, removed when channel is released
-                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
-                                                                          TimeUnit.MILLISECONDS));
-                       channel.read();
-
+                   if (wireCall.isSuccess()) {
+                       if (!context.executeRequest().fullDuplex()) {
+                           // Starting read so add the idle read timeout handler, removed when channel is released
+                           channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                              TimeUnit.MILLISECONDS));
+                           channel.read();
+                       }
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);

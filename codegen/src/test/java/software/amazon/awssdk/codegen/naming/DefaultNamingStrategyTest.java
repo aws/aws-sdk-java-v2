@@ -275,4 +275,53 @@ public class DefaultNamingStrategyTest {
     private void validateConversion(String input, String expectedOutput) {
         assertThat(strat.getEnumValueName(input)).isEqualTo(expectedOutput);
     }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithUnderscore() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("_MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithDoubleUnderscore() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("__MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithDoublePeriods() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("..MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithDoubleDashes() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("--MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_DoubleUnderscoresInClass() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("My__Class");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_DoublePeriodsInClass() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("My..Class");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_DoubleDashesInClass() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("My--Class");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
 }
