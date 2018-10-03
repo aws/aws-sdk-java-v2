@@ -26,7 +26,8 @@ import software.amazon.awssdk.services.sts.model.Credentials;
  * Inherits tests from {@link StsCredentialsProviderTestBase}.
  */
 public class StsAssumeRoleWithSamlCredentialsProviderTest
-        extends StsCredentialsProviderTestBase<AssumeRoleWithSamlRequest, AssumeRoleWithSamlResponse> {
+    extends StsCredentialsProviderTestBase<AssumeRoleWithSamlRequest, AssumeRoleWithSamlResponse> {
+
     @Override
     protected AssumeRoleWithSamlRequest getRequest() {
         return AssumeRoleWithSamlRequest.builder().build();

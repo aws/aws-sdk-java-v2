@@ -22,7 +22,7 @@ import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
-import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryParameters;
+import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
 
 public class ContainerCredentialsRetryPolicyTest {
 

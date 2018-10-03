@@ -24,7 +24,7 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
-import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
+import software.amazon.awssdk.core.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class AwsJsonErrorMessageParserTest {

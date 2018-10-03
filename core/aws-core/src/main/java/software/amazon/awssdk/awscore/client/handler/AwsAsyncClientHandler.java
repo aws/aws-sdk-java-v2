@@ -24,11 +24,11 @@ import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUt
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 /**
  * Async client handler for AWS SDK clients.

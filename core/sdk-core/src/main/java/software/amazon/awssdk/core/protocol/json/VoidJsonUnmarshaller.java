@@ -28,9 +28,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  * Simple unmarshaller that iterates through the JSON events but always
  * returns a dummy empty {@link SdkResponse}.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class VoidJsonUnmarshaller implements Unmarshaller<SdkResponse, JsonUnmarshallerContext> {
 
     public SdkResponse unmarshall(JsonUnmarshallerContext context) throws Exception {

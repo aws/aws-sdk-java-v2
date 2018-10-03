@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
-import software.amazon.awssdk.awscore.internal.protocol.xml.StaxOperationMetadata;
+import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -23,14 +23,14 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Simple struct like class to hold both the raw json string content and it's parsed JsonNode
  */
-@SdkInternalApi
+@SdkProtectedApi
 @ReviewBeforeRelease("Do we need this? It isn't well encapsulated because of storing non-copied arrays.")
 public class JsonContent {
 

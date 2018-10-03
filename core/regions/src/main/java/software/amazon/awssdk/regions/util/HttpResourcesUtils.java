@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.internal.util;
+package software.amazon.awssdk.regions.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
@@ -22,14 +22,13 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
-@SdkInternalApi
 @SdkProtectedApi
 public final class HttpResourcesUtils {
 

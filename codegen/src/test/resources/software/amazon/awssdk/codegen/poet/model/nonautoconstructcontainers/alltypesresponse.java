@@ -754,7 +754,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          *        The new value for the ListOfMaps property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder listOfMaps(Collection<Map<String, String>> listOfMaps);
+        Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps);
 
         /**
          * Sets the value of the ListOfMaps property for this object.
@@ -1332,12 +1332,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
         }
 
-        public final Collection<Map<String, String>> getListOfMaps() {
+        public final Collection<? extends Map<String, String>> getListOfMaps() {
             return listOfMaps;
         }
 
         @Override
-        public final Builder listOfMaps(Collection<Map<String, String>> listOfMaps) {
+        public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
             return this;
         }
@@ -1349,7 +1349,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
             return this;
         }
 
-        public final void setListOfMaps(Collection<Map<String, String>> listOfMaps) {
+        public final void setListOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
         }
 

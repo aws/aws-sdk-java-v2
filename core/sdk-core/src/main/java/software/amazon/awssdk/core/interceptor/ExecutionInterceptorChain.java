@@ -13,18 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Logger;
@@ -38,7 +35,7 @@ import software.amazon.awssdk.utils.Validate;
  * {@link #afterTransmission}. This ensures the last interceptors to modify the request are the first interceptors to see the
  * response.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class ExecutionInterceptorChain {
     private static final Logger LOG = Logger.loggerFor(ExecutionInterceptorChain.class);
 

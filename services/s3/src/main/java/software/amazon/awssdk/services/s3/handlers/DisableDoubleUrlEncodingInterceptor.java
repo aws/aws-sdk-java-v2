@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;

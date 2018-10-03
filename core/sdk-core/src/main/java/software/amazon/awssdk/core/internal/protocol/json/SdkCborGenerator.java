@@ -20,6 +20,7 @@ import com.fasterxml.jackson.dataformat.cbor.CBORGenerator;
 import java.io.IOException;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**

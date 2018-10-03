@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
 
@@ -22,12 +22,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Method;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 
 
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class JsonErrorUnmarshaller<T extends SdkServiceException> extends AbstractErrorUnmarshaller<T, JsonNode> {
 
     private static final ObjectMapper MAPPER = new ObjectMapper().configure(

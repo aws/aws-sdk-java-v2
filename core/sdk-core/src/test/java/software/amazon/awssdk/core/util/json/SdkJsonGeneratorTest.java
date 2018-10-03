@@ -28,7 +28,7 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
+import software.amazon.awssdk.core.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.utils.BinaryUtils;
 

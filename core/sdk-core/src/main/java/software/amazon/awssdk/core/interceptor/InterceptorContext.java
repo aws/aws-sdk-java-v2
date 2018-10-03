@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Validate;
@@ -30,7 +29,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * An SDK-internal implementation of {@link Context.AfterExecution} and its parent interfaces.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class InterceptorContext
         implements Context.AfterExecution,
                    ToCopyableBuilder<InterceptorContext.Builder, InterceptorContext> {
