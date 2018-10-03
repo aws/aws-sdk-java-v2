@@ -179,7 +179,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         private final StreamedHttpResponse response;
         private final ChannelHandlerContext channelContext;
         private final RequestContext requestContext;
-        private final AtomicBoolean isCancelled = new AtomicBoolean(false);
+        private final AtomicBoolean isDone = new AtomicBoolean(false);
 
         private PublisherAdapter(StreamedHttpResponse response, ChannelHandlerContext channelContext,
                                  RequestContext requestContext) {
@@ -209,8 +209,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 }
 
                 private void onCancel() {
+                    if (!isDone.compareAndSet(false, true)) {
+                        return;
+                    }
                     try {
-                        isCancelled.set(true);
                         requestContext.handler().exceptionOccurred(
                             new SdkCancellationException("Subscriber cancelled before all events were published"));
                     } finally {
@@ -221,6 +223,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onNext(HttpContent httpContent) {
+                    // isDone may be true if the subscriber cancelled
+                    if (isDone.get()) {
+                        return;
+                    }
                     // Needed to prevent use-after-free bug if the subscriber's onNext is asynchronous
                     ByteBuffer b = copyToByteBuffer(httpContent.content());
                     httpContent.release();
@@ -230,7 +236,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onError(Throwable t) {
-                    if (isCancelled.get()) {
+                    if (!isDone.compareAndSet(false, true)) {
                         return;
                     }
                     try {
@@ -247,7 +253,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 public void onComplete() {
                     // For HTTP/2 it's possible to get an onComplete after we cancel due to the channel becoming
                     // inactive. We guard against that here and just ignore the signal (see HandlerPublisher)
-                    if (isCancelled.get()) {
+                    if (!isDone.compareAndSet(false, true)) {
                         return;
                     }
                     try {
