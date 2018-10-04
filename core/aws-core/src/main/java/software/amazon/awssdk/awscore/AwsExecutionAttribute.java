@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
