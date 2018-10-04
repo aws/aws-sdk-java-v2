@@ -17,13 +17,11 @@ package software.amazon.awssdk.testutils.service.http;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkRequestContext;
 
 /**
  * Mockable implementation of {@link SdkHttpClient}.
@@ -34,9 +32,8 @@ public final class MockHttpClient implements SdkHttpClient {
     private SdkHttpFullResponse nextResponse;
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request,
-                                                                 SdkRequestContext requestContext) {
-        capturedRequests.add(request);
+    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+        capturedRequests.add(request.httpRequest());
         return new AbortableCallable<SdkHttpFullResponse>() {
             @Override
             public SdkHttpFullResponse call() throws Exception {
@@ -49,10 +46,6 @@ public final class MockHttpClient implements SdkHttpClient {
         };
     }
 
-    @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.empty();
-    }
 
     @Override
     public void close() {
@@ -70,7 +63,7 @@ public final class MockHttpClient implements SdkHttpClient {
      * Sets up the next HTTP response that will be returned by the mock.
      *
      * @param nextResponse Next {@link SdkHttpFullResponse} to return from
-     *                     {@link #prepareRequest(SdkHttpFullRequest, SdkRequestContext)}
+     *                     {@link #prepareRequest(ExecuteRequest)}
      */
     public void stubNextResponse(SdkHttpFullResponse nextResponse) {
         this.nextResponse = nextResponse;

@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.http.ConfigurationProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -36,7 +35,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
-public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvider {
+public interface SdkAsyncHttpClient extends SdkAutoCloseable {
 
     /**
      * Execute the request.

@@ -29,7 +29,6 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -71,10 +70,6 @@ public final class AwsClientHandlerUtils {
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
-            .putAttribute(AwsSignerExecutionAttribute.REQUEST_CONFIG,
-                          originalRequest.overrideConfiguration()
-                                         .map(c -> (RequestOverrideConfiguration) c)
-                                         .orElse(AwsRequestOverrideConfiguration.builder().build()))
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
             .putAttribute(AwsExecutionAttribute.AWS_REGION, clientConfig.option(AwsClientOption.AWS_REGION))

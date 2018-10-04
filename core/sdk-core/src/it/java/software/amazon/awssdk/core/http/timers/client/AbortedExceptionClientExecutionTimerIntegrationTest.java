@@ -71,7 +71,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
 
     @Before
     public void setup() throws Exception {
-        when(sdkHttpClient.prepareRequest(any(), any())).thenReturn(abortableCallable);
+        when(sdkHttpClient.prepareRequest(any())).thenReturn(abortableCallable);
         httpClient = HttpTestUtils.testClientBuilder().httpClient(sdkHttpClient).build();
         when(abortableCallable.call()).thenReturn(SdkHttpFullResponse.builder()
                                                                      .statusCode(200)

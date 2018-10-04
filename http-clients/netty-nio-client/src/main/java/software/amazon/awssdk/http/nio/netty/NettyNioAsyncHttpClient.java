@@ -35,7 +35,6 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
@@ -163,11 +162,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
         return SdkEventLoopGroup.create(new NonManagedEventLoopGroup(eventLoopGroup.eventLoopGroup()),
                                         eventLoopGroup.channelFactory());
-    }
-
-    @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(configuration.attribute(key));
     }
 
     @Override
