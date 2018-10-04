@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -132,6 +133,7 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
         if (paginatorDefinition.getResultKey() != null) {
             return paginatorDefinition.getResultKey().stream()
                                       .map(this::getMethodsSpecForSingleResultKey)
+                                      .filter(Objects::nonNull)
                                       .collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -154,8 +156,14 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
      *  }
      */
     private MethodSpec getMethodsSpecForSingleResultKey(String resultKey) {
-        TypeName resultKeyType = getTypeForResultKey(resultKey);
         MemberModel resultKeyModel = memberModelForResponseMember(resultKey);
+
+        // TODO: Support other types besides List or Map
+        if (!(resultKeyModel.isList() || resultKeyModel.isMap())) {
+            return null;
+        }
+
+        TypeName resultKeyType = getTypeForResultKey(resultKey);
 
         return MethodSpec.methodBuilder(resultKeyModel.getFluentGetterMethodName())
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
