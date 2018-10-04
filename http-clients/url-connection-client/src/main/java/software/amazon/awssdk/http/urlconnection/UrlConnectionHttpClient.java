@@ -27,17 +27,16 @@ import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -64,14 +63,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext requestContext) {
-        final HttpURLConnection connection = createAndConfigureConnection(request);
-        return new RequestCallable(connection, request);
-    }
-
-    @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(options.get(key));
+    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+        final HttpURLConnection connection = createAndConfigureConnection(request.httpRequest());
+        return new RequestCallable(connection, request.httpRequest());
     }
 
     @Override

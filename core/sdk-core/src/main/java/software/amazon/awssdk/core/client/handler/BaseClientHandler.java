@@ -17,9 +17,7 @@ package software.amazon.awssdk.core.client.handler;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -133,18 +131,8 @@ public abstract class BaseClientHandler {
 
         SdkRequest originalRequest = params.getInput();
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                               .filter(c -> c instanceof
-                                                                                        SdkRequestOverrideConfiguration)
-                                                                               .map(c -> (RequestOverrideConfiguration) c)
-                                                                               .orElse(SdkRequestOverrideConfiguration.builder()
-                                                                                                                       .build()))
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
-                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                               .map(c -> (SdkRequestOverrideConfiguration) c)
-                                                                               .orElse(SdkRequestOverrideConfiguration.builder()
-                                                                                                                       .build()));
+                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION));
 
         ExecutionInterceptorChain interceptorChain =
                 new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));

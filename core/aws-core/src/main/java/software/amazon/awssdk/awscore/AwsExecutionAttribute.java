@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.awscore;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -25,7 +25,7 @@ import software.amazon.awssdk.regions.Region;
 /**
  * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s.
  */
-@SdkProtectedApi
+@SdkPublicApi
 public final class AwsExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The AWS {@link Region} the client was configured with. This is not always same as the
