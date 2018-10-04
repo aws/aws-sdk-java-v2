@@ -120,7 +120,7 @@ public class SyncClientHandlerTest {
 
     private void expectRetrievalFromMocks() {
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
-        when(httpClient.prepareRequest(any(), any())).thenReturn(httpClientCall);
+        when(httpClient.prepareRequest(any())).thenReturn(httpClientCall);
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {

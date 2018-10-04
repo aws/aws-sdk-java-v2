@@ -63,11 +63,10 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
@@ -172,7 +171,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext context) {
+    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
         final HttpRequestBase apacheRequest = toApacheRequest(request);
         return new AbortableCallable<SdkHttpFullResponse>() {
             @Override
@@ -188,11 +187,6 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(resolvedOptions.get(key));
-    }
-
-    @Override
     public void close() {
         httpClient.getHttpClientConnectionManager().shutdown();
     }
@@ -203,8 +197,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return createResponse(httpResponse, apacheRequest);
     }
 
-    private HttpRequestBase toApacheRequest(SdkHttpFullRequest request) {
-        return apacheHttpRequestFactory.create(request, requestConfig);
+    private HttpRequestBase toApacheRequest(ExecuteRequest request) {
+        return apacheHttpRequestFactory.create(request.httpRequest(), requestConfig);
     }
 
     /**

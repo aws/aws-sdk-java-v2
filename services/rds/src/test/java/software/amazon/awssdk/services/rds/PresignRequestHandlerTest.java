@@ -170,9 +170,7 @@ public class PresignRequestHandlerTest {
     }
 
     private ExecutionAttributes executionAttributes(RdsRequest request) {
-        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsSignerExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
-                                                                                                         .orElse(AwsRequestOverrideConfiguration.builder().build()));
+        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS);
     }
 
     private CopyDbSnapshotRequest makeTestRequest() {

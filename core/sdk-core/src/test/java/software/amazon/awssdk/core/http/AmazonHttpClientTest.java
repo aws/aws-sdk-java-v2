@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -60,7 +61,7 @@ public class AmazonHttpClientTest {
     public void setUp() throws Exception {
         BasicConfigurator.configure();
         client = HttpTestUtils.testClientBuilder().httpClient(sdkHttpClient).build();
-        when(sdkHttpClient.prepareRequest(any(), any())).thenReturn(abortableCallable);
+        when(sdkHttpClient.prepareRequest(any())).thenReturn(abortableCallable);
         stubSuccessfulResponse();
     }
 
@@ -85,7 +86,7 @@ public class AmazonHttpClientTest {
         }
 
         // Verify that we called execute 4 times.
-        verify(sdkHttpClient, times(4)).prepareRequest(any(), any());
+        verify(sdkHttpClient, times(4)).prepareRequest(any());
     }
 
     @Test
@@ -137,10 +138,10 @@ public class AmazonHttpClientTest {
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
               .execute(handler);
 
-        ArgumentCaptor<SdkHttpFullRequest> httpRequestCaptor = ArgumentCaptor.forClass(SdkHttpFullRequest.class);
-        verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture(), any());
+        ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+        verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
 
-        final String userAgent = httpRequestCaptor.getValue().firstMatchingHeader("User-Agent")
+        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
                                                   .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
         Assert.assertTrue(userAgent.startsWith(prefix));

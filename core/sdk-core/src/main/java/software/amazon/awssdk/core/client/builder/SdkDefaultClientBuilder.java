@@ -56,11 +56,9 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuil
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -368,14 +366,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         @Override
-        public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request,
-                                                                     SdkRequestContext requestContext) {
-            return delegate.prepareRequest(request, requestContext);
-        }
-
-        @Override
-        public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-            return delegate.getConfigurationValue(key);
+        public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+            return delegate.prepareRequest(request);
         }
 
         @Override
@@ -400,11 +392,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         @Override
         public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
             return delegate.execute(request);
-        }
-
-        @Override
-        public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-            return delegate.getConfigurationValue(key);
         }
 
         @Override
