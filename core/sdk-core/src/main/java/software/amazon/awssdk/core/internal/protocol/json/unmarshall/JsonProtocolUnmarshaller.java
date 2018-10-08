@@ -13,56 +13,46 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.internal.protocol.json.StringToValueConverter;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.SdkPojo;
-import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
 import software.amazon.awssdk.core.protocol.traits.ListTrait;
 import software.amazon.awssdk.core.protocol.traits.MapTrait;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
-public class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+/**
+ * Unmarshaller implementation for both JSON RPC and REST JSON services.
+ *
+ * @param <TypeT> Type to unmarshall into.
+ */
+@SdkProtectedApi
+public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     private static final UnmarshallerRegistry REGISTRY = UnmarshallerRegistry
         .builder()
-        .headerUnmarshaller(MarshallingType.STRING, new JsonUnmarshaller<String>() {
-            @Override
-            public String unmarshall(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<String> field) {
-                if (field.containsTrait(JsonValueTrait.class)) {
-                    return context.response().firstMatchingHeader(field.locationName())
-                                  .map(s -> new String(BinaryUtils.fromBase64(s), StandardCharsets.UTF_8))
-                                  .orElse(null);
-                } else {
-                    return context.response().firstMatchingHeader(field.locationName())
-                                  .orElse(null);
-                }
-            }
-        })
-        .headerUnmarshaller(MarshallingType.INTEGER, new HeaderUnmarshaller<>(StringToValueConverter.TO_INTEGER))
-        .headerUnmarshaller(MarshallingType.LONG, new HeaderUnmarshaller<>(StringToValueConverter.TO_LONG))
-        .headerUnmarshaller(MarshallingType.DOUBLE, new HeaderUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
-        .headerUnmarshaller(MarshallingType.BOOLEAN, new HeaderUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
-        .headerUnmarshaller(MarshallingType.INSTANT, new HeaderUnmarshaller<>(StringToValueConverter.TO_INSTANT_ISO))
-        .headerUnmarshaller(MarshallingType.FLOAT, new HeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT))
+        .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)
+        .headerUnmarshaller(MarshallingType.INTEGER, HeaderUnmarshaller.INTEGER)
+        .headerUnmarshaller(MarshallingType.LONG, HeaderUnmarshaller.LONG)
+        .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
+        .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
+        .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.INSTANT)
+        .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
         .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
         .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))
         .payloadUnmarshaller(MarshallingType.LONG, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_LONG))
@@ -76,11 +66,17 @@ public class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
         .build();
 
+    private final ObjectMapper mapper;
+
+    public JsonProtocolUnmarshaller(ObjectMapper objectMapper) {
+        mapper = objectMapper;
+    }
+
     private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<SdkPojo> f) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         } else {
-            return unmarshallStructured(f.constructor(), jsonContent, context);
+            return unmarshallStructured(f.constructor().get(), jsonContent, context);
         }
     }
 
@@ -91,8 +87,8 @@ public class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         SdkField<?> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
         Map<String, Object> map = new HashMap<>();
         jsonContent.fieldNames().forEachRemaining(f -> {
-            map.put(f, context.unmarshallerRegistry().getUnmarshaller(valueInfo.location(), valueInfo.marshallingType())
-                              .unmarshall(context, jsonContent.get(f), (SdkField<Object>) valueInfo));
+            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
+            map.put(f, unmarshaller.unmarshall(context, jsonContent.get(f), (SdkField<Object>) valueInfo));
         });
         return map;
     }
@@ -104,8 +100,8 @@ public class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         List<Object> list = new ArrayList<>();
         for (int i = 0; i < jsonContent.size(); i++) {
             SdkField<?> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
-            Object unmarshall = context.unmarshallerRegistry().getUnmarshaller(memberInfo.location(), memberInfo.marshallingType())
-                                       .unmarshall(context, jsonContent.get(i), (SdkField<Object>) memberInfo);
+            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(), memberInfo.marshallingType());
+            Object unmarshall = unmarshaller.unmarshall(context, jsonContent.get(i), (SdkField<Object>) memberInfo);
             list.add(unmarshall);
         }
         return list;
@@ -123,36 +119,17 @@ public class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         public T unmarshall(JsonUnmarshallerContext context,
                             JsonNode jsonContent,
                             SdkField<T> field) {
-            return jsonContent != null && !jsonContent.isNull() ? stringToValue.apply(jsonContent.asText()) : null;
+            return jsonContent != null && !jsonContent.isNull() ? stringToValue.convert(jsonContent.asText(), field) : null;
         }
     }
 
-    private static class HeaderUnmarshaller<T> implements JsonUnmarshaller<T> {
-
-        private final StringToValueConverter.StringToValue<T> stringToValue;
-
-        private HeaderUnmarshaller(StringToValueConverter.StringToValue<T> stringToValue) {
-            this.stringToValue = stringToValue;
-        }
-
-        @Override
-        public T unmarshall(JsonUnmarshallerContext context,
-                            JsonNode jsonContent,
-                            SdkField<T> field) {
-            return context.response().firstMatchingHeader(field.locationName())
-                          .map(stringToValue::apply)
-                          .orElse(null);
-        }
-    }
-
-    public TypeT unmarshall(Supplier<SdkPojo> pojoSupplier,
+    public TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
-        SdkPojo sdkPojo = pojoSupplier.get();
         if (hasPayloadMembers(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo)) {
-            JsonNode jsonNode = MAPPER.readTree(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
-            return unmarshall(pojoSupplier, response, jsonNode);
+            JsonNode jsonNode = mapper.readTree(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
+            return unmarshall(sdkPojo, response, jsonNode);
         } else {
-            return unmarshall(pojoSupplier, response, null);
+            return unmarshall(sdkPojo, response, null);
         }
     }
 
@@ -172,33 +149,30 @@ public class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
                       .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
     }
 
-    public TypeT unmarshall(Supplier<SdkPojo> pojoSupplier,
+    public TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response,
                             JsonNode jsonContent) {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
                                                                  .unmarshallerRegistry(REGISTRY)
                                                                  .response(response)
                                                                  .build();
-        return unmarshallStructured(pojoSupplier, jsonContent, context);
+        return unmarshallStructured(sdkPojo, jsonContent, context);
     }
 
     @SuppressWarnings("unchecked")
-    private static <TypeT extends SdkPojo> TypeT unmarshallStructured(Supplier<SdkPojo> pojoSupplier,
+    private static <TypeT extends SdkPojo> TypeT unmarshallStructured(SdkPojo sdkPojo,
                                                                       JsonNode jsonContent,
                                                                       JsonUnmarshallerContext context) {
-        SdkPojo structuredPojo = pojoSupplier.get();
-        for (SdkField<?> field : structuredPojo.sdkFields()) {
+        for (SdkField<?> field : sdkPojo.sdkFields()) {
             if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
-                field.set(structuredPojo, SdkBytes.fromInputStream(context.response().content().orElse(null)));
+                field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().orElse(null)));
             } else {
                 JsonNode jsonFieldContent = getJsonNode(jsonContent, field);
-                // TODO handle no unmarshaller found
-                field.set(structuredPojo,
-                          context.unmarshallerRegistry().getUnmarshaller(field.location(), field.marshallingType())
-                                 .unmarshall(context, jsonFieldContent, (SdkField<Object>) field));
+                JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());
+                field.set(sdkPojo, unmarshaller.unmarshall(context, jsonFieldContent, (SdkField<Object>) field));
             }
         }
-        return ((SdkBuilder<?, TypeT>) structuredPojo).build();
+        return ((SdkBuilder<?, TypeT>) sdkPojo).build();
     }
 
     private static JsonNode getJsonNode(JsonNode jsonContent, SdkField<?> field) {

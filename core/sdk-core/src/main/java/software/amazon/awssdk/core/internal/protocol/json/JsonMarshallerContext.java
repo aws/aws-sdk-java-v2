@@ -18,8 +18,8 @@ package software.amazon.awssdk.core.internal.protocol.json;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**

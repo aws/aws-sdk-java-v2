@@ -31,15 +31,16 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.traits.IdempotencyTrait;
 import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
 import software.amazon.awssdk.core.protocol.traits.ListTrait;
 import software.amazon.awssdk.core.protocol.traits.LocationTrait;
 import software.amazon.awssdk.core.protocol.traits.MapTrait;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
+import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
 
 /**
  * Provides Poet specs related to shape models.
@@ -148,11 +149,14 @@ class ShapeModelSpec {
         if (m.getHttp().getIsPayload()) {
             traits.add(createPayloadTrait());
         }
-        if(m.isJsonValue()) {
+        if (m.isJsonValue()) {
             traits.add(createJsonValueTrait());
         }
-        if(m.isIdempotencyToken()) {
+        if (m.isIdempotencyToken()) {
             traits.add(createIdempotencyTrait());
+        }
+        if (m.getTimestampFormat() != null) {
+            traits.add(createTimestampFormatTrait(m));
         }
         if (!traits.isEmpty()) {
             return CodeBlock.builder()
@@ -162,6 +166,15 @@ class ShapeModelSpec {
         } else {
             return CodeBlock.builder().build();
         }
+    }
+
+    private CodeBlock createTimestampFormatTrait(MemberModel m) {
+        TimestampFormatTrait.Format format = TimestampFormatTrait.Format.fromString(m.getTimestampFormat());
+        ClassName traitClass = ClassName.get(TimestampFormatTrait.class);
+        ClassName formatClass = ClassName.get(TimestampFormatTrait.Format.class);
+        return CodeBlock.builder()
+                        .add("$T.create($T.$L)", traitClass, formatClass, format.name())
+                        .build();
     }
 
     private CodeBlock createLocationTrait(MemberModel m) {

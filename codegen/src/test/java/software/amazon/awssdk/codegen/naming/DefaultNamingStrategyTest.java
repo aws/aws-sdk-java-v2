@@ -276,19 +276,19 @@ public class DefaultNamingStrategyTest {
     @Test
     public void getSdkFieldFieldName_SingleWord() {
         assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("foo")))
-            .isEqualTo("FOO");
+            .isEqualTo("FOO_FIELD");
     }
 
     @Test
     public void getSdkFieldFieldName_CamalCaseConvertedToScreamCase() {
         assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("fooBar")))
-            .isEqualTo("FOO_BAR");
+            .isEqualTo("FOO_BAR_FIELD");
     }
 
     @Test
     public void getSdkFieldFieldName_PascalCaseConvertedToScreamCase() {
         assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("FooBar")))
-            .isEqualTo("FOO_BAR");
+            .isEqualTo("FOO_BAR_FIELD");
     }
 
     private void validateConversion(String input, String expectedOutput) {

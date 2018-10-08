@@ -13,15 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.protocol.json.unmarshall.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.protocol.SdkField;
 
+/**
+ * Interface for unmarshalling a field from a JSON based service.
+ *
+ * @param <T> Type to unmarshall into.
+ */
 @SdkInternalApi
 public interface JsonUnmarshaller<T> {
 
+    /**
+     * @param context Context containing dependencies and unmarshaller registry.
+     * @param jsonContent Parsed JSON content of body. May be null for REST JSON based services that don't have payload members.
+     * @param field {@link SdkField} of member being unmarshalled.
+     * @return Unmarshalled value.
+     */
     T unmarshall(JsonUnmarshallerContext context,
                  JsonNode jsonContent,
                  SdkField<T> field);

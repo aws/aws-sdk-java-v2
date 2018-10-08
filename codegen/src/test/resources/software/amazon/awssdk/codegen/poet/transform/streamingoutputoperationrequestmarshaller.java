@@ -18,10 +18,10 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public class StreamingOutputOperationRequestMarshaller implements
-        Marshaller<Request<StreamingOutputOperationRequest>, StreamingOutputOperationRequest> {
+                                                       Marshaller<Request<StreamingOutputOperationRequest>, StreamingOutputOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-            .requestUri("/2016-03-11/streamingOutputOperation").httpMethodName(HttpMethodName.POST)
-            .hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
+                                                                            .requestUri("/2016-03-11/streamingOutputOperation").httpMethodName(HttpMethodName.POST)
+                                                                            .hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 
@@ -34,14 +34,11 @@ public class StreamingOutputOperationRequestMarshaller implements
         Validate.paramNotNull(streamingOutputOperationRequest, "streamingOutputOperationRequest");
         try {
             ProtocolRequestMarshaller<StreamingOutputOperationRequest> protocolMarshaller = protocolFactory
-                    .createProtocolMarshaller(SDK_OPERATION_BINDING, streamingOutputOperationRequest);
-            protocolMarshaller.startMarshalling();
-            StreamingOutputOperationRequestModelMarshaller.getInstance().marshall(streamingOutputOperationRequest,
-                    protocolMarshaller);
-            return protocolMarshaller.finishMarshalling();
+                .createProtocolMarshaller(SDK_OPERATION_BINDING, streamingOutputOperationRequest);
+            return protocolMarshaller.marshall(streamingOutputOperationRequest);
         } catch (Exception e) {
-            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
-                    .build();
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

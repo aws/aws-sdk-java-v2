@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.protocol.json.SdkStructuredIonFactory;
@@ -41,15 +42,23 @@ public final class AwsStructuredIonFactory extends SdkStructuredIonFactory {
     static class AwsIonFactory extends BaseAwsStructuredJsonFactory {
         private final IonWriterBuilder builder;
 
+        private final ObjectMapper mapper;
+
         AwsIonFactory(JsonFactory jsonFactory, Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers,
                       IonWriterBuilder builder) {
             super(jsonFactory, unmarshallers);
+            this.mapper = new ObjectMapper(jsonFactory);
             this.builder = builder;
         }
 
         @Override
         protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory, String contentType) {
             return ION_GENERATOR_SUPPLIER.apply(builder, contentType);
+        }
+
+        @Override
+        public ObjectMapper createObjectMapper() {
+            return mapper;
         }
 
         @Override

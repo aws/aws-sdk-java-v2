@@ -76,6 +76,8 @@ public class MemberModel extends DocumentationModel {
 
     private boolean isJsonValue;
 
+    private String timestampFormat;
+
     public String getName() {
         return name;
     }
@@ -463,6 +465,19 @@ public class MemberModel extends DocumentationModel {
 
     public MemberModel withJsonValue(boolean jsonValue) {
         setJsonValue(jsonValue);
+        return this;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
+    }
+
+    public MemberModel withTimestampFormat(String timestampFormat) {
+        setTimestampFormat(timestampFormat);
         return this;
     }
 

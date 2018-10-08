@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.protocol.json.SdkStructuredPlainJsonFactory;
@@ -27,12 +28,19 @@ import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 @SdkInternalApi
 public final class AwsStructuredPlainJsonFactory extends SdkStructuredPlainJsonFactory {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper(JSON_FACTORY);
+
     public static final AwsStructuredJsonFactory SDK_JSON_FACTORY = new BaseAwsStructuredJsonFactory(
             JSON_FACTORY, JSON_SCALAR_UNMARSHALLERS) {
         @Override
         protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
                                                        String contentType) {
             return new SdkJsonGenerator(jsonFactory, contentType);
+        }
+
+        @Override
+        public ObjectMapper createObjectMapper() {
+            return MAPPER;
         }
     };
 

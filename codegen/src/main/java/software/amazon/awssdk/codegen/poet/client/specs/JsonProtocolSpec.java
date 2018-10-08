@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
-import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
+import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
@@ -145,16 +145,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      JsonOperationMetadata.class,
                      true,
                      false,
-                     ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
+                     ClassName.get(EventStreamTaggedUnionPojoSupplier.class));
 
             eventStreamUtils.getEventStreamMembers()
                             .forEach(m -> {
-                                String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
-                                builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",
-                                            m.getC2jName(),
-                                            poetExtensions.getTransformClass(unmarshallerClassName));
+                                builder.add(".addSdkPojoSupplier(\"$L\", $T::builder)\n",
+                                            m.getC2jName(), poetExtensions.getModelClass(m.getName()));
                             });
-            builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
+            builder.add(".defaultSdkPojoSupplier(() -> $T.UNKNOWN)\n"
                         + ".build());\n", eventStreamUtils.eventStreamBaseClass());
         }
         return builder.build();

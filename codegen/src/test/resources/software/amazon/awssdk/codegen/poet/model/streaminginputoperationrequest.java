@@ -1,9 +1,14 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -11,8 +16,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements
-                                                                             ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+public final class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements SdkPojo,
+                                                                                              ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
+
     private StreamingInputOperationRequest(BuilderImpl builder) {
         super(builder);
     }
@@ -59,7 +66,13 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
         return Optional.empty();
     }
 
-    public interface Builder extends JsonProtocolTestsRequest.Builder, CopyableBuilder<Builder, StreamingInputOperationRequest> {
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
+                                     CopyableBuilder<Builder, StreamingInputOperationRequest> {
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
@@ -91,5 +104,11 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
         public StreamingInputOperationRequest build() {
             return new StreamingInputOperationRequest(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

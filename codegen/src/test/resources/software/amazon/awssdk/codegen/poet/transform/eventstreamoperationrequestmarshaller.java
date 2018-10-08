@@ -18,10 +18,10 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public class EventStreamOperationRequestMarshaller implements
-        Marshaller<Request<EventStreamOperationRequest>, EventStreamOperationRequest> {
+                                                   Marshaller<Request<EventStreamOperationRequest>, EventStreamOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-            .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false)
-            .hasPayloadMembers(false).build();
+                                                                            .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false)
+                                                                            .hasPayloadMembers(false).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 
@@ -34,12 +34,11 @@ public class EventStreamOperationRequestMarshaller implements
         Validate.paramNotNull(eventStreamOperationRequest, "eventStreamOperationRequest");
         try {
             ProtocolRequestMarshaller<EventStreamOperationRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
-                    SDK_OPERATION_BINDING, eventStreamOperationRequest);
-            protocolMarshaller.startMarshalling();
-            EventStreamOperationRequestModelMarshaller.getInstance().marshall(eventStreamOperationRequest, protocolMarshaller);
-            return protocolMarshaller.finishMarshalling();
+                SDK_OPERATION_BINDING, eventStreamOperationRequest);
+            return protocolMarshaller.marshall(eventStreamOperationRequest);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

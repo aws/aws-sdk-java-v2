@@ -43,7 +43,9 @@ public final class MarshallerRegistry {
         return getMarshaller(marshallLocation, toMarshallingType(val));
     }
 
-    public <T> JsonMarshaller<Object> getMarshaller(MarshallLocation marshallLocation, MarshallingType<T> marshallingType, Object val) {
+    public <T> JsonMarshaller<Object> getMarshaller(MarshallLocation marshallLocation,
+                                                    MarshallingType<T> marshallingType,
+                                                    Object val) {
         return getMarshaller(marshallLocation,
                              val == null ? MarshallingType.NULL : marshallingType);
     }

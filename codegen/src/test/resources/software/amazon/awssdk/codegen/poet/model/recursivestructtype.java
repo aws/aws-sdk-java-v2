@@ -2,20 +2,26 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.protocol.traits.ListTrait;
+import software.amazon.awssdk.core.protocol.traits.LocationTrait;
+import software.amazon.awssdk.core.protocol.traits.MapTrait;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
-import software.amazon.awssdk.services.jsonprotocoltests.transform.RecursiveStructTypeMarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -24,8 +30,47 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class RecursiveStructType implements StructuredPojo,
-        ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
+public final class RecursiveStructType implements SdkPojo, ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
+    private static final SdkField<String> NO_RECURSE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(RecursiveStructType::noRecurse)).setter(setter(Builder::noRecurse))
+        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "NoRecurse")).build();
+
+    private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
+        .<RecursiveStructType> builder(MarshallingType.SDK_POJO).getter(getter(RecursiveStructType::recursiveStruct))
+                                                                .setter(setter(Builder::recursiveStruct)).constructor(RecursiveStructType::builder)
+                                                                .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "RecursiveStruct")).build();
+
+    private static final SdkField<List<RecursiveStructType>> RECURSIVE_LIST_FIELD = SdkField
+        .<List<RecursiveStructType>> builder(MarshallingType.LIST)
+        .getter(getter(RecursiveStructType::recursiveList))
+        .setter(setter(Builder::recursiveList))
+        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "RecursiveList"),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<RecursiveStructType> builder(MarshallingType.SDK_POJO)
+                            .constructor(RecursiveStructType::builder)
+                            .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "member")).build()).build())
+        .build();
+
+    private static final SdkField<Map<String, RecursiveStructType>> RECURSIVE_MAP_FIELD = SdkField
+        .<Map<String, RecursiveStructType>> builder(MarshallingType.MAP)
+        .getter(getter(RecursiveStructType::recursiveMap))
+        .setter(setter(Builder::recursiveMap))
+        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "RecursiveMap"),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<RecursiveStructType> builder(MarshallingType.SDK_POJO)
+                                .constructor(RecursiveStructType::builder)
+                                .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "value")).build()).build())
+        .build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NO_RECURSE_FIELD,
+                                                                                                   RECURSIVE_STRUCT_FIELD, RECURSIVE_LIST_FIELD, RECURSIVE_MAP_FIELD));
+
     private final String noRecurse;
 
     private final RecursiveStructType recursiveStruct;
@@ -119,37 +164,44 @@ public final class RecursiveStructType implements StructuredPojo,
         }
         RecursiveStructType other = (RecursiveStructType) obj;
         return Objects.equals(noRecurse(), other.noRecurse()) && Objects.equals(recursiveStruct(), other.recursiveStruct())
-                && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
+               && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
     }
 
     @Override
     public String toString() {
         return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse()).add("RecursiveStruct", recursiveStruct())
-                .add("RecursiveList", recursiveList()).add("RecursiveMap", recursiveMap()).build();
+                       .add("RecursiveList", recursiveList()).add("RecursiveMap", recursiveMap()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NoRecurse":
-            return Optional.ofNullable(clazz.cast(noRecurse()));
-        case "RecursiveStruct":
-            return Optional.ofNullable(clazz.cast(recursiveStruct()));
-        case "RecursiveList":
-            return Optional.ofNullable(clazz.cast(recursiveList()));
-        case "RecursiveMap":
-            return Optional.ofNullable(clazz.cast(recursiveMap()));
-        default:
-            return Optional.empty();
+            case "NoRecurse":
+                return Optional.ofNullable(clazz.cast(noRecurse()));
+            case "RecursiveStruct":
+                return Optional.ofNullable(clazz.cast(recursiveStruct()));
+            case "RecursiveList":
+                return Optional.ofNullable(clazz.cast(recursiveList()));
+            case "RecursiveMap":
+                return Optional.ofNullable(clazz.cast(recursiveMap()));
+            default:
+                return Optional.empty();
         }
     }
 
-    @SdkInternalApi
     @Override
-    public void marshall(ProtocolMarshaller protocolMarshaller) {
-        RecursiveStructTypeMarshaller.getInstance().marshall(this, protocolMarshaller);
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
     }
 
-    public interface Builder extends CopyableBuilder<Builder, RecursiveStructType> {
+    private static <T> Function<Object, T> getter(Function<RecursiveStructType, T> g) {
+        return obj -> g.apply((RecursiveStructType) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, RecursiveStructType> {
         /**
          * Sets the value of the NoRecurse property for this object.
          *
@@ -279,7 +331,7 @@ public final class RecursiveStructType implements StructuredPojo,
 
         public final Collection<Builder> getRecursiveList() {
             return recursiveList != null ? recursiveList.stream().map(RecursiveStructType::toBuilder)
-                    .collect(Collectors.toList()) : null;
+                                                        .collect(Collectors.toList()) : null;
         }
 
         @Override
@@ -299,7 +351,7 @@ public final class RecursiveStructType implements StructuredPojo,
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
             recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
-                    .collect(Collectors.toList()));
+                                .collect(Collectors.toList()));
             return this;
         }
 
@@ -325,5 +377,11 @@ public final class RecursiveStructType implements StructuredPojo,
         public RecursiveStructType build() {
             return new RecursiveStructType(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

@@ -21,13 +21,16 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.util.AwsDateUtils;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.SdkPojo;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+import software.amazon.awssdk.utils.DateUtils;
 
 @SdkInternalApi
 public final class SimpleTypeJsonMarshaller {
@@ -91,10 +94,34 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
-    public static final JsonMarshaller<Instant> INSTANT = new BaseJsonMarshaller<Instant>() {
+    public static final JsonMarshaller<Instant> INSTANT = new JsonMarshaller<Instant>() {
         @Override
-        public void marshall(Instant val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
-            jsonGenerator.writeValue(val);
+        public void marshall(Instant val, JsonMarshallerContext context, String paramName, SdkField<Instant> sdkField) {
+            StructuredJsonGenerator jsonGenerator = context.jsonGenerator();
+            if (paramName != null) {
+                jsonGenerator.writeFieldName(paramName);
+            }
+            TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class);
+            if (trait != null) {
+                switch (trait.format()) {
+                    case UNIX_TIMESTAMP:
+                        jsonGenerator.writeNumber(AwsDateUtils.formatServiceSpecificDate(val));
+                        break;
+                    case RFC_822:
+                        jsonGenerator.writeValue(DateUtils.formatRfc1123Date(val));
+                        break;
+                    case ISO_8601:
+                        jsonGenerator.writeValue(DateUtils.formatIso8601Date(val));
+                        break;
+                    default:
+                        throw SdkClientException.create("Unrecognized timestamp format - " + trait.format());
+                }
+            } else {
+                // Important to fallback to the jsonGenerator implementation as that may differ per wire format,
+                // irrespective of protocol. I.E. CBOR would default to unix timestamp as milliseconds while JSON
+                // will default to unix timestamp as seconds with millisecond decimal precision.
+                jsonGenerator.writeValue(val);
+            }
         }
     };
 
@@ -102,16 +129,6 @@ public final class SimpleTypeJsonMarshaller {
         @Override
         public void marshall(SdkBytes val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
             jsonGenerator.writeValue(val.asByteBuffer());
-        }
-    };
-
-    public static final JsonMarshaller<StructuredPojo> STRUCTURED = new BaseJsonMarshaller<StructuredPojo>() {
-        @Override
-        public void marshall(StructuredPojo val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
-            jsonGenerator.writeStartObject();
-            context.protocolHandler().doMarshall(val);
-            jsonGenerator.writeEndObject();
-
         }
     };
 

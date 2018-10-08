@@ -28,11 +28,12 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Reflection utils to create the client class and invoke operation methods.
  */
-public class ClientReflector implements AutoCloseable {
+public class ClientReflector implements SdkAutoCloseable {
 
     private final IntermediateModel model;
     private final Metadata metadata;
@@ -83,9 +84,9 @@ public class ClientReflector implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        if (client instanceof AutoCloseable) {
-            ((AutoCloseable) client).close();
+    public void close() {
+        if (client instanceof SdkAutoCloseable) {
+            ((SdkAutoCloseable) client).close();
         }
     }
 

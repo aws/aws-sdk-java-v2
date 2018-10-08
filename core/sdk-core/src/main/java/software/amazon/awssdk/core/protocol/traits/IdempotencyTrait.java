@@ -18,6 +18,9 @@ package software.amazon.awssdk.core.protocol.traits;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 
+/**
+ * Trait that supplies a default UUID if no value is set by the customer. This can only be applied to string members.
+ */
 @SdkProtectedApi
 public final class IdempotencyTrait implements Trait {
 

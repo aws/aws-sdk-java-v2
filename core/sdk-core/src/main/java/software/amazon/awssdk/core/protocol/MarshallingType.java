@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.protocol;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -53,11 +52,6 @@ public interface MarshallingType<T> {
     MarshallingType<Instant> INSTANT = newType(Instant.class);
 
     MarshallingType<SdkBytes> SDK_BYTES = newType(SdkBytes.class);
-
-    MarshallingType<InputStream> STREAM = newType(InputStream.class);
-
-    // TODO remove
-    MarshallingType<StructuredPojo> STRUCTURED = newType(StructuredPojo.class);
 
     MarshallingType<SdkPojo> SDK_POJO = newType(SdkPojo.class);
 

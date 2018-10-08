@@ -17,6 +17,10 @@ package software.amazon.awssdk.core.protocol.traits;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+/**
+ * Trait that indicates a String member is a JSON document. This can influence how it is marshalled/unmarshalled. For example,
+ * a string bound to the header with this trait applied will be Base64 encoded.
+ */
 @SdkProtectedApi
 public final class JsonValueTrait implements Trait {
 

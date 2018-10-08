@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
@@ -32,6 +33,8 @@ public interface StructuredJsonFactory {
      * @param contentType Content type to send for requests.
      */
     StructuredJsonGenerator createWriter(String contentType);
+
+    ObjectMapper createObjectMapper();
 
     /**
      * Returns the response handler to be used for handling a successful response.

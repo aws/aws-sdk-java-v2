@@ -25,6 +25,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -88,16 +89,23 @@ public class AwsServiceModel implements ClassSpec {
             ClassName responseHandlerClass = eventStreamUtils.responseHandlerType();
             return PoetUtils.createInterfaceBuilder(modelClass)
                             .addAnnotation(SdkPublicApi.class)
+                            .addSuperinterface(ClassName.get(SdkPojo.class))
                             .addJavadoc("Base interface for all event types of the $L API.", eventStreamUtils.getApiName())
                             .addField(FieldSpec.builder(modelClass, "UNKNOWN")
                                                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                                .initializer(CodeBlock.builder()
                                                                      .add("new $T() {\n"
                                                                           + "        @Override\n"
+                                                                          + "        public $T<$T<?>> sdkFields() {\n"
+                                                                          + "            return $T.emptyList();\n"
+                                                                          + "        }\n"
+                                                                          + "        @Override\n"
                                                                           + "        public void accept($T.Visitor visitor) {\n"
                                                                           + "            visitor.visitDefault(this);\n"
                                                                           + "        }\n"
-                                                                          + "    };\n", modelClass, responseHandlerClass
+                                                                          + "    };\n",
+                                                                          modelClass, List.class, SdkField.class,
+                                                                          Collections.class, responseHandlerClass
                                                                      )
                                                                      .build())
                                                .addJavadoc("Special type of {@link $T} for unknown types of events that this "
@@ -206,7 +214,7 @@ public class AwsServiceModel implements ClassSpec {
         return shapeModelSpec.className();
     }
 
-    private ClassName builderClassName(){
+    private ClassName builderClassName() {
         return className().nestedClass("Builder");
     }
 

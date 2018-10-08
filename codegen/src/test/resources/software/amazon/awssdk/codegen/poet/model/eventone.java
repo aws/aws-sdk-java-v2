@@ -1,12 +1,18 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
-import software.amazon.awssdk.services.jsonprotocoltests.transform.EventOneMarshaller;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.protocol.traits.LocationTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -14,7 +20,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EventOne implements StructuredPojo, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
+public final class EventOne implements SdkPojo, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
+    private static final SdkField<String> FOO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
+        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "Foo")).build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(FOO_FIELD));
+
     private final String foo;
 
     private EventOne(BuilderImpl builder) {
@@ -72,17 +84,24 @@ public final class EventOne implements StructuredPojo, ToCopyableBuilder<EventOn
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "Foo":
-            return Optional.ofNullable(clazz.cast(foo()));
-        default:
-            return Optional.empty();
+            case "Foo":
+                return Optional.ofNullable(clazz.cast(foo()));
+            default:
+                return Optional.empty();
         }
     }
 
-    @SdkInternalApi
     @Override
-    public void marshall(ProtocolMarshaller protocolMarshaller) {
-        EventOneMarshaller.getInstance().marshall(this, protocolMarshaller);
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    private static <T> Function<Object, T> getter(Function<EventOne, T> g) {
+        return obj -> g.apply((EventOne) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
     }
 
     /**
@@ -96,7 +115,7 @@ public final class EventOne implements StructuredPojo, ToCopyableBuilder<EventOn
         visitor.visit(this);
     }
 
-    public interface Builder extends CopyableBuilder<Builder, EventOne> {
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, EventOne> {
         /**
          * Sets the value of the Foo property for this object.
          *
@@ -134,6 +153,11 @@ public final class EventOne implements StructuredPojo, ToCopyableBuilder<EventOn
         @Override
         public EventOne build() {
             return new EventOne(this);
+        }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
         }
     }
 }

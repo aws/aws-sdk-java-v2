@@ -19,7 +19,5 @@ import java.util.List;
 
 public interface SdkPojo {
 
-    default List<SdkField<?>> sdkFields() {
-        return null;
-    }
+    List<SdkField<?>> sdkFields();
 }

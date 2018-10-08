@@ -1,7 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -9,8 +14,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EventStreamOperationResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<EventStreamOperationResponse.Builder, EventStreamOperationResponse> {
+public final class EventStreamOperationResponse extends JsonProtocolTestsResponse implements SdkPojo,
+                                                                                             ToCopyableBuilder<EventStreamOperationResponse.Builder, EventStreamOperationResponse> {
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
+
     private EventStreamOperationResponse(BuilderImpl builder) {
         super(builder);
     }
@@ -57,7 +64,13 @@ public final class EventStreamOperationResponse extends JsonProtocolTestsRespons
         return Optional.empty();
     }
 
-    public interface Builder extends JsonProtocolTestsResponse.Builder, CopyableBuilder<Builder, EventStreamOperationResponse> {
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
+                                     CopyableBuilder<Builder, EventStreamOperationResponse> {
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
@@ -72,5 +85,11 @@ public final class EventStreamOperationResponse extends JsonProtocolTestsRespons
         public EventStreamOperationResponse build() {
             return new EventStreamOperationResponse(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

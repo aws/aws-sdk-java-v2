@@ -13,9 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
@@ -32,12 +35,28 @@ public final class JsonUnmarshallerContext {
         this.unmarshallerRegistry = builder.unmarshallerRegistry;
     }
 
+    /**
+     * @return The {@link SdkHttpFullResponse} of the API call.
+     */
     public SdkHttpFullResponse response() {
         return response;
     }
 
-    public UnmarshallerRegistry unmarshallerRegistry() {
-        return unmarshallerRegistry;
+    /**
+     * Lookup the marshaller for the given location andtype.
+     *
+     * @param location {@link MarshallLocation} of member.
+     * @param marshallingType {@link MarshallingType} of member.
+     * @return Unmarshaller implementation.
+     * @throws SdkClientException if no unmarshaller is found.
+     */
+    public JsonUnmarshaller<Object> getUnmarshaller(MarshallLocation location, MarshallingType<?> marshallingType) {
+        JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(location, marshallingType);
+        if (unmarshaller == null) {
+            throw SdkClientException.create(String.format("No unmarshaller registered for type %s at location %s",
+                                                          marshallingType, location));
+        }
+        return unmarshaller;
     }
 
     /**

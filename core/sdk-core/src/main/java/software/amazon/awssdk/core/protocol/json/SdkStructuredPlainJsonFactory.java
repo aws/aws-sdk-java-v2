@@ -23,8 +23,6 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.internal.protocol.json.BaseSdkStructuredJsonFactory;
-import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -58,15 +56,6 @@ public abstract class SdkStructuredPlainJsonFactory {
             .put(SdkBytes.class, SimpleTypeJsonUnmarshallers.SdkBytesJsonUnmarshaller.getInstance())
             .put(Character.class, SimpleTypeJsonUnmarshallers.CharacterJsonUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeJsonUnmarshallers.ShortJsonUnmarshaller.getInstance()).build();
-
-    static final SdkStructuredJsonFactory SDK_JSON_FACTORY = new BaseSdkStructuredJsonFactory(
-            JSON_FACTORY, JSON_SCALAR_UNMARSHALLERS) {
-        @Override
-        protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
-                                                       String contentType) {
-            return new SdkJsonGenerator(jsonFactory, contentType);
-        }
-    };
 
     protected SdkStructuredPlainJsonFactory() {
     }

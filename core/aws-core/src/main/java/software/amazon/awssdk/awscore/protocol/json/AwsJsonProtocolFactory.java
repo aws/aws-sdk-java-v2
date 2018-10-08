@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.protocol.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentTypeReso
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.http.NewJsonResponseHandler;
-import software.amazon.awssdk.core.internal.protocol.json.JsonProtocolUnmarshaller;
+import software.amazon.awssdk.core.internal.protocol.json.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.BaseJsonProtocolFactory;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Factory to generate the various JSON protocol handlers and generators depending on the wire protocol to be used for
@@ -77,7 +79,16 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsReq
 
     public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata, Supplier<SdkPojo> pojoSupplier) {
-        JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>();
+        JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>(getSdkFactory().createObjectMapper());
+        return new NewJsonResponseHandler<>(unmarshaller,
+            r -> pojoSupplier.get(),
+                                            operationMetadata.isHasStreamingSuccessResponse(),
+                                            operationMetadata.isPayloadJson());
+    }
+
+    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
+        JsonOperationMetadata operationMetadata, Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
+        JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>(getSdkFactory().createObjectMapper());
         return new NewJsonResponseHandler<>(unmarshaller,
                                             pojoSupplier,
                                             operationMetadata.isHasStreamingSuccessResponse(),

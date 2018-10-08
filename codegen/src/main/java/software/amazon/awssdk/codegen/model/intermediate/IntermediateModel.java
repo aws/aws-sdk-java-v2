@@ -31,7 +31,6 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
-import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.utils.IoUtils;

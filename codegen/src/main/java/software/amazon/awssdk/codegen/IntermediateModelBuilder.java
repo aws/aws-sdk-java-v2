@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen;
 import static software.amazon.awssdk.codegen.AddMetadata.constructMetadata;
 import static software.amazon.awssdk.codegen.RemoveUnusedShapes.removeUnusedShapes;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

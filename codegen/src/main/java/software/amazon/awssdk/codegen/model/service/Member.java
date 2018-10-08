@@ -44,6 +44,8 @@ public class Member {
     @JsonProperty("jsonvalue")
     private boolean jsonValue;
 
+    private String timestampFormat;
+
     public String getShape() {
         return shape;
     }
@@ -138,5 +140,13 @@ public class Member {
 
     public void setJsonValue(boolean jsonValue) {
         this.jsonValue = jsonValue;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
     }
 }

@@ -19,7 +19,6 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
@@ -32,10 +31,8 @@ import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.protocol.traits.IdempotencyTrait;
-import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
 import software.amazon.awssdk.core.util.UriResourcePathUtils;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Implementation of {@link ProtocolRequestMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
@@ -101,7 +98,7 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
             .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
             .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
 
-            .headerMarshaller(MarshallingType.STRING, JsonProtocolMarshaller::marshallStringHeader)
+            .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
             .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
             .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
@@ -129,17 +126,6 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
             .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
             .greedyPathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
             .build();
-    }
-
-    private static void marshallStringHeader(String val, JsonMarshallerContext context, String paramName, SdkField<String> sdkField) {
-        if (val == null) {
-            return;
-        }
-        if (sdkField.containsTrait(JsonValueTrait.class)) {
-            context.request().addHeader(paramName, BinaryUtils.toBase64(val.getBytes(StandardCharsets.UTF_8)));
-        } else {
-            context.request().addHeader(paramName, val);
-        }
     }
 
     /**

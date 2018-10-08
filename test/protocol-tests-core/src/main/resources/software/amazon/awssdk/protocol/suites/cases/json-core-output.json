@@ -311,6 +311,24 @@
     }
   },
   {
+    "description": "ISO8601 timestamp member unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"TimestampFormatMember\": \"2014-04-29T18:30:38Z\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "TimestampFormatMember": 1398796238000
+      }
+    }
+  },
+  {
     "description": "List of strings in payload is unmarshalled correctly",
     "given": {
       "response": {

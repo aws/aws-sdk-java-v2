@@ -18,6 +18,9 @@ package software.amazon.awssdk.core.protocol.traits;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.protocol.SdkField;
 
+/**
+ * Trait that includes additional metadata about List members.
+ */
 @SdkProtectedApi
 public final class ListTrait implements Trait {
 
@@ -29,10 +32,19 @@ public final class ListTrait implements Trait {
         this.memberFieldInfo = builder.memberFieldInfo;
     }
 
+    /**
+     * Location name of member, this is typically only used for XML based protocols which use separate
+     * tags for each item. This is not used for JSON and JSON-like protocols.
+     *
+     * @return Member location name.
+     */
     public String memberLocationName() {
         return memberLocationName;
     }
 
+    /**
+     * @return Metadata about the items this list contains. May be further nested in the case of complex nested containers.
+     */
     public SdkField memberFieldInfo() {
         return memberFieldInfo;
     }

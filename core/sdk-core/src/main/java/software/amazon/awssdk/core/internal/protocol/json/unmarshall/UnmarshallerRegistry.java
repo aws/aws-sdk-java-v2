@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +21,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 
+/**
+ * Registry of {@link JsonUnmarshaller} implementations by location and type.
+ */
 @SdkInternalApi
 public final class UnmarshallerRegistry {
 

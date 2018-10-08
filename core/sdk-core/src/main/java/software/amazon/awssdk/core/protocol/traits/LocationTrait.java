@@ -18,6 +18,9 @@ package software.amazon.awssdk.core.protocol.traits;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 
+/**
+ * Trait to include metadata about the marshalling/unmarshalling location (i.e. headers/payload/etc).
+ */
 @SdkProtectedApi
 public final class LocationTrait implements Trait {
 
@@ -29,10 +32,16 @@ public final class LocationTrait implements Trait {
         this.locationName = locationName;
     }
 
+    /**
+     * @return Location of member (i.e. headers/query/path/payload).
+     */
     public MarshallLocation location() {
         return location;
     }
 
+    /**
+     * @return Location name of member. I.E. the header or query param name, or the JSON field name, etc.
+     */
     public String locationName() {
         return locationName;
     }

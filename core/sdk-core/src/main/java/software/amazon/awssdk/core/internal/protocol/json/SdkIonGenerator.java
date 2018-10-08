@@ -215,6 +215,11 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
     }
 
     @Override
+    public StructuredJsonGenerator writeNumber(String number) {
+        return writeValue(new BigDecimal(number));
+    }
+
+    @Override
     public abstract byte[] getBytes();
 
     @Override

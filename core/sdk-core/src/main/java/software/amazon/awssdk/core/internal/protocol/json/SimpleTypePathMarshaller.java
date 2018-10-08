@@ -59,7 +59,7 @@ public final class SimpleTypePathMarshaller {
         @Override
         public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
             context.request().setResourcePath(
-                    pathMarshaller.marshall(context.request().getResourcePath(), paramName, converter.apply(val)));
+                    pathMarshaller.marshall(context.request().getResourcePath(), paramName, converter.convert(val, sdkField)));
         }
 
     }

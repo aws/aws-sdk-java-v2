@@ -18,6 +18,9 @@ package software.amazon.awssdk.core.protocol.traits;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.protocol.SdkField;
 
+/**
+ * Trait that includes additional metadata for Map members.
+ */
 @SdkProtectedApi
 public final class MapTrait implements Trait {
 
@@ -31,14 +34,23 @@ public final class MapTrait implements Trait {
         this.valueFieldInfo = builder.valueFieldInfo;
     }
 
+    /**
+     * @return Location name of key. Used only for XML based protocols.
+     */
     public String keyLocationName() {
         return keyLocationName;
     }
 
+    /**
+     * @return Location name of value. Used only for XML based protocols.
+     */
     public String valueLocationName() {
         return valueLocationName;
     }
 
+    /**
+     * @return Additional metadata for the map value types. May be further nested in the case of complex containers.
+     */
     public SdkField valueFieldInfo() {
         return valueFieldInfo;
     }
