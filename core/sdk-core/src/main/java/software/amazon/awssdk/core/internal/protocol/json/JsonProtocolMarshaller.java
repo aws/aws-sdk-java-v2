@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.core.protocol.traits.IdempotencyTrait;
+import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
 import software.amazon.awssdk.core.util.UriResourcePathUtils;
 
@@ -172,8 +172,8 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
     }
 
     private Object resolveValue(Object val, SdkField<?> marshallingInfo) {
-        IdempotencyTrait trait = marshallingInfo.getTrait(IdempotencyTrait.class);
-        return trait == null ? val : trait.resolveValue((String) val);
+        DefaultValueTrait trait = marshallingInfo.getTrait(DefaultValueTrait.class);
+        return trait == null ? val : trait.resolveValue(val);
     }
 
     private Request<OrigRequestT> finishMarshalling() {

@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.traits.IdempotencyTrait;
+import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
 import software.amazon.awssdk.core.protocol.traits.ListTrait;
 import software.amazon.awssdk.core.protocol.traits.LocationTrait;
@@ -51,15 +52,18 @@ class ShapeModelSpec {
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
     private final NamingStrategy namingStrategy;
+    private final CustomizationConfig customizationConfig;
 
     ShapeModelSpec(ShapeModel shapeModel,
                    TypeProvider typeProvider,
                    PoetExtensions poetExtensions,
-                   NamingStrategy namingStrategy) {
+                   NamingStrategy namingStrategy,
+                   CustomizationConfig customizationConfig) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.poetExtensions = poetExtensions;
         this.namingStrategy = namingStrategy;
+        this.customizationConfig = customizationConfig;
     }
 
     ClassName className() {
@@ -155,6 +159,10 @@ class ShapeModelSpec {
         if (m.isIdempotencyToken()) {
             traits.add(createIdempotencyTrait());
         }
+        String customDefaultValueSupplier = customizationConfig.getModelMarshallerDefaultValueSupplier().get(m.getC2jName());
+        if (customDefaultValueSupplier != null) {
+            traits.add(createDefaultValueTrait(customDefaultValueSupplier));
+        }
         if (m.getTimestampFormat() != null) {
             traits.add(createTimestampFormatTrait(m));
         }
@@ -187,7 +195,14 @@ class ShapeModelSpec {
 
     private CodeBlock createIdempotencyTrait() {
         return CodeBlock.builder()
-                        .add("$T.create()", ClassName.get(IdempotencyTrait.class))
+                        .add("$T.idempotencyToken()", ClassName.get(DefaultValueTrait.class))
+                        .build();
+    }
+
+    private CodeBlock createDefaultValueTrait(String customDefaultValueSupplier) {
+        return CodeBlock.builder()
+                        .add("$T.create($T.getInstance())", ClassName.get(DefaultValueTrait.class),
+                             ClassName.bestGuess(customDefaultValueSupplier))
                         .build();
     }
 

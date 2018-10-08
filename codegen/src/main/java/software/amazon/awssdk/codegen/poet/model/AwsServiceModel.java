@@ -73,7 +73,8 @@ public class AwsServiceModel implements ClassSpec {
         this.shapeModelSpec = new ShapeModelSpec(this.shapeModel,
                                                  typeProvider,
                                                  poetExtensions,
-                                                 intermediateModel.getNamingStrategy());
+                                                 intermediateModel.getNamingStrategy(),
+                                                 intermediateModel.getCustomizationConfig());
         this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
         this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.typeProvider);
     }

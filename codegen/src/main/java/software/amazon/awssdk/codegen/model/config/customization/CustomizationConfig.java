@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.config.customization;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesConfig;
@@ -126,7 +127,7 @@ public class CustomizationConfig {
     private String sdkResponseBaseClassName;
     private String defaultExceptionUnmarshaller;
 
-    private Map<String, String> modelMarshallerDefaultValueSupplier;
+    private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
     private boolean useAutoConstructList = true;
 
