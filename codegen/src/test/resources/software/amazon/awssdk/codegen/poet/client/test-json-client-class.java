@@ -9,14 +9,12 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
@@ -559,15 +557,16 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     private software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory init(boolean supportsCbor) {
-        return new AwsJsonProtocolFactory(
-            new JsonClientMetadata()
-                .withSupportsCbor(supportsCbor)
-                .withSupportsIon(false)
-                .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
-                .addErrorMetadata(
-                    new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(
-                        InvalidInputException.class)), AwsJsonProtocolMetadata.builder().protocolVersion("1.1")
-                                                                              .protocol(AwsJsonProtocol.REST_JSON).build());
+        return AwsJsonProtocolFactory
+            .builder()
+            .supportsCbor(supportsCbor)
+            .supportsIon(false)
+            .baseServiceExceptionClass(JsonException.class)
+            .protocol(AwsJsonProtocol.REST_JSON)
+            .protocolVersion("1.1")
+            .addErrorMetadata(
+                new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class))
+            .build();
     }
 
     @Override
@@ -595,3 +594,4 @@ final class DefaultJsonClient implements JsonClient {
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 }
+

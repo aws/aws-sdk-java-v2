@@ -21,7 +21,6 @@ import static software.amazon.awssdk.core.SdkSystemSetting.BINARY_ION_ENABLED;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 public class AwsJsonProtocolFactoryTest {
@@ -69,10 +68,11 @@ public class AwsJsonProtocolFactoryTest {
     }
 
     private AwsJsonProtocolFactory protocolFactory(IonEnabled ionEnabled, final IonBinaryEnabled ionBinaryEnabled) {
-        JsonClientMetadata metadata = new JsonClientMetadata()
-            .withSupportsIon(ionEnabled == IonEnabled.YES);
         System.setProperty(BINARY_ION_ENABLED.property(), String.valueOf(ionBinaryEnabled == IonBinaryEnabled.YES));
-        return new AwsJsonProtocolFactory(metadata, AwsJsonProtocolMetadata.builder().protocolVersion("1.0").build());
+        return AwsJsonProtocolFactory.builder()
+            .supportsIon(ionEnabled == IonEnabled.YES)
+            .protocolVersion("1.0")
+            .build();
     }
 
     private enum IonEnabled {

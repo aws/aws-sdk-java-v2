@@ -35,7 +35,6 @@ import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTr
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -50,7 +49,6 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
@@ -82,13 +80,15 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                   .returns(protocolFactory)
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
-                                                      "return new $T(new $T()\n" +
-                                                      ".withSupportsCbor(supportsCbor)\n" +
-                                                      ".withSupportsIon($L)" +
-                                                      ".withBaseServiceExceptionClass($L.class)",
-                                                      AwsJsonProtocolFactory.class,
-                                                      JsonClientMetadata.class,
-                                                      metadata.isIonProtocol(), baseException);
+                                                      "return $T.builder()\n" +
+                                                      ".supportsCbor(supportsCbor)\n" +
+                                                      ".supportsIon($L)\n" +
+                                                      ".baseServiceExceptionClass($T.class)\n" +
+                                                      ".protocol($T.$L)\n" +
+                                                      ".protocolVersion($S)\n",
+                                                      AwsJsonProtocolFactory.class, metadata.isIonProtocol(), baseException,
+                                                      AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()),
+                                                      metadata.getJsonVersion());
 
         if (metadata.getContentType() != null) {
             methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
@@ -96,12 +96,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         errorUnmarshallers(model).forEach(methodSpec::addCode);
 
-        methodSpec.addCode(",\n");
-        methodSpec.addCode("$T.builder().protocolVersion($S)\n" +
-                           ".protocol($T.$L).build()", AwsJsonProtocolMetadata.class,
-                           metadata.getJsonVersion(), AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()));
-
-        methodSpec.addCode(");");
+        methodSpec.addCode(".build();");
 
         return methodSpec.build();
     }
