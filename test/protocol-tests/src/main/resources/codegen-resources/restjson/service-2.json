@@ -167,6 +167,14 @@
       },
       "input":{"shape":"QueryParamWithoutValueInput"}
     },
+    "StatusCodeInOutputOperation":{
+      "name":"StatusCodeInOutputOperation",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2016-03-11/statusCodeInOutput"
+      },
+      "output":{"shape":"StatusCodeInOutputStructure"}
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -601,6 +609,15 @@
       "type":"structure",
       "members":{
         "StringMember":{"shape":"String"}
+      }
+    },
+    "StatusCodeInOutputStructure":{
+      "type":"structure",
+      "members":{
+        "StatusCodeMember":{
+          "shape":"Integer",
+          "location":"statusCode"
+        }
       }
     },
     "StreamType":{

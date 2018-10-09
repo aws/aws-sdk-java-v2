@@ -66,6 +66,11 @@ public final class UnmarshallerRegistry {
             return addUnmarshaller(MarshallLocation.HEADER, marshallingType, marshaller);
         }
 
+        public <T> Builder statusCodeUnmarshaller(MarshallingType<T> marshallingType,
+                                                  JsonUnmarshaller<T> marshaller) {
+            return addUnmarshaller(MarshallLocation.STATUS_CODE, marshallingType, marshaller);
+        }
+
         private <T> Builder addUnmarshaller(MarshallLocation marshallLocation,
                                             MarshallingType<T> marshallingType,
                                             JsonUnmarshaller<T> marshaller) {

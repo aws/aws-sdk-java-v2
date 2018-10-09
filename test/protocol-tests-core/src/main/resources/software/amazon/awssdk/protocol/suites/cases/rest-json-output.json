@@ -97,5 +97,22 @@
         "IsoTimestampMember": 1398796238000
       }
     }
+  },
+  {
+    "description": "Integer bound to HTTP status code is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 201
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "StatusCodeInOutputOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "StatusCodeMember": 201
+      }
+    }
   }
 ]

@@ -46,6 +46,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     private static final UnmarshallerRegistry REGISTRY = UnmarshallerRegistry
         .builder()
+        .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
         .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)
         .headerUnmarshaller(MarshallingType.INTEGER, HeaderUnmarshaller.INTEGER)
         .headerUnmarshaller(MarshallingType.LONG, HeaderUnmarshaller.LONG)
