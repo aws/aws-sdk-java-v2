@@ -18,6 +18,7 @@ package software.amazon.awssdk.core;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 
 /**
  * The base class for all SDK requests.
@@ -28,7 +29,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @Immutable
 @SdkPublicApi
-public abstract class SdkRequest {
+public abstract class SdkRequest implements SdkPojo {
     /**
     * @return The optional client configuration overrides for this request.
     */

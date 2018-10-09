@@ -14,8 +14,8 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public final class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements SdkPojo,
-                                                                                                   ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
+public final class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements
+                                                                                        ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private OperationWithNoInputOrOutputRequest(BuilderImpl builder) {

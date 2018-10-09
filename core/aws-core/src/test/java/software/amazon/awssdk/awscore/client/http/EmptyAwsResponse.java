@@ -16,7 +16,10 @@
 package software.amazon.awssdk.awscore.client.http;
 
 
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.core.protocol.SdkField;
 
 public class EmptyAwsResponse extends AwsResponse {
     public EmptyAwsResponse(Builder builder) {
@@ -29,6 +32,11 @@ public class EmptyAwsResponse extends AwsResponse {
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return Collections.emptyList();
     }
 
     public interface Builder extends AwsResponse.Builder {

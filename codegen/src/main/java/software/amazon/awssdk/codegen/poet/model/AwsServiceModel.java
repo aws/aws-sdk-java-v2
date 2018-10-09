@@ -245,11 +245,13 @@ public class AwsServiceModel implements ClassSpec {
     private List<TypeName> modelSuperInterfaces() {
         List<TypeName> interfaces = new ArrayList<>();
 
-        interfaces.add(ClassName.get(SdkPojo.class));
 
         switch (shapeModel.getShapeType()) {
             case Exception:
             case Model:
+                interfaces.add(ClassName.get(SdkPojo.class));
+                interfaces.add(toCopyableBuilderInterface());
+                break;
             case Request:
             case Response:
                 interfaces.add(toCopyableBuilderInterface());

@@ -16,8 +16,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements SdkPojo,
-                                                                                              ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+public final class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements
+                                                                                   ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private StreamingInputOperationRequest(BuilderImpl builder) {

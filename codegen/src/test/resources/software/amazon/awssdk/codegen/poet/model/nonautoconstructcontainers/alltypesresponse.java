@@ -34,8 +34,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class AllTypesResponse extends JsonProtocolTestsResponse implements SdkPojo,
-                                                                                 ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
+public final class AllTypesResponse extends JsonProtocolTestsResponse implements
+                                                                      ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(AllTypesResponse::stringMember)).setter(setter(Builder::stringMember))
         .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "StringMember")).build();

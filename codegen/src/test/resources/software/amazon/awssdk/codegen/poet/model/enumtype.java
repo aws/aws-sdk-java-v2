@@ -6,13 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EnumType implements SdkPojo {
+public final class EnumType {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private EnumType(EnumType.BuilderImpl builder) {

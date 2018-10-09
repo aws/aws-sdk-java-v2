@@ -26,8 +26,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class NestedContainersRequest extends JsonProtocolTestsRequest implements SdkPojo,
-                                                                                       ToCopyableBuilder<NestedContainersRequest.Builder, NestedContainersRequest> {
+public final class NestedContainersRequest extends JsonProtocolTestsRequest implements
+                                                                            ToCopyableBuilder<NestedContainersRequest.Builder, NestedContainersRequest> {
     private static final SdkField<List<List<String>>> LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
         .<List<List<String>>> builder(MarshallingType.LIST)
         .getter(getter(NestedContainersRequest::listOfListOfStrings))

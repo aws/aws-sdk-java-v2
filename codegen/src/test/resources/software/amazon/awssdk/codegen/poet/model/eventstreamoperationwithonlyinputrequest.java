@@ -16,8 +16,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocolTestsRequest implements SdkPojo,
-                                                                                                        ToCopyableBuilder<EventStreamOperationWithOnlyInputRequest.Builder, EventStreamOperationWithOnlyInputRequest> {
+public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocolTestsRequest implements
+                                                                                             ToCopyableBuilder<EventStreamOperationWithOnlyInputRequest.Builder, EventStreamOperationWithOnlyInputRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private EventStreamOperationWithOnlyInputRequest(BuilderImpl builder) {

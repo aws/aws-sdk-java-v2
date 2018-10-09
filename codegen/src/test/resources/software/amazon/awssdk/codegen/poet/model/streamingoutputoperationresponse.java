@@ -14,8 +14,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class StreamingOutputOperationResponse extends JsonProtocolTestsResponse implements SdkPojo,
-                                                                                                 ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
+public final class StreamingOutputOperationResponse extends JsonProtocolTestsResponse implements
+                                                                                      ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private StreamingOutputOperationResponse(BuilderImpl builder) {
