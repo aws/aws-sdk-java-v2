@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sfn.builder.conditions;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Interface for all binary conditions.
  *
@@ -22,6 +24,7 @@ package software.amazon.awssdk.services.sfn.builder.conditions;
  *
  * @param <T> Type of expected value.
  */
+@SdkPublicApi
 public interface BinaryCondition<T> extends Condition {
 
     /**

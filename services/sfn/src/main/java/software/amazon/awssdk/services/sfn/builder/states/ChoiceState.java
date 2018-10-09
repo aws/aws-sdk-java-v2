@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sfn.builder.states;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.ErrorCode;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
  *
  * @see <a href="https://states-language.net/spec.html#choice-state>https://states-language.net/spec.html#choice-state</a>
  */
+@SdkPublicApi
 public final class ChoiceState implements State {
 
     @JsonProperty(PropertyName.COMMENT)

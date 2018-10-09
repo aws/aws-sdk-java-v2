@@ -37,19 +37,19 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.ValidSdkObjects;
-
 
 public class AsyncHttpClientApiCallTimeoutTests {
 
@@ -108,7 +108,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
         CompletableFuture future = httpClient.requestExecutionBuilder()
                                              .originalRequest(NoopTestRequest.builder().build())
                                              .request(request)
-                                             .errorResponseHandler(noOpResponseHandler())
+                                             .errorResponseHandler(noOpResponseHandler(SdkServiceException.builder().build()))
                                              .executionContext(executionContext)
                                              .execute(noOpResponseHandler());
 
@@ -128,17 +128,6 @@ public class AsyncHttpClientApiCallTimeoutTests {
     }
 
     @Test
-    public void successfulResponse_SlowAfterResponseRequestHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
-        ExecutionInterceptor interceptor =
-            new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
-        CompletableFuture future = requestBuilder().executionContext(withInterceptors(interceptor))
-                                                   .execute(noOpResponseHandler());
-        assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
-    }
-
-    @Test
     public void successfulResponse_SlowResponseHandler_ThrowsApiCallTimeoutException() {
         stubFor(get(anyUrl())
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
@@ -147,7 +136,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
     }
 
     @Test
-    public void  slowApiAttempt_ThrowsApiCallAttemptTimeoutException() {
+    public void slowApiAttempt_ThrowsApiCallAttemptTimeoutException() {
         httpClient = testAsyncClientBuilder()
             .apiCallTimeout(API_CALL_TIMEOUT)
             .apiCallAttemptTimeout(Duration.ofMillis(100))

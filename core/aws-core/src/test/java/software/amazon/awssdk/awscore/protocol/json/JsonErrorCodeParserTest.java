@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonErrorCodeParser;
-import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 public class JsonErrorCodeParserTest {

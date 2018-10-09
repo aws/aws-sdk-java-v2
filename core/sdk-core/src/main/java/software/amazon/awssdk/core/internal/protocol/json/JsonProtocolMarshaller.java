@@ -48,6 +48,7 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
     private final Request<OrigRequestT> request;
     private final String contentType;
     private final boolean hasExplicitPayloadMember;
+    private final boolean hasStreamingInput;
 
     private final JsonMarshallerContext marshallerContext;
 
@@ -58,6 +59,7 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
+        this.hasStreamingInput = operationInfo.hasStreamingInput();
         this.request = fillBasicRequestParams(operationInfo, originalRequest);
         this.marshallerContext = JsonMarshallerContext.builder()
                                                       .jsonGenerator(jsonGenerator)
@@ -190,7 +192,10 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
                 request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }
         }
-        if (!request.getHeaders().containsKey(CONTENT_TYPE) && contentType != null) {
+
+        // We skip setting the default content type if the request is streaming as
+        // content-type is determined based on the body of the stream
+        if (!request.getHeaders().containsKey(CONTENT_TYPE) && contentType != null && !hasStreamingInput) {
             request.addHeader(CONTENT_TYPE, contentType);
         }
         return request;

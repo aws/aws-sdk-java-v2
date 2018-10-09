@@ -23,11 +23,11 @@ import software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionVali
 import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkSyncClientHandler;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
@@ -61,7 +61,8 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     }
 
     @Override
-    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration);
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
+        ClientExecutionParams<InputT, OutputT> executionParams) {
+        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration);
     }
 }

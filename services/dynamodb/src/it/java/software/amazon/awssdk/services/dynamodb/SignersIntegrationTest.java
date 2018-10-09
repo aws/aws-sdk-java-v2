@@ -29,10 +29,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -126,7 +127,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        SdkHttpFullResponse response = httpClient.prepareRequest(signedRequest, SdkRequestContext.builder().build())
+        SdkHttpFullResponse response = httpClient.prepareRequest(ExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
 
         assertEquals("Non success http status code", 200, response.statusCode());
@@ -145,7 +146,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        SdkHttpFullResponse response = httpClient.prepareRequest(signedRequest, SdkRequestContext.builder().build())
+        SdkHttpFullResponse response = httpClient.prepareRequest(ExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
 
         assertEquals("Non success http status code", 200, response.statusCode());

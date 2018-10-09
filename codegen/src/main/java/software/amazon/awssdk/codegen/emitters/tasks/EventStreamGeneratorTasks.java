@@ -25,7 +25,6 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamResponseHandlerBuilderImplSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamResponseHandlerSpec;
-import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamVisitorBuilderImplSpec;
 
 /**
@@ -54,10 +53,9 @@ class EventStreamGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private Stream<ClassSpec> eventStreamClassSpecs(OperationModel opModel) {
-        EventStreamUtils eventStreamUtils = EventStreamUtils.create(params.getPoetExtensions(), opModel);
         return Stream.of(
-            new EventStreamResponseHandlerSpec(params, eventStreamUtils),
-            new EventStreamResponseHandlerBuilderImplSpec(params, eventStreamUtils),
-            new EventStreamVisitorBuilderImplSpec(params, eventStreamUtils));
+            new EventStreamResponseHandlerSpec(params, opModel),
+            new EventStreamResponseHandlerBuilderImplSpec(params, opModel),
+            new EventStreamVisitorBuilderImplSpec(params, opModel));
     }
 }

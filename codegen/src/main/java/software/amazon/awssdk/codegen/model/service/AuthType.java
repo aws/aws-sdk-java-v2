@@ -28,7 +28,9 @@ public enum AuthType {
     V3("v3"),
     V3_HTTPS("v3https"),
     V4("v4"),
-    S3("s3");
+    V4_UNSIGNED_BODY("v4-unsigned-body"),
+    S3("s3")
+    ;
 
     private final String value;
 

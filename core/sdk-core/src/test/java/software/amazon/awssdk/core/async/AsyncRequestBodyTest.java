@@ -63,7 +63,7 @@ public class AsyncRequestBodyTest {
 
     @Test
     public void hasCorrectLength() {
-        assertThat(provider.contentLength()).isEqualTo(testString.length());
+        assertThat(provider.contentLength().get()).isEqualTo(testString.length());
     }
 
     @Test

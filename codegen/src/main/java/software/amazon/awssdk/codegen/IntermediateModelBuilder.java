@@ -179,10 +179,6 @@ public class IntermediateModelBuilder {
     }
 
     private void linkCustomAuthorizationToRequestShapes(IntermediateModel model) {
-        if (model.getMetadata().getProtocol() != Protocol.API_GATEWAY) {
-            return;
-        }
-
         model.getOperations().values().stream()
              .filter(OperationModel::isAuthenticated)
              .forEach(operation -> {
@@ -193,19 +189,48 @@ public class IntermediateModelBuilder {
                      throw new RuntimeException(String.format("Operation %s has unknown input shape",
                                                               operation.getOperationName()));
                  }
-                 if (AuthType.CUSTOM.equals(c2jOperation.getAuthType())) {
-                     AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
-                     if (auth == null) {
-                         throw new RuntimeException(String.format("Required custom auth not defined: %s",
-                                                                  c2jOperation.getAuthorizer()));
-                     }
-                     shape.setRequestSignerClassFqcn(model.getMetadata().getAuthPolicyPackageName() + '.' +
-                                                     auth.getInterfaceName());
-                 } else if (AuthType.IAM.equals(c2jOperation.getAuthType())) {
-                     model.getMetadata().setRequiresIamSigners(true);
-                     shape.setRequestSignerClassFqcn("software.amazon.awssdk.opensdk.protect.auth.IamRequestSigner");
+
+                 if (model.getMetadata().getProtocol() == Protocol.API_GATEWAY) {
+                     linkAuthorizationToRequestShapeForApiGatewayProtocol(model, c2jOperation, shape);
+                 } else {
+                     linkAuthorizationToRequestShapeForAwsProtocol(c2jOperation.getAuthType(), shape);
                  }
              });
+    }
+
+    private void linkAuthorizationToRequestShapeForApiGatewayProtocol(IntermediateModel model,
+                                                                      Operation c2jOperation,
+                                                                      ShapeModel shape) {
+        if (AuthType.CUSTOM.equals(c2jOperation.getAuthType())) {
+            AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
+            if (auth == null) {
+                throw new RuntimeException(String.format("Required custom auth not defined: %s",
+                                                         c2jOperation.getAuthorizer()));
+            }
+            shape.setRequestSignerClassFqcn(model.getMetadata().getAuthPolicyPackageName() + '.' +
+                                            auth.getInterfaceName());
+        } else if (AuthType.IAM.equals(c2jOperation.getAuthType())) {
+            model.getMetadata().setRequiresIamSigners(true);
+            // TODO IamRequestSigner does not exist
+            shape.setRequestSignerClassFqcn("software.amazon.awssdk.opensdk.protect.auth.IamRequestSigner");
+        }
+    }
+
+    private void linkAuthorizationToRequestShapeForAwsProtocol(AuthType authType, ShapeModel shape) {
+        switch (authType) {
+            case V4:
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4Signer");
+                break;
+            case V4_UNSIGNED_BODY:
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner");
+                break;
+            case NONE:
+            case IAM:
+                // just ignore this, this is the default value but only applicable to APIG generated clients
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported authtype for AWS Request: " + authType);
+        }
     }
 
     private void setSimpleMethods(IntermediateModel model) {

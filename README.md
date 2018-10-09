@@ -1,18 +1,22 @@
 # AWS SDK for Java 2.0 Developer Preview 
 [![Build Status](https://travis-ci.org/aws/aws-sdk-java-v2.svg?branch=master)](https://travis-ci.org/aws/aws-sdk-java-v2) ![Build Status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTFJSRXBBN1hkU1ZEQzZ4M1hoaWlFUExuNER3WjNpVllSQ09Qam1YdFlTSDNTd3RpZzNia3F0VkJRUTBwZlQwR1BEelpSV2dWVnp4YTBCOFZKRzRUR004PSIsIml2UGFyYW1ldGVyU3BlYyI6ImdHdEp1UHhKckpDRmhmQU4iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
+[![Maven](https://img.shields.io/maven-central/v/software.amazon.awssdk/s3.svg?label=Maven)](https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22s3%22)
 
 The **AWS SDK for Java 2.0 Developer Preview** is a rewrite of 1.0 with some great new features. As with version 1.0,
 it enables you to easily work with [Amazon Web Services][aws] but also includes features like non-blocking IO and pluggable
 HTTP implementation to further customize your applications. You can get started in minutes using ***Maven*** or any build system that supports MavenCentral as an artifact source.
 
-**NOTE** 2.0 version still a preview and is not recommended for production use yet.
-
 * [SDK Homepage][sdk-website]
+* [1.11 to 2.0 Changelog](docs/LaunchChangelog.md)
 * [API Docs][docs-api]
 * [Developer Guide][docs-guide] ([source][docs-guide-source])
 * [Issues][sdk-issues]
 * [SDK Blog][blog]
 * [Giving Feedback](#giving-feedback)
+
+## Production Readiness
+- [kinesis][kinesis], [dynamodb][dynamodb], [cloudwatch][cloudwatch] are released under `2.0.x` and are production-ready. 
+- The rest of the modules are still in preview and are **NOT** recommended for production use yet.
 
 ## Getting Started
 
@@ -40,7 +44,7 @@ You can import the whole SDK into your project (includes all services) as follow
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.0.0-preview-11</version>
+  <version>2.0.0-preview-12</version>
 </dependency>
 ```
 
@@ -52,12 +56,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.0.0-preview-11</version>
+  <version>2.0.0-preview-12</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.0.0-preview-11</version>
+  <version>2.0.0-preview-12</version>
 </dependency>
 ```
 
@@ -71,7 +75,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.0.0-preview-11</version>
+      <version>2.0.0-preview-12</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -142,3 +146,6 @@ We need your help in making this SDK great. Please participate in the community 
 [support-center]: https://console.aws.amazon.com/support/
 [console]: https://console.aws.amazon.com
 [bom]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22software.amazon.awssdk%22%20AND%20a%3A%22bom%22
+[kinesis]: https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22kinesis%22
+[dynamodb]: https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22dynamodb%22
+[cloudwatch]: https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22cloudwatch%22

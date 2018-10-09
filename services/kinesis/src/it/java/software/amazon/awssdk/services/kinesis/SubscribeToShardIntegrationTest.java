@@ -40,6 +40,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.SdkCancellationException;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
@@ -106,13 +107,13 @@ public class SubscribeToShardIntegrationTest {
                                 SubscribeToShardResponseHandler.builder()
                                                                .onEventStream(p -> p.filter(SubscribeToShardEvent.class)
                                                                                     .subscribe(eventConsumer))
+                                                               .onResponse(this::verifyHttpMetadata)
                                                                .build())
               .join();
         producer.shutdown();
         // Make sure we all the data we received was data we published, we may have published more
         // if the producer isn't shutdown immediately after we finish subscribing.
         assertThat(producedData).containsSequence(receivedData);
-
     }
 
     @Test
@@ -126,7 +127,7 @@ public class SubscribeToShardIntegrationTest {
                                     new SubscribeToShardResponseHandler() {
                                         @Override
                                         public void responseReceived(SubscribeToShardResponse response) {
-
+                                            verifyHttpMetadata(response);
                                         }
 
                                         @Override
@@ -222,4 +223,10 @@ public class SubscribeToShardIntegrationTest {
         }
     }
 
+    private void verifyHttpMetadata(SubscribeToShardResponse response) {
+        SdkHttpResponse sdkHttpResponse = response.sdkHttpResponse();
+        assertThat(sdkHttpResponse).isNotNull();
+        assertThat(sdkHttpResponse.isSuccessful()).isTrue();
+        assertThat(sdkHttpResponse.headers()).isNotEmpty();
+    }
 }

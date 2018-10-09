@@ -18,11 +18,14 @@ package software.amazon.awssdk.http.apache;
 import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ProxySystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -31,7 +34,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * Configuration that defines how to communicate via an HTTP proxy.
  */
-@ReviewBeforeRelease("Review which options are required and which are optional.")
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
 
@@ -42,6 +44,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final String ntlmWorkstation;
     private final Set<String> nonProxyHosts;
     private final Boolean preemptiveBasicAuthenticationEnabled;
+    private final Boolean useSystemPropertyValues;
+    private final String host;
+    private final int port;
+    private final String scheme;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -52,18 +58,38 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.password = builder.password;
         this.ntlmDomain = builder.ntlmDomain;
         this.ntlmWorkstation = builder.ntlmWorkstation;
-        this.nonProxyHosts = Collections.unmodifiableSet(new HashSet<>(builder.nonProxyHosts));
+        this.nonProxyHosts = builder.nonProxyHosts;
         this.preemptiveBasicAuthenticationEnabled = builder.preemptiveBasicAuthenticationEnabled == null ? Boolean.FALSE :
                 builder.preemptiveBasicAuthenticationEnabled;
+        this.useSystemPropertyValues = builder.useSystemPropertyValues;
+        this.host = resolveHost();
+        this.port = resolvePort();
+        this.scheme = resolveScheme();
     }
 
     /**
-     * The endpoint of the proxy server that the SDK should connect through.
-     *
-     * @see Builder#endpoint(URI)
+     * Returns the proxy host name either from the configured endpoint or
+     * from the "http.proxyHost" system property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
      */
-    public URI endpoint() {
-        return endpoint;
+    public String host() {
+        return host;
+    }
+
+    /**
+     * Returns the proxy port either from the configured endpoint or
+     * from the "http.proxyPort" system property if {@link Builder#useSystemPropertyValues(Boolean)} is set to true.
+     *
+     * If no value is found in neither of the above options, the default value of 0 is returned.
+     */
+    public int port() {
+        return port;
+    }
+
+    /**
+     * Returns the {@link URI#scheme} from the configured endpoint. Otherwise return null.
+     */
+    public String scheme() {
+        return scheme;
     }
 
     /**
@@ -72,7 +98,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#password(String)
      */
     public String username() {
-        return username;
+        return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
@@ -81,7 +107,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      * @see Builder#password(String)
      */
     public String password() {
-        return password;
+        return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
     /**
@@ -105,11 +131,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     /**
      * The hosts that the client is allowed to access without going through the proxy.
      *
+     * If the value is not set on the object, the value represent by "http.nonProxyHosts" system property is returned.
+     * If system property is also not set, an unmodifiable empty set is returned.
+     *
      * @see Builder#nonProxyHosts(Set)
      */
-    @ReviewBeforeRelease("Revisit the presentation of this option and support http.nonProxyHosts property")
     public Set<String> nonProxyHosts() {
-        return nonProxyHosts;
+        Set<String> hosts = nonProxyHosts == null && useSystemPropertyValues ? parseNonProxyHostsProperty()
+                                                                             : nonProxyHosts;
+
+        return Collections.unmodifiableSet(hosts != null ? hosts : Collections.emptySet());
     }
 
     /**
@@ -150,6 +181,54 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
                        .add("nonProxyHosts", nonProxyHosts)
                        .add("preemptiveBasicAuthenticationEnabled", preemptiveBasicAuthenticationEnabled)
                        .build();
+    }
+
+
+    private String resolveHost() {
+        return endpoint != null ? endpoint.getHost()
+                                : resolveValue(null, ProxySystemSetting.PROXY_HOST);
+    }
+
+    private int resolvePort() {
+        int port = 0;
+
+        if (endpoint != null) {
+            port = endpoint.getPort();
+        } else if (useSystemPropertyValues) {
+            port = ProxySystemSetting.PROXY_PORT.getStringValue()
+                                                .map(Integer::parseInt)
+                                                .orElse(0);
+        }
+
+        return port;
+    }
+
+    public String resolveScheme() {
+        return endpoint != null ? endpoint.getScheme() : null;
+    }
+
+    /**
+     * Uses the configuration options, system setting property and returns the final value of the given member.
+     */
+    private String resolveValue(String value, ProxySystemSetting systemSetting) {
+        return value == null && useSystemPropertyValues ? systemSetting.getStringValue().orElse(null)
+                                                        : value;
+    }
+
+    /**
+     * Returns the Java system property for nonProxyHosts as set of Strings.
+     * See http://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html.
+     */
+    private Set<String> parseNonProxyHostsProperty() {
+        String nonProxyHosts = ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null);
+
+        if (!StringUtils.isEmpty(nonProxyHosts)) {
+            return Arrays.stream(nonProxyHosts.split("\\|"))
+                         .map(String::toLowerCase)
+                         .map(s -> s.replace("*", ".*?"))
+                         .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 
     /**
@@ -202,6 +281,15 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          */
         Builder preemptiveBasicAuthenticationEnabled(Boolean preemptiveBasicAuthenticationEnabled);
 
+        /**
+         * Option whether to use system property values from {@link ProxySystemSetting} if any of the config options are missing.
+         *
+         * This value is set to "true" by default which means SDK will automatically use system property values
+         * for options that are not provided during building the {@link ProxyConfiguration} object. To disable this behavior,
+         * set this value to "false".
+         */
+        Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
+
     }
 
     /**
@@ -214,8 +302,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private String password;
         private String ntlmDomain;
         private String ntlmWorkstation;
-        private Set<String> nonProxyHosts = new HashSet<>();
+        private Set<String> nonProxyHosts;
         private Boolean preemptiveBasicAuthenticationEnabled;
+        private Boolean useSystemPropertyValues = Boolean.TRUE;
 
         @Override
         public Builder endpoint(URI endpoint) {
@@ -282,6 +371,9 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         @Override
         public Builder addNonProxyHost(String nonProxyHost) {
+            if (this.nonProxyHosts == null) {
+                this.nonProxyHosts = new HashSet<>();
+            }
             this.nonProxyHosts.add(nonProxyHost);
             return this;
         }
@@ -298,6 +390,16 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
 
         public void setPreemptiveBasicAuthenticationEnabled(Boolean preemptiveBasicAuthenticationEnabled) {
             preemptiveBasicAuthenticationEnabled(preemptiveBasicAuthenticationEnabled);
+        }
+
+        @Override
+        public Builder useSystemPropertyValues(Boolean useSystemPropertyValues) {
+            this.useSystemPropertyValues = useSystemPropertyValues;
+            return this;
+        }
+
+        public void setUseSystemPropertyValues(Boolean useSystemPropertyValues) {
+            useSystemPropertyValues(useSystemPropertyValues);
         }
 
         @Override

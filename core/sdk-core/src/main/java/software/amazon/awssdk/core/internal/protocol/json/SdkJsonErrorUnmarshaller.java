@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.protocol.json;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.protocol.json.JsonErrorUnmarshaller;
 
 /**
  * Unmarshaller for JSON error responses from upstream services to unmarshall to a {@link SdkServiceException}.

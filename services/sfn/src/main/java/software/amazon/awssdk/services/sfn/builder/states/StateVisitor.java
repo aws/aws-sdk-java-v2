@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.sfn.builder.states;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Visitor interface for {@link State} inheritance hierarchy. Extend and override to provide your own visitor logic.
  *
  * @param <T> Return type of visit methods (May be {@link Void}).
  */
+@SdkPublicApi
 public abstract class StateVisitor<T> {
 
     public T visit(ChoiceState choiceState) {

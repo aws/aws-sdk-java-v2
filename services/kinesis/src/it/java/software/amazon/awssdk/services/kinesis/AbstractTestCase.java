@@ -27,6 +27,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class AbstractTestCase extends AwsTestBase {
     protected static KinesisClient client;
+    protected static KinesisAsyncClient asyncClient;
 
     @BeforeClass
     public static void init() throws IOException {
@@ -34,6 +35,7 @@ public class AbstractTestCase extends AwsTestBase {
         KinesisClientBuilder builder = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
         setEndpoint(builder);
         client = builder.build();
+        asyncClient = KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     private static void setEndpoint(KinesisClientBuilder builder) throws IOException {

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.ErrorCode;
 import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
 import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.PropertyName;
  *
  * @see <a href="https://states-language.net/spec.html#task-state">https://states-language.net/spec.html#task-state</a>
  */
+@SdkPublicApi
 public final class TaskState extends TransitionState {
 
     @JsonProperty(PropertyName.RESOURCE)

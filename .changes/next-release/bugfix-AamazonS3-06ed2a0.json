@@ -1,5 +1,0 @@
-{
-    "category": "Aamazon S3", 
-    "type": "bugfix", 
-    "description": "Fix NPE for S3 GET request using http protocol. see [#612](https://github.com/aws/aws-sdk-java-v2/issues/612)"
-}

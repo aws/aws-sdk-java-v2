@@ -22,6 +22,7 @@ import java.util.function.BiFunction;
 import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
@@ -42,13 +43,11 @@ public class EventStreamFunctionalTests {
         runTest(EventStreamResponseHandlerBuilderImplSpec::new, "test-response-handler-builder.java");
     }
 
-    private void runTest(BiFunction<GeneratorTaskParams, EventStreamUtils, ClassSpec> specFactory,
+    private void runTest(BiFunction<GeneratorTaskParams, OperationModel, ClassSpec> specFactory,
                          String expectedTestFile) {
         IntermediateModel model = ClientTestModels.jsonServiceModels();
         GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
-        EventStreamUtils eventStreamUtils = EventStreamUtils.create(dependencies.getPoetExtensions(),
-                                                                    model.getOperation("EventStreamOperation"));
-        ClassSpec classSpec = specFactory.apply(dependencies, eventStreamUtils);
+        ClassSpec classSpec = specFactory.apply(dependencies, model.getOperation("EventStreamOperation"));
         assertThat(classSpec, generatesTo(expectedTestFile));
     }
 

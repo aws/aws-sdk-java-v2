@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.http.JsonResponseHandler;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
@@ -42,7 +42,7 @@ public interface StructuredJsonFactory {
      * @param operationMetadata Additional context information about an operation to create the
      * appropriate response handler.
      */
-    <T> JsonResponseHandler<T> createResponseHandler(
+    <T> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller);
 }

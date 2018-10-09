@@ -193,11 +193,21 @@ public class OperationModel extends DocumentationModel {
      * @return True if the operation has an event stream member in the output shape. False otherwise.
      */
     public boolean hasEventStreamOutput() {
-        return outputShape != null
-               && outputShape.getMembers() != null
-               && outputShape.getMembers().stream()
-                             .filter(m -> m.getShape() != null)
-                             .anyMatch(m -> m.getShape().isEventStream());
+        return containsEventStream(outputShape);
     }
 
+    /**
+     * @return True if the operation has an event stream member in the input shape. False otherwise.
+     */
+    public boolean hasEventStreamInput() {
+        return containsEventStream(inputShape);
+    }
+
+    private boolean containsEventStream(ShapeModel shapeModel) {
+        return shapeModel != null
+               && shapeModel.getMembers() != null
+               && shapeModel.getMembers().stream()
+                            .filter(m -> m.getShape() != null)
+                            .anyMatch(m -> m.getShape().isEventStream());
+    }
 }

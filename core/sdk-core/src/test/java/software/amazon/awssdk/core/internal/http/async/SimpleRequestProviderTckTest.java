@@ -10,7 +10,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
- * TCK verification test for {@link SimpleRequestProvider}.
+ * TCK verification test for {@link SimpleHttpContentPublisher}.
  */
 public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuffer> {
     private static final byte[] CONTENT = new byte[4906];
@@ -20,7 +20,7 @@ public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuff
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new SimpleRequestProvider(makeFullRequest(), new ExecutionAttributes());
+        return new SimpleHttpContentPublisher(makeFullRequest(), new ExecutionAttributes());
     }
 
     @Override

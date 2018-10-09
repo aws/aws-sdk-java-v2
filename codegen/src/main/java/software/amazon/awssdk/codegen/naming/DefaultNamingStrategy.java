@@ -22,7 +22,6 @@ import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFI
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Arrays;
@@ -32,7 +31,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -86,7 +84,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
                                 .findFirst()
                                 .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the c2j model."));
 
-        baseName = pascalCase(splitOnWordBoundaries(baseName));
+        baseName = pascalCase(baseName);
 
         // Special cases
         baseName = Utils.removeLeading(baseName, "Amazon");
@@ -164,10 +162,6 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
     }
 
-    private String pascalCase(String... words) {
-        return Stream.of(words).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
-    }
-
     private String getCustomizedPackageName(String serviceName, String defaultPattern) {
         return String.format(defaultPattern, StringUtils.lowerCase(serviceName));
     }
@@ -226,7 +220,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getJavaClassName(String shapeName) {
-        return Arrays.stream(shapeName.split("[._-]|\\W")).map(Utils::capitalize).collect(Collectors.joining());
+        return Arrays.stream(shapeName.split("[._-]|\\W"))
+                     .filter(s -> !StringUtils.isEmpty(s))
+                     .map(Utils::capitalize)
+                     .collect(joining());
     }
 
     @Override
@@ -329,4 +326,5 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
         return result.split(" ");
     }
+
 }

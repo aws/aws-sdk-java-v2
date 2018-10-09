@@ -13,6 +13,8 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
+/**
+ */
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationRequest extends JsonProtocolTestsRequest implements SdkPojo,
                                                                                            ToCopyableBuilder<EventStreamOperationRequest.Builder, EventStreamOperationRequest> {

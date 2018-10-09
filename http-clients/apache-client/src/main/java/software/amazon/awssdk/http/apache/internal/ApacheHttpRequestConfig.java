@@ -29,6 +29,7 @@ public final class ApacheHttpRequestConfig {
 
     private final Duration socketTimeout;
     private final Duration connectionTimeout;
+    private final Duration connectionAcquireTimeout;
     private final InetAddress localAddress;
     private final boolean expectContinueEnabled;
     private final ProxyConfiguration proxyConfiguration;
@@ -36,6 +37,7 @@ public final class ApacheHttpRequestConfig {
     private ApacheHttpRequestConfig(Builder builder) {
         this.socketTimeout = builder.socketTimeout;
         this.connectionTimeout = builder.connectionTimeout;
+        this.connectionAcquireTimeout = builder.connectionAcquireTimeout;
         this.localAddress = builder.localAddress;
         this.expectContinueEnabled = builder.expectContinueEnabled;
         this.proxyConfiguration = builder.proxyConfiguration;
@@ -47,6 +49,10 @@ public final class ApacheHttpRequestConfig {
 
     public Duration connectionTimeout() {
         return connectionTimeout;
+    }
+
+    public Duration connectionAcquireTimeout() {
+        return connectionAcquireTimeout;
     }
 
     public InetAddress localAddress() {
@@ -75,6 +81,7 @@ public final class ApacheHttpRequestConfig {
 
         private Duration socketTimeout;
         private Duration connectionTimeout;
+        private Duration connectionAcquireTimeout;
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
         private ProxyConfiguration proxyConfiguration;
@@ -89,6 +96,11 @@ public final class ApacheHttpRequestConfig {
 
         public Builder connectionTimeout(Duration connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        public Builder connectionAcquireTimeout(Duration connectionAcquireTimeout) {
+            this.connectionAcquireTimeout = connectionAcquireTimeout;
             return this;
         }
 

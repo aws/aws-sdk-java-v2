@@ -15,18 +15,18 @@
 
 package software.amazon.awssdk.http;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Container for extra dependencies needed during execution of a request.
  */
-@ReviewBeforeRelease("Should we keep this? It was previously used for metrics, which was removed.")
 @SdkProtectedApi
 public class SdkRequestContext {
+    private final boolean isFullDuplex;
 
     private SdkRequestContext(Builder builder) {
+        this.isFullDuplex = builder.isFullDuplex;
     }
 
     /**
@@ -38,12 +38,34 @@ public class SdkRequestContext {
     }
 
     /**
+     * Option to indicate if the request is for a full duplex operation ie., request and response are sent/received at the same
+     * time.
+     * This can be used to set http configuration like ReadTimeouts as soon as request has begin sending data instead of
+     * waiting for the entire request to be sent.
+     *
+     * @return True if the operation this request belongs to is full duplex. Otherwise false.
+     */
+    public boolean fullDuplex() {
+        return isFullDuplex;
+    }
+
+    /**
      * Builder for a {@link SdkRequestContext}.
      */
     @SdkInternalApi
     public static final class Builder {
+        private boolean isFullDuplex;
 
         private Builder() {
+        }
+
+        public boolean fullDuplex() {
+            return isFullDuplex;
+        }
+
+        public Builder fullDuplex(boolean fullDuplex) {
+            isFullDuplex = fullDuplex;
+            return this;
         }
 
         /**

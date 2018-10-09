@@ -16,7 +16,9 @@
 package software.amazon.awssdk.services.sts.auth;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -37,18 +39,20 @@ import software.amazon.awssdk.utils.Validate;
  *
  * This is created using {@link StsAssumeRoleWithSamlCredentialsProvider#builder()}.
  */
+@SdkPublicApi
 @ThreadSafe
-public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProvider {
-    private final AssumeRoleWithSamlRequest assumeRoleWithSamlRequest;
+public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProvider {
+    private final Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
+
 
     /**
      * @see #builder()
      */
     private StsAssumeRoleWithSamlCredentialsProvider(Builder builder) {
         super(builder, "sts-assume-role-with-saml-credentials-provider");
-        Validate.notNull(builder.assumeRoleWithSamlRequest, "Assume role with SAML request must not be null.");
+        Validate.notNull(builder.assumeRoleWithSamlRequestSupplier, "Assume role with SAML request must not be null.");
 
-        this.assumeRoleWithSamlRequest = builder.assumeRoleWithSamlRequest;
+        this.assumeRoleWithSamlRequestSupplier = builder.assumeRoleWithSamlRequestSupplier;
     }
 
     /**
@@ -60,13 +64,15 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
 
     @Override
     protected Credentials getUpdatedCredentials(StsClient stsClient) {
+        AssumeRoleWithSamlRequest assumeRoleWithSamlRequest = assumeRoleWithSamlRequestSupplier.get();
+        Validate.notNull(assumeRoleWithSamlRequest, "Assume role with saml request must not be null.");
         return stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest).credentials();
     }
 
     @Override
     public String toString() {
         return ToString.builder("StsAssumeRoleWithSamlCredentialsProvider")
-                       .add("refreshRequest", assumeRoleWithSamlRequest)
+                       .add("refreshRequest", assumeRoleWithSamlRequestSupplier)
                        .build();
     }
 
@@ -76,7 +82,7 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
      */
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleWithSamlCredentialsProvider> {
-        private AssumeRoleWithSamlRequest assumeRoleWithSamlRequest;
+        private Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
 
         private Builder() {
             super(StsAssumeRoleWithSamlCredentialsProvider::new);
@@ -90,7 +96,18 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
          * @return This object for chained calls.
          */
         public Builder refreshRequest(AssumeRoleWithSamlRequest assumeRoleWithSamlRequest) {
-            this.assumeRoleWithSamlRequest = assumeRoleWithSamlRequest;
+            return refreshRequest(() -> assumeRoleWithSamlRequest);
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleRequest)}, but takes a {@link Supplier} to supply the request to
+         * STS.
+         *
+         * @param assumeRoleWithSamlRequestSupplier A supplier
+         * @return This object for chained calls.
+         */
+        public Builder refreshRequest(Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier) {
+            this.assumeRoleWithSamlRequestSupplier = assumeRoleWithSamlRequestSupplier;
             return this;
         }
 

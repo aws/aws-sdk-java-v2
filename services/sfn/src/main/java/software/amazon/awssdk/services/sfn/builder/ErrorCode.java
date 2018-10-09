@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sfn.builder;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sfn.builder.states.Catcher;
 import software.amazon.awssdk.services.sfn.builder.states.Retrier;
 
@@ -25,6 +26,7 @@ import software.amazon.awssdk.services.sfn.builder.states.Retrier;
  *
  * @see <a href="https://states-language.net/spec.html#appendix-a">https://states-language.net/spec.html#appendix-a</a>
  */
+@SdkPublicApi
 public final class ErrorCode {
 
     /**

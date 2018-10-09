@@ -86,14 +86,14 @@ public final class ApacheUtils {
      * Returns a new instance of AuthScope used for proxy authentication.
      */
     private static AuthScope newAuthScope(ProxyConfiguration proxyConfiguration) {
-        return new AuthScope(proxyConfiguration.endpoint().getHost(), proxyConfiguration.endpoint().getPort());
+        return new AuthScope(proxyConfiguration.host(), proxyConfiguration.port());
     }
 
     private static void addPreemptiveAuthenticationProxy(HttpClientContext clientContext,
                                                          ProxyConfiguration proxyConfiguration) {
 
         if (proxyConfiguration.preemptiveBasicAuthenticationEnabled()) {
-            HttpHost targetHost = new HttpHost(proxyConfiguration.endpoint().getHost(), proxyConfiguration.endpoint().getPort());
+            HttpHost targetHost = new HttpHost(proxyConfiguration.host(), proxyConfiguration.port());
             final CredentialsProvider credsProvider = newProxyCredentialsProvider(proxyConfiguration);
             // Create AuthCache instance
             AuthCache authCache = new BasicAuthCache();

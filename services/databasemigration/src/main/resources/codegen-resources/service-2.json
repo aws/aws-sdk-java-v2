@@ -23,7 +23,7 @@
       "errors":[
         {"shape":"ResourceNotFoundFault"}
       ],
-      "documentation":"<p>Adds metadata tags to a DMS resource, including replication instance, endpoint, security group, and migration task. These tags can also be used with cost allocation reporting to track cost associated with DMS resources, or used in a Condition statement in an IAM policy for DMS.</p>"
+      "documentation":"<p>Adds metadata tags to an AWS DMS resource, including replication instance, endpoint, security group, and migration task. These tags can also be used with cost allocation reporting to track cost associated with DMS resources, or used in a Condition statement in an IAM policy for DMS.</p>"
     },
     "CreateEndpoint":{
       "name":"CreateEndpoint",
@@ -318,6 +318,20 @@
       ],
       "documentation":"<p>Returns the status of the RefreshSchemas operation.</p>"
     },
+    "DescribeReplicationInstanceTaskLogs":{
+      "name":"DescribeReplicationInstanceTaskLogs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeReplicationInstanceTaskLogsMessage"},
+      "output":{"shape":"DescribeReplicationInstanceTaskLogsResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundFault"},
+        {"shape":"InvalidResourceStateFault"}
+      ],
+      "documentation":"<p>Returns information about the task logs for the specified task.</p>"
+    },
     "DescribeReplicationInstances":{
       "name":"DescribeReplicationInstances",
       "http":{
@@ -408,7 +422,8 @@
       "output":{"shape":"ImportCertificateResponse"},
       "errors":[
         {"shape":"ResourceAlreadyExistsFault"},
-        {"shape":"InvalidCertificateFault"}
+        {"shape":"InvalidCertificateFault"},
+        {"shape":"ResourceQuotaExceededFault"}
       ],
       "documentation":"<p>Uploads the specified certificate.</p>"
     },
@@ -510,6 +525,20 @@
       ],
       "documentation":"<p>Modifies the specified replication task.</p> <p>You can't modify the task endpoints. The task must be stopped before you can modify it. </p> <p>For more information about AWS DMS tasks, see the AWS DMS user guide at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.html\"> Working with Migration Tasks </a> </p>"
     },
+    "RebootReplicationInstance":{
+      "name":"RebootReplicationInstance",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RebootReplicationInstanceMessage"},
+      "output":{"shape":"RebootReplicationInstanceResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundFault"},
+        {"shape":"InvalidResourceStateFault"}
+      ],
+      "documentation":"<p>Reboots a replication instance. Rebooting results in a momentary outage, until the replication instance becomes available again.</p>"
+    },
     "RefreshSchemas":{
       "name":"RefreshSchemas",
       "http":{
@@ -563,7 +592,8 @@
       "output":{"shape":"StartReplicationTaskResponse"},
       "errors":[
         {"shape":"ResourceNotFoundFault"},
-        {"shape":"InvalidResourceStateFault"}
+        {"shape":"InvalidResourceStateFault"},
+        {"shape":"AccessDeniedFault"}
       ],
       "documentation":"<p>Starts the replication task.</p> <p>For more information about AWS DMS tasks, see the AWS DMS user guide at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.html\"> Working with Migration Tasks </a> </p>"
     },
@@ -807,7 +837,7 @@
         },
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the EndPointType, include MYSQL, ORACLE, POSTGRES, MARIADB, AURORA, REDSHIFT, S3, SYBASE, DYNAMODB, MONGODB, and SQLSERVER.</p>"
+          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the EndPointType, include mysql, oracle, postgres, mariadb, aurora, aurora-postgresql, redshift, s3, db2, azuredb, sybase, dynamodb, mongodb, and sqlserver.</p>"
         },
         "Username":{
           "shape":"String",
@@ -849,17 +879,29 @@
           "shape":"DmsSslModeValue",
           "documentation":"<p>The SSL mode to use for the SSL connection.</p> <p>SSL mode can be one of four values: none, require, verify-ca, verify-full. </p> <p>The default value is none.</p>"
         },
+        "ServiceAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p> The Amazon Resource Name (ARN) for the service access role you want to use to create the endpoint. </p>"
+        },
+        "ExternalTableDefinition":{
+          "shape":"String",
+          "documentation":"<p>The external table definition. </p>"
+        },
         "DynamoDbSettings":{
           "shape":"DynamoDbSettings",
           "documentation":"<p>Settings in JSON format for the target Amazon DynamoDB endpoint. For more information about the available settings, see the <b>Using Object Mapping to Migrate Data to DynamoDB</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.DynamoDB.html\"> Using an Amazon DynamoDB Database as a Target for AWS Database Migration Service</a>. </p>"
         },
         "S3Settings":{
           "shape":"S3Settings",
-          "documentation":"<p>Settings in JSON format for the target S3 endpoint. For more information about the available settings, see the <b>Extra Connection Attributes</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.S3.html\"> Using Amazon S3 as a Target for AWS Database Migration Service</a>. </p>"
+          "documentation":"<p>Settings in JSON format for the target Amazon S3 endpoint. For more information about the available settings, see the <b>Extra Connection Attributes</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.S3.html\"> Using Amazon S3 as a Target for AWS Database Migration Service</a>. </p>"
+        },
+        "DmsTransferSettings":{
+          "shape":"DmsTransferSettings",
+          "documentation":"<p> The settings in JSON format for the DMS Transfer type source endpoint. </p> <p>Attributes include:</p> <ul> <li> <p>serviceAccessRoleArn - The IAM role that has permission to access the Amazon S3 bucket.</p> </li> <li> <p>bucketName - The name of the S3 bucket to use.</p> </li> <li> <p>compressionType - An optional parameter to use GZIP to compress the target files. Set to NONE (the default) or do not use to leave the files uncompressed.</p> </li> </ul> <p>Shorthand syntax: ServiceAccessRoleArn=string ,BucketName=string,CompressionType=string</p> <p>JSON syntax:</p> <p> { \"ServiceAccessRoleArn\": \"string\", \"BucketName\": \"string\", \"CompressionType\": \"none\"|\"gzip\" } </p>"
         },
         "MongoDbSettings":{
           "shape":"MongoDbSettings",
-          "documentation":"<p>Settings in JSON format for the source MongoDB endpoint. For more information about the available settings, see the <b>Configuration Properties When Using MongoDB as a Source for AWS Database Migration Service</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.MongoDB.html\"> Using Amazon S3 as a Target for AWS Database Migration Service</a>. </p>"
+          "documentation":"<p>Settings in JSON format for the source MongoDB endpoint. For more information about the available settings, see the <b>Configuration Properties When Using MongoDB as a Source for AWS Database Migration Service</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.MongoDB.html\"> Using MongoDB as a Target for AWS Database Migration Service</a>. </p>"
         }
       },
       "documentation":"<p/>"
@@ -883,7 +925,7 @@
       "members":{
         "SubscriptionName":{
           "shape":"String",
-          "documentation":"<p>The name of the DMS event notification subscription. </p> <p>Constraints: The name must be less than 255 characters. </p>"
+          "documentation":"<p>The name of the AWS DMS event notification subscription. </p> <p>Constraints: The name must be less than 255 characters. </p>"
         },
         "SnsTopicArn":{
           "shape":"String",
@@ -1072,7 +1114,15 @@
         },
         "CdcStartTime":{
           "shape":"TStamp",
-          "documentation":"<p>The start time for the Change Data Capture (CDC) operation.</p>"
+          "documentation":"<p>Indicates the start time for a change data capture (CDC) operation. Use either CdcStartTime or CdcStartPosition to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p>Timestamp Example: --cdc-start-time “2018-03-08T12:12:12”</p>"
+        },
+        "CdcStartPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to start. Use either CdcStartPosition or CdcStartTime to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p> The value can be in date, checkpoint, or LSN/SCN format.</p> <p>Date Example: --cdc-start-position “2018-03-08T12:12:12”</p> <p>Checkpoint Example: --cdc-start-position \"checkpoint:V1#27#mysql-bin-changelog.157832:1975:-1:2002:677883278264080:mysql-bin-changelog.157832:1876#0#0#*#0#93\"</p> <p>LSN Example: --cdc-start-position “mysql-bin-changelog.000024:373”</p>"
+        },
+        "CdcStopPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to stop. The value can be either server time or commit time.</p> <p>Server time example: --cdc-stop-position “server_time:3018-02-09T12:12:12”</p> <p>Commit time example: --cdc-stop-position “commit_time: 3018-02-09T12:12:12 “</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -1518,6 +1568,41 @@
       },
       "documentation":"<p/>"
     },
+    "DescribeReplicationInstanceTaskLogsMessage":{
+      "type":"structure",
+      "required":["ReplicationInstanceArn"],
+      "members":{
+        "ReplicationInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the replication instance.</p>"
+        },
+        "MaxRecords":{
+          "shape":"IntegerOptional",
+          "documentation":"<p> The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so that the remaining results can be retrieved. </p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p> An optional pagination token provided by a previous request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
+        }
+      }
+    },
+    "DescribeReplicationInstanceTaskLogsResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the replication instance.</p>"
+        },
+        "ReplicationInstanceTaskLogs":{
+          "shape":"ReplicationInstanceTaskLogsList",
+          "documentation":"<p>An array of replication task log metadata. Each member of the array contains the replication task name, ARN, and task log size (in bytes). </p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p> An optional pagination token provided by a previous request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
+        }
+      }
+    },
     "DescribeReplicationInstancesMessage":{
       "type":"structure",
       "members":{
@@ -1733,6 +1818,20 @@
         "verify-full"
       ]
     },
+    "DmsTransferSettings":{
+      "type":"structure",
+      "members":{
+        "ServiceAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p> The IAM role that has permission to access the Amazon S3 bucket. </p>"
+        },
+        "BucketName":{
+          "shape":"String",
+          "documentation":"<p> The name of the S3 bucket to use. </p>"
+        }
+      },
+      "documentation":"<p> The settings in JSON format for the DMS Transfer type source endpoint. </p>"
+    },
     "DynamoDbSettings":{
       "type":"structure",
       "required":["ServiceAccessRoleArn"],
@@ -1757,7 +1856,11 @@
         },
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The database engine name. Valid values, depending on the EndPointType, include MYSQL, ORACLE, POSTGRES, MARIADB, AURORA, REDSHIFT, S3, SYBASE, DYNAMODB, MONGODB, and SQLSERVER.</p>"
+          "documentation":"<p>The database engine name. Valid values, depending on the EndPointType, include mysql, oracle, postgres, mariadb, aurora, aurora-postgresql, redshift, s3, db2, azuredb, sybase, sybase, dynamodb, mongodb, and sqlserver.</p>"
+        },
+        "EngineDisplayName":{
+          "shape":"String",
+          "documentation":"<p>The expanded name for the engine name. For example, if the <code>EngineName</code> parameter is \"aurora,\" this value would be \"Amazon Aurora MySQL.\"</p>"
         },
         "Username":{
           "shape":"String",
@@ -1799,6 +1902,14 @@
           "shape":"DmsSslModeValue",
           "documentation":"<p>The SSL mode used to connect to the endpoint.</p> <p>SSL mode can be one of four values: none, require, verify-ca, verify-full. </p> <p>The default value is none.</p>"
         },
+        "ServiceAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) used by the service access IAM role.</p>"
+        },
+        "ExternalTableDefinition":{
+          "shape":"String",
+          "documentation":"<p>The external table definition.</p>"
+        },
         "ExternalId":{
           "shape":"String",
           "documentation":"<p> Value returned by a call to CreateEndpoint that can be used for cross-account validation. Use it on a subsequent call to CreateEndpoint to create the endpoint with a cross-account. </p>"
@@ -1810,6 +1921,10 @@
         "S3Settings":{
           "shape":"S3Settings",
           "documentation":"<p>The settings for the S3 target endpoint. For more information, see the <code>S3Settings</code> structure.</p>"
+        },
+        "DmsTransferSettings":{
+          "shape":"DmsTransferSettings",
+          "documentation":"<p> The settings in JSON format for the DMS Transfer type source endpoint. </p> <p>Attributes include:</p> <ul> <li> <p>serviceAccessRoleArn - The IAM role that has permission to access the Amazon S3 bucket.</p> </li> <li> <p>bucketName - The name of the S3 bucket to use.</p> </li> <li> <p>compressionType - An optional parameter to use GZIP to compress the target files. Set to NONE (the default) or do not use to leave the files uncompressed.</p> </li> </ul> <p>Shorthand syntax: ServiceAccessRoleArn=string ,BucketName=string,CompressionType=string</p> <p>JSON syntax:</p> <p> { \"ServiceAccessRoleArn\": \"string\", \"BucketName\": \"string\", \"CompressionType\": \"none\"|\"gzip\" } </p>"
         },
         "MongoDbSettings":{
           "shape":"MongoDbSettings",
@@ -2084,7 +2199,7 @@
         },
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the EndPointType, include MYSQL, ORACLE, POSTGRES, MARIADB, AURORA, REDSHIFT, S3, DYNAMODB, MONGODB, SYBASE, and SQLSERVER.</p>"
+          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the EndPointType, include mysql, oracle, postgres, mariadb, aurora, aurora-postgresql, redshift, s3, db2, azuredb, sybase, sybase, dynamodb, mongodb, and sqlserver.</p>"
         },
         "Username":{
           "shape":"String",
@@ -2118,6 +2233,14 @@
           "shape":"DmsSslModeValue",
           "documentation":"<p>The SSL mode to be used.</p> <p>SSL mode can be one of four values: none, require, verify-ca, verify-full. </p> <p>The default value is none.</p>"
         },
+        "ServiceAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p> The Amazon Resource Name (ARN) for the service access role you want to use to modify the endpoint. </p>"
+        },
+        "ExternalTableDefinition":{
+          "shape":"String",
+          "documentation":"<p>The external table definition.</p>"
+        },
         "DynamoDbSettings":{
           "shape":"DynamoDbSettings",
           "documentation":"<p>Settings in JSON format for the target Amazon DynamoDB endpoint. For more information about the available settings, see the <b>Using Object Mapping to Migrate Data to DynamoDB</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.DynamoDB.html\"> Using an Amazon DynamoDB Database as a Target for AWS Database Migration Service</a>. </p>"
@@ -2125,6 +2248,10 @@
         "S3Settings":{
           "shape":"S3Settings",
           "documentation":"<p>Settings in JSON format for the target S3 endpoint. For more information about the available settings, see the <b>Extra Connection Attributes</b> section at <a href=\"http://docs.aws.amazon.com/dms/latest/userguide/CHAP_Target.S3.html\"> Using Amazon S3 as a Target for AWS Database Migration Service</a>. </p>"
+        },
+        "DmsTransferSettings":{
+          "shape":"DmsTransferSettings",
+          "documentation":"<p> The settings in JSON format for the DMS Transfer type source endpoint. </p> <p>Attributes include:</p> <ul> <li> <p>serviceAccessRoleArn - The IAM role that has permission to access the Amazon S3 bucket.</p> </li> <li> <p>BucketName - The name of the S3 bucket to use.</p> </li> <li> <p>compressionType - An optional parameter to use GZIP to compress the target files. Set to NONE (the default) or do not use to leave the files uncompressed.</p> </li> </ul> <p>Shorthand syntax: ServiceAccessRoleArn=string ,BucketName=string,CompressionType=string</p> <p>JSON syntax:</p> <p> { \"ServiceAccessRoleArn\": \"string\", \"BucketName\": \"string\", \"CompressionType\": \"none\"|\"gzip\" } </p>"
         },
         "MongoDbSettings":{
           "shape":"MongoDbSettings",
@@ -2299,7 +2426,15 @@
         },
         "CdcStartTime":{
           "shape":"TStamp",
-          "documentation":"<p>The start time for the Change Data Capture (CDC) operation.</p>"
+          "documentation":"<p>Indicates the start time for a change data capture (CDC) operation. Use either CdcStartTime or CdcStartPosition to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p>Timestamp Example: --cdc-start-time “2018-03-08T12:12:12”</p>"
+        },
+        "CdcStartPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to start. Use either CdcStartPosition or CdcStartTime to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p> The value can be in date, checkpoint, or LSN/SCN format.</p> <p>Date Example: --cdc-start-position “2018-03-08T12:12:12”</p> <p>Checkpoint Example: --cdc-start-position \"checkpoint:V1#27#mysql-bin-changelog.157832:1975:-1:2002:677883278264080:mysql-bin-changelog.157832:1876#0#0#*#0#93\"</p> <p>LSN Example: --cdc-start-position “mysql-bin-changelog.000024:373”</p>"
+        },
+        "CdcStopPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to stop. The value can be either server time or commit time.</p> <p>Server time example: --cdc-stop-position “server_time:3018-02-09T12:12:12”</p> <p>Commit time example: --cdc-stop-position “commit_time: 3018-02-09T12:12:12 “</p>"
         }
       },
       "documentation":"<p/>"
@@ -2360,6 +2495,10 @@
         "AuthSource":{
           "shape":"String",
           "documentation":"<p> The MongoDB database name. This attribute is not used when <code>authType=NO</code>. </p> <p>The default is admin.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p> The KMS key identifier that will be used to encrypt the connection parameters. If you do not specify a value for the KmsKeyId parameter, then AWS DMS will use your default encryption key. AWS KMS creates the default encryption key for your AWS account. Your AWS account has a different default encryption key for each AWS region. </p>"
         }
       },
       "documentation":"<p/>"
@@ -2408,6 +2547,29 @@
     "OrderableReplicationInstanceList":{
       "type":"list",
       "member":{"shape":"OrderableReplicationInstance"}
+    },
+    "RebootReplicationInstanceMessage":{
+      "type":"structure",
+      "required":["ReplicationInstanceArn"],
+      "members":{
+        "ReplicationInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the replication instance.</p>"
+        },
+        "ForceFailover":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>If this parameter is <code>true</code>, the reboot is conducted through a Multi-AZ failover. (If the instance isn't configured for Multi-AZ, then you can't specify <code>true</code>.)</p>"
+        }
+      }
+    },
+    "RebootReplicationInstanceResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationInstance":{
+          "shape":"ReplicationInstance",
+          "documentation":"<p>The replication instance that is being rebooted. </p>"
+        }
+      }
     },
     "RefreshSchemasMessage":{
       "type":"structure",
@@ -2471,6 +2633,13 @@
         "refreshing"
       ]
     },
+    "ReloadOptionValue":{
+      "type":"string",
+      "enum":[
+        "data-reload",
+        "validate-only"
+      ]
+    },
     "ReloadTablesMessage":{
       "type":"structure",
       "required":[
@@ -2480,11 +2649,15 @@
       "members":{
         "ReplicationTaskArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the replication instance. </p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the replication task. </p>"
         },
         "TablesToReload":{
           "shape":"TableListToReload",
           "documentation":"<p>The name and schema of the table to be reloaded. </p>"
+        },
+        "ReloadOption":{
+          "shape":"ReloadOptionValue",
+          "documentation":"<p>Options for reload. Specify <code>data-reload</code> to reload the data and re-validate it if validation is enabled. Specify <code>validate-only</code> to re-validate the table. This option applies only when validation is enabled for the task. </p> <p>Valid values: data-reload, validate-only</p> <p>Default value is data-reload.</p>"
         }
       }
     },
@@ -2616,6 +2789,10 @@
         "SecondaryAvailabilityZone":{
           "shape":"String",
           "documentation":"<p>The availability zone of the standby replication instance in a Multi-AZ deployment.</p>"
+        },
+        "FreeUntil":{
+          "shape":"TStamp",
+          "documentation":"<p> The expiration date of the free replication instance that is part of the Free DMS program. </p>"
         }
       },
       "documentation":"<p/>"
@@ -2631,6 +2808,28 @@
     "ReplicationInstancePublicIpAddressList":{
       "type":"list",
       "member":{"shape":"String"}
+    },
+    "ReplicationInstanceTaskLog":{
+      "type":"structure",
+      "members":{
+        "ReplicationTaskName":{
+          "shape":"String",
+          "documentation":"<p>The name of the replication task.</p>"
+        },
+        "ReplicationTaskArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the replication task.</p>"
+        },
+        "ReplicationInstanceTaskLogSize":{
+          "shape":"Long",
+          "documentation":"<p>The size, in bytes, of the replication task log.</p>"
+        }
+      },
+      "documentation":"<p>Contains metadata for a replication instance task log.</p>"
+    },
+    "ReplicationInstanceTaskLogsList":{
+      "type":"list",
+      "member":{"shape":"ReplicationInstanceTaskLog"}
     },
     "ReplicationPendingModifiedValues":{
       "type":"structure",
@@ -2700,7 +2899,7 @@
       "members":{
         "ReplicationTaskIdentifier":{
           "shape":"String",
-          "documentation":"<p>The replication task identifier.</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 255 alphanumeric characters or hyphens.</p> </li> <li> <p>First character must be a letter.</p> </li> <li> <p>Cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
+          "documentation":"<p>The user-assigned replication task identifier or name.</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 255 alphanumeric characters or hyphens.</p> </li> <li> <p>First character must be a letter.</p> </li> <li> <p>Cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
         },
         "SourceEndpointArn":{
           "shape":"String",
@@ -2745,6 +2944,18 @@
         "ReplicationTaskStartDate":{
           "shape":"TStamp",
           "documentation":"<p>The date the replication task is scheduled to start.</p>"
+        },
+        "CdcStartPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to start. Use either CdcStartPosition or CdcStartTime to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p> The value can be in date, checkpoint, or LSN/SCN format.</p> <p>Date Example: --cdc-start-position “2018-03-08T12:12:12”</p> <p>Checkpoint Example: --cdc-start-position \"checkpoint:V1#27#mysql-bin-changelog.157832:1975:-1:2002:677883278264080:mysql-bin-changelog.157832:1876#0#0#*#0#93\"</p> <p>LSN Example: --cdc-start-position “mysql-bin-changelog.000024:373”</p>"
+        },
+        "CdcStopPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to stop. The value can be either server time or commit time.</p> <p>Server time example: --cdc-stop-position “server_time:3018-02-09T12:12:12”</p> <p>Commit time example: --cdc-stop-position “commit_time: 3018-02-09T12:12:12 “</p>"
+        },
+        "RecoveryCheckpoint":{
+          "shape":"String",
+          "documentation":"<p>Indicates the last checkpoint that occurred during a change data capture (CDC) operation. You can provide this value to the <code>CdcStartPosition</code> parameter to start a CDC operation that begins at that checkpoint.</p>"
         },
         "ReplicationTaskArn":{
           "shape":"String",
@@ -2871,7 +3082,7 @@
         },
         "ExternalTableDefinition":{
           "shape":"String",
-          "documentation":"<p> </p>"
+          "documentation":"<p> The external table definition. </p>"
         },
         "CsvRowDelimiter":{
           "shape":"String",
@@ -2972,7 +3183,15 @@
         },
         "CdcStartTime":{
           "shape":"TStamp",
-          "documentation":"<p>The start time for the Change Data Capture (CDC) operation.</p>"
+          "documentation":"<p>Indicates the start time for a change data capture (CDC) operation. Use either CdcStartTime or CdcStartPosition to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p>Timestamp Example: --cdc-start-time “2018-03-08T12:12:12”</p>"
+        },
+        "CdcStartPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to start. Use either CdcStartPosition or CdcStartTime to specify when you want a CDC operation to start. Specifying both values results in an error.</p> <p> The value can be in date, checkpoint, or LSN/SCN format.</p> <p>Date Example: --cdc-start-position “2018-03-08T12:12:12”</p> <p>Checkpoint Example: --cdc-start-position \"checkpoint:V1#27#mysql-bin-changelog.157832:1975:-1:2002:677883278264080:mysql-bin-changelog.157832:1876#0#0#*#0#93\"</p> <p>LSN Example: --cdc-start-position “mysql-bin-changelog.000024:373”</p>"
+        },
+        "CdcStopPosition":{
+          "shape":"String",
+          "documentation":"<p>Indicates when you want a change data capture (CDC) operation to stop. The value can be either server time or commit time.</p> <p>Server time example: --cdc-stop-position “server_time:3018-02-09T12:12:12”</p> <p>Commit time example: --cdc-stop-position “commit_time: 3018-02-09T12:12:12 “</p>"
         }
       },
       "documentation":"<p/>"
@@ -3070,7 +3289,7 @@
       "members":{
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The database engine name. Valid values, depending on the EndPointType, include MYSQL, ORACLE, POSTGRES, MARIADB, AURORA, REDSHIFT, S3, SYBASE, DYNAMODB, MONGODB, and SQLSERVER.</p>"
+          "documentation":"<p>The database engine name. Valid values, depending on the EndPointType, include mysql, oracle, postgres, mariadb, aurora, aurora-postgresql, redshift, s3, db2, azuredb, sybase, sybase, dynamodb, mongodb, and sqlserver.</p>"
         },
         "SupportsCDC":{
           "shape":"Boolean",
@@ -3079,6 +3298,10 @@
         "EndpointType":{
           "shape":"ReplicationEndpointTypeValue",
           "documentation":"<p>The type of endpoint.</p>"
+        },
+        "EngineDisplayName":{
+          "shape":"String",
+          "documentation":"<p>The expanded name for the engine name. For example, if the <code>EngineName</code> parameter is \"aurora,\" this value would be \"Amazon Aurora MySQL.\"</p>"
         }
       },
       "documentation":"<p/>"
@@ -3154,6 +3377,10 @@
         "ValidationState":{
           "shape":"String",
           "documentation":"<p>The validation state of the table.</p> <p>The parameter can have the following values</p> <ul> <li> <p>Not enabled—Validation is not enabled for the table in the migration task.</p> </li> <li> <p>Pending records—Some records in the table are waiting for validation.</p> </li> <li> <p>Mismatched records—Some records in the table do not match between the source and target.</p> </li> <li> <p>Suspended records—Some records in the table could not be validated.</p> </li> <li> <p>No primary key—The table could not be validated because it had no primary key.</p> </li> <li> <p>Table error—The table was not validated because it was in an error state and some data was not migrated.</p> </li> <li> <p>Validated—All rows in the table were validated. If the table is updated, the status can change from Validated.</p> </li> <li> <p>Error—The table could not be validated because of an unexpected error.</p> </li> </ul>"
+        },
+        "ValidationStateDetails":{
+          "shape":"String",
+          "documentation":"<p>Additional details about the state of validation.</p>"
         }
       },
       "documentation":"<p/>"

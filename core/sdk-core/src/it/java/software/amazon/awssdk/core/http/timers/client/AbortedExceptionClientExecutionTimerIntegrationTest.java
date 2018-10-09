@@ -47,8 +47,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.response.DummyResponseHandler;
-import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -71,7 +71,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
 
     @Before
     public void setup() throws Exception {
-        when(sdkHttpClient.prepareRequest(any(), any())).thenReturn(abortableCallable);
+        when(sdkHttpClient.prepareRequest(any())).thenReturn(abortableCallable);
         httpClient = HttpTestUtils.testClientBuilder().httpClient(sdkHttpClient).build();
         when(abortableCallable.call()).thenReturn(SdkHttpFullResponse.builder()
                                                                      .statusCode(200)

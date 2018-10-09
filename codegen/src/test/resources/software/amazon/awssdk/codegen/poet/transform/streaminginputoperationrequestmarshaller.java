@@ -21,7 +21,7 @@ public class StreamingInputOperationRequestMarshaller implements
                                                       Marshaller<Request<StreamingInputOperationRequest>, StreamingInputOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/streamingInputOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(true)
-                                                                            .hasPayloadMembers(true).build();
+                                                                            .hasPayloadMembers(true).hasStreamingInput(true).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 

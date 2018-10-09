@@ -1,5 +1,0 @@
-{
-    "category": "runtime", 
-    "type": "bugfix", 
-    "description": "Netty 4.1.26.Final -> 4.1.28.Final"
-}

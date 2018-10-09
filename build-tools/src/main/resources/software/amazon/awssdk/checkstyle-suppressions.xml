@@ -31,10 +31,6 @@
     <suppress checks="MissingSdkAnnotationCheck"
               files=".(codegen|test)[\\/].+\.java$"/>
 
-    <!-- TODO: Remove this once we add the annotations on the services-->
-    <suppress checks="MissingSdkAnnotationCheck"
-              files=".(services)[\\/].+\.java$"/>
-
     <!-- TODO want to contribute this back to Netty -->
     <suppress checks=".*"
               files=".*BetterFixedChannelPool\.java$"/>

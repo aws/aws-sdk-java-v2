@@ -24,6 +24,7 @@ import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -34,13 +35,13 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
  *
- * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
+ * @param <ResponseT> Response POJO type.
  */
 @SdkInternalApi
 public final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
-
     private final Path path;
-    private AsynchronousFileChannel fileChannel;
+    private volatile AsynchronousFileChannel fileChannel;
+    private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
 
     public FileAsyncResponseTransformer(Path path) {
@@ -52,7 +53,18 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     @Override
-    public void responseReceived(ResponseT response) {
+    public CompletableFuture<ResponseT> prepare() {
+        cf = new CompletableFuture<>();
+        cf.whenComplete((r, t) -> {
+            if (t != null && fileChannel != null) {
+                invokeSafely(fileChannel::close);
+            }
+        });
+        return cf.thenApply(ignored -> response);
+    }
+
+    @Override
+    public void onResponse(ResponseT response) {
         this.response = response;
     }
 
@@ -60,7 +72,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         // onStream may be called multiple times so reset the file channel every time
         this.fileChannel = invokeSafely(() -> createChannel(path));
-        publisher.subscribe(new FileSubscriber(this.fileChannel, path));
+        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf));
     }
 
     @Override
@@ -70,14 +82,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         } finally {
             invokeSafely(() -> Files.delete(path));
         }
-    }
-
-    @Override
-    public ResponseT complete() {
-        if (fileChannel != null) {
-            invokeSafely(fileChannel::close);
-        }
-        return response;
+        cf.completeExceptionally(throwable);
     }
 
     /**
@@ -88,14 +93,16 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
         private final AsynchronousFileChannel fileChannel;
         private final Path path;
+        private final CompletableFuture<Void> future;
 
         private volatile boolean writeInProgress = false;
         private volatile boolean closeOnLastWrite = false;
         private Subscription subscription;
 
-        FileSubscriber(AsynchronousFileChannel fileChannel, Path path) {
+        FileSubscriber(AsynchronousFileChannel fileChannel, Path path, CompletableFuture<Void> future) {
             this.fileChannel = fileChannel;
             this.path = path;
+            this.future = future;
         }
 
         @Override
@@ -135,6 +142,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 @Override
                 public void failed(Throwable exc, ByteBuffer attachment) {
                     subscription.cancel();
+                    future.completeExceptionally(exc);
                 }
             });
 
@@ -155,6 +163,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                     close();
                 }
             }
+            future.complete(null);
         }
 
         private void close() {

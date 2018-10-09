@@ -46,8 +46,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
@@ -115,11 +115,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     private volatile boolean isDone = false;
 
     /**
-     * Holds a reference to any exception delivered to exceptionOccurred.
-     */
-    private final AtomicReference<Throwable> error = new AtomicReference<>();
-
-    /**
      * Executor to deliver events to the subscriber
      */
     private final Executor executor;
@@ -161,6 +156,8 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private String requestId = null;
 
+    private volatile CompletableFuture<Void> transformFuture;
+
     @Deprecated
     @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
     public EventStreamAsyncResponseTransformer(
@@ -191,10 +188,13 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     }
 
     @Override
-    public void responseReceived(SdkResponse response) {
-        // We use a void unmarshaller and unmarshall the actual response in the message
-        // decoder when we receive the initial-response frame. TODO not clear
-        // how we would handle REST protocol which would unmarshall the response from the HTTP headers
+    public CompletableFuture<Void> prepare() {
+        transformFuture = new CompletableFuture<>();
+        return transformFuture;
+    }
+
+    @Override
+    public void onResponse(SdkResponse response) {
         if (response != null && response.sdkHttpResponse() != null) {
             this.requestId = response.sdkHttpResponse()
                                      .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
@@ -226,28 +226,14 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         synchronized (this) {
             if (!isDone) {
                 isDone = true;
-                error.set(throwable);
                 // If we have a Subscriber at this point notify it as well
-                if (subscriberRef.get() != null) {
+                if (subscriberRef.get() != null && shouldSurfaceErrorToEventSubscriber(throwable)) {
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                         () -> subscriberRef.get().onError(throwable));
                 }
                 eventStreamResponseHandler.exceptionOccurred(throwable);
+                transformFuture.completeExceptionally(throwable);
             }
-        }
-    }
-
-    @Override
-    public Void complete() {
-        if (error.get() == null) {
-            // Add the special on complete event to signal drainEvents to complete the subscriber
-            eventsToDeliver.add(ON_COMPLETE_EVENT);
-            drainEventsIfNotAlready();
-            return null;
-        } else {
-            // Need to propagate the failure up so the future is completed exceptionally. This should only happen
-            // when there is a frame level exception that the upper layers don't know about.
-            throw ThrowableUtils.failure(error.get());
         }
     }
 
@@ -343,6 +329,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                   .build();
     }
 
+    private static boolean shouldSurfaceErrorToEventSubscriber(Throwable t) {
+        return !(t instanceof SdkCancellationException);
+    }
+
     /**
      * Subscriber for the raw bytes from the stream. Feeds them to the {@link MessageDecoder} as they arrive
      * and will request as much as needed to fulfill any outstanding demand.
@@ -393,8 +383,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         @Override
         public void onComplete() {
-            // Notified in onEventComplete method because we have more context on what we've delivered to
-            // the event stream subscriber there.
+            // Add the special on complete event to signal drainEvents to complete the subscriber
+            eventsToDeliver.add(ON_COMPLETE_EVENT);
+            drainEventsIfNotAlready();
+            transformFuture.complete(null);
         }
     }
 

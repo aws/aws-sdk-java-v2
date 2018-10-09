@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.sfn.builder.internal.Buildable;
  *
  * <p>This interface should not be implemented outside the SDK.</p>
  */
+@SdkInternalApi
 public interface Transition {
 
     /**

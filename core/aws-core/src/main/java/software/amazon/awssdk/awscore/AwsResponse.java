@@ -24,14 +24,25 @@ import software.amazon.awssdk.core.SdkResponse;
 @SdkPublicApi
 public abstract class AwsResponse extends SdkResponse {
 
+    private AwsResponseMetadata responseMetadata;
+
     protected AwsResponse(Builder builder) {
         super(builder);
+        this.responseMetadata = builder.responseMetadata();
+    }
+
+    public AwsResponseMetadata responseMetadata() {
+        return responseMetadata;
     }
 
     @Override
     public abstract Builder toBuilder();
 
-    protected interface Builder extends SdkResponse.Builder {
+    public interface Builder extends SdkResponse.Builder {
+
+        AwsResponseMetadata responseMetadata();
+
+        Builder responseMetadata(AwsResponseMetadata metadata);
 
         @Override
         AwsResponse build();
@@ -39,11 +50,25 @@ public abstract class AwsResponse extends SdkResponse {
 
     protected abstract static class BuilderImpl extends SdkResponse.BuilderImpl implements Builder {
 
+        private AwsResponseMetadata responseMetadata;
+
         protected BuilderImpl() {
         }
 
         protected BuilderImpl(AwsResponse response) {
             super(response);
+            this.responseMetadata = response.responseMetadata();
+        }
+
+        @Override
+        public Builder responseMetadata(AwsResponseMetadata responseMetadata) {
+            this.responseMetadata = responseMetadata;
+            return this;
+        }
+
+        @Override
+        public AwsResponseMetadata responseMetadata() {
+            return responseMetadata;
         }
     }
 }

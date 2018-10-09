@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.http.response.AwsJsonResponseHandler;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
-import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredCborFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredIonFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredJsonFactory;
@@ -33,7 +33,6 @@ import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredPlainJ
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentResolverFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentTypeResolver;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.http.NewJsonResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
@@ -71,7 +70,7 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsReq
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
     @Override
-    public <T> JsonResponseHandler<T> createResponseHandler(
+    public <T> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return getSdkFactory().createResponseHandler(operationMetadata, responseUnmarshaller);
@@ -80,10 +79,11 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsReq
     public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata, Supplier<SdkPojo> pojoSupplier) {
         JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>(getSdkFactory().createObjectMapper());
-        return new NewJsonResponseHandler<>(unmarshaller,
-            r -> pojoSupplier.get(),
-                                            operationMetadata.isHasStreamingSuccessResponse(),
-                                            operationMetadata.isPayloadJson());
+        return new AwsJsonResponseHandler<>(
+            new NewJsonResponseHandler<>(unmarshaller,
+                r -> pojoSupplier.get(),
+                                         operationMetadata.isHasStreamingSuccessResponse(),
+                                         operationMetadata.isPayloadJson()));
     }
 
     public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(

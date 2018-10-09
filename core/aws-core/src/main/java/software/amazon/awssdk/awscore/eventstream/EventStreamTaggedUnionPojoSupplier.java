@@ -59,7 +59,7 @@ public final class EventStreamTaggedUnionPojoSupplier implements Function<SdkHtt
          * @param pojoSupplier Supplier of {@link SdkPojo}.
          * @return This object for method chaining.
          */
-        public Builder addSdkPojoSupplier(String type,
+        public Builder putSdkPojoSupplier(String type,
                                           Supplier<SdkPojo> pojoSupplier) {
             pojoSuppliers.put(type, pojoSupplier);
             return this;

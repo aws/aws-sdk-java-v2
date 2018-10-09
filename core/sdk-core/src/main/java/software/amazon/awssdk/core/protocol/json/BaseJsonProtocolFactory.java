@@ -23,7 +23,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
@@ -68,7 +67,7 @@ public abstract class BaseJsonProtocolFactory<RequestT extends SdkRequest, Excep
      *
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
-    public abstract <T> JsonResponseHandler<T> createResponseHandler(
+    public abstract <T> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata, Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller);
 
     protected abstract String getContentType();

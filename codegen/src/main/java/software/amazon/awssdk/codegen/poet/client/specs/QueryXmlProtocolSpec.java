@@ -31,6 +31,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
+import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -92,22 +93,15 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         ClassName unmarshaller = poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
         ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
-        if (opModel.hasStreamingOutput()) {
-            return CodeBlock.builder()
-                            .addStatement("\n\n$T<$T> responseHandler = $T.createStreamingResponseHandler(new $T())",
-                                          HttpResponseHandler.class,
-                                          responseType,
-                                          StaxResponseHandler.class,
-                                          unmarshaller)
-                            .build();
-        }
         return CodeBlock.builder()
-                        .addStatement("\n\n$T<$T> responseHandler = new $T<$T>(new $T())",
-                                      StaxResponseHandler.class,
+                        .addStatement("\n\n$T<$T> responseHandler = new $T<>(new $T(), new $T().withHasStreamingSuccessResponse"
+                                      + "($L))",
+                                      HttpResponseHandler.class,
                                       responseType,
                                       StaxResponseHandler.class,
-                                      responseType,
-                                      unmarshaller)
+                                      unmarshaller,
+                                      StaxOperationMetadata.class,
+                                      opModel.hasStreamingOutput())
                         .build();
     }
 
@@ -148,7 +142,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock asyncExecutionHandler(OperationModel opModel) {
+    public CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
         ClassName pojoResponseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
@@ -160,20 +154,14 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
                                        asyncRequestBody +
-                                       ".withInput($L) $L)$L;",
+                                       ".withInput($L) $L);",
                                        ClientExecutionParams.class,
                                        requestType,
                                        pojoResponseType,
                                        marshaller,
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "",
-                                       // If it's a streaming operation we also need to notify the handler on exception
-                                       opModel.hasStreamingOutput() ? ".whenComplete((r, e) -> {\n"
-                                                                      + "    if (e != null) {\n"
-                                                                      + "        asyncResponseTransformer.exceptionOccurred(e);\n"
-                                                                      + "    }\n"
-                                                                      + "})" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
                         .build();
     }
 

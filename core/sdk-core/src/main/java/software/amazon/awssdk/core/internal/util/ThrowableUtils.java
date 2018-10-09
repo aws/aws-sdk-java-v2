@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 
 /**
  * Utility for use with errors or exceptions.
@@ -85,5 +86,15 @@ public final class ThrowableUtils {
         return t instanceof InterruptedException
                ? AbortedException.builder().message(errmsg).cause(t).build()
                : SdkClientException.builder().message(errmsg).cause(t).build();
+    }
+
+    /**
+     * Wraps the given {@code Throwable} in {@link SdkException} if necessary.
+     */
+    public static SdkException asSdkException(Throwable t) {
+        if (t instanceof SdkException) {
+            return (SdkException) t;
+        }
+        return SdkClientException.builder().cause(t).build();
     }
 }

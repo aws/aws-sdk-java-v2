@@ -46,6 +46,12 @@ public class Member {
 
     private String timestampFormat;
 
+    @JsonProperty(value = "eventpayload")
+    private boolean eventPayload;
+
+    @JsonProperty(value = "eventheader")
+    private boolean eventHeader;
+
     public String getShape() {
         return shape;
     }
@@ -148,5 +154,21 @@ public class Member {
 
     public void setTimestampFormat(String timestampFormat) {
         this.timestampFormat = timestampFormat;
+    }
+
+    public boolean isEventPayload() {
+        return eventPayload;
+    }
+
+    public void setEventPayload(boolean eventPayload) {
+        this.eventPayload = eventPayload;
+    }
+
+    public boolean isEventHeader() {
+        return eventHeader;
+    }
+
+    public void setEventHeader(boolean eventHeader) {
+        this.eventHeader = eventHeader;
     }
 }

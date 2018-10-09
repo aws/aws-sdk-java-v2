@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.machinelearning.internal;
 
 import java.util.UUID;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -32,8 +33,9 @@ import software.amazon.awssdk.services.machinelearning.model.CreateMlModelReques
  * CreateXxx API calls require a unique (for all time!) ID parameter for
  * idempotency. If the user doesn't specify one, fill in a GUID.
  */
+@SdkProtectedApi
 @ReviewBeforeRelease("They should be using the idempotency trait")
-public class RandomIdInterceptor implements ExecutionInterceptor {
+public final class RandomIdInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {

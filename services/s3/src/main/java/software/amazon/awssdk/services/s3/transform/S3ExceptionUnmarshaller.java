@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.util.xml.XpathUtils.xpath;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.StringUtils;
 /**
  * Base exception unmarshaller for S3.
  */
+@SdkInternalApi
 public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<AwsServiceException, Node> {
 
     private final String errorCode;

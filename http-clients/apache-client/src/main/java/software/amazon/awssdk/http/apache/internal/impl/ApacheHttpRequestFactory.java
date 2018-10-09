@@ -65,9 +65,10 @@ public class ApacheHttpRequestFactory {
                                   final SdkHttpFullRequest request,
                                   final ApacheHttpRequestConfig requestConfig) {
         final int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
+        final int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
         final RequestConfig.Builder requestConfigBuilder = RequestConfig
                 .custom()
-                .setConnectionRequestTimeout(connectTimeout)
+                .setConnectionRequestTimeout(connectAcquireTimeout)
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()))
                 .setLocalAddress(requestConfig.localAddress());

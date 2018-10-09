@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.services.sfn.builder.internal.validation;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * Enum indicating the location of a validation problem.
  */
+@SdkInternalApi
 enum Location {
     StateMachine,
     State,

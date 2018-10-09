@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.ec2.transform;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.ec2.model.RequestSpotFleetRequest;
  * RequestSpotFleet and DescribeSpotFleetRequestHistory, which don't expect
  * timestamps to be so precise.
  */
+@SdkProtectedApi
 public final class TimestampFormatInterceptor implements ExecutionInterceptor {
 
     private static final Pattern PATTERN = Pattern.compile("\\.\\d\\d\\dZ");

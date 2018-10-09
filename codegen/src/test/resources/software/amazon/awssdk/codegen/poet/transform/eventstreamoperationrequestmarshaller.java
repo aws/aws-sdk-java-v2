@@ -20,8 +20,8 @@ import software.amazon.awssdk.utils.Validate;
 public class EventStreamOperationRequestMarshaller implements
                                                    Marshaller<Request<EventStreamOperationRequest>, EventStreamOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-                                                                            .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false)
-                                                                            .hasPayloadMembers(false).build();
+                                                                            .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(true)
+                                                                            .hasPayloadMembers(true).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 

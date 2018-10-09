@@ -16,7 +16,6 @@
 package software.amazon.awssdk.awscore.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 
 /**
  * Provides additional metadata about AWS Json protocol.
