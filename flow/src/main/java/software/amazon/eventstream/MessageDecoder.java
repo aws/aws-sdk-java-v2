@@ -1,6 +1,9 @@
 package software.amazon.eventstream;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -15,9 +18,27 @@ public final class MessageDecoder {
     private static final int INITIAL_BUFFER_SIZE = 2048 * 1024;
 
     private final Consumer<Message> messageConsumer;
+    private List<Message> bufferedOutput;
     private ByteBuffer buf;
     private Prelude currentPrelude;
 
+    /**
+     * Creates a {@code MessageDecoder} instance that will buffer messages internally as they are decoded. Decoded
+     * messages can be obtained by calling {@link #getDecodedMessages()}.
+     */
+    public MessageDecoder() {
+        this.messageConsumer = message -> this.bufferedOutput.add(message);
+        this.bufferedOutput = new ArrayList<>();
+        this.buf = ByteBuffer.allocate(INITIAL_BUFFER_SIZE);
+    }
+
+    /**
+     * Creates a {@code MessageDecoder} instance that will publish messages incrementally to the supplied {@code
+     * messageConsumer} as they are decoded. The resulting instance does not support the {@link #getDecodedMessages()}
+     * operation, and will throw an exception if it is invoked.
+     *
+     * @param messageConsumer a function that consumes {@link Message} instances
+     */
     public MessageDecoder(Consumer<Message> messageConsumer) {
         this(messageConsumer, INITIAL_BUFFER_SIZE);
     }
@@ -28,23 +49,51 @@ public final class MessageDecoder {
     MessageDecoder(Consumer<Message> messageConsumer, int initialBufferSize) {
         this.messageConsumer = messageConsumer;
         this.buf = ByteBuffer.allocate(initialBufferSize);
+        this.bufferedOutput = null;
+    }
+
+    /**
+     * Returns {@link Message} instances that have been decoded since this method was last invoked. Note that this
+     * method is only supported if this decoder was not configured to use a custom message consumer.
+     *
+     * @return all messages decoded since the last invocation of this method
+     */
+    public List<Message> getDecodedMessages() {
+        if (bufferedOutput == null) {
+            throw new IllegalStateException("");
+        }
+        List<Message> ret = bufferedOutput;
+        bufferedOutput = new ArrayList<>();
+        return Collections.unmodifiableList(ret);
     }
 
     public void feed(byte[] bytes) {
-        feed(bytes, 0, bytes.length);
+        feed(ByteBuffer.wrap(bytes));
     }
 
     public void feed(byte[] bytes, int offset, int length) {
-        int bytesToRead = Math.min(bytes.length, length + offset);
-        int bytesConsumed = offset;
+        feed(ByteBuffer.wrap(bytes, offset, length));
+    }
+
+    /**
+     * Feed the contents of the given {@link ByteBuffer} into this decoder. Messages will be incrementally decoded and
+     * buffered or published to the message consumer (depending on configuration).
+     *
+     * @param byteBuffer a {@link ByteBuffer} whose entire contents will be read into the decoder's internal buffer
+     * @return this {@code MessageDecoder} instance
+     */
+    public MessageDecoder feed(ByteBuffer byteBuffer) {
+        int bytesToRead = byteBuffer.remaining();
+        int bytesConsumed = 0;
         while (bytesConsumed < bytesToRead) {
             ByteBuffer readView = updateReadView();
             if (currentPrelude == null) {
                 // Put only 15 bytes into buffer and compute prelude.
                 int numBytesToWrite = Math.min(15 - readView.remaining(),
-                                               bytesToRead - bytesConsumed);
+                    bytesToRead - bytesConsumed);
 
-                buf.put(bytes, bytesConsumed, numBytesToWrite);
+                feedBuf(byteBuffer, numBytesToWrite);
+
                 bytesConsumed += numBytesToWrite;
                 readView = updateReadView();
 
@@ -63,9 +112,9 @@ public final class MessageDecoder {
             if (currentPrelude != null) {
                 // Only write up to what we need to decode the next message
                 int numBytesToWrite = Math.min(currentPrelude.getTotalLength() - readView.remaining(),
-                                               bytesToRead - bytesConsumed);
+                    bytesToRead - bytesConsumed);
 
-                buf.put(bytes, bytesConsumed, numBytesToWrite);
+                feedBuf(byteBuffer, numBytesToWrite);
                 bytesConsumed += numBytesToWrite;
                 readView = updateReadView();
 
@@ -77,6 +126,13 @@ public final class MessageDecoder {
                 }
             }
         }
+
+        return this;
+    }
+
+    private void feedBuf(ByteBuffer byteBuffer, int numBytesToWrite) {
+        buf.put((ByteBuffer) byteBuffer.duplicate().limit(byteBuffer.position() + numBytesToWrite));
+        byteBuffer.position(byteBuffer.position() + numBytesToWrite);
     }
 
     private ByteBuffer updateReadView() {
