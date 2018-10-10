@@ -1,0 +1,5 @@
+{
+    "category": "Apache HTTP Client", 
+    "type": "feature", 
+    "description": "Add support for idle connection reaping."
+}
