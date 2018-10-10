@@ -71,6 +71,7 @@ import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
+import software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheHttpRequestFactory;
@@ -129,10 +130,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         addProxyConfig(builder, configuration.proxyConfiguration);
 
-        // TODO idle connection reaper
-        //        if (.useReaper()) {
-        //            IdleConnectionReaper.registerConnectionManager(cm, settings.getMaxIdleConnectionTime());
-        //        }
+        if (useIdleConnectionReaper(configuration)) {
+            IdleConnectionReaper.getInstance().registerConnectionManager(
+                    cm, connectionMaxIdleTime(configuration).toMillis());
+        }
 
         return new software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient(builder.build(), cm);
     }
@@ -155,10 +156,17 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheHttpClient.DefaultBuilder configuration) {
-        final long maxIdle = Optional.ofNullable(configuration.connectionMaxIdleTime)
-                                     .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME)
-                                     .toMillis();
+        final long maxIdle = connectionMaxIdleTime(configuration).toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
+    }
+
+    private Duration connectionMaxIdleTime(DefaultBuilder configuration) {
+        return Optional.ofNullable(configuration.connectionMaxIdleTime)
+                       .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME);
+    }
+
+    private boolean useIdleConnectionReaper(DefaultBuilder configuration) {
+        return Boolean.TRUE.equals(configuration.useIdleConnectionReaper);
     }
 
     private boolean isAuthenticatedProxy(ProxyConfiguration proxyConfiguration) {
@@ -188,7 +196,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     @Override
     public void close() {
-        httpClient.getHttpClientConnectionManager().shutdown();
+        HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
+        IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
+        cm.shutdown();
     }
 
     private SdkHttpFullResponse execute(HttpRequestBase apacheRequest) throws IOException {
@@ -307,6 +317,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
          */
         Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout);
+
+        /**
+         * Configure whether the idle connections in the connection pool should be closed asynchronously.
+         * <p>
+         * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
+         * closed. If no value is set, the default value of {@link DefaultConfiguration#MAX_IDLE_CONNECTION_TIME} is used.
+         */
+        Builder useIdleConnectionReaper(Boolean useConnectionReaper);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -316,6 +334,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private Boolean expectContinueEnabled;
         private Duration connectionTimeToLive;
         private Duration connectionMaxIdleTime;
+        private Boolean useIdleConnectionReaper;
 
         private DefaultBuilder() {
         }
@@ -414,6 +433,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public void setConnectionMaxIdleTime(Duration connectionMaxIdleTime) {
             connectionMaxIdleTime(connectionMaxIdleTime);
+        }
+
+        @Override
+        public Builder useIdleConnectionReaper(Boolean useIdleConnectionReaper) {
+            this.useIdleConnectionReaper = useIdleConnectionReaper;
+            return this;
+        }
+
+        public void setUseIdleConnectionReaper(Boolean useIdleConnectionReaper) {
+            useIdleConnectionReaper(useIdleConnectionReaper);
         }
 
         @Override
