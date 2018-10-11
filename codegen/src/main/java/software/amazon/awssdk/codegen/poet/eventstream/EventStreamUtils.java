@@ -94,18 +94,25 @@ public class EventStreamUtils {
     }
 
     /**
-     * Returns the stream of event members ('event: true') excluding exceptions
+     * Returns the stream of event member shapes ('event: true') excluding exceptions
      * from the input event stream shape ('eventstream: true').
      */
     public static Stream<ShapeModel> getEvents(ShapeModel eventStreamShape) {
+        return getEventMembers(eventStreamShape).map(MemberModel::getShape);
+    }
+
+    /**
+     * Returns the stream of event members ('event: true') excluding exceptions
+     * from the input event stream shape ('eventstream: true').
+     */
+    public static Stream<MemberModel> getEventMembers(ShapeModel eventStreamShape) {
         if (eventStreamShape == null || eventStreamShape.getMembers() == null) {
             return Stream.empty();
         }
 
         return eventStreamShape.getMembers()
                                .stream()
-                               .filter(m -> m.getShape() != null && m.getShape().isEvent())
-                               .map(MemberModel::getShape);
+                               .filter(m -> m.getShape() != null && m.getShape().isEvent());
     }
 
     /**

@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 
 import freemarker.template.Template;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,6 +44,9 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting unmarshaller classes");
+        if (metadata.isJsonProtocol()) {
+            return Collections.emptyList();
+        }
         return model.getShapes().entrySet().stream()
                 .filter(e -> shouldGenerate(e.getValue()))
                 .map(safeFunction(e -> createTask(e.getKey(), e.getValue())))

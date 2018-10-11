@@ -15,13 +15,18 @@
 
 package software.amazon.awssdk.awscore.protocol.json;
 
+import static software.amazon.awssdk.core.SdkSystemSetting.BINARY_ION_ENABLED;
+import static software.amazon.awssdk.core.SdkSystemSetting.CBOR_ENABLED;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.http.response.AwsJsonResponseHandler;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredCborFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredIonFactory;
@@ -29,17 +34,20 @@ import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredJsonFa
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredPlainJsonFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentResolverFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentTypeResolver;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.JsonResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.json.BaseJsonProtocolFactory;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Factory to generate the various JSON protocol handlers and generators depending on the wire protocol to be used for
@@ -47,40 +55,62 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  */
 @ThreadSafe
 @SdkProtectedApi
-public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsRequest, AwsServiceException> {
+public final class AwsJsonProtocolFactory {
 
+    private final JsonClientMetadata jsonClientMetadata;
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final List<AwsJsonErrorUnmarshaller> errorUnmarshallers = new ArrayList<>();
 
-    public AwsJsonProtocolFactory(JsonClientMetadata metadata, AwsJsonProtocolMetadata protocolMetadata) {
-        super(metadata);
-        this.protocolMetadata = protocolMetadata;
+    private AwsJsonProtocolFactory(Builder builder) {
+        this.jsonClientMetadata = builder.metadata;
+        this.protocolMetadata = builder.protocolMetadata.build();
         createErrorUnmarshallers();
     }
 
     /**
-     * Returns the response handler to be used for handling a successful response.
+     * Creates a new response handler with the given {@link JsonOperationMetadata} and a supplier of the POJO response
+     * type.
      *
-     * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
+     * @param operationMetadata Metadata about operation being unmarshalled.
+     * @param pojoSupplier {@link Supplier} of the POJO response type.
+     * @param <T> Type being unmarshalled.
+     * @return HttpResponseHandler that will handle the HTTP response and unmarshall into a POJO.
      */
-    @Override
-    public <T> JsonResponseHandler<T> createResponseHandler(
-        JsonOperationMetadata operationMetadata,
-        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
-        return getSdkFactory().createResponseHandler(operationMetadata, responseUnmarshaller);
+    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
+                                                                            Supplier<SdkPojo> pojoSupplier) {
+        return createResponseHandler(operationMetadata, r -> pojoSupplier.get());
+    }
+
+    /**
+     * Creates a new response handler with the given {@link JsonOperationMetadata} and a supplier of the POJO response
+     * type.
+     *
+     * @param operationMetadata Metadata about operation being unmarshalled.
+     * @param pojoSupplier {@link Supplier} of the POJO response type. Has access to the HTTP response, primarily for polymorphic
+     * deserialization as seen in event stream (i.e. unmarshalled event depends on ':event-type' header).
+     * @param <T> Type being unmarshalled.
+     * @return HttpResponseHandler that will handle the HTTP response and unmarshall into a POJO.
+     */
+    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
+                                                                            Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
+        JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>(getSdkFactory().createObjectMapper());
+        return new AwsJsonResponseHandler<>(
+            new JsonResponseHandler<>(unmarshaller,
+                                      pojoSupplier,
+                                      operationMetadata.isHasStreamingSuccessResponse(),
+                                      operationMetadata.isPayloadJson()));
     }
 
     /**
      * Creates a response handler for handling a error response (non 2xx response).
      */
-    @Override
     public HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
         JsonErrorResponseMetadata errorResponseMetadata) {
         return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponseMetadata
             .getCustomErrorCodeFieldName());
     }
 
-    protected StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
+    private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
         if (operationInfo.hasPayloadMembers() || protocolMetadata.protocol() == AwsJsonProtocol.AWS_JSON) {
             return createGenerator();
         } else {
@@ -139,5 +169,84 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsReq
         } else {
             return AwsStructuredPlainJsonFactory.SDK_JSON_FACTORY;
         }
+    }
+
+    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
+        OperationInfo operationInfo, T origRequest) {
+        return JsonProtocolMarshallerBuilder.<T>standard()
+            .jsonGenerator(createGenerator(operationInfo))
+            .contentType(getContentType())
+            .operationInfo(operationInfo)
+            .originalRequest(origRequest)
+            .sendExplicitNullForPayload(false)
+            .build();
+    }
+
+    private boolean isCborEnabled() {
+        return jsonClientMetadata.isSupportsCbor() && CBOR_ENABLED.getBooleanValueOrThrow();
+    }
+
+    private boolean isIonEnabled() {
+        return jsonClientMetadata.isSupportsIon();
+    }
+
+    private boolean isIonBinaryEnabled() {
+        return BINARY_ION_ENABLED.getBooleanValueOrThrow();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link AwsJsonProtocolFactory}.
+     */
+    public static final class Builder {
+
+        private final JsonClientMetadata metadata = new JsonClientMetadata();
+        private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
+
+        private Builder() {
+        }
+
+        public Builder addErrorMetadata(JsonErrorShapeMetadata errorShapeMetadata) {
+            metadata.addErrorMetadata(errorShapeMetadata);
+            return this;
+        }
+
+        public Builder contentTypeOverride(String contentType) {
+            metadata.withContentTypeOverride(contentType);
+            return this;
+        }
+
+        public Builder supportsCbor(boolean supportsCbor) {
+            metadata.withSupportsCbor(supportsCbor);
+            return this;
+        }
+
+        public Builder supportsIon(boolean supportsIon) {
+            metadata.withSupportsIon(supportsIon);
+            return this;
+        }
+
+        public Builder baseServiceExceptionClass(Class<? extends RuntimeException> baseServiceExceptionClass) {
+            metadata.withBaseServiceExceptionClass(baseServiceExceptionClass);
+            return this;
+        }
+
+        public Builder protocol(AwsJsonProtocol protocol) {
+            protocolMetadata.protocol(protocol);
+            return this;
+        }
+
+        public Builder protocolVersion(String protocolVersion) {
+            protocolMetadata.protocolVersion(protocolVersion);
+            return this;
+        }
+
+        public AwsJsonProtocolFactory build() {
+            return new AwsJsonProtocolFactory(this);
+        }
+
     }
 }

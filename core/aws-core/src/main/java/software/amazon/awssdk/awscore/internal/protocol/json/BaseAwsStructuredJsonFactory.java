@@ -17,16 +17,10 @@ package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
-import software.amazon.awssdk.awscore.http.response.AwsJsonResponseHandler;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorMessageParser;
-import software.amazon.awssdk.core.http.JsonResponseHandler;
-import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Generic implementation of a structured JSON factory that is pluggable for different variants of
@@ -37,26 +31,14 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 public abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonFactory {
 
     private final JsonFactory jsonFactory;
-    private final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers;
 
-    BaseAwsStructuredJsonFactory(JsonFactory jsonFactory,
-                                 Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers) {
+    BaseAwsStructuredJsonFactory(JsonFactory jsonFactory) {
         this.jsonFactory = jsonFactory;
-        this.unmarshallers = unmarshallers;
     }
 
     @Override
     public StructuredJsonGenerator createWriter(String contentType) {
         return createWriter(jsonFactory, contentType);
-    }
-
-    @Override
-    public <T> JsonResponseHandler<T> createResponseHandler(
-        JsonOperationMetadata operationMetadata,
-        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
-        return new AwsJsonResponseHandler(responseUnmarshaller, unmarshallers, jsonFactory,
-                                          operationMetadata.isHasStreamingSuccessResponse(),
-                                          operationMetadata.isPayloadJson());
     }
 
     @Override

@@ -1,15 +1,21 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.adapter.StandardMemberCopier;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
-import software.amazon.awssdk.services.jsonprotocoltests.transform.InputEventTwoMarshaller;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.protocol.traits.LocationTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -17,8 +23,25 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class InputEventTwo implements StructuredPojo, ToCopyableBuilder<InputEventTwo.Builder, InputEventTwo>,
-                                            InputEventStreamTwo {
+public final class InputEventTwo implements SdkPojo, ToCopyableBuilder<InputEventTwo.Builder, InputEventTwo>, InputEventStreamTwo {
+    private static final SdkField<SdkBytes> IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD = SdkField
+        .<SdkBytes> builder(MarshallingType.SDK_BYTES).getter(getter(InputEventTwo::implicitPayloadMemberOne))
+                                                      .setter(setter(Builder::implicitPayloadMemberOne))
+                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberOne").build())
+                                                      .build();
+
+    private static final SdkField<String> IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(InputEventTwo::implicitPayloadMemberTwo)).setter(setter(Builder::implicitPayloadMemberTwo))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberTwo").build())
+        .build();
+
+    private static final SdkField<String> EVENT_HEADER_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(InputEventTwo::eventHeaderMember)).setter(setter(Builder::eventHeaderMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EventHeaderMember").build()).build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
+        IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD, IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD, EVENT_HEADER_MEMBER_FIELD));
+
     private final SdkBytes implicitPayloadMemberOne;
 
     private final String implicitPayloadMemberTwo;
@@ -117,13 +140,20 @@ public final class InputEventTwo implements StructuredPojo, ToCopyableBuilder<In
         }
     }
 
-    @SdkInternalApi
     @Override
-    public void marshall(ProtocolMarshaller protocolMarshaller) {
-        InputEventTwoMarshaller.getInstance().marshall(this, protocolMarshaller);
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
     }
 
-    public interface Builder extends CopyableBuilder<Builder, InputEventTwo> {
+    private static <T> Function<Object, T> getter(Function<InputEventTwo, T> g) {
+        return obj -> g.apply((InputEventTwo) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, InputEventTwo> {
         /**
          * Sets the value of the ImplicitPayloadMemberOne property for this object.
          *
@@ -214,5 +244,11 @@ public final class InputEventTwo implements StructuredPojo, ToCopyableBuilder<In
         public InputEventTwo build() {
             return new InputEventTwo(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

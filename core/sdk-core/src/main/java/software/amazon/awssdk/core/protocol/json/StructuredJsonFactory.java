@@ -15,10 +15,9 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.http.JsonResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.
@@ -34,12 +33,9 @@ public interface StructuredJsonFactory {
     StructuredJsonGenerator createWriter(String contentType);
 
     /**
-     * Returns the response handler to be used for handling a successful response.
-     *
-     * @param operationMetadata Additional context information about an operation to create the
-     * appropriate response handler.
+     * @return An ObjectMapper with the appropriate {@link JsonFactory} configured for the wire format.
      */
-    <T> JsonResponseHandler<T> createResponseHandler(
-        JsonOperationMetadata operationMetadata,
-        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller);
+    // TODO move off object mapper
+    ObjectMapper createObjectMapper();
+
 }

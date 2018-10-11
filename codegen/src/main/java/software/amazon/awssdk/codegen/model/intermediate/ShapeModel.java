@@ -212,7 +212,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         }
 
         return members.stream()
-                      .filter(m -> m.isEventPayload())
+                      .filter(MemberModel::isEventPayload)
                       .findFirst()
                       .orElse(null);
     }

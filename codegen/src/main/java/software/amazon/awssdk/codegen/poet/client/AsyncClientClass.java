@@ -44,6 +44,7 @@ import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUt
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -230,8 +231,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
         CodeBlock.Builder builder = CodeBlock.builder().add("$1T eventMarshaller = $1T.builder()",
                                                             EventStreamTaggedUnionJsonMarshaller.class);
 
-        List<String> eventNames = EventStreamUtils.getEvents(eventStreamShape)
-                                                  .map(shape -> shape.getShapeName())
+        List<String> eventNames = EventStreamUtils.getEventMembers(eventStreamShape)
+                                                  .map(MemberModel::getC2jName)
                                                   .collect(Collectors.toList());
 
         eventNames.forEach(event -> builder.add(".putMarshaller($T.class, new $T(protocolFactory))",

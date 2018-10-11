@@ -16,23 +16,15 @@
 package software.amazon.awssdk.core.protocol;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Interface used by generated marshallers to marshall a Java POJO.
  */
 @SdkProtectedApi
-public interface ProtocolMarshaller {
+public interface ProtocolMarshaller<MarshalledT> {
 
-    /**
-     * Marshalls the value into the appropriate location based on the {@link MarshallingInfo} metadata.
-     *
-     * @param val             Value to marshall. May be null if the location allows it (for example, members bound to the path
-     *                        must never be null or empty).
-     * @param marshallingInfo Metadata about how and where to marshall the data. Must not be null.
-     * @throws SdkClientException If invalid parameters or combination of parameters are provided (I.E. null value
-     *                                          provided for member bound to the path).
-     */
-    <T> void marshall(T val, MarshallingInfo<T> marshallingInfo) throws SdkClientException;
+    default MarshalledT marshall(SdkPojo pojo) {
+        return null;
+    }
 
 }

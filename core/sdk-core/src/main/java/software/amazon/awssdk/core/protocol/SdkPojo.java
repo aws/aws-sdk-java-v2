@@ -13,20 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol.json;
+package software.amazon.awssdk.core.protocol;
 
-import org.junit.Assert;
-import org.junit.Test;
+import java.util.List;
 
-public class SdkJsonProtocolFactoryTest {
+public interface SdkPojo {
 
-    @Test
-    public void sdkJsonProtocolFactoryShouldHaveJsonContentType() {
-        SdkJsonProtocolFactory protocolFactory = protocolFactory();
-        Assert.assertEquals("application/json", protocolFactory.getContentType());
-    }
-
-    private SdkJsonProtocolFactory protocolFactory() {
-        return new SdkJsonProtocolFactory(new JsonClientMetadata());
-    }
+    List<SdkField<?>> sdkFields();
 }

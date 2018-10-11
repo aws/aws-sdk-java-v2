@@ -17,33 +17,30 @@ package software.amazon.awssdk.awscore.http.response;
 
 import static software.amazon.awssdk.awscore.internal.DefaultAwsResponseMetadata.AWS_REQUEST_ID;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.awscore.internal.DefaultAwsResponseMetadata;
-import software.amazon.awssdk.core.http.JsonResponseHandler;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 @SdkProtectedApi
-public final class AwsJsonResponseHandler<T> extends JsonResponseHandler<T> {
+public final class AwsJsonResponseHandler<T> implements HttpResponseHandler<T> {
 
-    public AwsJsonResponseHandler(Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller, Map<Class<?>, Unmarshaller<?,
-        JsonUnmarshallerContext>> simpleTypeUnmarshallers, JsonFactory jsonFactory, boolean needsConnectionLeftOpen,
-                                  boolean isPayloadJson) {
-        super(responseUnmarshaller, simpleTypeUnmarshallers, jsonFactory, needsConnectionLeftOpen, isPayloadJson);
+    private final HttpResponseHandler<T> responseHandler;
+
+    public AwsJsonResponseHandler(HttpResponseHandler<T> responseHandler) {
+        this.responseHandler = responseHandler;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
-        T result = super.handle(response, executionAttributes);
+        T result = responseHandler.handle(response, executionAttributes);
 
         // As T is not bounded to AwsResponse, we need to do explicitly cast here.
         if (result instanceof AwsResponse) {

@@ -1,15 +1,21 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.adapter.StandardMemberCopier;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
-import software.amazon.awssdk.services.jsonprotocoltests.transform.InputEventMarshaller;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.protocol.traits.LocationTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -17,7 +23,16 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class InputEvent implements StructuredPojo, ToCopyableBuilder<InputEvent.Builder, InputEvent>, InputEventStream {
+public final class InputEvent implements SdkPojo, ToCopyableBuilder<InputEvent.Builder, InputEvent>, InputEventStream {
+    private static final SdkField<SdkBytes> EXPLICIT_PAYLOAD_MEMBER_FIELD = SdkField
+        .<SdkBytes> builder(MarshallingType.SDK_BYTES).getter(getter(InputEvent::explicitPayloadMember))
+                                                      .setter(setter(Builder::explicitPayloadMember))
+                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build())
+                                                      .build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections
+        .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));
+
     private final SdkBytes explicitPayloadMember;
 
     private InputEvent(BuilderImpl builder) {
@@ -82,13 +97,20 @@ public final class InputEvent implements StructuredPojo, ToCopyableBuilder<Input
         }
     }
 
-    @SdkInternalApi
     @Override
-    public void marshall(ProtocolMarshaller protocolMarshaller) {
-        InputEventMarshaller.getInstance().marshall(this, protocolMarshaller);
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
     }
 
-    public interface Builder extends CopyableBuilder<Builder, InputEvent> {
+    private static <T> Function<Object, T> getter(Function<InputEvent, T> g) {
+        return obj -> g.apply((InputEvent) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, InputEvent> {
         /**
          * Sets the value of the ExplicitPayloadMember property for this object.
          *
@@ -127,5 +149,11 @@ public final class InputEvent implements StructuredPojo, ToCopyableBuilder<Input
         public InputEvent build() {
             return new InputEvent(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

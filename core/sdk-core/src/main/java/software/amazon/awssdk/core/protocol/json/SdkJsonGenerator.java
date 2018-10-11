@@ -233,6 +233,16 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
         return this;
     }
 
+    @Override
+    public StructuredJsonGenerator writeNumber(String number) {
+        try {
+            generator.writeNumber(number);
+        } catch (IOException e) {
+            throw new JsonGenerationException(e);
+        }
+        return this;
+    }
+
     /**
      * Closes the generator and flushes to write. Must be called when finished writing JSON
      * content.

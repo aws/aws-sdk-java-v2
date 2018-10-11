@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.SdkField;
 
 /**
  * Interface to marshall data according to the JSON protocol specification.
@@ -27,7 +28,7 @@ public interface JsonMarshaller<T> {
 
     JsonMarshaller<Void> NULL = new JsonMarshaller<Void>() {
         @Override
-        public void marshall(Void val, JsonMarshallerContext context, String paramName) {
+        public void marshall(Void val, JsonMarshallerContext context, String paramName, SdkField<Void> sdkField) {
         }
     };
 
@@ -38,6 +39,6 @@ public interface JsonMarshaller<T> {
      * @param context   Dependencies needed for marshalling.
      * @param paramName Optional param/field name. May be null in certain situations.
      */
-    void marshall(T val, JsonMarshallerContext context, String paramName);
+    void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField);
 
 }

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.json.SdkStructuredCborFactory;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
@@ -26,14 +27,21 @@ import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 @SdkInternalApi
 public final class AwsStructuredCborFactory extends SdkStructuredCborFactory {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper(CBOR_FACTORY);
+
     public static final AwsStructuredJsonFactory SDK_CBOR_FACTORY =
-            new BaseAwsStructuredJsonFactory(CBOR_FACTORY, CBOR_SCALAR_UNMARSHALLERS) {
-        @Override
-        protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
-                                                       String contentType) {
-            return CBOR_GENERATOR_SUPPLIER.apply(jsonFactory, contentType);
-        }
-    };
+        new BaseAwsStructuredJsonFactory(CBOR_FACTORY) {
+            @Override
+            protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
+                                                           String contentType) {
+                return CBOR_GENERATOR_SUPPLIER.apply(jsonFactory, contentType);
+            }
+
+            @Override
+            public ObjectMapper createObjectMapper() {
+                return MAPPER;
+            }
+        };
 
     protected AwsStructuredCborFactory() {
     }

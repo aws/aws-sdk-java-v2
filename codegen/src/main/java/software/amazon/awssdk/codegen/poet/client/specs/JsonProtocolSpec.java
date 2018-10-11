@@ -30,12 +30,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
-import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
+import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -49,11 +48,10 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
+import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.VoidJsonUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 
 public class JsonProtocolSpec implements ProtocolSpec {
@@ -82,13 +80,15 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                   .returns(protocolFactory)
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
-                                                      "return new $T(new $T()\n" +
-                                                      ".withSupportsCbor(supportsCbor)\n" +
-                                                      ".withSupportsIon($L)" +
-                                                      ".withBaseServiceExceptionClass($L.class)",
-                                                      AwsJsonProtocolFactory.class,
-                                                      JsonClientMetadata.class,
-                                                      metadata.isIonProtocol(), baseException);
+                                                      "return $T.builder()\n" +
+                                                      ".supportsCbor(supportsCbor)\n" +
+                                                      ".supportsIon($L)\n" +
+                                                      ".baseServiceExceptionClass($T.class)\n" +
+                                                      ".protocol($T.$L)\n" +
+                                                      ".protocolVersion($S)\n",
+                                                      AwsJsonProtocolFactory.class, metadata.isIonProtocol(), baseException,
+                                                      AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()),
+                                                      metadata.getJsonVersion());
 
         if (metadata.getContentType() != null) {
             methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
@@ -96,36 +96,30 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         errorUnmarshallers(model).forEach(methodSpec::addCode);
 
-        methodSpec.addCode(",\n");
-        methodSpec.addCode("$T.builder().protocolVersion($S)\n" +
-                           ".protocol($T.$L).build()", AwsJsonProtocolMetadata.class,
-                           metadata.getJsonVersion(), AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()));
-
-        methodSpec.addCode(");");
+        methodSpec.addCode(".build();");
 
         return methodSpec.build();
     }
 
     @Override
     public CodeBlock responseHandler(IntermediateModel model, OperationModel opModel) {
-        ClassName unmarshaller = getUnmarshallerType(opModel);
         TypeName pojoResponseType = getPojoResponseType(opModel);
 
         String protocolFactory = protocolFactoryLiteral(opModel);
         CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
-            responseHandlersForEventStreaming(opModel, unmarshaller, pojoResponseType, protocolFactory, builder);
+            responseHandlersForEventStreaming(opModel, pojoResponseType, protocolFactory, builder);
         } else {
             builder.add("\n\n$T<$T> responseHandler = $L.createResponseHandler(new $T()" +
                         "                                   .withPayloadJson($L)" +
-                        "                                   .withHasStreamingSuccessResponse($L), new $T());",
+                        "                                   .withHasStreamingSuccessResponse($L), $T::builder);",
                         HttpResponseHandler.class,
                         pojoResponseType,
                         protocolFactory,
                         JsonOperationMetadata.class,
                         !opModel.getHasBlobMemberAsPayload(),
                         opModel.hasStreamingOutput(),
-                        unmarshaller);
+                        pojoResponseType);
         }
         return builder.build();
     }
@@ -336,10 +330,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
                              + "})", responseHandlerName);
     }
 
-    private ClassName getUnmarshallerType(OperationModel opModel) {
-        return poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
-    }
-
     /**
      * Gets the POJO response type for the operation.
      *
@@ -401,11 +391,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
     /**
      * Add responseHandlers for event streaming operations
      */
-    private void responseHandlersForEventStreaming(OperationModel opModel, ClassName unmarshaller, TypeName pojoResponseType,
+    private void responseHandlersForEventStreaming(OperationModel opModel, TypeName pojoResponseType,
                                                    String protocolFactory, CodeBlock.Builder builder) {
         builder.add("\n\n$T<$T> responseHandler = new $T($L.createResponseHandler(new $T()" +
                     "                                    .withPayloadJson($L)" +
-                    "                                    .withHasStreamingSuccessResponse($L), new $T()));",
+                    "                                    .withHasStreamingSuccessResponse($L), $T::builder));",
                     HttpResponseHandler.class,
                     pojoResponseType,
                     AttachHttpMetadataResponseHandler.class,
@@ -413,16 +403,16 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     JsonOperationMetadata.class,
                     !opModel.getHasBlobMemberAsPayload(),
                     opModel.hasStreamingOutput(),
-                    unmarshaller);
+                    pojoResponseType);
 
         builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler(new $T()" +
                     "                                   .withPayloadJson(false)" +
-                    "                                   .withHasStreamingSuccessResponse(true), new $T());",
+                    "                                   .withHasStreamingSuccessResponse(true), $T::builder);",
                     HttpResponseHandler.class,
                     SdkResponse.class,
                     protocolFactory,
                     JsonOperationMetadata.class,
-                    VoidJsonUnmarshaller.class);
+                    VoidSdkResponse.class);
 
         ShapeModel eventStream = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
         ClassName eventStreamBaseClass = poetExtensions.getModelClassFromShape(eventStream);
@@ -437,15 +427,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  JsonOperationMetadata.class,
                  true,
                  false,
-                 ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
+                 ClassName.get(EventStreamTaggedUnionPojoSupplier.class));
         EventStreamUtils.getEvents(eventStream)
-                        .forEach(shape -> {
-                            String unmarshallerClassName = shape.getVariable().getVariableType() + "Unmarshaller";
-                            builder.add(".putUnmarshaller(\"$L\", $T.getInstance())\n",
-                                        shape.getC2jName(),
-                                        poetExtensions.getTransformClass(unmarshallerClassName));
-                        });
-        builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
+                        .forEach(m -> builder.add(".putSdkPojoSupplier(\"$L\", $T::builder)\n",
+                                                  m.getC2jName(), poetExtensions.getModelClass(m.getC2jName())));
+        builder.add(".defaultSdkPojoSupplier(() -> $T.UNKNOWN)\n"
                     + ".build());\n", eventStreamBaseClass);
     }
 

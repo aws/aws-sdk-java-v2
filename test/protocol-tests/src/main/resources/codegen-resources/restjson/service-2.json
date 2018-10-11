@@ -5,12 +5,11 @@
     "endpointPrefix":"restjson",
     "jsonVersion":"1.1",
     "protocol":"rest-json",
-    "serviceAbbreviation":"AmazonProtocolRestJson",
-    "serviceFullName":"Amazon Protocol Rest Json",
-    "serviceId":"AmazonProtocolRestJson",
+    "serviceAbbreviation":"RestJsonProtocolTests",
+    "serviceFullName":"AWS DR Tools Rest JSON Protocol Tests",
+    "serviceId":"ProtocolRestJson",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsService",
-    "timestampFormat":"unixTimestamp",
     "uid":"restjson-2016-03-11"
   },
   "operations":{
@@ -32,6 +31,23 @@
         "method":"DELETE",
         "requestUri":"/2016-03-11/deleteOperation"
       }
+    },
+    "FurtherNestedContainers":{
+      "name":"FurtherNestedContainers",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/furtherNestedContainers"
+      },
+      "input":{"shape":"FurtherNestedContainersStructure"},
+      "output":{"shape":"FurtherNestedContainersStructure"}
+    },
+    "GetOperationWithBody":{
+      "name":"GetOperationWithBody",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2016-03-11/getOperationWithBody"
+      },
+      "input":{"shape":"GetOperationWithBodyInput"}
     },
     "HeadOperation":{
       "name":"HeadOperation",
@@ -74,13 +90,13 @@
         "method":"POST",
         "requestUri":"/2016-03-11/membersInHeaders"
       },
-      "input":{"shape":"MembersInHeadersInput"},
-      "output":{"shape":"MembersInHeadersInput"}
+      "input":{"shape":"MembersInHeadersStructure"},
+      "output":{"shape":"MembersInHeadersStructure"}
     },
     "MembersInQueryParams":{
       "name":"MembersInQueryParams",
       "http":{
-        "method":"POST",
+        "method":"GET",
         "requestUri":"/2016-03-11/membersInQueryParams?StaticQueryParam=foo"
       },
       "input":{"shape":"MembersInQueryParamsInput"}
@@ -151,6 +167,14 @@
       },
       "input":{"shape":"QueryParamWithoutValueInput"}
     },
+    "StatusCodeInOutputOperation":{
+      "name":"StatusCodeInOutputOperation",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2016-03-11/statusCodeInOutput"
+      },
+      "output":{"shape":"StatusCodeInOutputStructure"}
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -178,24 +202,25 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
-        "EnumMember":{"shape":"EnumType"},
         "SimpleList":{"shape":"ListOfStrings"},
-        "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
         "MapOfStringToString":{"shape":"MapOfStringToString"},
         "MapOfStringToStruct":{"shape":"MapOfStringToSimpleStruct"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "TimestampMember":{"shape":"Timestamp"},
         "StructWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
+        "TimestampFormatMember":{"shape":"IsoTimestamp"},
         "BlobArg":{"shape":"BlobType"},
         "StructWithNestedBlob":{"shape":"StructWithNestedBlobType"},
         "BlobMap":{"shape":"BlobMapType"},
         "ListOfBlobs":{"shape":"ListOfBlobsType"},
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
-        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"}
+        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
+        "EnumMember":{"shape":"EnumType"},
+        "ListOfEnums":{"shape":"ListOfEnums"},
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
       }
     },
     "BaseType":{
@@ -218,7 +243,26 @@
       },
       "exception":true
     },
+    "EnumType":{
+      "type":"string",
+      "enum":[
+        "EnumValue1",
+        "EnumValue2"
+      ]
+    },
     "Float":{"type":"float"},
+    "FurtherNestedContainersStructure":{
+      "type":"structure",
+      "members":{
+        "ListOfNested":{"shape":"ListOfNested"}
+      }
+    },
+    "GetOperationWithBodyInput":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"}
+      }
+    },
     "IdempotentOperationStructure":{
       "type":"structure",
       "required":["PathIdempotentToken"],
@@ -244,6 +288,10 @@
       }
     },
     "Integer":{"type":"integer"},
+    "IsoTimestamp":{
+      "type":"timestamp",
+      "timestampFormat":"iso8601"
+    },
     "JsonValuesStructure":{
       "type":"structure",
       "members":{
@@ -259,9 +307,17 @@
         }
       }
     },
+    "ListOfAllTypesStructs":{
+      "type":"list",
+      "member":{"shape":"AllTypesStructure"}
+    },
     "ListOfBlobsType":{
       "type":"list",
       "member":{"shape":"BlobType"}
+    },
+    "ListOfEnums":{
+      "type":"list",
+      "member":{"shape":"EnumType"}
     },
     "ListOfIntegers":{
       "type":"list",
@@ -271,13 +327,25 @@
       "type":"list",
       "member":{"shape":"ListOfListsOfStrings"}
     },
+    "ListOfListsOfAllTypesStructs":{
+      "type":"list",
+      "member":{"shape":"ListOfAllTypesStructs"}
+    },
     "ListOfListsOfStrings":{
       "type":"list",
       "member":{"shape":"ListOfStrings"}
     },
+    "ListOfListsOfStructs":{
+      "type":"list",
+      "member":{"shape":"ListOfSimpleStructs"}
+    },
     "ListOfMapStringToString":{
       "type":"list",
       "member":{"shape":"MapOfStringToString"}
+    },
+    "ListOfNested":{
+      "type":"list",
+      "member":{"shape":"NestedContainersStructure"}
     },
     "ListOfSimpleStructs":{
       "type":"list",
@@ -287,11 +355,12 @@
       "type":"list",
       "member":{"shape":"String"}
     },
-    "ListOfEnums":{
-      "type":"list",
-      "member":{"shape":"EnumType"}
-    },
     "Long":{"type":"long"},
+    "MapOfEnumToEnum":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"EnumType"}
+    },
     "MapOfStringToIntegerList":{
       "type":"map",
       "key":{"shape":"String"},
@@ -326,12 +395,7 @@
       "key":{"shape":"String"},
       "value":{"shape":"String"}
     },
-    "MapOfEnumToEnum":{
-      "type":"map",
-      "key":{"shape":"EnumType"},
-      "value":{"shape":"EnumType"}
-    },
-    "MembersInHeadersInput":{
+    "MembersInHeadersStructure":{
       "type":"structure",
       "members":{
         "StringMember":{
@@ -368,6 +432,11 @@
           "shape":"Timestamp",
           "location":"header",
           "locationName":"x-amz-timestamp"
+        },
+        "IsoTimestampMember":{
+          "shape":"IsoTimestamp",
+          "location":"header",
+          "locationName":"x-amz-iso-timestamp"
         }
       }
     },
@@ -456,8 +525,11 @@
       "type":"structure",
       "members":{
         "ListOfListsOfStrings":{"shape":"ListOfListsOfStrings"},
+        "ListOfListsOfStructs":{"shape":"ListOfListsOfStructs"},
+        "ListOfListsOfAllTypesStructs":{"shape":"ListOfListsOfAllTypesStructs"},
         "ListOfListOfListsOfStrings":{"shape":"ListOfListOfListsOfStrings"},
-        "MapOfStringToListOfListsOfStrings":{"shape":"MapOfStringToListOfListsOfStrings"}
+        "MapOfStringToListOfListsOfStrings":{"shape":"MapOfStringToListOfListsOfStrings"},
+        "StringMember":{"shape":"String"}
       }
     },
     "OperationWithExplicitPayloadBlobInput":{
@@ -539,6 +611,15 @@
         "StringMember":{"shape":"String"}
       }
     },
+    "StatusCodeInOutputStructure":{
+      "type":"structure",
+      "members":{
+        "StatusCodeMember":{
+          "shape":"Integer",
+          "location":"statusCode"
+        }
+      }
+    },
     "StreamType":{
       "type":"blob",
       "streaming":true
@@ -569,12 +650,6 @@
         "SubTypeOneMember":{"shape":"String"}
       }
     },
-    "Timestamp":{"type":"timestamp"},
-    "EnumType": {
-      "type":"string",
-      "enum": [
-        "EnumValue1", "EnumValue2"
-      ]
-    }
+    "Timestamp":{"type":"timestamp"}
   }
 }

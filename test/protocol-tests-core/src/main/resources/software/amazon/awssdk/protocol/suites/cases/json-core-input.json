@@ -81,6 +81,25 @@
     }
   },
   {
+    "description": "ISO8601 timestamp member marshalled correctly",
+    "given": {
+      "input": {
+        "TimestampFormatMember": 1398796238123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"TimestampFormatMember\": \"2014-04-29T18:30:38.123Z\"}"
+        }
+      }
+    }
+  },
+  {
     "description": "Blob member in payload is marshalled as Base64 encoded text",
     "given": {
       "input": {

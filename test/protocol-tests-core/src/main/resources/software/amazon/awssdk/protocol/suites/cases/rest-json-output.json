@@ -55,5 +55,64 @@
         "StreamingMember": "contents"
       }
     }
+  },
+  {
+    "description": "Base 64 string header with JSON trait is decoded",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Encoded-Header": "dG9EZWNvZGU="
+        },
+        "body": "{\"JsonValueMember\":\"dontDecode\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonValuesOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "JsonValueHeaderMember": "toDecode",
+        "JsonValueMember": "dontDecode"
+      }
+    }
+  },
+  {
+    "description": "ISO 8601 Timestamp in header unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-amz-iso-timestamp": "2014-04-29T18:30:38Z"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "IsoTimestampMember": 1398796238000
+      }
+    }
+  },
+  {
+    "description": "Integer bound to HTTP status code is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 201
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "StatusCodeInOutputOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "StatusCodeMember": 201
+      }
+    }
   }
 ]

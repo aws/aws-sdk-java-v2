@@ -41,6 +41,11 @@ public class Member {
 
     private boolean deprecated;
 
+    @JsonProperty("jsonvalue")
+    private boolean jsonValue;
+
+    private String timestampFormat;
+
     @JsonProperty(value = "eventpayload")
     private boolean eventPayload;
 
@@ -133,6 +138,22 @@ public class Member {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public boolean getJsonValue() {
+        return jsonValue;
+    }
+
+    public void setJsonValue(boolean jsonValue) {
+        this.jsonValue = jsonValue;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
     }
 
     public boolean isEventPayload() {

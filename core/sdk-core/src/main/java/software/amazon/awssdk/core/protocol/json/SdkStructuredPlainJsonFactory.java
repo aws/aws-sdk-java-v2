@@ -16,18 +16,7 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.internal.protocol.json.BaseSdkStructuredJsonFactory;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Creates generators and protocol handlers for plain text JSON wire format.
@@ -40,32 +29,6 @@ public abstract class SdkStructuredPlainJsonFactory {
      * .com/JacksonBestPracticesPerformance
      */
     protected static final JsonFactory JSON_FACTORY = new JsonFactory();
-
-    @SdkTestInternalApi
-    protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> JSON_SCALAR_UNMARSHALLERS =
-            new ImmutableMap.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
-            .put(String.class, SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance())
-            .put(Double.class, SimpleTypeJsonUnmarshallers.DoubleJsonUnmarshaller.getInstance())
-            .put(Integer.class, SimpleTypeJsonUnmarshallers.IntegerJsonUnmarshaller.getInstance())
-            .put(BigInteger.class, SimpleTypeJsonUnmarshallers.BigIntegerJsonUnmarshaller.getInstance())
-            .put(BigDecimal.class, SimpleTypeJsonUnmarshallers.BigDecimalJsonUnmarshaller.getInstance())
-            .put(Boolean.class, SimpleTypeJsonUnmarshallers.BooleanJsonUnmarshaller.getInstance())
-            .put(Float.class, SimpleTypeJsonUnmarshallers.FloatJsonUnmarshaller.getInstance())
-            .put(Long.class, SimpleTypeJsonUnmarshallers.LongJsonUnmarshaller.getInstance())
-            .put(Byte.class, SimpleTypeJsonUnmarshallers.ByteJsonUnmarshaller.getInstance())
-            .put(Instant.class, SimpleTypeJsonUnmarshallers.InstantJsonUnmarshaller.getInstance())
-            .put(SdkBytes.class, SimpleTypeJsonUnmarshallers.SdkBytesJsonUnmarshaller.getInstance())
-            .put(Character.class, SimpleTypeJsonUnmarshallers.CharacterJsonUnmarshaller.getInstance())
-            .put(Short.class, SimpleTypeJsonUnmarshallers.ShortJsonUnmarshaller.getInstance()).build();
-
-    static final SdkStructuredJsonFactory SDK_JSON_FACTORY = new BaseSdkStructuredJsonFactory(
-            JSON_FACTORY, JSON_SCALAR_UNMARSHALLERS) {
-        @Override
-        protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
-                                                       String contentType) {
-            return new SdkJsonGenerator(jsonFactory, contentType);
-        }
-    };
 
     protected SdkStructuredPlainJsonFactory() {
     }

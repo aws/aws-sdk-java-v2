@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.internal.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.protocol.MarshallingInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 
 /**
  * AWS services expect an empty body when the payload member is null instead of an explicit JSON null.
@@ -36,21 +36,7 @@ public class NullAsEmptyBodyProtocolRequestMarshaller<OrigRequestT> implements P
     }
 
     @Override
-    public void startMarshalling() {
-        delegate.startMarshalling();
-    }
-
-    @Override
-    public <V> void marshall(V val, MarshallingInfo<V> marshallingInfo) {
-        // If the payload member is null then don't marshall it (since it will become an explicit null)
-        if (marshallingInfo.isExplicitPayloadMember() && val == null) {
-            return;
-        }
-        delegate.marshall(val, marshallingInfo);
-    }
-
-    @Override
-    public Request<OrigRequestT> finishMarshalling() {
-        return delegate.finishMarshalling();
+    public Request<OrigRequestT> marshall(SdkPojo pojo) {
+        return delegate.marshall(pojo);
     }
 }

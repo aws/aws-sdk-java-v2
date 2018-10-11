@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.protocol;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -34,34 +33,48 @@ public interface MarshallingType<T> {
     /**
      * Used when a value is null (and thus type can't be determined).
      */
-    MarshallingType<Void> NULL = () -> Void.class;
+    MarshallingType<Void> NULL = newType(Void.class);
 
-    MarshallingType<String> STRING = () -> String.class;
+    MarshallingType<String> STRING = newType(String.class);
 
-    MarshallingType<Integer> INTEGER = () -> Integer.class;
+    MarshallingType<Integer> INTEGER = newType(Integer.class);
 
-    MarshallingType<Long> LONG = () -> Long.class;
+    MarshallingType<Long> LONG = newType(Long.class);
 
-    MarshallingType<Float> FLOAT = () -> Float.class;
+    MarshallingType<Float> FLOAT = newType(Float.class);
 
-    MarshallingType<Double> DOUBLE = () -> Double.class;
+    MarshallingType<Double> DOUBLE = newType(Double.class);
 
-    MarshallingType<BigDecimal> BIG_DECIMAL = () -> BigDecimal.class;
+    MarshallingType<BigDecimal> BIG_DECIMAL = newType(BigDecimal.class);
 
-    MarshallingType<Boolean> BOOLEAN = () -> Boolean.class;
+    MarshallingType<Boolean> BOOLEAN = newType(Boolean.class);
 
-    MarshallingType<Instant> INSTANT = () -> Instant.class;
+    MarshallingType<Instant> INSTANT = newType(Instant.class);
 
-    MarshallingType<SdkBytes> SDK_BYTES = () -> SdkBytes.class;
+    MarshallingType<SdkBytes> SDK_BYTES = newType(SdkBytes.class);
 
-    MarshallingType<InputStream> STREAM = () -> InputStream.class;
+    MarshallingType<SdkPojo> SDK_POJO = newType(SdkPojo.class);
 
-    MarshallingType<StructuredPojo> STRUCTURED = () -> StructuredPojo.class;
+    MarshallingType<List> LIST = newType(List.class);
 
-    MarshallingType<List> LIST = () -> List.class;
-
-    MarshallingType<Map> MAP = () -> Map.class;
+    MarshallingType<Map> MAP = newType(Map.class);
 
     Class<T> getTargetClass();
+
+    static <T> MarshallingType<T> newType(Class<T> clzz) {
+        return new MarshallingType<T>() {
+
+            @Override
+            public Class<T> getTargetClass() {
+                return clzz;
+            }
+
+            @Override
+            public String toString() {
+                return clzz.getSimpleName();
+            }
+        };
+
+    }
 
 }

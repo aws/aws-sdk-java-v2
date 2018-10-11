@@ -16,12 +16,10 @@
 package software.amazon.awssdk.awscore.internal.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.json.SdkStructuredIonFactory;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.ion.system.IonBinaryWriterBuilder;
 import software.amazon.ion.system.IonTextWriterBuilder;
 import software.amazon.ion.system.IonWriterBuilder;
@@ -32,24 +30,29 @@ public final class AwsStructuredIonFactory extends SdkStructuredIonFactory {
     private static final IonWriterBuilder TEXT_WRITER_BUILDER = IonTextWriterBuilder.standard().immutable();
 
 
-    public static final AwsStructuredJsonFactory SDK_ION_BINARY_FACTORY = new AwsIonFactory(JSON_FACTORY, UNMARSHALLERS,
-                                                                                     BINARY_WRITER_BUILDER);
+    public static final AwsStructuredJsonFactory SDK_ION_BINARY_FACTORY = new AwsIonFactory(JSON_FACTORY, BINARY_WRITER_BUILDER);
 
-    public static final AwsStructuredJsonFactory SDK_ION_TEXT_FACTORY = new AwsIonFactory(JSON_FACTORY, UNMARSHALLERS,
-                                                                                   TEXT_WRITER_BUILDER);
+    public static final AwsStructuredJsonFactory SDK_ION_TEXT_FACTORY = new AwsIonFactory(JSON_FACTORY, TEXT_WRITER_BUILDER);
 
     static class AwsIonFactory extends BaseAwsStructuredJsonFactory {
         private final IonWriterBuilder builder;
 
-        AwsIonFactory(JsonFactory jsonFactory, Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers,
-                      IonWriterBuilder builder) {
-            super(jsonFactory, unmarshallers);
+        private final ObjectMapper mapper;
+
+        AwsIonFactory(JsonFactory jsonFactory, IonWriterBuilder builder) {
+            super(jsonFactory);
+            this.mapper = new ObjectMapper(jsonFactory);
             this.builder = builder;
         }
 
         @Override
         protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory, String contentType) {
             return ION_GENERATOR_SUPPLIER.apply(builder, contentType);
+        }
+
+        @Override
+        public ObjectMapper createObjectMapper() {
+            return mapper;
         }
 
         @Override

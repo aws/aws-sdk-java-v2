@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.runtime.transform.PathMarshaller;
 
 @SdkInternalApi
@@ -37,7 +38,7 @@ public final class SimpleTypePathMarshaller {
     public static final JsonMarshaller<String> GREEDY_STRING =
             new SimplePathMarshaller<>(ValueToStringConverter.FROM_STRING, PathMarshaller.GREEDY);
 
-    public static final JsonMarshaller<Void> NULL = (val, context, paramName) -> {
+    public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
         throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
     };
 
@@ -56,9 +57,9 @@ public final class SimpleTypePathMarshaller {
         }
 
         @Override
-        public void marshall(T val, JsonMarshallerContext context, String paramName) {
+        public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
             context.request().setResourcePath(
-                    pathMarshaller.marshall(context.request().getResourcePath(), paramName, converter.apply(val)));
+                    pathMarshaller.marshall(context.request().getResourcePath(), paramName, converter.convert(val, sdkField)));
         }
 
     }

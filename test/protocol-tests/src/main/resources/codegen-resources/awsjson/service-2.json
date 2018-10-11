@@ -5,12 +5,12 @@
     "endpointPrefix":"jsonrpc",
     "jsonVersion":"1.1",
     "protocol":"json",
-    "serviceAbbreviation":"AmazonProtocolJsonRpc",
+    "serviceAbbreviation":"JsonProtocolTests",
     "serviceFullName":"AWS DR Tools JSON Protocol Tests",
-    "serviceId":"AmazonProtocolJsonRpc",
+    "serviceId":"ProtocolJsonRpc",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsJsonRpcService",
-    "timestampFormat":"unixTimestamp"
+    "uid":"jsonrpc-2016-03-11"
   },
   "operations":{
     "AllTypes":{
@@ -24,6 +24,15 @@
       "errors":[
         {"shape":"EmptyModeledException"}
       ]
+    },
+    "FurtherNestedContainers":{
+      "name":"FurtherNestedContainers",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"FurtherNestedContainersStructure"},
+      "output":{"shape":"FurtherNestedContainersStructure"}
     },
     "IdempotentOperation":{
       "name":"IdempotentOperation",
@@ -61,24 +70,25 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
-        "EnumMember":{"shape":"EnumType"},
         "SimpleList":{"shape":"ListOfStrings"},
-        "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
         "MapOfStringToString":{"shape":"MapOfStringToString"},
         "MapOfStringToStruct":{"shape":"MapOfStringToSimpleStruct"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "TimestampMember":{"shape":"Timestamp"},
         "StructWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
+        "TimestampFormatMember":{"shape":"IsoTimestamp"},
         "BlobArg":{"shape":"BlobType"},
         "StructWithNestedBlob":{"shape":"StructWithNestedBlobType"},
         "BlobMap":{"shape":"BlobMapType"},
         "ListOfBlobs":{"shape":"ListOfBlobsType"},
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
-        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"}
+        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
+        "EnumMember":{"shape":"EnumType"},
+        "ListOfEnums":{"shape":"ListOfEnums"},
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
       }
     },
     "BaseType":{
@@ -101,7 +111,20 @@
       },
       "exception":true
     },
+    "EnumType":{
+      "type":"string",
+      "enum":[
+        "EnumValue1",
+        "EnumValue2"
+      ]
+    },
     "Float":{"type":"float"},
+    "FurtherNestedContainersStructure":{
+      "type":"structure",
+      "members":{
+        "ListOfNested":{"shape":"ListOfNested"}
+      }
+    },
     "IdempotentOperationStructure":{
       "type":"structure",
       "members":{
@@ -112,9 +135,21 @@
       }
     },
     "Integer":{"type":"integer"},
+    "IsoTimestamp":{
+      "type":"timestamp",
+      "timestampFormat":"iso8601"
+    },
+    "ListOfAllTypesStructs":{
+      "type":"list",
+      "member":{"shape":"AllTypesStructure"}
+    },
     "ListOfBlobsType":{
       "type":"list",
       "member":{"shape":"BlobType"}
+    },
+    "ListOfEnums":{
+      "type":"list",
+      "member":{"shape":"EnumType"}
     },
     "ListOfIntegers":{
       "type":"list",
@@ -124,13 +159,25 @@
       "type":"list",
       "member":{"shape":"ListOfListsOfStrings"}
     },
+    "ListOfListsOfAllTypesStructs":{
+      "type":"list",
+      "member":{"shape":"ListOfAllTypesStructs"}
+    },
     "ListOfListsOfStrings":{
       "type":"list",
       "member":{"shape":"ListOfStrings"}
     },
+    "ListOfListsOfStructs":{
+      "type":"list",
+      "member":{"shape":"ListOfSimpleStructs"}
+    },
     "ListOfMapStringToString":{
       "type":"list",
       "member":{"shape":"MapOfStringToString"}
+    },
+    "ListOfNested":{
+      "type":"list",
+      "member":{"shape":"NestedContainersStructure"}
     },
     "ListOfSimpleStructs":{
       "type":"list",
@@ -140,11 +187,12 @@
       "type":"list",
       "member":{"shape":"String"}
     },
-    "ListOfEnums":{
-      "type":"list",
-      "member":{"shape":"EnumType"}
-    },
     "Long":{"type":"long"},
+    "MapOfEnumToEnum":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"EnumType"}
+    },
     "MapOfStringToIntegerList":{
       "type":"map",
       "key":{"shape":"String"},
@@ -165,17 +213,15 @@
       "key":{"shape":"String"},
       "value":{"shape":"String"}
     },
-    "MapOfEnumToEnum":{
-      "type":"map",
-      "key":{"shape":"EnumType"},
-      "value":{"shape":"EnumType"}
-    },
     "NestedContainersStructure":{
       "type":"structure",
       "members":{
         "ListOfListsOfStrings":{"shape":"ListOfListsOfStrings"},
+        "ListOfListsOfStructs":{"shape":"ListOfListsOfStructs"},
+        "ListOfListsOfAllTypesStructs":{"shape":"ListOfListsOfAllTypesStructs"},
         "ListOfListOfListsOfStrings":{"shape":"ListOfListOfListsOfStrings"},
-        "MapOfStringToListOfListsOfStrings":{"shape":"MapOfStringToListOfListsOfStrings"}
+        "MapOfStringToListOfListsOfStrings":{"shape":"MapOfStringToListOfListsOfStrings"},
+        "StringMember":{"shape":"String"}
       }
     },
     "RecursiveListType":{
@@ -221,12 +267,6 @@
         "SubTypeOneMember":{"shape":"String"}
       }
     },
-    "Timestamp":{"type":"timestamp"},
-    "EnumType": {
-      "type":"string",
-      "enum": [
-        "EnumValue1", "EnumValue2"
-      ]
-    }
+    "Timestamp":{"type":"timestamp"}
   }
 }

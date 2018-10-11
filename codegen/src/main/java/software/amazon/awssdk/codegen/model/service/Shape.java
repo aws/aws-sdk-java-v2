@@ -67,6 +67,8 @@ public class Shape {
     @JsonProperty(value = "event")
     private boolean isEvent;
 
+    private String timestampFormat;
+
     public boolean isFault() {
         return fault;
     }
@@ -237,5 +239,13 @@ public class Shape {
 
     public void setIsEvent(boolean event) {
         isEvent = event;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
     }
 }

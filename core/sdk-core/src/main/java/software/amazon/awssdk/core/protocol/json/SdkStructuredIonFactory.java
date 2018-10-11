@@ -16,19 +16,10 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Date;
-import java.util.Map;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.internal.protocol.json.IonFactory;
 import software.amazon.awssdk.core.internal.protocol.json.SdkIonGenerator;
-import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonSystemBuilder;
 import software.amazon.ion.system.IonWriterBuilder;
@@ -41,22 +32,6 @@ public abstract class SdkStructuredIonFactory {
     protected static final JsonFactory JSON_FACTORY = new IonFactory(ION_SYSTEM);
 
     protected static final IonGeneratorSupplier ION_GENERATOR_SUPPLIER = SdkIonGenerator::create;
-
-    protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> UNMARSHALLERS =
-        new ImmutableMap.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
-            .put(BigDecimal.class, SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller.getInstance())
-            .put(BigInteger.class, SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller.getInstance())
-            .put(Boolean.class, SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller.getInstance())
-            .put(SdkBytes.class, SimpleTypeIonUnmarshallers.SdkBytesIonUnmarshaller.getInstance())
-            .put(Byte.class, SimpleTypeIonUnmarshallers.ByteIonUnmarshaller.getInstance())
-            .put(Date.class, SimpleTypeIonUnmarshallers.DateIonUnmarshaller.getInstance())
-            .put(Double.class, SimpleTypeIonUnmarshallers.DoubleIonUnmarshaller.getInstance())
-            .put(Float.class, SimpleTypeIonUnmarshallers.FloatIonUnmarshaller.getInstance())
-            .put(Integer.class, SimpleTypeIonUnmarshallers.IntegerIonUnmarshaller.getInstance())
-            .put(Long.class, SimpleTypeIonUnmarshallers.LongIonUnmarshaller.getInstance())
-            .put(Short.class, SimpleTypeIonUnmarshallers.ShortIonUnmarshaller.getInstance())
-            .put(String.class, SimpleTypeIonUnmarshallers.StringIonUnmarshaller.getInstance())
-            .build();
 
     protected SdkStructuredIonFactory() {
     }

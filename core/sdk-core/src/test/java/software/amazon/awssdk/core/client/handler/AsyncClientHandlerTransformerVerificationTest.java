@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
@@ -42,13 +41,13 @@ import software.amazon.awssdk.core.async.DrainingSubscriber;
 import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -101,7 +100,7 @@ public class AsyncClientHandlerTransformerVerificationTest {
         when(marshaller.marshall(eq(request))).thenReturn(new DefaultRequest<>(null));
 
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
-                .thenReturn(EmptySdkResponse.builder().build());
+                .thenReturn(VoidSdkResponse.builder().build());
     }
 
     @Test

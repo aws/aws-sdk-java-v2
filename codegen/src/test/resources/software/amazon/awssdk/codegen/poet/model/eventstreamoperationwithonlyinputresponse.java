@@ -1,7 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -9,6 +14,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationWithOnlyInputResponse extends JsonProtocolTestsResponse implements
                                                                                                ToCopyableBuilder<EventStreamOperationWithOnlyInputResponse.Builder, EventStreamOperationWithOnlyInputResponse> {
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
+
     private EventStreamOperationWithOnlyInputResponse(BuilderImpl builder) {
         super(builder);
     }
@@ -55,7 +62,12 @@ public final class EventStreamOperationWithOnlyInputResponse extends JsonProtoco
         return Optional.empty();
     }
 
-    public interface Builder extends JsonProtocolTestsResponse.Builder,
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
                                      CopyableBuilder<Builder, EventStreamOperationWithOnlyInputResponse> {
     }
 
@@ -71,5 +83,11 @@ public final class EventStreamOperationWithOnlyInputResponse extends JsonProtoco
         public EventStreamOperationWithOnlyInputResponse build() {
             return new EventStreamOperationWithOnlyInputResponse(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.awscore.client.http;
 
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.protocol.SdkField;
 
 public class NoopTestAwsRequest extends AwsRequest {
     private NoopTestAwsRequest(Builder builder) {
@@ -30,6 +33,11 @@ public class NoopTestAwsRequest extends AwsRequest {
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return Collections.emptyList();
     }
 
     public interface Builder extends AwsRequest.Builder {

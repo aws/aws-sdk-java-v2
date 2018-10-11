@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 
 @SdkInternalApi
 public final class MarshallerRegistry {
@@ -43,7 +43,9 @@ public final class MarshallerRegistry {
         return getMarshaller(marshallLocation, toMarshallingType(val));
     }
 
-    public <T> JsonMarshaller<T> getMarshaller(MarshallLocation marshallLocation, MarshallingType<T> marshallingType, T val) {
+    public <T> JsonMarshaller<Object> getMarshaller(MarshallLocation marshallLocation,
+                                                    MarshallingType<T> marshallingType,
+                                                    Object val) {
         return getMarshaller(marshallLocation,
                              val == null ? MarshallingType.NULL : marshallingType);
     }
@@ -57,9 +59,9 @@ public final class MarshallerRegistry {
     public <T> MarshallingType<T> toMarshallingType(T val) {
         if (val == null) {
             return (MarshallingType<T>) MarshallingType.NULL;
-        } else if (val instanceof StructuredPojo) {
+        } else if (val instanceof SdkPojo) {
             // We don't want to cache every single POJO type so we make a special case of it here.
-            return (MarshallingType<T>) MarshallingType.STRUCTURED;
+            return (MarshallingType<T>) MarshallingType.SDK_POJO;
         } else if (!marshallingTypeCache.containsKey(val.getClass())) {
             return (MarshallingType<T>) populateMarshallingTypeCache(val.getClass());
         }

@@ -25,14 +25,15 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -47,8 +48,8 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -70,7 +71,11 @@ public class AwsServiceModel implements ClassSpec {
         this.shapeModel = shapeModel;
         this.poetExtensions = new PoetExtensions(intermediateModel);
         this.typeProvider = new TypeProvider(intermediateModel);
-        this.shapeModelSpec = new ShapeModelSpec(this.shapeModel, typeProvider, poetExtensions);
+        this.shapeModelSpec = new ShapeModelSpec(this.shapeModel,
+                                                 typeProvider,
+                                                 poetExtensions,
+                                                 intermediateModel.getNamingStrategy(),
+                                                 intermediateModel.getCustomizationConfig());
         this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
         this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.typeProvider);
     }
@@ -87,16 +92,23 @@ public class AwsServiceModel implements ClassSpec {
                 ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
                 return PoetUtils.createInterfaceBuilder(modelClass)
                                 .addAnnotation(SdkPublicApi.class)
+                                .addSuperinterface(ClassName.get(SdkPojo.class))
                                 .addJavadoc("Base interface for all event types of the $L API.", apiName)
                                 .addField(FieldSpec.builder(modelClass, "UNKNOWN")
                                                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                                    .initializer(CodeBlock.builder()
                                                                          .add("new $T() {\n"
                                                                               + "        @Override\n"
+                                                                              + "        public $T<$T<?>> sdkFields() {\n"
+                                                                              + "            return $T.emptyList();\n"
+                                                                              + "        }\n"
+                                                                              + "        @Override\n"
                                                                               + "        public void accept($T.Visitor visitor) {"
                                                                               + "            \nvisitor.visitDefault(this);\n"
                                                                               + "        }\n"
-                                                                              + "    };\n", modelClass, responseHandlerClass
+                                                                              + "    };\n",
+                                                                              modelClass, List.class, SdkField.class,
+                                                                              Collections.class, responseHandlerClass
                                                                          )
                                                                          .build())
                                                    .addJavadoc("Special type of {@link $T} for unknown types of events that this "
@@ -118,14 +130,23 @@ public class AwsServiceModel implements ClassSpec {
                                                + "in any request or response shape");
 
         } else {
+            List<FieldSpec> fields = shapeModelSpec.fields();
             TypeSpec.Builder specBuilder = TypeSpec.classBuilder(this.shapeModel.getShapeName())
                                                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                                    .addAnnotation(PoetUtils.generatedAnnotation())
                                                    .addSuperinterfaces(modelSuperInterfaces())
                                                    .superclass(modelSuperClass())
                                                    .addMethods(modelClassMethods())
-                                                   .addFields(shapeModelSpec.fields())
+                                                   .addFields(fields)
+                                                   .addFields(shapeModelSpec.staticFields())
+                                                   .addMethod(sdkFieldsMethod())
                                                    .addTypes(nestedModelClassTypes());
+
+            if (!fields.isEmpty()) {
+                specBuilder
+                    .addMethod(getterCreator())
+                    .addMethod(setterCreator());
+            }
 
             if (this.shapeModel.isEvent()) {
                 ShapeModel eventStream = EventStreamUtils.getBaseEventStreamShape(intermediateModel, shapeModel);
@@ -160,6 +181,46 @@ public class AwsServiceModel implements ClassSpec {
         }
     }
 
+    private MethodSpec sdkFieldsMethod() {
+        ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                       WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
+        return MethodSpec.methodBuilder("sdkFields")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .returns(ParameterizedTypeName.get(ClassName.get(List.class), sdkFieldType))
+                         .addCode("return SDK_FIELDS;")
+                         .build();
+    }
+
+    private MethodSpec getterCreator() {
+        TypeVariableName t = TypeVariableName.get("T");
+        return MethodSpec.methodBuilder("getter")
+                         .addTypeVariable(t)
+                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                         .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class),
+                                                                 className(), t),
+                                       "g")
+                         .returns(ParameterizedTypeName.get(ClassName.get(Function.class),
+                                                            ClassName.get(Object.class), t))
+                         .addStatement("return obj -> g.apply(($T) obj)", className())
+                         .build();
+    }
+
+    private MethodSpec setterCreator() {
+        TypeVariableName t = TypeVariableName.get("T");
+        return MethodSpec.methodBuilder("setter")
+                         .addTypeVariable(t)
+                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                         .addParameter(ParameterizedTypeName.get(ClassName.get(BiConsumer.class),
+                                                                 builderClassName(),
+                                                                 t),
+                                       "s")
+                         .returns(ParameterizedTypeName.get(ClassName.get(BiConsumer.class),
+                                                            ClassName.get(Object.class), t))
+                         .addStatement("return (obj, val) -> s.accept(($T) obj, val)", builderClassName())
+                         .build();
+    }
+
     private MethodSpec.Builder acceptMethodSpec(ClassName modelClass, ClassName responseHandlerClass) {
         return MethodSpec.methodBuilder("accept")
                          .addModifiers(Modifier.PUBLIC)
@@ -177,16 +238,20 @@ public class AwsServiceModel implements ClassSpec {
         return shapeModelSpec.className();
     }
 
+    private ClassName builderClassName() {
+        return className().nestedClass("Builder");
+    }
+
     private List<TypeName> modelSuperInterfaces() {
         List<TypeName> interfaces = new ArrayList<>();
 
-        if (implementStructuredPojoInterface()) {
-            interfaces.add(ClassName.get(StructuredPojo.class));
-        }
 
         switch (shapeModel.getShapeType()) {
             case Exception:
             case Model:
+                interfaces.add(ClassName.get(SdkPojo.class));
+                interfaces.add(toCopyableBuilderInterface());
+                break;
             case Request:
             case Response:
                 interfaces.add(toCopyableBuilderInterface());
@@ -256,10 +321,6 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(modelMethodOverrides.toStringMethod(shapeModel));
                 methodSpecs.add(getValueForField());
                 break;
-        }
-
-        if (implementStructuredPojoInterface()) {
-            methodSpecs.add(structuredPojoMarshallMethod(shapeModel));
         }
 
         return methodSpecs;
@@ -402,22 +463,6 @@ public class AwsServiceModel implements ClassSpec {
                 break;
         }
         return nestedClasses;
-    }
-
-    private boolean implementStructuredPojoInterface() {
-        return intermediateModel.getMetadata().isJsonProtocol() && shapeModel.getShapeType() == ShapeType.Model;
-    }
-
-    private MethodSpec structuredPojoMarshallMethod(ShapeModel shapeModel) {
-        return MethodSpec.methodBuilder("marshall")
-                         .addAnnotation(SdkInternalApi.class)
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addParameter(ProtocolMarshaller.class, "protocolMarshaller")
-                         .addStatement("$T.getInstance().marshall(this, $N)",
-                                       poetExtensions.getTransformClass(shapeModel.getShapeName() + "Marshaller"),
-                                       "protocolMarshaller")
-                         .build();
     }
 
     private MethodSpec constructor() {

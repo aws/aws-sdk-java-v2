@@ -2,11 +2,21 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.protocol.traits.ListTrait;
+import software.amazon.awssdk.core.protocol.traits.LocationTrait;
+import software.amazon.awssdk.core.protocol.traits.MapTrait;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.ToString;
@@ -17,7 +27,105 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class NestedContainersResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
+                                                                              ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
+    private static final SdkField<List<List<String>>> LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
+        .<List<List<String>>> builder(MarshallingType.LIST)
+        .getter(getter(NestedContainersResponse::listOfListOfStrings))
+        .setter(setter(Builder::listOfListOfStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfListOfStrings").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<List<String>> builder(MarshallingType.LIST)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build(),
+                                    ListTrait
+                                        .builder()
+                                        .memberLocationName(null)
+                                        .memberFieldInfo(
+                                            SdkField.<String> builder(MarshallingType.STRING)
+                                                .traits(LocationTrait.builder()
+                                                                     .location(MarshallLocation.PAYLOAD)
+                                                                     .locationName("member").build()).build())
+                                        .build()).build()).build()).build();
+
+    private static final SdkField<List<List<List<String>>>> LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
+        .<List<List<List<String>>>> builder(MarshallingType.LIST)
+        .getter(getter(NestedContainersResponse::listOfListOfListOfStrings))
+        .setter(setter(Builder::listOfListOfListOfStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfListOfListOfStrings").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<List<List<String>>> builder(MarshallingType.LIST)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build(),
+                                    ListTrait
+                                        .builder()
+                                        .memberLocationName(null)
+                                        .memberFieldInfo(
+                                            SdkField.<List<String>> builder(MarshallingType.LIST)
+                                                .traits(LocationTrait.builder()
+                                                                     .location(MarshallLocation.PAYLOAD)
+                                                                     .locationName("member").build(),
+                                                        ListTrait
+                                                            .builder()
+                                                            .memberLocationName(null)
+                                                            .memberFieldInfo(
+                                                                SdkField.<String> builder(
+                                                                    MarshallingType.STRING)
+                                                                    .traits(LocationTrait
+                                                                                .builder()
+                                                                                .location(
+                                                                                    MarshallLocation.PAYLOAD)
+                                                                                .locationName(
+                                                                                    "member")
+                                                                                .build())
+                                                                    .build()).build())
+                                                .build()).build()).build()).build()).build();
+
+    private static final SdkField<Map<String, List<List<String>>>> MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
+        .<Map<String, List<List<String>>>> builder(MarshallingType.MAP)
+        .getter(getter(NestedContainersResponse::mapOfStringToListOfListOfStrings))
+        .setter(setter(Builder::mapOfStringToListOfListOfStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToListOfListOfStrings")
+                             .build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<List<List<String>>> builder(MarshallingType.LIST)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build(),
+                                        ListTrait
+                                            .builder()
+                                            .memberLocationName(null)
+                                            .memberFieldInfo(
+                                                SdkField.<List<String>> builder(MarshallingType.LIST)
+                                                    .traits(LocationTrait.builder()
+                                                                         .location(MarshallLocation.PAYLOAD)
+                                                                         .locationName("member").build(),
+                                                            ListTrait
+                                                                .builder()
+                                                                .memberLocationName(null)
+                                                                .memberFieldInfo(
+                                                                    SdkField.<String> builder(
+                                                                        MarshallingType.STRING)
+                                                                        .traits(LocationTrait
+                                                                                    .builder()
+                                                                                    .location(
+                                                                                        MarshallLocation.PAYLOAD)
+                                                                                    .locationName(
+                                                                                        "member")
+                                                                                    .build())
+                                                                        .build()).build())
+                                                    .build()).build()).build()).build()).build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(LIST_OF_LIST_OF_STRINGS_FIELD,
+                                                                                                   LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD, MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD));
+
     private final List<List<String>> listOfListOfStrings;
 
     private final List<List<List<String>>> listOfListOfListOfStrings;
@@ -102,31 +210,45 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
         NestedContainersResponse other = (NestedContainersResponse) obj;
         return Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
-                && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
-                && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
+               && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
+               && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
     @Override
     public String toString() {
         return ToString.builder("NestedContainersResponse").add("ListOfListOfStrings", listOfListOfStrings())
-                .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
-                .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
+                       .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
+                       .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "ListOfListOfStrings":
-            return Optional.ofNullable(clazz.cast(listOfListOfStrings()));
-        case "ListOfListOfListOfStrings":
-            return Optional.ofNullable(clazz.cast(listOfListOfListOfStrings()));
-        case "MapOfStringToListOfListOfStrings":
-            return Optional.ofNullable(clazz.cast(mapOfStringToListOfListOfStrings()));
-        default:
-            return Optional.empty();
+            case "ListOfListOfStrings":
+                return Optional.ofNullable(clazz.cast(listOfListOfStrings()));
+            case "ListOfListOfListOfStrings":
+                return Optional.ofNullable(clazz.cast(listOfListOfListOfStrings()));
+            case "MapOfStringToListOfListOfStrings":
+                return Optional.ofNullable(clazz.cast(mapOfStringToListOfListOfStrings()));
+            default:
+                return Optional.empty();
         }
     }
 
-    public interface Builder extends JsonProtocolTestsResponse.Builder, CopyableBuilder<Builder, NestedContainersResponse> {
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    private static <T> Function<Object, T> getter(Function<NestedContainersResponse, T> g) {
+        return obj -> g.apply((NestedContainersResponse) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
+                                     CopyableBuilder<Builder, NestedContainersResponse> {
         /**
          * Sets the value of the ListOfListOfStrings property for this object.
          *
@@ -171,7 +293,7 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToListOfListOfStrings(
-                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
@@ -218,7 +340,7 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
 
         @Override
         public final Builder listOfListOfListOfStrings(
-                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
             return this;
         }
@@ -231,7 +353,7 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
 
         public final void setListOfListOfListOfStrings(
-                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
         }
 
@@ -241,13 +363,13 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
 
         @Override
         public final Builder mapOfStringToListOfListOfStrings(
-                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
             return this;
         }
 
         public final void setMapOfStringToListOfListOfStrings(
-                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
         }
 
@@ -255,5 +377,11 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         public NestedContainersResponse build() {
             return new NestedContainersResponse(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

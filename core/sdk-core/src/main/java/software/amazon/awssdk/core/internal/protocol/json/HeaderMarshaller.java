@@ -15,13 +15,19 @@
 
 package software.amazon.awssdk.core.internal.protocol.json;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
 public final class HeaderMarshaller {
 
-    public static final JsonMarshaller<String> STRING = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_STRING);
+    public static final JsonMarshaller<String> STRING = new SimpleHeaderMarshaller<>(
+        (val, field) -> field.containsTrait(JsonValueTrait.class) ?
+                        BinaryUtils.toBase64(val.getBytes(StandardCharsets.UTF_8)) : val);
 
     public static final JsonMarshaller<Integer> INTEGER = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_INTEGER);
 
@@ -47,8 +53,8 @@ public final class HeaderMarshaller {
         }
 
         @Override
-        public void marshall(T val, JsonMarshallerContext context, String paramName) {
-            context.request().addHeader(paramName, converter.apply(val));
+        public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
+            context.request().addHeader(paramName, converter.convert(val, sdkField));
         }
     }
 

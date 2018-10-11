@@ -48,5 +48,11 @@ public enum MarshallLocation {
      * the only difference is whether it's URL encoded or not. Members bound to the {@link #PATH} will be URL
      * encoded before replacing, members bound to {@link #GREEDY_PATH} will not be URL encoded.
      */
-    GREEDY_PATH
+    GREEDY_PATH,
+
+    /**
+     * HTTP status code of response.
+     */
+    STATUS_CODE;
+
 }

@@ -16,15 +16,12 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
- * Wrapper object to provide additional metadata about a client and protocol to {@link
- * SdkJsonProtocolFactory}
+ * Wrapper object to provide additional metadata about a client and protocol to a protocol factory.
  */
 @NotThreadSafe
 @SdkProtectedApi
@@ -38,18 +35,10 @@ public class JsonClientMetadata {
 
     private boolean supportsIon;
 
-    /**
-     * Base class is initialized to {@link SdkServiceException} for backwards compatibility.
-     */
-    private Class<? extends RuntimeException> baseServiceExceptionClass = SdkServiceException.class;
+    private Class<? extends RuntimeException> baseServiceExceptionClass;
 
     public JsonClientMetadata addErrorMetadata(JsonErrorShapeMetadata errorShapeMetadata) {
         this.errorsMetadata.add(errorShapeMetadata);
-        return this;
-    }
-
-    public JsonClientMetadata addAllErrorMetadata(JsonErrorShapeMetadata... errorShapeMetadata) {
-        Collections.addAll(errorsMetadata, errorShapeMetadata);
         return this;
     }
 

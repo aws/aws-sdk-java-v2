@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationWithOnlyInputRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -34,14 +34,12 @@ public class EventStreamOperationWithOnlyInputRequestMarshaller implements
         EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest) {
         Validate.paramNotNull(eventStreamOperationWithOnlyInputRequest, "eventStreamOperationWithOnlyInputRequest");
         try {
-            ProtocolRequestMarshaller<EventStreamOperationWithOnlyInputRequest> protocolMarshaller = protocolFactory
+            ProtocolMarshaller<Request<EventStreamOperationWithOnlyInputRequest>> protocolMarshaller = protocolFactory
                 .createProtocolMarshaller(SDK_OPERATION_BINDING, eventStreamOperationWithOnlyInputRequest);
-            protocolMarshaller.startMarshalling();
-            EventStreamOperationWithOnlyInputRequestModelMarshaller.getInstance().marshall(
-                eventStreamOperationWithOnlyInputRequest, protocolMarshaller);
-            return protocolMarshaller.finishMarshalling();
+            return protocolMarshaller.marshall(eventStreamOperationWithOnlyInputRequest);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

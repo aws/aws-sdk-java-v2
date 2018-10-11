@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**
@@ -50,7 +51,7 @@ public final class JsonMarshallerContext {
      * @return Implementation of {@link ProtocolMarshaller} that can be used to call back out to marshall structured data (i.e.
      *      dlists of objects).
      */
-    public ProtocolMarshaller protocolHandler() {
+    public JsonProtocolMarshaller protocolHandler() {
         return protocolHandler;
     }
 
@@ -76,7 +77,7 @@ public final class JsonMarshallerContext {
      * @param val              Value to marshall.
      */
     public void marshall(MarshallLocation marshallLocation, Object val) {
-        marshallerRegistry().getMarshaller(marshallLocation, val).marshall(val, this, null);
+        marshallerRegistry().getMarshaller(marshallLocation, val).marshall(val, this, null, null);
     }
 
     /**
@@ -86,8 +87,8 @@ public final class JsonMarshallerContext {
      * @param val              Value to marshall.
      * @param paramName        Name of parameter to marshall.
      */
-    public void marshall(MarshallLocation marshallLocation, Object val, String paramName) {
-        marshallerRegistry().getMarshaller(marshallLocation, val).marshall(val, this, paramName);
+    public <T> void marshall(MarshallLocation marshallLocation, T val, String paramName, SdkField<T> sdkField) {
+        marshallerRegistry().getMarshaller(marshallLocation, val).marshall(val, this, paramName, sdkField);
     }
 
     /**

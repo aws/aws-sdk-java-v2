@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.NestedContainersRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -19,7 +19,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class NestedContainersRequestMarshaller implements Marshaller<Request<NestedContainersRequest>, NestedContainersRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
+                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 
@@ -31,14 +31,12 @@ public class NestedContainersRequestMarshaller implements Marshaller<Request<Nes
     public Request<NestedContainersRequest> marshall(NestedContainersRequest nestedContainersRequest) {
         Validate.paramNotNull(nestedContainersRequest, "nestedContainersRequest");
         try {
-            ProtocolRequestMarshaller<NestedContainersRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
-                    SDK_OPERATION_BINDING, nestedContainersRequest);
-            protocolMarshaller.startMarshalling();
-            NestedContainersRequestModelMarshaller.getInstance().marshall(nestedContainersRequest, protocolMarshaller);
-            return protocolMarshaller.finishMarshalling();
+            ProtocolMarshaller<Request<NestedContainersRequest>> protocolMarshaller = protocolFactory.createProtocolMarshaller(
+                SDK_OPERATION_BINDING, nestedContainersRequest);
+            return protocolMarshaller.marshall(nestedContainersRequest);
         } catch (Exception e) {
-            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
-                    .build();
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

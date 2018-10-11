@@ -120,6 +120,11 @@ public interface StructuredJsonGenerator {
         }
 
         @Override
+        public StructuredJsonGenerator writeNumber(String number) {
+            return this;
+        }
+
+        @Override
         public byte[] getBytes() {
             return emptyBytes;
         }
@@ -159,6 +164,8 @@ public interface StructuredJsonGenerator {
     StructuredJsonGenerator writeValue(ByteBuffer bytes);
 
     StructuredJsonGenerator writeValue(Instant instant);
+
+    StructuredJsonGenerator writeNumber(String number);
 
     StructuredJsonGenerator writeValue(BigDecimal value);
 

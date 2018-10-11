@@ -162,7 +162,9 @@ abstract class AddShapes {
                    .withVariable(new VariableModel(variableName, variableType, variableDeclarationType)
                                          .withDocumentation(c2jMemberDefinition.getDocumentation()))
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
-                   .withGetterModel(new ReturnTypeModel(variableType));
+                   .withGetterModel(new ReturnTypeModel(variableType))
+                   .withTimestampFormat(resolveTimestampFormat(c2jMemberDefinition, c2jShape))
+                   .withJsonValue(c2jMemberDefinition.getJsonValue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
         memberModel
@@ -203,6 +205,11 @@ abstract class AddShapes {
         memberModel.setHttp(httpMapping);
 
         return memberModel;
+    }
+
+    private String resolveTimestampFormat(Member c2jMemberDefinition, Shape c2jShape) {
+        return c2jMemberDefinition.getTimestampFormat() != null ?
+               c2jMemberDefinition.getTimestampFormat() : c2jShape.getTimestampFormat();
     }
 
     private ParameterHttpMapping generateParameterHttpMapping(Shape parentShape,

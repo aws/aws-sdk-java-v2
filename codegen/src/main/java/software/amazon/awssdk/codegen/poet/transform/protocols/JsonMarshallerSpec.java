@@ -28,10 +28,10 @@ import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -41,11 +41,9 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     private final Metadata metadata;
     private final ShapeModel shapeModel;
-    private final PoetExtensions poetExtensions;
 
     public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
         this.metadata = model.getMetadata();
-        this.poetExtensions = new PoetExtensions(model);
         this.shapeModel = shapeModel;
     }
 
@@ -67,15 +65,11 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
     public CodeBlock marshalCodeBlock(ClassName requestClassName) {
         String variableName = shapeModel.getVariable().getVariableName();
         return CodeBlock.builder()
-                        .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller"
+                        .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
                                       + "(SDK_OPERATION_BINDING, $L)",
-                                      ProtocolRequestMarshaller.class,
+                                      ProtocolMarshaller.class, Request.class,
                                       requestClassName, variableName)
-                        .addStatement("protocolMarshaller.startMarshalling()")
-                        .addStatement("$T.getInstance().marshall($L, protocolMarshaller)",
-                                      poetExtensions.getTransformClass(shapeModel.getShapeName() + "ModelMarshaller"),
-                                      variableName)
-                        .addStatement("return protocolMarshaller.finishMarshalling()")
+                        .addStatement("return protocolMarshaller.marshall($L)", variableName)
                         .build();
     }
 

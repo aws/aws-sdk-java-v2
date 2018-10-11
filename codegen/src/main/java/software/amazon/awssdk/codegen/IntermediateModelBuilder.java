@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen;
 import static software.amazon.awssdk.codegen.AddMetadata.constructMetadata;
 import static software.amazon.awssdk.codegen.RemoveUnusedShapes.removeUnusedShapes;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -90,7 +89,7 @@ public class IntermediateModelBuilder {
         return processors;
     }
 
-    public IntermediateModel build() throws IOException {
+    public IntermediateModel build() {
         // Note: This needs to come before any pre/post processing of the
         // models, as the transformer must have access to the original shapes,
         // before any customizations have been applied (which modifies them).
@@ -119,7 +118,7 @@ public class IntermediateModelBuilder {
 
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, codeGenConfig, customConfig), operations, shapes,
-            customConfig, examples, authorizers, paginators.getPaginators());
+            customConfig, examples, authorizers, paginators.getPaginators(), namingStrategy);
 
         customization.postprocess(fullModel);
 
@@ -135,7 +134,8 @@ public class IntermediateModelBuilder {
                                                                fullModel.getCustomizationConfig(),
                                                                fullModel.getExamples(),
                                                                fullModel.getCustomAuthorizers(),
-                                                               fullModel.getPaginators());
+                                                               fullModel.getPaginators(),
+                                                               namingStrategy);
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);

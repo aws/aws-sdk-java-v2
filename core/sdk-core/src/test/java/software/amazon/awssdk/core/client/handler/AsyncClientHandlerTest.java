@@ -39,11 +39,11 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.EmptyPublisher;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -84,7 +84,7 @@ public class AsyncClientHandlerTest {
     @Test
     public void successfulExecutionCallsResponseHandler() throws Exception {
         // Given
-        SdkResponse expected = EmptySdkResponse.builder().build();
+        SdkResponse expected = VoidSdkResponse.builder().build();
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("foo", Arrays.asList("bar"));
         ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
