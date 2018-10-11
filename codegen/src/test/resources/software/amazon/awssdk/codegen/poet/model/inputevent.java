@@ -27,7 +27,8 @@ public final class InputEvent implements SdkPojo, ToCopyableBuilder<InputEvent.B
     private static final SdkField<SdkBytes> EXPLICIT_PAYLOAD_MEMBER_FIELD = SdkField
         .<SdkBytes> builder(MarshallingType.SDK_BYTES).getter(getter(InputEvent::explicitPayloadMember))
                                                       .setter(setter(Builder::explicitPayloadMember))
-                                                      .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "ExplicitPayloadMember")).build();
+                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build())
+                                                      .build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections
         .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));

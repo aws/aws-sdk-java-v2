@@ -27,9 +27,9 @@ public final class LocationTrait implements Trait {
     private final MarshallLocation location;
     private final String locationName;
 
-    private LocationTrait(MarshallLocation location, String locationName) {
-        this.location = location;
-        this.locationName = locationName;
+    private LocationTrait(Builder builder) {
+        this.location = builder.location;
+        this.locationName = builder.locationName;
     }
 
     /**
@@ -46,7 +46,37 @@ public final class LocationTrait implements Trait {
         return locationName;
     }
 
-    public static LocationTrait create(MarshallLocation location, String locationName) {
-        return new LocationTrait(location, locationName);
+    /**
+     * @return Builder instance.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link LocationTrait}.
+     */
+    public static final class Builder {
+
+        private MarshallLocation location;
+        private String locationName;
+
+        private Builder() {
+        }
+
+        public Builder location(MarshallLocation location) {
+            this.location = location;
+            return this;
+        }
+
+        public Builder locationName(String locationName) {
+            this.locationName = locationName;
+            return this;
+        }
+
+        public LocationTrait build() {
+            return new LocationTrait(this);
+        }
+
     }
 }

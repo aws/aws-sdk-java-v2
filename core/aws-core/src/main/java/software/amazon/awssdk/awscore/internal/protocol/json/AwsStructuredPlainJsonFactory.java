@@ -30,8 +30,7 @@ public final class AwsStructuredPlainJsonFactory extends SdkStructuredPlainJsonF
 
     private static final ObjectMapper MAPPER = new ObjectMapper(JSON_FACTORY);
 
-    public static final AwsStructuredJsonFactory SDK_JSON_FACTORY = new BaseAwsStructuredJsonFactory(
-            JSON_FACTORY, JSON_SCALAR_UNMARSHALLERS) {
+    public static final AwsStructuredJsonFactory SDK_JSON_FACTORY = new BaseAwsStructuredJsonFactory(JSON_FACTORY) {
         @Override
         protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
                                                        String contentType) {

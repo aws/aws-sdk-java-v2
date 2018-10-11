@@ -32,40 +32,44 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         .<List<List<String>>> builder(MarshallingType.LIST)
         .getter(getter(NestedContainersResponse::listOfListOfStrings))
         .setter(setter(Builder::listOfListOfStrings))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "ListOfListOfStrings"),
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfListOfStrings").build(),
                 ListTrait
                     .builder()
                     .memberLocationName(null)
                     .memberFieldInfo(
                         SdkField.<List<String>> builder(MarshallingType.LIST)
-                            .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "member"),
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build(),
                                     ListTrait
                                         .builder()
                                         .memberLocationName(null)
                                         .memberFieldInfo(
                                             SdkField.<String> builder(MarshallingType.STRING)
-                                                .traits(LocationTrait.create(
-                                                    MarshallLocation.PAYLOAD, "member")).build())
+                                                .traits(LocationTrait.builder()
+                                                                     .location(MarshallLocation.PAYLOAD)
+                                                                     .locationName("member").build()).build())
                                         .build()).build()).build()).build();
 
     private static final SdkField<List<List<List<String>>>> LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD = SdkField
         .<List<List<List<String>>>> builder(MarshallingType.LIST)
         .getter(getter(NestedContainersResponse::listOfListOfListOfStrings))
         .setter(setter(Builder::listOfListOfListOfStrings))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "ListOfListOfListOfStrings"),
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfListOfListOfStrings").build(),
                 ListTrait
                     .builder()
                     .memberLocationName(null)
                     .memberFieldInfo(
                         SdkField.<List<List<String>>> builder(MarshallingType.LIST)
-                            .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "member"),
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build(),
                                     ListTrait
                                         .builder()
                                         .memberLocationName(null)
                                         .memberFieldInfo(
                                             SdkField.<List<String>> builder(MarshallingType.LIST)
-                                                .traits(LocationTrait.create(
-                                                    MarshallLocation.PAYLOAD, "member"),
+                                                .traits(LocationTrait.builder()
+                                                                     .location(MarshallLocation.PAYLOAD)
+                                                                     .locationName("member").build(),
                                                         ListTrait
                                                             .builder()
                                                             .memberLocationName(null)
@@ -73,8 +77,12 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
                                                                 SdkField.<String> builder(
                                                                     MarshallingType.STRING)
                                                                     .traits(LocationTrait
-                                                                                .create(MarshallLocation.PAYLOAD,
-                                                                                        "member"))
+                                                                                .builder()
+                                                                                .location(
+                                                                                    MarshallLocation.PAYLOAD)
+                                                                                .locationName(
+                                                                                    "member")
+                                                                                .build())
                                                                     .build()).build())
                                                 .build()).build()).build()).build()).build();
 
@@ -82,20 +90,23 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         .<Map<String, List<List<String>>>> builder(MarshallingType.MAP)
         .getter(getter(NestedContainersResponse::mapOfStringToListOfListOfStrings))
         .setter(setter(Builder::mapOfStringToListOfListOfStrings))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "MapOfStringToListOfListOfStrings"),
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToListOfListOfStrings")
+                             .build(),
                 MapTrait.builder()
                         .keyLocationName("key")
                         .valueLocationName("value")
                         .valueFieldInfo(
                             SdkField.<List<List<String>>> builder(MarshallingType.LIST)
-                                .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "value"),
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build(),
                                         ListTrait
                                             .builder()
                                             .memberLocationName(null)
                                             .memberFieldInfo(
                                                 SdkField.<List<String>> builder(MarshallingType.LIST)
-                                                    .traits(LocationTrait.create(
-                                                        MarshallLocation.PAYLOAD, "member"),
+                                                    .traits(LocationTrait.builder()
+                                                                         .location(MarshallLocation.PAYLOAD)
+                                                                         .locationName("member").build(),
                                                             ListTrait
                                                                 .builder()
                                                                 .memberLocationName(null)
@@ -103,8 +114,12 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
                                                                     SdkField.<String> builder(
                                                                         MarshallingType.STRING)
                                                                         .traits(LocationTrait
-                                                                                    .create(MarshallLocation.PAYLOAD,
-                                                                                            "member"))
+                                                                                    .builder()
+                                                                                    .location(
+                                                                                        MarshallLocation.PAYLOAD)
+                                                                                    .locationName(
+                                                                                        "member")
+                                                                                    .build())
                                                                         .build()).build())
                                                     .build()).build()).build()).build()).build();
 

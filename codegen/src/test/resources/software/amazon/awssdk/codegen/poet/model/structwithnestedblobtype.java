@@ -27,7 +27,7 @@ public final class StructWithNestedBlobType implements SdkPojo,
                                                        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private static final SdkField<SdkBytes> NESTED_BLOB_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
         .getter(getter(StructWithNestedBlobType::nestedBlob)).setter(setter(Builder::nestedBlob))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "NestedBlob")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedBlob").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NESTED_BLOB_FIELD));
 

@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class SubTypeOne implements SdkPojo, ToCopyableBuilder<SubTypeOne.Builder, SubTypeOne> {
     private static final SdkField<String> SUB_TYPE_ONE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(SubTypeOne::subTypeOneMember)).setter(setter(Builder::subTypeOneMember))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "SubTypeOneMember")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(SUB_TYPE_ONE_MEMBER_FIELD));
 
@@ -150,3 +150,4 @@ public final class SubTypeOne implements SdkPojo, ToCopyableBuilder<SubTypeOne.B
         }
     }
 }
+

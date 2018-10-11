@@ -30,7 +30,7 @@ public final class AwsStructuredCborFactory extends SdkStructuredCborFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper(CBOR_FACTORY);
 
     public static final AwsStructuredJsonFactory SDK_CBOR_FACTORY =
-        new BaseAwsStructuredJsonFactory(CBOR_FACTORY, CBOR_SCALAR_UNMARSHALLERS) {
+        new BaseAwsStructuredJsonFactory(CBOR_FACTORY) {
             @Override
             protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
                                                            String contentType) {

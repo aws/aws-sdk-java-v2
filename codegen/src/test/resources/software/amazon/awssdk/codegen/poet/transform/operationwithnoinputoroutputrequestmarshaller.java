@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.OperationWithNoInputOrOutputRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -33,7 +33,7 @@ public class OperationWithNoInputOrOutputRequestMarshaller implements
         OperationWithNoInputOrOutputRequest operationWithNoInputOrOutputRequest) {
         Validate.paramNotNull(operationWithNoInputOrOutputRequest, "operationWithNoInputOrOutputRequest");
         try {
-            ProtocolRequestMarshaller<OperationWithNoInputOrOutputRequest> protocolMarshaller = protocolFactory
+            ProtocolMarshaller<Request<OperationWithNoInputOrOutputRequest>> protocolMarshaller = protocolFactory
                 .createProtocolMarshaller(SDK_OPERATION_BINDING, operationWithNoInputOrOutputRequest);
             return protocolMarshaller.marshall(operationWithNoInputOrOutputRequest);
         } catch (Exception e) {

@@ -17,19 +17,9 @@ package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.util.Date;
-import java.util.Map;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.internal.protocol.json.SdkCborGenerator;
-import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeCborUnmarshallers;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Creates generators and protocol handlers for CBOR wire format.
@@ -39,27 +29,7 @@ public abstract class SdkStructuredCborFactory {
 
     protected static final JsonFactory CBOR_FACTORY = new CBORFactory();
 
-    protected static final CborGeneratorSupplier CBOR_GENERATOR_SUPPLIER =
-        SdkCborGenerator::new;
-
-    /**
-     * cbor unmarshallers for scalar types.
-     */
-    protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> CBOR_SCALAR_UNMARSHALLERS =
-        new ImmutableMap.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
-            .put(String.class, SimpleTypeCborUnmarshallers.StringCborUnmarshaller.getInstance())
-            .put(Double.class, SimpleTypeCborUnmarshallers.DoubleCborUnmarshaller.getInstance())
-            .put(Integer.class, SimpleTypeCborUnmarshallers.IntegerCborUnmarshaller.getInstance())
-            .put(BigInteger.class, SimpleTypeCborUnmarshallers.BigIntegerCborUnmarshaller.getInstance())
-            .put(BigDecimal.class, SimpleTypeCborUnmarshallers.BigDecimalCborUnmarshaller.getInstance())
-            .put(Boolean.class, SimpleTypeCborUnmarshallers.BooleanCborUnmarshaller.getInstance())
-            .put(Float.class, SimpleTypeCborUnmarshallers.FloatCborUnmarshaller.getInstance())
-            .put(Long.class, SimpleTypeCborUnmarshallers.LongCborUnmarshaller.getInstance())
-            .put(Byte.class, SimpleTypeCborUnmarshallers.ByteCborUnmarshaller.getInstance())
-            .put(Date.class, SimpleTypeCborUnmarshallers.DateCborUnmarshaller.getInstance())
-            .put(SdkBytes.class, SimpleTypeCborUnmarshallers.SdkBytesCborUnmarshaller.getInstance())
-            .put(Instant.class, SimpleTypeCborUnmarshallers.InstantCborUnmarshaller.getInstance())
-            .put(Short.class, SimpleTypeCborUnmarshallers.ShortCborUnmarshaller.getInstance()).build();
+    protected static final CborGeneratorSupplier CBOR_GENERATOR_SUPPLIER = SdkCborGenerator::new;
 
     protected SdkStructuredCborFactory() {
     }

@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -33,8 +33,8 @@ public class EventStreamOperationRequestMarshaller implements
     public Request<EventStreamOperationRequest> marshall(EventStreamOperationRequest eventStreamOperationRequest) {
         Validate.paramNotNull(eventStreamOperationRequest, "eventStreamOperationRequest");
         try {
-            ProtocolRequestMarshaller<EventStreamOperationRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
-                SDK_OPERATION_BINDING, eventStreamOperationRequest);
+            ProtocolMarshaller<Request<EventStreamOperationRequest>> protocolMarshaller = protocolFactory
+                .createProtocolMarshaller(SDK_OPERATION_BINDING, eventStreamOperationRequest);
             return protocolMarshaller.marshall(eventStreamOperationRequest);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();

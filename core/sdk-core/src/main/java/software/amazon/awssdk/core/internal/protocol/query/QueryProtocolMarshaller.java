@@ -13,23 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol.json;
+package software.amazon.awssdk.core.internal.protocol.query;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 
-/**
- * Creates generators and protocol handlers for plain text JSON wire format.
- */
 @SdkProtectedApi
-public abstract class SdkStructuredPlainJsonFactory {
+public class QueryProtocolMarshaller<OrigRequestT extends SdkRequest>
+    implements ProtocolRequestMarshaller<OrigRequestT> {
 
-    /**
-     * Recommended to share JsonFactory instances per http://wiki.fasterxml
-     * .com/JacksonBestPracticesPerformance
-     */
-    protected static final JsonFactory JSON_FACTORY = new JsonFactory();
-
-    protected SdkStructuredPlainJsonFactory() {
-    }
 }

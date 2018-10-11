@@ -27,15 +27,17 @@ public final class InputEventTwo implements SdkPojo, ToCopyableBuilder<InputEven
     private static final SdkField<SdkBytes> IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD = SdkField
         .<SdkBytes> builder(MarshallingType.SDK_BYTES).getter(getter(InputEventTwo::implicitPayloadMemberOne))
                                                       .setter(setter(Builder::implicitPayloadMemberOne))
-                                                      .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "ImplicitPayloadMemberOne")).build();
+                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberOne").build())
+                                                      .build();
 
     private static final SdkField<String> IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(InputEventTwo::implicitPayloadMemberTwo)).setter(setter(Builder::implicitPayloadMemberTwo))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "ImplicitPayloadMemberTwo")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberTwo").build())
+        .build();
 
     private static final SdkField<String> EVENT_HEADER_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(InputEventTwo::eventHeaderMember)).setter(setter(Builder::eventHeaderMember))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "EventHeaderMember")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EventHeaderMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
         IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD, IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD, EVENT_HEADER_MEMBER_FIELD));

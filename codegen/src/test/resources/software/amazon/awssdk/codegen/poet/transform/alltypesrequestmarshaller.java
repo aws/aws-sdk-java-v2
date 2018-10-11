@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.AllTypesRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -31,7 +31,7 @@ public class AllTypesRequestMarshaller implements Marshaller<Request<AllTypesReq
     public Request<AllTypesRequest> marshall(AllTypesRequest allTypesRequest) {
         Validate.paramNotNull(allTypesRequest, "allTypesRequest");
         try {
-            ProtocolRequestMarshaller<AllTypesRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
+            ProtocolMarshaller<Request<AllTypesRequest>> protocolMarshaller = protocolFactory.createProtocolMarshaller(
                 SDK_OPERATION_BINDING, allTypesRequest);
             return protocolMarshaller.marshall(allTypesRequest);
         } catch (Exception e) {

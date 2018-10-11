@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.NestedContainersRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -31,7 +31,7 @@ public class NestedContainersRequestMarshaller implements Marshaller<Request<Nes
     public Request<NestedContainersRequest> marshall(NestedContainersRequest nestedContainersRequest) {
         Validate.paramNotNull(nestedContainersRequest, "nestedContainersRequest");
         try {
-            ProtocolRequestMarshaller<NestedContainersRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
+            ProtocolMarshaller<Request<NestedContainersRequest>> protocolMarshaller = protocolFactory.createProtocolMarshaller(
                 SDK_OPERATION_BINDING, nestedContainersRequest);
             return protocolMarshaller.marshall(nestedContainersRequest);
         } catch (Exception e) {

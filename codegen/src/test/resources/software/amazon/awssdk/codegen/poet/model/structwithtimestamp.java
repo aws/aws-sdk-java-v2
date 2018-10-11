@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StructWithTimestamp implements SdkPojo, ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
     private static final SdkField<Instant> NESTED_TIMESTAMP_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
         .getter(getter(StructWithTimestamp::nestedTimestamp)).setter(setter(Builder::nestedTimestamp))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "NestedTimestamp")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedTimestamp").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NESTED_TIMESTAMP_FIELD));
 

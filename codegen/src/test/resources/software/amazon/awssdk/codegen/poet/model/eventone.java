@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class EventOne implements SdkPojo, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
     private static final SdkField<String> FOO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "Foo")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(FOO_FIELD));
 
@@ -161,3 +161,4 @@ public final class EventOne implements SdkPojo, ToCopyableBuilder<EventOne.Build
         }
     }
 }
+

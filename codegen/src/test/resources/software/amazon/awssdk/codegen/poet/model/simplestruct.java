@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class SimpleStruct implements SdkPojo, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "StringMember")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD));
 

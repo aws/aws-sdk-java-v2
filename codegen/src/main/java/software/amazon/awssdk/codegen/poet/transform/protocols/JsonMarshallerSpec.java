@@ -28,9 +28,10 @@ import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -64,9 +65,9 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
     public CodeBlock marshalCodeBlock(ClassName requestClassName) {
         String variableName = shapeModel.getVariable().getVariableName();
         return CodeBlock.builder()
-                        .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller"
+                        .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
                                       + "(SDK_OPERATION_BINDING, $L)",
-                                      ProtocolRequestMarshaller.class,
+                                      ProtocolMarshaller.class, Request.class,
                                       requestClassName, variableName)
                         .addStatement("return protocolMarshaller.marshall($L)", variableName)
                         .build();

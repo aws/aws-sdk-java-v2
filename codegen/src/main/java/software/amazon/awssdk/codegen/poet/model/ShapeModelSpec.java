@@ -188,7 +188,10 @@ class ShapeModelSpec {
     private CodeBlock createLocationTrait(MemberModel m) {
         return CodeBlock.builder()
                         // TODO will marshall and unmarshall location name ever differ?
-                        .add("$T.create($T.$L, $S)", ClassName.get(LocationTrait.class), ClassName.get(MarshallLocation.class),
+                        .add("$T.builder()\n"
+                             + ".location($T.$L)"
+                             + ".locationName($S)"
+                             + ".build()", ClassName.get(LocationTrait.class), ClassName.get(MarshallLocation.class),
                              m.getHttp().getMarshallLocation(), m.getHttp().getMarshallLocationName())
                         .build();
     }

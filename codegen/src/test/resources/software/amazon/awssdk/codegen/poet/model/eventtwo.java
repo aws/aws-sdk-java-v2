@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class EventTwo implements SdkPojo, ToCopyableBuilder<EventTwo.Builder, EventTwo>, EventStream {
     private static final SdkField<String> BAR_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "Bar")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BAR_FIELD));
 

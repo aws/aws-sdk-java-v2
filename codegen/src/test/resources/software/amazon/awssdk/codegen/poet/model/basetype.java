@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class BaseType implements SdkPojo, ToCopyableBuilder<BaseType.Builder, BaseType> {
     private static final SdkField<String> BASE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "BaseMember")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BASE_MEMBER_FIELD));
 

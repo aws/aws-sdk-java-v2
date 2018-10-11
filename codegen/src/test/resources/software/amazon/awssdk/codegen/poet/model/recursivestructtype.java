@@ -33,40 +33,40 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class RecursiveStructType implements SdkPojo, ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
     private static final SdkField<String> NO_RECURSE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(RecursiveStructType::noRecurse)).setter(setter(Builder::noRecurse))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "NoRecurse")).build();
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NoRecurse").build()).build();
 
     private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
         .<RecursiveStructType> builder(MarshallingType.SDK_POJO).getter(getter(RecursiveStructType::recursiveStruct))
                                                                 .setter(setter(Builder::recursiveStruct)).constructor(RecursiveStructType::builder)
-                                                                .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "RecursiveStruct")).build();
+                                                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
 
     private static final SdkField<List<RecursiveStructType>> RECURSIVE_LIST_FIELD = SdkField
         .<List<RecursiveStructType>> builder(MarshallingType.LIST)
         .getter(getter(RecursiveStructType::recursiveList))
         .setter(setter(Builder::recursiveList))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "RecursiveList"),
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveList").build(),
                 ListTrait
                     .builder()
                     .memberLocationName(null)
                     .memberFieldInfo(
                         SdkField.<RecursiveStructType> builder(MarshallingType.SDK_POJO)
                             .constructor(RecursiveStructType::builder)
-                            .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "member")).build()).build())
-        .build();
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<Map<String, RecursiveStructType>> RECURSIVE_MAP_FIELD = SdkField
         .<Map<String, RecursiveStructType>> builder(MarshallingType.MAP)
         .getter(getter(RecursiveStructType::recursiveMap))
         .setter(setter(Builder::recursiveMap))
-        .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "RecursiveMap"),
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveMap").build(),
                 MapTrait.builder()
                         .keyLocationName("key")
                         .valueLocationName("value")
                         .valueFieldInfo(
                             SdkField.<RecursiveStructType> builder(MarshallingType.SDK_POJO)
                                 .constructor(RecursiveStructType::builder)
-                                .traits(LocationTrait.create(MarshallLocation.PAYLOAD, "value")).build()).build())
-        .build();
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NO_RECURSE_FIELD,
                                                                                                    RECURSIVE_STRUCT_FIELD, RECURSIVE_LIST_FIELD, RECURSIVE_MAP_FIELD));

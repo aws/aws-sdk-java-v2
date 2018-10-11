@@ -34,11 +34,12 @@ import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredJsonFa
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredPlainJsonFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentResolverFactory;
 import software.amazon.awssdk.awscore.internal.protocol.json.JsonContentTypeResolver;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.NewJsonResponseHandler;
+import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
@@ -94,10 +95,10 @@ public final class AwsJsonProtocolFactory {
                                                                             Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
         JsonProtocolUnmarshaller<T> unmarshaller = new JsonProtocolUnmarshaller<>(getSdkFactory().createObjectMapper());
         return new AwsJsonResponseHandler<>(
-            new NewJsonResponseHandler<>(unmarshaller,
-                                         pojoSupplier,
-                                         operationMetadata.isHasStreamingSuccessResponse(),
-                                         operationMetadata.isPayloadJson()));
+            new JsonResponseHandler<>(unmarshaller,
+                                      pojoSupplier,
+                                      operationMetadata.isHasStreamingSuccessResponse(),
+                                      operationMetadata.isPayloadJson()));
     }
 
     /**
@@ -170,7 +171,7 @@ public final class AwsJsonProtocolFactory {
         }
     }
 
-    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolRequestMarshaller<T> createProtocolMarshaller(
+    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
         OperationInfo operationInfo, T origRequest) {
         return JsonProtocolMarshallerBuilder.<T>standard()
             .jsonGenerator(createGenerator(operationInfo))

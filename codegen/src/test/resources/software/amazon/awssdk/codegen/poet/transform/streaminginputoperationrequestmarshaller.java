@@ -7,7 +7,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -33,7 +33,7 @@ public class StreamingInputOperationRequestMarshaller implements
     public Request<StreamingInputOperationRequest> marshall(StreamingInputOperationRequest streamingInputOperationRequest) {
         Validate.paramNotNull(streamingInputOperationRequest, "streamingInputOperationRequest");
         try {
-            ProtocolRequestMarshaller<StreamingInputOperationRequest> protocolMarshaller = protocolFactory
+            ProtocolMarshaller<Request<StreamingInputOperationRequest>> protocolMarshaller = protocolFactory
                 .createProtocolMarshaller(SDK_OPERATION_BINDING, streamingInputOperationRequest);
             return protocolMarshaller.marshall(streamingInputOperationRequest);
         } catch (Exception e) {
