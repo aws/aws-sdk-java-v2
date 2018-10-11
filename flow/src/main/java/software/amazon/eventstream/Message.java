@@ -66,7 +66,7 @@ public class Message {
      * @param buf Data of message (including prelude which will be skipped over).
      * @return Decoded message
      */
-    public static Message decode(Prelude prelude, ByteBuffer buf) {
+    static Message decode(Prelude prelude, ByteBuffer buf) {
         int totalLength = prelude.getTotalLength();
         validateMessageCrc(buf, totalLength);
         buf.position(buf.position() + Prelude.LENGTH_WITH_CRC);
@@ -135,16 +135,30 @@ public class Message {
         }
     }
 
-    private void encodeOrThrow(OutputStream os) throws IOException {
-        ByteArrayOutputStream headersAndPayload = new ByteArrayOutputStream();
-        {
-            DataOutputStream dos = new DataOutputStream(headersAndPayload);
-            for (Entry<String, HeaderValue> entry : headers.entrySet()) {
+    /**
+     * Encode the given {@code headers}, without any leading or trailing metadata such as checksums or lengths.
+     *
+     * @param headers a sequence of zero or more headers, which will be encoded in iteration order
+     * @return a byte array corresponding to the {@code headers} section of a {@code Message}
+     */
+    public static byte[] encodeHeaders(Iterable<Entry<String, HeaderValue>> headers) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(baos);
+            for (Entry<String, HeaderValue> entry : headers) {
                 Header.encode(entry, dos);
             }
-            dos.write(payload);
-            dos.flush();
+            dos.close();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    private void encodeOrThrow(OutputStream os) throws IOException {
+        ByteArrayOutputStream headersAndPayload = new ByteArrayOutputStream();
+        headersAndPayload.write(encodeHeaders(headers.entrySet()));
+        headersAndPayload.write(payload);
 
         int totalLength = Prelude.LENGTH_WITH_CRC + headersAndPayload.size() + 4;
 
