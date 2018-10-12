@@ -150,7 +150,7 @@ class ShapeModelSpec {
         } else if (m.isMap()) {
             traits.add(createMapTrait(m));
         }
-        if (m.getHttp().getIsPayload()) {
+        if (m.getHttp().getIsPayload() || m.isEventPayload()) {
             traits.add(createPayloadTrait());
         }
         if (m.isJsonValue()) {

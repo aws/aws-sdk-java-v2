@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.transform.MarshallerSpec;
 import software.amazon.awssdk.utils.ImmutableMap;
 
@@ -68,9 +69,12 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     private Stream<GeneratorTask> createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
         if (metadata.isJsonProtocol()) {
-            return ShapeType.Request == shapeModel.getShapeType() ?
-                   Stream.of(createPoetGeneratorTask(new MarshallerSpec(model, shapeModel))) :
-                   Stream.empty();
+
+            return ShapeType.Request == shapeModel.getShapeType() ||
+                   (ShapeType.Model == shapeModel.getShapeType() && shapeModel.isEvent()
+                    && EventStreamUtils.isRequestEvent(model, shapeModel))
+                   ? Stream.of(createPoetGeneratorTask(new MarshallerSpec(model, shapeModel)))
+                   : Stream.empty();
         }
 
         return Stream.of(

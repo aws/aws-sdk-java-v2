@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.internal.protocol.json.JsonProtocolMarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.NullAsEmptyBodyProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
@@ -28,7 +27,7 @@ import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
  * @param <T> Type of the original request object.
  */
 @SdkProtectedApi
-public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
+public class JsonProtocolMarshallerBuilder<T> {
 
     private StructuredJsonGenerator jsonGenerator;
     private String contentType;
@@ -36,8 +35,8 @@ public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
     private boolean sendExplicitNullForPayload;
     private T originalRequest;
 
-    public static <T extends SdkRequest> JsonProtocolMarshallerBuilder<T> standard() {
-        return new JsonProtocolMarshallerBuilder<T>();
+    public static <T> JsonProtocolMarshallerBuilder<T> standard() {
+        return new JsonProtocolMarshallerBuilder<>();
     }
 
     public JsonProtocolMarshallerBuilder<T> jsonGenerator(StructuredJsonGenerator jsonGenerator) {
