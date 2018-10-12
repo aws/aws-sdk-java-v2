@@ -13,21 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.internal.protocol.xml;
+package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.protocols.query.internal.unmarshall.XmlElement;
 
 /**
- * Simple StAX unmarshaller that iterates through the XML events but always
- * returns null.
+ * Interface to unmarshall response fields for Xml service
+ *
+ * @param <T> Type to unmarshall into
  */
 @SdkInternalApi
-public class VoidStaxUnmarshaller<T> implements Unmarshaller<T, StaxUnmarshallerContext> {
-    public T unmarshall(StaxUnmarshallerContext context) throws Exception {
-        while (!context.nextEvent().isEndDocument()) {
-        }
-        return null;
-    }
+public interface XmlUnmarshaller<T> {
+
+    T unmarshall(XmlUnmarshallerContext context, List<XmlElement> content, SdkField<T> field);
 }

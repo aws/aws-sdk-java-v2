@@ -158,4 +158,3 @@ public final class InputEvent implements SdkPojo, ToCopyableBuilder<InputEvent.B
         }
     }
 }
-

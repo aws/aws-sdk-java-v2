@@ -1996,4 +1996,3 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
     }
 }
-

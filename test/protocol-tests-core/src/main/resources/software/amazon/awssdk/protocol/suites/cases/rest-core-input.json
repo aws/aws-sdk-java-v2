@@ -56,7 +56,7 @@
             "x-amz-long": "9001",
             "x-amz-float": "1.234",
             "x-amz-double": "5.678",
-            "x-amz-timestamp": "2015-01-25T08:00:00.123Z"
+            "x-amz-timestamp": "Sun, 25 Jan 2015 08:00:00 GMT"
           }
         }
       }

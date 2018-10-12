@@ -42,7 +42,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
-import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
+import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -191,7 +191,7 @@ public class SyncClientClass implements ClassSpec {
         Protocol protocol = model.getMetadata().getProtocol();
         switch (protocol) {
             case QUERY:
-                return new QueryXmlProtocolSpec(poetExtensions);
+                return new QueryProtocolSpec(poetExtensions);
             case REST_XML:
                 return new XmlProtocolSpec(poetExtensions);
             case EC2:

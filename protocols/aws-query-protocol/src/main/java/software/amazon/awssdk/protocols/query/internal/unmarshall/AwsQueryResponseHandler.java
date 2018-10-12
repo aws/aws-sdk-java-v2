@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocols.query.internal.unmarshall;
 
-import static software.amazon.awssdk.awscore.DefaultAwsResponseMetadata.AWS_REQUEST_ID;
+import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,7 +24,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
-import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -42,7 +41,7 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public final class AwsQueryResponseHandler<T extends AwsResponse> implements HttpResponseHandler<T> {
 
-    private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
+    private static final Logger log = Logger.loggerFor(AwsQueryResponseHandler.class);
 
     private final QueryProtocolUnmarshaller<T> unmarshaller;
     private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;

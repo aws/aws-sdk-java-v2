@@ -153,7 +153,6 @@ public interface ExecutionInterceptor {
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      */
     default void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
-
     }
 
     /**
