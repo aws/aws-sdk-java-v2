@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import static software.amazon.awssdk.awscore.DefaultAwsResponseMetadata.AWS_REQUEST_ID;
+import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
 import java.util.HashMap;
 import java.util.Map;

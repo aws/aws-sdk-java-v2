@@ -33,6 +33,9 @@ import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolU
 @SdkProtectedApi
 public class AwsQueryProtocolFactory {
 
+    protected AwsQueryProtocolFactory(Builder builder) {
+    }
+
     public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
         OperationInfo operationInfo, T origRequest) {
         return QueryProtocolMarshaller.builder(origRequest)
@@ -42,5 +45,19 @@ public class AwsQueryProtocolFactory {
 
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
         return new AwsQueryResponseHandler<>(new QueryProtocolUnmarshaller<>(true), r -> pojoSupplier.get());
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder<T extends Builder> {
+
+        protected Builder() {
+        }
+
+        public AwsQueryProtocolFactory build() {
+            return new AwsQueryProtocolFactory(this);
+        }
     }
 }

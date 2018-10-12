@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 
-import freemarker.template.Template;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +53,6 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private GeneratorTask createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
-        Template template = freemarker.getModelUnmarshallerTemplate();
         ShapeType shapeType = shapeModel.getShapeType();
         Map<String, Object> dataModel = ImmutableMap.<String, Object>builder()
                 .put("fileHeader", model.getFileHeader())
@@ -65,16 +63,9 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
                 .build();
 
         switch (shapeType) {
-            case Response:
-            case Model: {
-                return new FreemarkerGeneratorTask(transformClassDir,
-                                         javaShapeName + "Unmarshaller",
-                                                   template,
-                                                   dataModel);
-            }
             case Exception: {
                 return new FreemarkerGeneratorTask(transformClassDir,
-                                         javaShapeName + "Unmarshaller",
+                                                   javaShapeName + "Unmarshaller",
                                                    freemarker.getExceptionUnmarshallerTemplate(),
                                                    dataModel);
             }
@@ -90,10 +81,6 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
             return false;
         }
         switch (shapeModel.getShapeType()) {
-            case Response:
-            case Model:
-                // The event stream shape is a container for event subtypes and isn't something that needs to ever be unmarshalled
-                return !shapeModel.isEventStream();
             case Exception:
                 // Generating Exception Unmarshallers is not required for the JSON protocol
                 return !metadata.isJsonProtocol();

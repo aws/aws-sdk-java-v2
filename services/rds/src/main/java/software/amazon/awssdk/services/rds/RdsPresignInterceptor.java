@@ -156,5 +156,3 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
                 .getServiceEndpoint();
     }
 }
-
-

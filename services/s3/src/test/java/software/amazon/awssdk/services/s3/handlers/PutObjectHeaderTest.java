@@ -23,8 +23,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
@@ -66,9 +68,7 @@ public class PutObjectHeaderTest {
     @Test
     public void putObjectBytes_headerShouldContainContentType() {
         stubFor(any(urlMatching(".*"))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")));
+                    .willReturn(response()));
         s3Client.putObject(PutObjectRequest.builder().bucket("test").key("test").build(), RequestBody.fromBytes("Hello World".getBytes()));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
     }
@@ -77,9 +77,7 @@ public class PutObjectHeaderTest {
     public void putObjectFile_headerShouldContainContentType() throws IOException {
         File file = new RandomTempFile("test.html", 10);
         stubFor(any(urlMatching(".*"))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")));
+                    .willReturn(response()));
         s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("text/html")));
     }
@@ -88,9 +86,7 @@ public class PutObjectHeaderTest {
     public void putObjectUnknownFileExtension_contentTypeDefaultToBeStream() throws IOException {
         File file = new RandomTempFile("test.unknown", 10);
         stubFor(any(urlMatching(".*"))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")));
+                    .willReturn(response()));
         s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
     }
@@ -98,9 +94,7 @@ public class PutObjectHeaderTest {
     @Test
     public void putObjectWithContentTypeHeader_shouldNotOverrideContentTypeInRequest() throws IOException {
         stubFor(any(urlMatching(".*"))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")));
+                    .willReturn(response()));
         String contentType = "something";
         putObjectRequest = putObjectRequest.toBuilder().contentType(contentType).build();
         s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
@@ -110,13 +104,15 @@ public class PutObjectHeaderTest {
     @Test
     public void putObjectWithContentTypeHeader_shouldNotOverrideContentTypeInRawConfig() throws IOException {
         stubFor(any(urlMatching(".*"))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")));
+                    .willReturn(response()));
         String contentType = "hello world";
 
         putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().overrideConfiguration(b -> b.putHeader(CONTENT_TYPE, contentType)).build();
         s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
+    }
+
+    private ResponseDefinitionBuilder response() {
+        return aResponse().withStatus(200).withHeader(CONTENT_LENGTH, "0").withBody("");
     }
 }

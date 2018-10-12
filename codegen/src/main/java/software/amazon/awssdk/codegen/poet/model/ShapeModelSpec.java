@@ -201,8 +201,10 @@ class ShapeModelSpec {
                         .build();
     }
 
+    // Rest xml uses unmarshall locationName to properly unmarshall flattened lists
     private String unmarshallLocation(MemberModel m) {
-        return model.getMetadata().getProtocol() == Protocol.EC2 ?
+        return model.getMetadata().getProtocol() == Protocol.EC2 ||
+               model.getMetadata().getProtocol() == Protocol.REST_XML ?
                String.format(".unmarshallLocationName(\"%s\")%n", m.getHttp().getUnmarshallLocationName()) : "";
     }
 

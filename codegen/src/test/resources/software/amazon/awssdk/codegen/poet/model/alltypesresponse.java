@@ -1979,4 +1979,3 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
     }
 }
-

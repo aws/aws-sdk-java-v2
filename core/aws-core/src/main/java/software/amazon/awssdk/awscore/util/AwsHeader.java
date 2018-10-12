@@ -13,26 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.protocol.xml;
+package software.amazon.awssdk.awscore.util;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 
 /**
- * Contains information needed to create a {@link StaxResponseHandler}.
+ * Constants for commonly used Aws headers.
  */
 @SdkProtectedApi
-public final class StaxOperationMetadata {
+public final class AwsHeader {
 
-    private boolean hasStreamingSuccessResponse;
+    public static final String AWS_REQUEST_ID = "AWS_REQUEST_ID";
 
-    public StaxOperationMetadata withHasStreamingSuccessResponse(
-        boolean hasStreamingSuccessResponse) {
-        this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
-        return this;
-    }
-
-    public boolean isHasStreamingSuccessResponse() {
-        return hasStreamingSuccessResponse;
+    private AwsHeader() {
     }
 }

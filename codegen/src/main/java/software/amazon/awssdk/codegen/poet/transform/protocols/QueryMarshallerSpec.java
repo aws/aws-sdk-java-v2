@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 public class QueryMarshallerSpec implements MarshallerProtocolSpec {
 
-    private final ShapeModel shapeModel;
+    protected final ShapeModel shapeModel;
     private final Metadata metadata;
 
     public QueryMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
@@ -46,7 +46,11 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
 
     @Override
     public ParameterSpec protocolFactoryParameter() {
-        return ParameterSpec.builder(AwsQueryProtocolFactory.class, "protocolFactory").build();
+        return ParameterSpec.builder(protocolFactoryClass(), "protocolFactory").build();
+    }
+
+    protected Class<?> protocolFactoryClass() {
+        return AwsQueryProtocolFactory.class;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
 
     @Override
     public FieldSpec protocolFactory() {
-        return FieldSpec.builder(AwsQueryProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(protocolFactoryClass(), "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -86,12 +90,12 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
                                       .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
                                       .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                                             shapeModel.getExplicitEventPayloadMember() != null)
-                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
+                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
+                                      .add(".serviceName($S)", metadata.getServiceName());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
             initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget())
-                                          .add(".apiVersion($S)", metadata.getApiVersion())
-                                          .add(".serviceName($S)", metadata.getServiceName());
+                                          .add(".apiVersion($S)", metadata.getApiVersion());
         }
 
         if (shapeModel.isHasStreamingMember()) {
@@ -108,4 +112,6 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         fields.add(protocolFactory());
         return fields;
     }
+
+
 }

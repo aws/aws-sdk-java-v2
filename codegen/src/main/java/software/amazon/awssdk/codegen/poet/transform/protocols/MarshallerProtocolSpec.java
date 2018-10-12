@@ -36,6 +36,10 @@ public interface MarshallerProtocolSpec {
         return new ArrayList<>();
     }
 
+    default List<FieldSpec> additionalFields() {
+        return new ArrayList<>();
+    }
+
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }

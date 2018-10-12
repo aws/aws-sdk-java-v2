@@ -42,8 +42,7 @@ public class Route53InterceptorTest {
 
     private static final String id = "delegationSetId";
 
-    private static final String delegationSetId = "/" + delegationPrefix + "/"
-            + id;
+    private static final String delegationSetId = "/" + delegationPrefix + "/" + id;
 
     /**
      * Tests if the request handler strips the delegation set prefixes. Asserts

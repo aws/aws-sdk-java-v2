@@ -55,7 +55,8 @@ public class PresignRequestHandlerTest {
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
     private static RdsPresignInterceptor<CopyDbSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
-    private final CopyDbSnapshotRequestMarshaller marshaller = new CopyDbSnapshotRequestMarshaller(new AwsQueryProtocolFactory());
+    private final CopyDbSnapshotRequestMarshaller marshaller =
+        new CopyDbSnapshotRequestMarshaller(AwsQueryProtocolFactory.builder().build());
 
     @Test
     public void testSetsPresignedUrl() throws URISyntaxException {
