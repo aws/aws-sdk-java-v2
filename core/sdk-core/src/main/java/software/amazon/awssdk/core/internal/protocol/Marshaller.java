@@ -13,16 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol;
+package software.amazon.awssdk.core.internal.protocol;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Interface used by generated marshallers to marshall a Java POJO.
+ * Marker interface for marshallers.
+ *
+ * @param <T> Type being marshalled.
  */
-@SdkProtectedApi
-public interface ProtocolMarshaller<MarshalledT> {
-
-    MarshalledT marshall(SdkPojo pojo);
-
+@SdkInternalApi
+public interface Marshaller<T> {
 }

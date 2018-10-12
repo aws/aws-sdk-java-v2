@@ -28,6 +28,7 @@ public final class OperationInfo {
     private final String requestUri;
     private final HttpMethodName httpMethodName;
     private final String operationIdentifier;
+    private final String apiVersion;
     private final String serviceName;
     private final boolean hasExplicitPayloadMember;
     private final boolean hasPayloadMembers;
@@ -37,6 +38,7 @@ public final class OperationInfo {
         this.requestUri = builder.requestUri;
         this.httpMethodName = builder.httpMethodName;
         this.operationIdentifier = builder.operationIdentifier;
+        this.apiVersion = builder.apiVersion;
         this.serviceName = builder.serviceName;
         this.hasExplicitPayloadMember = builder.hasExplicitPayloadMember;
         this.hasPayloadMembers = builder.hasPayloadMembers;
@@ -64,6 +66,13 @@ public final class OperationInfo {
      */
     public String operationIdentifier() {
         return operationIdentifier;
+    }
+
+    /**
+     * @return Version of the service's API. For Query protocol this is sent as a 'Version' query parameter.
+     */
+    public String apiVersion() {
+        return apiVersion;
     }
 
     /**
@@ -112,6 +121,7 @@ public final class OperationInfo {
         private String requestUri;
         private HttpMethodName httpMethodName;
         private String operationIdentifier;
+        private String apiVersion;
         private String serviceName;
         private boolean hasExplicitPayloadMember;
         private boolean hasPayloadMembers;
@@ -132,6 +142,11 @@ public final class OperationInfo {
 
         public Builder operationIdentifier(String operationIdentifier) {
             this.operationIdentifier = operationIdentifier;
+            return this;
+        }
+
+        public Builder apiVersion(String apiVersion) {
+            this.apiVersion = apiVersion;
             return this;
         }
 

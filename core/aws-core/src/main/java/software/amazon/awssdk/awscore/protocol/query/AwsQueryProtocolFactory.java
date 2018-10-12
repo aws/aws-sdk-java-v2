@@ -13,28 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol;
+package software.amazon.awssdk.awscore.protocol.query;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.internal.protocol.query.QueryProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.OperationInfo;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 
 /**
- * Interface used by generated marshallers to transform a Java POJO in a {@link Request} object which represents an HTTP request.
- *
- * <p><b>Example Usage:</b></p>
- * <pre>
- * {@code
- * ProtocolRequestMarshaller<FooRequest> = createProtocolMarshaller(...);
- * protocolMarshaller.startMarshalling();
- * protocolMarshaller.marshall(obj, marshallingInfo);
- * Request<FooRequest> marshalledRequest = protocolMarshaller.finishMarshalling();
- * }
- * </pre>
- *
- * @param <OrigRequestT> Type of the original request object.
+ * Protocol factory for the AWS/Query protocol.
  */
 @SdkProtectedApi
-// todo collapse
-public interface ProtocolRequestMarshaller<OrigRequestT> extends ProtocolMarshaller<Request<OrigRequestT>> {
+public final class AwsQueryProtocolFactory {
 
+    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
+        OperationInfo operationInfo, T origRequest) {
+        return new QueryProtocolMarshaller<>(operationInfo, origRequest);
+    }
 }

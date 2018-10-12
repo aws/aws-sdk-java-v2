@@ -13,15 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
+package software.amazon.awssdk.core.internal.protocol;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.protocol.json.StringToValueConverter;
 import software.amazon.awssdk.core.internal.util.AwsDateUtils;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.SdkField;
@@ -29,26 +26,19 @@ import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
 import software.amazon.awssdk.utils.DateUtils;
 
 /**
- * Unmarshaller for timestamp members. Takes into account the {@link TimestampFormatTrait}.
+ * Implementation of {@link StringToValueConverter.StringToValue} that converts a string to an {@link Instant} type.
+ * Respects the {@link TimestampFormatTrait} if present.
  */
 @SdkInternalApi
-public final class TimestampUnmarshaller implements StringToValueConverter.StringToValue<Instant> {
-
-    private static final TimestampUnmarshaller INSTANCE = new TimestampUnmarshaller();
+public final class StringToInstant implements StringToValueConverter.StringToValue<Instant> {
 
     /**
      * Default formats for the given location.
      */
-    private static final Map<MarshallLocation, TimestampFormatTrait.Format> DEFAULT_FORMATS;
+    private final Map<MarshallLocation, TimestampFormatTrait.Format> defaultFormats;
 
-    static {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
-        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
-        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
-        DEFAULT_FORMATS = Collections.unmodifiableMap(formats);
-    }
-
-    private TimestampUnmarshaller() {
+    private StringToInstant(Map<MarshallLocation, TimestampFormatTrait.Format> defaultFormats) {
+        this.defaultFormats = defaultFormats;
     }
 
     @Override
@@ -72,7 +62,7 @@ public final class TimestampUnmarshaller implements StringToValueConverter.Strin
     private TimestampFormatTrait.Format resolveTimestampFormat(SdkField<Instant> field) {
         TimestampFormatTrait trait = field.getTrait(TimestampFormatTrait.class);
         if (trait == null) {
-            TimestampFormatTrait.Format format = DEFAULT_FORMATS.get(field.location());
+            TimestampFormatTrait.Format format = defaultFormats.get(field.location());
             if (format == null) {
                 throw SdkClientException.create(
                     String.format("Timestamps are not supported for this location (%s)", field.location()));
@@ -83,7 +73,11 @@ public final class TimestampUnmarshaller implements StringToValueConverter.Strin
         }
     }
 
-    public static TimestampUnmarshaller getInstance() {
-        return INSTANCE;
+    /**
+     * @param defaultFormats Default formats for each {@link MarshallLocation} as defined by the protocol.
+     * @return New {@link StringToValueConverter.StringToValue} for {@link Instant} types.
+     */
+    public static StringToInstant create(Map<MarshallLocation, TimestampFormatTrait.Format> defaultFormats) {
+        return new StringToInstant(defaultFormats);
     }
 }

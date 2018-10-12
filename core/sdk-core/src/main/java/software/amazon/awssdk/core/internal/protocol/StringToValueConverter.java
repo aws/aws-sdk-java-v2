@@ -13,12 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.json;
+package software.amazon.awssdk.core.internal.protocol;
 
-import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.internal.protocol.json.unmarshall.TimestampUnmarshaller;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -82,8 +80,6 @@ public final class StringToValueConverter {
     public static final SimpleStringToValue<Double> TO_DOUBLE = Double::parseDouble;
 
     public static final SimpleStringToValue<Boolean> TO_BOOLEAN = Boolean::parseBoolean;
-
-    public static final StringToValue<Instant> TO_INSTANT = TimestampUnmarshaller.getInstance();
 
     public static final SimpleStringToValue<SdkBytes> TO_SDK_BYTES = StringToValueConverter::toSdkBytes;
 

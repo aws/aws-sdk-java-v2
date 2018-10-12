@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.rds;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.services.rds.model.CreateDbInstanceReadReplicaRequest;
 import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplicaRequestMarshaller;
@@ -26,6 +27,10 @@ import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplica
 @SdkProtectedApi
 public final class CreateDbInstanceReadReplicaPresignInterceptor extends
                                                                  RdsPresignInterceptor<CreateDbInstanceReadReplicaRequest> {
+
+    public static final CreateDbInstanceReadReplicaRequestMarshaller MARSHALLER =
+        new CreateDbInstanceReadReplicaRequestMarshaller(new AwsQueryProtocolFactory());
+
     public CreateDbInstanceReadReplicaPresignInterceptor() {
         super(CreateDbInstanceReadReplicaRequest.class);
     }
@@ -40,7 +45,7 @@ public final class CreateDbInstanceReadReplicaPresignInterceptor extends
 
             @Override
             public Request<?> marshall() {
-                return new CreateDbInstanceReadReplicaRequestMarshaller().marshall(originalRequest);
+                return MARSHALLER.marshall(originalRequest);
             }
         };
     }

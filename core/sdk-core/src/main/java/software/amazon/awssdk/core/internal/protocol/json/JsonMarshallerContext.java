@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**
@@ -30,7 +29,7 @@ public final class JsonMarshallerContext {
 
     private final StructuredJsonGenerator jsonGenerator;
     private final JsonProtocolMarshaller protocolHandler;
-    private final MarshallerRegistry marshallerRegistry;
+    private final JsonMarshallerRegistry marshallerRegistry;
     private final Request<?> request;
 
     private JsonMarshallerContext(Builder builder) {
@@ -59,7 +58,7 @@ public final class JsonMarshallerContext {
      * @return Marshaller registry to obtain marshaller implementations for nested types (i.e. lists of objects or maps of string
      *     to string).
      */
-    public MarshallerRegistry marshallerRegistry() {
+    public JsonMarshallerRegistry marshallerRegistry() {
         return marshallerRegistry;
     }
 
@@ -87,8 +86,8 @@ public final class JsonMarshallerContext {
      * @param val              Value to marshall.
      * @param paramName        Name of parameter to marshall.
      */
-    public <T> void marshall(MarshallLocation marshallLocation, T val, String paramName, SdkField<T> sdkField) {
-        marshallerRegistry().getMarshaller(marshallLocation, val).marshall(val, this, paramName, sdkField);
+    public <T> void marshall(MarshallLocation marshallLocation, T val, String paramName) {
+        marshallerRegistry().getMarshaller(marshallLocation, val).marshall(val, this, paramName, null);
     }
 
     /**
@@ -105,7 +104,7 @@ public final class JsonMarshallerContext {
 
         private StructuredJsonGenerator jsonGenerator;
         private JsonProtocolMarshaller protocolHandler;
-        private MarshallerRegistry marshallerRegistry;
+        private JsonMarshallerRegistry marshallerRegistry;
         private Request<?> request;
 
         private Builder() {
@@ -121,7 +120,7 @@ public final class JsonMarshallerContext {
             return this;
         }
 
-        public Builder marshallerRegistry(MarshallerRegistry marshallerRegistry) {
+        public Builder marshallerRegistry(JsonMarshallerRegistry marshallerRegistry) {
             this.marshallerRegistry = marshallerRegistry;
             return this;
         }

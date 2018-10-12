@@ -13,16 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol;
+package software.amazon.awssdk.core.internal.protocol.query;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.internal.protocol.Marshaller;
+import software.amazon.awssdk.core.protocol.SdkField;
 
 /**
- * Interface used by generated marshallers to marshall a Java POJO.
+ * Interface for marshallers for AWS/Query protocol.
+ *
+ * @param <T> Type being marshalled.
  */
-@SdkProtectedApi
-public interface ProtocolMarshaller<MarshalledT> {
+@SdkInternalApi
+public interface QueryMarshaller<T> extends Marshaller<T> {
 
-    MarshalledT marshall(SdkPojo pojo);
-
+    void marshall(Request<?> request, String path, T val, SdkField<T> sdkField);
 }

@@ -227,6 +227,7 @@ class ShapeModelSpec {
                              + ".keyLocationName($S)\n"
                              + ".valueLocationName($S)\n"
                              + ".valueFieldInfo($L)\n"
+                             + isFlattened(m)
                              + ".build()", ClassName.get(MapTrait.class),
                              m.getMapModel().getKeyLocationName(),
                              m.getMapModel().getValueLocationName(),
@@ -239,10 +240,15 @@ class ShapeModelSpec {
                         .add("$T.builder()\n"
                              + ".memberLocationName($S)\n"
                              + ".memberFieldInfo($L)\n"
+                             + isFlattened(m)
                              + ".build()", ClassName.get(ListTrait.class),
                              m.getListModel().getMemberLocationName(),
                              containerSdkFieldInitializer(m.getListModel().getListMemberModel()))
                         .build();
+    }
+
+    private String isFlattened(MemberModel m) {
+        return m.getHttp().isFlattened() ? ".isFlattened(true)\n" : "";
     }
 
     private CodeBlock constructor(MemberModel m) {

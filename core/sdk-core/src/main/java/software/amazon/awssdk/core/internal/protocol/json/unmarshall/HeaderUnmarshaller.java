@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.protocol.json.StringToValueConverter;
+import software.amazon.awssdk.core.internal.protocol.StringToValueConverter;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -36,7 +36,8 @@ final class HeaderUnmarshaller {
     public static final JsonUnmarshaller<Long> LONG = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_LONG);
     public static final JsonUnmarshaller<Double> DOUBLE = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_DOUBLE);
     public static final JsonUnmarshaller<Boolean> BOOLEAN = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_BOOLEAN);
-    public static final JsonUnmarshaller<Instant> INSTANT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_INSTANT);
+    public static final JsonUnmarshaller<Instant> INSTANT =
+        new SimpleHeaderUnmarshaller<>(JsonProtocolUnmarshaller.INSTANT_STRING_TO_VALUE);
     public static final JsonUnmarshaller<Float> FLOAT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT);
 
     private HeaderUnmarshaller() {

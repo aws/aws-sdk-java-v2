@@ -18,13 +18,16 @@ package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.internal.protocol.json.StringToValueConverter;
+import software.amazon.awssdk.core.internal.protocol.StringToInstant;
+import software.amazon.awssdk.core.internal.protocol.StringToValueConverter;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -33,6 +36,7 @@ import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.traits.ListTrait;
 import software.amazon.awssdk.core.protocol.traits.MapTrait;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
+import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -44,33 +48,47 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkProtectedApi
 public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
-    private static final UnmarshallerRegistry REGISTRY = UnmarshallerRegistry
-        .builder()
-        .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
-        .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)
-        .headerUnmarshaller(MarshallingType.INTEGER, HeaderUnmarshaller.INTEGER)
-        .headerUnmarshaller(MarshallingType.LONG, HeaderUnmarshaller.LONG)
-        .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
-        .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
-        .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.INSTANT)
-        .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
-        .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
-        .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))
-        .payloadUnmarshaller(MarshallingType.LONG, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_LONG))
-        .payloadUnmarshaller(MarshallingType.DOUBLE, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
-        .payloadUnmarshaller(MarshallingType.BOOLEAN, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
-        .payloadUnmarshaller(MarshallingType.FLOAT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_FLOAT))
-        .payloadUnmarshaller(MarshallingType.SDK_BYTES, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_SDK_BYTES))
-        .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INSTANT))
-        .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
-        .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
-        .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
-        .build();
+    public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
+        = StringToInstant.create(getDefaultTimestampFormats());
+
+    private static final UnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
 
     private final ObjectMapper mapper;
 
     public JsonProtocolUnmarshaller(ObjectMapper objectMapper) {
         mapper = objectMapper;
+    }
+
+    private static UnmarshallerRegistry createUnmarshallerRegistry() {
+        return UnmarshallerRegistry
+            .builder()
+            .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
+            .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)
+            .headerUnmarshaller(MarshallingType.INTEGER, HeaderUnmarshaller.INTEGER)
+            .headerUnmarshaller(MarshallingType.LONG, HeaderUnmarshaller.LONG)
+            .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
+            .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
+            .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.INSTANT)
+            .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
+            .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
+            .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))
+            .payloadUnmarshaller(MarshallingType.LONG, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_LONG))
+            .payloadUnmarshaller(MarshallingType.DOUBLE, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
+            .payloadUnmarshaller(MarshallingType.BOOLEAN, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
+            .payloadUnmarshaller(MarshallingType.FLOAT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_FLOAT))
+            .payloadUnmarshaller(MarshallingType.SDK_BYTES, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_SDK_BYTES))
+            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeJsonUnmarshaller<>(INSTANT_STRING_TO_VALUE))
+            .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
+            .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
+            .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
+            .build();
+    }
+
+    private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
+        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
+        return Collections.unmodifiableMap(formats);
     }
 
     private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<SdkPojo> f) {
@@ -81,7 +99,9 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         }
     }
 
-    private static Map unmarshallMap(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<Map> field) {
+    private static Map<String, ?> unmarshallMap(JsonUnmarshallerContext context,
+                                                JsonNode jsonContent,
+                                                SdkField<Map<String, ?>> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
@@ -94,7 +114,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         return map;
     }
 
-    private static List unmarshallList(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<List> field) {
+    private static List<?> unmarshallList(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<List<?>> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }

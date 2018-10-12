@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.protocol.ValueToStringConverter;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.SdkField;
 
@@ -26,7 +27,7 @@ import software.amazon.awssdk.core.protocol.SdkField;
 public final class QueryParamMarshaller {
 
     public static final JsonMarshaller<String> STRING = new SimpleQueryParamMarshaller<>(
-            ValueToStringConverter.FROM_STRING);
+        ValueToStringConverter.FROM_STRING);
 
     public static final JsonMarshaller<Integer> INTEGER = new SimpleQueryParamMarshaller<>(
             ValueToStringConverter.FROM_INTEGER);
@@ -42,17 +43,18 @@ public final class QueryParamMarshaller {
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleQueryParamMarshaller<>(
             ValueToStringConverter.FROM_BOOLEAN);
 
-    public static final JsonMarshaller<Instant> INSTANT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_INSTANT);
+    public static final JsonMarshaller<Instant> INSTANT
+        = new SimpleQueryParamMarshaller<>(JsonProtocolMarshaller.INSTANT_VALUE_TO_STRING);
 
-    public static final JsonMarshaller<List> LIST = (list, context, paramName, sdkField) -> {
+    public static final JsonMarshaller<List<?>> LIST = (list, context, paramName, sdkField) -> {
         for (Object listVal : list) {
-            context.marshall(MarshallLocation.QUERY_PARAM, listVal, paramName, null);
+            context.marshall(MarshallLocation.QUERY_PARAM, listVal, paramName);
         }
     };
 
-    public static final JsonMarshaller<Map> MAP = (val, context, paramName, sdkField) -> {
-        for (Map.Entry<String, ?> mapEntry : ((Map<String, ?>) val).entrySet()) {
-            context.marshall(MarshallLocation.QUERY_PARAM, mapEntry.getValue(), mapEntry.getKey(), null);
+    public static final JsonMarshaller<Map<String, ?>> MAP = (val, context, paramName, sdkField) -> {
+        for (Map.Entry<String, ?> mapEntry : val.entrySet()) {
+            context.marshall(MarshallLocation.QUERY_PARAM, mapEntry.getValue(), mapEntry.getKey());
         }
     };
 

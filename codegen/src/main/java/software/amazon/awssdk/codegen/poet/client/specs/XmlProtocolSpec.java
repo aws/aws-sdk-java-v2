@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
-import static java.util.Collections.singletonList;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -32,7 +30,6 @@ import org.w3c.dom.Node;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
-import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -46,7 +43,7 @@ import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class QueryXmlProtocolSpec implements ProtocolSpec {
+public class XmlProtocolSpec implements ProtocolSpec {
 
     private final PoetExtensions poetExtensions;
     private final TypeName unmarshallerType = ParameterizedTypeName.get(Unmarshaller.class,
@@ -55,27 +52,22 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     private final TypeName listOfUnmarshallersType = ParameterizedTypeName.get(ClassName.get("java.util", "List"),
                                                                                unmarshallerType);
 
-    public QueryXmlProtocolSpec(PoetExtensions poetExtensions) {
+    public XmlProtocolSpec(PoetExtensions poetExtensions) {
         this.poetExtensions = poetExtensions;
     }
 
     @Override
     public FieldSpec protocolFactory(IntermediateModel model) {
-        return FieldSpec.builder(AwsQueryProtocolFactory.class, "protocolFactory")
-                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
-    }
 
-    @Override
-    public List<FieldSpec> additionalFields() {
-        return singletonList(FieldSpec.builder(listOfUnmarshallersType, "exceptionUnmarshallers")
-                                      .addModifiers(Modifier.PRIVATE)
-                                      .build());
+        return FieldSpec.builder(listOfUnmarshallersType, "exceptionUnmarshallers")
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                        .build();
     }
 
     @Override
     public MethodSpec initProtocolFactory(IntermediateModel model) {
         MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("init")
-                                                  .returns(AwsQueryProtocolFactory.class)
+                                                  .returns(listOfUnmarshallersType)
                                                   .addModifiers(Modifier.PRIVATE);
 
         methodSpec.addStatement("$T<$T> unmarshallers = new $T<>()", List.class, unmarshallerType, ArrayList.class);
@@ -84,8 +76,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                                    getErrorUnmarshallerClass(model),
                                                    poetExtensions.getModelClass(model.getSdkModeledExceptionBaseClassName()))
                                     .build());
-        methodSpec.addStatement("this.exceptionUnmarshallers = unmarshallers");
-        methodSpec.addStatement("return new $T()", AwsQueryProtocolFactory.class);
+        methodSpec.addStatement("return $N", "unmarshallers");
 
         return methodSpec.build();
     }
@@ -129,24 +120,24 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
         CodeBlock.Builder codeBlock = CodeBlock
-                .builder()
-                .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
-                     ".withResponseHandler($N)" +
-                     ".withErrorResponseHandler($N)" +
-                     ".withInput($L)",
-                     ClientExecutionParams.class,
-                     requestType,
-                     responseType,
-                     "responseHandler",
-                     "errorResponseHandler",
-                     opModel.getInput().getVariableName());
+            .builder()
+            .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
+                 ".withResponseHandler($N)" +
+                 ".withErrorResponseHandler($N)" +
+                 ".withInput($L)",
+                 ClientExecutionParams.class,
+                 requestType,
+                 responseType,
+                 "responseHandler",
+                 "errorResponseHandler",
+                 opModel.getInput().getVariableName());
         if (opModel.hasStreamingInput()) {
-            return codeBlock.add(".withMarshaller(new $T(new $T(protocolFactory), requestBody)));",
+            return codeBlock.add(".withMarshaller(new $T(new $T(), requestBody)));",
                                  ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
                                  marshaller)
                             .build();
         }
-        return codeBlock.add(".withMarshaller(new $T(protocolFactory)) $L);", marshaller,
+        return codeBlock.add(".withMarshaller(new $T()) $L);", marshaller,
                              opModel.hasStreamingOutput() ? ", responseTransformer" : "").build();
     }
 
@@ -157,9 +148,9 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
-                : "";
+                                                              : "";
         return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
-                                       ".withMarshaller(new $T(protocolFactory))" +
+                                       ".withMarshaller(new $T())" +
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
                                        asyncRequestBody +
@@ -194,3 +185,4 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         }).collect(Collectors.toList());
     }
 }
+

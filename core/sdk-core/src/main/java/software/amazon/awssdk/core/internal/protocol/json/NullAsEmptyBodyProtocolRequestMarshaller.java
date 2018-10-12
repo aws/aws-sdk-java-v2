@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.internal.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 
 /**
@@ -27,11 +27,11 @@ import software.amazon.awssdk.core.protocol.SdkPojo;
  * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class NullAsEmptyBodyProtocolRequestMarshaller<OrigRequestT> implements ProtocolRequestMarshaller<OrigRequestT> {
+public class NullAsEmptyBodyProtocolRequestMarshaller<OrigRequestT> implements ProtocolMarshaller<Request<OrigRequestT>> {
 
-    private final ProtocolRequestMarshaller<OrigRequestT> delegate;
+    private final ProtocolMarshaller<Request<OrigRequestT>> delegate;
 
-    public NullAsEmptyBodyProtocolRequestMarshaller(ProtocolRequestMarshaller<OrigRequestT> delegate) {
+    public NullAsEmptyBodyProtocolRequestMarshaller(ProtocolMarshaller<Request<OrigRequestT>> delegate) {
         this.delegate = delegate;
     }
 

@@ -142,9 +142,9 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
-    public static final JsonMarshaller<List> LIST = new BaseJsonMarshaller<List>() {
+    public static final JsonMarshaller<List<?>> LIST = new BaseJsonMarshaller<List<?>>() {
         @Override
-        public void marshall(List list, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+        public void marshall(List<?> list, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
             jsonGenerator.writeStartArray();
             for (Object listValue : list) {
                 context.marshall(MarshallLocation.PAYLOAD, listValue);
@@ -162,11 +162,11 @@ public final class SimpleTypeJsonMarshaller {
     /**
      * Marshalls a Map as a JSON object where each key becomes a field.
      */
-    public static final JsonMarshaller<Map> MAP = new BaseJsonMarshaller<Map>() {
+    public static final JsonMarshaller<Map<String, ?>> MAP = new BaseJsonMarshaller<Map<String, ?>>() {
         @Override
-        public void marshall(Map map, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+        public void marshall(Map<String, ?> map, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
             jsonGenerator.writeStartObject();
-            for (Map.Entry<String, ?> entry : ((Map<String, ?>) map).entrySet()) {
+            for (Map.Entry<String, ?> entry : map.entrySet()) {
                 if (entry.getValue() != null) {
                     final Object value = entry.getValue();
                     jsonGenerator.writeFieldName(entry.getKey());
@@ -177,7 +177,7 @@ public final class SimpleTypeJsonMarshaller {
         }
 
         @Override
-        protected boolean shouldEmit(Map map) {
+        protected boolean shouldEmit(Map<String, ?> map) {
             return !map.isEmpty() || !(map instanceof SdkAutoConstructMap);
         }
     };

@@ -21,6 +21,7 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
+import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -124,7 +125,9 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                                                                      .destinationRegion(destinationRegion)
                                                                      .build();
 
-        return SdkHttpFullRequestAdapter.toHttpFullRequest(new CopySnapshotRequestMarshaller().marshall(copySnapshotRequest));
+        // TODO use EC2 protocol factory
+        CopySnapshotRequestMarshaller marshaller = new CopySnapshotRequestMarshaller(new AwsQueryProtocolFactory());
+        return SdkHttpFullRequestAdapter.toHttpFullRequest(marshaller.marshall(copySnapshotRequest));
     }
 
     private URI createEndpoint(String regionName, String serviceName) {

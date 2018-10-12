@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.protocol.Marshaller;
 import software.amazon.awssdk.core.protocol.SdkField;
 
 /**
@@ -24,7 +25,7 @@ import software.amazon.awssdk.core.protocol.SdkField;
  * @param <T> Type to marshall.
  */
 @SdkInternalApi
-public interface JsonMarshaller<T> {
+public interface JsonMarshaller<T> extends Marshaller<T> {
 
     JsonMarshaller<Void> NULL = new JsonMarshaller<Void>() {
         @Override

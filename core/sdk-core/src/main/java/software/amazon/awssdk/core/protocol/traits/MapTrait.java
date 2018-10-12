@@ -27,11 +27,13 @@ public final class MapTrait implements Trait {
     private final String keyLocationName;
     private final String valueLocationName;
     private final SdkField valueFieldInfo;
+    private final boolean isFlattened;
 
     private MapTrait(Builder builder) {
         this.keyLocationName = builder.keyLocationName;
         this.valueLocationName = builder.valueLocationName;
         this.valueFieldInfo = builder.valueFieldInfo;
+        this.isFlattened = builder.isFlattened;
     }
 
     /**
@@ -55,6 +57,13 @@ public final class MapTrait implements Trait {
         return valueFieldInfo;
     }
 
+    /**
+     * @return Whether the map should be marshalled/unmarshalled as a 'flattened' map. This only applies to Query/XML protocols.
+     */
+    public boolean isFlattened() {
+        return isFlattened;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -64,6 +73,7 @@ public final class MapTrait implements Trait {
         private String keyLocationName;
         private String valueLocationName;
         private SdkField valueFieldInfo;
+        private boolean isFlattened;
 
         private Builder() {
         }
@@ -80,6 +90,11 @@ public final class MapTrait implements Trait {
 
         public Builder valueFieldInfo(SdkField valueFieldInfo) {
             this.valueFieldInfo = valueFieldInfo;
+            return this;
+        }
+
+        public Builder isFlattened(boolean isFlattened) {
+            this.isFlattened = isFlattened;
             return this;
         }
 

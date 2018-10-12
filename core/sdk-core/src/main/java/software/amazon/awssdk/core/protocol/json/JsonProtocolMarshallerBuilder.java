@@ -16,14 +16,15 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.internal.protocol.json.JsonProtocolMarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.NullAsEmptyBodyProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 
 /**
- * Builder to create an appropriate implementation of {@link ProtocolRequestMarshaller} for JSON based services.
+ * Builder to create an appropriate implementation of {@link ProtocolMarshaller} for JSON based services.
  *
  * @param <T> Type of the original request object.
  */
@@ -69,8 +70,8 @@ public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
         return this;
     }
 
-    public ProtocolRequestMarshaller<T> build() {
-        final ProtocolRequestMarshaller<T> protocolMarshaller = new JsonProtocolMarshaller<T>(jsonGenerator,
+    public ProtocolMarshaller<Request<T>> build() {
+        final ProtocolMarshaller<Request<T>> protocolMarshaller = new JsonProtocolMarshaller<T>(jsonGenerator,
                                                                                               contentType,
                                                                                               operationInfo,
                                                                                               originalRequest);

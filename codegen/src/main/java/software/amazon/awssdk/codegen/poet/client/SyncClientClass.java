@@ -42,6 +42,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
+import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -76,6 +77,8 @@ public class SyncClientClass implements ClassSpec {
                                         .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
                                         .addMethod(constructor())
                                         .addMethod(nameMethod())
+                                        .addFields(protocolSpec.additionalFields())
+                                        .addMethods(protocolSpec.additionalMethods())
                                         .addMethods(operations());
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
@@ -185,8 +188,9 @@ public class SyncClientClass implements ClassSpec {
     static ProtocolSpec getProtocolSpecs(PoetExtensions poetExtensions, Protocol protocol) {
         switch (protocol) {
             case QUERY:
-            case REST_XML:
                 return new QueryXmlProtocolSpec(poetExtensions);
+            case REST_XML:
+                return new XmlProtocolSpec(poetExtensions);
             case EC2:
                 return new Ec2ProtocolSpec(poetExtensions);
             case AWS_JSON:

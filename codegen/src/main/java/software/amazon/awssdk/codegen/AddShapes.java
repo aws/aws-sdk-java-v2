@@ -221,16 +221,22 @@ abstract class AddShapes {
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
         Shape memberShape = allC2jShapes.get(member.getShape());
-
         mapping.withLocation(Location.forValue(member.getLocation()))
-                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
-                .withFlattened(member.isFlattened() || memberShape.isFlattened())
-                .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberName, member))
-                .withMarshallLocationName(
-                        deriveMarshallerLocationName(memberName, member, protocol))
-                .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
+               .withPayload(member.isPayload()).withStreaming(member.isStreaming())
+               .withFlattened(isFlattened(member, protocol, memberShape))
+               .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberName, member))
+               .withMarshallLocationName(
+                        deriveMarshallerLocationName(memberShape, memberName, member, protocol))
+               .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
 
         return mapping;
+    }
+
+    private boolean isFlattened(Member member, String protocol, Shape memberShape) {
+        return member.isFlattened()
+               || memberShape.isFlattened()
+               // EC2 lists are always flattened
+               || (memberShape.getListMember() != null && protocol.equalsIgnoreCase("ec2"));
     }
 
     /**
@@ -277,12 +283,13 @@ abstract class AddShapes {
         return memberName;
     }
 
-    private String deriveMarshallerLocationName(String memberName, Member member, String protocol) {
-        final String queryName = member.getQueryName();
+    private String deriveMarshallerLocationName(Shape memberShape, String memberName, Member member, String protocol) {
+        String queryName = member.getQueryName();
         if (queryName != null && !queryName.trim().isEmpty()) {
             return queryName;
         } else {
-            final String locationName = member.getLocationName();
+            String locationName = memberShape.getListMember() != null && memberShape.isFlattened() && !protocol.equals("ec2") ?
+                                  memberShape.getListMember().getLocationName() : member.getLocationName();
             if (locationName != null && !locationName.trim().isEmpty()) {
                 if (protocol.equals(Protocol.EC2.getValue())) {
                     return StringUtils.upperCase(locationName.substring(0, 1)) +

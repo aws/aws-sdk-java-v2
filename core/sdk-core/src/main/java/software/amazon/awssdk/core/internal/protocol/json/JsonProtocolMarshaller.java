@@ -19,30 +19,39 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.ByteArrayInputStream;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.internal.protocol.ValueToStringConverter.ValueToString;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
+import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.util.UriResourcePathUtils;
 
 /**
- * Implementation of {@link ProtocolRequestMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
+ * Implementation of {@link ProtocolMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
  *
  * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements ProtocolRequestMarshaller<OrigRequestT> {
+public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<Request<OrigRequestT>> {
 
-    private static final MarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
+    public static final ValueToString<Instant> INSTANT_VALUE_TO_STRING =
+        InstantToString.create(getDefaultTimestampFormats());
+
+    private static final JsonMarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
 
     private final StructuredJsonGenerator jsonGenerator;
     private final Request<OrigRequestT> request;
@@ -69,22 +78,8 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
                                                       .build();
     }
 
-    private Request<OrigRequestT> fillBasicRequestParams(OperationInfo operationInfo, OrigRequestT originalRequest) {
-        Request<OrigRequestT> request = createRequest(operationInfo, originalRequest);
-        request.setHttpMethod(operationInfo.httpMethodName());
-        request.setResourcePath(UriResourcePathUtils.addStaticQueryParametersToRequest(request, operationInfo.requestUri()));
-        if (operationInfo.operationIdentifier() != null) {
-            request.addHeader("X-Amz-Target", operationInfo.operationIdentifier());
-        }
-        return request;
-    }
-
-    private DefaultRequest<OrigRequestT> createRequest(OperationInfo operationInfo, OrigRequestT originalRequest) {
-        return new DefaultRequest<>(originalRequest, operationInfo.serviceName());
-    }
-
-    private static MarshallerRegistry createMarshallerRegistry() {
-        return MarshallerRegistry
+    private static JsonMarshallerRegistry createMarshallerRegistry() {
+        return JsonMarshallerRegistry
             .builder()
             .payloadMarshaller(MarshallingType.STRING, SimpleTypeJsonMarshaller.STRING)
             .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
@@ -130,6 +125,24 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
             .build();
     }
 
+    private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.ISO_8601);
+        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
+        formats.put(MarshallLocation.QUERY_PARAM, TimestampFormatTrait.Format.ISO_8601);
+        return Collections.unmodifiableMap(formats);
+    }
+
+    private Request<OrigRequestT> fillBasicRequestParams(OperationInfo operationInfo, OrigRequestT originalRequest) {
+        Request<OrigRequestT> request = new DefaultRequest<>(originalRequest, operationInfo.serviceName());
+        request.setHttpMethod(operationInfo.httpMethodName());
+        request.setResourcePath(UriResourcePathUtils.addStaticQueryParametersToRequest(request, operationInfo.requestUri()));
+        if (operationInfo.operationIdentifier() != null) {
+            request.addHeader("X-Amz-Target", operationInfo.operationIdentifier());
+        }
+        return request;
+    }
+
     /**
      * If there is not an explicit payload member then we need to start the implicit JSON request object. All
      * members bound to the payload will be added as fields to this object.
@@ -173,8 +186,8 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
         return finishMarshalling();
     }
 
-    private Object resolveValue(Object val, SdkField<?> marshallingInfo) {
-        DefaultValueTrait trait = marshallingInfo.getTrait(DefaultValueTrait.class);
+    private Object resolveValue(Object val, SdkField<?> sdkField) {
+        DefaultValueTrait trait = sdkField.getTrait(DefaultValueTrait.class);
         return trait == null ? val : trait.resolveValue(val);
     }
 

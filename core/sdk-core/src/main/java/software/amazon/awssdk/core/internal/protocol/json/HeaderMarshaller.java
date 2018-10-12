@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.protocol.json;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.protocol.ValueToStringConverter;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -39,7 +40,8 @@ public final class HeaderMarshaller {
 
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_BOOLEAN);
 
-    public static final JsonMarshaller<Instant> INSTANT = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_INSTANT);
+    public static final JsonMarshaller<Instant> INSTANT
+        = new SimpleHeaderMarshaller<>(JsonProtocolMarshaller.INSTANT_VALUE_TO_STRING);
 
     private HeaderMarshaller() {
     }
