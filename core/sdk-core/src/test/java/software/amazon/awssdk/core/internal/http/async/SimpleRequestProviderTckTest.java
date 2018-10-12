@@ -20,7 +20,7 @@ public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuff
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new SimpleHttpContentPublisher(makeFullRequest(), new ExecutionAttributes());
+        return new SimpleHttpContentPublisher(makeFullRequest());
     }
 
     @Override

@@ -29,12 +29,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
@@ -242,12 +240,6 @@ public abstract class AbstractAwsSigner implements Signer {
         }
 
         return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
-    }
-
-    @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
-    protected static int getReadLimit() {
-        return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
-
     }
 
     protected InputStream getBinaryRequestPayloadStream(InputStream stream) {

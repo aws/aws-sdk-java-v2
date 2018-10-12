@@ -21,10 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestOption;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.IoUtils;
@@ -39,21 +36,16 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
     private final byte[] content;
     private final int length;
 
-    public SimpleHttpContentPublisher(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+    public SimpleHttpContentPublisher(SdkHttpFullRequest request) {
         this.content = request.content().map(content -> {
             try {
-                content.mark(getReadLimit(executionAttributes));
+                IoUtils.markStreamWithMaxReadLimit(content);
                 return invokeSafely(() -> IoUtils.toByteArray(content));
             } finally {
                 invokeSafely(content::reset);
             }
         }).orElseGet(() -> new byte[0]);
         this.length = content.length;
-    }
-
-    @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
-    private int getReadLimit(ExecutionAttributes executionAttributes) {
-        return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
     }
 
     @Override

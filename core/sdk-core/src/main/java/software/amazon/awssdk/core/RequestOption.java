@@ -22,7 +22,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class RequestOption {
-    public static final int DEFAULT_STREAM_BUFFER_SIZE = (1 << 17) + 1;
-
     private RequestOption() {}
 }

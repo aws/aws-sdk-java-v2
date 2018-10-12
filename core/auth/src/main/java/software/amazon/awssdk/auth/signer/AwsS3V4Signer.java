@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * AWS4 signer implementation for AWS S3
@@ -242,7 +243,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         long contentLength = 0;
         byte[] tmp = new byte[4096];
         int read;
-        content.mark(getReadLimit());
+        IoUtils.markStreamWithMaxReadLimit(content);
         while ((read = content.read(tmp)) != -1) {
             contentLength += read;
         }
