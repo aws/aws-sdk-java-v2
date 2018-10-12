@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -146,7 +147,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      */
     protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, T signerParams) {
         InputStream payloadStream = getBinaryRequestPayloadStream(mutableRequest.content());
-        payloadStream.mark(getReadLimit());
+        IoUtils.markStreamWithMaxReadLimit(payloadStream);
         String contentSha256 = BinaryUtils.toHex(hash(payloadStream));
         try {
             payloadStream.reset();

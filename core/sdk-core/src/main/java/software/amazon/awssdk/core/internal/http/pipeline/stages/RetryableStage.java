@@ -19,9 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -131,7 +131,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 doPauseBeforeRetry();
             }
 
-            request.content().ifPresent(this::markInputStream);
+            request.content().ifPresent(IoUtils::markStreamWithMaxReadLimit);
 
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") + "Request: " +
                                                          request);
@@ -171,24 +171,6 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             }
 
             return sdkClientException;
-        }
-
-        /**
-         * Mark the input stream at the current position to allow a reset on retries.
-         */
-        private void markInputStream(InputStream originalContent) {
-            if (originalContent.markSupported()) {
-                originalContent.mark(readLimit());
-            }
-        }
-
-        /**
-         * @return Allowed read limit that we can mark request input stream. If we read past this limit we cannot reset the stream
-         * so we cannot retry the request.
-         */
-        @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
-        private int readLimit() {
-            return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
         }
 
         /**
