@@ -23,7 +23,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
@@ -40,7 +39,7 @@ import software.amazon.awssdk.core.util.UriResourcePathUtils;
  * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements ProtocolRequestMarshaller<OrigRequestT> {
+public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMarshaller<OrigRequestT> {
 
     private static final MarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
 

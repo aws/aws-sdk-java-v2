@@ -171,7 +171,7 @@ public final class AwsJsonProtocolFactory {
         }
     }
 
-    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
+    public <T> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
         OperationInfo operationInfo, T origRequest) {
         return JsonProtocolMarshallerBuilder.<T>standard()
             .jsonGenerator(createGenerator(operationInfo))
