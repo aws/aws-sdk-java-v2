@@ -39,7 +39,7 @@ public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuff
                 .protocol("https")
                 .host("aws.amazon.com")
                 .method(SdkHttpMethod.PUT)
-                .content(new ByteArrayInputStream(CONTENT))
+                .contentStreamProvider(() -> new ByteArrayInputStream(CONTENT))
                 .build();
     }
 }

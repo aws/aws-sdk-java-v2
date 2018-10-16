@@ -101,10 +101,12 @@ public final class AwsClientHandlerUtils {
                                                   .collect(Collectors.toMap(Map.Entry::getKey, e -> HeaderValue.fromString(
                                                       e.getValue())));
         byte[] payload = null;
-        try {
-            payload = IoUtils.toByteArray(request.getContent());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        if (request.getContentStreamProvider().isPresent()) {
+            try {
+                payload = IoUtils.toByteArray(request.getContentStreamProvider().get().newStream());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
 
         return new Message(headers, payload).toByteBuffer();

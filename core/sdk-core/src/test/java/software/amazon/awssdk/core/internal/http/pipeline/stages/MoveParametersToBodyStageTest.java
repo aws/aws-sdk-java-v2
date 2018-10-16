@@ -19,7 +19,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 import org.junit.Test;
@@ -27,8 +26,10 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.utils.IoUtils;
 import utils.ValidSdkObjects;
 
 public class MoveParametersToBodyStageTest {
@@ -38,7 +39,6 @@ public class MoveParametersToBodyStageTest {
     @Test
     public void postRequestsWithNoBodyHaveTheirParametersMovedToTheBody() throws Exception {
         SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
-                                                                   .content(null)
                                                                    .method(SdkHttpMethod.POST)
                                                                    .putRawQueryParameter("key", singletonList("value"));
 
@@ -48,7 +48,7 @@ public class MoveParametersToBodyStageTest {
         assertThat(output.headers())
                 .containsKey("Content-Length")
                 .containsEntry("Content-Type", singletonList("application/x-www-form-urlencoded; charset=utf-8"));
-        assertThat(output.content()).isNotEmpty();
+        assertThat(output.contentStreamProvider()).isNotEmpty();
     }
 
     @Test
@@ -60,9 +60,10 @@ public class MoveParametersToBodyStageTest {
 
     @Test
     public void postWithContentIsUnaltered() throws Exception {
-        InputStream content = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8));
+        byte[] contentBytes = "hello".getBytes(StandardCharsets.UTF_8);
+        ContentStreamProvider contentProvider = () -> new ByteArrayInputStream(contentBytes);
         SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
-                                                                   .content(content)
+                                                                   .contentStreamProvider(contentProvider)
                                                                    .method(SdkHttpMethod.POST)
                                                                    .clearHeaders()
                                                                    .putRawQueryParameter("key", singletonList("value"));
@@ -71,13 +72,12 @@ public class MoveParametersToBodyStageTest {
 
         assertThat(output.rawQueryParameters()).hasSize(1);
         assertThat(output.headers()).hasSize(0);
-        assertThat(output.content()).hasValue(content);
+        assertThat(IoUtils.toByteArray(output.contentStreamProvider().get().newStream())).isEqualTo(contentBytes);
     }
 
     @Test
     public void onlyAlterRequestsIfParamsArePresent() throws Exception {
         SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
-                                                                   .content(null)
                                                                    .clearHeaders()
                                                                    .method(SdkHttpMethod.POST);
 
@@ -85,12 +85,11 @@ public class MoveParametersToBodyStageTest {
 
         assertThat(output.rawQueryParameters()).hasSize(0);
         assertThat(output.headers()).hasSize(0);
-        assertThat(output.content()).isEmpty();
+        assertThat(output.contentStreamProvider()).isEmpty();
     }
 
     private void nonPostRequestsUnaltered(SdkHttpMethod method) {
         SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
-                                                                   .content(null)
                                                                    .method(method)
                                                                    .clearHeaders()
                                                                    .putRawQueryParameter("key", singletonList("value"));
@@ -99,7 +98,7 @@ public class MoveParametersToBodyStageTest {
 
         assertThat(output.rawQueryParameters()).hasSize(1);
         assertThat(output.headers()).hasSize(0);
-        assertThat(output.content()).isEmpty();
+        assertThat(output.contentStreamProvider()).isEmpty();
     }
 
     private RequestExecutionContext requestContext(SdkHttpFullRequest.Builder mutableRequest) {

@@ -24,6 +24,7 @@ import org.apache.http.entity.InputStreamEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -109,7 +110,8 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
      * @return The request content input stream or an empty input stream if there is no content.
      */
     private InputStream getContent(SdkHttpFullRequest request) {
-        return request.content().orElseGet(() -> new ByteArrayInputStream(new byte[0]));
+        return request.contentStreamProvider().map(ContentStreamProvider::newStream)
+                                              .orElseGet(() -> new ByteArrayInputStream(new byte[0]));
     }
 
     @Override

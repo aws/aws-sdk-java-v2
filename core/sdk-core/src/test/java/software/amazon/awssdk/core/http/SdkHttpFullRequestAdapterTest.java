@@ -26,8 +26,10 @@ import java.net.URI;
 import java.util.Arrays;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 import utils.ValidSdkObjects;
 
@@ -111,13 +113,13 @@ public class SdkHttpFullRequestAdapterTest {
 
     @Test
     public void adapt_InputStreamPreserved() throws UnsupportedEncodingException {
-        StringInputStream contents = new StringInputStream("contents");
+        ContentStreamProvider streamProvider = () -> new StringInputStream("contents");
         Request<Void> request = ValidSdkObjects.legacyRequest();
-        request.setContent(contents);
+        request.setContentProvider(streamProvider);
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.content().orElse(null), equalTo(contents));
+        assertThat(adapted.contentStreamProvider().get(), equalTo(streamProvider));
     }
 
 

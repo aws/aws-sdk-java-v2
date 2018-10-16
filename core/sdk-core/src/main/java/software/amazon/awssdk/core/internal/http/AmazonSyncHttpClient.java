@@ -59,11 +59,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @ReviewBeforeRelease("come up with better name, Also this can be moved to an internal package if we "
                      + "deal with HttpTestUtils.")
 public final class AmazonSyncHttpClient implements SdkAutoCloseable {
-    /**
-     * Used for testing via failure injection.
-     */
-    static UnreliableTestConfig unreliableTestConfig;
-
     private final HttpClientDependencies httpClientDependencies;
 
     public AmazonSyncHttpClient(SdkClientConfiguration clientConfiguration) {
@@ -77,17 +72,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
         return new CapacityManager(SdkDefaultRetrySetting.RETRY_THROTTLING_COST * SdkDefaultRetrySetting.THROTTLED_RETRIES);
-    }
-
-    /**
-     * Used to configure the test conditions for injecting intermittent failures to the content
-     * input stream.
-     *
-     * @param config unreliable test configuration for failure injection; or null to disable such
-     * test.
-     */
-    static void configUnreliableTestConditions(UnreliableTestConfig config) {
-        unreliableTestConfig = config;
     }
 
     /**

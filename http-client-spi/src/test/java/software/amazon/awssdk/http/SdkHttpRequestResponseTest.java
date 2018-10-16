@@ -35,7 +35,7 @@ import org.junit.Test;
 public class SdkHttpRequestResponseTest {
     @Test
     public void optionalValuesAreOptional() {
-        assertThat(validRequest().content()).isNotPresent();
+        assertThat(validRequest().contentStreamProvider()).isNotPresent();
         assertThat(validResponse().content()).isNotPresent();
         assertThat(validResponse().statusText()).isNotPresent();
     }

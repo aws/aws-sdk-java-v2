@@ -53,7 +53,7 @@ public final class SwitchToPostInterceptor implements ExecutionInterceptor {
                 .getBytes(StandardCharsets.UTF_8);
 
         return input.clearQueryParameters()
-                .content(new ByteArrayInputStream(params))
+                .contentStreamProvider(() -> new ByteArrayInputStream(params))
                 .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
                 .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
                         lowerCase(StandardCharsets.UTF_8.toString())));

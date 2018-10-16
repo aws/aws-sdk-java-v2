@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.signer;
 
 import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_CONTENT_SHA256;
-import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,12 +27,11 @@ import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.internal.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
-import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * AWS4 signer implementation for AWS S3
@@ -133,19 +131,33 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
                                          AwsS3V4SignerParams signerParams) {
 
         if (useChunkEncoding(mutableRequest, signerParams)) {
-            AwsChunkedEncodingInputStream chunkEncodededStream = new AwsChunkedEncodingInputStream(
-                mutableRequest.content(),
-                signingKey,
-                signerRequestParams.getFormattedSigningDateTime(),
-                signerRequestParams.getScope(),
-                BinaryUtils.toHex(signature), this);
-            mutableRequest.content(chunkEncodededStream);
+            if (mutableRequest.contentStreamProvider() != null) {
+                ContentStreamProvider streamProvider = mutableRequest.contentStreamProvider();
+                mutableRequest.contentStreamProvider(() -> AwsS3V4Signer.this.asChunkEncodedStream(
+                        streamProvider.newStream(),
+                        signature,
+                        signingKey,
+                        signerRequestParams
+                ));
+            }
         }
     }
 
     @Override
     protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest, Aws4PresignerParams signerParams) {
         return UNSIGNED_PAYLOAD;
+    }
+
+    private AwsChunkedEncodingInputStream asChunkEncodedStream(InputStream inputStream,
+                                                               byte[] signature,
+                                                               byte[] signingKey,
+                                                               Aws4SignerRequestParams signerRequestParams) {
+        return new AwsChunkedEncodingInputStream(
+                inputStream,
+                signingKey,
+                signerRequestParams.getFormattedSigningDateTime(),
+                signerRequestParams.getScope(),
+                BinaryUtils.toHex(signature), this);
     }
 
     /**
@@ -223,7 +235,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         /**
          * If we aren't using https we should always sign the payload unless there is no payload
          */
-        if (!request.protocol().equals("https") && request.content() != null) {
+        if (!request.protocol().equals("https") && request.contentStreamProvider() != null) {
             return true;
         }
 
@@ -232,25 +244,16 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
     }
 
     /**
-     * Read the content of the request to get the length of the stream. This
-     * method will wrap the stream by SdkBufferedInputStream if it is not
-     * mark-supported.
+     * Read the content of the request to get the length of the stream.
      */
     private static long getContentLength(SdkHttpFullRequest.Builder requestBuilder) throws IOException {
-        InputStream content = requestBuilder.content();
-        validState(content.markSupported(), "Request input stream must have been made mark-and-resettable");
+        InputStream content = requestBuilder.contentStreamProvider().newStream();
 
         long contentLength = 0;
         byte[] tmp = new byte[4096];
         int read;
-        IoUtils.markStreamWithMaxReadLimit(content);
         while ((read = content.read(tmp)) != -1) {
             contentLength += read;
-        }
-        try {
-            content.reset();
-        } catch (IOException ex) {
-            throw ResetException.builder().message("Failed to reset the input stream").cause(ex).build();
         }
         return contentLength;
     }

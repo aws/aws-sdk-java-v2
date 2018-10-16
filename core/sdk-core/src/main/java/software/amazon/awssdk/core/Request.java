@@ -15,13 +15,15 @@
 
 package software.amazon.awssdk.core;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.http.ContentStreamProvider;
 
 /**
  * Represents a request being sent to an Amazon Web Service, including the
@@ -86,13 +88,13 @@ public interface Request<T> {
     int getTimeOffset();
 
     /**
-     * Returns the optional stream containing the payload data to include for
-     * this request. Not all requests will contain payload data.
+     * Returns the optional stream provider containing the payload data to
+     * include for this request. Not all requests will contain payload data.
      *
-     * @return The optional stream containing the payload data to include for
-     *         this request.
+     * @return The optional stream provider containing the payload data to
+     *         include for this request.
      */
-    InputStream getContent();
+    Optional<ContentStreamProvider> getContentStreamProvider();
 
     /**
      * request object is representing.
@@ -120,14 +122,15 @@ public interface Request<T> {
     void addParameter(String name, String value);
 
     /**
-     * Sets the optional stream containing the payload data to include for this
-     * request. This is used, for example, for S3 chunk encoding.
+     * Sets the optional content stream provider containing the payload data to
+     * include for this request. This is used, for example, for S3 chunk
+     * encoding.
      *
-     * @param content
-     *            The optional stream containing the payload data to include for
-     *            this request.
+     * @param contentProvider
+     *            The optional stream provider containing the payload data to
+     *            include for this request.
      */
-    void setContent(InputStream content);
+    void setContentProvider(ContentStreamProvider contentProvider);
 
     /**
      * Sets all headers, clearing any existing ones.

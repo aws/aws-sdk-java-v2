@@ -49,7 +49,7 @@ public class PutItemRequestMarshallerTest {
         byteBuffer.position(3);
         Request<PutItemRequest> marshalled = marshaller.marshall(PutItemRequest.builder().item(
                 ImmutableMap.of("binaryProp", AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build())).build());
-        JsonNode marshalledContent = MAPPER.readTree(marshalled.getContent());
+        JsonNode marshalledContent = MAPPER.readTree(marshalled.getContentStreamProvider().get().newStream());
         String base64Binary = marshalledContent.get("Item").get("binaryProp").get("B").asText();
         // Only the remaining data in the byte buffer should have been read and marshalled.
         assertEquals(BinaryUtils.toBase64(new byte[] {1, 1, 1}), base64Binary);

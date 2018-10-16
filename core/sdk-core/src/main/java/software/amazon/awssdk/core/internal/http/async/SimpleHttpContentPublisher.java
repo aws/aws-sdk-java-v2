@@ -37,14 +37,8 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
     private final int length;
 
     public SimpleHttpContentPublisher(SdkHttpFullRequest request) {
-        this.content = request.content().map(content -> {
-            try {
-                IoUtils.markStreamWithMaxReadLimit(content);
-                return invokeSafely(() -> IoUtils.toByteArray(content));
-            } finally {
-                invokeSafely(content::reset);
-            }
-        }).orElseGet(() -> new byte[0]);
+        this.content = request.contentStreamProvider().map(p -> invokeSafely(() -> IoUtils.toByteArray(p.newStream())))
+                                                      .orElseGet(() -> new byte[0]);
         this.length = content.length;
     }
 

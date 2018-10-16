@@ -17,7 +17,6 @@ package software.amazon.awssdk.http;
 
 import static java.util.Collections.singletonList;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -46,13 +45,9 @@ public interface SdkHttpFullRequest
     }
 
     /**
-     * Returns the optional stream containing the payload data to include for this request.
-     *
-     * <p>When the request does not include payload data, this will return {@link Optional#empty()}.
-     *
-     * @return The optional stream containing the payload data to include for this request, or empty if there is no payload.
+     * @return The optional {@link ContentStreamProvider} for this request.
      */
-    Optional<InputStream> content();
+    Optional<ContentStreamProvider> contentStreamProvider();
 
     /**
      * A mutable builder for {@link SdkHttpFullRequest}. An instance of this can be created using
@@ -228,15 +223,17 @@ public interface SdkHttpFullRequest
         Builder clearHeaders();
 
         /**
-         * The content, exactly as it was configured with {@link #content(InputStream)}.
+         * Set the {@link ContentStreamProvider} for this request.
+         *
+         * @param contentStreamProvider The ContentStreamProvider.
+         * @return This object for method chaining.
          */
-        InputStream content();
+        Builder contentStreamProvider(ContentStreamProvider contentStreamProvider);
 
         /**
-         * Configure an {@link SdkHttpFullRequest#content()} to be used in the created HTTP request. This is not validated until
-         * the http request is created.
+         * @return The {@link ContentStreamProvider} for this request.
          */
-        Builder content(InputStream content);
+        ContentStreamProvider contentStreamProvider();
     }
 
 }
