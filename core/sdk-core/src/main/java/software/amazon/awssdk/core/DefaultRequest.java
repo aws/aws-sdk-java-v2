@@ -15,17 +15,19 @@
 
 package software.amazon.awssdk.core;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.http.ContentStreamProvider;
 
 /**
  * Default implementation of the {@linkplain Request} interface.
@@ -64,7 +66,7 @@ public class DefaultRequest<T> implements Request<T> {
     /** The HTTP method to use when sending this request. */
     private HttpMethodName httpMethod = HttpMethodName.POST;
     /** An optional stream from which to read the request payload. */
-    private InputStream content;
+    private ContentStreamProvider contentProvider;
     /** An optional time offset to account for clock skew. */
     private int timeOffset;
 
@@ -234,17 +236,17 @@ public class DefaultRequest<T> implements Request<T> {
     }
 
     /**
-     * @see Request#getContent()
+     * @see Request#getContentStreamProvider()
      */
-    public InputStream getContent() {
-        return content;
+    public Optional<ContentStreamProvider> getContentStreamProvider() {
+        return Optional.ofNullable(contentProvider);
     }
 
     /**
-     * @see Request#setContent(java.io.InputStream)
+     * @see Request#setContentProvider(ContentStreamProvider)
      */
-    public void setContent(InputStream content) {
-        this.content = content;
+    public void setContentProvider(ContentStreamProvider contentProvider) {
+        this.contentProvider = contentProvider;
     }
 
     /**

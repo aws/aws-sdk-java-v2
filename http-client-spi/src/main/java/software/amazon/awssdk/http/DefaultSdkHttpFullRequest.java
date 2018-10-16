@@ -17,7 +17,6 @@ package software.amazon.awssdk.http;
 
 import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,7 +45,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
     private final Map<String, List<String>> queryParameters;
     private final SdkHttpMethod httpMethod;
     private final Map<String, List<String>> headers;
-    private final InputStream content;
+    private final ContentStreamProvider contentStreamProvider;
 
     private DefaultSdkHttpFullRequest(Builder builder) {
         this.protocol = standardizeProtocol(builder.protocol);
@@ -56,7 +55,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         this.queryParameters = deepUnmodifiableMap(builder.queryParameters, () -> new LinkedHashMap<>());
         this.httpMethod = Validate.paramNotNull(builder.httpMethod, "method");
         this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-        this.content = builder.content;
+        this.contentStreamProvider = builder.contentStreamProvider;
     }
 
     private String standardizeProtocol(String protocol) {
@@ -133,8 +132,8 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
     }
 
     @Override
-    public Optional<InputStream> content() {
-        return Optional.ofNullable(content);
+    public Optional<ContentStreamProvider> contentStreamProvider() {
+        return Optional.ofNullable(contentStreamProvider);
     }
 
     @Override
@@ -147,7 +146,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
                 .rawQueryParameters(queryParameters)
                 .method(httpMethod)
                 .headers(headers)
-                .content(content);
+                .contentStreamProvider(contentStreamProvider);
     }
 
     @Override
@@ -174,7 +173,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         private Map<String, List<String>> queryParameters = new LinkedHashMap<>();
         private SdkHttpMethod httpMethod;
         private Map<String, List<String>> headers = new LinkedHashMap<>();
-        private InputStream content;
+        private ContentStreamProvider contentStreamProvider;
 
         Builder() {
         }
@@ -293,14 +292,13 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         }
 
         @Override
-        public DefaultSdkHttpFullRequest.Builder content(InputStream content) {
-            this.content = content;
+        public DefaultSdkHttpFullRequest.Builder contentStreamProvider(ContentStreamProvider contentStreamProvider) {
+            this.contentStreamProvider = contentStreamProvider;
             return this;
         }
 
-        @Override
-        public InputStream content() {
-            return content;
+        public ContentStreamProvider contentStreamProvider() {
+            return contentStreamProvider;
         }
 
         @Override

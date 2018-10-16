@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -242,17 +243,12 @@ public abstract class AbstractAwsSigner implements Signer {
         return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
     }
 
-    protected InputStream getBinaryRequestPayloadStream(InputStream stream) {
+    protected InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
         try {
-            if (stream == null) {
+            if (streamProvider == null) {
                 return new ByteArrayInputStream(new byte[0]);
             }
-            if (!stream.markSupported()) {
-                throw SdkClientException.builder()
-                                        .message("Unable to read request payload to sign request.")
-                                        .build();
-            }
-            return stream;
+            return streamProvider.newStream();
         } catch (SdkClientException e) {
             throw e;
         } catch (Exception e) {

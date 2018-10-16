@@ -42,15 +42,18 @@ public final class SdkHttpFullRequestAdapter {
     }
 
     public static SdkHttpFullRequest.Builder toMutableHttpFullRequest(Request<?> request) {
-        return SdkHttpFullRequest.builder()
+        SdkHttpFullRequest.Builder builder = SdkHttpFullRequest.builder()
                                  .protocol(request.getEndpoint().getScheme())
                                  .host(request.getEndpoint().getHost())
                                  .port(request.getEndpoint().getPort())
                                  .encodedPath(SdkHttpUtils.appendUri(request.getEndpoint().getPath(), request.getResourcePath()))
                                  .rawQueryParameters(request.getParameters())
                                  .method(SdkHttpMethod.fromValue(request.getHttpMethod().name()))
-                                 .headers(adaptHeaders(request.getHeaders()))
-                                 .content(request.getContent());
+                                 .headers(adaptHeaders(request.getHeaders()));
+
+        request.getContentStreamProvider().ifPresent(builder::contentStreamProvider);
+
+        return builder;
     }
 
     private static Map<String, List<String>> adaptHeaders(Map<String, String> headers) {

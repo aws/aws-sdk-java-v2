@@ -47,7 +47,7 @@ public final class StreamingRequestMarshaller<T> implements Marshaller<Request<T
     @Override
     public Request<T> marshall(T in) {
         Request<T> marshalled = delegate.marshall(in);
-        marshalled.setContent(requestBody.asStream());
+        marshalled.setContentProvider(requestBody.contentStreamProvider());
         if (!marshalled.getHeaders().containsKey(CONTENT_TYPE) || isBlank(marshalled.getHeaders().get(CONTENT_TYPE))) {
             marshalled.addHeader(CONTENT_TYPE, requestBody.contentType());
         }

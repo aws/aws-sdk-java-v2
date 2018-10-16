@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -28,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.NonRetryableException;
-import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
@@ -42,7 +39,6 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
@@ -71,24 +67,6 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws
                                                                                                                      Exception {
         return new RetryExecutor(request, context).execute();
-    }
-
-    /**
-     * Reset the input stream of the request before a retry.
-     *
-     * @throws ResetException If Input Stream can't be reset which means the request can't be retried.
-     */
-    private static void resetRequestInputStream(InputStream inputStream) throws ResetException {
-        if (inputStream.markSupported()) {
-            try {
-                inputStream.reset();
-            } catch (IOException ex) {
-                throw ResetException.builder()
-                                    .message("Failed to reset the request input stream")
-                                    .cause(ex)
-                                    .build();
-            }
-        }
     }
 
     /**
@@ -194,12 +172,6 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         private CompletableFuture<Response<OutputT>> doExecute() throws Exception {
-            if (retryHandler.isRetry()) {
-                request.content().ifPresent(AsyncRetryableStage::resetRequestInputStream);
-            }
-
-            request.content().ifPresent(IoUtils::markStreamWithMaxReadLimit);
-
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") +
                                                          "Request: " + request);
 

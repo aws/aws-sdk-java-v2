@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.signer.internal;
 import static software.amazon.awssdk.utils.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.time.Instant;
@@ -39,7 +38,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -146,18 +144,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * relating to content-encoding and content-length.)
      */
     protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, T signerParams) {
-        InputStream payloadStream = getBinaryRequestPayloadStream(mutableRequest.content());
-        IoUtils.markStreamWithMaxReadLimit(payloadStream);
-        String contentSha256 = BinaryUtils.toHex(hash(payloadStream));
-        try {
-            payloadStream.reset();
-        } catch (IOException e) {
-            throw SdkClientException.builder()
-                                    .message("Unable to reset stream after calculating AWS4 signature")
-                                    .cause(e)
-                                    .build();
-        }
-        return contentSha256;
+        InputStream payloadStream = getBinaryRequestPayloadStream(mutableRequest.contentStreamProvider());
+        return BinaryUtils.toHex(hash(payloadStream));
     }
 
     protected abstract void processRequestPayload(SdkHttpFullRequest.Builder mutableRequest,

@@ -143,7 +143,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMars
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = resolveValue(field.get(pojo), field);
             if (isBinary(field, val)) {
-                request.setContent(((SdkBytes) val).asInputStream());
+                request.setContentProvider(((SdkBytes) val)::asInputStream);
             } else {
                 if (val != null && field.containsTrait(PayloadTrait.class)) {
                     jsonGenerator.writeStartObject();
@@ -179,14 +179,14 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMars
 
     private Request<OrigRequestT> finishMarshalling() {
         // Content may already be set if the payload is binary data.
-        if (request.getContent() == null) {
+        if (!request.getContentStreamProvider().isPresent()) {
             // End the implicit request object if needed.
             if (!hasExplicitPayloadMember) {
                 jsonGenerator.writeEndObject();
             }
 
             byte[] content = jsonGenerator.getBytes();
-            request.setContent(new ByteArrayInputStream(content));
+            request.setContentProvider(() -> new ByteArrayInputStream(content));
             if (content.length > 0) {
                 request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }

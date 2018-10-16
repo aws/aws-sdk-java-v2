@@ -120,7 +120,7 @@ public class HttpClientApiCallAttemptTimeoutTest {
     private SdkHttpFullRequest generateRequest() {
         return ValidSdkObjects.sdkHttpFullRequest(wireMock.port())
                               .host("localhost")
-                              .content(new ByteArrayInputStream("test".getBytes())).build();
+                              .contentStreamProvider(() -> new ByteArrayInputStream("test".getBytes())).build();
     }
 
     private ExecutionContext withInterceptors(ExecutionInterceptor... requestHandlers) {

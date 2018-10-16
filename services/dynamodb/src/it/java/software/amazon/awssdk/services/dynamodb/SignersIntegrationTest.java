@@ -157,10 +157,9 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     private SdkHttpFullRequest generateBasicRequest() {
         final String content = getInputContent();
-        final InputStream contentStream = new ByteArrayInputStream(content.getBytes());
 
         return SdkHttpFullRequest.builder()
-                                 .content(contentStream)
+                                 .contentStreamProvider(() -> new ByteArrayInputStream(content.getBytes()))
                                  .method(SdkHttpMethod.POST)
                                  .putHeader("Content-Length", Integer.toString(content.length()))
                                  .putHeader("Content-Type", "application/x-amz-json-1.0")

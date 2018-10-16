@@ -77,7 +77,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) request.getUri().toURL().openConnection());
         request.headers().forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
         invokeSafely(() -> connection.setRequestMethod(request.method().name()));
-        if (request.content().isPresent()) {
+        if (request.contentStreamProvider().isPresent()) {
             connection.setDoOutput(true);
         }
 
@@ -101,7 +101,8 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         public SdkHttpFullResponse call() throws Exception {
             connection.connect();
 
-            request.content().ifPresent(content -> invokeSafely(() -> IoUtils.copy(content, connection.getOutputStream())));
+            request.contentStreamProvider().ifPresent(provider ->
+                    invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
 
             int responseCode = connection.getResponseCode();
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
