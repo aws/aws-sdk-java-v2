@@ -31,6 +31,14 @@ public final class RetryableException extends SdkClientException {
         super(b);
     }
 
+    public static RetryableException create(String message) {
+        return builder().message(message).build();
+    }
+
+    public static RetryableException create(String message, Throwable cause) {
+        return builder().message(message).cause(cause).build();
+    }
+
     @Override
     public boolean retryable() {
         return true;

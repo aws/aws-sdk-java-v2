@@ -27,8 +27,6 @@ import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.exception.AbortedException;
-import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -49,7 +47,7 @@ import software.amazon.awssdk.utils.Logger;
  * the connection pool (if applicable).
  * <h3>Retries</h3>
  * <p>
- * Exceptions thrown from the transformer's {@link #apply(Object, AbortableInputStream)} method are not automatically retried
+ * Exceptions thrown from the transformer's {@link #transform(Object, AbortableInputStream)} method are not automatically retried
  * by the RetryPolicy of the client. Since we can't know if a transformer implementation is idempotent or safe to retry, if you
  * wish to retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the transformer.
  * This exception can wrap the original exception that was thrown. Note that throwing a {@link
@@ -62,7 +60,7 @@ import software.amazon.awssdk.utils.Logger;
  * Implementations should have proper handling of Thread interrupts. For long running, non-interruptible tasks, it is recommended
  * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
  * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread and return or
- * throw that {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these
+ * throw that {@link InterruptedException} from the {@link #transform(Object, AbortableInputStream)} method. Failure to do these
  * things may prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
  *
  * @param <ResponseT> Type of unmarshalled POJO response.
@@ -81,20 +79,6 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @throws Exception if any error occurs during processing of the response. This will be re-thrown by the SDK, possibly
      *                   wrapped in an {@link SdkClientException}.
      */
-    default ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
-        try {
-            InterruptMonitor.checkInterrupted();
-            ReturnT transform = transform(response, inputStream);
-            InterruptMonitor.checkInterrupted();
-            return transform;
-        } catch (RetryableException | InterruptedException | AbortedException e) {
-            throw e;
-        } catch (Exception e) {
-            InterruptMonitor.checkInterrupted();
-            throw NonRetryableException.builder().cause(e).build();
-        }
-    }
-
     ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception;
 
     /**
@@ -225,7 +209,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             @Override
             public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
                 InterruptMonitor.checkInterrupted();
-                return transformer.apply(response, inputStream);
+                return transformer.transform(response, inputStream);
             }
 
             @Override
