@@ -28,7 +28,11 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkSyncClientHandler;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.Crc32Validation;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Client handler for AWS SDK clients.
@@ -50,7 +54,8 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return super.execute(addErrorResponseHandler(executionParams));
+        ClientExecutionParams<InputT, OutputT> clientExecutionParams = addCrc32Validation(executionParams);
+        return super.execute(addErrorResponseHandler(clientExecutionParams));
     }
 
     @Override
@@ -64,5 +69,26 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
         ClientExecutionParams<InputT, OutputT> executionParams) {
         return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration);
+    }
+
+    private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addCrc32Validation(
+        ClientExecutionParams<InputT, OutputT> executionParams) {
+        return executionParams.withResponseHandler(new Crc32ValidationResponseHandler<>(executionParams.getResponseHandler()));
+    }
+
+    /**
+     * Decorate {@link HttpResponseHandler} to validate CRC32 if needed.
+     */
+    private class Crc32ValidationResponseHandler<T> implements HttpResponseHandler<T> {
+        private final HttpResponseHandler<T> delegate;
+
+        private Crc32ValidationResponseHandler(HttpResponseHandler<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+            return delegate.handle(Crc32Validation.validate(isCalculateCrc32FromCompressedData(), response), executionAttributes);
+        }
     }
 }
