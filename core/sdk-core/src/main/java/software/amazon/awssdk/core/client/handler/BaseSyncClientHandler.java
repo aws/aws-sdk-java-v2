@@ -129,6 +129,12 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
             return transformResponse(resp, response.content().get());
         }
 
+        @Override
+        public boolean needsConnectionLeftOpen() {
+            return responseTransformer.needsConnectionLeftOpen();
+        }
+
+
         private ReturnT transformResponse(OutputT resp, AbortableInputStream inputStream) throws Exception {
             try {
                 InterruptMonitor.checkInterrupted();
@@ -141,11 +147,6 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
                 InterruptMonitor.checkInterrupted();
                 throw NonRetryableException.builder().cause(e).build();
             }
-        }
-
-        @Override
-        public boolean needsConnectionLeftOpen() {
-            return responseTransformer.needsConnectionLeftOpen();
         }
     }
 }

@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
@@ -65,7 +64,6 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * Whether to calculate the CRC 32 checksum of a message based on the uncompressed data. By default, this is false.
      */
-    @ReviewBeforeRelease("Move this to aws-core module once HttpResponseAdaptingStage is removed")
     public static final SdkClientOption<Boolean> CRC32_FROM_COMPRESSED_DATA_ENABLED =
         new SdkClientOption<>(Boolean.class);
 
