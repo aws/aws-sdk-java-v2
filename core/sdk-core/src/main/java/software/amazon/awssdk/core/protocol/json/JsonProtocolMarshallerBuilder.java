@@ -69,7 +69,7 @@ public class JsonProtocolMarshallerBuilder<T> {
     }
 
     public ProtocolRequestMarshaller<T> build() {
-        final ProtocolRequestMarshaller<T> protocolMarshaller = new JsonProtocolMarshaller<T>(jsonGenerator,
+        ProtocolRequestMarshaller<T> protocolMarshaller = new JsonProtocolMarshaller<T>(jsonGenerator,
                                                                                               contentType,
                                                                                               operationInfo,
                                                                                               originalRequest);

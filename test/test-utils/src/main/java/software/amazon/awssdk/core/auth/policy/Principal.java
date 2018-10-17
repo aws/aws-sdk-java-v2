@@ -144,7 +144,7 @@ public class Principal {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
+        int prime = 31;
         int hashCode = 1;
 
         hashCode = prime * hashCode + provider.hashCode();

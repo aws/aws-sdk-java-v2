@@ -44,7 +44,7 @@ public class UnusedImportRemover implements CodeTransformer {
 
     private List<String> findImports(String content) {
         Matcher m = IMPORT_PATTERN.matcher(content);
-        final List<String> imports = new ArrayList<>();
+        List<String> imports = new ArrayList<>();
         while (m.find()) {
             imports.add(m.group(1));
         }

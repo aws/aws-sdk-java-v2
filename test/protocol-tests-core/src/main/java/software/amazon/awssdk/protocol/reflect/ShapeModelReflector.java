@@ -113,7 +113,7 @@ public class ShapeModelReflector {
                 throw new IllegalArgumentException("Member " + memberName + " was not found in the " +
                                                    structureShape.getC2jName() + " shape.");
             }
-            final Object toSet = getMemberValue(input.get(memberName), memberModel);
+            Object toSet = getMemberValue(input.get(memberName), memberModel);
             if (toSet != null) {
                 Method setter = getMemberSetter(shapeObject.getClass(), memberModel);
                 setter.setAccessible(true);

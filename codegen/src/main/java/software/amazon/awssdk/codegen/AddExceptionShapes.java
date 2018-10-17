@@ -42,7 +42,7 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
 
     private Map<String, ShapeModel> constructExceptionShapes() {
         // Java shape models, to be constructed
-        final Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
 
         for (Map.Entry<String, Shape> shape : getServiceModel().getShapes().entrySet()) {
             if (shape.getValue().isException()) {

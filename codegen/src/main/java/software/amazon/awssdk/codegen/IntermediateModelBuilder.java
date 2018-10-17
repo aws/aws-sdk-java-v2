@@ -79,7 +79,7 @@ public class IntermediateModelBuilder {
      * Create default shape processors.
      */
     private List<IntermediateModelShapeProcessor> createShapeProcessors() {
-        final List<IntermediateModelShapeProcessor> processors = new ArrayList<>();
+        List<IntermediateModelShapeProcessor> processors = new ArrayList<>();
         processors.add(new AddInputShapes(this));
         processors.add(new AddOutputShapes(this));
         processors.add(new AddExceptionShapes(this));
@@ -102,9 +102,9 @@ public class IntermediateModelBuilder {
 
         customization.preprocess(service);
 
-        final Map<String, OperationModel> operations = new TreeMap<>();
-        final Map<String, ShapeModel> shapes = new HashMap<>();
-        final Map<String, AuthorizerModel> authorizers = new HashMap<>();
+        Map<String, OperationModel> operations = new TreeMap<>();
+        Map<String, ShapeModel> shapes = new HashMap<>();
+        Map<String, AuthorizerModel> authorizers = new HashMap<>();
 
         operations.putAll(new AddOperations(this).constructOperations());
         authorizers.putAll(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());

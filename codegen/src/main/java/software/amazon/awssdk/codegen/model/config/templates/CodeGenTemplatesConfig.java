@@ -53,7 +53,7 @@ public class CodeGenTemplatesConfig {
 
     public static CodeGenTemplatesConfig load(Protocol protocol) {
 
-        final String protocolConfigFilePath = String.format(
+        String protocolConfigFilePath = String.format(
                 PROTOCOL_CONFIG_LOCATION, protocol.getValue());
 
         InputStream input = ClassLoaderHelper.getResourceAsStream(

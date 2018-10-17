@@ -190,8 +190,8 @@ public final class IntermediateModel {
     }
 
     private String getCopyrightDateRange() {
-        final int currentYear = ZonedDateTime.now().getYear();
-        final int copyrightStartYear = currentYear - 5;
+        int currentYear = ZonedDateTime.now().getYear();
+        int copyrightStartYear = currentYear - 5;
         return String.format("%d-%d", copyrightStartYear, currentYear);
     }
 

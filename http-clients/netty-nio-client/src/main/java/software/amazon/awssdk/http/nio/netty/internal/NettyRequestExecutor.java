@@ -92,7 +92,7 @@ public final class NettyRequestExecutor {
      * @return The created execution future.
      */
     private CompletableFuture<Void> createExecuteFuture(Future<Channel> channelFuture) {
-        final CompletableFuture<Void> future = new CompletableFuture<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
         future.whenComplete((r, t) -> {
             if (t == null) {

@@ -329,8 +329,8 @@ public class ForkedHttp2MultiplexCodec extends Http2FrameCodec {
             forEachActiveStream(new Http2FrameStreamVisitor() {
                 @Override
                 public boolean visit(Http2FrameStream stream) {
-                    final int streamId = stream.id();
-                    final DefaultHttp2StreamChannel childChannel = ((Http2MultiplexCodecStream) stream).channel;
+                    int streamId = stream.id();
+                    DefaultHttp2StreamChannel childChannel = ((Http2MultiplexCodecStream) stream).channel;
                     if (streamId > goAwayFrame.lastStreamId() && connection().local().isValidStreamId(streamId)) {
                         childChannel.pipeline().fireUserEventTriggered(goAwayFrame.retainedDuplicate());
                     }
@@ -920,7 +920,7 @@ public class ForkedHttp2MultiplexCodec extends Http2FrameCodec {
                 }
                 readInProgress = true;
 
-                final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
+                RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
                 allocHandle.reset(config());
                 if (inboundBuffer == null || inboundBuffer.isEmpty()) {
                     if (closePending) {

@@ -45,7 +45,7 @@ public class GeneratorTaskParams {
     }
 
     public static GeneratorTaskParams create(IntermediateModel model, String sourceDirectory, String testDirectory) {
-        final GeneratorPathProvider pathProvider = new GeneratorPathProvider(model, sourceDirectory, testDirectory);
+        GeneratorPathProvider pathProvider = new GeneratorPathProvider(model, sourceDirectory, testDirectory);
         GeneratorTaskParams params = new GeneratorTaskParams(Freemarker.create(model), model, pathProvider);
         TASK_PARAMS_VALIDATORS.accept(params);
         return params;

@@ -487,7 +487,7 @@ public class MemberModel extends DocumentationModel {
         if (!http.isUri()) {
             throw new IllegalStateException("Only members bound to the URI have a path marshaller");
         }
-        final String prefix = PathMarshaller.class.getName();
+        String prefix = PathMarshaller.class.getName();
         if (http.isGreedy()) {
             return prefix + ".GREEDY";
         } else if (isIdempotencyToken()) {

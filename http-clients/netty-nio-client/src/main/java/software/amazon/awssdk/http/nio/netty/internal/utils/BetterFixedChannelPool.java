@@ -195,7 +195,7 @@ public class BetterFixedChannelPool implements ChannelPool {
     @Override
     public Future<Void> release(final Channel channel, final Promise<Void> promise) {
         ObjectUtil.checkNotNull(promise, "promise");
-        final Promise<Void> p = executor.newPromise();
+        Promise<Void> p = executor.newPromise();
         delegateChannelPool.release(channel, p.addListener(new FutureListener<Void>() {
 
             @Override

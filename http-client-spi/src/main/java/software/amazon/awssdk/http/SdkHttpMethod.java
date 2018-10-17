@@ -42,7 +42,7 @@ public enum SdkHttpMethod {
         if (value == null || value.isEmpty()) {
             return null;
         }
-        final String upperCaseValue = value.toUpperCase(Locale.ENGLISH);
+        String upperCaseValue = value.toUpperCase(Locale.ENGLISH);
         return Stream.of(values())
                 .filter(h -> h.name().equals(upperCaseValue))
                 .findFirst()

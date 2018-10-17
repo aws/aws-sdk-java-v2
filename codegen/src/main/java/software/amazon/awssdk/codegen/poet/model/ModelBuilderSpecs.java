@@ -103,7 +103,7 @@ class ModelBuilderSpecs {
     }
 
     private ClassName parentExceptionBuilder() {
-        final String customExceptionBase = intermediateModel.getCustomizationConfig()
+        String customExceptionBase = intermediateModel.getCustomizationConfig()
                 .getSdkModeledExceptionBaseClassName();
         if (customExceptionBase != null) {
             return poetExtensions.getModelClass(customExceptionBase);

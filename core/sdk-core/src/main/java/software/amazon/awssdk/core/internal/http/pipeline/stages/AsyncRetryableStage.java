@@ -177,7 +177,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {
-            final int retriesAttempted = requestCount - 2;
+            int retriesAttempted = requestCount - 2;
             Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected, will retry in " + delay.toMillis() + "ms,"

@@ -54,8 +54,8 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private GeneratorTask createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
-        final Template template = freemarker.getModelUnmarshallerTemplate();
-        final ShapeType shapeType = shapeModel.getShapeType();
+        Template template = freemarker.getModelUnmarshallerTemplate();
+        ShapeType shapeType = shapeModel.getShapeType();
         Map<String, Object> dataModel = ImmutableMap.<String, Object>builder()
                 .put("fileHeader", model.getFileHeader())
                 .put("shape", shapeModel)

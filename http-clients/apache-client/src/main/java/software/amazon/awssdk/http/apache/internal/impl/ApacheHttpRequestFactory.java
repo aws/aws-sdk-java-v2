@@ -54,7 +54,7 @@ public class ApacheHttpRequestFactory {
 
     public HttpRequestBase create(final SdkHttpFullRequest request, final ApacheHttpRequestConfig requestConfig) {
         URI uri = request.getUri();
-        final HttpRequestBase base = createApacheRequest(request, uri.toString());
+        HttpRequestBase base = createApacheRequest(request, uri.toString());
         addHeadersToRequest(base, request);
         addRequestConfig(base, request, requestConfig);
 
@@ -64,9 +64,9 @@ public class ApacheHttpRequestFactory {
     private void addRequestConfig(final HttpRequestBase base,
                                   final SdkHttpFullRequest request,
                                   final ApacheHttpRequestConfig requestConfig) {
-        final int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
-        final int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
-        final RequestConfig.Builder requestConfigBuilder = RequestConfig
+        int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
+        int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
+        RequestConfig.Builder requestConfigBuilder = RequestConfig
                 .custom()
                 .setConnectionRequestTimeout(connectAcquireTimeout)
                 .setConnectTimeout(connectTimeout)

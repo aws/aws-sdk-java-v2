@@ -48,7 +48,7 @@ public final class Crc32Validation {
     private static AbortableInputStream process(boolean calculateCrc32FromCompressedData,
                                                 SdkHttpFullResponse httpResponse,
                                                 AbortableInputStream content) {
-        final Optional<Long> crc32Checksum = getCrc32Checksum(httpResponse);
+        Optional<Long> crc32Checksum = getCrc32Checksum(httpResponse);
 
         if (shouldDecompress(httpResponse)) {
             if (calculateCrc32FromCompressedData && crc32Checksum.isPresent()) {

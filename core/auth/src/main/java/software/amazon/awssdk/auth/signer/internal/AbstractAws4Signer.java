@@ -64,7 +64,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                 Aws4SignerRequestParams requestParams,
                                                 T signingParams) {
 
-        final SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
+        SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             addSessionCredentials(mutableRequest, (AwsSessionCredentials) sanitizedCredentials);
@@ -78,13 +78,13 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                       .filter(h -> h.equals("required"))
                       .ifPresent(h -> mutableRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
 
-        final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
+        String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
 
-        final String stringToSign = createStringToSign(canonicalRequest, requestParams);
+        String stringToSign = createStringToSign(canonicalRequest, requestParams);
 
-        final byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
+        byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
 
-        final byte[] signature = computeSignature(stringToSign, signingKey);
+        byte[] signature = computeSignature(stringToSign, signingKey);
 
         mutableRequest.putHeader(SignerConstant.AUTHORIZATION,
                                  buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, mutableRequest));
@@ -113,19 +113,19 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         }
 
         // Add the important parameters for v4 signing
-        final String timeStamp = requestParams.getFormattedSigningDateTime();
+        String timeStamp = requestParams.getFormattedSigningDateTime();
 
         addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, requestParams, timeStamp, expirationInSeconds);
 
-        final String contentSha256 = calculateContentHashPresign(mutableRequest, signingParams);
+        String contentSha256 = calculateContentHashPresign(mutableRequest, signingParams);
 
-        final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
+        String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
 
-        final String stringToSign = createStringToSign(canonicalRequest, requestParams);
+        String stringToSign = createStringToSign(canonicalRequest, requestParams);
 
-        final byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
+        byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
 
-        final byte[] signature = computeSignature(stringToSign, signingKey);
+        byte[] signature = computeSignature(stringToSign, signingKey);
 
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
 
@@ -203,7 +203,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private String createStringToSign(String canonicalRequest,
                                       Aws4SignerRequestParams requestParams) {
 
-        final String stringToSign = requestParams.getSigningAlgorithm() +
+        String stringToSign = requestParams.getSigningAlgorithm() +
                                     SignerConstant.LINE_SEPARATOR +
                                     requestParams.getFormattedSigningDateTime() +
                                     SignerConstant.LINE_SEPARATOR +
@@ -224,8 +224,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private byte[] deriveSigningKey(AwsCredentials credentials,
                                     Aws4SignerRequestParams signerRequestParams) {
 
-        final String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
-        final long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
+        String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
+        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
@@ -302,7 +302,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
 
     private String getCanonicalizedHeaderString(Map<String, List<String>> headers) {
-        final List<String> sortedHeaders = new ArrayList<>(headers.keySet());
+        List<String> sortedHeaders = new ArrayList<>(headers.keySet());
         sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
 
         StringBuilder buffer = new StringBuilder();
@@ -367,7 +367,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     }
 
     private String getSignedHeadersString(Map<String, List<String>> headers) {
-        final List<String> sortedHeaders = new ArrayList<>(headers.keySet());
+        List<String> sortedHeaders = new ArrayList<>(headers.keySet());
         sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
 
         StringBuilder buffer = new StringBuilder();
@@ -392,7 +392,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         // AWS4 requires that we sign the Host header so we
         // have to have it in the request by the time we sign.
 
-        final StringBuilder hostHeaderBuilder = new StringBuilder(mutableRequest.host());
+        StringBuilder hostHeaderBuilder = new StringBuilder(mutableRequest.host());
         if (!SdkHttpUtils.isUsingStandardPort(mutableRequest.protocol(), mutableRequest.port())) {
             hostHeaderBuilder.append(":").append(mutableRequest.port());
         }

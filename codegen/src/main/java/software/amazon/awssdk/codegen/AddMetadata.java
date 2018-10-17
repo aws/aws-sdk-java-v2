@@ -42,13 +42,13 @@ final class AddMetadata {
                                              BasicCodeGenConfig codeGenConfig,
                                              CustomizationConfig customizationConfig) {
 
-        final Metadata metadata = new Metadata();
+        Metadata metadata = new Metadata();
 
-        final NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
-        final ServiceMetadata serviceMetadata = serviceModel.getMetadata();
+        NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
+        ServiceMetadata serviceMetadata = serviceModel.getMetadata();
 
-        final String serviceName;
-        final String rootPackageName;
+        String serviceName;
+        String rootPackageName;
 
         // API Gateway uses additional codegen.config settings
         if (serviceMetadata.getProtocol().equals(Protocol.API_GATEWAY.getValue())) {
@@ -100,7 +100,7 @@ final class AddMetadata {
                 .withUid(serviceMetadata.getUid())
                 .withSupportsH2(supportsH2(serviceMetadata));
 
-        final String jsonVersion = getJsonVersion(metadata, serviceMetadata);
+        String jsonVersion = getJsonVersion(metadata, serviceMetadata);
         metadata.setJsonVersion(jsonVersion);
 
         // TODO: iterate through all the operations and check whether any of

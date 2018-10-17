@@ -142,8 +142,8 @@ public final class SdkAsserts {
             fail("Actual file doesn't exist");
         }
 
-        final long expectedFileLen = expected.length();
-        final long fileLen = actual.length();
+        long expectedFileLen = expected.length();
+        long fileLen = actual.length();
         Assert.assertTrue("expectedFileLen=" + expectedFileLen + ", fileLen=" + fileLen + ", expectedFile=" + expected
                           + ", file=" + actual, expectedFileLen == fileLen);
         try (InputStream expectedIs = new FileInputStream(expected); InputStream actualIs = new FileInputStream(actual)) {
@@ -191,8 +191,8 @@ public final class SdkAsserts {
     public static boolean doesStreamEqualStream(InputStream expected, InputStream actual) throws IOException {
 
         try {
-            final byte[] expectedDigest = InputStreamUtils.calculateMD5Digest(expected);
-            final byte[] actualDigest = InputStreamUtils.calculateMD5Digest(actual);
+            byte[] expectedDigest = InputStreamUtils.calculateMD5Digest(expected);
+            byte[] actualDigest = InputStreamUtils.calculateMD5Digest(actual);
 
             return Arrays.equals(expectedDigest, actualDigest);
         } catch (NoSuchAlgorithmException nse) {

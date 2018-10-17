@@ -64,7 +64,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     @Override
     public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
-        final HttpURLConnection connection = createAndConfigureConnection(request.httpRequest());
+        HttpURLConnection connection = createAndConfigureConnection(request.httpRequest());
         return new RequestCallable(connection, request.httpRequest());
     }
 

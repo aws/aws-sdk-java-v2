@@ -225,7 +225,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                 return;
             }
 
-            final ByteBuffer buffer = ByteBuffer.allocate(chunkSize);
+            ByteBuffer buffer = ByteBuffer.allocate(chunkSize);
             inputChannel.read(buffer, position, buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {

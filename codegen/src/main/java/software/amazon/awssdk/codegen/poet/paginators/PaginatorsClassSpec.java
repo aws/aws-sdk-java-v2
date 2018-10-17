@@ -150,7 +150,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * the Shards.
      */
     protected MemberModel memberModelForResponseMember(String input) {
-        final String[] hierarchy = input.split("\\.");
+        String[] hierarchy = input.split("\\.");
 
         if (hierarchy.length < 1) {
             throw new IllegalArgumentException(String.format("Error when splitting value %s for operation %s",
@@ -286,7 +286,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * @param member A top level or nested member in response of {@link #c2jOperationName}.
      */
     private String fluentGetterMethodForResponseMember(String member) {
-        final String[] hierarchy = member.split("\\.");
+        String[] hierarchy = member.split("\\.");
 
         if (hierarchy.length < 1) {
             throw new IllegalArgumentException(String.format("Error when splitting member %s for operation %s",
@@ -294,7 +294,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         }
 
         ShapeModel parentShape = operationModel.getOutputShape();
-        final StringBuilder getterMethod = new StringBuilder();
+        StringBuilder getterMethod = new StringBuilder();
 
         for (String str : hierarchy) {
             getterMethod.append(".")
@@ -308,8 +308,8 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
     }
 
     protected CodeBlock getIteratorLambdaBlock(String resultKey, MemberModel resultKeyModel) {
-        final String conditionalStatement = getConditionalStatementforIteratorLambda(resultKey);
-        final String fluentGetter = fluentGetterMethodForResponseMember(resultKey);
+        String conditionalStatement = getConditionalStatementforIteratorLambda(resultKey);
+        String fluentGetter = fluentGetterMethodForResponseMember(resultKey);
 
         CodeBlock iteratorBlock = null;
         if (resultKeyModel.isList()) {
@@ -342,7 +342,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * @param resultKey A top level or nested member in response of {@link #c2jOperationName}.
      */
     private String getConditionalStatementforIteratorLambda(String resultKey) {
-        final String[] hierarchy = resultKey.split("\\.");
+        String[] hierarchy = resultKey.split("\\.");
 
         if (hierarchy.length < 1) {
             throw new IllegalArgumentException(String.format("Error when splitting member %s for operation %s",
@@ -352,7 +352,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         String currentFluentMethod = RESPONSE_LITERAL;
         ShapeModel parentShape = operationModel.getOutputShape();
 
-        final StringBuilder conditionStatement = new StringBuilder(String.format("%s != null", currentFluentMethod));
+        StringBuilder conditionStatement = new StringBuilder(String.format("%s != null", currentFluentMethod));
 
         for (String str : hierarchy) {
             currentFluentMethod = String.format("%s.%s()", currentFluentMethod, parentShape.findMemberModelByC2jName(str)

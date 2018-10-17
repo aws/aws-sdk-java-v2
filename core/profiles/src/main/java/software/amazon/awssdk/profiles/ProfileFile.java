@@ -122,7 +122,7 @@ public final class ProfileFile {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final ProfileFile that = (ProfileFile) o;
+        ProfileFile that = (ProfileFile) o;
         return Objects.equals(profiles, that.profiles);
     }
 

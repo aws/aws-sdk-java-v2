@@ -118,7 +118,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
 
         try {
             this.sha256 = MessageDigest.getInstance("SHA-256");
-            final String signingAlgo = SigningAlgorithm.HmacSHA256.toString();
+            String signingAlgo = SigningAlgorithm.HmacSHA256.toString();
             this.hmacSha256 = Mac.getInstance(signingAlgo);
             hmacSha256.init(new SecretKeySpec(kSigning, signingAlgo));
         } catch (NoSuchAlgorithmException e) {
@@ -314,14 +314,14 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
         // chunk-size
         chunkHeader.append(Integer.toHexString(chunkData.length));
         // sig-extension
-        final String chunkStringToSign =
+        String chunkStringToSign =
             CHUNK_STRING_TO_SIGN_PREFIX + "\n" +
             dateTime + "\n" +
             keyPath + "\n" +
             priorChunkSignature + "\n" +
             AbstractAws4Signer.EMPTY_STRING_SHA256_HEX + "\n" +
             BinaryUtils.toHex(sha256.digest(chunkData));
-        final String chunkSignature =
+        String chunkSignature =
                 BinaryUtils.toHex(aws4Signer.signWithMac(chunkStringToSign, hmacSha256));
         priorChunkSignature = chunkSignature;
         chunkHeader.append(CHUNK_SIGNATURE_HEADER)
