@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sfn.builder.internal.validation;
 
-import com.jayway.jsonpath.InvalidPathException;
-import com.jayway.jsonpath.JsonPath;
 import java.util.Collection;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -180,14 +178,6 @@ final class ValidationContext {
         }
         if (path.isEmpty()) {
             problemReporter.report(new Problem(this, String.format("%s cannot be empty", propertyName)));
-            return;
-        }
-        try {
-            JsonPath.compile(path);
-        } catch (InvalidPathException e) {
-            problemReporter.report(new Problem(this,
-                                               String.format("%s with value '%s' is not a valid JsonPath. %s", propertyName, path,
-                                                             e.getMessage())));
         }
     }
 
@@ -204,17 +194,6 @@ final class ValidationContext {
         if (path.isEmpty()) {
             problemReporter.report(new Problem(this, String.format("%s cannot be empty", propertyName)));
             return;
-        }
-        try {
-            if (!JsonPath.isPathDefinite(path)) {
-                problemReporter.report(new Problem(this,
-                                                   String.format("%s with value '%s' is not a definite reference path.",
-                                                                 propertyName, path)));
-            }
-        } catch (InvalidPathException e) {
-            problemReporter.report(new Problem(this,
-                                               String.format("%s with value '%s' is not a valid JsonPath. %s", propertyName, path,
-                                                             e.getMessage())));
         }
     }
 

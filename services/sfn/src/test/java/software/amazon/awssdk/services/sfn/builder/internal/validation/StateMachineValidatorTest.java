@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sfn.builder.internal.validation;
 
-import static software.amazon.awssdk.services.sfn.builder.StepFunctionBuilder.eq;
-
 import org.junit.Test;
 import software.amazon.awssdk.services.sfn.builder.ErrorCode;
 import software.amazon.awssdk.services.sfn.builder.StepFunctionBuilder;
@@ -405,26 +403,6 @@ public class StateMachineValidatorTest {
     }
 
     @Test(expected = ValidationException.class)
-    public void waitForTimestampPath_InvalidJsonPath_IsNotValid() {
-        StepFunctionBuilder.stateMachine()
-                           .startAt("Initial")
-                           .state("Initial", StepFunctionBuilder.waitState()
-                                                                .waitFor(StepFunctionBuilder.timestampPath("$."))
-                                                                .transition(StepFunctionBuilder.end()))
-                           .build();
-    }
-
-    @Test(expected = ValidationException.class)
-    public void waitForTimestampPath_InvalidReferencePath_IsNotValid() {
-        StepFunctionBuilder.stateMachine()
-                           .startAt("Initial")
-                           .state("Initial", StepFunctionBuilder.waitState()
-                                                                .waitFor(StepFunctionBuilder.timestampPath("$.foo[*]"))
-                                                                .transition(StepFunctionBuilder.end()))
-                           .build();
-    }
-
-    @Test(expected = ValidationException.class)
     public void waitForSecondsPath_MissingPath_IsNotValid() {
         StepFunctionBuilder.stateMachine()
                            .startAt("Initial")
@@ -440,26 +418,6 @@ public class StateMachineValidatorTest {
                            .startAt("Initial")
                            .state("Initial", StepFunctionBuilder.waitState()
                                                                 .waitFor(StepFunctionBuilder.secondsPath(""))
-                                                                .transition(StepFunctionBuilder.end()))
-                           .build();
-    }
-
-    @Test(expected = ValidationException.class)
-    public void waitForSecondsPath_InvalidJsonPath_IsNotValid() {
-        StepFunctionBuilder.stateMachine()
-                           .startAt("Initial")
-                           .state("Initial", StepFunctionBuilder.waitState()
-                                                                .waitFor(StepFunctionBuilder.secondsPath("$."))
-                                                                .transition(StepFunctionBuilder.end()))
-                           .build();
-    }
-
-    @Test(expected = ValidationException.class)
-    public void waitForSecondsPath_InvalidReferencePath_IsNotValid() {
-        StepFunctionBuilder.stateMachine()
-                           .startAt("Initial")
-                           .state("Initial", StepFunctionBuilder.waitState()
-                                                                .waitFor(StepFunctionBuilder.secondsPath("$.foo[*]"))
                                                                 .transition(StepFunctionBuilder.end()))
                            .build();
     }

@@ -32,18 +32,6 @@
 
     <dependencies>
         <dependency>
-            <artifactId>json-path</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>json-smart</artifactId>
-                    <groupId>net.minidev</groupId>
-                </exclusion>
-            </exclusions>
-            <groupId>com.jayway.jsonpath</groupId>
-            <version>${json-path.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
