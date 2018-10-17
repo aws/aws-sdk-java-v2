@@ -138,8 +138,12 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
      * @param bucketName     Bucket name for this particular operation.
      */
     private void changeToDnsEndpoint(SdkHttpFullRequest.Builder mutableRequest, String bucketName) {
-        if (mutableRequest.host().startsWith("s3")) {
-            String newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
+        int prefixEnd = mutableRequest.host().indexOf(".");
+
+        if (prefixEnd != -1) {
+            String prefix = mutableRequest.host().substring(0, prefixEnd);
+
+            String newHost = mutableRequest.host().replaceFirst(prefix, bucketName + "." + prefix);
             String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");
 
             mutableRequest.host(newHost).encodedPath(newPath);

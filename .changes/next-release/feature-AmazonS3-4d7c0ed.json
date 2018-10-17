@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "feature", 
+    "description": "Use virtual style addressing for third party s3 endpoints."
+}

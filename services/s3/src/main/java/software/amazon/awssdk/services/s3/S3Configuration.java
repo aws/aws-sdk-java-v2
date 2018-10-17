@@ -80,7 +80,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * requests.
      * </p>
      *
-     * @return True is the client should always use path-style access
+     * @return True if the client should always use path-style access
      */
     public boolean pathStyleAccessEnabled() {
         return pathStyleAccessEnabled;
