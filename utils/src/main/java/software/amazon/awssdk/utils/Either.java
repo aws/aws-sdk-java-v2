@@ -140,7 +140,7 @@ public final class Either<L, R> {
             return false;
         }
 
-        final Either<?, ?> either = (Either<?, ?>) o;
+        Either<?, ?> either = (Either<?, ?>) o;
 
         return left.equals(either.left) && right.equals(either.right);
     }

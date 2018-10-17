@@ -191,7 +191,7 @@ public final class Utils {
                     "Invalid path directory. Path directory cannot be null or empty");
         }
 
-        final File dir = new File(path);
+        File dir = new File(path);
         createDirectory(dir);
         return dir;
     }

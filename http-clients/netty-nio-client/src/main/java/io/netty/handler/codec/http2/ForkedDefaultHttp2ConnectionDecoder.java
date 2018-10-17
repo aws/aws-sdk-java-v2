@@ -182,7 +182,7 @@ public class ForkedDefaultHttp2ConnectionDecoder implements Http2ConnectionDecod
             Http2LocalFlowController flowController = flowController();
             int bytesToReturn = data.readableBytes() + padding;
 
-            final boolean shouldIgnore;
+            boolean shouldIgnore;
             try {
                 shouldIgnore = shouldIgnoreHeadersOrDataFrame(ctx, streamId, stream, "DATA");
             } catch (Http2Exception e) {
@@ -375,9 +375,9 @@ public class ForkedDefaultHttp2ConnectionDecoder implements Http2ConnectionDecod
          */
         private void applyLocalSettings(Http2Settings settings) throws Http2Exception {
             Boolean pushEnabled = settings.pushEnabled();
-            final Http2FrameReader.Configuration config = frameReader.configuration();
-            final Http2HeadersDecoder.Configuration headerConfig = config.headersConfiguration();
-            final Http2FrameSizePolicy frameSizePolicy = config.frameSizePolicy();
+            Http2FrameReader.Configuration config = frameReader.configuration();
+            Http2HeadersDecoder.Configuration headerConfig = config.headersConfiguration();
+            Http2FrameSizePolicy frameSizePolicy = config.frameSizePolicy();
             if (pushEnabled != null) {
                 if (connection.isServer()) {
                     throw connectionError(PROTOCOL_ERROR, "Server sending SETTINGS frame with ENABLE_PUSH specified");

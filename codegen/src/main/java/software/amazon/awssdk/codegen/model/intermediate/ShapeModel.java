@@ -384,11 +384,11 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     }
 
     public Map<String, MemberModel> getMembersAsMap() {
-        final Map<String, MemberModel> shapeMembers = new HashMap<String, MemberModel>();
+        Map<String, MemberModel> shapeMembers = new HashMap<String, MemberModel>();
 
         // Creating a map of shape's members. This map is used below when
         // fetching the details of a member.
-        final List<MemberModel> memberModels = getMembers();
+        List<MemberModel> memberModels = getMembers();
         if (memberModels != null) {
             for (MemberModel model : memberModels) {
                 shapeMembers.put(model.getName(), model);
@@ -403,8 +403,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      */
     private MemberModel tryFindMemberModelByC2jName(String memberC2jName, boolean ignoreCase) {
 
-        final List<MemberModel> memberModels = getMembers();
-        final String expectedName = ignoreCase ? StringUtils.lowerCase(memberC2jName)
+        List<MemberModel> memberModels = getMembers();
+        String expectedName = ignoreCase ? StringUtils.lowerCase(memberC2jName)
                                                : memberC2jName;
 
         if (memberModels != null) {

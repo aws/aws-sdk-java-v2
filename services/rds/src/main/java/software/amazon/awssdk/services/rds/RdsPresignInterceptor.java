@@ -109,7 +109,7 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
 
         requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
 
-        final String presignedUrl = requestToPresign.getUri().toString();
+        String presignedUrl = requestToPresign.getUri().toString();
 
         return request.toBuilder()
                       .putRawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)
@@ -142,7 +142,7 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
     }
 
     private URI createEndpoint(String regionName, String serviceName) {
-        final Region region = Region.of(regionName);
+        Region region = Region.of(regionName);
 
         if (region == null) {
             throw SdkClientException.builder()

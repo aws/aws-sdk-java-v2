@@ -436,5 +436,8 @@
 
         <!-- Checks that every class is marked with Sdk Annotation -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.MissingSdkAnnotationCheck" />
+
+        <!-- Checks that no 'final' are added on local variables -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.UnnecessaryFinalOnLocalVariableCheck" />
     </module>
 </module>

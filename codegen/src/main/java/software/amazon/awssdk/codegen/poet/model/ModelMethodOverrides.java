@@ -61,14 +61,14 @@ public class ModelMethodOverrides {
             methodBuilder.addStatement("$T other = ($T) obj", className, className);
         }
 
-        final List<MemberModel> memberModels = shapeModel.getNonStreamingMembers();
-        final CodeBlock.Builder memberEqualsStmt = CodeBlock.builder();
+        List<MemberModel> memberModels = shapeModel.getNonStreamingMembers();
+        CodeBlock.Builder memberEqualsStmt = CodeBlock.builder();
         if (memberModels.isEmpty()) {
             memberEqualsStmt.addStatement("return true");
         } else {
             memberEqualsStmt.add("return ");
             memberEqualsStmt.add(memberModels.stream().map(m -> {
-                final String getterName = m.getFluentGetterMethodName();
+                String getterName = m.getFluentGetterMethodName();
                 return CodeBlock.builder().add("$T.equals($N(), other.$N())", Objects.class, getterName, getterName).build();
             }).collect(PoetCollectors.toDelimitedCodeBlock("&&")));
             memberEqualsStmt.add(";");

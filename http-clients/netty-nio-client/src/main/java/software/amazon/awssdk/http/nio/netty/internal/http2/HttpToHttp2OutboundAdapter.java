@@ -82,13 +82,13 @@ public class HttpToHttp2OutboundAdapter extends ChannelOutboundHandlerAdapter {
                     isLastContent = true;
 
                     // Convert any trailing headers.
-                    final LastHttpContent lastContent = (LastHttpContent) msg;
+                    LastHttpContent lastContent = (LastHttpContent) msg;
                     trailers = lastContent.trailingHeaders();
                     http2Trailers = HttpConversionUtil.toHttp2Headers(trailers, false);
                 }
 
                 // Write the data
-                final ByteBuf content = ((HttpContent) msg).content();
+                ByteBuf content = ((HttpContent) msg).content();
                 endStream = isLastContent && trailers.isEmpty();
                 release = false;
                 ctx.write(new DefaultHttp2DataFrame(content, endStream), promiseAggregator);

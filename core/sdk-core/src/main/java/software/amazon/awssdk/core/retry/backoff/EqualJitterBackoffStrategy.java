@@ -133,7 +133,7 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
             return false;
         }
 
-        final EqualJitterBackoffStrategy that = (EqualJitterBackoffStrategy) o;
+        EqualJitterBackoffStrategy that = (EqualJitterBackoffStrategy) o;
 
         if (!baseDelay.equals(that.baseDelay)) {
             return false;

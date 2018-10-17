@@ -168,7 +168,7 @@ public final class SimpleTypeJsonMarshaller {
             jsonGenerator.writeStartObject();
             for (Map.Entry<String, ?> entry : ((Map<String, ?>) map).entrySet()) {
                 if (entry.getValue() != null) {
-                    final Object value = entry.getValue();
+                    Object value = entry.getValue();
                     jsonGenerator.writeFieldName(entry.getKey());
                     context.marshall(MarshallLocation.PAYLOAD, value);
                 }

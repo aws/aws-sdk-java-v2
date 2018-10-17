@@ -48,7 +48,7 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
     @Override
     @ReviewBeforeRelease("Add some links to doc topics on configuring HTTP impl")
     public Optional<T> loadService() {
-        final Iterator<T> httpServices = serviceLoader.loadServices(serviceClass);
+        Iterator<T> httpServices = serviceLoader.loadServices(serviceClass);
         if (!httpServices.hasNext()) {
             return Optional.empty();
         }

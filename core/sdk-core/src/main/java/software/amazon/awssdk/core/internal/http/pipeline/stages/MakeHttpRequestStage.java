@@ -47,12 +47,12 @@ public class MakeHttpRequestStage
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(SdkHttpFullRequest request,
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        final SdkHttpFullResponse httpResponse = executeHttpRequest(request, context);
+        SdkHttpFullResponse httpResponse = executeHttpRequest(request, context);
         return Pair.of(request, httpResponse);
     }
 
     private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        final AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
+        AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
             .prepareRequest(ExecuteRequest.builder().request(request).build());
 
         context.apiCallTimeoutTracker().abortable(requestCallable);

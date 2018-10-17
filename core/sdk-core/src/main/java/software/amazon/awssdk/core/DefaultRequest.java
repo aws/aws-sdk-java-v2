@@ -271,7 +271,7 @@ public class DefaultRequest<T> implements Request<T> {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         builder.append(getHttpMethod()).append(" ");
         builder.append(getEndpoint()).append(" ");
         String resourcePath = getResourcePath();

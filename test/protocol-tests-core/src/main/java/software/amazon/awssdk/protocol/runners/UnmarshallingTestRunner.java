@@ -50,7 +50,7 @@ class UnmarshallingTestRunner {
 
     void runTest(TestCase testCase) throws Exception {
         resetWireMock(testCase.getGiven().getResponse());
-        final String operationName = testCase.getWhen().getOperationName();
+        String operationName = testCase.getWhen().getOperationName();
         if (!hasStreamingMember(operationName)) {
             Object actualResult = clientReflector.invokeMethod(testCase, createRequestObject(operationName));
             testCase.getThen().getUnmarshallingAssertion().assertMatches(createContext(operationName), actualResult);
@@ -95,7 +95,7 @@ class UnmarshallingTestRunner {
 
     private ResponseDefinitionBuilder toResponseBuilder(GivenResponse givenResponse) {
 
-        final ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(200);
+        ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(200);
         if (givenResponse.getHeaders() != null) {
             givenResponse.getHeaders().forEach(responseBuilder::withHeader);
         }
@@ -116,7 +116,7 @@ class UnmarshallingTestRunner {
      * @return An empty request object to call the operation method with.
      */
     private Object createRequestObject(String operationName) throws Exception {
-        final String requestClassName = getModelFqcn(getOperationRequestClassName(operationName));
+        String requestClassName = getModelFqcn(getOperationRequestClassName(operationName));
 
         Class<?> requestClass = Class.forName(requestClassName);
 

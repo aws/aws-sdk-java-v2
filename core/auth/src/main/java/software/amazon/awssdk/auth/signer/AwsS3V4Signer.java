@@ -77,13 +77,13 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
             return request;
         }
 
-        final Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
+        Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
         return doSign(request, requestParams, signingParams).build();
     }
 
     private AwsS3V4SignerParams constructAwsS3SignerParams(ExecutionAttributes executionAttributes) {
-        final AwsS3V4SignerParams.Builder signerParams = extractSignerParams(AwsS3V4SignerParams.builder(),
+        AwsS3V4SignerParams.Builder signerParams = extractSignerParams(AwsS3V4SignerParams.builder(),
                                                                              executionAttributes);
 
         Optional.ofNullable(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING))
@@ -117,7 +117,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
             return request;
         }
 
-        final Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
+        Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
         return doPresign(request, requestParams, signingParams).build();
     }
@@ -162,9 +162,9 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
 
         if (isPayloadSigningEnabled(mutableRequest, signerParams)) {
             if (useChunkEncoding(mutableRequest, signerParams)) {
-                final String contentLength = mutableRequest.firstMatchingHeader(CONTENT_LENGTH)
+                String contentLength = mutableRequest.firstMatchingHeader(CONTENT_LENGTH)
                                                            .orElse(null);
-                final long originalContentLength;
+                long originalContentLength;
                 if (contentLength != null) {
                     originalContentLength = Long.parseLong(contentLength);
                 } else {
@@ -237,7 +237,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
      * mark-supported.
      */
     private static long getContentLength(SdkHttpFullRequest.Builder requestBuilder) throws IOException {
-        final InputStream content = requestBuilder.content();
+        InputStream content = requestBuilder.content();
         validState(content.markSupported(), "Request input stream must have been made mark-and-resettable");
 
         long contentLength = 0;

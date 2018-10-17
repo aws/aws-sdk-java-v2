@@ -139,7 +139,7 @@ public class StateMachineValidator {
 
         private boolean visit(String stateName) {
             ValidationContext stateContext = currentContext.state(stateName);
-            final State state = states.get(stateName);
+            State state = states.get(stateName);
             if (!parentVisited.containsKey(stateName) && visited.containsKey(stateName)) {
                 problemReporter.report(new Problem(stateContext, "Cycle detected."));
                 return false;
@@ -154,7 +154,7 @@ public class StateMachineValidator {
             if (state.isTerminalState()) {
                 return true;
             } else if (state instanceof TransitionState) {
-                final Transition transition = ((TransitionState) state).getTransition();
+                Transition transition = ((TransitionState) state).getTransition();
                 return visit(((NextStateTransition) transition).getNextStateName());
             } else if (state instanceof ChoiceState) {
                 return validateChoiceState(stateContext, (ChoiceState) state);
@@ -175,12 +175,12 @@ public class StateMachineValidator {
         }
 
         private boolean validateChoiceState(ValidationContext stateContext, ChoiceState choiceState) {
-            final Map<String, State> merged = mergeParentVisited();
+            Map<String, State> merged = mergeParentVisited();
             boolean hasPathToTerminal = new GraphValidator(stateContext, merged, choiceState.getDefaultStateName(), states)
                     .validate();
             int index = 0;
             for (Choice choice : choiceState.getChoices()) {
-                final String nextStateName = ((NextStateTransition) choice.getTransition()).getNextStateName();
+                String nextStateName = ((NextStateTransition) choice.getTransition()).getNextStateName();
                 // It's important hasPathToTerminal is last in the OR so it doesn't short circuit the choice validation
                 hasPathToTerminal = new GraphValidator(stateContext.choice(index), merged, nextStateName, states).validate()
                                     || hasPathToTerminal;
@@ -190,7 +190,7 @@ public class StateMachineValidator {
         }
 
         private Map<String, State> mergeParentVisited() {
-            final Map<String, State> merged = new HashMap<String, State>(parentVisited.size() + visited.size());
+            Map<String, State> merged = new HashMap<String, State>(parentVisited.size() + visited.size());
             merged.putAll(parentVisited);
             merged.putAll(visited);
             return merged;
@@ -419,7 +419,7 @@ public class StateMachineValidator {
         private void validateTransition(ValidationContext context, Transition transition) {
             context.assertNotNull(transition, "Transition");
             if (transition instanceof NextStateTransition) {
-                final String nextStateName = ((NextStateTransition) transition).getNextStateName();
+                String nextStateName = ((NextStateTransition) transition).getNextStateName();
                 context.assertNotNull(nextStateName, PropertyName.NEXT);
                 assertContainsState(context, nextStateName);
             }

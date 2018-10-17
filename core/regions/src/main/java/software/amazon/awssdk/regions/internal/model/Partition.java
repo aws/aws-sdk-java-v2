@@ -172,7 +172,7 @@ public final class Partition {
     }
 
     private boolean matchesRegionRegex(String region) {
-        final Pattern p = Pattern.compile(regionRegex);
+        Pattern p = Pattern.compile(regionRegex);
         return p.matcher(region).matches();
     }
 

@@ -44,11 +44,11 @@ final class AddModelShapes extends AddShapes implements IntermediateModelShapePr
 
     private Map<String, ShapeModel> constructModelShapes(Set<String> shapesToSkip) {
         // Java output shape models, to be constructed
-        final Map<String, ShapeModel> javaShapes = new HashMap<>();
+        Map<String, ShapeModel> javaShapes = new HashMap<>();
 
         for (Map.Entry<String, Shape> entry : getServiceModel().getShapes().entrySet()) {
-            final String shapeName = entry.getKey();
-            final Shape shape = entry.getValue();
+            String shapeName = entry.getKey();
+            Shape shape = entry.getValue();
 
             ShapeType shapeType = getModelShapeType(shape);
 

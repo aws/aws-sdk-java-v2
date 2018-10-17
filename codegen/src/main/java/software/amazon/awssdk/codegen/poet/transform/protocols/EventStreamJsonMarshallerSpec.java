@@ -102,9 +102,9 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
     }
 
     private String getPayloadContentType(MemberModel memberModel) {
-        final String blobContentType = "application/octet-stream";
-        final String stringContentType = "text/plain";
-        final String variableType = memberModel.getVariable().getVariableType();
+        String blobContentType = "application/octet-stream";
+        String stringContentType = "text/plain";
+        String variableType = memberModel.getVariable().getVariableType();
 
         if ("software.amazon.awssdk.core.SdkBytes".equals(variableType)) {
             return blobContentType;

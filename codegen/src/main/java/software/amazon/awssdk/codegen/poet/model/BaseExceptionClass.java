@@ -33,7 +33,7 @@ public class BaseExceptionClass implements ClassSpec {
     private final ClassName baseExceptionClassName;
 
     public BaseExceptionClass(IntermediateModel model) {
-        final String basePackage = model.getMetadata().getFullModelPackageName();
+        String basePackage = model.getMetadata().getFullModelPackageName();
         this.baseExceptionClassName = ClassName.get(basePackage, model.getSdkModeledExceptionBaseClassName());
     }
 

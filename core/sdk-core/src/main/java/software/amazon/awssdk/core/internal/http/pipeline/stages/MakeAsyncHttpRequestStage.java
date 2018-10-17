@@ -93,7 +93,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         //FIXME(dongie): We need to be careful to only call responseHandler.prepare() exactly once per execute() call
         //because it calls prepare() under the hood and we guarantee that we call that once per execution. It would be good
         //to find a way to prevent multiple calls to prepare() within a single execution to only call prepare() once.
-        final ResponseHandler handler = new ResponseHandler(responseHandler.prepare(), errorResponseFuture);
+        ResponseHandler handler = new ResponseHandler(responseHandler.prepare(), errorResponseFuture);
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)

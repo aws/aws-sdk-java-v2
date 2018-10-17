@@ -101,7 +101,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
             return false;
         }
 
-        final RetryPolicy that = (RetryPolicy) o;
+        RetryPolicy that = (RetryPolicy) o;
 
         if (!retryCondition.equals(that.retryCondition)) {
             return false;

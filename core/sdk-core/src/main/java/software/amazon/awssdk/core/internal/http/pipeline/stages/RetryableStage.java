@@ -177,7 +177,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
          * Sleep for a period of time on failed request to avoid flooding a service with retries.
          */
         private void doPauseBeforeRetry() throws InterruptedException {
-            final int retriesAttempted = requestCount - 2;
+            int retriesAttempted = requestCount - 2;
             Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected, will retry in " + delay.toMillis() + "ms,"

@@ -215,16 +215,16 @@ public abstract class AbstractAwsSigner implements Signer {
      */
     protected String getCanonicalizedQueryString(Map<String, List<String>> parameters) {
 
-        final SortedMap<String, List<String>> sorted = new TreeMap<>();
+        SortedMap<String, List<String>> sorted = new TreeMap<>();
 
         /**
          * Signing protocol expects the param values also to be sorted after url
          * encoding in addition to sorted parameter names.
          */
         for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
-            final String encodedParamName = SdkHttpUtils.urlEncode(entry.getKey());
-            final List<String> paramValues = entry.getValue();
-            final List<String> encodedValues = new ArrayList<>(paramValues.size());
+            String encodedParamName = SdkHttpUtils.urlEncode(entry.getKey());
+            List<String> paramValues = entry.getValue();
+            List<String> encodedValues = new ArrayList<>(paramValues.size());
             for (String value : paramValues) {
                 String encodedValue = SdkHttpUtils.urlEncode(value);
 

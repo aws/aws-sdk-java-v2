@@ -89,7 +89,7 @@ public class JavaCodeFormatter implements CodeTransformer {
     }
 
     public String apply(String contents) {
-        final TextEdit edit = codeFormatter.format(
+        TextEdit edit = codeFormatter.format(
                 CodeFormatter.K_COMPILATION_UNIT
                 | CodeFormatter.F_INCLUDE_COMMENTS, contents, 0,
                 contents.length(), 0, Constant.LF);

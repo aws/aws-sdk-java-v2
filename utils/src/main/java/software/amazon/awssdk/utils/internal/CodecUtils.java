@@ -53,12 +53,12 @@ public final class CodecUtils {
      *             if the input string contains any multi-octet character
      */
     static int sanitize(final String singleOctets, byte[] dest) {
-        final int capacity = dest.length;
-        final char[] src = singleOctets.toCharArray();
+        int capacity = dest.length;
+        char[] src = singleOctets.toCharArray();
         int limit = 0;
 
         for (int i = 0; i < capacity; i++) {
-            final char c = src[i];
+            char c = src[i];
 
             if (c == '\r' || c == '\n' || c == ' ') {
                 continue;
@@ -78,11 +78,11 @@ public final class CodecUtils {
      * @throws IllegalArgumentException if the input string contains any multi-octet character
      */
     public static byte[] toBytesDirect(final String singleOctets) {
-        final char[] src = singleOctets.toCharArray();
-        final byte[] dest = new byte[src.length];
+        char[] src = singleOctets.toCharArray();
+        byte[] dest = new byte[src.length];
 
         for (int i = 0; i < dest.length; i++) {
-            final char c = src[i];
+            char c = src[i];
 
             if (c > Byte.MAX_VALUE) {
                 throw new IllegalArgumentException("Invalid character found at position " + i + " for " + singleOctets);
@@ -97,7 +97,7 @@ public final class CodecUtils {
      * treating each byte as a single octet character.
      */
     public static String toStringDirect(final byte[] bytes) {
-        final char[] dest = new char[bytes.length];
+        char[] dest = new char[bytes.length];
         int i = 0;
 
         for (byte b : bytes) {

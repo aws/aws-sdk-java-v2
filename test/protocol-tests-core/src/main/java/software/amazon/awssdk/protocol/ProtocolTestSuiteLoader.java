@@ -50,7 +50,7 @@ public final class ProtocolTestSuiteLoader {
 
     private Stream<? extends TestCase> loadTestCases(String testCase) {
         try {
-            final List<TestCase> testCases = MAPPER
+            List<TestCase> testCases = MAPPER
                     .readValue(getClass().getResource(RESOURCE_PREFIX + testCase), new ListTypeReference());
             return testCases.stream();
         } catch (IOException e) {

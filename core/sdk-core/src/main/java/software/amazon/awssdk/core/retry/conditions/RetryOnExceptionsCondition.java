@@ -85,7 +85,7 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
             return false;
         }
 
-        final RetryOnExceptionsCondition that = (RetryOnExceptionsCondition) o;
+        RetryOnExceptionsCondition that = (RetryOnExceptionsCondition) o;
 
         return exceptionsToRetryOn.equals(that.exceptionsToRetryOn);
     }

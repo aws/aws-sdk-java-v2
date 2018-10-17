@@ -63,7 +63,7 @@ public class ClientReflector implements SdkAutoCloseable {
      * @return Unmarshalled result
      */
     public Object invokeMethod(TestCase testCase, Object... params) throws Exception {
-        final String operationName = testCase.getWhen().getOperationName();
+        String operationName = testCase.getWhen().getOperationName();
         Method operationMethod = getOperationMethod(operationName, params);
         return operationMethod.invoke(client, params);
     }
@@ -78,7 +78,7 @@ public class ClientReflector implements SdkAutoCloseable {
     public Object invokeStreamingMethod(TestCase testCase,
                                         Object requestObject,
                                         ResponseTransformer<?, ?> responseHandler) throws Exception {
-        final String operationName = testCase.getWhen().getOperationName();
+        String operationName = testCase.getWhen().getOperationName();
         Method operationMethod = getOperationMethod(operationName, requestObject.getClass(), ResponseTransformer.class);
         return operationMethod.invoke(client, requestObject, responseHandler);
     }

@@ -14,7 +14,7 @@
   -->
 
 <code_scheme name="AWS Java SDK 2.0">
-  <option name="GENERATE_FINAL_LOCALS" value="true" />
+  <option name="GENERATE_FINAL_LOCALS" value="false" />
   <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="9999" />
   <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="9999999" />
   <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">

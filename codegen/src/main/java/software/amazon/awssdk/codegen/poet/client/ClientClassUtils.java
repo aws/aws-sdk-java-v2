@@ -125,7 +125,7 @@ final class ClientClassUtils {
     }
 
     static MethodSpec applySignerOverrideMethod(PoetExtensions poetExtensions, IntermediateModel model) {
-        final String signerOverrideVariable = "signerOverride";
+        String signerOverrideVariable = "signerOverride";
 
         TypeVariableName typeVariableName =
             TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));

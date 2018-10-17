@@ -50,7 +50,7 @@ public final class MaxNumberOfRetriesCondition implements RetryCondition {
             return false;
         }
 
-        final MaxNumberOfRetriesCondition that = (MaxNumberOfRetriesCondition) o;
+        MaxNumberOfRetriesCondition that = (MaxNumberOfRetriesCondition) o;
 
         return maxNumberOfRetries == that.maxNumberOfRetries;
     }

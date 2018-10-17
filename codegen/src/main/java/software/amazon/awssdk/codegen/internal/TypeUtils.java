@@ -123,23 +123,23 @@ public class TypeUtils {
                     "Cannot derive shape type. Shape name cannot be null or empty");
         }
 
-        final Shape shape = shapes.get(shapeName);
+        Shape shape = shapes.get(shapeName);
 
         if (shape == null) {
             throw new IllegalArgumentException(
                     "Cannot derive shape type. No shape information available for " + shapeName);
         }
 
-        final String shapeType = shape.getType();
+        String shapeType = shape.getType();
 
         if (Structure.getName().equals(shapeType)) {
             return namingStrategy.getJavaClassName(shapeName);
         } else if (List.getName().equals(shapeType)) {
-            final String listContainerType = DATA_TYPE_MAPPINGS.get(TypeKey.LIST_INTERFACE);
+            String listContainerType = DATA_TYPE_MAPPINGS.get(TypeKey.LIST_INTERFACE);
             return listContainerType + "<" +
                     getJavaDataType(shapes, shape.getListMember().getShape()) + ">";
         } else if (Map.getName().equals(shapeType)) {
-            final String mapContainerType = DATA_TYPE_MAPPINGS.get(TypeKey.MAP_INTERFACE);
+            String mapContainerType = DATA_TYPE_MAPPINGS.get(TypeKey.MAP_INTERFACE);
             return mapContainerType + "<" +
                     getJavaDataType(shapes, shape.getMapKeyType().getShape()) + "," +
                     getJavaDataType(shapes, shape.getMapValueType().getShape()) + ">";
@@ -150,7 +150,7 @@ public class TypeUtils {
             }
 
             // scalar type.
-            final String dataType = DATA_TYPE_MAPPINGS.get(shapeType);
+            String dataType = DATA_TYPE_MAPPINGS.get(shapeType);
             if (dataType == null) {
                 throw new RuntimeException(
                         "Equivalent Java data type cannot be found for data type : " + shapeType);

@@ -66,7 +66,7 @@ public final class RetryOnStatusCodeCondition implements RetryCondition {
             return false;
         }
 
-        final RetryOnStatusCodeCondition that = (RetryOnStatusCodeCondition) o;
+        RetryOnStatusCodeCondition that = (RetryOnStatusCodeCondition) o;
 
         return statusCodesToRetryOn.equals(that.statusCodesToRetryOn);
     }

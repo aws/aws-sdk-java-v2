@@ -84,7 +84,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             requestContext.handler().onHeaders(sdkResponse);
         }
 
-        final CompletableFuture<Void> ef = executeFuture(channelContext);
+        CompletableFuture<Void> ef = executeFuture(channelContext);
         if (msg instanceof StreamedHttpResponse) {
             requestContext.handler().onStream(
                     new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext, ef));
@@ -95,7 +95,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     channelContext.name() + "-LastHttpContentSwallower", new LastHttpContentSwallower());
 
             ByteBuf fullContent = ((FullHttpResponse) msg).content();
-            final ByteBuffer bb = copyToByteBuffer(fullContent);
+            ByteBuffer bb = copyToByteBuffer(fullContent);
             fullContent.release();
             requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb, ef));
             finalizeRequest(requestContext, channelContext);
