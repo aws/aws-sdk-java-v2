@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
-    private final SdkHttpContentPublisher requestProvider;
+    private SdkHttpContentPublisher requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
@@ -116,6 +116,9 @@ public final class RequestExecutionContext {
 
     public void apiCallAttemptTimeoutTracker(TimeoutTracker timeoutTracker) {
         this.apiCallAttemptTimeoutTracker = timeoutTracker;
+    }
+    public void requestProvider(SdkHttpContentPublisher publisher) {
+        requestProvider = publisher;
     }
 
     /**

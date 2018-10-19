@@ -51,6 +51,11 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <dependency>
+            <groupId>software.amazon</groupId>
+            <artifactId>flow</artifactId>
+            <version>1.0</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -110,6 +115,11 @@
         <dependency>
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
