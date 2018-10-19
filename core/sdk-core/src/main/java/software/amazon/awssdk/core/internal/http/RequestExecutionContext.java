@@ -20,13 +20,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
-    private SdkHttpContentPublisher requestProvider;
+    private AsyncRequestBody requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
@@ -56,7 +56,7 @@ public final class RequestExecutionContext {
         return new Builder();
     }
 
-    public SdkHttpContentPublisher requestProvider() {
+    public AsyncRequestBody requestProvider() {
         return requestProvider;
     }
 
@@ -117,7 +117,13 @@ public final class RequestExecutionContext {
     public void apiCallAttemptTimeoutTracker(TimeoutTracker timeoutTracker) {
         this.apiCallAttemptTimeoutTracker = timeoutTracker;
     }
-    public void requestProvider(SdkHttpContentPublisher publisher) {
+
+    /**
+     * Sets the request body provider.
+     * Used for transforming the original body provider to sign events for
+     * event stream operations that support signing.
+     */
+    public void requestProvider(AsyncRequestBody publisher) {
         requestProvider = publisher;
     }
 
@@ -126,11 +132,11 @@ public final class RequestExecutionContext {
      */
     public static final class Builder {
 
-        private SdkHttpContentPublisher requestProvider;
+        private AsyncRequestBody requestProvider;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
-        public Builder requestProvider(SdkHttpContentPublisher requestProvider) {
+        public Builder requestProvider(AsyncRequestBody requestProvider) {
             this.requestProvider = requestProvider;
             return this;
         }

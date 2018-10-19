@@ -18,16 +18,15 @@ package software.amazon.awssdk.auth.signer.internal;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -39,50 +38,42 @@ public abstract class BaseAsyncAws4Signer extends BaseAws4Signer implements Asyn
         SignerConstant.AWS4_SIGNING_ALGORITHM + "\\s" + "Credential=(\\S+)" + "\\s" + "SignedHeaders=(\\S+)" + "\\s"
         + "Signature=(\\S+)");
 
-    @FunctionalInterface
-    protected interface RequestProviderTransformer {
-        SdkHttpContentPublisher transform(SdkHttpContentPublisher publisher);
-    }
-
     protected BaseAsyncAws4Signer() {
     }
 
     @Override
-    public SdkHttpContentPublisher signAsyncRequestBody(SdkHttpFullRequest request,
-                                                        SdkHttpContentPublisher requestPublisher,
-                                                        ExecutionAttributes executionAttributes) {
+    public AsyncRequestBody signAsyncRequestBody(SdkHttpFullRequest request, AsyncRequestBody asyncRequestBody,
+                                                 ExecutionAttributes executionAttributes) {
         Aws4SignerParams signingParams = extractSignerParams(Aws4SignerParams.builder(), executionAttributes)
             .build();
         Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
-        return signAsync(request, requestPublisher, requestParams, signingParams);
+        return signAsync(request, asyncRequestBody, requestParams, signingParams);
     }
 
     /**
      * This method is only used in test, where clockOverride is passed in signingParams
      */
     @SdkTestInternalApi
-    protected final SdkHttpContentPublisher signAsync(SdkHttpFullRequest request, SdkHttpContentPublisher requestPublisher,
-                                                Aws4SignerRequestParams requestParams, Aws4SignerParams signingParams) {
+    protected final AsyncRequestBody signAsync(SdkHttpFullRequest request, AsyncRequestBody asyncRequestBody,
+                                               Aws4SignerRequestParams requestParams, Aws4SignerParams signingParams) {
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
-        final byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
+        byte[] signingKey = deriveSigningKey(sanitizedCredentials, requestParams);
 
         String headerSignature = getHeaderSignature(request);
-        RequestProviderTransformer transformer = createRequestProviderTransformer(headerSignature, signingKey,
-                                                                                  requestParams, signingParams);
-
-        return transformer.transform(requestPublisher);
+        return transformRequestProvider(headerSignature, signingKey, requestParams, signingParams, asyncRequestBody);
     }
 
     /**
-     * Create a transformer for requestProvider. The transformer should add signing operator to the original requestProvider
+     * Transform the original requestProvider by adding signing operator and returns a new requestProvider
      *
      * Can be overriden by subclasses to provide specific signing method
      */
-    protected abstract RequestProviderTransformer createRequestProviderTransformer(String headerSignature,
-                                                                                   byte[] signingKey,
-                                                                                   Aws4SignerRequestParams signerRequestParams,
-                                                                                   Aws4SignerParams signerParams);
+    protected abstract AsyncRequestBody transformRequestProvider(String headerSignature,
+                                                                 byte[] signingKey,
+                                                                 Aws4SignerRequestParams signerRequestParams,
+                                                                 Aws4SignerParams signerParams,
+                                                                 AsyncRequestBody asyncRequestBody);
 
     /**
      * Extract signature from Authentication header

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -34,7 +33,6 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.eventstream.HeaderValue;
@@ -68,35 +66,25 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     }
 
     @Override
-    protected RequestProviderTransformer createRequestProviderTransformer(String headerSignature, byte[] signingKey,
-                                                                          Aws4SignerRequestParams signerRequestParams,
-                                                                          Aws4SignerParams signerParams) {
+    protected AsyncRequestBody transformRequestProvider(String headerSignature,
+                                                        byte[] signingKey,
+                                                        Aws4SignerRequestParams signerRequestParams,
+                                                        Aws4SignerParams signerParams,
+                                                        AsyncRequestBody asyncRequestBody) {
+        /**
+         * Concat trailing empty frame to publisher
+         */
+        Publisher<ByteBuffer> publisherWithTrailingEmptyFrame = appendEmptyFrame(asyncRequestBody);
 
-        return publisher -> new SdkHttpContentPublisher() {
-            /**
-             * Concat trailing empty frame to publisher
-             */
-            Publisher<ByteBuffer> publisherWithTrailingEmptyFrame = appendEmptyFrame(publisher);
+        /**
+         * Map publisher with signing function
+         */
+        Publisher<ByteBuffer> publisherWithSignedFrame =
+            transformRequestBodyPublisher(publisherWithTrailingEmptyFrame, headerSignature, signingKey, signerRequestParams);
 
-            /**
-             * Map publisher with signing function
-             */
-            Publisher<ByteBuffer> publisherWithSignedFrame =
-                transformRequestBodyPublisher(publisherWithTrailingEmptyFrame, headerSignature, signingKey,
-                                              signerRequestParams, signerParams);
+        AsyncRequestBody transformedRequestBody = AsyncRequestBody.fromPublisher(publisherWithSignedFrame);
 
-            AsyncRequestBody transformedRequestBody = AsyncRequestBody.fromPublisher(publisherWithSignedFrame);
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                transformedRequestBody.subscribe(s);
-            }
-
-            @Override
-            public Optional<Long> contentLength() {
-                return transformedRequestBody.contentLength();
-            }
-        };
+        return new SigningRequestBodyProvider(transformedRequestBody);
     }
 
     /**
@@ -117,8 +105,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     }
 
     private Publisher<ByteBuffer> transformRequestBodyPublisher(Publisher<ByteBuffer> publisher, String headerSignature,
-                                                                byte[] signingKey, Aws4SignerRequestParams signerRequestParams,
-                                                                Aws4SignerParams signerParams) {
+                                                                byte[] signingKey, Aws4SignerRequestParams signerRequestParams) {
         return SdkPublisher.adapt(publisher)
                            .map(getDataFrameSigner(headerSignature, signingKey, signerRequestParams));
     }
@@ -235,6 +222,29 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     private SdkHttpFullRequest addContentSha256Header(SdkHttpFullRequest request) {
         return request.toBuilder()
                       .putHeader(X_AMZ_CONTENT_SHA256, "STREAMING-AWS4-HMAC-SHA256-EVENTS").build();
+    }
+
+    /**
+     * {@link AsyncRequestBody} implementation that use the provider that signs the events.
+     * Using anonymous class raises spot bug violation
+     */
+    private static class SigningRequestBodyProvider implements AsyncRequestBody {
+
+        private AsyncRequestBody transformedRequestBody;
+
+        SigningRequestBodyProvider(AsyncRequestBody transformedRequestBody) {
+            this.transformedRequestBody = transformedRequestBody;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            transformedRequestBody.subscribe(s);
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return transformedRequestBody.contentLength();
+        }
     }
 
 }

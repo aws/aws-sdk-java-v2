@@ -17,13 +17,16 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkStandardLogger;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
@@ -99,7 +102,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
-                                                  : context.requestProvider();
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -170,9 +173,32 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     }
 
     /**
+     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestBody} to
+     * provide the request content in a non-blocking manner. This adapts that interface to the
+     * {@link SdkHttpContentPublisher} which the HTTP client SPI expects.
+     */
+    private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
+
+        private final AsyncRequestBody asyncRequestBody;
+
+        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
+            this.asyncRequestBody = asyncRequestBody;
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return asyncRequestBody.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            asyncRequestBody.subscribe(s);
+        }
+    }
+
+    /**
      * Detects whether the response succeeded or failed and delegates to appropriate response handler.
      */
-
     private class ResponseHandler implements TransformingAsyncResponseHandler<Response<OutputT>> {
         private final CompletableFuture<Response<OutputT>> responseFuture;
         private final CompletableFuture<SdkHttpResponse> headersFuture = new CompletableFuture<>();

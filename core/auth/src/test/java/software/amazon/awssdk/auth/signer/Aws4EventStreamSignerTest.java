@@ -15,11 +15,30 @@
 
 package software.amazon.awssdk.auth.signer;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer.EVENT_STREAM_DATE;
+import static software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer.EVENT_STREAM_SIGNATURE;
+
 import io.reactivex.Flowable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
 import io.reactivex.subscribers.TestSubscriber;
+import java.nio.ByteBuffer;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
 import org.assertj.core.util.Lists;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,33 +52,13 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
-
-import java.nio.ByteBuffer;
-import java.time.Clock;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer.EVENT_STREAM_DATE;
-import static software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer.EVENT_STREAM_SIGNATURE;
 
 /**
  * Unit tests for the {@link EventStreamAws4Signer}.
@@ -89,7 +88,7 @@ public class Aws4EventStreamSignerTest {
 
         List<String> requestBody();
 
-        SdkHttpContentPublisher requestBodyPublisher();
+        AsyncRequestBody requestBodyPublisher();
 
         Flowable<Message> expectedMessagePublisher();
     }
@@ -118,8 +117,8 @@ public class Aws4EventStreamSignerTest {
             }
 
             @Override
-            public SdkHttpContentPublisher requestBodyPublisher() {
-                return new SdkHttpContentPublisher() {
+            public AsyncRequestBody requestBodyPublisher() {
+                return new AsyncRequestBody() {
                     @Override
                     public void subscribe(Subscriber<? super ByteBuffer> s) {
                         Flowable.fromIterable(requestBody)
@@ -171,7 +170,7 @@ public class Aws4EventStreamSignerTest {
         SdkHttpFullRequest signedRequest =
             SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
 
-        SdkHttpContentPublisher transformedPublisher =
+        AsyncRequestBody transformedPublisher =
             SignerTestUtils.signAsyncRequest(signer, signedRequest, testVector.requestBodyPublisher(),
                                              credentials, "demo", signingOverrideClock, "us-east-1");
 
@@ -211,7 +210,7 @@ public class Aws4EventStreamSignerTest {
         SdkHttpFullRequest signedRequest =
             SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
 
-        SdkHttpContentPublisher transformedPublisher =
+        AsyncRequestBody transformedPublisher =
             SignerTestUtils.signAsyncRequest(signer, signedRequest, testVector.requestBodyPublisher(),
                                              credentials, "demo", signingOverrideClock, "us-east-1");
 
