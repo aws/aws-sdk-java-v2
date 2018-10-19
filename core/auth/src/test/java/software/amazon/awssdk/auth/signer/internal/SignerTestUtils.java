@@ -13,18 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.auth.signer.internal;
 
 import java.time.Clock;
 import java.time.Instant;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.auth.signer.internal.BaseAsyncAws4Signer;
+import software.amazon.awssdk.auth.signer.internal.BaseAws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
 
 public class SignerTestUtils {
-    public static SdkHttpFullRequest signRequest(Aws4Signer signer,
+    public static SdkHttpFullRequest signRequest(BaseAws4Signer signer,
                                                  SdkHttpFullRequest request,
                                                  AwsCredentials credentials,
                                                  String signingName,
@@ -41,7 +46,27 @@ public class SignerTestUtils {
         return signer.sign(request, signerParams);
     }
 
-    public static SdkHttpFullRequest presignRequest(Aws4Signer presigner,
+    public static SdkHttpContentPublisher signAsyncRequest(BaseAsyncAws4Signer signer,
+        SdkHttpFullRequest request,
+        SdkHttpContentPublisher requestBodyPublisher,
+        AwsCredentials credentials,
+        String signingName,
+        Clock signingDateOverride,
+        String region) {
+
+        Aws4SignerParams signerParams = Aws4SignerParams.builder()
+            .awsCredentials(credentials)
+            .signingName(signingName)
+            .signingClockOverride(signingDateOverride)
+            .signingRegion(Region.of(region))
+            .build();
+
+        final Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signerParams);
+
+        return signer.signAsync(request, requestBodyPublisher, requestParams, signerParams);
+    }
+
+    public static SdkHttpFullRequest presignRequest(BaseAws4Signer presigner,
                                                     SdkHttpFullRequest request,
                                                     AwsCredentials credentials,
                                                     Instant expiration,

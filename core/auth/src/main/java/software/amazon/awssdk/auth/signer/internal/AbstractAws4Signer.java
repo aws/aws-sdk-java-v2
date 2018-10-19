@@ -157,6 +157,33 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected abstract String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest, U signerParams);
 
     /**
+     * Step 3 of the AWS Signature version 4 calculation. It involves deriving
+     * the signing key and computing the signature. Refer to
+     * http://docs.aws.amazon
+     * .com/general/latest/gr/sigv4-calculate-signature.html
+     */
+    protected byte[] deriveSigningKey(AwsCredentials credentials, Aws4SignerRequestParams signerRequestParams) {
+
+        final String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
+        final long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
+
+        SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
+
+        if (signerKey != null && daysSinceEpochSigningDate == signerKey.getNumberOfDaysSinceEpoch()) {
+            return signerKey.getSigningKey();
+        }
+
+        LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
+            TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
+        byte[] signingKey = newSigningKey(credentials,
+            signerRequestParams.getFormattedSigningDate(),
+            signerRequestParams.getRegionName(),
+            signerRequestParams.getServiceSigningName());
+        SIGNER_CACHE.add(cacheKey, new SignerKey(daysSinceEpochSigningDate, signingKey));
+        return signingKey;
+    }
+
+    /**
      * Step 1 of the AWS Signature version 4 calculation. Refer to
      * http://docs.aws
      * .amazon.com/general/latest/gr/sigv4-create-canonical-request.html to
@@ -203,33 +230,6 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return stringToSign;
     }
 
-    /**
-     * Step 3 of the AWS Signature version 4 calculation. It involves deriving
-     * the signing key and computing the signature. Refer to
-     * http://docs.aws.amazon
-     * .com/general/latest/gr/sigv4-calculate-signature.html
-     */
-    private byte[] deriveSigningKey(AwsCredentials credentials,
-                                    Aws4SignerRequestParams signerRequestParams) {
-
-        String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
-        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
-
-        SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
-
-        if (signerKey != null && daysSinceEpochSigningDate == signerKey.getNumberOfDaysSinceEpoch()) {
-            return signerKey.getSigningKey();
-        }
-
-        LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
-                        TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
-        byte[] signingKey = newSigningKey(credentials,
-                                          signerRequestParams.getFormattedSigningDate(),
-                                          signerRequestParams.getRegionName(),
-                                          signerRequestParams.getServiceSigningName());
-        SIGNER_CACHE.add(cacheKey, new SignerKey(daysSinceEpochSigningDate, signingKey));
-        return signingKey;
-    }
 
     /**
      * Computes the name to be used to reference the signing key in the cache.
