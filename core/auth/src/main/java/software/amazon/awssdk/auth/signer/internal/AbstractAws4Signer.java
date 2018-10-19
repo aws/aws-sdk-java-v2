@@ -164,8 +164,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      */
     protected byte[] deriveSigningKey(AwsCredentials credentials, Aws4SignerRequestParams signerRequestParams) {
 
-        final String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
-        final long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
+        String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
+        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 

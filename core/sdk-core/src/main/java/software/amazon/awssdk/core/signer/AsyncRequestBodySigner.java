@@ -16,9 +16,9 @@
 package software.amazon.awssdk.core.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 /**
  * Interface for the signer used for signing the async requests.
@@ -31,10 +31,11 @@ public interface AsyncRequestBodySigner {
      * and returns a transformed version the request body provider.
      *
      * @param request             The signed request (with Authentication header)
+     * @param asyncRequestBody    Data publisher of the request body
      * @param executionAttributes Contains the attributes required for signing the request
-     * @return The transformed requestPublisher (with singing operator)
+     * @return The transformed request body provider (with singing operator)
      */
-    SdkHttpContentPublisher signAsyncRequestBody(SdkHttpFullRequest request, SdkHttpContentPublisher requestPublisher,
+    AsyncRequestBody signAsyncRequestBody(SdkHttpFullRequest request, AsyncRequestBody asyncRequestBody,
         ExecutionAttributes executionAttributes);
 
 }

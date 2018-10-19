@@ -33,10 +33,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 final class AsyncSigV4SubscriberAdapter implements Subscriber<ByteBuffer> {
-    private AtomicBoolean upstreamDone = new AtomicBoolean(false);
-    private AtomicLong downstreamDemand = new AtomicLong();
-    private volatile boolean streamTerminate = false;
-    private Object lock = new Object();
+    private final AtomicBoolean upstreamDone = new AtomicBoolean(false);
+    private final AtomicLong downstreamDemand = new AtomicLong();
+    private final Object lock = new Object();
+
+    private volatile boolean sentTrailingFrame = false;
     private Subscriber<? super ByteBuffer> delegate;
 
     AsyncSigV4SubscriberAdapter(Subscriber<? super ByteBuffer> actual) {
@@ -92,8 +93,8 @@ final class AsyncSigV4SubscriberAdapter implements Subscriber<ByteBuffer> {
     private void sendTrailingEmptyFrame() {
         //when upstream complete, send a trailing empty frame
         synchronized (lock) {
-            if (!streamTerminate) {
-                streamTerminate = true;
+            if (!sentTrailingFrame) {
+                sentTrailingFrame = true;
                 delegate.onNext(ByteBuffer.wrap(new byte[] {}));
                 delegate.onComplete();
             }

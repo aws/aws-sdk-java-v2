@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -26,7 +27,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeli
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 /**
  * Sign the marshalled request (if applicable).
@@ -64,7 +64,7 @@ public class SigningStage implements RequestToRequestPipeline {
 
             if (signer instanceof AsyncRequestBodySigner) {
                 //Transform request body provider with signing operator
-                SdkHttpContentPublisher transformedRequestProvider =
+                AsyncRequestBody transformedRequestProvider =
                     ((AsyncRequestBodySigner) signer)
                         .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
                 context.requestProvider(transformedRequestProvider);
