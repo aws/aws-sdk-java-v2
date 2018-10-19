@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.protocol.query;
 
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.http.response.NewStaxResponseHandler;
 import software.amazon.awssdk.core.Request;
@@ -31,16 +32,18 @@ import software.amazon.awssdk.core.protocol.SdkPojo;
  * Protocol factory for the AWS/Query protocol.
  */
 @SdkProtectedApi
-public class AwsQueryProtocolFactory {
+public final class AwsEc2ProtocolFactory extends AwsQueryProtocolFactory {
 
-    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
-        OperationInfo operationInfo, T origRequest) {
+    @Override
+    public <T extends AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(OperationInfo operationInfo,
+                                                                                          T origRequest) {
         return QueryProtocolMarshaller.builder(origRequest)
                                       .operationInfo(operationInfo)
+                                      .isEc2(true)
                                       .build();
     }
 
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
-        return new NewStaxResponseHandler<>(new QueryProtocolUnmarshaller<>(true), r -> pojoSupplier.get());
+        return new NewStaxResponseHandler<>(new QueryProtocolUnmarshaller<>(false), r -> pojoSupplier.get());
     }
 }

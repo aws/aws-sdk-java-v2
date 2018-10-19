@@ -8,10 +8,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
-import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
-import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -25,9 +23,7 @@ import software.amazon.awssdk.services.query.model.APostOperationWithOutputRespo
 import software.amazon.awssdk.services.query.model.InvalidInputException;
 import software.amazon.awssdk.services.query.model.QueryException;
 import software.amazon.awssdk.services.query.transform.APostOperationRequestMarshaller;
-import software.amazon.awssdk.services.query.transform.APostOperationResponseUnmarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
-import software.amazon.awssdk.services.query.transform.APostOperationWithOutputResponseUnmarshaller;
 import software.amazon.awssdk.services.query.transform.InvalidInputExceptionUnmarshaller;
 
 /**
@@ -81,8 +77,8 @@ final class DefaultQueryClient implements QueryClient {
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, QueryException {
 
-        HttpResponseHandler<APostOperationResponse> responseHandler = new StaxResponseHandler<>(
-            new APostOperationResponseUnmarshaller(), new StaxOperationMetadata().withHasStreamingSuccessResponse(false));
+        HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
+            .createResponseHandler(APostOperationResponse::builder);
 
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 
@@ -116,9 +112,8 @@ final class DefaultQueryClient implements QueryClient {
         APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
                                                                                 SdkClientException, QueryException {
 
-        HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = new StaxResponseHandler<>(
-            new APostOperationWithOutputResponseUnmarshaller(),
-            new StaxOperationMetadata().withHasStreamingSuccessResponse(false));
+        HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
+            .createResponseHandler(APostOperationWithOutputResponse::builder);
 
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 

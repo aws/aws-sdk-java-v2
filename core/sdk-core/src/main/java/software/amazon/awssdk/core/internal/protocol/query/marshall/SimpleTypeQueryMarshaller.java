@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.query;
+package software.amazon.awssdk.core.internal.protocol.query.marshall;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.internal.protocol.StringToValueConverter.StringToValue;
 import software.amazon.awssdk.core.internal.protocol.ValueToStringConverter;
@@ -66,8 +65,8 @@ public final class SimpleTypeQueryMarshaller<T> implements QueryMarshaller<T> {
     }
 
     @Override
-    public void marshall(Request<?> request, String path, T val, SdkField<T> sdkField) {
-        request.addParameter(path, valueToString.convert(val, sdkField));
+    public void marshall(QueryMarshallerContext context, String path, T val, SdkField<T> sdkField) {
+        context.request().addParameter(path, valueToString.convert(val, sdkField));
     }
 
     /**

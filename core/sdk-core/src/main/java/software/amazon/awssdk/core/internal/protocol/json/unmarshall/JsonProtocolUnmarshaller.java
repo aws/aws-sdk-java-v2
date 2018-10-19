@@ -51,7 +51,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
 
-    private static final UnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
+    private static final JsonUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
 
     private final ObjectMapper mapper;
 
@@ -59,8 +59,8 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         mapper = objectMapper;
     }
 
-    private static UnmarshallerRegistry createUnmarshallerRegistry() {
-        return UnmarshallerRegistry
+    private static JsonUnmarshallerRegistry createUnmarshallerRegistry() {
+        return JsonUnmarshallerRegistry
             .builder()
             .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
             .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)

@@ -26,10 +26,13 @@ public final class LocationTrait implements Trait {
 
     private final MarshallLocation location;
     private final String locationName;
+    private final String unmarshallLocationName;
 
     private LocationTrait(Builder builder) {
         this.location = builder.location;
         this.locationName = builder.locationName;
+        this.unmarshallLocationName = builder.unmarshallLocationName == null ?
+                                      builder.locationName : builder.unmarshallLocationName;
     }
 
     /**
@@ -47,6 +50,14 @@ public final class LocationTrait implements Trait {
     }
 
     /**
+     * @return Location name for unmarshalling. This is only needed for the legacy EC2 protocol which has
+     * different serialization/deserialization for the same fields.
+     */
+    public String unmarshallLocationName() {
+        return unmarshallLocationName;
+    }
+
+    /**
      * @return Builder instance.
      */
     public static Builder builder() {
@@ -60,6 +71,7 @@ public final class LocationTrait implements Trait {
 
         private MarshallLocation location;
         private String locationName;
+        private String unmarshallLocationName;
 
         private Builder() {
         }
@@ -71,6 +83,11 @@ public final class LocationTrait implements Trait {
 
         public Builder locationName(String locationName) {
             this.locationName = locationName;
+            return this;
+        }
+
+        public Builder unmarshallLocationName(String unmarshallLocationName) {
+            this.unmarshallLocationName = unmarshallLocationName;
             return this;
         }
 

@@ -23,6 +23,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.protocol.traits.LocationTrait;
 import software.amazon.awssdk.core.protocol.traits.Trait;
 
@@ -37,6 +38,7 @@ public final class SdkField<TypeT> {
     private final MarshallingType<? super TypeT> marshallingType;
     private final MarshallLocation location;
     private final String locationName;
+    private final String unmarshallLocationName;
     private final Supplier<SdkPojo> constructor;
     private final BiConsumer<Object, TypeT> setter;
     private final Function<Object, TypeT> getter;
@@ -53,6 +55,7 @@ public final class SdkField<TypeT> {
         LocationTrait locationTrait = getTrait(LocationTrait.class);
         this.location = locationTrait.location();
         this.locationName = locationTrait.locationName();
+        this.unmarshallLocationName = locationTrait.unmarshallLocationName();
     }
 
     /**
@@ -74,6 +77,14 @@ public final class SdkField<TypeT> {
      */
     public String locationName() {
         return locationName;
+    }
+
+    /**
+     * @return The location name to use when unmarshalling. This is only needed for AWS/Query or EC2 services. All
+     * other services should use {@link #locationName} for both marshalling and unmarshalling.
+     */
+    public String unmarshallLocationName() {
+        return unmarshallLocationName;
     }
 
     public Supplier<SdkPojo> constructor() {
@@ -120,8 +131,22 @@ public final class SdkField<TypeT> {
      * @param pojo POJO to retrieve value from.
      * @return Current value of 'this' field in the POJO.
      */
-    public TypeT get(Object pojo) {
+    private TypeT get(Object pojo) {
         return getter.apply(pojo);
+    }
+
+    /**
+     * Retrieves the current value of 'this' field from the given POJO. Uses the getter passed into the {@link Builder}. If the
+     * current value is null this method will look for the {@link DefaultValueTrait} on the field and attempt to resolve a default
+     * value. If the {@link DefaultValueTrait} is not present this just returns null.
+     *
+     * @param pojo POJO to retrieve value from.
+     * @return Current value of 'this' field in the POJO or default value if current value is null.
+     */
+    public TypeT getValueOrDefault(Object pojo) {
+        TypeT val = this.get(pojo);
+        DefaultValueTrait trait = getTrait(DefaultValueTrait.class);
+        return (trait == null ? val : (TypeT) trait.resolveValue(val));
     }
 
     /**

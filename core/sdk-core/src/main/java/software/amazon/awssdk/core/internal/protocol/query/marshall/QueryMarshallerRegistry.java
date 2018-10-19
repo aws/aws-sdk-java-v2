@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.query;
+package software.amazon.awssdk.core.internal.protocol.query.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.protocol.AbstractMarshallerRegistry;
+import software.amazon.awssdk.core.internal.protocol.AbstractMarshallingRegistry;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 
@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
  * Marshaller registry for the AWS Query protocol.
  */
 @SdkInternalApi
-public final class QueryMarshallerRegistry extends AbstractMarshallerRegistry {
+final class QueryMarshallerRegistry extends AbstractMarshallingRegistry {
 
     private QueryMarshallerRegistry(Builder builder) {
         super(builder);
@@ -33,24 +33,24 @@ public final class QueryMarshallerRegistry extends AbstractMarshallerRegistry {
     @SuppressWarnings("unchecked")
     public <T> QueryMarshaller<Object> getMarshaller(T val) {
         MarshallingType<T> marshallingType = toMarshallingType(val);
-        return (QueryMarshaller<Object>) getMarshaller(MarshallLocation.PAYLOAD, marshallingType);
+        return (QueryMarshaller<Object>) get(MarshallLocation.PAYLOAD, marshallingType);
     }
 
     @SuppressWarnings("unchecked")
     public <T> QueryMarshaller<Object> getMarshaller(MarshallingType<T> marshallingType,
                                                      Object val) {
-        return (QueryMarshaller<Object>) getMarshaller(MarshallLocation.PAYLOAD,
+        return (QueryMarshaller<Object>) get(MarshallLocation.PAYLOAD,
                                                        val == null ? MarshallingType.NULL : marshallingType);
     }
 
     /**
-     * @return Builder instance to construct a {@link AbstractMarshallerRegistry}.
+     * @return Builder instance to construct a {@link AbstractMarshallingRegistry}.
      */
     public static Builder builder() {
         return new Builder();
     }
 
-    public static class Builder extends AbstractMarshallerRegistry.Builder {
+    public static class Builder extends AbstractMarshallingRegistry.Builder {
 
         private Builder() {
         }
@@ -66,7 +66,7 @@ public final class QueryMarshallerRegistry extends AbstractMarshallerRegistry {
          */
         public <T> Builder marshaller(MarshallingType<T> marshallingType,
                                       QueryMarshaller<T> marshaller) {
-            addMarshaller(MarshallLocation.PAYLOAD, marshallingType, marshaller);
+            register(MarshallLocation.PAYLOAD, marshallingType, marshaller);
             return this;
         }
 

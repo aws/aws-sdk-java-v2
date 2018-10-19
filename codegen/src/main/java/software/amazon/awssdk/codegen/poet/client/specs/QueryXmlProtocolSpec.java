@@ -31,10 +31,8 @@ import javax.lang.model.element.Modifier;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
-import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
-import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -61,7 +59,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
 
     @Override
     public FieldSpec protocolFactory(IntermediateModel model) {
-        return FieldSpec.builder(AwsQueryProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(protocolFactoryClass(), "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -75,7 +73,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     @Override
     public MethodSpec initProtocolFactory(IntermediateModel model) {
         MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("init")
-                                                  .returns(AwsQueryProtocolFactory.class)
+                                                  .returns(protocolFactoryClass())
                                                   .addModifiers(Modifier.PRIVATE);
 
         methodSpec.addStatement("$T<$T> unmarshallers = new $T<>()", List.class, unmarshallerType, ArrayList.class);
@@ -85,9 +83,13 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                                    poetExtensions.getModelClass(model.getSdkModeledExceptionBaseClassName()))
                                     .build());
         methodSpec.addStatement("this.exceptionUnmarshallers = unmarshallers");
-        methodSpec.addStatement("return new $T()", AwsQueryProtocolFactory.class);
+        methodSpec.addStatement("return new $T()", protocolFactoryClass());
 
         return methodSpec.build();
+    }
+
+    protected Class<?> protocolFactoryClass() {
+        return AwsQueryProtocolFactory.class;
     }
 
     private ClassName getErrorUnmarshallerClass(IntermediateModel model) {
@@ -99,18 +101,13 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     @Override
     public CodeBlock responseHandler(IntermediateModel model,
                                      OperationModel opModel) {
-        ClassName unmarshaller = poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
         ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         return CodeBlock.builder()
-                        .addStatement("\n\n$T<$T> responseHandler = new $T<>(new $T(), new $T().withHasStreamingSuccessResponse"
-                                      + "($L))",
+                        .addStatement("\n\n$T<$T> responseHandler = protocolFactory.createResponseHandler($T::builder)",
                                       HttpResponseHandler.class,
                                       responseType,
-                                      StaxResponseHandler.class,
-                                      unmarshaller,
-                                      StaxOperationMetadata.class,
-                                      opModel.hasStreamingOutput())
+                                      responseType)
                         .build();
     }
 

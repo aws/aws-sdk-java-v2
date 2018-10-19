@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.core.internal.protocol.json.unmarshall;
 
-import java.util.HashMap;
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.protocol.AbstractMarshallingRegistry;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 
@@ -25,67 +24,55 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
  * Registry of {@link JsonUnmarshaller} implementations by location and type.
  */
 @SdkInternalApi
-public final class UnmarshallerRegistry {
+final class JsonUnmarshallerRegistry extends AbstractMarshallingRegistry {
 
-    private final Map<MarshallLocation, Map<MarshallingType, JsonUnmarshaller<?>>> unmarshallers;
-
-    private UnmarshallerRegistry(Builder builder) {
-        this.unmarshallers = builder.unmarshallers;
-
+    private JsonUnmarshallerRegistry(Builder builder) {
+        super(builder);
     }
 
     @SuppressWarnings("unchecked")
     public <T> JsonUnmarshaller<Object> getUnmarshaller(MarshallLocation marshallLocation, MarshallingType<T> marshallingType) {
-        return (JsonUnmarshaller<Object>) unmarshallers.get(marshallLocation).get(marshallingType);
+        return (JsonUnmarshaller<Object>) get(marshallLocation, marshallingType);
     }
 
     /**
-     * @return Builder instance to construct a {@link UnmarshallerRegistry}.
+     * @return Builder instance to construct a {@link JsonUnmarshallerRegistry}.
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Builder for a {@link UnmarshallerRegistry}.
+     * Builder for a {@link JsonUnmarshallerRegistry}.
      */
-    public static final class Builder {
-
-        private final Map<MarshallLocation, Map<MarshallingType, JsonUnmarshaller<?>>> unmarshallers = new HashMap<>();
+    public static final class Builder extends AbstractMarshallingRegistry.Builder {
 
         private Builder() {
         }
 
         public <T> Builder payloadUnmarshaller(MarshallingType<T> marshallingType,
                                                JsonUnmarshaller<T> marshaller) {
-            return addUnmarshaller(MarshallLocation.PAYLOAD, marshallingType, marshaller);
+            register(MarshallLocation.PAYLOAD, marshallingType, marshaller);
+            return this;
         }
 
         public <T> Builder headerUnmarshaller(MarshallingType<T> marshallingType,
                                               JsonUnmarshaller<T> marshaller) {
-            return addUnmarshaller(MarshallLocation.HEADER, marshallingType, marshaller);
+            register(MarshallLocation.HEADER, marshallingType, marshaller);
+            return this;
         }
 
         public <T> Builder statusCodeUnmarshaller(MarshallingType<T> marshallingType,
                                                   JsonUnmarshaller<T> marshaller) {
-            return addUnmarshaller(MarshallLocation.STATUS_CODE, marshallingType, marshaller);
-        }
-
-        private <T> Builder addUnmarshaller(MarshallLocation marshallLocation,
-                                            MarshallingType<T> marshallingType,
-                                            JsonUnmarshaller<T> marshaller) {
-            if (!unmarshallers.containsKey(marshallLocation)) {
-                unmarshallers.put(marshallLocation, new HashMap<>());
-            }
-            unmarshallers.get(marshallLocation).put(marshallingType, marshaller);
+            register(MarshallLocation.STATUS_CODE, marshallingType, marshaller);
             return this;
         }
 
         /**
-         * @return An immutable {@link UnmarshallerRegistry} object.
+         * @return An immutable {@link JsonUnmarshallerRegistry} object.
          */
-        public UnmarshallerRegistry build() {
-            return new UnmarshallerRegistry(this);
+        public JsonUnmarshallerRegistry build() {
+            return new JsonUnmarshallerRegistry(this);
         }
     }
 }

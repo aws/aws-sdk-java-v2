@@ -13,10 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.protocol.query;
+package software.amazon.awssdk.core.internal.protocol.query.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.internal.protocol.Marshaller;
 import software.amazon.awssdk.core.protocol.SdkField;
 
@@ -28,5 +27,5 @@ import software.amazon.awssdk.core.protocol.SdkField;
 @SdkInternalApi
 public interface QueryMarshaller<T> extends Marshaller<T> {
 
-    void marshall(Request<?> request, String path, T val, SdkField<T> sdkField);
+    void marshall(QueryMarshallerContext context, String path, T val, SdkField<T> sdkField);
 }

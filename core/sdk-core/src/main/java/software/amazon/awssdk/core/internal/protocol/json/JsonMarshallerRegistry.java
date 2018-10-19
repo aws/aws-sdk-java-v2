@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.protocol.AbstractMarshallerRegistry;
+import software.amazon.awssdk.core.internal.protocol.AbstractMarshallingRegistry;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 
@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
  * Marshaller registry for JSON based protocols.
  */
 @SdkInternalApi
-public final class JsonMarshallerRegistry extends AbstractMarshallerRegistry {
+public final class JsonMarshallerRegistry extends AbstractMarshallingRegistry {
 
     private JsonMarshallerRegistry(Builder builder) {
         super(builder);
@@ -32,14 +32,14 @@ public final class JsonMarshallerRegistry extends AbstractMarshallerRegistry {
 
     @SuppressWarnings("unchecked")
     public <T> JsonMarshaller<T> getMarshaller(MarshallLocation marshallLocation, T val) {
-        return (JsonMarshaller<T>) getMarshaller(marshallLocation, toMarshallingType(val));
+        return (JsonMarshaller<T>) get(marshallLocation, toMarshallingType(val));
     }
 
     @SuppressWarnings("unchecked")
     public <T> JsonMarshaller<Object> getMarshaller(MarshallLocation marshallLocation,
                                                     MarshallingType<T> marshallingType,
                                                     Object val) {
-        return (JsonMarshaller<Object>) getMarshaller(marshallLocation,
+        return (JsonMarshaller<Object>) get(marshallLocation,
                                                       val == null ? MarshallingType.NULL : marshallingType);
     }
 
@@ -53,38 +53,38 @@ public final class JsonMarshallerRegistry extends AbstractMarshallerRegistry {
     /**
      * Builder for a {@link JsonMarshallerRegistry}.
      */
-    public static final class Builder extends AbstractMarshallerRegistry.Builder {
+    public static final class Builder extends AbstractMarshallingRegistry.Builder {
 
         private Builder() {
         }
 
         public <T> Builder payloadMarshaller(MarshallingType<T> marshallingType,
                                              JsonMarshaller<T> marshaller) {
-            addMarshaller(MarshallLocation.PAYLOAD, marshallingType, marshaller);
+            register(MarshallLocation.PAYLOAD, marshallingType, marshaller);
             return this;
         }
 
         public <T> Builder headerMarshaller(MarshallingType<T> marshallingType,
                                             JsonMarshaller<T> marshaller) {
-            addMarshaller(MarshallLocation.HEADER, marshallingType, marshaller);
+            register(MarshallLocation.HEADER, marshallingType, marshaller);
             return this;
         }
 
         public <T> Builder queryParamMarshaller(MarshallingType<T> marshallingType,
                                                 JsonMarshaller<T> marshaller) {
-            addMarshaller(MarshallLocation.QUERY_PARAM, marshallingType, marshaller);
+            register(MarshallLocation.QUERY_PARAM, marshallingType, marshaller);
             return this;
         }
 
         public <T> Builder pathParamMarshaller(MarshallingType<T> marshallingType,
                                                JsonMarshaller<T> marshaller) {
-            addMarshaller(MarshallLocation.PATH, marshallingType, marshaller);
+            register(MarshallLocation.PATH, marshallingType, marshaller);
             return this;
         }
 
         public <T> Builder greedyPathParamMarshaller(MarshallingType<T> marshallingType,
                                                      JsonMarshaller<T> marshaller) {
-            addMarshaller(MarshallLocation.GREEDY_PATH, marshallingType, marshaller);
+            register(MarshallLocation.GREEDY_PATH, marshallingType, marshaller);
             return this;
         }
 

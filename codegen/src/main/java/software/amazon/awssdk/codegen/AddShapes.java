@@ -223,8 +223,8 @@ abstract class AddShapes {
         Shape memberShape = allC2jShapes.get(member.getShape());
         mapping.withLocation(Location.forValue(member.getLocation()))
                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
-               .withFlattened(isFlattened(member, protocol, memberShape))
-               .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberName, member))
+               .withFlattened(isFlattened(member, memberShape))
+               .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberShape, memberName, member))
                .withMarshallLocationName(
                         deriveMarshallerLocationName(memberShape, memberName, member, protocol))
                .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
@@ -232,11 +232,9 @@ abstract class AddShapes {
         return mapping;
     }
 
-    private boolean isFlattened(Member member, String protocol, Shape memberShape) {
+    private boolean isFlattened(Member member, Shape memberShape) {
         return member.isFlattened()
-               || memberShape.isFlattened()
-               // EC2 lists are always flattened
-               || (memberShape.getListMember() != null && protocol.equalsIgnoreCase("ec2"));
+               || memberShape.isFlattened();
     }
 
     /**
@@ -272,9 +270,9 @@ abstract class AddShapes {
                 .findFirst().orElseThrow(() -> new RuntimeException("Could not find request URI for input shape"));
     }
 
-    private String deriveUnmarshallerLocationName(String memberName, Member member) {
-
-        final String locationName = member.getLocationName();
+    private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {
+        String locationName = memberShape.getListMember() != null && memberShape.isFlattened() ?
+                              memberShape.getListMember().getLocationName() : member.getLocationName();
 
         if (locationName != null && !locationName.trim().isEmpty()) {
             return locationName;

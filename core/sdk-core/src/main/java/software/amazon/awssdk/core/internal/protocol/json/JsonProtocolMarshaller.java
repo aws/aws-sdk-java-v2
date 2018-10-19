@@ -35,7 +35,6 @@ import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.SdkField;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
 import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.util.UriResourcePathUtils;
@@ -155,7 +154,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
 
     public void doMarshall(SdkPojo pojo) {
         for (SdkField<?> field : pojo.sdkFields()) {
-            Object val = resolveValue(field.get(pojo), field);
+            Object val = field.getValueOrDefault(pojo);
             if (isBinary(field, val)) {
                 request.setContent(((SdkBytes) val).asInputStream());
             } else {
@@ -184,11 +183,6 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
         startMarshalling();
         doMarshall(pojo);
         return finishMarshalling();
-    }
-
-    private Object resolveValue(Object val, SdkField<?> sdkField) {
-        DefaultValueTrait trait = sdkField.getTrait(DefaultValueTrait.class);
-        return trait == null ? val : trait.resolveValue(val);
     }
 
     private Request<OrigRequestT> finishMarshalling() {

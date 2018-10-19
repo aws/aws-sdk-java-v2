@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 public final class JsonUnmarshallerContext {
 
     private final SdkHttpFullResponse response;
-    private final UnmarshallerRegistry unmarshallerRegistry;
+    private final JsonUnmarshallerRegistry unmarshallerRegistry;
 
     private JsonUnmarshallerContext(Builder builder) {
         this.response = builder.response;
@@ -51,12 +51,7 @@ public final class JsonUnmarshallerContext {
      * @throws SdkClientException if no unmarshaller is found.
      */
     public JsonUnmarshaller<Object> getUnmarshaller(MarshallLocation location, MarshallingType<?> marshallingType) {
-        JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(location, marshallingType);
-        if (unmarshaller == null) {
-            throw SdkClientException.create(String.format("No unmarshaller registered for type %s at location %s",
-                                                          marshallingType, location));
-        }
-        return unmarshaller;
+        return unmarshallerRegistry.getUnmarshaller(location, marshallingType);
     }
 
     /**
@@ -72,7 +67,7 @@ public final class JsonUnmarshallerContext {
     public static final class Builder {
 
         private SdkHttpFullResponse response;
-        private UnmarshallerRegistry unmarshallerRegistry;
+        private JsonUnmarshallerRegistry unmarshallerRegistry;
 
         private Builder() {
         }
@@ -82,7 +77,7 @@ public final class JsonUnmarshallerContext {
             return this;
         }
 
-        public Builder unmarshallerRegistry(UnmarshallerRegistry unmarshallerRegistry) {
+        public Builder unmarshallerRegistry(JsonUnmarshallerRegistry unmarshallerRegistry) {
             this.unmarshallerRegistry = unmarshallerRegistry;
             return this;
         }

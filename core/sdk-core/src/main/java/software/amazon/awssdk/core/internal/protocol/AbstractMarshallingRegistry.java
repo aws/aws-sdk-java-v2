@@ -26,25 +26,42 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.SdkPojo;
 
 /**
- * Base class for marshaller registry implementations.
+ * Base class for marshaller/unmarshaller registry implementations.
  */
 @SdkInternalApi
-public abstract class AbstractMarshallerRegistry {
+public abstract class AbstractMarshallingRegistry {
 
-    private final Map<MarshallLocation, Map<MarshallingType, Marshaller<?>>> marshallers;
+    private final Map<MarshallLocation, Map<MarshallingType, Object>> registry;
     private final Set<MarshallingType<?>> marshallingTypes;
     private final Map<Class<?>, MarshallingType<?>> marshallingTypeCache;
 
-    protected AbstractMarshallerRegistry(Builder builder) {
-        this.marshallers = builder.marshallers;
+    protected AbstractMarshallingRegistry(Builder builder) {
+        this.registry = builder.registry;
         this.marshallingTypes = builder.marshallingTypes;
         this.marshallingTypeCache = new HashMap<>(marshallingTypes.size());
 
     }
 
-    @SuppressWarnings("unchecked")
-    protected Marshaller<?> getMarshaller(MarshallLocation marshallLocation, MarshallingType<?> marshallingType) {
-        return marshallers.get(marshallLocation).get(marshallingType);
+    /**
+     * Get a registered marshaller/unmarshaller by location and type.
+     *
+     * @param marshallLocation Location of registered (un)marshaller.
+     * @param marshallingType Type of registered (un)marshaller.
+     * @return Registered marshaller/unmarshaller.
+     * @throws SdkClientException if no marshaller/unmarshaller is registered for the given location and type.
+     */
+    protected Object get(MarshallLocation marshallLocation, MarshallingType<?> marshallingType) {
+        Map<MarshallingType, Object> byLocation = registry.get(marshallLocation);
+        if (byLocation == null) {
+            throw SdkClientException.create("No marshaller/unmarshaller registered for location " + marshallLocation.name());
+        }
+        Object registered = byLocation.get(marshallingType);
+        if (registered == null) {
+            throw SdkClientException.create(String.format("No marshaller/unmarshaller of type %s registered for location %s.",
+                                                          marshallingType,
+                                                          marshallLocation.name()));
+        }
+        return registered;
     }
 
     @SuppressWarnings("unchecked")
@@ -77,24 +94,24 @@ public abstract class AbstractMarshallerRegistry {
 
 
     /**
-     * Builder for a {@link AbstractMarshallerRegistry}.
+     * Builder for a {@link AbstractMarshallingRegistry}.
      */
     public abstract static class Builder {
 
-        private final Map<MarshallLocation, Map<MarshallingType, Marshaller<?>>> marshallers = new HashMap<>();
+        private final Map<MarshallLocation, Map<MarshallingType, Object>> registry = new HashMap<>();
         private final Set<MarshallingType<?>> marshallingTypes = new HashSet<>();
 
         protected Builder() {
         }
 
-        protected <T> Builder addMarshaller(MarshallLocation marshallLocation,
-                                            MarshallingType<T> marshallingType,
-                                            Marshaller<T> marshaller) {
+        protected <T> Builder register(MarshallLocation marshallLocation,
+                                       MarshallingType<T> marshallingType,
+                                       Object marshaller) {
             marshallingTypes.add(marshallingType);
-            if (!marshallers.containsKey(marshallLocation)) {
-                marshallers.put(marshallLocation, new HashMap<>());
+            if (!registry.containsKey(marshallLocation)) {
+                registry.put(marshallLocation, new HashMap<>());
             }
-            marshallers.get(marshallLocation).put(marshallingType, marshaller);
+            registry.get(marshallLocation).put(marshallingType, marshaller);
             return this;
         }
     }

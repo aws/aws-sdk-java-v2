@@ -40,6 +40,7 @@ public final class ListTrait implements Trait {
      *
      * @return Member location name.
      */
+    // TODO remove this
     public String memberLocationName() {
         return memberLocationName;
     }
