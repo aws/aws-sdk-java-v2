@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.core.internal.protocol.query.unmarshall;
 
+import java.util.HashMap;
 import java.util.List;
-import javax.xml.stream.XMLStreamException;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.protocol.StringToValueConverter;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -35,6 +37,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkProtectedApi
 public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
+
+    private static final String AWS_REQUEST_ID = "AWS_REQUEST_ID";
 
     private static final QueryUnmarshallerRegistry UNMARSHALLER_REGISTRY = QueryUnmarshallerRegistry
         .builder()
@@ -59,19 +63,33 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
         this.hasResultWrapper = hasResultWrapper;
     }
 
-    public TypeT unmarshall(SdkPojo sdkPojo,
-                            SdkHttpFullResponse response) throws Exception {
+    public Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
+                                                       SdkHttpFullResponse response) throws Exception {
         QueryUnmarshallerContext unmarshallerContext = QueryUnmarshallerContext.builder()
                                                                                .registry(UNMARSHALLER_REGISTRY)
                                                                                .protocolUnmarshaller(this)
                                                                                .build();
-        XmlElement root = parseXmlDocument(response);
-        return (TypeT) unmarshall(unmarshallerContext, sdkPojo, root);
+        XmlElement document = XmlDomParser.parse(response.content().orElseGet(this::emptyStream));
+        XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
+        return Pair.of((TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot), parseMetadata(document));
     }
 
-    private XmlElement parseXmlDocument(SdkHttpFullResponse response) throws XMLStreamException {
-        XmlElement document = XmlDomParser.parse(response.content().orElseGet(this::emptyStream));
-        return hasResultWrapper ? document.getFirstChild() : document;
+    private Map<String, String> parseMetadata(XmlElement document) {
+        XmlElement responseMetadata = document.getElementByName("ResponseMetadata");
+        Map<String, String> metadata = new HashMap<>();
+        if (responseMetadata != null) {
+            responseMetadata.children().forEach(c -> metadata.put(metadataKeyName(c), c.textContent()));
+        }
+        XmlElement requestId = document.getElementByName("requestId");
+        if (requestId != null) {
+            // TODO move this to aws-core so we can reuse the constant
+            metadata.put(AWS_REQUEST_ID, requestId.textContent());
+        }
+        return metadata;
+    }
+
+    private String metadataKeyName(XmlElement c) {
+        return c.elementName().equals("RequestId") ? AWS_REQUEST_ID : c.elementName();
     }
 
     private SdkPojo unmarshall(QueryUnmarshallerContext context, SdkPojo sdkPojo, XmlElement root) {

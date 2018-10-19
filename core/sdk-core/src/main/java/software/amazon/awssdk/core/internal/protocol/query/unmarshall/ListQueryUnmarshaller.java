@@ -42,7 +42,7 @@ final class ListQueryUnmarshaller implements QueryUnmarshaller<List<?>> {
         return listTrait.isFlattened() ?
                content :
                // There have been cases in EC2 where the member name is not modeled correctly so we just grab all
-               // direct children instead and don't care about member name.
+               // direct children instead and don't care about member name. See TT0124273367 for more information.
                content.get(0).children();
     }
 }

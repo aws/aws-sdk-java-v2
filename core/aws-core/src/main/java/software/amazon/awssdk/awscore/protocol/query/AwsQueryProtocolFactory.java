@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.protocol.query;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.awscore.http.response.NewStaxResponseHandler;
+import software.amazon.awssdk.awscore.http.response.AwsQueryResponseHandler;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.query.marshall.QueryProtocolMarshaller;
@@ -41,6 +41,6 @@ public class AwsQueryProtocolFactory {
     }
 
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
-        return new NewStaxResponseHandler<>(new QueryProtocolUnmarshaller<>(true), r -> pojoSupplier.get());
+        return new AwsQueryResponseHandler<>(new QueryProtocolUnmarshaller<>(true), r -> pojoSupplier.get());
     }
 }
