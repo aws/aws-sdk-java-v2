@@ -195,9 +195,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     @Override
     public void responseReceived(SdkResponse response) {
-        // We use a void unmarshaller and unmarshall the actual response in the message
-        // decoder when we receive the initial-response frame. TODO not clear
-        // how we would handle REST protocol which would unmarshall the response from the HTTP headers
         if (response != null && response.sdkHttpResponse() != null) {
             this.requestId = response.sdkHttpResponse()
                                      .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
