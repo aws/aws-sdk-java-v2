@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.json;
 
 import java.util.List;
+import software.amazon.MyServiceHttpConfig;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -28,14 +29,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner()).option(
-                SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+            SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
     }
@@ -60,6 +61,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final AttributeMap serviceHttpConfig() {
-        return MyServiceHttpConfig.CONFIG;
+        return MyServiceHttpConfig.defaultHttpConfig();
     }
 }
