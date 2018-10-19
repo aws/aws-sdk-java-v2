@@ -185,7 +185,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AttributeMap.class)
-                         .addCode("return $L;", model.getCustomizationConfig().getServiceSpecificHttpConfig())
+                         .addCode("return $T.defaultHttpConfig();",
+                                  PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getServiceSpecificHttpConfig()))
                          .build();
     }
 
