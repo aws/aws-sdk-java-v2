@@ -15,23 +15,27 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 /**
- * Interceptor to enable chunked encoding on specific upload operations.
+ * Interceptor to enable chunked encoding on specific upload operations if the option does not already have a value.
+ * <p>
+ * This affects the following requests:
+ * <ul>
+ *     <li>{@link PutObjectRequest}</li>
+ *     <li>{@link UploadPartRequest}</li>
+ * </ul>
  */
 @SdkProtectedApi
-@ReviewBeforeRelease("Check if there are other operations that should have chuncked encoding enabled by default."
-                     + "Do we even require this? By default chunked encoding is enabled. See AwsS3V4SignerParams class"
-                     + "Maybe we need interceptor for payload signing as its disabled by default. See JAVA-2775")
 public final class EnableChunkedEncodingInterceptor implements ExecutionInterceptor {
 
     @Override
@@ -39,7 +43,17 @@ public final class EnableChunkedEncodingInterceptor implements ExecutionIntercep
         SdkRequest sdkRequest = context.request();
 
         if (sdkRequest instanceof PutObjectRequest || sdkRequest instanceof UploadPartRequest) {
-            executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING, Boolean.TRUE);
+            S3Configuration serviceConfiguration =
+                    (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
+
+            boolean enableChunkedEncoding;
+            if (serviceConfiguration != null) {
+                enableChunkedEncoding = serviceConfiguration.chunkedEncodingEnabled();
+            } else {
+                enableChunkedEncoding = true;
+            }
+
+            executionAttributes.putAttributeIfAbsent(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING, enableChunkedEncoding);
         }
 
         return sdkRequest;
