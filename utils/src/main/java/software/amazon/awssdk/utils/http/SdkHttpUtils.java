@@ -17,7 +17,9 @@ package software.amazon.awssdk.utils.http;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -76,6 +78,25 @@ public final class SdkHttpUtils {
      */
     public static String formDataEncode(String value) {
         return value == null ? null : invokeSafely(() -> URLEncoder.encode(value, DEFAULT_ENCODING));
+    }
+
+    /**
+     * Decode the string according to RFC 3986: encoding for URI paths, query strings, etc.
+     * <p>
+     * Assumes the decoded string is UTF-8 encoded.
+     *
+     * @param value The string to decode.
+     * @return The decoded string.
+     */
+    public static String urlDecode(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return URLDecoder.decode(value, DEFAULT_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Unable to decode value", e);
+        }
     }
 
     /**
