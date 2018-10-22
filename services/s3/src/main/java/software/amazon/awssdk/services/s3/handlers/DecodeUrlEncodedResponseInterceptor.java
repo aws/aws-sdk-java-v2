@@ -15,43 +15,82 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
-//import java.lang.reflect.Method;
-//import java.util.Arrays;
-//import java.util.List;
-//import software.amazon.awssdk.core.Request;
-//import software.amazon.awssdk.Response;
+import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlDecode;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import java.util.List;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-//import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
-//import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-//import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.EncodingType;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
+/**
+ * Encoding type affects the following values in the response:
+ * <ul>
+ *     <li>V1: Delimiter, Marker, Prefix, NextMarker, Key</li>
+ *     <li>V2: Delimiter, Prefix, Key, and StartAfter</li>
+ * </ul>
+ * <p>
+ * See <a
+ * href="https://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html">https://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html</a>
+ * and <a
+ * href="https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html">https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html</a>
+ */
 @SdkProtectedApi
-@ReviewBeforeRelease("Finish this and hook it up")
-public class DecodeUrlEncodedResponseInterceptor implements ExecutionInterceptor {
+public final class DecodeUrlEncodedResponseInterceptor implements ExecutionInterceptor {
 
-    //    @Override
-    //    public void afterResponse(Request<?> request, Response<?> response) {
-    //
-    //        if (response.getAwsResponse() instanceof ListObjectsV2Response) {
-    //            decodeListObjectsV2ResponseIfRequired(request, response);
-    //        }
-    //
-    //        if (response.getAwsResponse() instanceof ListObjectVersionsResponse) {
-    //            decodeListObjectVersionsResponseIfRequired(request, response);
-    //        }
-    //    }
-    //
-    //    public void decodeListObjectsV2ResponseIfRequired(Request<?> request, Response<?> response) {
-    //        ListObjectsV2Request listObjectsV2Request = (ListObjectsV2Request) request.getOriginalRequest();
-    //        ListObjectsV2Response listObjectsV2Response = (ListObjectsV2Response) response.getAwsResponse();
-    //
-    //        if (listObjectsV2Request.encodingType() != null) {
-    //            listObjectsV2Response.toBuilder().
-    //        }
-    //
-    //        response.
-    //    }
+    @Override
+    public SdkResponse modifyResponse(Context.ModifyResponse context,
+                                      ExecutionAttributes executionAttributes) {
+        SdkResponse response = context.response();
+        if (shouldHandle(response)) {
+            if (response instanceof ListObjectsResponse) {
+                response = modifyListObjectsResponse((ListObjectsResponse) response);
+            } else if (response instanceof ListObjectsV2Response) {
+                response = modifyListObjectsV2Response((ListObjectsV2Response) response);
+            }
+        }
+        return response;
+    }
+
+    private static boolean shouldHandle(SdkResponse sdkResponse) {
+        return sdkResponse.getValueForField("EncodingType", String.class)
+                          .map(et -> EncodingType.URL.toString().equals(et))
+                          .orElse(false);
+    }
+
+    // Elements to decode: Delimiter, Marker, Prefix, NextMarker, Key
+    private static SdkResponse modifyListObjectsResponse(ListObjectsResponse response) {
+        return response.toBuilder()
+                .delimiter(urlDecode(response.delimiter()))
+                .marker(urlDecode(response.delimiter()))
+                .prefix(urlDecode(response.prefix()))
+                .nextMarker(urlDecode(response.nextMarker()))
+                .contents(decodeContents(response.contents()))
+                .build();
+    }
+
+    // Elements to decode: Delimiter, Prefix, Key, and StartAfter
+    private static SdkResponse modifyListObjectsV2Response(ListObjectsV2Response response) {
+        return response.toBuilder()
+                .delimiter(urlDecode(response.delimiter()))
+                .prefix(urlDecode(response.prefix()))
+                .startAfter(urlDecode(response.startAfter()))
+                .contents(decodeContents(response.contents()))
+                .build();
+    }
+
+    private static List<S3Object> decodeContents(List<S3Object> contents) {
+        if (contents == null) {
+            return null;
+        }
+        return contents.stream()
+                       .map(o -> o.toBuilder().key(urlDecode(o.key())).build())
+                       .collect(Collectors.toList());
+    }
 }
