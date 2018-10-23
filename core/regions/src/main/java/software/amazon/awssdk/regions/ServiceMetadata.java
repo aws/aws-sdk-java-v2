@@ -18,7 +18,6 @@ package software.amazon.awssdk.regions;
 import java.net.URI;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.regions.internal.RegionMetadataLoader;
 
 /**
  * Metadata about a service, like S3, DynamoDB, etc.
@@ -65,6 +64,12 @@ public interface ServiceMetadata {
      * @return The service metadata for the requested service.
      */
     static ServiceMetadata of(String serviceEndpointPrefix) {
-        return RegionMetadataLoader.getServiceMetadata(serviceEndpointPrefix);
+        ServiceMetadata metadata = MetadataLoader.serviceMetadata(serviceEndpointPrefix);
+        return metadata == null ? new DefaultServiceMetadata(serviceEndpointPrefix) : metadata;
+    }
+
+    default String computeEndpoint(String endpointPrefix, Region region) {
+        RegionMetadata regionMetadata = RegionMetadata.of(region);
+        return String.format("%s.%s.%s", endpointPrefix, region.id(), regionMetadata.domain());
     }
 }

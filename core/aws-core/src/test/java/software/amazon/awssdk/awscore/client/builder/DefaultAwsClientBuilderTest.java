@@ -63,7 +63,7 @@ public class DefaultAwsClientBuilderTest {
         .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofSeconds(10))
         .build();
 
-    private static final String ENDPOINT_PREFIX = "prefix";
+    private static final String ENDPOINT_PREFIX = "s3";
     private static final String SIGNING_NAME = "demo";
     private static final Signer TEST_SIGNER = Aws4Signer.create();
     private static final URI ENDPOINT = URI.create("https://example.com");
