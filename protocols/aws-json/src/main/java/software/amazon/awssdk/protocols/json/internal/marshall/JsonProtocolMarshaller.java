@@ -127,6 +127,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
         Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        // TODO the default is supposedly rfc822. See JAVA-2949
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.ISO_8601);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
         formats.put(MarshallLocation.QUERY_PARAM, TimestampFormatTrait.Format.ISO_8601);
