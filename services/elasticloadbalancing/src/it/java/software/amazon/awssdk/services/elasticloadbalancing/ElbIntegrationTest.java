@@ -26,7 +26,6 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.List;
-import org.apache.log4j.BasicConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -190,7 +189,6 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
      */
     @Test
     public void testLoadBalancerInstanceOperations() throws Exception {
-        BasicConfigurator.configure();
         // Start up an EC2 instance to register with our LB
         RunInstancesRequest runInstancesRequest = RunInstancesRequest.builder()
                 .placement(
