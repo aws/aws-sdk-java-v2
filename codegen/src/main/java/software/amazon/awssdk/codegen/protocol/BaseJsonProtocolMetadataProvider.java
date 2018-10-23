@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.core.internal.protocol.json.JsonMarshallerContext;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 
 /**
  * Base class for all JSON based protocols. This includes {@link AwsCborProtocolMetadataProvider}.
@@ -28,9 +27,10 @@ public abstract class BaseJsonProtocolMetadataProvider extends BaseProtocolMetad
         return true;
     }
 
+    // TODO can clean this up when rest-xml is converted
     @Override
     public String getUnmarshallerContextClassName() {
-        return JsonMarshallerContext.class.getSimpleName();
+        return "";
     }
 
     /**

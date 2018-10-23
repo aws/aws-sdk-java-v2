@@ -33,6 +33,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-query-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <scope>test</scope>

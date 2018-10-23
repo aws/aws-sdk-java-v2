@@ -70,6 +70,7 @@
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
         <module>utils</module>
+        <module>protocols</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
     </modules>

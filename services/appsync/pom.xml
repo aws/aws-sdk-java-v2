@@ -30,4 +30,16 @@
         with Amazon AppSync.
     </description>
 
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-json-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+    </dependencies>
 </project>

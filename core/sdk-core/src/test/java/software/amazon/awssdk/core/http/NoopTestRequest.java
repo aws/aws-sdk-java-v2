@@ -18,9 +18,9 @@ package software.amazon.awssdk.core.http;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
-import software.amazon.awssdk.core.protocol.SdkField;
 
 public class NoopTestRequest extends SdkRequest {
 

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.awscore.http.response;
 
-import static software.amazon.awssdk.awscore.internal.DefaultAwsResponseMetadata.AWS_REQUEST_ID;
+import static software.amazon.awssdk.awscore.DefaultAwsResponseMetadata.AWS_REQUEST_ID;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -26,7 +26,7 @@ import javax.xml.stream.XMLStreamException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
-import software.amazon.awssdk.awscore.internal.DefaultAwsResponseMetadata;
+import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.awscore.internal.protocol.xml.VoidStaxUnmarshaller;
 import software.amazon.awssdk.awscore.protocol.xml.StaxOperationMetadata;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;

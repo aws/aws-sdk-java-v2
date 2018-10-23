@@ -32,6 +32,21 @@
 
     <dependencies>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-cbor-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-json-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <groupId>software.amazon</groupId>
             <artifactId>flow</artifactId>
             <version>1.0</version>
@@ -43,5 +58,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

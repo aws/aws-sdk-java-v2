@@ -28,6 +28,7 @@ import software.amazon.awssdk.codegen.emitters.FreemarkerGeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
@@ -68,8 +69,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private Stream<GeneratorTask> createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
-        if (metadata.isJsonProtocol()) {
-
+        if (metadata.isJsonProtocol() || metadata.getProtocol() == Protocol.QUERY || metadata.getProtocol() == Protocol.EC2) {
             return ShapeType.Request == shapeModel.getShapeType() ||
                    (ShapeType.Model == shapeModel.getShapeType() && shapeModel.isEvent()
                     && EventStreamUtils.isRequestEvent(model, shapeModel))

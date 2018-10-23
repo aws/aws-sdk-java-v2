@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 

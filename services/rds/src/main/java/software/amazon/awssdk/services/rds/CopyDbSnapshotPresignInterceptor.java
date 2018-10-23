@@ -19,6 +19,7 @@ import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
 
@@ -27,6 +28,9 @@ import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarsha
  */
 @SdkProtectedApi
 public final class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
+
+    public static final CopyDbSnapshotRequestMarshaller MARSHALLER =
+        new CopyDbSnapshotRequestMarshaller(new AwsQueryProtocolFactory());
 
     public CopyDbSnapshotPresignInterceptor() {
         super(CopyDbSnapshotRequest.class);
@@ -47,7 +51,7 @@ public final class CopyDbSnapshotPresignInterceptor extends RdsPresignIntercepto
 
             @Override
             public Request<?> marshall() {
-                return new CopyDbSnapshotRequestMarshaller().marshall(originalRequest);
+                return MARSHALLER.marshall(originalRequest);
             }
         };
     }

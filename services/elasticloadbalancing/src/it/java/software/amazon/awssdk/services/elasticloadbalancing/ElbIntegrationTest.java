@@ -195,7 +195,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
                         Placement.builder()
                                 .availabilityZone(AVAILABILITY_ZONE_1).build())
                 .imageId(AMI_ID).minCount(1).maxCount(1).build();
-        instanceId = ec2.runInstances(runInstancesRequest).reservation()
+        instanceId = ec2.runInstances(runInstancesRequest)
                         .instances().get(0).instanceId();
 
         // Register it with our load balancer

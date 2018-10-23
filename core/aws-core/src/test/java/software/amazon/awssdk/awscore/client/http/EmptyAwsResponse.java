@@ -19,7 +19,7 @@ package software.amazon.awssdk.awscore.client.http;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.SdkField;
 
 public class EmptyAwsResponse extends AwsResponse {
     public EmptyAwsResponse(Builder builder) {

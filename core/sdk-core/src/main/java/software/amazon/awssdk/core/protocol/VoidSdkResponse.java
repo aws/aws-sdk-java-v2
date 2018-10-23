@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.protocol;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 

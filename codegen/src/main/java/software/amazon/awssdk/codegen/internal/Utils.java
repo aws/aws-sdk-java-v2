@@ -314,8 +314,10 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (!StringUtils.isEmpty(service.getTargetPrefix()) && Metadata.isNotRestProtocol(service.getProtocol())) {
-            marshaller.setTarget(service.getTargetPrefix() + "." + operation.getName());
+        if (Metadata.isNotRestProtocol(service.getProtocol())) {
+            marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
+                                 operation.getName() :
+                                 service.getTargetPrefix() + "." + operation.getName());
         }
         return marshaller;
 

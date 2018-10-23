@@ -24,7 +24,6 @@ import java.net.URI;
 import org.junit.Rule;
 import software.amazon.awssdk.awscore.client.http.NoopTestAwsRequest;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
@@ -53,7 +52,7 @@ public abstract class WireMockTestBase {
     }
 
     protected HttpResponseHandler<AwsServiceException> stubErrorHandler() throws Exception {
-        HttpResponseHandler<AwsServiceException> errorHandler = mock(AwsJsonErrorResponseHandler.class);
+        HttpResponseHandler<AwsServiceException> errorHandler = mock(HttpResponseHandler.class);
         when(errorHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenReturn(mockException());
         return errorHandler;
     }

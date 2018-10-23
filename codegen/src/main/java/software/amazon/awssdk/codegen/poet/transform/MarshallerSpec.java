@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.transform.protocols.EventStreamJsonMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.JsonMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.MarshallerProtocolSpec;
+import software.amazon.awssdk.codegen.poet.transform.protocols.QueryMarshallerSpec;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
@@ -122,8 +123,9 @@ public class MarshallerSpec implements ClassSpec {
             case AWS_JSON:
                 return getJsonMarshallerSpec();
             case QUERY:
-            case REST_XML:
             case EC2:
+                return new QueryMarshallerSpec(intermediateModel, shapeModel);
+            case REST_XML:
             case API_GATEWAY:
                 throw new UnsupportedOperationException("Not yet supported.");
             default:

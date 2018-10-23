@@ -221,16 +221,20 @@ abstract class AddShapes {
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
         Shape memberShape = allC2jShapes.get(member.getShape());
-
         mapping.withLocation(Location.forValue(member.getLocation()))
-                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
-                .withFlattened(member.isFlattened() || memberShape.isFlattened())
-                .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberName, member))
-                .withMarshallLocationName(
-                        deriveMarshallerLocationName(memberName, member, protocol))
-                .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
+               .withPayload(member.isPayload()).withStreaming(member.isStreaming())
+               .withFlattened(isFlattened(member, memberShape))
+               .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberShape, memberName, member))
+               .withMarshallLocationName(
+                        deriveMarshallerLocationName(memberShape, memberName, member, protocol))
+               .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
 
         return mapping;
+    }
+
+    private boolean isFlattened(Member member, Shape memberShape) {
+        return member.isFlattened()
+               || memberShape.isFlattened();
     }
 
     /**
@@ -266,9 +270,14 @@ abstract class AddShapes {
                 .findFirst().orElseThrow(() -> new RuntimeException("Could not find request URI for input shape"));
     }
 
-    private String deriveUnmarshallerLocationName(String memberName, Member member) {
-
-        String locationName = member.getLocationName();
+    private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {
+        String locationName;
+        if (memberShape.getListMember() != null && memberShape.isFlattened()) {
+            locationName = memberShape.getListMember().getLocationName() == null ?
+                           member.getLocationName() : memberShape.getListMember().getLocationName();
+        } else {
+            locationName = member.getLocationName();
+        }
 
         if (locationName != null && !locationName.trim().isEmpty()) {
             return locationName;
@@ -277,12 +286,13 @@ abstract class AddShapes {
         return memberName;
     }
 
-    private String deriveMarshallerLocationName(String memberName, Member member, String protocol) {
+    private String deriveMarshallerLocationName(Shape memberShape, String memberName, Member member, String protocol) {
         String queryName = member.getQueryName();
         if (queryName != null && !queryName.trim().isEmpty()) {
             return queryName;
         } else {
-            String locationName = member.getLocationName();
+            String locationName = memberShape.getListMember() != null && memberShape.isFlattened() && !protocol.equals("ec2") ?
+                                  memberShape.getListMember().getLocationName() : member.getLocationName();
             if (locationName != null && !locationName.trim().isEmpty()) {
                 if (protocol.equals(Protocol.EC2.getValue())) {
                     return StringUtils.upperCase(locationName.substring(0, 1)) +

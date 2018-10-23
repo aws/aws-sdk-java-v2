@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
@@ -41,6 +40,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
@@ -55,7 +55,7 @@ public class PresignRequestHandlerTest {
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
     private static RdsPresignInterceptor<CopyDbSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
-    private final CopyDbSnapshotRequestMarshaller marshaller = new CopyDbSnapshotRequestMarshaller();
+    private final CopyDbSnapshotRequestMarshaller marshaller = new CopyDbSnapshotRequestMarshaller(new AwsQueryProtocolFactory());
 
     @Test
     public void testSetsPresignedUrl() throws URISyntaxException {

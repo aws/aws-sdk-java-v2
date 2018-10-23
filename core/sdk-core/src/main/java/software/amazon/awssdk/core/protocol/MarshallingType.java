@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkPojo;
 
 /**
  * Represents the various types supported for marshalling.
@@ -55,17 +56,17 @@ public interface MarshallingType<T> {
 
     MarshallingType<SdkPojo> SDK_POJO = newType(SdkPojo.class);
 
-    MarshallingType<List> LIST = newType(List.class);
+    MarshallingType<List<?>> LIST = newType(List.class);
 
-    MarshallingType<Map> MAP = newType(Map.class);
+    MarshallingType<Map<String, ?>> MAP = newType(Map.class);
 
-    Class<T> getTargetClass();
+    Class<? super T> getTargetClass();
 
-    static <T> MarshallingType<T> newType(Class<T> clzz) {
+    static <T> MarshallingType<T> newType(Class<? super T> clzz) {
         return new MarshallingType<T>() {
 
             @Override
-            public Class<T> getTargetClass() {
+            public Class<? super T> getTargetClass() {
                 return clzz;
             }
 

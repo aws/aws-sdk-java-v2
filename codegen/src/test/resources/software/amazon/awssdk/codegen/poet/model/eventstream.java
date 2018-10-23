@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 
 /**
  * Base interface for all event types of the EventStreamOperation API.

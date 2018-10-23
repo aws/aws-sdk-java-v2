@@ -23,6 +23,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +34,6 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransf
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -49,56 +48,71 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
-import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
+import software.amazon.awssdk.protocols.ion.AwsIonProtocolFactory;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.JsonErrorResponseMetadata;
+import software.amazon.awssdk.protocols.json.JsonErrorShapeMetadata;
+import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 
 public class JsonProtocolSpec implements ProtocolSpec {
 
     private final PoetExtensions poetExtensions;
+    private final IntermediateModel model;
 
-    public JsonProtocolSpec(PoetExtensions poetExtensions) {
+    public JsonProtocolSpec(PoetExtensions poetExtensions, IntermediateModel model) {
         this.poetExtensions = poetExtensions;
+        this.model = model;
     }
 
     @Override
     public FieldSpec protocolFactory(IntermediateModel model) {
-        return FieldSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(protocolFactoryClass(), "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
     @Override
     public MethodSpec initProtocolFactory(IntermediateModel model) {
         ClassName baseException = baseExceptionClassName(model);
-
         Metadata metadata = model.getMetadata();
-        ClassName protocolFactory = poetExtensions.getClientClass(metadata.getProtocolFactory());
+        ParameterizedTypeName upperBound = ParameterizedTypeName.get(ClassName.get(BaseAwsJsonProtocolFactory.Builder.class),
+                                                                     TypeVariableName.get("T"));
+        TypeVariableName typeVariableName = TypeVariableName.get("T", upperBound);
 
         MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("init")
-                                                  .addParameter(TypeName.BOOLEAN, "supportsCbor")
-                                                  .returns(protocolFactory)
+                                                  .addTypeVariable(typeVariableName)
+                                                  .addParameter(typeVariableName, "builder")
+                                                  .returns(typeVariableName)
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
-                                                      "return $T.builder()\n" +
-                                                      ".supportsCbor(supportsCbor)\n" +
-                                                      ".supportsIon($L)\n" +
+                                                      "return builder\n" +
                                                       ".baseServiceExceptionClass($T.class)\n" +
                                                       ".protocol($T.$L)\n" +
                                                       ".protocolVersion($S)\n",
-                                                      AwsJsonProtocolFactory.class, metadata.isIonProtocol(), baseException,
-                                                      AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()),
-                                                      metadata.getJsonVersion());
+                                                      baseException, AwsJsonProtocol.class,
+                                                      protocolEnumName(metadata.getProtocol()), metadata.getJsonVersion());
 
         if (metadata.getContentType() != null) {
             methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
         }
 
         errorUnmarshallers(model).forEach(methodSpec::addCode);
-
-        methodSpec.addCode(".build();");
+        methodSpec.addCode(";");
 
         return methodSpec.build();
+    }
+
+    private Class<?> protocolFactoryClass() {
+        if (model.getMetadata().isCborProtocol()) {
+            return AwsCborProtocolFactory.class;
+        } else if (model.getMetadata().isIonProtocol()) {
+            return AwsIonProtocolFactory.class;
+        } else {
+            return AwsJsonProtocolFactory.class;
+        }
     }
 
     @Override
@@ -244,9 +258,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private String asyncResponseTransformerVariable(boolean isStreaming, boolean isRestJson, OperationModel opModel) {
         if (isStreaming) {
             if (opModel.hasEventStreamOutput() && isRestJson) {
-                return  ", restAsyncResponseTransformer";
+                return ", restAsyncResponseTransformer";
             } else {
-                return  ", asyncResponseTransformer";
+                return ", asyncResponseTransformer";
             }
         }
         return "";
@@ -346,7 +360,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
-                                     .addParameter(AwsJsonProtocolFactory.class, "protocolFactory")
+                                     .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
                                      .returns(responseHandlerOfException)
                                      .addModifiers(Modifier.PRIVATE)
                                      .addStatement("return protocolFactory.createErrorResponseHandler(new $T())",
