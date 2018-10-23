@@ -271,8 +271,13 @@ abstract class AddShapes {
     }
 
     private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {
-        String locationName = memberShape.getListMember() != null && memberShape.isFlattened() ?
-                              memberShape.getListMember().getLocationName() : member.getLocationName();
+        String locationName;
+        if (memberShape.getListMember() != null && memberShape.isFlattened()) {
+            locationName = memberShape.getListMember().getLocationName() == null ?
+                           member.getLocationName() : memberShape.getListMember().getLocationName();
+        } else {
+            locationName = member.getLocationName();
+        }
 
         if (locationName != null && !locationName.trim().isEmpty()) {
             return locationName;

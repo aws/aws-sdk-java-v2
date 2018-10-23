@@ -4,7 +4,7 @@
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><stringMember>stringVal</stringMember><integerMember>42</integerMember><floatMember>1.234</floatMember><doubleMember>5.678</doubleMember><longMember>9001</longMember></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "body": "<AllTypesResponse><AllTypesResult><stringMember>stringVal</stringMember><integerMember>42</integerMember><floatMember>1.234</floatMember><doubleMember>5.678</doubleMember><longMember>9001</longMember><timestampMember>2015-01-25T08:00:12Z</timestampMember></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
       }
     },
     "when": {
@@ -17,7 +17,8 @@
         "integerMember": 42,
         "floatMember": 1.234,
         "doubleMember": 5.678,
-        "longMember": 9001
+        "longMember": 9001,
+        "timestampMember": 1422172812000
       }
     }
   },

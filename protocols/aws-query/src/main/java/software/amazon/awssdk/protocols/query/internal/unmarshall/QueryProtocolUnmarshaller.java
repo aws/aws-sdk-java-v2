@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocols.query.internal.unmarshall;
 
+import static software.amazon.awssdk.protocols.query.internal.marshall.SimpleTypeQueryMarshaller.defaultTimestampFormats;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Pair;
@@ -49,6 +52,8 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
         .unmarshaller(MarshallingType.DOUBLE, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
         .unmarshaller(MarshallingType.BOOLEAN, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
         .unmarshaller(MarshallingType.DOUBLE, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
+        .unmarshaller(MarshallingType.INSTANT,
+                      new SimpleTypeQueryUnmarshaller<>(StringToInstant.create(defaultTimestampFormats())))
         .unmarshaller(MarshallingType.SDK_BYTES, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_SDK_BYTES))
         .unmarshaller(MarshallingType.LIST, new ListQueryUnmarshaller())
         .unmarshaller(MarshallingType.MAP, new MapQueryUnmarshaller())

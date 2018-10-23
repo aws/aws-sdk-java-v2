@@ -23,7 +23,6 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -46,7 +45,7 @@ public final class XmlDomParser {
         do {
             nextEvent = reader.nextEvent();
         } while (reader.hasNext() && !nextEvent.isStartElement());
-        return parseElement((StartElement) nextEvent, reader);
+        return parseElement(nextEvent.asStartElement(), reader);
     }
 
     /**
@@ -64,12 +63,32 @@ public final class XmlDomParser {
         do {
             nextEvent = reader.nextEvent();
             if (nextEvent.isStartElement()) {
-                elementBuilder.addChildElement(parseElement((StartElement) nextEvent, reader));
+                elementBuilder.addChildElement(parseElement(nextEvent.asStartElement(), reader));
             } else if (nextEvent.isCharacters()) {
-                elementBuilder.textContent(((Characters) nextEvent).getData());
+                elementBuilder.textContent(readText(reader, nextEvent.asCharacters().getData()));
             }
         } while (!nextEvent.isEndElement());
         return elementBuilder.build();
+    }
+
+    /**
+     * Reads all characters until the next end element event.
+     *
+     * @param eventReader Reader to read from.
+     * @param firstChunk Initial character data that's already been read.
+     * @return String with all character data concatenated.
+     */
+    private static String readText(XMLEventReader eventReader, String firstChunk) throws XMLStreamException {
+        StringBuilder sb = new StringBuilder(firstChunk);
+        while (true) {
+            XMLEvent event = eventReader.peek();
+            if (event.isCharacters()) {
+                eventReader.nextEvent();
+                sb.append(event.asCharacters().getData());
+            } else {
+                return sb.toString();
+            }
+        }
     }
 
     /**

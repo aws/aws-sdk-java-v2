@@ -152,7 +152,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     /**
      * Builder for {@link AwsJsonProtocolFactory}.
      */
-    public static abstract class Builder<SubclassT extends Builder> {
+    public abstract static class Builder<SubclassT extends Builder> {
 
         private final JsonClientMetadata metadata = new JsonClientMetadata();
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
