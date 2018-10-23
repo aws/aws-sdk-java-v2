@@ -16,7 +16,6 @@
 package software.amazon.awssdk.regions;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.regions.internal.RegionMetadataLoader;
 
 /**
  * A collection of metadata about a region. This can be loaded using the {@link #of(Region)} method.
@@ -46,12 +45,19 @@ public interface RegionMetadata {
     String partition();
 
     /**
+     * Returns the description of this region; ex: &quot;US East (N. Virginia)&quot;.
+     *
+     * @return The description for this region
+     */
+    String description();
+
+    /**
      * Returns the region metadata pertaining to the given region.
      *
      * @param region The region to get the metadata for.
      * @return The metadata for that region.
      */
     static RegionMetadata of(Region region) {
-        return RegionMetadataLoader.getRegionMetadata(region);
+        return MetadataLoader.regionMetadata(region);
     }
 }

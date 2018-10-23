@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>2.0.0-preview-13-SNAPSHOT</version>
+    </parent>
+    <artifactId>codegen-lite</artifactId>
+    <name>AWS Java SDK :: Code Generator Lite</name>
+    <description>The AWS SDK for Java - Code Generator Lite module holds the classes and templates required to generate the
+        source files for the core SDK.
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+
+    <properties>
+        <jre.version>1.8</jre.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+            <version>${javapoet.verion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jr</groupId>
+            <artifactId>jackson-jr-objects</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
+            <version>[${awsjavasdk.version}]</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
+            <version>[${awsjavasdk.version}]</version>
+        </dependency>
+        <dependency>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <groupId>org.eclipse.jdt</groupId>
+            <version>${org.eclipse.jdt.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>org.eclipse.text</artifactId>
+            <groupId>org.eclipse.text</groupId>
+            <version>${org.eclipse.text.version}</version>
+        </dependency>
+    </dependencies>
+
+
+</project>

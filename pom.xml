@@ -70,6 +70,8 @@
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
         <module>utils</module>
+        <module>codegen-lite</module>
+        <module>codegen-lite-maven-plugin</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
