@@ -24,14 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class QueryMarshallerSpec implements MarshallerProtocolSpec {

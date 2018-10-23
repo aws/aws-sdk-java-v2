@@ -19,6 +19,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -36,12 +37,16 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @SdkProtectedApi
 public final class DateUtils {
 
-    /** Alternate ISO 8601 format without fractional seconds. */
+    /**
+     * Alternate ISO 8601 format without fractional seconds.
+     */
     static final DateTimeFormatter ALTERNATE_ISO_8601_DATE_FORMAT =
         new DateTimeFormatterBuilder()
             .appendPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
             .toFormatter()
             .withZone(UTC);
+
+    private static final int MILLI_SECOND_PRECISION = 3;
 
     private DateUtils() {
     }
@@ -118,5 +123,28 @@ public final class DateUtils {
 
     private static Instant parseInstant(String dateString, DateTimeFormatter formatter) {
         return formatter.withZone(ZoneOffset.UTC).parse(dateString, Instant::from);
+    }
+
+    /**
+     * Parses the given string containing a Unix timestamp with millisecond decimal precision into an {@link Instant} object.
+     */
+    public static Instant parseUnixTimestampInstant(String dateString) throws NumberFormatException {
+        if (dateString == null) {
+            return null;
+        }
+        BigDecimal dateValue = new BigDecimal(dateString);
+        return Instant.ofEpochMilli(dateValue.scaleByPowerOfTen(MILLI_SECOND_PRECISION).longValue());
+    }
+
+    /**
+     * Formats the give {@link Instant} object into an Unix timestamp with millisecond decimal precision.
+     */
+    public static String formatUnixTimestampInstant(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        BigDecimal dateValue = BigDecimal.valueOf(instant.toEpochMilli());
+        return dateValue.scaleByPowerOfTen(0 - MILLI_SECOND_PRECISION)
+                        .toPlainString();
     }
 }

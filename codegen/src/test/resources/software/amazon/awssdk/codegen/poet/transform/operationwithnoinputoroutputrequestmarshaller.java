@@ -2,13 +2,13 @@ package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.services.jsonprotocoltests.model.OperationWithNoInputOrOutputRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -22,9 +22,9 @@ public class OperationWithNoInputOrOutputRequestMarshaller implements
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
                                                                             .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
 
-    private final AwsJsonProtocolFactory protocolFactory;
+    private final BaseAwsJsonProtocolFactory protocolFactory;
 
-    public OperationWithNoInputOrOutputRequestMarshaller(AwsJsonProtocolFactory protocolFactory) {
+    public OperationWithNoInputOrOutputRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 

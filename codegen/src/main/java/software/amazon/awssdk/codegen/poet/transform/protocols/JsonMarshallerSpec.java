@@ -24,14 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -49,7 +49,7 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     @Override
     public ParameterSpec protocolFactoryParameter() {
-        return ParameterSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory").build();
+        return ParameterSpec.builder(protocolFactoryClass(), "protocolFactory").build();
     }
 
     @Override
@@ -75,8 +75,12 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     @Override
     public FieldSpec protocolFactory() {
-        return FieldSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(protocolFactoryClass(), "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
+    }
+
+    private Class<BaseAwsJsonProtocolFactory> protocolFactoryClass() {
+        return BaseAwsJsonProtocolFactory.class;
     }
 
     @Override

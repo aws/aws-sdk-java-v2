@@ -29,4 +29,17 @@
         communicating with Amazon Cognito Identity Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-json-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+    </dependencies>
 </project>

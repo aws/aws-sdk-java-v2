@@ -31,7 +31,6 @@ import javax.lang.model.element.Modifier;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
-import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -42,6 +41,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class QueryXmlProtocolSpec implements ProtocolSpec {

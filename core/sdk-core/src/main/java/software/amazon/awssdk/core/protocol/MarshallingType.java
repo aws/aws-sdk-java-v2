@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkPojo;
 
 /**
  * Represents the various types supported for marshalling.

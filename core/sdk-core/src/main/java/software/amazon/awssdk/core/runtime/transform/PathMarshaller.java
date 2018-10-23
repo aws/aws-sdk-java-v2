@@ -21,6 +21,7 @@ import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
+// TODO move this to protocols-core
 @SdkProtectedApi
 public abstract class PathMarshaller {
 

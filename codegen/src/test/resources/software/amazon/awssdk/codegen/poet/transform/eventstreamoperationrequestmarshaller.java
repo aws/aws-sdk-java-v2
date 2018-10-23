@@ -2,13 +2,13 @@ package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -23,9 +23,9 @@ public class EventStreamOperationRequestMarshaller implements
                                                                             .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(true)
                                                                             .hasPayloadMembers(true).build();
 
-    private final AwsJsonProtocolFactory protocolFactory;
+    private final BaseAwsJsonProtocolFactory protocolFactory;
 
-    public EventStreamOperationRequestMarshaller(AwsJsonProtocolFactory protocolFactory) {
+    public EventStreamOperationRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 

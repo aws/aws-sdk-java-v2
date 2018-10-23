@@ -34,16 +34,16 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
-import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
-import software.amazon.awssdk.core.protocol.traits.ListTrait;
-import software.amazon.awssdk.core.protocol.traits.LocationTrait;
-import software.amazon.awssdk.core.protocol.traits.MapTrait;
-import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
-import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.DefaultValueTrait;
+import software.amazon.awssdk.core.traits.JsonValueTrait;
+import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 
 /**
  * Provides Poet specs related to shape models.

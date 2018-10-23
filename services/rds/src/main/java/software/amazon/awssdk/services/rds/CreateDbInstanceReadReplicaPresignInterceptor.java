@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services.rds;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.protocol.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.services.rds.model.CreateDbInstanceReadReplicaRequest;
 import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplicaRequestMarshaller;
 

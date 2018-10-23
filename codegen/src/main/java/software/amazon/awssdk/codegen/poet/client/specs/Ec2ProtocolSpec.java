@@ -18,8 +18,8 @@ package software.amazon.awssdk.codegen.poet.client.specs;
 import com.squareup.javapoet.MethodSpec;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.awscore.protocol.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 
 public class Ec2ProtocolSpec extends QueryXmlProtocolSpec {
 
