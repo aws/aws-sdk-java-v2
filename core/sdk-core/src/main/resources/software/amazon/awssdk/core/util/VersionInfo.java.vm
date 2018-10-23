@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.util;
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 @Generated("com.nativelibs4java:maven-velocity-plugin")
 public final class VersionInfo {

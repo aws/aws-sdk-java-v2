@@ -66,8 +66,8 @@ public final class QueryStringSigner extends AbstractAwsSigner {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS);
-        final Integer offset = executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET);
+        AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS);
+        Integer offset = executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET);
 
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(awsCredentials)) {

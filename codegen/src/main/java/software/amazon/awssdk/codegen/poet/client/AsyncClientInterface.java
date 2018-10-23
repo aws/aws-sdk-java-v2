@@ -180,9 +180,9 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     private MethodSpec paginatedTraditionalMethod(OperationModel opModel) {
-        final String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
-        final ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
-        final ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
+        String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
+        ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .returns(responsePojoType)
@@ -200,9 +200,9 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
-        final String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
-        final ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
-        final ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
+        String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
+        ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)

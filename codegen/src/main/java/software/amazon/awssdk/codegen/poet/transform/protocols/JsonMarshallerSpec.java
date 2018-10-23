@@ -39,8 +39,8 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
-    private final Metadata metadata;
-    private final ShapeModel shapeModel;
+    protected final Metadata metadata;
+    protected final ShapeModel shapeModel;
 
     public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
         this.metadata = model.getMetadata();
@@ -86,7 +86,12 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
     @Override
     public List<FieldSpec> memberVariables() {
         List<FieldSpec> fields = new ArrayList<>();
+        fields.add(operationInfoField());
+        fields.add(protocolFactory());
+        return fields;
+    }
 
+    protected FieldSpec operationInfoField() {
         CodeBlock.Builder initializationCodeBlockBuilder = CodeBlock.builder()
                                                                     .add("$T.builder()", OperationInfo.class);
         initializationCodeBlockBuilder.add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
@@ -106,12 +111,9 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
 
-        FieldSpec.Builder instance = FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
-                                              .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                                              .initializer(codeBlock);
-
-        fields.add(instance.build());
-        fields.add(protocolFactory());
-        return fields;
+        return FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
+                        .initializer(codeBlock)
+                        .build();
     }
 }

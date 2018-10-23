@@ -56,7 +56,7 @@ public final class AndRetryCondition implements RetryCondition {
             return false;
         }
 
-        final AndRetryCondition that = (AndRetryCondition) o;
+        AndRetryCondition that = (AndRetryCondition) o;
 
         return conditions != null ? conditions.equals(that.conditions) : that.conditions == null;
     }

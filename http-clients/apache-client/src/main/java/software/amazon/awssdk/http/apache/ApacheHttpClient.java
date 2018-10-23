@@ -113,11 +113,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
-        final HttpClientBuilder builder = HttpClients.custom();
+        HttpClientBuilder builder = HttpClients.custom();
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
-        final HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+        HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
@@ -156,7 +156,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheHttpClient.DefaultBuilder configuration) {
-        final long maxIdle = connectionMaxIdleTime(configuration).toMillis();
+        long maxIdle = connectionMaxIdleTime(configuration).toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
     }
 
@@ -180,7 +180,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     @Override
     public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
-        final HttpRequestBase apacheRequest = toApacheRequest(request);
+        HttpRequestBase apacheRequest = toApacheRequest(request);
         return new AbortableCallable<SdkHttpFullResponse>() {
             @Override
             public SdkHttpFullResponse call() throws Exception {
@@ -458,7 +458,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                                   AttributeMap standardOptions) {
             ConnectionSocketFactory sslsf = getPreferredSocketFactory(standardOptions);
 
-            final PoolingHttpClientConnectionManager cm = new
+            PoolingHttpClientConnectionManager cm = new
                     PoolingHttpClientConnectionManager(
                     createSocketFactoryRegistry(sslsf),
                     null,
@@ -496,7 +496,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
             }
 
             try {
-                final SSLContext sslcontext = SSLContext.getInstance("TLS");
+                SSLContext sslcontext = SSLContext.getInstance("TLS");
                 // http://download.java.net/jdk9/docs/technotes/guides/security/jsse/JSSERefGuide.html
                 sslcontext.init(null, trustManagers, null);
                 return sslcontext;

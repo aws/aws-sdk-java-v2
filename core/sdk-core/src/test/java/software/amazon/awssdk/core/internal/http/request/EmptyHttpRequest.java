@@ -15,20 +15,22 @@
 
 package software.amazon.awssdk.core.internal.http.request;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.NoopTestRequest;
+import software.amazon.awssdk.http.ContentStreamProvider;
 
 public class EmptyHttpRequest implements Request<NoopTestRequest> {
 
     private final URI endpoint;
     private final HttpMethodName httpMethod;
-    private InputStream content;
+    private ContentStreamProvider contentProvider;
     private NoopTestRequest originalRequest = NoopTestRequest.builder().build();
 
     public EmptyHttpRequest(String endpoint, HttpMethodName httpMethod) {
@@ -36,10 +38,10 @@ public class EmptyHttpRequest implements Request<NoopTestRequest> {
     }
 
     public EmptyHttpRequest(String endpoint, HttpMethodName httpMethod,
-                            InputStream payload) {
+                            ContentStreamProvider contentProvider) {
         this.endpoint = URI.create(endpoint);
         this.httpMethod = httpMethod;
-        this.content = payload;
+        this.contentProvider = contentProvider;
     }
 
     @Override
@@ -107,13 +109,13 @@ public class EmptyHttpRequest implements Request<NoopTestRequest> {
     }
 
     @Override
-    public InputStream getContent() {
-        return content;
+    public Optional<ContentStreamProvider> getContentStreamProvider() {
+        return Optional.ofNullable(contentProvider);
     }
 
     @Override
-    public void setContent(InputStream content) {
-        this.content = content;
+    public void setContentProvider(ContentStreamProvider contentProvider) {
+        this.contentProvider = contentProvider;
     }
 
     @Override

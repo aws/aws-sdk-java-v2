@@ -265,7 +265,7 @@ public final class StringUtils {
      * @since 2.0
      */
     public static String trimToNull(final String str) {
-        final String ts = trim(str);
+        String ts = trim(str);
         return isEmpty(ts) ? null : ts;
     }
 
@@ -510,18 +510,18 @@ public final class StringUtils {
             return str;
         }
 
-        final int firstCodepoint = str.codePointAt(0);
-        final int newCodePoint = Character.toTitleCase(firstCodepoint);
+        int firstCodepoint = str.codePointAt(0);
+        int newCodePoint = Character.toTitleCase(firstCodepoint);
         if (firstCodepoint == newCodePoint) {
             // already capitalized
             return str;
         }
 
-        final int[] newCodePoints = new int[str.length()]; // cannot be longer than the char array
+        int[] newCodePoints = new int[str.length()]; // cannot be longer than the char array
         int outOffset = 0;
         newCodePoints[outOffset++] = newCodePoint; // copy the first codepoint
         for (int inOffset = Character.charCount(firstCodepoint); inOffset < str.length(); ) {
-            final int codepoint = str.codePointAt(inOffset);
+            int codepoint = str.codePointAt(inOffset);
             newCodePoints[outOffset++] = codepoint; // copy the remaining ones
             inOffset += Character.charCount(codepoint);
         }
@@ -550,18 +550,18 @@ public final class StringUtils {
             return str;
         }
 
-        final int firstCodepoint = str.codePointAt(0);
-        final int newCodePoint = Character.toLowerCase(firstCodepoint);
+        int firstCodepoint = str.codePointAt(0);
+        int newCodePoint = Character.toLowerCase(firstCodepoint);
         if (firstCodepoint == newCodePoint) {
             // already capitalized
             return str;
         }
 
-        final int[] newCodePoints = new int[str.length()]; // cannot be longer than the char array
+        int[] newCodePoints = new int[str.length()]; // cannot be longer than the char array
         int outOffset = 0;
         newCodePoints[outOffset++] = newCodePoint; // copy the first codepoint
         for (int inOffset = Character.charCount(firstCodepoint); inOffset < str.length(); ) {
-            final int codepoint = str.codePointAt(inOffset);
+            int codepoint = str.codePointAt(inOffset);
             newCodePoints[outOffset++] = codepoint; // copy the remaining ones
             inOffset += Character.charCount(codepoint);
         }

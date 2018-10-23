@@ -156,7 +156,7 @@ public class Aws4SignerTest {
 
     private SdkHttpFullRequest.Builder generateBasicRequest() {
         return SdkHttpFullRequest.builder()
-                                 .content(new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                                 .contentStreamProvider(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
                                  .method(SdkHttpMethod.POST)
                                  .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                  .putHeader("x-amz-archive-description", "test  test")

@@ -118,7 +118,7 @@ public class JsonPolicyReader {
 
         JsonNode effectNode = jStatement.get(JsonDocumentField.STATEMENT_EFFECT);
 
-        final Statement.Effect effect = isNotNull(effectNode)
+        Statement.Effect effect = isNotNull(effectNode)
                                         ? Statement.Effect.valueOf(effectNode.asText())
                                         : Statement.Effect.Deny;
 

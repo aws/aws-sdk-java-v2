@@ -140,7 +140,7 @@ public final class Choice {
         @Override
         public Choice.Builder deserialize(JsonParser jsonParser,
                                           DeserializationContext deserializationContext) throws IOException {
-            final JsonNode node = jsonParser.getCodec().readTree(jsonParser);
+            JsonNode node = jsonParser.getCodec().readTree(jsonParser);
             return Choice.builder()
                          .nextStateName(node.get(PropertyName.NEXT).asText())
                          .condition(conditionDeserializer.deserializeCondition(node));

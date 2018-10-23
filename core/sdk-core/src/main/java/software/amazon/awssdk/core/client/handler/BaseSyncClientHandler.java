@@ -19,12 +19,17 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
@@ -121,12 +126,27 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         @Override
         public ReturnT handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
             OutputT resp = httpResponseHandler.handle(response, executionAttributes);
-            return responseTransformer.apply(resp, response.content().get());
+            return transformResponse(resp, response.content().get());
         }
 
         @Override
         public boolean needsConnectionLeftOpen() {
             return responseTransformer.needsConnectionLeftOpen();
+        }
+
+
+        private ReturnT transformResponse(OutputT resp, AbortableInputStream inputStream) throws Exception {
+            try {
+                InterruptMonitor.checkInterrupted();
+                ReturnT result = responseTransformer.transform(resp, inputStream);
+                InterruptMonitor.checkInterrupted();
+                return result;
+            }  catch (RetryableException | InterruptedException | AbortedException e) {
+                throw e;
+            } catch (Exception e) {
+                InterruptMonitor.checkInterrupted();
+                throw NonRetryableException.builder().cause(e).build();
+            }
         }
     }
 }

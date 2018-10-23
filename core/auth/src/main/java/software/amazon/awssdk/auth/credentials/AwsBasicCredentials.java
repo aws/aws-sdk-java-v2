@@ -107,7 +107,7 @@ public final class AwsBasicCredentials implements AwsCredentials {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final AwsBasicCredentials that = (AwsBasicCredentials) o;
+        AwsBasicCredentials that = (AwsBasicCredentials) o;
         return Objects.equals(accessKeyId, that.accessKeyId) &&
                Objects.equals(secretAccessKey, that.secretAccessKey);
     }

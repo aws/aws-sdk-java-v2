@@ -61,10 +61,10 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
 
     private final JsonMarshallerContext marshallerContext;
 
-    public JsonProtocolMarshaller(StructuredJsonGenerator jsonGenerator,
-                                  String contentType,
-                                  OperationInfo operationInfo,
-                                  OrigRequestT originalRequest) {
+    JsonProtocolMarshaller(StructuredJsonGenerator jsonGenerator,
+                           String contentType,
+                           OperationInfo operationInfo,
+                           OrigRequestT originalRequest) {
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
@@ -153,11 +153,11 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
         }
     }
 
-    public void doMarshall(SdkPojo pojo) {
+    void doMarshall(SdkPojo pojo) {
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = field.getValueOrDefault(pojo);
             if (isBinary(field, val)) {
-                request.setContent(((SdkBytes) val).asInputStream());
+                request.setContentProvider(((SdkBytes) val)::asInputStream);
             } else {
                 if (val != null && field.containsTrait(PayloadTrait.class)) {
                     jsonGenerator.writeStartObject();
@@ -188,14 +188,14 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
 
     private Request<OrigRequestT> finishMarshalling() {
         // Content may already be set if the payload is binary data.
-        if (request.getContent() == null) {
+        if (!request.getContentStreamProvider().isPresent()) {
             // End the implicit request object if needed.
             if (!hasExplicitPayloadMember) {
                 jsonGenerator.writeEndObject();
             }
 
             byte[] content = jsonGenerator.getBytes();
-            request.setContent(new ByteArrayInputStream(content));
+            request.setContentProvider(() -> new ByteArrayInputStream(content));
             if (content.length > 0) {
                 request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }

@@ -53,7 +53,7 @@ public final class PartitionMetadataProvider implements RegionMetadataProvider, 
             return null;
         }
 
-        final RegionMetadata regionFromCache = getRegionFromCache(region);
+        RegionMetadata regionFromCache = getRegionFromCache(region);
 
         return regionFromCache != null ? regionFromCache : createNewRegion(region);
     }
@@ -65,7 +65,7 @@ public final class PartitionMetadataProvider implements RegionMetadataProvider, 
             return null;
         }
 
-        final ServiceMetadata serviceMetadataFromCache = getServiceMetadataFromCache(serviceEndpointPrefix);
+        ServiceMetadata serviceMetadataFromCache = getServiceMetadataFromCache(serviceEndpointPrefix);
 
         return serviceMetadataFromCache != null ? serviceMetadataFromCache : createNewServiceMetadata(serviceEndpointPrefix);
     }

@@ -53,7 +53,7 @@ public final class RetryHandler {
                                SdkException exception,
                                int requestCount) {
 
-        final int retriesAttempted = requestCount - 1;
+        int retriesAttempted = requestCount - 1;
 
         // Do not use retry capacity for throttling exceptions
         if (!RetryUtils.isThrottlingException(exception)) {

@@ -67,7 +67,7 @@ public class CodeGenerator {
      */
     public void execute() {
         try {
-            final IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
+            IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
 
             // Dump the intermediate model to a file
             writeIntermediateModel(intermediateModel);
@@ -83,7 +83,7 @@ public class CodeGenerator {
 
     private void writeIntermediateModel(IntermediateModel model)
             throws IOException {
-        final File modelDir = getModelDirectory(sourcesDirectory);
+        File modelDir = getModelDirectory(sourcesDirectory);
         PrintWriter writer = null;
         try {
             File outDir = new File(sourcesDirectory);
@@ -114,7 +114,7 @@ public class CodeGenerator {
     }
 
     private void emitCode(IntermediateModel intermediateModel) {
-        final Iterable<GeneratorTask> generatorTasks = createGeneratorTasks(intermediateModel);
+        Iterable<GeneratorTask> generatorTasks = createGeneratorTasks(intermediateModel);
         try (CodeEmitter emitter = new CodeEmitter(generatorTasks, new GeneratorTaskExecutor())) {
             emitter.emit();
         }

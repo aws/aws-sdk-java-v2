@@ -124,4 +124,16 @@ public final class IoUtils {
             // Stream may be self closed by HTTP client so we ignore any failures.
         }
     }
+
+    /**
+     * If the stream supports marking, marks the stream at the current position with a {@code readLimit} value of
+     * 128 KiB.
+     *
+     * @param s The stream.
+     */
+    public static void markStreamWithMaxReadLimit(InputStream s) {
+        if (s.markSupported()) {
+            s.mark(1 << 17);
+        }
+    }
 }

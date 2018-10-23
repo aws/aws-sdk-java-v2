@@ -284,7 +284,7 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private ClassName exceptionBaseClass() {
-        final String customExceptionBase = intermediateModel.getCustomizationConfig()
+        String customExceptionBase = intermediateModel.getCustomizationConfig()
                 .getSdkModeledExceptionBaseClassName();
         if (customExceptionBase != null) {
             return poetExtensions.getModelClass(customExceptionBase);

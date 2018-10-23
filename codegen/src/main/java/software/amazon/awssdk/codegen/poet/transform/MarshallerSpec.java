@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.transform.protocols.EventStreamJsonMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.JsonMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.MarshallerProtocolSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.QueryMarshallerSpec;
@@ -120,7 +121,7 @@ public class MarshallerSpec implements ClassSpec {
             case CBOR:
             case ION:
             case AWS_JSON:
-                return new JsonMarshallerSpec(intermediateModel, shapeModel);
+                return getJsonMarshallerSpec();
             case QUERY:
             case EC2:
                 return new QueryMarshallerSpec(intermediateModel, shapeModel);
@@ -130,5 +131,12 @@ public class MarshallerSpec implements ClassSpec {
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
         }
+    }
+
+    private MarshallerProtocolSpec getJsonMarshallerSpec() {
+        if (shapeModel.isEvent()) {
+            return new EventStreamJsonMarshallerSpec(intermediateModel, shapeModel);
+        }
+        return new JsonMarshallerSpec(intermediateModel, shapeModel);
     }
 }

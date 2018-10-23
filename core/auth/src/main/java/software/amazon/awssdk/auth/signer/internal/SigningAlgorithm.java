@@ -28,7 +28,7 @@ public enum SigningAlgorithm {
     private final ThreadLocal<Mac> macReference;
 
     SigningAlgorithm() {
-        final String algorithmName = this.toString();
+        String algorithmName = this.toString();
         macReference = new MacThreadLocal(algorithmName);
     }
 

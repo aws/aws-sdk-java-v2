@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.swf;
+package software.amazon.awssdk.services.swf.internal;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -21,14 +21,18 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
-final class SwfHttpConfigurationOptions {
+public final class SwfHttpConfigurationOptions {
 
-    static final AttributeMap OPTIONS = AttributeMap
+    private static final AttributeMap OPTIONS = AttributeMap
             .builder()
             .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofMillis(90_000))
             .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, 1000)
             .build();
 
     private SwfHttpConfigurationOptions() {
+    }
+
+    public static AttributeMap defaultHttpConfig() {
+        return OPTIONS;
     }
 }

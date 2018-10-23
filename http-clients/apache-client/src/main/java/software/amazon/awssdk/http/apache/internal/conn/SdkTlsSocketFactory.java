@@ -66,7 +66,7 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
             // but only do so if the protocols are supported
             TlsProtocol[] values = TlsProtocol.values();
             for (int i = 0; i < values.length; i++) {
-                final String pname = values[i].getProtocolName();
+                String pname = values[i].getProtocolName();
                 if (existsIn(pname, supported)) {
                     target.add(pname);
                 }

@@ -56,12 +56,12 @@ public class QueryParamsAssertion extends MarshallingAssertion {
     @Override
     protected void doAssert(LoggedRequest actual) throws Exception {
         try {
-            final Map<String, List<String>> actualParams = parseQueryParams(actual);
+            Map<String, List<String>> actualParams = parseQueryParams(actual);
             doAssert(actualParams);
         } catch (AssertionError error) {
             // We may send the query params in the body if there is no other content. Try
             // decoding body as params and rerun the assertions.
-            final Map<String, List<String>> actualParams = parseQueryParamsFromBody(
+            Map<String, List<String>> actualParams = parseQueryParamsFromBody(
                     actual.getBodyAsString());
             doAssert(actualParams);
         }
@@ -98,7 +98,7 @@ public class QueryParamsAssertion extends MarshallingAssertion {
     }
 
     private List<NameValuePair> parseNameValuePairsFromQuery(LoggedRequest actual) {
-        final String queryParams = URI.create(actual.getUrl()).getQuery();
+        String queryParams = URI.create(actual.getUrl()).getQuery();
         if (StringUtils.isEmpty(queryParams)) {
             return Collections.emptyList();
         }

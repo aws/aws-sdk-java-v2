@@ -16,6 +16,7 @@ import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -25,10 +26,11 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class InputEvent implements SdkPojo, ToCopyableBuilder<InputEvent.Builder, InputEvent>, InputEventStream {
     private static final SdkField<SdkBytes> EXPLICIT_PAYLOAD_MEMBER_FIELD = SdkField
-        .<SdkBytes> builder(MarshallingType.SDK_BYTES).getter(getter(InputEvent::explicitPayloadMember))
-                                                      .setter(setter(Builder::explicitPayloadMember))
-                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build())
-                                                      .build();
+        .<SdkBytes> builder(MarshallingType.SDK_BYTES)
+        .getter(getter(InputEvent::explicitPayloadMember))
+        .setter(setter(Builder::explicitPayloadMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build(),
+                PayloadTrait.create()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections
         .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));

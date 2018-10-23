@@ -20,7 +20,7 @@ public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuff
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new SimpleHttpContentPublisher(makeFullRequest(), new ExecutionAttributes());
+        return new SimpleHttpContentPublisher(makeFullRequest());
     }
 
     @Override
@@ -39,7 +39,7 @@ public class SimpleRequestProviderTckTest extends PublisherVerification<ByteBuff
                 .protocol("https")
                 .host("aws.amazon.com")
                 .method(SdkHttpMethod.PUT)
-                .content(new ByteArrayInputStream(CONTENT))
+                .contentStreamProvider(() -> new ByteArrayInputStream(CONTENT))
                 .build();
     }
 }

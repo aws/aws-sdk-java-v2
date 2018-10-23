@@ -61,7 +61,7 @@ public final class Endpoint implements Cloneable {
             higher = new Endpoint();
         }
 
-        final Endpoint merged = this.clone();
+        Endpoint merged = this.clone();
 
         merged.setCredentialScope(higher.getCredentialScope() != null
                                           ? higher.getCredentialScope()

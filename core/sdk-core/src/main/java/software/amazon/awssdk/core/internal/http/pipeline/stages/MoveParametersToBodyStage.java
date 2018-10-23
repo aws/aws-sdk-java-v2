@@ -36,16 +36,15 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class MoveParametersToBodyStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
-        if (shouldPutParamsInBody(input, context)) {
+        if (shouldPutParamsInBody(input)) {
             return changeQueryParametersToFormData(input);
         }
         return input;
     }
 
-    private boolean shouldPutParamsInBody(SdkHttpFullRequest.Builder input,
-                                          RequestExecutionContext context) {
+    private boolean shouldPutParamsInBody(SdkHttpFullRequest.Builder input) {
         return input.method() == SdkHttpMethod.POST &&
-               input.content() == null &&
+               input.contentStreamProvider() == null &&
                !CollectionUtils.isNullOrEmpty(input.rawQueryParameters());
     }
 
@@ -55,7 +54,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                                     .getBytes(StandardCharsets.UTF_8);
 
         return input.clearQueryParameters()
-                    .content(new ByteArrayInputStream(params))
+                    .contentStreamProvider(() -> new ByteArrayInputStream(params))
                     .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
                     .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
                                                              lowerCase(StandardCharsets.UTF_8.toString())));

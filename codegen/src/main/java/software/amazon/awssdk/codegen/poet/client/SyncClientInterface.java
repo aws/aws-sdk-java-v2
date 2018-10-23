@@ -173,7 +173,7 @@ public final class SyncClientInterface implements ClassSpec {
                                               opModel.getReturnType().getReturnType());
         TypeName returnType = opModel.hasStreamingOutput() ? STREAMING_TYPE_VARIABLE : responseType;
 
-        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
                                                            .returns(returnType)
                                                            .addModifiers(Modifier.PUBLIC)
                                                            .addJavadoc(opModel.getDocs(model, ClientType.SYNC,

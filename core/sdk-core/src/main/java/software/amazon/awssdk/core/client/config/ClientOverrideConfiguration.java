@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -299,8 +300,13 @@ public final class ClientOverrideConfiguration
          * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
          * execution timeout feature should not be used when absolute precision is needed.
          *
+         * <p>
+         * For synchronous streaming operations, implementations of {@link ResponseTransformer} must handle interrupt
+         * properly to allow the the SDK to timeout the request in a timely manner.
+         *
          * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
          *
          * @see ClientOverrideConfiguration#apiCallTimeout()
          */
@@ -314,8 +320,11 @@ public final class ClientOverrideConfiguration
          *
          * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
          * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
-         * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
-         * feature should not be used when absolute precision is needed.
+         * don't get aborted until several seconds after the timer has been breached. Because of this, the api call attempt
+         * timeout feature should not be used when absolute precision is needed.
+         *
+         * <p>For synchronous streaming operations, the process in {@link ResponseTransformer} is not timed and will not
+         * be aborted.
          *
          * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).

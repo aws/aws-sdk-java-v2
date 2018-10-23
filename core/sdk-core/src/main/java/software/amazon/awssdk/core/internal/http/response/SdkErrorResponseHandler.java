@@ -39,7 +39,7 @@ public class SdkErrorResponseHandler implements HttpResponseHandler<SdkException
     @Override
     public SdkServiceException handle(SdkHttpFullResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
-        final SdkServiceException.Builder exception =
+        SdkServiceException.Builder exception =
                 (SdkServiceException.Builder) handleServiceException(response, executionAttributes).toBuilder();
         exception.statusCode(response.statusCode());
         return exception.build();
@@ -47,7 +47,7 @@ public class SdkErrorResponseHandler implements HttpResponseHandler<SdkException
 
     private SdkException handleServiceException(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws
                                                                                                                        Exception {
-        final int statusCode = response.statusCode();
+        int statusCode = response.statusCode();
         try {
             return delegate.handle(response, executionAttributes);
         } catch (InterruptedException e) {

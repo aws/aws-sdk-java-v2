@@ -35,7 +35,7 @@ public final class CollectionContainsOnly<T> extends TypeSafeMatcher<Collection<
 
     @Override
     protected boolean matchesSafely(Collection<T> actualItems) {
-        final List<Matcher<? extends T>> copyOfExpected = new ArrayList<>(matchers);
+        List<Matcher<? extends T>> copyOfExpected = new ArrayList<>(matchers);
         for (T item : actualItems) {
             boolean match = false;
             for (Matcher<? extends T> m : copyOfExpected) {

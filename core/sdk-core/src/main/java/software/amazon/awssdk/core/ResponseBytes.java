@@ -67,7 +67,7 @@ public final class ResponseBytes<ResponseT> extends BytesWrapper {
             return false;
         }
 
-        final ResponseBytes<?> that = (ResponseBytes<?>) o;
+        ResponseBytes<?> that = (ResponseBytes<?>) o;
 
         return response != null ? response.equals(that.response) : that.response == null;
     }

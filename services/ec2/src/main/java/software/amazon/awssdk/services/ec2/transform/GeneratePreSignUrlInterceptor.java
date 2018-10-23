@@ -90,10 +90,10 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                     .method(SdkHttpMethod.GET)
                     .build();
 
-            final Aws4Signer signer = Aws4Signer.create();
+            Aws4Signer signer = Aws4Signer.create();
             Aws4PresignerParams signingParams = getPresignerParams(executionAttributes, sourceRegion, serviceName);
 
-            final SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
+            SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
 
             return request.toBuilder()
                           .putRawQueryParameter("DestinationRegion", destinationRegion)
@@ -132,7 +132,7 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
 
     private URI createEndpoint(String regionName, String serviceName) {
 
-        final Region region = Region.of(regionName);
+        Region region = Region.of(regionName);
 
         if (region == null) {
             throw SdkClientException.builder()

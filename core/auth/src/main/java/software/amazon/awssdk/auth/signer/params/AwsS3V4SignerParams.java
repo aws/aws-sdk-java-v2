@@ -87,7 +87,7 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
     }
 
     private static final class BuilderImpl extends Aws4SignerParams.BuilderImpl<Builder> implements Builder {
-        static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
+        static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = false;
         static final boolean DEFAULT_PAYLOAD_SIGNING_ENABLED = false;
 
         private Boolean enableChunkedEncoding = DEFAULT_CHUNKED_ENCODING_ENABLED;

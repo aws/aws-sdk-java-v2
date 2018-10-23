@@ -220,7 +220,7 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
             // Must create a shape for the primitive type.
             Shape newShapeForType = new Shape();
             newShapeForType.setType(modifyModel.getEmitAsType());
-            final String shapeName = "SDK_" + modifyModel.getEmitAsType();
+            String shapeName = "SDK_" + modifyModel.getEmitAsType();
             serviceModel.getShapes().put(shapeName, newShapeForType);
 
             shape.getMembers().get(memberToModify).setShape(shapeName);

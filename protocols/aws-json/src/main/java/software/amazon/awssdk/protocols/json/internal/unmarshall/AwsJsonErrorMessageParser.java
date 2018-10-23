@@ -53,12 +53,12 @@ public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
      */
     @Override
     public String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode) {
-        final String headerMessage = httpResponse.firstMatchingHeader(X_AMZN_ERROR_MESSAGE).orElse(null);
+        String headerMessage = httpResponse.firstMatchingHeader(X_AMZN_ERROR_MESSAGE).orElse(null);
         if (headerMessage != null) {
             return headerMessage;
         }
 
-        final String eventHeaderMessage = httpResponse.firstMatchingHeader(EVENT_ERROR_MESSAGE).orElse(null);
+        String eventHeaderMessage = httpResponse.firstMatchingHeader(EVENT_ERROR_MESSAGE).orElse(null);
         if (eventHeaderMessage != null) {
             return eventHeaderMessage;
         }

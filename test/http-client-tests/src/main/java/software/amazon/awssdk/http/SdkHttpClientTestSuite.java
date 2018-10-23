@@ -142,7 +142,7 @@ public abstract class SdkHttpClientTestSuite {
                                  .method(SdkHttpMethod.POST)
                                  .putHeader("Host", uri.getHost())
                                  .putHeader("User-Agent", "hello-world!")
-                                 .content(new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)))
+                                 .contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)))
                                  .build();
     }
 

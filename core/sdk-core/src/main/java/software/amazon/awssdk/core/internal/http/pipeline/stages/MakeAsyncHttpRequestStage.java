@@ -37,6 +37,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -70,7 +71,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         this.responseHandler = responseHandler;
         this.errorResponseHandler = errorResponseHandler;
         this.futureCompletionExecutor =
-                dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
+            dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
         this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
         this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
@@ -87,32 +88,33 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                                     RequestExecutionContext context) throws Exception {
 
         CompletableFuture<? extends SdkException> errorResponseFuture =
-                errorResponseHandler == null ? null : errorResponseHandler.prepare();
+            errorResponseHandler == null ? null : errorResponseHandler.prepare();
 
         //FIXME(dongie): We need to be careful to only call responseHandler.prepare() exactly once per execute() call
         //because it calls prepare() under the hood and we guarantee that we call that once per execution. It would be good
         //to find a way to prevent multiple calls to prepare() within a single execution to only call prepare() once.
-        final ResponseHandler handler = new ResponseHandler(responseHandler.prepare(), errorResponseFuture);
+        ResponseHandler handler = new ResponseHandler(responseHandler.prepare(), errorResponseFuture);
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
-                ? new SimpleHttpContentPublisher(request, context.executionAttributes())
-                : context.requestProvider();
+                                                  ? new SimpleHttpContentPublisher(request)
+                                                  : context.requestProvider();
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
         AsyncExecuteRequest executeRequest = AsyncExecuteRequest.builder()
-                .request(requestWithContentLength)
-                .requestContentPublisher(requestProvider)
-                .responseHandler(handler)
-                .fullDuplex(isFullDuplex(context.executionAttributes()))
-                .build();
+                                                                .request(requestWithContentLength)
+                                                                .requestContentPublisher(requestProvider)
+                                                                .responseHandler(handler)
+                                                                .fullDuplex(isFullDuplex(context.executionAttributes()))
+                                                                .build();
 
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
 
         CompletableFuture<Response<OutputT>> transformFuture = handler.prepare();
 
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
-        setupAttemptTimer(responseFuture, context);
+        TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
+        context.apiCallAttemptTimeoutTracker(timeoutTracker);
 
         // Forward the cancellation
         responseFuture.whenComplete((r, t) -> {
@@ -158,12 +160,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     }
 
-    private void setupAttemptTimer(CompletableFuture<Response<OutputT>> executeFuture, RequestExecutionContext ctx) {
-        final long timeoutMillis = apiCallAttemptTimeoutInMillis(ctx.requestConfig());
-        TimerUtils.timeCompletableFuture(executeFuture,
-                                         timeoutExecutor,
-                                         ApiCallAttemptTimeoutException.create(timeoutMillis),
-                                         timeoutMillis);
+    private TimeoutTracker setupAttemptTimer(CompletableFuture<Response<OutputT>> executeFuture, RequestExecutionContext ctx) {
+        long timeoutMillis = apiCallAttemptTimeoutInMillis(ctx.requestConfig());
+        return TimerUtils.timeAsyncTaskIfNeeded(executeFuture,
+                                                timeoutExecutor,
+                                                ApiCallAttemptTimeoutException.create(timeoutMillis),
+                                                timeoutMillis);
     }
 
     /**
@@ -241,8 +243,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private static SdkHttpFullResponse toFullResponse(SdkHttpResponse response) {
         SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder()
-                .statusCode(response.statusCode())
-                .headers(response.headers());
+                                                                 .statusCode(response.statusCode())
+                                                                 .headers(response.headers());
         response.statusText().ifPresent(builder::statusText);
         return builder.build();
     }

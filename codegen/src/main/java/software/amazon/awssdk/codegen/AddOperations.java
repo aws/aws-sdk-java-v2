@@ -145,8 +145,8 @@ final class AddOperations {
 
         for (Map.Entry<String, Operation> entry : serviceModel.getOperations().entrySet()) {
 
-            final String operationName = entry.getKey();
-            final Operation op = entry.getValue();
+            String operationName = entry.getKey();
+            Operation op = entry.getValue();
 
             OperationModel operationModel = new OperationModel();
 
@@ -156,7 +156,7 @@ final class AddOperations {
             operationModel.setIsAuthenticated(isAuthenticated(op));
             operationModel.setPaginated(isPaginated(op));
 
-            final Input input = op.getInput();
+            Input input = op.getInput();
             if (input != null) {
                 String originalShapeName = input.getShape();
                 String inputShape = namingStrategy.getRequestClassName(operationName);
@@ -168,12 +168,12 @@ final class AddOperations {
 
             }
 
-            final Output output = op.getOutput();
+            Output output = op.getOutput();
             if (output != null) {
-                final String outputShapeName = getResultShapeName(op, c2jShapes);
-                final Shape outputShape = c2jShapes.get(outputShapeName);
-                final String responseClassName = namingStrategy.getResponseClassName(operationName);
-                final String documentation = getOperationDocumentation(output, outputShape);
+                String outputShapeName = getResultShapeName(op, c2jShapes);
+                Shape outputShape = c2jShapes.get(outputShapeName);
+                String responseClassName = namingStrategy.getResponseClassName(operationName);
+                String documentation = getOperationDocumentation(output, outputShape);
 
                 operationModel.setReturnType(
                         new ReturnTypeModel(responseClassName).withDocumentation(documentation));
@@ -185,11 +185,11 @@ final class AddOperations {
             if (op.getErrors() != null) {
                 for (ErrorMap error : op.getErrors()) {
 
-                    final String documentation =
+                    String documentation =
                             error.getDocumentation() != null ? error.getDocumentation() :
                             c2jShapes.get(error.getShape()).getDocumentation();
 
-                    final Integer httpStatusCode = getHttpStatusCode(error, c2jShapes.get(error.getShape()));
+                    Integer httpStatusCode = getHttpStatusCode(error, c2jShapes.get(error.getShape()));
 
                     operationModel.addException(
                             new ExceptionModel(namingStrategy.getExceptionName(error.getShape()))
@@ -212,7 +212,7 @@ final class AddOperations {
      * @return HTTP status code or null if not present.
      */
     private Integer getHttpStatusCode(ErrorMap error, Shape shape) {
-        final Integer httpStatusCode = getHttpStatusCode(error.getErrorTrait());
+        Integer httpStatusCode = getHttpStatusCode(error.getErrorTrait());
         return httpStatusCode == null ? getHttpStatusCode(shape.getErrorTrait()) : httpStatusCode;
     }
 

@@ -30,7 +30,7 @@ public abstract class BaseAws4Signer extends AbstractAws4Signer<Aws4SignerParams
 
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        final Aws4SignerParams signingParams = extractSignerParams(Aws4SignerParams.builder(), executionAttributes)
+        Aws4SignerParams signingParams = extractSignerParams(Aws4SignerParams.builder(), executionAttributes)
             .build();
 
         return sign(request, signingParams);
@@ -42,7 +42,7 @@ public abstract class BaseAws4Signer extends AbstractAws4Signer<Aws4SignerParams
             return request;
         }
 
-        final Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
+        Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
         return doSign(request, requestParams, signingParams).build();
     }
@@ -62,7 +62,7 @@ public abstract class BaseAws4Signer extends AbstractAws4Signer<Aws4SignerParams
             return request;
         }
 
-        final Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
+        Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
         return doPresign(request, requestParams, signingParams).build();
     }

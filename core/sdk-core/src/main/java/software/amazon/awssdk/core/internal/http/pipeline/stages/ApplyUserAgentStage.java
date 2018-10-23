@@ -50,7 +50,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        final String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames());
+        String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames());
         return request.putHeader(HEADER_USER_AGENT, userAgent);
     }
 
@@ -76,7 +76,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         }
 
         if (!requestApiNames.isEmpty()) {
-            final String requestUserAgent = requestApiNames.stream()
+            String requestUserAgent = requestApiNames.stream()
                     .map(n -> n.name() + "/" + n.version())
                     .collect(Collectors.joining(" "));
 

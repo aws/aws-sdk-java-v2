@@ -41,7 +41,7 @@ public enum HttpMethodName {
             return null;
         }
 
-        final String upperCaseValue = StringUtils.upperCase(value);
+        String upperCaseValue = StringUtils.upperCase(value);
         for (HttpMethodName httpMethodName : values()) {
             if (httpMethodName.name().equals(upperCaseValue)) {
                 return httpMethodName;

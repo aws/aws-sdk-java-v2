@@ -41,6 +41,7 @@ public final class RequestExecutionContext {
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
+    private TimeoutTracker apiCallAttemptTimeoutTracker;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -109,6 +110,13 @@ public final class RequestExecutionContext {
         this.apiCallTimeoutTracker = timeoutTracker;
     }
 
+    public TimeoutTracker apiCallAttemptTimeoutTracker() {
+        return apiCallAttemptTimeoutTracker;
+    }
+
+    public void apiCallAttemptTimeoutTracker(TimeoutTracker timeoutTracker) {
+        this.apiCallAttemptTimeoutTracker = timeoutTracker;
+    }
 
     /**
      * An SDK-internal implementation of {@link Builder}.

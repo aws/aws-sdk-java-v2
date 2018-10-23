@@ -592,7 +592,7 @@ public final class ReflectionUtils {
                 continue;
             }
 
-            final Class<?> type = field.getType();
+            Class<?> type = field.getType();
             AccessController.doPrivileged((PrivilegedAction<?>) () -> {
                 field.setAccessible(true);
                 return null;

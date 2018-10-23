@@ -58,7 +58,7 @@ public final class Base16Codec {
                     + length
             );
         }
-        final byte[] dest = new byte[length / 2];
+        byte[] dest = new byte[length / 2];
 
         for (int i = 0, j = 0; j < dest.length; j++) {
             dest[j] = (byte)
@@ -84,7 +84,7 @@ public final class Base16Codec {
         private static final byte[] DECODED = decodeTable();
 
         private static byte[] decodeTable() {
-            final byte[] dest = new byte['f' + 1];
+            byte[] dest = new byte['f' + 1];
 
             for (int i = 0; i <= 'f'; i++) {
                 if (i >= '0' && i <= '9') {

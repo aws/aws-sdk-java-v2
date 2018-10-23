@@ -17,7 +17,6 @@ package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
@@ -28,7 +27,7 @@ import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
  * @param <T> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
+public class JsonProtocolMarshallerBuilder<T> {
 
     private StructuredJsonGenerator jsonGenerator;
     private String contentType;
@@ -36,8 +35,8 @@ public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
     private boolean sendExplicitNullForPayload;
     private T originalRequest;
 
-    public static <T extends SdkRequest> JsonProtocolMarshallerBuilder<T> standard() {
-        return new JsonProtocolMarshallerBuilder<T>();
+    public static <T> JsonProtocolMarshallerBuilder<T> standard() {
+        return new JsonProtocolMarshallerBuilder<>();
     }
 
     public JsonProtocolMarshallerBuilder<T> jsonGenerator(StructuredJsonGenerator jsonGenerator) {
@@ -70,11 +69,11 @@ public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
     }
 
     public ProtocolMarshaller<Request<T>> build() {
-        final ProtocolMarshaller<Request<T>> protocolMarshaller = new JsonProtocolMarshaller<T>(jsonGenerator,
-                                                                                                contentType,
-                                                                                                operationInfo,
-                                                                                                originalRequest);
+        ProtocolMarshaller<Request<T>> protocolMarshaller = new JsonProtocolMarshaller<>(jsonGenerator,
+                                                                                         contentType,
+                                                                                         operationInfo,
+                                                                                         originalRequest);
         return sendExplicitNullForPayload ? protocolMarshaller
-                : new NullAsEmptyBodyProtocolRequestMarshaller<T>(protocolMarshaller);
+                                          : new NullAsEmptyBodyProtocolRequestMarshaller<>(protocolMarshaller);
     }
 }

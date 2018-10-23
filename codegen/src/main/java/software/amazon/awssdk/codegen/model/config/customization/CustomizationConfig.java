@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesConfig;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class CustomizationConfig {
 
@@ -103,11 +104,10 @@ public class CustomizationConfig {
     private ShareModelConfig shareModelConfig;
 
     /**
-     * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOption}. If
-     * present, the client builder will override the hook to return service specific HTTP config and inject this expression into
-     * that method. At some point we may want to have a more data driven way to declare these settings but right now we don't
-     * have any requirements to necessitate that and referencing handwritten code is simpler. See SWF customization.config
-     * for an example.
+     * Fully qualified name of the class that contains the custom http config. The class should expose a public static method
+     * with name "defaultHttpConfig" that returns an {@link AttributeMap} containing the desired http config defaults.
+     *
+     * See SWF customization.config for an example.
      */
     private String serviceSpecificHttpConfig;
 

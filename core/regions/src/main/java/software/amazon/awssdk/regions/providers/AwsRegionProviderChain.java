@@ -48,7 +48,7 @@ public class AwsRegionProviderChain implements AwsRegionProvider {
 
         for (AwsRegionProvider provider : providers) {
             try {
-                final Region region = provider.getRegion();
+                Region region = provider.getRegion();
                 if (region != null) {
                     return region;
                 }

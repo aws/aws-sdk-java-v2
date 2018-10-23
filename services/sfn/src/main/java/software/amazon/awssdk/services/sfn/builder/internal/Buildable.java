@@ -49,7 +49,7 @@ public interface Buildable<T> {
          * @return Unmodifiable map of built objects.
          */
         public static <K, T> Map<K, T> build(Map<K, ? extends Buildable<T>> buildableMap) {
-            final Map<K, T> builtMap = new LinkedHashMap<K, T>(buildableMap.size());
+            Map<K, T> builtMap = new LinkedHashMap<K, T>(buildableMap.size());
             for (Map.Entry<K, ? extends Buildable<T>> entry : buildableMap.entrySet()) {
                 builtMap.put(entry.getKey(), entry.getValue().build());
             }

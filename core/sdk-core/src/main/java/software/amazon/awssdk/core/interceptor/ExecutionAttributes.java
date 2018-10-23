@@ -47,4 +47,12 @@ public final class ExecutionAttributes {
         this.attributes.put(attribute, value);
         return this;
     }
+
+    /**
+     * Set the provided attribute in this collection of attributes if it does not already exist in the collection.
+     */
+    public <U> ExecutionAttributes putAttributeIfAbsent(ExecutionAttribute<U> attribute, U value) {
+        attributes.putIfAbsent(attribute, value);
+        return this;
+    }
 }

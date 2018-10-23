@@ -104,7 +104,7 @@ public final class ForkedHttp2StreamChannelBootstrap {
     }
 
     public Future<Http2StreamChannel> open(final Promise<Http2StreamChannel> promise) {
-        final ChannelHandlerContext ctx = channel.pipeline().context(ForkedHttp2MultiplexCodec.class);
+        ChannelHandlerContext ctx = channel.pipeline().context(ForkedHttp2MultiplexCodec.class);
         if (ctx == null) {
             if (channel.isActive()) {
                 promise.setFailure(new IllegalStateException(StringUtil.simpleClassName(ForkedHttp2MultiplexCodec.class) +
@@ -130,7 +130,7 @@ public final class ForkedHttp2StreamChannelBootstrap {
 
     public void open0(ChannelHandlerContext ctx, final Promise<Http2StreamChannel> promise) {
         assert ctx.executor().inEventLoop();
-        final Http2StreamChannel streamChannel = ((ForkedHttp2MultiplexCodec) ctx.handler()).newOutboundStream();
+        Http2StreamChannel streamChannel = ((ForkedHttp2MultiplexCodec) ctx.handler()).newOutboundStream();
         try {
             init(streamChannel);
         } catch (Exception e) {

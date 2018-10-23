@@ -156,7 +156,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
 
-        final CodeBlock.Builder codeBlock = CodeBlock
+        CodeBlock.Builder codeBlock = CodeBlock
             .builder()
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                  ".withResponseHandler($N)\n" +
@@ -183,7 +183,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
-        final boolean isRestJson = isRestJson(intermediateModel);
+        boolean isRestJson = isRestJson(intermediateModel);
         TypeName pojoResponseType = getPojoResponseType(opModel);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");

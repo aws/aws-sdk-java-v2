@@ -69,9 +69,9 @@ abstract class AddShapes {
     }
 
     protected final ShapeModel generateShapeModel(String javaClassName, String shapeName) {
-        final ShapeModel shapeModel = new ShapeModel(shapeName);
+        ShapeModel shapeModel = new ShapeModel(shapeName);
         shapeModel.setShapeName(javaClassName);
-        final Shape shape = getServiceModel().getShapes().get(shapeName);
+        Shape shape = getServiceModel().getShapes().get(shapeName);
 
         shapeModel.setDocumentation(shape.getDocumentation());
         shapeModel.setVariable(new VariableModel(getNamingStrategy().getVariableName(javaClassName),
@@ -88,7 +88,7 @@ abstract class AddShapes {
         boolean hasPayloadMember = false;
         boolean hasStreamingMember = false;
 
-        final Map<String, Member> members = shape.getMembers();
+        Map<String, Member> members = shape.getMembers();
 
         if (members != null) {
             for (Map.Entry<String, Member> memberEntry : members.entrySet()) {
@@ -123,7 +123,7 @@ abstract class AddShapes {
                     .withHasStreamingMember(hasStreamingMember);
         }
 
-        final List<String> enumValues = shape.getEnumValues();
+        List<String> enumValues = shape.getEnumValues();
         if (enumValues != null && !enumValues.isEmpty()) {
             for (String enumValue : enumValues) {
                 shapeModel.addEnum(
@@ -137,11 +137,11 @@ abstract class AddShapes {
     private MemberModel generateMemberModel(String c2jMemberName, Member c2jMemberDefinition,
                                             String protocol, Shape parentShape,
                                             Map<String, Shape> allC2jShapes) {
-        final String c2jShapeName = c2jMemberDefinition.getShape();
-        final Shape c2jShape = allC2jShapes.get(c2jShapeName);
-        final String variableName = getNamingStrategy().getVariableName(c2jMemberName);
-        final String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
-        final String variableDeclarationType = getTypeUtils()
+        String c2jShapeName = c2jMemberDefinition.getShape();
+        Shape c2jShape = allC2jShapes.get(c2jShapeName);
+        String variableName = getNamingStrategy().getVariableName(c2jMemberName);
+        String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
+        String variableDeclarationType = getTypeUtils()
                 .getJavaDataType(allC2jShapes, c2jShapeName, getCustomizationConfig());
 
         //If member is idempotent, then it should be of string type
@@ -154,7 +154,7 @@ abstract class AddShapes {
         }
 
 
-        final MemberModel memberModel = new MemberModel();
+        MemberModel memberModel = new MemberModel();
 
         memberModel.withC2jName(c2jMemberName)
                    .withC2jShape(c2jShapeName)
@@ -187,13 +187,13 @@ abstract class AddShapes {
         fillContainerTypeMemberMetadata(allC2jShapes, c2jMemberDefinition.getShape(), memberModel,
                                         protocol);
 
-        final ParameterHttpMapping httpMapping = generateParameterHttpMapping(parentShape,
+        ParameterHttpMapping httpMapping = generateParameterHttpMapping(parentShape,
                                                                               c2jMemberName,
                                                                               c2jMemberDefinition,
                                                                               protocol,
                                                                               allC2jShapes);
 
-        final String payload = parentShape.getPayload();
+        String payload = parentShape.getPayload();
 
         boolean shapeIsStreaming = c2jShape.isStreaming();
         boolean memberIsStreaming = c2jMemberDefinition.isStreaming();
@@ -246,7 +246,7 @@ abstract class AddShapes {
     private boolean isGreedy(Shape parentShape, Map<String, Shape> allC2jShapes, ParameterHttpMapping mapping) {
         if (mapping.getLocation() == Location.URI) {
             // If the location is URI we can assume the parent shape is an input shape.
-            final String requestUri = findRequestUri(parentShape, allC2jShapes);
+            String requestUri = findRequestUri(parentShape, allC2jShapes);
             if (requestUri.contains(String.format("{%s+}", mapping.getMarshallLocationName()))) {
                 return true;
             }
@@ -309,7 +309,7 @@ abstract class AddShapes {
                                                  String memberC2jShapeName, MemberModel memberModel,
                                                  String protocol) {
 
-        final Shape memberC2jShape = c2jShapes.get(memberC2jShapeName);
+        Shape memberC2jShape = c2jShapes.get(memberC2jShapeName);
 
         if (isListShape(memberC2jShape)) {
             Member listMemberDefinition = memberC2jShape.getListMember();
@@ -317,7 +317,7 @@ abstract class AddShapes {
 
             MemberModel listMemberModel = generateMemberModel("member", listMemberDefinition, protocol,
                                                               memberC2jShape, c2jShapes);
-            final String listImpl = getDataTypeMapping(TypeUtils.TypeKey.LIST_DEFAULT_IMPL);
+            String listImpl = getDataTypeMapping(TypeUtils.TypeKey.LIST_DEFAULT_IMPL);
             memberModel.setListModel(
                     new ListModel(getTypeUtils().getJavaDataType(c2jShapes, listMemberC2jShapeName),
                                   memberC2jShape.getListMember().getLocationName(), listImpl,
@@ -336,7 +336,7 @@ abstract class AddShapes {
                                                           memberC2jShape, c2jShapes);
             MemberModel mapValueModel = generateMemberModel("value", mapValueMemberDefinition, protocol,
                                                             memberC2jShape, c2jShapes);
-            final String mapImpl = getDataTypeMapping(TypeUtils.TypeKey.MAP_DEFAULT_IMPL);
+            String mapImpl = getDataTypeMapping(TypeUtils.TypeKey.MAP_DEFAULT_IMPL);
 
             String keyLocation = memberC2jShape.getMapKeyType().getLocationName() != null ?
                     memberC2jShape.getMapKeyType().getLocationName() : "key";
