@@ -1,7 +1,7 @@
 ${fileHeader}
 package ${metadata.smokeTestsPackageName};
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import org.junit.runner.RunWith;
 

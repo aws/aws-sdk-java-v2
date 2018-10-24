@@ -23,13 +23,27 @@
         <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>sagemaker</artifactId>
     <name>AWS Java SDK :: Services :: Amazon SageMaker</name>
     <description>The AWS Java SDK for Amazon SageMaker module holds the client classes that are used for communicating
         with Amazon SageMaker Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.sagemaker</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>

@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.math.*;
 import software.amazon.awssdk.core.SdkBytes;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers.*;
