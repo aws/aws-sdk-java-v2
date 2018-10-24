@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 
 import javax.xml.stream.events.XMLEvent;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;

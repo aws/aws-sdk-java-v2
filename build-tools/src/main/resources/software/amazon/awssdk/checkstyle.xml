@@ -384,7 +384,7 @@
         <!-- Checks for imports of certain packages           -->
         <!-- See http://checkstyle.sf.net/config_imports.html -->
         <module name="IllegalImport">
-            <property name="illegalPkgs" value="org.apache.http.annotation"/>
+            <property name="illegalPkgs" value="org.apache.http.annotation,javax.annotation.Generated"/>
         </module>
 
         <!-- Checks that the override annotation is specified when using @inheritDoc javadoc. -->
