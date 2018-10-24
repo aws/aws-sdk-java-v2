@@ -12,10 +12,10 @@
     <artifactId>protocols</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>aws-query</module>
-        <module>aws-json</module>
-        <module>aws-cbor</module>
-        <module>aws-ion</module>
+        <module>aws-query-protocol</module>
+        <module>aws-json-protocol</module>
+        <module>aws-cbor-protocol</module>
+        <module>aws-ion-protocol</module>
         <module>protocol-core</module>
     </modules>
 
