@@ -61,6 +61,7 @@
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
         <module>build-tools</module>
+        <module>utils</module>
         <module>test/dynamodbdocument-v1</module>
         <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
@@ -69,7 +70,6 @@
         <module>test/service-test-utils</module>
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
-        <module>utils</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
@@ -107,7 +107,7 @@
         <commons-lang.verson>2.3</commons-lang.verson>
 
         <!-- build plugin dependencies-->
-        <maven.surefire.version>2.21.0</maven.surefire.version>
+        <maven.surefire.version>2.22.1</maven.surefire.version>
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
@@ -519,7 +519,7 @@
                         <configLocation>software/amazon/awssdk/checkstyle.xml</configLocation>
                         <suppressionsLocation>software/amazon/awssdk/checkstyle-suppressions.xml</suppressionsLocation>
                         <consoleOutput>true</consoleOutput>
-                        <failsOnError>true</failsOnError>
+                        <failsOnError>false</failsOnError>
                         <logViolationsToConsole>true</logViolationsToConsole>
                         <failOnViolation>true</failOnViolation>
                         <excludes>**/module-info.java</excludes>

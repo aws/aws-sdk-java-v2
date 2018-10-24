@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~  http://aws.amazon.com/apache2.0
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!--<parent>-->
+        <!--<artifactId>aws-sdk-java-pom</artifactId>-->
+        <!--<groupId>software.amazon.awssdk</groupId>-->
+        <!--<version>2.0.0-preview-13-SNAPSHOT</version>-->
+        <!--<relativePath>../../pom.xml</relativePath>-->
+    <!--</parent>-->
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>module-tests</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <junit.jupiter.version>5.3.1</junit.jupiter.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.0.0-preview-13-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <!-- explicitly exclude netty module because of two root packages in there -->
+                    <artifactId>netty-nio-client</artifactId>
+                    <groupId>software.amazon.awssdk</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache-client</artifactId>
+            <version>2.0.0-preview-13-SNAPSHOT</version>
+            <!--<exclusions>-->
+            <!--<exclusion>-->
+            <!--<artifactId>commons-logging</artifactId>-->
+            <!--<groupId>commons-logging</groupId>-->
+            <!--</exclusion>-->
+            <!--</exclusions>-->
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+            <version>2.0.0-preview-13-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+            <version>4.12</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>service-test-utils</artifactId>
+            <version>2.0.0-preview-13-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>10</source>
+                    <target>10</target>
+                    <release>10</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <!--<configuration>-->
+                    <!--&lt;!&ndash; https://issues.apache.org/jira/browse/MCOMPILER-330 &ndash;&gt;-->
+                    <!--<argLine>&#45;&#45;add-modules software.amazon.awssdk.http-->
+                        <!--&#45;&#45;add-reads software.amazon.awssdk.module.tests=software.amazon.awssdk.http</argLine>-->
+                <!--</configuration>-->
+            </plugin>
+            <!-- Disable spotbugs for service clients to speed up the build. -->
+            <!--<plugin>-->
+                <!--<groupId>com.github.spotbugs</groupId>-->
+                <!--<artifactId>spotbugs-maven-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<skip>true</skip>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <!-- https://www.mojohaus.org/exec-maven-plugin/examples/example-exec-for-java-programs.html -->
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>--module-path</argument>
+                        <modulepath/>
+                        <argument>--module</argument>
+                        <argument>software.amazon.awssdk.module.tests/software.amazon.awssdk.module.tests.S3Test</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
