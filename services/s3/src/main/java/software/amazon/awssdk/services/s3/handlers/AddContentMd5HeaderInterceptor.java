@@ -20,21 +20,32 @@ import static software.amazon.awssdk.http.Header.CONTENT_MD5;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Md5Utils;
 
 @SdkProtectedApi
 public class AddContentMd5HeaderInterceptor implements ExecutionInterceptor {
 
+    // List of operations that should be ignored by this interceptor.
+    // These are costly operations, so adding the md5 header will take a performance hit
+    private static final List<Class> BLACKLIST_METHODS = Arrays.asList(PutObjectRequest.class, UploadPartRequest.class);
+
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
-        if (request.contentStreamProvider().isPresent() && !request.firstMatchingHeader(CONTENT_MD5).isPresent()) {
+
+        if (!BLACKLIST_METHODS.contains(context.request().getClass()) && request.contentStreamProvider().isPresent()
+            && !request.firstMatchingHeader(CONTENT_MD5).isPresent()) {
+
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 IoUtils.copy(request.contentStreamProvider().get().newStream(), baos);

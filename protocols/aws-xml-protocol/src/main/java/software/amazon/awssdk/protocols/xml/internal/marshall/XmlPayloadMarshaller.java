@@ -51,13 +51,7 @@ public class XmlPayloadMarshaller {
     public static final XmlMarshaller<Instant> INSTANT =
         new BasePayloadMarshaller<>(XmlProtocolMarshaller.INSTANT_VALUE_TO_STRING);
 
-    public static final XmlMarshaller<SdkBytes> SDK_BYTES = new BasePayloadMarshaller<SdkBytes>(null) {
-        @Override
-        public void marshall(SdkBytes val, XmlMarshallerContext context, String paramName, SdkField<SdkBytes> sdkField,
-                             ValueToStringConverter.ValueToString<SdkBytes> converter) {
-            context.xmlGenerator().xmlWriter().value(val.asByteBuffer());
-        }
-    };
+    public static final XmlMarshaller<SdkBytes> SDK_BYTES = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_SDK_BYTES);
 
     public static final XmlMarshaller<SdkPojo> SDK_POJO = new BasePayloadMarshaller<SdkPojo>(null) {
         @Override
