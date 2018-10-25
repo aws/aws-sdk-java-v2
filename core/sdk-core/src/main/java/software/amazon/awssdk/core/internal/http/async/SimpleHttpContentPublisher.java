@@ -62,12 +62,14 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
 
         @Override
         public void request(long n) {
-            if (n <= 0) {
-                s.onError(new IllegalArgumentException("Demand must be positive"));
-            } else if (running) {
-                s.onNext(ByteBuffer.wrap(content));
-                s.onComplete();
+            if (running) {
                 running = false;
+                if (n <= 0) {
+                    s.onError(new IllegalArgumentException("Demand must be positive"));
+                } else {
+                    s.onNext(ByteBuffer.wrap(content));
+                    s.onComplete();
+                }
             }
         }
 

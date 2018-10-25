@@ -10,6 +10,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>protocol-core</artifactId>
+    <name>AWS Java SDK :: Protocol Core</name>
+    <description>The AWS SDK for Java - module holds the core protocol classes
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
 
 
     <dependencies>
