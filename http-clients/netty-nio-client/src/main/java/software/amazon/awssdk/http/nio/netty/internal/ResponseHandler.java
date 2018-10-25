@@ -53,6 +53,7 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.async.DelegatingSubscription;
@@ -239,6 +240,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onError.", subscriber.toString()),
                             () -> subscriber.onError(t));
+                        SdkAsyncHttpResponseHandler handler = requestContext.handler();
+                        runAndLogError(String.format("SdkAsyncHttpResponseHandler %s threw an exception in onError.", handler),
+                            () -> handler.onError(t));
                         executeFuture.completeExceptionally(t);
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
