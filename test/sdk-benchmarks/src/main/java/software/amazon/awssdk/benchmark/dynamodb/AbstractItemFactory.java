@@ -1,0 +1,144 @@
+package software.amazon.awssdk.benchmark.dynamodb;
+
+import com.amazonaws.util.ImmutableMapParameter;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+abstract class AbstractItemFactory<T> {
+    private static final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
+
+    private final Random RNG = new Random();
+
+    public final Map<String, T> tiny() {
+        return ImmutableMapParameter.<String, T>builder()
+                .put("stringAttr", av(randomS()))
+                .build();
+    }
+
+    public final Map<String, T> small() {
+        return ImmutableMapParameter.<String, T>builder()
+                .put("stringAttr", av(randomS()))
+                .put("binaryAttr", av(randomB()))
+                .put("listAttr", av(Arrays.asList(
+                        av(randomS()),
+                        av(randomB()),
+                        av(randomS())
+                )))
+                //.put("mapAttr", av(ImmutableMapParameter.<String, T>builder().put("stringAttr", av(randomS()))))
+                .build();
+    }
+
+    public final Map<String, T> huge() {
+        return ImmutableMapParameter.<String, T>builder()
+                .put("hashKey", av(randomS()))
+                .put("stringAttr", av(randomS()))
+                .put("binaryAttr", av(randomB()))
+                .put("listAttr", av(
+                        Arrays.asList(
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomS()),
+                                av(randomB()),
+                                av(Collections.singletonList(av(randomS()))),
+                                av(ImmutableMapParameter.of(
+                                        "attrOne", av(randomS())
+                                )),
+                                av(Arrays.asList(
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomB()),
+                                                (av(randomS())),
+                                                av(ImmutableMapParameter.of(
+                                                        "attrOne",
+                                                        av(randomS())
+                                                ))
+                                        ))
+                        )
+                ))
+                .put("mapAttr", av(
+                        ImmutableMapParameter.<String, T>builder()
+                                .put("attrOne", av(randomS()))
+                                .put("attrTwo", av(randomB()))
+                                .put("attrThree", av(
+                                        Arrays.asList(
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(randomS()),
+                                                av(ImmutableMapParameter.<String, T>builder()
+                                                        .put("attrOne", av(randomS()))
+                                                        .put("attrTwo", av(randomB()))
+                                                        .put("attrThree",
+                                                                av(Arrays.asList(
+                                                                        av(randomS()),
+                                                                        av(randomS()),
+                                                                        av(randomS()),
+                                                                        av(randomS())
+                                                                ))
+                                                        )
+                                                        .build())
+                                        ))
+                                )
+                                .build()))
+                .build();
+    }
+
+
+    abstract protected T av(String val);
+
+    abstract protected T av(ByteBuffer val);
+
+    abstract protected T av(List<T> val);
+
+    abstract protected T av(Map<String, T> val);
+
+    private String randomS(int len) {
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; ++i) {
+            sb.append(ALPHA.charAt(RNG.nextInt(ALPHA.length())));
+        }
+        return sb.toString();
+    }
+
+    private String randomS() {
+        return randomS(16);
+    }
+
+    private ByteBuffer randomB(int len) {
+        byte[] b = new byte[len];
+        RNG.nextBytes(b);
+        return ByteBuffer.wrap(b);
+    }
+
+    private ByteBuffer randomB() {
+        return randomB(16);
+    }
+}
