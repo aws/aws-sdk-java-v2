@@ -90,10 +90,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         CompletableFuture<? extends SdkException> errorResponseFuture =
             errorResponseHandler == null ? null : errorResponseHandler.prepare();
 
+        CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
+
         //FIXME(dongie): We need to be careful to only call responseHandler.prepare() exactly once per execute() call
         //because it calls prepare() under the hood and we guarantee that we call that once per execution. It would be good
         //to find a way to prevent multiple calls to prepare() within a single execution to only call prepare() once.
-        ResponseHandler handler = new ResponseHandler(responseHandler.prepare(), errorResponseFuture);
+        ResponseHandler handler = new ResponseHandler(responseFuture, responseHandler.prepare(), errorResponseFuture);
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
@@ -112,7 +114,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Response<OutputT>> transformFuture = handler.prepare();
 
-        CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
 
@@ -173,13 +174,16 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      */
 
     private class ResponseHandler implements TransformingAsyncResponseHandler<Response<OutputT>> {
+        private final CompletableFuture<Response<OutputT>> responseFuture;
         private final CompletableFuture<SdkHttpResponse> headersFuture = new CompletableFuture<>();
         private final CompletableFuture<OutputT> transformFuture;
         private final CompletableFuture<? extends SdkException> errorTransformFuture;
         private volatile SdkHttpFullResponse response;
 
-        ResponseHandler(CompletableFuture<OutputT> transformFuture,
+        ResponseHandler(CompletableFuture<Response<OutputT>> responseFuture,
+                        CompletableFuture<OutputT> transformFuture,
                         CompletableFuture<? extends SdkException> errorTransformFuture) {
+            this.responseFuture = responseFuture;
             this.transformFuture = transformFuture;
             this.errorTransformFuture = errorTransformFuture;
         }
@@ -199,18 +203,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void onError(Throwable error) {
-            // If we already have the headers we've chosen one of the two
-            // handlers so notify the correct handler. Otherwise, just complete
-            // the future exceptionally
-            if (response != null) {
-                if (response.isSuccessful()) {
-                    responseHandler.onError(error);
-                } else {
-                    errorResponseHandler.onError(error);
-                }
-            } else {
-                headersFuture.completeExceptionally(error);
-            }
+            // Note: We don't notify the wrapped handlers' onError here because
+            // we need context about retries; we only want to notify onError if
+            // we know that the request will be retried. Let the
+            // AsyncRetryableStage handle it.
+            responseFuture.completeExceptionally(error);
+            headersFuture.completeExceptionally(error);
         }
 
         @Override
@@ -228,7 +226,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 if (headers.isSuccessful()) {
                     return transformFuture.thenApply(r -> Response.fromSuccess(r, response));
                 } else {
-                    return errorTransformFuture.thenApply(e -> Response.fromFailure(e, response));
+                    if (errorTransformFuture != null) {
+                        return errorTransformFuture.thenApply(e -> Response.fromFailure(e, response));
+                    } else {
+                        return CompletableFuture.completedFuture(Response.fromFailure(null, response));
+                    }
                 }
             });
         }
