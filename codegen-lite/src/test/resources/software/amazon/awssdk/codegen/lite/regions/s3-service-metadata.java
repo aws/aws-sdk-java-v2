@@ -24,11 +24,12 @@ public final class S3ServiceMetadata implements ServiceMetadata {
             .put("us-west-2", "s3.us-west-2.amazonaws.com").put("fips-us-gov-west-1", "s3-fips-us-gov-west-1.amazonaws.com")
             .put("us-gov-west-1", "s3.us-gov-west-1.amazonaws.com").build();
 
-    private static final List<Region> REGIONS = Collections
-            .unmodifiableList(Arrays.asList(Region.AP_NORTHEAST_1, Region.AP_NORTHEAST_2, Region.AP_SOUTH_1,
-                    Region.AP_SOUTHEAST_1, Region.AP_SOUTHEAST_2, Region.CA_CENTRAL_1, Region.EU_CENTRAL_1, Region.EU_WEST_1,
-                    Region.EU_WEST_2, Region.EU_WEST_3, Region.SA_EAST_1, Region.US_EAST_1, Region.US_EAST_2, Region.US_WEST_1,
-                    Region.US_WEST_2, Region.CN_NORTH_1, Region.CN_NORTHWEST_1, Region.US_GOV_WEST_1));
+    private static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(Region.of("ap-northeast-1"),
+            Region.of("ap-northeast-2"), Region.of("ap-south-1"), Region.of("ap-southeast-1"), Region.of("ap-southeast-2"),
+            Region.of("ca-central-1"), Region.of("eu-central-1"), Region.of("eu-west-1"), Region.of("eu-west-2"),
+            Region.of("eu-west-3"), Region.of("s3-external-1"), Region.of("sa-east-1"), Region.of("us-east-1"),
+            Region.of("us-east-2"), Region.of("us-west-1"), Region.of("us-west-2"), Region.of("cn-north-1"),
+            Region.of("cn-northwest-1"), Region.of("fips-us-gov-west-1"), Region.of("us-gov-west-1")));
 
     private static final Map<String, String> SIGNING_REGION_OVERRIDES = ImmutableMap.<String, String> builder()
             .put("s3-external-1", "us-east-1").put("fips-us-gov-west-1", "us-gov-west-1").build();
