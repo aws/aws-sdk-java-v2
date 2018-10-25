@@ -29,7 +29,7 @@ public final class CreateDbInstanceReadReplicaPresignInterceptor extends
                                                                  RdsPresignInterceptor<CreateDbInstanceReadReplicaRequest> {
 
     public static final CreateDbInstanceReadReplicaRequestMarshaller MARSHALLER =
-        new CreateDbInstanceReadReplicaRequestMarshaller(new AwsQueryProtocolFactory());
+        new CreateDbInstanceReadReplicaRequestMarshaller(AwsQueryProtocolFactory.builder().build());
 
     public CreateDbInstanceReadReplicaPresignInterceptor() {
         super(CreateDbInstanceReadReplicaRequest.class);

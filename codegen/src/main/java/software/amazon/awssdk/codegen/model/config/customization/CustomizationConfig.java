@@ -141,6 +141,11 @@ public class CustomizationConfig {
     private boolean skipSyncClientGeneration;
 
     /**
+     * List of output shapes for which the root xml element should be used while unmarshalling the response
+     */
+    private List<String> useRootXmlElementForResult = new ArrayList<>();
+
+    /**
      * Custom Response metadata
      */
     private Map<String, String> customResponseMetadata;
@@ -387,6 +392,14 @@ public class CustomizationConfig {
 
     public void setSkipSyncClientGeneration(boolean skipSyncClientGeneration) {
         this.skipSyncClientGeneration = skipSyncClientGeneration;
+    }
+
+    public List<String> getUseRootXmlElementForResult() {
+        return useRootXmlElementForResult;
+    }
+
+    public void setUseRootXmlElementForResult(List<String> useRootXmlElementForResult) {
+        this.useRootXmlElementForResult = useRootXmlElementForResult;
     }
 
     public Map<String, String> getCustomResponseMetadata() {

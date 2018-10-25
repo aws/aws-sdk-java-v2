@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.query.internal.unmarshall;
 
+import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 import static software.amazon.awssdk.protocols.query.internal.marshall.SimpleTypeQueryMarshaller.defaultTimestampFormats;
 
 import java.util.HashMap;
@@ -40,8 +41,6 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
-
-    private static final String AWS_REQUEST_ID = "AWS_REQUEST_ID";
 
     private static final QueryUnmarshallerRegistry UNMARSHALLER_REGISTRY = QueryUnmarshallerRegistry
         .builder()
@@ -88,7 +87,6 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
         }
         XmlElement requestId = document.getElementByName("requestId");
         if (requestId != null) {
-            // TODO move this to aws-core so we can reuse the constant
             metadata.put(AWS_REQUEST_ID, requestId.textContent());
         }
         return metadata;

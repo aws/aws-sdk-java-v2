@@ -384,4 +384,3 @@ public final class RecursiveStructType implements SdkPojo, ToCopyableBuilder<Rec
         }
     }
 }
-

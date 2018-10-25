@@ -382,4 +382,3 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
     }
 }
-

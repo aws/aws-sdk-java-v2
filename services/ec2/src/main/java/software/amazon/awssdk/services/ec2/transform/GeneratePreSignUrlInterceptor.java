@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
@@ -125,8 +125,7 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                                                                      .destinationRegion(destinationRegion)
                                                                      .build();
 
-        // TODO use EC2 protocol factory
-        CopySnapshotRequestMarshaller marshaller = new CopySnapshotRequestMarshaller(new AwsQueryProtocolFactory());
+        CopySnapshotRequestMarshaller marshaller = new CopySnapshotRequestMarshaller(AwsEc2ProtocolFactory.builder().build());
         return SdkHttpFullRequestAdapter.toHttpFullRequest(marshaller.marshall(copySnapshotRequest));
     }
 

@@ -129,7 +129,7 @@ final class DefaultQueryClient implements QueryClient {
         unmarshallers.add(new InvalidInputExceptionUnmarshaller());
         unmarshallers.add(new StandardErrorUnmarshaller(QueryException.class));
         this.exceptionUnmarshallers = unmarshallers;
-        return new AwsQueryProtocolFactory();
+        return AwsQueryProtocolFactory.builder().build();
     }
 
     @Override
@@ -137,4 +137,3 @@ final class DefaultQueryClient implements QueryClient {
         clientHandler.close();
     }
 }
-

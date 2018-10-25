@@ -124,7 +124,7 @@
         "locationName":"RestXmlTypesRequest",
         "xmlNamespace":{"uri":"https://restxml/"}
       },
-      "output":{"shape":"RestXmlTypesStructure"}
+      "output":{"shape":"RestXmlTypesOutput"}
     }
   },
   "shapes":{
@@ -441,6 +441,29 @@
     "QueryParamWithoutValueInput":{
       "type":"structure",
       "members":{
+      }
+    },
+    "RestXmlTypesOutput":{
+      "type":"structure",
+      "members":{
+        "FlattenedListOfStrings":{"shape":"FlattenedListOfStrings"},
+        "NonFlattenedListWithLocation":{"shape":"NonFlattenedListWithLocation"},
+        "FlattenedListOfStructs":{"shape":"FlattenedListOfStructs"},
+        "FlattenedListWithLocation":{"shape":"FlattenedListWithLocation"},
+        "FlattenedMap":{"shape":"FlattenedMap"},
+        "FlattenedMapWithLocation":{
+          "shape":"FlattenedMapWithLocation",
+          "locationName":"flatmap"
+        },
+        "NonFlattenedMapWithLocation":{
+          "shape":"NonFlattenedMapWithLocation",
+          "locationName":"themap"
+        },
+        "TimestampMemberInHeader":{
+          "shape":"Timestamp",
+          "location":"header",
+          "locationName":"x-amz-timearg"
+        }
       }
     },
     "RestXmlTypesStructure":{

@@ -30,8 +30,6 @@ import software.amazon.awssdk.core.SdkStandardLogger;
  */
 @SdkProtectedApi
 public final class DefaultAwsResponseMetadata extends AwsResponseMetadata {
-    public static final String AWS_REQUEST_ID = "AWS_REQUEST_ID";
-
     /**
      * Creates a new ResponseMetadata object from a specified map of raw
      * metadata information.

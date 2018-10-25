@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarsha
 public final class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
 
     public static final CopyDbSnapshotRequestMarshaller MARSHALLER =
-        new CopyDbSnapshotRequestMarshaller(new AwsQueryProtocolFactory());
+        new CopyDbSnapshotRequestMarshaller(AwsQueryProtocolFactory.builder().build());
 
     public CopyDbSnapshotPresignInterceptor() {
         super(CopyDbSnapshotRequest.class);
