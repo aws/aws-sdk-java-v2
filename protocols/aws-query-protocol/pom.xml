@@ -10,6 +10,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-query-protocol</artifactId>
+    <name>AWS Java SDK :: AWS Query Protocol</name>
+    <description>The AWS SDK for Java - module holds the classes for AWS Query protocol
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencies>
         <dependency>
