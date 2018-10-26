@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.dynamodb;
+package software.amazon.awssdk.benchmark.marshaller.dynamodb;
 
 import java.nio.ByteBuffer;
 import java.util.List;

@@ -16,18 +16,43 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>software.amazon.awssdk</groupId>
-        <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-13-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
-    </parent>
+    <!--<parent>-->
+        <!--<groupId>software.amazon.awssdk</groupId>-->
+        <!--<artifactId>aws-sdk-java-pom</artifactId>-->
+        <!--<version>2.0.0-preview-13-SNAPSHOT</version>-->
+        <!--<relativePath>../../pom.xml</relativePath>-->
+    <!--</parent>-->
 
     <artifactId>sdk-benchmarks</artifactId>
+    <version>2.0-0-preview-13-SNAPSHOT</version>
+    <groupId>software.amazon.awssdk</groupId>
     <packaging>jar</packaging>
 
     <name>AWS Java SDK :: Test :: SDK Benchmarks</name>
     <description>Contains JMH benchmark code for the SDK</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!--
+            JMH version to use with this project.
+          -->
+        <jmh.version>1.21</jmh.version>
+
+        <!--
+            Java source/target to use for compilation.
+          -->
+        <javac.target>1.8</javac.target>
+
+        <!--
+            Name of the benchmark Uber-JAR to generate.
+          -->
+        <uberjar.name>benchmarks</uberjar.name>
+
+        <sdk-v1.version>1.11.404</sdk-v1.version>
+        <jackson.version>2.9.1</jackson.version>
+        <awsjavasdk.version>2.0.0-preview-13-SNAPSHOT</awsjavasdk.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -95,30 +120,7 @@
             <artifactId>http-client-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-
     </dependencies>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!--
-            JMH version to use with this project.
-          -->
-        <jmh.version>1.21</jmh.version>
-
-        <!--
-            Java source/target to use for compilation.
-          -->
-        <javac.target>1.8</javac.target>
-
-        <!--
-            Name of the benchmark Uber-JAR to generate.
-          -->
-        <uberjar.name>benchmarks</uberjar.name>
-
-        <sdk-v1.version>1.11.404</sdk-v1.version>
-        <jackson.version>2.9.1</jackson.version>
-    </properties>
 
     <build>
         <plugins>

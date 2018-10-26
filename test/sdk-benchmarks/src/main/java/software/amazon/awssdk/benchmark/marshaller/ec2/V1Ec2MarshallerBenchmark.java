@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.ec2;
+package software.amazon.awssdk.benchmark.marshaller.ec2;
 
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.transform.RunInstancesRequestMarshaller;
