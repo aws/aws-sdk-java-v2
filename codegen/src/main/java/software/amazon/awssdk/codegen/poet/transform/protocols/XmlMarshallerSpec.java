@@ -27,7 +27,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
-import software.amazon.awssdk.protocols.xml.internal.AwsXmlProtocolFactory;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 
 /**
  * MarshallerSpec for Xml protocol

@@ -165,11 +165,6 @@ public abstract class BaseAwsJsonProtocolFactory {
             return getSubclass();
         }
 
-        public SubclassT contentTypeOverride(String contentType) {
-            metadata.withContentTypeOverride(contentType);
-            return getSubclass();
-        }
-
         public SubclassT baseServiceExceptionClass(Class<? extends RuntimeException> baseServiceExceptionClass) {
             metadata.withBaseServiceExceptionClass(baseServiceExceptionClass);
             return getSubclass();

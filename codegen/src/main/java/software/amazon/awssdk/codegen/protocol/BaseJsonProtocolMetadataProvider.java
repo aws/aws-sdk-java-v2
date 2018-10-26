@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
-
 /**
  * Base class for all JSON based protocols. This includes {@link AwsCborProtocolMetadataProvider}.
  */
@@ -27,12 +25,6 @@ public abstract class BaseJsonProtocolMetadataProvider extends BaseProtocolMetad
         return true;
     }
 
-    // TODO can clean this up when rest-xml is converted
-    @Override
-    public String getUnmarshallerContextClassName() {
-        return "";
-    }
-
     /**
      * @return Exception unmarshaller is generic in JSON based protocols and completely encapsulated from the client.
      */
@@ -41,8 +33,4 @@ public abstract class BaseJsonProtocolMetadataProvider extends BaseProtocolMetad
         return null;
     }
 
-    @Override
-    public String getProtocolFactoryImplFqcn() {
-        return AwsJsonProtocolFactory.class.getName();
-    }
 }

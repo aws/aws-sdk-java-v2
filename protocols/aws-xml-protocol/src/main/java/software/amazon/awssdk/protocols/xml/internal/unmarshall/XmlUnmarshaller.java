@@ -18,7 +18,7 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.protocols.query.internal.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.query.XmlElement;
 
 /**
  * Interface to unmarshall response fields for Xml service

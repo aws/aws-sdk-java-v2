@@ -15,29 +15,12 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.core.exception.SdkServiceException;
-
 public class ApiGatewayProtocolMetadataProvider extends BaseJsonProtocolMetadataProvider {
     public static final long serialVersionUID = 1L;
 
     @Override
     public String getContentType() {
         return "application/json";
-    }
-
-    @Override
-    public String getProtocolFactoryImplFqcn() {
-        return "software.amazon.awssdk.opensdk.protect.protocol.ApiGatewayProtocolFactoryImpl";
-    }
-
-    @Override
-    public String getBaseExceptionFqcn() {
-        return SdkServiceException.class.getName();
-    }
-
-    @Override
-    public String getRequestBaseFqcn() {
-        return "software.amazon.awssdk.opensdk.BaseRequest";
     }
 
 }

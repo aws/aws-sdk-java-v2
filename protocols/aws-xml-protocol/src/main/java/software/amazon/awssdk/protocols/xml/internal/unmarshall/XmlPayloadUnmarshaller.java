@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.internal.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.query.XmlElement;
 
 @SdkInternalApi
 public final class XmlPayloadUnmarshaller {

@@ -30,20 +30,6 @@ public class CustomizationConfig {
      */
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
     /**
-     * Overrides the request-level service name that will be used for request metrics and service
-     * exceptions. If not specified, the client will use the service interface name by default.
-     *
-     * Example: for backwards compatibility, this is set to "AmazonDynamoDBv2" for DynamoDB client.
-     *
-     * @see {@link software.amazon.awssdk.core.Request#getServiceName()}
-     */
-    private String customServiceNameForRequest;
-    /**
-     * True if the generated code should enable client-side validation on required input
-     * parameters.
-     */
-    private boolean requiredParamValidationEnabled;
-    /**
      * Specifies the name of the client configuration class to use if a service
      * has a specific advanced client configuration class. Null if the service
      * does not have advanced configuration.
@@ -86,10 +72,6 @@ public class CustomizationConfig {
      * Service calculates CRC32 checksum from compressed file when Accept-Encoding: gzip header is provided.
      */
     private boolean calculateCrc32FromCompressedData;
-    /**
-     * Skips generating smoketests if set to true.
-     */
-    private boolean skipSmokeTests;
 
     /**
      * Exclude the create() method on a client. This is useful for global services that will need a global region configured to
@@ -157,14 +139,6 @@ public class CustomizationConfig {
         return new CustomizationConfig();
     }
 
-    public String getCustomServiceNameForRequest() {
-        return customServiceNameForRequest;
-    }
-
-    public void setCustomServiceNameForRequest(String customServiceNameForRequest) {
-        this.customServiceNameForRequest = customServiceNameForRequest;
-    }
-
     public CodeGenTemplatesConfig getCustomCodeTemplates() {
         return customCodeTemplates;
     }
@@ -203,14 +177,6 @@ public class CustomizationConfig {
 
     public void setShapeModifiers(Map<String, ShapeModifier> shapeModifiers) {
         this.shapeModifiers = shapeModifiers;
-    }
-
-    public boolean isRequiredParamValidationEnabled() {
-        return requiredParamValidationEnabled;
-    }
-
-    public void setRequiredParamValidationEnabled(boolean requiredParamValidationEnabled) {
-        this.requiredParamValidationEnabled = requiredParamValidationEnabled;
     }
 
     public String getServiceSpecificClientConfigClass() {
@@ -280,14 +246,6 @@ public class CustomizationConfig {
     public void setCalculateCrc32FromCompressedData(
         boolean calculateCrc32FromCompressedData) {
         this.calculateCrc32FromCompressedData = calculateCrc32FromCompressedData;
-    }
-
-    public boolean isSkipSmokeTests() {
-        return skipSmokeTests;
-    }
-
-    public void setSkipSmokeTests(boolean skipSmokeTests) {
-        this.skipSmokeTests = skipSmokeTests;
     }
 
     public boolean isExcludeClientCreateMethod() {

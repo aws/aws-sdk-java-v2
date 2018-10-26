@@ -28,14 +28,5 @@
   },
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"
-  },
-  "commonChildTemplates" : [
-    {
-      "location" : "/macros/marshaller/common/RequiredParameterValidationFunctionMacro.ftl",
-      "importAsNamespace" : "RequiredParameterValidationFunctionMacro"
-    }, {
-      "location" : "/macros/marshaller/common/RequiredParameterValidationInvocationMacro.ftl",
-      "importAsNamespace" : "RequiredParameterValidationInvocationMacro"
-    }
-  ]
+  }
 }

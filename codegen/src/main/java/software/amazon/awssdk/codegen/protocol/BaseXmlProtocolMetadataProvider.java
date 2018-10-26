@@ -28,17 +28,7 @@ public abstract class BaseXmlProtocolMetadataProvider extends BaseProtocolMetada
     }
 
     @Override
-    public String getUnmarshallerContextClassName() {
-        return "StaxUnmarshallerContext";
-    }
-
-    @Override
     public String getExceptionUnmarshallerImpl() {
         return StandardErrorUnmarshaller.class.getName();
-    }
-
-    @Override
-    public String getProtocolFactoryImplFqcn() {
-        return null;
     }
 }

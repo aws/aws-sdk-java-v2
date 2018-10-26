@@ -23,7 +23,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.protocols.xml.internal.AwsXmlProtocolFactory;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlOperationMetadata;
 
 public final class XmlProtocolSpec extends QueryProtocolSpec {
