@@ -72,7 +72,6 @@
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
         <module>utils</module>
-        <module>protocols</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
     </modules>

@@ -9,14 +9,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>aws-xml-protocol</artifactId>
+    <artifactId>aws-query-protocol</artifactId>
+    <name>AWS Java SDK :: Core :: Protocols :: AWS Query Protocol</name>
+    <description>The AWS SDK for Java - module holds the classes for AWS Query protocol
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencies>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-query-protocol</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>protocol-core</artifactId>
@@ -58,5 +57,19 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.protocols.query</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
