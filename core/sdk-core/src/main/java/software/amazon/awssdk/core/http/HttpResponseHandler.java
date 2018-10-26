@@ -33,6 +33,8 @@ public interface HttpResponseHandler<T> {
 
     String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
 
+    String X_AMZ_ID_2_HEADER = "x-amz-id-2";
+
     /**
      * Accepts an HTTP response object, and returns an object of type T.
      * Individual implementations may choose to handle the response however they

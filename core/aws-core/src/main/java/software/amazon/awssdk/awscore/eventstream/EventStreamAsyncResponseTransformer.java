@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.eventstream;
 
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.ByteArrayInputStream;
@@ -158,6 +159,13 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     private volatile CompletableFuture<Void> transformFuture;
 
+    /**
+     * Extended Request Id for the streaming request. The value is populated when the initial response is received from the
+     * service. As request id is not sent in event messages (including exceptions), this can be returned by the SDK along with
+     * received exception details.
+     */
+    private String extendedRequestId = null;
+
     @Deprecated
     @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
     public EventStreamAsyncResponseTransformer(
@@ -199,6 +207,9 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             this.requestId = response.sdkHttpResponse()
                                      .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
                                      .orElse(null);
+            this.extendedRequestId = response.sdkHttpResponse()
+                                             .firstMatchingHeader(X_AMZ_ID_2_HEADER)
+                                             .orElse(null);
         }
     }
 
