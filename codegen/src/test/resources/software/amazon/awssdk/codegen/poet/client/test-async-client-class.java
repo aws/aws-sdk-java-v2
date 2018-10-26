@@ -798,4 +798,3 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 }
-
