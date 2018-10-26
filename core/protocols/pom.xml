@@ -3,14 +3,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>aws-sdk-java-pom</artifactId>
+        <artifactId>core</artifactId>
         <groupId>software.amazon.awssdk</groupId>
         <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>protocols</artifactId>
+    <name>AWS Java SDK :: Core :: Protocols</name>
     <packaging>pom</packaging>
+    <description>
+        The AWS SDK for Java - Protocols is an umbrella module that contains child protocol modules
+    </description>
     <modules>
         <module>aws-query-protocol</module>
         <module>aws-json-protocol</module>
