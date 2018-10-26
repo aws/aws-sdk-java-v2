@@ -27,23 +27,23 @@ import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.transform.GetItemResultJsonUnmarshaller;
 import com.amazonaws.services.dynamodbv2.model.transform.PutItemRequestProtocolMarshaller;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Map;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Map;
-
 @State(Scope.Benchmark)
 public class V1DynamoDbAttributeValue {
     private static final SdkJsonProtocolFactory PROTOCOL_FACTORY = protocolFactory();
 
-    private static final PutItemRequestProtocolMarshaller PUT_ITEM_REQUEST_MARSHALLER = new PutItemRequestProtocolMarshaller(PROTOCOL_FACTORY);
+    private static final PutItemRequestProtocolMarshaller PUT_ITEM_REQUEST_MARSHALLER
+        = new PutItemRequestProtocolMarshaller(PROTOCOL_FACTORY);
 
     @Benchmark
     public Object putItem(PutItemState s) {
@@ -80,24 +80,25 @@ public class V1DynamoDbAttributeValue {
 
     @State(Scope.Benchmark)
     public static class GetItemState {
-        @Param({"TINY", "SMALL", "HUGE"})
-        private TestItemUnmashalling testItem;
+        @Param(
+            {"TINY", "SMALL", "HUGE"}
+        )
+        private TestItemUnmarshalling testItem;
     }
 
     public enum TestItem {
         TINY,
         SMALL,
-        HUGE
-        ;
+        HUGE;
 
-        private static final AbstractItemFactory<AttributeValue> factory = new V1ItemFactory();
+        private static final AbstractItemFactory<AttributeValue> FACTORY = new V1ItemFactory();
 
         private Map<String, AttributeValue> av;
 
         static {
-            TINY.av = factory.tiny();
-            SMALL.av = factory.small();
-            HUGE.av = factory.huge();
+            TINY.av = FACTORY.tiny();
+            SMALL.av = FACTORY.small();
+            HUGE.av = FACTORY.huge();
         }
 
         public Map<String, AttributeValue> getValue() {
@@ -105,11 +106,10 @@ public class V1DynamoDbAttributeValue {
         }
     }
 
-    public enum TestItemUnmashalling {
+    public enum TestItemUnmarshalling {
         TINY,
         SMALL,
-        HUGE
-        ;
+        HUGE;
 
         private byte[] utf8;
 
@@ -127,7 +127,7 @@ public class V1DynamoDbAttributeValue {
     private static byte[] toUtf8ByteArray(Map<String, AttributeValue> item) {
         Request<?> resp = PUT_ITEM_REQUEST_MARSHALLER.marshall(new PutItemRequest().withItem(item));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte buff[] = new byte[8192];
+        byte[] buff = new byte[8192];
         int read;
         try {
             while ((read = resp.getContent().read(buff)) != -1) {
@@ -141,15 +141,17 @@ public class V1DynamoDbAttributeValue {
 
     private static HttpResponseHandler<AmazonWebServiceResponse<GetItemResult>> getItemJsonResponseHandler() {
         return PROTOCOL_FACTORY.createResponseHandler(new JsonOperationMetadata()
-                .withPayloadJson(true).withHasStreamingSuccessResponse(false), new GetItemResultJsonUnmarshaller());
+                                                          .withPayloadJson(true)
+                                                          .withHasStreamingSuccessResponse(false),
+                                                      new GetItemResultJsonUnmarshaller());
     }
 
     private static SdkJsonProtocolFactory protocolFactory() {
         return new com.amazonaws.protocol.json.SdkJsonProtocolFactory(
-                new JsonClientMetadata()
-                        .withProtocolVersion("1.0")
-                        .withSupportsCbor(false)
-                        .withSupportsIon(false)
+            new JsonClientMetadata()
+                .withProtocolVersion("1.0")
+                .withSupportsCbor(false)
+                .withSupportsIon(false)
 
         );
     }

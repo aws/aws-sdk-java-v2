@@ -22,7 +22,6 @@ import com.amazonaws.services.ec2.model.ElasticGpuSpecification;
 import com.amazonaws.services.ec2.model.InstanceNetworkInterfaceSpecification;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.VolumeType;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -33,14 +32,14 @@ final class V1ItemFactory {
 
     private static final Random RNG = new Random();
 
-    public final RunInstancesRequest tiny() {
+    RunInstancesRequest tiny() {
         return new RunInstancesRequest()
             .withAdditionalInfo(randomS(50))
             .withDisableApiTermination(true)
             .withMaxCount(5);
     }
 
-    public final RunInstancesRequest small() {
+    RunInstancesRequest small() {
         return new RunInstancesRequest()
             .withAdditionalInfo(randomS(50))
             .withDisableApiTermination(true)
@@ -51,7 +50,7 @@ final class V1ItemFactory {
             .withNetworkInterfaces(networkInterfaces(3));
     }
 
-    public final RunInstancesRequest huge() {
+    RunInstancesRequest huge() {
         return new RunInstancesRequest()
             .withAdditionalInfo(randomS(50))
             .withDisableApiTermination(true)
@@ -62,7 +61,7 @@ final class V1ItemFactory {
             .withNetworkInterfaces(networkInterfaces(100));
     }
 
-    private static InstanceNetworkInterfaceSpecification networkInterface() {
+    static InstanceNetworkInterfaceSpecification networkInterface() {
         return new InstanceNetworkInterfaceSpecification()
             .withAssociatePublicIpAddress(true)
             .withDeleteOnTermination(true)
@@ -71,7 +70,7 @@ final class V1ItemFactory {
             .withDescription(randomS(50));
     }
 
-    private static List<InstanceNetworkInterfaceSpecification> networkInterfaces(int num) {
+    static List<InstanceNetworkInterfaceSpecification> networkInterfaces(int num) {
         return IntStream.of(num)
                         .mapToObj(i -> networkInterface())
                         .collect(Collectors.toList());
@@ -96,17 +95,12 @@ final class V1ItemFactory {
                         .mapToObj(i -> blockDeviceMapping())
                         .collect(Collectors.toList());
     }
+
     private static String randomS(int len) {
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < len; ++i) {
             sb.append(ALPHA.charAt(RNG.nextInt(ALPHA.length())));
         }
         return sb.toString();
-    }
-
-    private static ByteBuffer randomB(int len) {
-        byte[] b = new byte[len];
-        RNG.nextBytes(b);
-        return ByteBuffer.wrap(b);
     }
 }

@@ -63,102 +63,6 @@ import software.amazon.awssdk.services.dynamodb.transform.PutItemRequestMarshall
 
 public class V2DynamoDbAttributeValue {
 
-    @Benchmark
-    public Object putItem(PutItemState s) {
-        return putItemRequestMarshaller().marshall(s.getReq());
-    }
-
-    @Benchmark
-    public Object getItem(GetItemState s) throws Exception {
-        SdkHttpFullResponse resp = fullResponse(s.testItem);
-        return getItemResponseJsonResponseHandler().handle(resp, new ExecutionAttributes());
-    }
-
-    @State(Scope.Benchmark)
-    public static class PutItemState {
-        @Param( {"TINY", "SMALL", "HUGE"})
-        private TestItem testItem;
-
-        private PutItemRequest req;
-
-        @Setup
-        public void setup() {
-            req = PutItemRequest.builder().item(testItem.getValue()).build();
-        }
-
-        public PutItemRequest getReq() {
-            return req;
-        }
-    }
-
-    @State(Scope.Benchmark)
-    public static class GetItemState {
-        @Param( {"TINY", "SMALL", "HUGE"})
-        private TestItemUnmashalling testItem;
-    }
-
-    public enum TestItem {
-        TINY,
-        SMALL,
-        HUGE;
-
-        private static final AbstractItemFactory<AttributeValue> factory = new V2ItemFactory();
-
-        private Map<String, AttributeValue> av;
-
-        static {
-            TINY.av = factory.tiny();
-            SMALL.av = factory.small();
-            HUGE.av = factory.huge();
-        }
-
-        public Map<String, AttributeValue> getValue() {
-            return av;
-        }
-    }
-
-    public enum TestItemUnmashalling {
-        TINY,
-        SMALL,
-        HUGE;
-
-        private byte[] utf8;
-
-        static {
-            TINY.utf8 = toUtf8ByteArray(TestItem.TINY.av);
-            SMALL.utf8 = toUtf8ByteArray(TestItem.SMALL.av);
-            HUGE.utf8 = toUtf8ByteArray(TestItem.HUGE.av);
-        }
-
-        public byte[] utf8() {
-            return utf8;
-        }
-    }
-
-    private SdkHttpFullResponse fullResponse(TestItemUnmashalling item) {
-        AbortableInputStream abortableInputStream = AbortableInputStream.create(new ByteArrayInputStream(item.utf8()));
-        return SdkHttpFullResponse.builder()
-                                  .statusCode(200)
-                                  .content(abortableInputStream)
-                                  .build();
-    }
-
-    private static byte[] toUtf8ByteArray(Map<String, AttributeValue> item) {
-        Request<?> marshalled = putItemRequestMarshaller().marshall(PutItemRequest.builder().item(item).build());
-        InputStream content = marshalled.getContentStreamProvider().get().newStream();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte buff[] = new byte[8192];
-        int read;
-        try {
-            while ((read = content.read(buff)) != -1) {
-                baos.write(buff, 0, read);
-            }
-        } catch (IOException ioe) {
-            throw new UncheckedIOException(ioe);
-        }
-        return baos.toByteArray();
-    }
-
     private static final AwsJsonProtocolFactory JSON_PROTOCOL_FACTORY = AwsJsonProtocolFactory
         .builder()
         .protocol(AwsJsonProtocol.AWS_JSON)
@@ -226,15 +130,113 @@ public class V2DynamoDbAttributeValue {
                 InternalServerErrorException.class))
         .build();
 
-
-    private static final PutItemRequestMarshaller PUT_ITEM_REQUEST_MARSHALLER = new PutItemRequestMarshaller(getJsonProtocolFactory());
+    private static final PutItemRequestMarshaller PUT_ITEM_REQUEST_MARSHALLER
+        = new PutItemRequestMarshaller(getJsonProtocolFactory());
 
     private static HttpResponseHandler<GetItemResponse> getItemResponseJsonResponseHandler() {
         return JSON_PROTOCOL_FACTORY.createResponseHandler(new JsonOperationMetadata()
-                .withPayloadJson(true).withHasStreamingSuccessResponse(false), GetItemResponse::builder);
+                                                               .withPayloadJson(true)
+                                                               .withHasStreamingSuccessResponse(false),
+                                                           GetItemResponse::builder);
     }
 
-    public static PutItemRequestMarshaller putItemRequestMarshaller() {
+    @Benchmark
+    public Object putItem(PutItemState s) {
+        return putItemRequestMarshaller().marshall(s.getReq());
+    }
+
+    @Benchmark
+    public Object getItem(GetItemState s) throws Exception {
+        SdkHttpFullResponse resp = fullResponse(s.testItem);
+        return getItemResponseJsonResponseHandler().handle(resp, new ExecutionAttributes());
+    }
+
+    @State(Scope.Benchmark)
+    public static class PutItemState {
+        @Param({"TINY", "SMALL", "HUGE"})
+        private TestItem testItem;
+
+        private PutItemRequest req;
+
+        @Setup
+        public void setup() {
+            req = PutItemRequest.builder().item(testItem.getValue()).build();
+        }
+
+        public PutItemRequest getReq() {
+            return req;
+        }
+    }
+
+    @State(Scope.Benchmark)
+    public static class GetItemState {
+        @Param({"TINY", "SMALL", "HUGE"})
+        private TestItemUnmarshalling testItem;
+    }
+
+    public enum TestItem {
+        TINY,
+        SMALL,
+        HUGE;
+
+        private static final AbstractItemFactory<AttributeValue> FACTORY = new V2ItemFactory();
+
+        private Map<String, AttributeValue> av;
+
+        static {
+            TINY.av = FACTORY.tiny();
+            SMALL.av = FACTORY.small();
+            HUGE.av = FACTORY.huge();
+        }
+
+        public Map<String, AttributeValue> getValue() {
+            return av;
+        }
+    }
+
+    public enum TestItemUnmarshalling {
+        TINY,
+        SMALL,
+        HUGE;
+
+        private byte[] utf8;
+
+        static {
+            TINY.utf8 = toUtf8ByteArray(TestItem.TINY.av);
+            SMALL.utf8 = toUtf8ByteArray(TestItem.SMALL.av);
+            HUGE.utf8 = toUtf8ByteArray(TestItem.HUGE.av);
+        }
+
+        public byte[] utf8() {
+            return utf8;
+        }
+    }
+
+    private SdkHttpFullResponse fullResponse(TestItemUnmarshalling item) {
+        AbortableInputStream abortableInputStream = AbortableInputStream.create(new ByteArrayInputStream(item.utf8()));
+        return SdkHttpFullResponse.builder()
+                                  .statusCode(200)
+                                  .content(abortableInputStream)
+                                  .build();
+    }
+
+    private static byte[] toUtf8ByteArray(Map<String, AttributeValue> item) {
+        Request<?> marshalled = putItemRequestMarshaller().marshall(PutItemRequest.builder().item(item).build());
+        InputStream content = marshalled.getContentStreamProvider().get().newStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buff = new byte[8192];
+        int read;
+        try {
+            while ((read = content.read(buff)) != -1) {
+                baos.write(buff, 0, read);
+            }
+        } catch (IOException ioe) {
+            throw new UncheckedIOException(ioe);
+        }
+        return baos.toByteArray();
+    }
+
+    private static PutItemRequestMarshaller putItemRequestMarshaller() {
         return PUT_ITEM_REQUEST_MARSHALLER;
     }
 

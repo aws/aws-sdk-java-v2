@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.benchmark.ec2;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -31,7 +30,7 @@ final class V2ItemFactory {
 
     private static final Random RNG = new Random();
 
-    public final RunInstancesRequest tiny() {
+    RunInstancesRequest tiny() {
         return RunInstancesRequest.builder()
                                   .additionalInfo(randomS(50))
                                   .disableApiTermination(true)
@@ -39,7 +38,7 @@ final class V2ItemFactory {
                                   .build();
     }
 
-    public final RunInstancesRequest small() {
+    RunInstancesRequest small() {
         return RunInstancesRequest.builder()
                                   .additionalInfo(randomS(50))
                                   .disableApiTermination(true)
@@ -51,7 +50,7 @@ final class V2ItemFactory {
                                   .build();
     }
 
-    public final RunInstancesRequest huge() {
+    RunInstancesRequest huge() {
         return RunInstancesRequest.builder()
                                   .additionalInfo(randomS(50))
                                   .disableApiTermination(true)
@@ -112,11 +111,5 @@ final class V2ItemFactory {
             sb.append(ALPHA.charAt(RNG.nextInt(ALPHA.length())));
         }
         return sb.toString();
-    }
-
-    private static ByteBuffer randomB(int len) {
-        byte[] b = new byte[len];
-        RNG.nextBytes(b);
-        return ByteBuffer.wrap(b);
     }
 }

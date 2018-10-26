@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.dynamodb;
 
 import com.amazonaws.util.ImmutableMapParameter;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,113 +26,112 @@ import java.util.Random;
 abstract class AbstractItemFactory<T> {
     private static final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
 
-    private final Random RNG = new Random();
+    private static final Random RNG = new Random();
 
-    public final Map<String, T> tiny() {
+    final Map<String, T> tiny() {
         return ImmutableMapParameter.<String, T>builder()
-                .put("stringAttr", av(randomS()))
-                .build();
+            .put("stringAttr", av(randomS()))
+            .build();
     }
 
-    public final Map<String, T> small() {
+    final Map<String, T> small() {
         return ImmutableMapParameter.<String, T>builder()
-                .put("stringAttr", av(randomS()))
-                .put("binaryAttr", av(randomB()))
-                .put("listAttr", av(Arrays.asList(
+            .put("stringAttr", av(randomS()))
+            .put("binaryAttr", av(randomB()))
+            .put("listAttr", av(Arrays.asList(
+                av(randomS()),
+                av(randomB()),
+                av(randomS())
+            )))
+            .build();
+    }
+
+    final Map<String, T> huge() {
+        return ImmutableMapParameter.<String, T>builder()
+            .put("hashKey", av(randomS()))
+            .put("stringAttr", av(randomS()))
+            .put("binaryAttr", av(randomB()))
+            .put("listAttr", av(
+                Arrays.asList(
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomS()),
+                    av(randomB()),
+                    av(Collections.singletonList(av(randomS()))),
+                    av(ImmutableMapParameter.of(
+                        "attrOne", av(randomS())
+                    )),
+                    av(Arrays.asList(
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
+                        av(randomS()),
                         av(randomS()),
                         av(randomB()),
-                        av(randomS())
-                )))
-                //.put("mapAttr", av(ImmutableMapParameter.<String, T>builder().put("stringAttr", av(randomS()))))
-                .build();
-    }
-
-    public final Map<String, T> huge() {
-        return ImmutableMapParameter.<String, T>builder()
-                .put("hashKey", av(randomS()))
-                .put("stringAttr", av(randomS()))
-                .put("binaryAttr", av(randomB()))
-                .put("listAttr", av(
+                        (av(randomS())),
+                        av(ImmutableMapParameter.of(
+                            "attrOne",
+                            av(randomS())
+                        ))
+                    ))
+                )
+            ))
+            .put("mapAttr", av(
+                ImmutableMapParameter.<String, T>builder()
+                    .put("attrOne", av(randomS()))
+                    .put("attrTwo", av(randomB()))
+                    .put("attrThree", av(
                         Arrays.asList(
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomS()),
-                                av(randomB()),
-                                av(Collections.singletonList(av(randomS()))),
-                                av(ImmutableMapParameter.of(
-                                        "attrOne", av(randomS())
-                                )),
-                                av(Arrays.asList(
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomB()),
-                                                (av(randomS())),
-                                                av(ImmutableMapParameter.of(
-                                                        "attrOne",
-                                                        av(randomS())
-                                                ))
+                            av(randomS()),
+                            av(randomS()),
+                            av(randomS()),
+                            av(randomS()),
+                            av(ImmutableMapParameter.<String, T>builder()
+                                   .put("attrOne", av(randomS()))
+                                   .put("attrTwo", av(randomB()))
+                                   .put("attrThree",
+                                        av(Arrays.asList(
+                                            av(randomS()),
+                                            av(randomS()),
+                                            av(randomS()),
+                                            av(randomS())
                                         ))
-                        )
-                ))
-                .put("mapAttr", av(
-                        ImmutableMapParameter.<String, T>builder()
-                                .put("attrOne", av(randomS()))
-                                .put("attrTwo", av(randomB()))
-                                .put("attrThree", av(
-                                        Arrays.asList(
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(randomS()),
-                                                av(ImmutableMapParameter.<String, T>builder()
-                                                        .put("attrOne", av(randomS()))
-                                                        .put("attrTwo", av(randomB()))
-                                                        .put("attrThree",
-                                                                av(Arrays.asList(
-                                                                        av(randomS()),
-                                                                        av(randomS()),
-                                                                        av(randomS()),
-                                                                        av(randomS())
-                                                                ))
-                                                        )
-                                                        .build())
-                                        ))
-                                )
-                                .build()))
-                .build();
+                                   )
+                                   .build())
+                        ))
+                    )
+                    .build()))
+            .build();
     }
 
 
-    abstract protected T av(String val);
+    protected abstract T av(String val);
 
-    abstract protected T av(ByteBuffer val);
+    protected abstract T av(ByteBuffer val);
 
-    abstract protected T av(List<T> val);
+    protected abstract T av(List<T> val);
 
-    abstract protected T av(Map<String, T> val);
+    protected abstract T av(Map<String, T> val);
 
     private String randomS(int len) {
         StringBuilder sb = new StringBuilder(len);

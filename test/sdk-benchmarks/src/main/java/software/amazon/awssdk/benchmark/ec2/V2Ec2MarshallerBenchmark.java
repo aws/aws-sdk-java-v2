@@ -26,6 +26,11 @@ import software.amazon.awssdk.services.ec2.transform.RunInstancesRequestMarshall
 
 public class V2Ec2MarshallerBenchmark {
 
+    private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory.builder().build();
+
+    private static final RunInstancesRequestMarshaller RUN_INSTANCES_REQUEST_MARSHALLER
+        = new RunInstancesRequestMarshaller(PROTOCOL_FACTORY);
+
     @Benchmark
     public Object marshall(MarshallerState s) {
         return runInstancesRequestMarshaller().marshall(s.getReq());
@@ -33,7 +38,7 @@ public class V2Ec2MarshallerBenchmark {
 
     @State(Scope.Benchmark)
     public static class MarshallerState {
-        @Param( {"TINY", "SMALL", "HUGE"})
+        @Param({"TINY", "SMALL", "HUGE"})
         private TestItem testItem;
 
         private RunInstancesRequest req;
@@ -53,14 +58,14 @@ public class V2Ec2MarshallerBenchmark {
         SMALL,
         HUGE;
 
-        private static final V2ItemFactory factory = new V2ItemFactory();
+        private static final V2ItemFactory FACTORY = new V2ItemFactory();
 
         private RunInstancesRequest request;
 
         static {
-            TINY.request = factory.tiny();
-            SMALL.request = factory.small();
-            HUGE.request = factory.huge();
+            TINY.request = FACTORY.tiny();
+            SMALL.request = FACTORY.small();
+            HUGE.request = FACTORY.huge();
         }
 
         public RunInstancesRequest getValue() {
@@ -68,12 +73,7 @@ public class V2Ec2MarshallerBenchmark {
         }
     }
 
-    private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory.builder().build();
-
-    private static final RunInstancesRequestMarshaller RUN_INSTANCES_REQUEST_MARSHALLER
-        = new RunInstancesRequestMarshaller(PROTOCOL_FACTORY);
-
-    public static RunInstancesRequestMarshaller runInstancesRequestMarshaller() {
+    private static RunInstancesRequestMarshaller runInstancesRequestMarshaller() {
         return RUN_INSTANCES_REQUEST_MARSHALLER;
     }
 

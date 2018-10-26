@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.benchmark.dynamodb;
 
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public final class V2ItemFactory extends AbstractItemFactory<AttributeValue> {
     @Override

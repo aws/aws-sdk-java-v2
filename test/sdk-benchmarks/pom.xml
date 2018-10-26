@@ -44,6 +44,12 @@
 
         <dependency>
             <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-core</artifactId>
+            <version>${sdk-v1.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-dynamodb</artifactId>
             <version>${sdk-v1.version}</version>
         </dependency>
@@ -51,7 +57,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
-            <version>${sdk-v2.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
 
         <dependency>
@@ -63,39 +69,33 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ec2</artifactId>
-            <version>${sdk-v2.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-query-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-json-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sdk-core</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-cbor</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-client-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
+
     </dependencies>
 
     <properties>
@@ -117,7 +117,6 @@
         <uberjar.name>benchmarks</uberjar.name>
 
         <sdk-v1.version>1.11.404</sdk-v1.version>
-        <sdk-v2.version>2.0.0-preview-13-SNAPSHOT</sdk-v2.version>
         <jackson.version>2.9.1</jackson.version>
     </properties>
 
@@ -146,7 +145,8 @@
                         <configuration>
                             <finalName>${uberjar.name}</finalName>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.openjdk.jmh.Main</mainClass>
                                 </transformer>
                             </transformers>

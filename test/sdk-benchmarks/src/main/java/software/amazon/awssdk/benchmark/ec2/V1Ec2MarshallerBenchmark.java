@@ -25,6 +25,9 @@ import org.openjdk.jmh.annotations.State;
 
 public class V1Ec2MarshallerBenchmark {
 
+    private static final RunInstancesRequestMarshaller RUN_INSTANCES_REQUEST_MARSHALLER
+        = new RunInstancesRequestMarshaller();
+
     @Benchmark
     public Object marshall(MarshallerState s) {
         return runInstancesRequestMarshaller().marshall(s.getReq());
@@ -32,7 +35,7 @@ public class V1Ec2MarshallerBenchmark {
 
     @State(Scope.Benchmark)
     public static class MarshallerState {
-        @Param( {"TINY", "SMALL", "HUGE"})
+        @Param({"TINY", "SMALL", "HUGE"})
         private TestItem testItem;
 
         private RunInstancesRequest req;
@@ -52,14 +55,14 @@ public class V1Ec2MarshallerBenchmark {
         SMALL,
         HUGE;
 
-        private static final V1ItemFactory factory = new V1ItemFactory();
+        private static final V1ItemFactory FACTORY = new V1ItemFactory();
 
         private RunInstancesRequest request;
 
         static {
-            TINY.request = factory.tiny();
-            SMALL.request = factory.small();
-            HUGE.request = factory.huge();
+            TINY.request = FACTORY.tiny();
+            SMALL.request = FACTORY.small();
+            HUGE.request = FACTORY.huge();
         }
 
         public RunInstancesRequest getValue() {
@@ -67,11 +70,7 @@ public class V1Ec2MarshallerBenchmark {
         }
     }
 
-
-    private static final RunInstancesRequestMarshaller RUN_INSTANCES_REQUEST_MARSHALLER
-        = new RunInstancesRequestMarshaller();
-
-    public static RunInstancesRequestMarshaller runInstancesRequestMarshaller() {
+    private static RunInstancesRequestMarshaller runInstancesRequestMarshaller() {
         return RUN_INSTANCES_REQUEST_MARSHALLER;
     }
 
