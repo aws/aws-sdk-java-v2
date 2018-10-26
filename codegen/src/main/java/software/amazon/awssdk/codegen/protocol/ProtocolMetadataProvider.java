@@ -49,32 +49,9 @@ public interface ProtocolMetadataProvider extends Serializable {
     String getContentType();
 
     /**
-     * @return The name of the Unmarshaller Context class used by the generated unmarshaller
-     *     classes.
-     */
-    String getUnmarshallerContextClassName();
-
-    /**
      * @return The default implementation of exception unmarshallers to use or derive from.
      *     Currently only used by XML protocols.
      */
     String getExceptionUnmarshallerImpl();
-
-    /**
-     * @return The protocol factory implementation to use for JSON services.
-     */
-    String getProtocolFactoryImplFqcn();
-
-    /**
-     * @return The fully qualified class name of the exception class that all service exceptions
-     *     will be inherited from. Not to be confused with the service specific base exception which
-     *     would extend from this base exception.
-     */
-    String getBaseExceptionFqcn();
-
-    /**
-     * @return The fully qualified class name of the base request class.
-     */
-    String getRequestBaseFqcn();
 
 }

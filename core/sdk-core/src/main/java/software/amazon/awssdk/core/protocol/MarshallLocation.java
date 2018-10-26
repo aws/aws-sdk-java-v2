@@ -26,6 +26,7 @@ public enum MarshallLocation {
     /**
      * Payload of the request (format depends on the protocol/content-type)
      */
+    // TODO change to default or NONE as actual location depends on protocol
     PAYLOAD,
 
     /**

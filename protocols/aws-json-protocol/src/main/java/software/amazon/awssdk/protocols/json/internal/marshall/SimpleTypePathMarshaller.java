@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.runtime.transform.PathMarshaller;
+import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 
 @SdkInternalApi

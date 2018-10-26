@@ -23,6 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.protocols.query.XmlElement;
 
 @SdkInternalApi
 public final class MapQueryUnmarshaller implements QueryUnmarshaller<Map<String, ?>> {

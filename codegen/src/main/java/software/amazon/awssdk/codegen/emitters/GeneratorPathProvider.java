@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.emitters;
 
-import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
@@ -50,10 +49,6 @@ public class GeneratorPathProvider {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullTransformPackageName());
     }
 
-    public String getRequestTransformDirectory() {
-        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullRequestTransformPackageName());
-    }
-
     public String getClientDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
     }
@@ -62,15 +57,7 @@ public class GeneratorPathProvider {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullPaginatorsPackageName());
     }
 
-    public String getPolicyEnumDirectory() {
-        return sourceDirectory + "/" + Constant.AUTH_POLICY_ENUM_CLASS_DIR;
-    }
-
     public String getAuthorizerDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullAuthPolicyPackageName());
-    }
-
-    public String getSmokeTestDirectory() {
-        return testDirectory + '/' + Utils.packageToDirectory(model.getMetadata().getFullSmokeTestsPackageName());
     }
 }

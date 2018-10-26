@@ -29,6 +29,8 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
+import software.amazon.awssdk.protocols.query.XmlDomParser;
+import software.amazon.awssdk.protocols.query.XmlElement;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;

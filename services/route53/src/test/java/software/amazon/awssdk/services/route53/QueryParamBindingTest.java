@@ -20,7 +20,7 @@ import java.util.Map;
 import junit.framework.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.protocols.xml.internal.AwsXmlProtocolFactory;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.services.route53.model.GetHealthCheckLastFailureReasonRequest;
 import software.amazon.awssdk.services.route53.model.ListHealthChecksRequest;
 import software.amazon.awssdk.services.route53.transform.GetHealthCheckLastFailureReasonRequestMarshaller;
