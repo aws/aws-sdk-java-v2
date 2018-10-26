@@ -23,12 +23,39 @@
         <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>kinesisvideo</artifactId>
     <name>AWS Java SDK :: Services :: Amazon Kinesis Video Streams</name>
-    <description>The AWS Java SDK for Amazon Kinesis Video Streams module holds the client classes that are used for communicating
+    <description>The AWS Java SDK for Amazon Kinesis Video Streams module holds the client classes that are used for
+        communicating
         with Amazon Kinesis Video Streams Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.kinesisvideo</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-json-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+    </dependencies>
 </project>

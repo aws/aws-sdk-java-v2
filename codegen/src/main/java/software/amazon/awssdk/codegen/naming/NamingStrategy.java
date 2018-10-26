@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.naming;
 
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
-import software.amazon.awssdk.core.protocol.SdkField;
 
 /**
  * Strategy to name various Java constructs based on the naming in the model and potentially customizations.

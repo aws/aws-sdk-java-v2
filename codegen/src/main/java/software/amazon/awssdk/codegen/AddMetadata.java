@@ -81,7 +81,6 @@ final class AddMetadata {
                 .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
                 .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
-                .withSmokeTestsPackageName(namingStrategy.getSmokeTestPackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
@@ -103,9 +102,6 @@ final class AddMetadata {
         String jsonVersion = getJsonVersion(metadata, serviceMetadata);
         metadata.setJsonVersion(jsonVersion);
 
-        // TODO: iterate through all the operations and check whether any of
-        // them accept stream input
-        metadata.setHasApiWithStreamInput(false);
         return metadata;
     }
 

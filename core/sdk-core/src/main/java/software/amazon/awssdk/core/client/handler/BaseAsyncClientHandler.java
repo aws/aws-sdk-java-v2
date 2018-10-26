@@ -16,11 +16,9 @@
 package software.amazon.awssdk.core.client.handler;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -40,7 +38,6 @@ import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkProtectedApi
@@ -95,17 +92,13 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
                     clientConfiguration);
 
-            SdkHttpContentPublisher requestProvider = executionParams.getAsyncRequestBody() == null
-                    ? null
-                    : new SdkHttpContentPublisherAdapter(executionParams.getAsyncRequestBody());
-
             TransformingAsyncResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
                 sdkHttpResponseHandler, executionContext);
 
             TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
                     resolveErrorResponseHandler(executionParams, executionContext, crc32Validator);
 
-            return invoke(marshalled, requestProvider, inputT,
+            return invoke(marshalled, executionParams.getAsyncRequestBody(), inputT,
                     executionContext, successResponseHandler, errorHandler)
                     .handle((resp, err) -> {
                         if (err != null) {
@@ -145,7 +138,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
      **/
     private <InputT extends SdkRequest, OutputT> CompletableFuture<OutputT> invoke(
         SdkHttpFullRequest request,
-        SdkHttpContentPublisher requestProvider,
+        AsyncRequestBody requestProvider,
         InputT originalRequest,
         ExecutionContext executionContext,
         TransformingAsyncResponseHandler<OutputT> responseHandler,
@@ -263,30 +256,5 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             this.transformFuture = asyncResponseTransformer.prepare();
             return transformFuture;
         }
-    }
-
-    /**
-     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestBody} to
-     * provide the request content in a non-blocking manner. This adapts that interface to the
-     * {@link SdkHttpContentPublisher} which the HTTP client SPI expects.
-     */
-    private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
-
-        private final AsyncRequestBody asyncRequestBody;
-
-        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
-            this.asyncRequestBody = asyncRequestBody;
-        }
-
-        @Override
-        public Optional<Long> contentLength() {
-            return asyncRequestBody.contentLength();
-        }
-
-        @Override
-        public void subscribe(Subscriber<? super ByteBuffer> s) {
-            asyncRequestBody.subscribe(s);
-        }
-
     }
 }

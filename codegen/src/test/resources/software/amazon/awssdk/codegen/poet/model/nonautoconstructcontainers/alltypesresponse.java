@@ -16,16 +16,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.adapter.StringToSdkBytesAdapter;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.SdkPojo;
-import software.amazon.awssdk.core.protocol.traits.ListTrait;
-import software.amazon.awssdk.core.protocol.traits.LocationTrait;
-import software.amazon.awssdk.core.protocol.traits.MapTrait;
 import software.amazon.awssdk.core.runtime.TypeConverter;
+import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -1977,4 +1977,3 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
     }
 }
-

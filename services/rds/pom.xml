@@ -29,20 +29,32 @@
         Amazon Relational Database Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.rds</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
-        <!-- Test Dependencies -->
         <dependency>
-            <artifactId>sns</artifactId>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-query-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>elasticloadbalancing</artifactId>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
             <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

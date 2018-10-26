@@ -2,17 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
+        <version>2.0.0-preview-13-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>software.amazon</groupId>
     <artifactId>flow</artifactId>
-    <version>1.0</version>
-
-    <parent>
-        <artifactId>aws-sdk-java-pom</artifactId>
-        <groupId>software.amazon.awssdk</groupId>
-        <version>2.0.0</version>
-    </parent>
+    <version>${flow.version}</version>
 
     <name>AWS Event Stream</name>
     <description>The AWS Event Stream decoder library.</description>
@@ -48,22 +47,18 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <finalName>aws-flow-java</finalName>
-                </configuration>
-            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
+                    <finalName>aws-flow-java</finalName>
                     <archive>
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.eventstream</Automatic-Module-Name>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
@@ -81,6 +76,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--Config to skip from release. Commenting it as we need to include flow in next release -->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-deploy-plugin</artifactId>-->
+                <!--<version>2.8.1</version>-->
+                <!--<configuration>-->
+                    <!--<skip>true</skip>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 

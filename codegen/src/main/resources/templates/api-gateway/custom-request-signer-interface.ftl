@@ -2,7 +2,7 @@ ${fileHeader}
 <#assign hasPlacement=authorizer.hasTokenPlacement()>
 package ${metadata.fullAuthPolicyPackageName};
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 <#if hasPlacement>
 import software.amazon.awssdk.core.ImmutableRequest;
 import software.amazon.awssdk.core.SignableRequest;

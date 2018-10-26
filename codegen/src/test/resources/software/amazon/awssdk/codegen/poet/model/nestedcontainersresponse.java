@@ -10,13 +10,13 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.SdkPojo;
-import software.amazon.awssdk.core.protocol.traits.ListTrait;
-import software.amazon.awssdk.core.protocol.traits.LocationTrait;
-import software.amazon.awssdk.core.protocol.traits.MapTrait;
+import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.ToString;
@@ -384,4 +384,3 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
         }
     }
 }
-

@@ -44,7 +44,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
  */
 @SdkInternalApi
 public final class SyncResponseHandlerAdapter<T> implements TransformingAsyncResponseHandler<T> {
-    private final CompletableFuture<ByteArrayOutputStream> streamFuture = new CompletableFuture<>();
+    private volatile CompletableFuture<ByteArrayOutputStream> streamFuture;
     private final HttpResponseHandler<T> responseHandler;
     private final ExecutionAttributes executionAttributes;
     private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
@@ -75,6 +75,7 @@ public final class SyncResponseHandlerAdapter<T> implements TransformingAsyncRes
 
     @Override
     public CompletableFuture<T> prepare() {
+        streamFuture = new CompletableFuture<>();
         return streamFuture.thenComposeAsync(baos -> {
             ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
             // Ignore aborts - we already have all of the content.

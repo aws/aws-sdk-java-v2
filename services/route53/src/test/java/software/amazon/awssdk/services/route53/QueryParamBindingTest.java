@@ -20,12 +20,15 @@ import java.util.Map;
 import junit.framework.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.services.route53.model.GetHealthCheckLastFailureReasonRequest;
 import software.amazon.awssdk.services.route53.model.ListHealthChecksRequest;
 import software.amazon.awssdk.services.route53.transform.GetHealthCheckLastFailureReasonRequestMarshaller;
 import software.amazon.awssdk.services.route53.transform.ListHealthChecksRequestMarshaller;
 
 public class QueryParamBindingTest {
+
+    private static final AwsXmlProtocolFactory protocolFactory = AwsXmlProtocolFactory.builder().build();
 
     /**
      * Make sure the marshaller is able to handle @UriLabel parameter values
@@ -43,7 +46,7 @@ public class QueryParamBindingTest {
                 .maxItems(VALUE_WITH_AMPERSAND)
                 .build();
 
-        Request<ListHealthChecksRequest> httpReq_List = new ListHealthChecksRequestMarshaller().marshall(listReq);
+        Request<ListHealthChecksRequest> httpReq_List = new ListHealthChecksRequestMarshaller(protocolFactory).marshall(listReq);
         Assert.assertEquals("/2013-04-01/healthcheck", httpReq_List.getResourcePath());
 
         Map<String, List<String>> queryParams = httpReq_List.getParameters();
@@ -56,7 +59,7 @@ public class QueryParamBindingTest {
                 .build();
 
         Request<GetHealthCheckLastFailureReasonRequest> httpReq_GetFailure =
-                new GetHealthCheckLastFailureReasonRequestMarshaller().marshall(getFailureReq);
+                new GetHealthCheckLastFailureReasonRequestMarshaller(protocolFactory).marshall(getFailureReq);
         System.out.println(httpReq_GetFailure);
         // parameter value should be URL encoded
         Assert.assertEquals(

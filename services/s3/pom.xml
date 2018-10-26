@@ -29,10 +29,34 @@
         Amazon Simple Storage Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.s3</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
     <dependencies>
-
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-xml-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
         <!-- Test Dependencies -->
         <dependency>
             <artifactId>commons-io</artifactId>

@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 import software.amazon.awssdk.services.protocolrestxml.model.AllTypesRequest;
@@ -83,14 +84,19 @@ public class RestXmlExceptionTests {
     }
 
     @Test
-    public void nullPointerException_nullPathParam() {
-        assertThrowsNullPointerException(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()));
+    public void illegalArgumentException_nullPathParam() {
+        assertThrowsNestedExceptions(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()),
+                                     SdkClientException.class,
+                                     IllegalArgumentException.class);
     }
 
     @Test
     public void illegalArgumentException_emptyPathParam() {
-        assertThrowsIllegalArgumentException(() -> client.multiLocationOperation(
-                MultiLocationOperationRequest.builder().pathParam("").build()));
+        assertThrowsNestedExceptions(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder()
+                                                                                                      .pathParam("")
+                                                                                                      .build()),
+                                     SdkClientException.class,
+                                     IllegalArgumentException.class);
     }
 
     private void callAllTypes() {
@@ -114,6 +120,16 @@ public class RestXmlExceptionTests {
             runnable.run();
         } catch (Exception e) {
             assertEquals(expectedException, e.getClass());
+        }
+    }
+
+    private void assertThrowsNestedExceptions(Runnable runnable, Class<? extends Exception> parentException,
+                                              Class<? extends Exception> nestedException) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            assertEquals(parentException, e.getClass());
+            assertEquals(nestedException, e.getCause().getClass());
         }
     }
 }

@@ -142,11 +142,6 @@ public final class IntermediateModel {
         return customizationConfig.getCustomRetryPolicy();
     }
 
-    public String getServiceBaseExceptionFqcn() {
-        // TODO Move this into Metadata
-        return metadata.getProtocol().getProvider().getBaseExceptionFqcn();
-    }
-
     public String getSdkModeledExceptionBaseFqcn() {
         return String.format("%s.%s",
                              metadata.getFullModelPackageName(),

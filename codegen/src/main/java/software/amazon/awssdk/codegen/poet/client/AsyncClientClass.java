@@ -41,7 +41,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
 import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUtils;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -56,6 +55,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
@@ -70,7 +70,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.model = dependencies.getModel();
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
-        this.protocolSpec = getProtocolSpecs(poetExtensions, model.getMetadata().getProtocol());
+        this.protocolSpec = getProtocolSpecs(poetExtensions, model);
     }
 
     @Override
@@ -94,6 +94,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                     .addMethods(operations())
                     .addMethod(closeMethod())
                     .addMethods(protocolSpec.additionalMethods())
+                    .addFields(protocolSpec.additionalFields())
                     .addMethod(protocolSpec.initProtocolFactory(model));
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
@@ -120,14 +121,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                                                .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                                              AwsAsyncClientHandler.class);
+        FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
-            builder.addStatement("this.$N = init($L)", protocolSpec.protocolFactory(model).name,
-                                 model.getMetadata().isCborProtocol());
+            builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
+                                protocolFactoryField.type);
         } else {
-            builder.addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name);
+            builder.addStatement("this.$N = init()", protocolFactoryField.name);
         }
         if (model.getMetadata().isCborProtocol()) {
-            builder.addStatement("this.jsonProtocolFactory = init(false)");
+            builder.addStatement("this.jsonProtocolFactory = init($T.builder()).build()", AwsJsonProtocolFactory.class);
         }
         if (hasOperationWithEventStreamOutput()) {
             classBuilder.addField(FieldSpec.builder(ClassName.get(Executor.class), "executor",

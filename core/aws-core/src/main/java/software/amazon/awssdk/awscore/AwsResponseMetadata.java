@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore;
 
+import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +31,6 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkProtectedApi
 public abstract class AwsResponseMetadata {
-    private static final String AWS_REQUEST_ID = "AWS_REQUEST_ID";
     private static final String UNKNOWN = "UNKNOWN";
 
     private final Map<String, String> metadata;

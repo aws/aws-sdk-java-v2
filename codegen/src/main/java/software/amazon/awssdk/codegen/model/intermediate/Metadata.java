@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.protocol.ProtocolMetadataProvider;
 import software.amazon.awssdk.utils.StringUtils;
@@ -27,9 +26,6 @@ public class Metadata {
     private Protocol protocol;
 
     private ProtocolMetadataProvider protocolMetadataProvider;
-
-    // TODO Not sure if this is needed.Remove if not needed.
-    private String checksumFormat;
 
     private String documentation;
 
@@ -73,15 +69,11 @@ public class Metadata {
 
     private String authPolicyPackageName;
 
-    private String smokeTestsPackageName;
-
     private String serviceAbbreviation;
 
     private String serviceFullName;
 
     private String baseExceptionName;
-
-    private boolean hasApiWithStreamInput;
 
     private String contentType;
 
@@ -138,19 +130,6 @@ public class Metadata {
      */
     public String getProtocolDefaultExceptionUmarshallerImpl() {
         return protocolMetadataProvider.getExceptionUnmarshallerImpl();
-    }
-
-    public String getChecksumFormat() {
-        return checksumFormat;
-    }
-
-    public void setChecksumFormat(String checksumFormat) {
-        this.checksumFormat = checksumFormat;
-    }
-
-    public Metadata withChecksumFormat(String checksumFormat) {
-        setChecksumFormat(checksumFormat);
-        return this;
     }
 
     public String getDocumentation() {
@@ -220,11 +199,6 @@ public class Metadata {
         return this;
     }
 
-    @JsonIgnore
-    public String getSyncAbstractClass() {
-        return syncInterface == null ? null : "Abstract" + syncInterface;
-    }
-
     public String getSyncClient() {
         return syncClient;
     }
@@ -275,11 +249,6 @@ public class Metadata {
     public Metadata withAsyncInterface(String asyncInterface) {
         setAsyncInterface(asyncInterface);
         return this;
-    }
-
-    @JsonIgnore
-    public String getAsyncAbstractClass() {
-        return asyncInterface == null ? null : "Abstract" + asyncInterface;
     }
 
     public String getAsyncClient() {
@@ -471,32 +440,8 @@ public class Metadata {
     }
 
     public Metadata withAuthPolicyPackageName(String authPolicyPackageName) {
-        setSmokeTestsPackageName(authPolicyPackageName);
+        setAuthPolicyPackageName(authPolicyPackageName);
         return this;
-    }
-
-    public String getFullSmokeTestsPackageName() {
-        return joinPackageNames(rootPackageName, getSmokeTestsPackageName());
-    }
-
-    public String getSmokeTestsPackageName() {
-        return smokeTestsPackageName;
-    }
-
-    public void setSmokeTestsPackageName(String smokeTestsPackageName) {
-        this.smokeTestsPackageName = smokeTestsPackageName;
-    }
-
-    public Metadata withSmokeTestsPackageName(String smokeTestsPackageName) {
-        setSmokeTestsPackageName(smokeTestsPackageName);
-        return this;
-    }
-
-    /**
-     * @return The class name for service specific ModuleInjector.
-     */
-    public String getCucumberModuleInjectorClassName() {
-        return getSyncInterface() + "ModuleInjector";
     }
 
     /**
@@ -548,19 +493,6 @@ public class Metadata {
             return serviceAbbreviation;
         }
         return serviceFullName;
-    }
-
-    public boolean isHasApiWithStreamInput() {
-        return hasApiWithStreamInput;
-    }
-
-    public void setHasApiWithStreamInput(boolean hasApiWithStreamInput) {
-        this.hasApiWithStreamInput = hasApiWithStreamInput;
-    }
-
-    public Metadata withHasApiWithStreamInput(boolean hasApiWithStreamInput) {
-        setHasApiWithStreamInput(hasApiWithStreamInput);
-        return this;
     }
 
     public String getJsonVersion() {
@@ -643,24 +575,12 @@ public class Metadata {
         return protocolMetadataProvider.getContentType();
     }
 
-    public String getUnmarshallerContextClassName() {
-        return protocolMetadataProvider.getUnmarshallerContextClassName();
-    }
-
-    public String getProtocolFactory() {
-        return protocolMetadataProvider.getProtocolFactoryImplFqcn();
-    }
-
     public boolean isRequiresIamSigners() {
         return requiresIamSigners;
     }
 
     public void setRequiresIamSigners(boolean requiresIamSigners) {
         this.requiresIamSigners = requiresIamSigners;
-    }
-
-    public String getRequestBaseFqcn() {
-        return protocolMetadataProvider.getRequestBaseFqcn();
     }
 
     public boolean isRequiresApiKey() {

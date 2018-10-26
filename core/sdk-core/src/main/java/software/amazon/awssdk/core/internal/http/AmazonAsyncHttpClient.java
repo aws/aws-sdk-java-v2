@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -46,7 +47,6 @@ import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
@@ -92,12 +92,12 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
     public interface RequestExecutionBuilder {
 
         /**
-         * Fluent setter for {@link SdkHttpContentPublisher}
+         * Fluent setter for {@link AsyncRequestBody}
          *
          * @param requestProvider Request provider object
          * @return This builder for method chaining.
          */
-        RequestExecutionBuilder requestProvider(SdkHttpContentPublisher requestProvider);
+        RequestExecutionBuilder requestProvider(AsyncRequestBody requestProvider);
 
         /**
          * Fluent setter for {@link SdkHttpFullRequest}
@@ -145,14 +145,14 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
 
     private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
-        private SdkHttpContentPublisher requestProvider;
+        private AsyncRequestBody requestProvider;
         private SdkHttpFullRequest request;
         private TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
         @Override
-        public RequestExecutionBuilder requestProvider(SdkHttpContentPublisher requestProvider) {
+        public RequestExecutionBuilder requestProvider(AsyncRequestBody requestProvider) {
             this.requestProvider = requestProvider;
             return this;
         }
@@ -199,7 +199,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .first(SigningStage::new)
                                         .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
-                                        .wrappedWith(AsyncRetryableStage::new)
+                                        .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)

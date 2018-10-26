@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
@@ -49,14 +50,17 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
     private static final Logger log = LoggerFactory.getLogger(AsyncRetryableStage.class);
 
+    private final TransformingAsyncResponseHandler<OutputT> responseHandler;
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
     private final ScheduledExecutorService scheduledExecutor;
     private final HttpClientDependencies dependencies;
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
 
-    public AsyncRetryableStage(HttpClientDependencies dependencies,
+    public AsyncRetryableStage(TransformingAsyncResponseHandler<OutputT> responseHandler,
+                               HttpClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
+        this.responseHandler = responseHandler;
         this.dependencies = dependencies;
         this.scheduledExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
         this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
@@ -128,6 +132,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 }
 
                 if (shouldRetry(resp.httpResponse(), resp.exception())) {
+                    // We only notify onError if we are retrying the request.
+                    // Otherwise we rely on the generated code in the in the
+                    // client class to forward exception to the handler's
+                    // exceptionOcurred method.
+                    responseHandler.onError(err);
                     retryHandler.setLastRetriedException(err);
                     executeRetry(future);
                 } else {
@@ -143,6 +152,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             }
 
             if (shouldRetry(null, err)) {
+                // We only notify onError if we are retrying the request.
+                // Otherwise we rely on the generated code in the in the client
+                // class to forward exception to the handler's exceptionOcurred
+                // method.
+                responseHandler.onError(err);
                 retryHandler.setLastRetriedException(err);
                 executeRetry(future);
             } else {

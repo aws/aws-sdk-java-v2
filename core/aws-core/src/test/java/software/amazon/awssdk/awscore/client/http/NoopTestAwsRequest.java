@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.protocol.SdkField;
+import software.amazon.awssdk.core.SdkField;
 
 public class NoopTestAwsRequest extends AwsRequest {
     private NoopTestAwsRequest(Builder builder) {

@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.runtime.transform.PathMarshaller;
+import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class MemberModel extends DocumentationModel {

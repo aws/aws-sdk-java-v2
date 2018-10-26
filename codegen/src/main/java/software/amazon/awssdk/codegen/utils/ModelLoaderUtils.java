@@ -77,10 +77,26 @@ public final class ModelLoaderUtils {
         }
     }
 
+    public static <T> T loadModel(Class<T> clzz, File file, boolean failOnUnknownProperties) {
+        try {
+            return Jackson.load(clzz, file, failOnUnknownProperties);
+        } catch (IOException e) {
+            log.error("Failed to read the configuration file {}", file.getAbsolutePath());
+            throw new RuntimeException(e);
+        }
+    }
+
     public static <T> Optional<T> loadOptionalModel(Class<T> clzz, File file) {
         if (!file.exists()) {
             return Optional.empty();
         }
         return Optional.of(loadModel(clzz, file));
+    }
+
+    public static <T> Optional<T> loadOptionalModel(Class<T> clzz, File file, boolean failOnUnknownProperties) {
+        if (!file.exists()) {
+            return Optional.empty();
+        }
+        return Optional.of(loadModel(clzz, file, failOnUnknownProperties));
     }
 }

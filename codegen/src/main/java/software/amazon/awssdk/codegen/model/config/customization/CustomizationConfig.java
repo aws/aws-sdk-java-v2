@@ -30,20 +30,6 @@ public class CustomizationConfig {
      */
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
     /**
-     * Overrides the request-level service name that will be used for request metrics and service
-     * exceptions. If not specified, the client will use the service interface name by default.
-     *
-     * Example: for backwards compatibility, this is set to "AmazonDynamoDBv2" for DynamoDB client.
-     *
-     * @see {@link software.amazon.awssdk.core.Request#getServiceName()}
-     */
-    private String customServiceNameForRequest;
-    /**
-     * True if the generated code should enable client-side validation on required input
-     * parameters.
-     */
-    private boolean requiredParamValidationEnabled;
-    /**
      * Specifies the name of the client configuration class to use if a service
      * has a specific advanced client configuration class. Null if the service
      * does not have advanced configuration.
@@ -86,10 +72,6 @@ public class CustomizationConfig {
      * Service calculates CRC32 checksum from compressed file when Accept-Encoding: gzip header is provided.
      */
     private boolean calculateCrc32FromCompressedData;
-    /**
-     * Skips generating smoketests if set to true.
-     */
-    private boolean skipSmokeTests;
 
     /**
      * Exclude the create() method on a client. This is useful for global services that will need a global region configured to
@@ -141,6 +123,11 @@ public class CustomizationConfig {
     private boolean skipSyncClientGeneration;
 
     /**
+     * List of output shapes for which the root xml element should be used while unmarshalling the response
+     */
+    private List<String> useRootXmlElementForResult = new ArrayList<>();
+
+    /**
      * Custom Response metadata
      */
     private Map<String, String> customResponseMetadata;
@@ -150,14 +137,6 @@ public class CustomizationConfig {
 
     public static CustomizationConfig create() {
         return new CustomizationConfig();
-    }
-
-    public String getCustomServiceNameForRequest() {
-        return customServiceNameForRequest;
-    }
-
-    public void setCustomServiceNameForRequest(String customServiceNameForRequest) {
-        this.customServiceNameForRequest = customServiceNameForRequest;
     }
 
     public CodeGenTemplatesConfig getCustomCodeTemplates() {
@@ -198,14 +177,6 @@ public class CustomizationConfig {
 
     public void setShapeModifiers(Map<String, ShapeModifier> shapeModifiers) {
         this.shapeModifiers = shapeModifiers;
-    }
-
-    public boolean isRequiredParamValidationEnabled() {
-        return requiredParamValidationEnabled;
-    }
-
-    public void setRequiredParamValidationEnabled(boolean requiredParamValidationEnabled) {
-        this.requiredParamValidationEnabled = requiredParamValidationEnabled;
     }
 
     public String getServiceSpecificClientConfigClass() {
@@ -275,14 +246,6 @@ public class CustomizationConfig {
     public void setCalculateCrc32FromCompressedData(
         boolean calculateCrc32FromCompressedData) {
         this.calculateCrc32FromCompressedData = calculateCrc32FromCompressedData;
-    }
-
-    public boolean isSkipSmokeTests() {
-        return skipSmokeTests;
-    }
-
-    public void setSkipSmokeTests(boolean skipSmokeTests) {
-        this.skipSmokeTests = skipSmokeTests;
     }
 
     public boolean isExcludeClientCreateMethod() {
@@ -387,6 +350,14 @@ public class CustomizationConfig {
 
     public void setSkipSyncClientGeneration(boolean skipSyncClientGeneration) {
         this.skipSyncClientGeneration = skipSyncClientGeneration;
+    }
+
+    public List<String> getUseRootXmlElementForResult() {
+        return useRootXmlElementForResult;
+    }
+
+    public void setUseRootXmlElementForResult(List<String> useRootXmlElementForResult) {
+        this.useRootXmlElementForResult = useRootXmlElementForResult;
     }
 
     public Map<String, String> getCustomResponseMetadata() {

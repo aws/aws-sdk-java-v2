@@ -27,21 +27,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.traits.DefaultValueTrait;
-import software.amazon.awssdk.core.protocol.traits.JsonValueTrait;
-import software.amazon.awssdk.core.protocol.traits.ListTrait;
-import software.amazon.awssdk.core.protocol.traits.LocationTrait;
-import software.amazon.awssdk.core.protocol.traits.MapTrait;
-import software.amazon.awssdk.core.protocol.traits.PayloadTrait;
-import software.amazon.awssdk.core.protocol.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.DefaultValueTrait;
+import software.amazon.awssdk.core.traits.JsonValueTrait;
+import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 
 /**
  * Provides Poet specs related to shape models.
@@ -53,17 +55,18 @@ class ShapeModelSpec {
     private final PoetExtensions poetExtensions;
     private final NamingStrategy namingStrategy;
     private final CustomizationConfig customizationConfig;
+    private final IntermediateModel model;
 
     ShapeModelSpec(ShapeModel shapeModel,
                    TypeProvider typeProvider,
                    PoetExtensions poetExtensions,
-                   NamingStrategy namingStrategy,
-                   CustomizationConfig customizationConfig) {
+                   IntermediateModel model) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.poetExtensions = poetExtensions;
-        this.namingStrategy = namingStrategy;
-        this.customizationConfig = customizationConfig;
+        this.namingStrategy = model.getNamingStrategy();
+        this.customizationConfig = model.getCustomizationConfig();
+        this.model = model;
     }
 
     ClassName className() {
@@ -186,14 +189,23 @@ class ShapeModelSpec {
     }
 
     private CodeBlock createLocationTrait(MemberModel m) {
+        String unmarshallLocation = unmarshallLocation(m);
         return CodeBlock.builder()
                         // TODO will marshall and unmarshall location name ever differ?
                         .add("$T.builder()\n"
-                             + ".location($T.$L)"
-                             + ".locationName($S)"
+                             + ".location($T.$L)\n"
+                             + ".locationName($S)\n"
+                             + unmarshallLocation
                              + ".build()", ClassName.get(LocationTrait.class), ClassName.get(MarshallLocation.class),
                              m.getHttp().getMarshallLocation(), m.getHttp().getMarshallLocationName())
                         .build();
+    }
+
+    // Rest xml uses unmarshall locationName to properly unmarshall flattened lists
+    private String unmarshallLocation(MemberModel m) {
+        return model.getMetadata().getProtocol() == Protocol.EC2 ||
+               model.getMetadata().getProtocol() == Protocol.REST_XML ?
+               String.format(".unmarshallLocationName(\"%s\")%n", m.getHttp().getUnmarshallLocationName()) : "";
     }
 
     private CodeBlock createIdempotencyTrait() {
@@ -227,6 +239,7 @@ class ShapeModelSpec {
                              + ".keyLocationName($S)\n"
                              + ".valueLocationName($S)\n"
                              + ".valueFieldInfo($L)\n"
+                             + isFlattened(m)
                              + ".build()", ClassName.get(MapTrait.class),
                              m.getMapModel().getKeyLocationName(),
                              m.getMapModel().getValueLocationName(),
@@ -239,10 +252,15 @@ class ShapeModelSpec {
                         .add("$T.builder()\n"
                              + ".memberLocationName($S)\n"
                              + ".memberFieldInfo($L)\n"
+                             + isFlattened(m)
                              + ".build()", ClassName.get(ListTrait.class),
                              m.getListModel().getMemberLocationName(),
                              containerSdkFieldInitializer(m.getListModel().getListMemberModel()))
                         .build();
+    }
+
+    private String isFlattened(MemberModel m) {
+        return m.getHttp().isFlattened() ? ".isFlattened(true)\n" : "";
     }
 
     private CodeBlock constructor(MemberModel m) {

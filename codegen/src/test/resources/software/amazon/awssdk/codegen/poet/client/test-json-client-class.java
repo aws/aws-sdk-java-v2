@@ -7,22 +7,23 @@ import software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
-import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.JsonErrorResponseMetadata;
+import software.amazon.awssdk.protocols.json.JsonErrorShapeMetadata;
+import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -70,7 +71,7 @@ final class DefaultJsonClient implements JsonClient {
     protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.protocolFactory = init(false);
+        this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
     @Override
@@ -552,21 +553,17 @@ final class DefaultJsonClient implements JsonClient {
                 .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
     }
 
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(AwsJsonProtocolFactory protocolFactory) {
+    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory) {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 
-    private software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory init(boolean supportsCbor) {
-        return AwsJsonProtocolFactory
-            .builder()
-            .supportsCbor(supportsCbor)
-            .supportsIon(false)
+    private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
+        return builder
             .baseServiceExceptionClass(JsonException.class)
             .protocol(AwsJsonProtocol.REST_JSON)
             .protocolVersion("1.1")
             .addErrorMetadata(
-                new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class))
-            .build();
+                new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class));
     }
 
     @Override

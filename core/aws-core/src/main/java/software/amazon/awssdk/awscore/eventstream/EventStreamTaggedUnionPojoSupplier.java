@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.protocol.SdkPojo;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkProtectedApi

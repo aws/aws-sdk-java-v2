@@ -18,7 +18,6 @@ package software.amazon.awssdk.core;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.protocol.SdkPojo;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**

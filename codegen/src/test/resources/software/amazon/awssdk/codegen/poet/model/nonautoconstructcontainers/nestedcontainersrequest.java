@@ -12,13 +12,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.protocol.SdkField;
-import software.amazon.awssdk.core.protocol.SdkPojo;
-import software.amazon.awssdk.core.protocol.traits.ListTrait;
-import software.amazon.awssdk.core.protocol.traits.LocationTrait;
-import software.amazon.awssdk.core.protocol.traits.MapTrait;
+import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -401,4 +401,3 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         }
     }
 }
-

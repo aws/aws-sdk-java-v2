@@ -27,6 +27,8 @@ public final class Header {
 
     public static final String CONTENT_TYPE = "Content-Type";
 
+    public static final String CONTENT_MD5 = "Content-MD5";
+
     private Header() {
     }
 
