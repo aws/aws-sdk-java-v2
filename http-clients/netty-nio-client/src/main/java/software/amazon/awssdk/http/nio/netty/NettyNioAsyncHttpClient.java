@@ -277,7 +277,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder protocol(Protocol protocol);
 
         /**
-<<<<<<< HEAD
          * Add new socket channel option which will be used to create Netty Http client. This allows custom configuration
          * for Netty.
          * @param channelOption {@link ChannelOption} to set
