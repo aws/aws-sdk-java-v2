@@ -16,13 +16,16 @@
 package software.amazon.awssdk.services.sts.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
-import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sts.AssumeRoleIntegrationTest;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Verify some basic functionality of {@link StsProfileCredentialsProviderFactory} via the way customers will encounter it:
@@ -44,12 +47,54 @@ public class AssumeRoleProfileTest {
                                           .content(new StringInputStream(profileContent))
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
-        assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
-            assertThat(new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
-                assertThat(credentialsProvider).isInstanceOf(SdkAutoCloseable.class);
-                ((SdkAutoCloseable) credentialsProvider).close();
+
+        System.out.println(profiles.toString());
+
+        try {
+            if (!profiles.profile("test").isPresent()) {
+                fail(" test profile does not exist");
+            } else {
+                Profile test =
+                    profiles.profile("test").get();
+
+                System.out.println(test);
+
+                if (test == null) {
+                    fail("profile test is null");
+                }
+
+                ProfileCredentialsUtils profileCredentialsUtils = new ProfileCredentialsUtils(test, profiles::profile);
+
+                if (profileCredentialsUtils == null) {
+                    fail("profileCredentialsUtils is null");
+                }
+
+                if (profileCredentialsUtils.credentialsProvider() == null) {
+                    fail("profileCredentialsUtils.credentialsProvider() does not exist");
+                }
+
+                if (!profileCredentialsUtils.credentialsProvider().isPresent()) {
+                    fail("profileCredentialsUtils.credentialsProvider() does not exist");
+                }
+
+                AwsCredentialsProvider awsCredentialsProvider = profileCredentialsUtils.credentialsProvider().get();
+                assertThat(awsCredentialsProvider).isInstanceOf(SdkAutoCloseable.class);
+                ((SdkAutoCloseable)awsCredentialsProvider).close();
+            }
+
+            assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
+                assertThat(new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+                    assertThat(credentialsProvider).isInstanceOf(SdkAutoCloseable.class);
+                    ((SdkAutoCloseable) credentialsProvider).close();
+                });
             });
-        });
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            fail("failed", e);
+        }
+
+
     }
 
     @Test

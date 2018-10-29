@@ -1,13 +1,14 @@
 language: java
 jdk:
   - oraclejdk8
+  - openjdk10
 sudo: true
 dist: precise
 install: /bin/true
 notifications:
   email:
     - github-awsforjava@amazon.com
-script: mvn -q install
+script: mvn test -pl :sts --am
 branches:
   only:
     - master

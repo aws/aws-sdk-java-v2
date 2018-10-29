@@ -91,11 +91,11 @@ public final class ProfileCredentialsUtils {
         }
 
         if (properties.containsKey(ProfileProperty.AWS_SESSION_TOKEN)) {
-            return Optional.of(sessionProfileCredentialsProvider());
+            return Optional.ofNullable(sessionProfileCredentialsProvider());
         }
 
         if (properties.containsKey(ProfileProperty.AWS_ACCESS_KEY_ID)) {
-            return Optional.of(basicProfileCredentialsProvider());
+            return Optional.ofNullable(basicProfileCredentialsProvider());
         }
 
         return Optional.empty();
