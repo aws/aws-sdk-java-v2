@@ -82,18 +82,22 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
                                 S3Configuration serviceConfiguration) {
         Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
         RegionMetadata regionMetadata = RegionMetadata.of(region);
+        String protocol = request.protocol();
+
         if (isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(originalRequest)) {
-            return accelerateEndpoint(serviceConfiguration, regionMetadata);
-        } else if (serviceConfiguration != null && serviceConfiguration.dualstackEnabled()) {
-            return dualstackEndpoint(regionMetadata);
-        } else {
-            return invokeSafely(() -> new URI(request.protocol(), null, request.host(), request.port(), null, null, null));
+            return accelerateEndpoint(serviceConfiguration, regionMetadata, protocol);
         }
+
+        if (serviceConfiguration != null && serviceConfiguration.dualstackEnabled()) {
+            return dualstackEndpoint(regionMetadata, protocol);
+        }
+
+        return invokeSafely(() -> new URI(request.protocol(), null, request.host(), request.port(), null, null, null));
     }
 
-    private static URI dualstackEndpoint(RegionMetadata metadata) {
+    private static URI dualstackEndpoint(RegionMetadata metadata, String protocol) {
         String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.name(), metadata.domain());
-        return toUri(serviceEndpoint);
+        return toUri(protocol, serviceEndpoint);
     }
 
     /**
@@ -114,16 +118,16 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
     /**
      * @return The endpoint for an S3 accelerate enabled operation. S3 accelerate has a single global endpoint.
      */
-    private static URI accelerateEndpoint(S3Configuration serviceConfiguration, RegionMetadata metadata) {
+    private static URI accelerateEndpoint(S3Configuration serviceConfiguration, RegionMetadata metadata, String protocol) {
         if (serviceConfiguration.dualstackEnabled()) {
-            return toUri("s3-accelerate.dualstack." + metadata.domain());
+            return toUri(protocol, "s3-accelerate.dualstack." + metadata.domain());
         }
-        return toUri("s3-accelerate." + metadata.domain());
+        return toUri(protocol, "s3-accelerate." + metadata.domain());
     }
 
-    private static URI toUri(String endpoint) throws IllegalArgumentException {
+    private static URI toUri(String protocol, String endpoint) {
         try {
-            return new URI(String.format("%s://%s", "https", endpoint));
+            return new URI(String.format("%s://%s", protocol, endpoint));
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
