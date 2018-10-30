@@ -25,6 +25,7 @@ import com.squareup.javapoet.TypeVariableName;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -170,6 +171,10 @@ final class ClientClassUtils {
             code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
                               opModel.getInput().getVariableName(),
                               PoetUtils.classNameFromFqcn(inputShape.getRequestSignerClassFqcn()));
+        } else if (opModel.hasEventStreamInput()) {
+            code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
+                              opModel.getInput().getVariableName(), EventStreamAws4Signer.class);
+
         }
 
         return code.build();
