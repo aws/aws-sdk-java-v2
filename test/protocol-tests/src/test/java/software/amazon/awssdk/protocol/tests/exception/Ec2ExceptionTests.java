@@ -51,7 +51,8 @@ public class Ec2ExceptionTests {
     public void unmodeledException_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH,
                         "<Response><Errors><Error><Code>UnmodeledException</Code></Error></Errors></Response>");
-        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+
+        assertThatThrownBy(() -> client.allTypes())
             .isExactlyInstanceOf(ProtocolEc2Exception.class);
     }
 
