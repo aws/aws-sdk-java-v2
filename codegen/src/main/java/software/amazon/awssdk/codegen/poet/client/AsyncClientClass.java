@@ -106,7 +106,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
 
-        if (model.containsRequestSigners()) {
+        if (model.containsRequestSigners() || model.containsRequestEventStreams()) {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
