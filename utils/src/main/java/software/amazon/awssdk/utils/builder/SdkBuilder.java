@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> the type that the builder will build
  */
 @SdkPublicApi
-public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {
+public interface SdkBuilder<B extends SdkBuilder<B, T>, T> extends Buildable {
 
     /**
      * An immutable object that is created from the
@@ -33,6 +33,7 @@ public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {
      *
      * @return an instance of T
      */
+    @Override
     T build();
 
     /**

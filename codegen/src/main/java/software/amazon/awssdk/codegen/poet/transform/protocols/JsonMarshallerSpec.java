@@ -98,11 +98,11 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                                       .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
                                       .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                                             shapeModel.getExplicitEventPayloadMember() != null)
-                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
+                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
+                                      .add(".serviceName($S)", metadata.getServiceName());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
-            initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget())
-                                          .add(".serviceName($S)", metadata.getServiceName());
+            initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget());
         }
 
         if (shapeModel.isHasStreamingMember()) {

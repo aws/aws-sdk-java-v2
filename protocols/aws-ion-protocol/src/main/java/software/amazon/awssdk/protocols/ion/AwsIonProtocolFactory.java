@@ -19,8 +19,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.protocols.ion.internal.AwsStructuredIonFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.AwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
+import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.DefaultJsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
 
@@ -62,7 +62,7 @@ public final class AwsIonProtocolFactory extends BaseAwsJsonProtocolFactory {
      * @return Instance of {@link AwsStructuredJsonFactory} to use in creating handlers.
      */
     @Override
-    protected AwsStructuredJsonFactory getSdkFactory() {
+    protected BaseAwsStructuredJsonFactory getSdkFactory() {
         return isIonBinaryEnabled()
                ? AwsStructuredIonFactory.SDK_ION_BINARY_FACTORY
                : AwsStructuredIonFactory.SDK_ION_TEXT_FACTORY;

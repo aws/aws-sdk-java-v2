@@ -13,26 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.json;
+package software.amazon.awssdk.utils.builder;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-/**
- * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.
- */
 @SdkProtectedApi
-public interface StructuredJsonFactory {
+public interface Buildable {
 
-    /**
-     * Returns the {@link StructuredJsonGenerator} to be used for marshalling the request.
-     *
-     * @param contentType Content type to send for requests.
-     */
-    StructuredJsonGenerator createWriter(String contentType);
-
-    JsonFactory getJsonFactory();
-
-    ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName);
-
+    Object build();
 }

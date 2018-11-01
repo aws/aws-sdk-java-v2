@@ -20,7 +20,8 @@ import software.amazon.awssdk.utils.Validate;
 public class OperationWithNoInputOrOutputRequestMarshaller implements
                                                            Marshaller<Request<OperationWithNoInputOrOutputRequest>, OperationWithNoInputOrOutputRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
+                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(false)
+                                                                            .serviceName("JsonProtocolTests").build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 

@@ -16,9 +16,7 @@
 package software.amazon.awssdk.protocols.ion.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.protocols.json.AwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
@@ -32,18 +30,20 @@ public final class AwsStructuredIonFactory extends SdkStructuredIonFactory {
     private static final IonWriterBuilder TEXT_WRITER_BUILDER = IonTextWriterBuilder.standard().immutable();
 
 
-    public static final AwsStructuredJsonFactory SDK_ION_BINARY_FACTORY = new AwsIonFactory(JSON_FACTORY, BINARY_WRITER_BUILDER);
+    public static final BaseAwsStructuredJsonFactory SDK_ION_BINARY_FACTORY =
+        new AwsIonFactory(JSON_FACTORY, BINARY_WRITER_BUILDER);
 
-    public static final AwsStructuredJsonFactory SDK_ION_TEXT_FACTORY = new AwsIonFactory(JSON_FACTORY, TEXT_WRITER_BUILDER);
+    public static final BaseAwsStructuredJsonFactory SDK_ION_TEXT_FACTORY = new AwsIonFactory(JSON_FACTORY, TEXT_WRITER_BUILDER);
 
     static class AwsIonFactory extends BaseAwsStructuredJsonFactory {
+        private final JsonFactory jsonFactory;
+
         private final IonWriterBuilder builder;
 
-        private final ObjectMapper mapper;
 
         AwsIonFactory(JsonFactory jsonFactory, IonWriterBuilder builder) {
             super(jsonFactory);
-            this.mapper = new ObjectMapper(jsonFactory);
+            this.jsonFactory = jsonFactory;
             this.builder = builder;
         }
 
@@ -53,12 +53,12 @@ public final class AwsStructuredIonFactory extends SdkStructuredIonFactory {
         }
 
         @Override
-        public ObjectMapper createObjectMapper() {
-            return mapper;
+        public JsonFactory getJsonFactory() {
+            return jsonFactory;
         }
 
         @Override
-        protected ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
+        public ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
             return new CompositeErrorCodeParser(
                 new IonErrorCodeParser(ION_SYSTEM),
                 super.getErrorCodeParser(customErrorCodeFieldName));

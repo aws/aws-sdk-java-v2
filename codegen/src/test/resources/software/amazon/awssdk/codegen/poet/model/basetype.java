@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +21,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class BaseType implements SdkPojo, ToCopyableBuilder<BaseType.Builder, BaseType> {
+public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<BaseType.Builder, BaseType> {
     private static final SdkField<String> BASE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BASE_MEMBER_FIELD));
+
+    private static final long serialVersionUID = 1L;
 
     private final String baseMember;
 
@@ -150,4 +153,3 @@ public final class BaseType implements SdkPojo, ToCopyableBuilder<BaseType.Build
         }
     }
 }
-

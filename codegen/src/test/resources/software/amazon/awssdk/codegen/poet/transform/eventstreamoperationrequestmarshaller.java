@@ -21,7 +21,7 @@ public class EventStreamOperationRequestMarshaller implements
                                                    Marshaller<Request<EventStreamOperationRequest>, EventStreamOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(true)
-                                                                            .hasPayloadMembers(true).build();
+                                                                            .hasPayloadMembers(true).serviceName("JsonProtocolTests").build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 

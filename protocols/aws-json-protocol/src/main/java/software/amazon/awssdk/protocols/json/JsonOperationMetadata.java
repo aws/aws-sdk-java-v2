@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
 
@@ -23,29 +22,63 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHan
  * Contains various information needed to create a {@link JsonResponseHandler}
  * for the client.
  */
-@NotThreadSafe
 @SdkProtectedApi
-public class JsonOperationMetadata {
+public final class JsonOperationMetadata {
 
-    private boolean hasStreamingSuccessResponse;
-    private boolean isPayloadJson;
+    private final boolean hasStreamingSuccessResponse;
+    private final boolean isPayloadJson;
 
-    public boolean isHasStreamingSuccessResponse() {
-        return hasStreamingSuccessResponse;
+    private JsonOperationMetadata(Builder builder) {
+        this.hasStreamingSuccessResponse = builder.hasStreamingSuccessResponse;
+        this.isPayloadJson = builder.isPayloadJson;
     }
 
-    public JsonOperationMetadata withHasStreamingSuccessResponse(
-            boolean hasStreamingSuccessResponse) {
-        this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
-        return this;
+    public boolean hasStreamingSuccessResponse() {
+        return hasStreamingSuccessResponse;
     }
 
     public boolean isPayloadJson() {
         return isPayloadJson;
     }
 
-    public JsonOperationMetadata withPayloadJson(boolean payloadJson) {
-        isPayloadJson = payloadJson;
-        return this;
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link JsonOperationMetadata}.
+     */
+    public static final class Builder {
+
+        private boolean hasStreamingSuccessResponse;
+        private boolean isPayloadJson;
+
+        private Builder() {
+        }
+
+        /**
+         * True is payload contains JSON content, false if it doesn't (i.e. it contains binary content or no content).
+         *
+         * @return This builder for method chaining.
+         */
+        public Builder isPayloadJson(boolean payloadJson) {
+            isPayloadJson = payloadJson;
+            return this;
+        }
+
+
+        /**
+         * True if the success response (2xx response) contains a payload that should be treated as streaming. False otherwise.
+         *
+         * @return This builder for method chaining.
+         */
+        public Builder hasStreamingSuccessResponse(boolean hasStreamingSuccessResponse) {
+            this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
+            return this;
+        }
+
+        public JsonOperationMetadata build() {
+            return new JsonOperationMetadata(this);
+        }
     }
 }

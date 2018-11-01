@@ -32,6 +32,11 @@ import software.amazon.awssdk.utils.Validate;
 abstract class BytesWrapper {
     private final byte[] bytes;
 
+    // Needed for serialization
+    BytesWrapper() {
+        this(null);
+    }
+
     BytesWrapper(byte[] bytes) {
         this.bytes = Validate.paramNotNull(bytes, "bytes");
     }

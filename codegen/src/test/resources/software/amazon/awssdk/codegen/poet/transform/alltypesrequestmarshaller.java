@@ -19,7 +19,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class AllTypesRequestMarshaller implements Marshaller<Request<AllTypesRequest>, AllTypesRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
+                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true)
+                                                                            .serviceName("JsonProtocolTests").build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 

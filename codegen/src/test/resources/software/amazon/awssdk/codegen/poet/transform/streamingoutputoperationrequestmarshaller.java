@@ -21,7 +21,7 @@ public class StreamingOutputOperationRequestMarshaller implements
                                                        Marshaller<Request<StreamingOutputOperationRequest>, StreamingOutputOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/streamingOutputOperation").httpMethodName(HttpMethodName.POST)
-                                                                            .hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
+                                                                            .hasExplicitPayloadMember(false).hasPayloadMembers(false).serviceName("JsonProtocolTests").build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 

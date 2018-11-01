@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,7 +24,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class InputEventTwo implements SdkPojo, ToCopyableBuilder<InputEventTwo.Builder, InputEventTwo>, InputEventStreamTwo {
+public final class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<InputEventTwo.Builder, InputEventTwo>,
+                                            InputEventStreamTwo {
     private static final SdkField<SdkBytes> IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD = SdkField
         .<SdkBytes> builder(MarshallingType.SDK_BYTES).getter(getter(InputEventTwo::implicitPayloadMemberOne))
                                                       .setter(setter(Builder::implicitPayloadMemberOne))
@@ -41,6 +43,8 @@ public final class InputEventTwo implements SdkPojo, ToCopyableBuilder<InputEven
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
         IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD, IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD, EVENT_HEADER_MEMBER_FIELD));
+
+    private static final long serialVersionUID = 1L;
 
     private final SdkBytes implicitPayloadMemberOne;
 

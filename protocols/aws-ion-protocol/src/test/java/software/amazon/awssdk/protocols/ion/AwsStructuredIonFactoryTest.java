@@ -18,11 +18,8 @@ package software.amazon.awssdk.protocols.ion;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.LinkedList;
-import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -30,8 +27,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.ion.internal.AwsStructuredIonFactory;
-import software.amazon.awssdk.protocols.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.ion.IonStruct;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;
@@ -132,12 +128,15 @@ public class AwsStructuredIonFactoryTest {
     }
 
     private AwsServiceException handleError(SdkHttpFullResponse error) throws Exception {
-        List<AwsJsonErrorUnmarshaller> unmarshallers = new LinkedList<>();
-        unmarshallers.add(new AwsJsonErrorUnmarshaller(InvalidParameterException.class, ERROR_TYPE));
-
-        return AwsStructuredIonFactory.SDK_ION_BINARY_FACTORY
-            .createErrorResponseHandler(unmarshallers, NO_CUSTOM_ERROR_CODE_FIELD_NAME)
-            .handle(error, new ExecutionAttributes());
+        return AwsIonProtocolFactory.builder()
+                                    .registerModeledException(ERROR_TYPE, InvalidParameterException::builder)
+                                    .customErrorCodeFieldName(NO_CUSTOM_ERROR_CODE_FIELD_NAME)
+                                    .build()
+                                    .createErrorResponseHandler(JsonOperationMetadata.builder()
+                                                                                     .hasStreamingSuccessResponse(false)
+                                                                                     .isPayloadJson(true)
+                                                                                     .build())
+                                    .handle(error, new ExecutionAttributes());
     }
 
     private static class InvalidParameterException extends AwsServiceException {
@@ -154,6 +153,10 @@ public class AwsStructuredIonFactoryTest {
         @Override
         public Builder toBuilder() {
             return new BeanStyleBuilder(this);
+        }
+
+        public static Builder builder() {
+            return new BeanStyleBuilder();
         }
 
         public interface Builder extends AwsServiceException.Builder {
@@ -179,7 +182,6 @@ public class AwsStructuredIonFactoryTest {
                 return this;
             }
 
-            @JsonProperty("ErrorMessage")
             public void setMessage(String message) {
                 this.message = message;
             }

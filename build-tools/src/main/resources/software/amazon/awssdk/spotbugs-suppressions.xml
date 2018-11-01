@@ -116,4 +116,17 @@
         <Bug pattern="EI_EXPOSE_REP" />
     </Match>
 
+    <Match>
+        <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
+        <Method name="unmarshallStructured" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+
+    <!-- We want the content to be restored to the default vaue of null -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.DefaultSdkHttpFullResponse" />
+        <Field name="content" />
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+    </Match>
+
 </FindBugsFilter>

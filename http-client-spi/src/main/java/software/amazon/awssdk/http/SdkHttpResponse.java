@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import java.io.Serializable;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -25,7 +26,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 @Immutable
-public interface SdkHttpResponse extends SdkHttpHeaders {
+public interface SdkHttpResponse extends SdkHttpHeaders, Serializable {
     /**
      * Returns the HTTP status text returned by the service.
      *

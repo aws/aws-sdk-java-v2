@@ -15,15 +15,14 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonFactory;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -38,7 +37,9 @@ import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
  * Unmarshaller implementation for both JSON RPC and REST JSON services.
@@ -53,10 +54,10 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     private static final JsonUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
 
-    private final ObjectMapper mapper;
+    private final JsonDomParser parser;
 
-    public JsonProtocolUnmarshaller(ObjectMapper objectMapper) {
-        mapper = objectMapper;
+    public JsonProtocolUnmarshaller(JsonFactory jsonFactory) {
+        this.parser = JsonDomParser.create(jsonFactory);
     }
 
     private static JsonUnmarshallerRegistry createUnmarshallerRegistry() {
@@ -91,7 +92,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         return Collections.unmodifiableMap(formats);
     }
 
-    private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<SdkPojo> f) {
+    private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, SdkJsonNode jsonContent, SdkField<SdkPojo> f) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         } else {
@@ -100,32 +101,33 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
     }
 
     private static Map<String, ?> unmarshallMap(JsonUnmarshallerContext context,
-                                                JsonNode jsonContent,
+                                                SdkJsonNode jsonContent,
                                                 SdkField<Map<String, ?>> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
         SdkField<?> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
         Map<String, Object> map = new HashMap<>();
-        jsonContent.fieldNames().forEachRemaining(f -> {
+        jsonContent.fields().forEach((fieldName, value) -> {
             JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
-            map.put(f, unmarshaller.unmarshall(context, jsonContent.get(f), (SdkField<Object>) valueInfo));
+            map.put(fieldName, unmarshaller.unmarshall(context, value, (SdkField<Object>) valueInfo));
         });
         return map;
     }
 
-    private static List<?> unmarshallList(JsonUnmarshallerContext context, JsonNode jsonContent, SdkField<List<?>> field) {
+    private static List<?> unmarshallList(JsonUnmarshallerContext context, SdkJsonNode jsonContent, SdkField<List<?>> field) {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        List<Object> list = new ArrayList<>();
-        for (int i = 0; i < jsonContent.size(); i++) {
-            SdkField<?> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
-            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(), memberInfo.marshallingType());
-            Object unmarshall = unmarshaller.unmarshall(context, jsonContent.get(i), (SdkField<Object>) memberInfo);
-            list.add(unmarshall);
-        }
-        return list;
+        return jsonContent.items()
+                          .stream()
+                          .map(item -> {
+                              SdkField<?> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+                              JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
+                                                                                              memberInfo.marshallingType());
+                              return unmarshaller.unmarshall(context, item, (SdkField<Object>) memberInfo);
+                          })
+                          .collect(Collectors.toList());
     }
 
     private static class SimpleTypeJsonUnmarshaller<T> implements JsonUnmarshaller<T> {
@@ -138,7 +140,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
         @Override
         public T unmarshall(JsonUnmarshallerContext context,
-                            JsonNode jsonContent,
+                            SdkJsonNode jsonContent,
                             SdkField<T> field) {
             return jsonContent != null && !jsonContent.isNull() ? stringToValue.convert(jsonContent.asText(), field) : null;
         }
@@ -147,7 +149,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
     public TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
         if (hasPayloadMembers(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo)) {
-            JsonNode jsonNode = mapper.readTree(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
+            SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
             return unmarshall(sdkPojo, response, jsonNode);
         } else {
             return unmarshall(sdkPojo, response, null);
@@ -172,7 +174,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     public TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response,
-                            JsonNode jsonContent) {
+                            SdkJsonNode jsonContent) {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
                                                                  .unmarshallerRegistry(REGISTRY)
                                                                  .response(response)
@@ -182,21 +184,21 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     @SuppressWarnings("unchecked")
     private static <TypeT extends SdkPojo> TypeT unmarshallStructured(SdkPojo sdkPojo,
-                                                                      JsonNode jsonContent,
+                                                                      SdkJsonNode jsonContent,
                                                                       JsonUnmarshallerContext context) {
         for (SdkField<?> field : sdkPojo.sdkFields()) {
             if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
                 field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().orElse(null)));
             } else {
-                JsonNode jsonFieldContent = getJsonNode(jsonContent, field);
+                SdkJsonNode jsonFieldContent = getSdkJsonNode(jsonContent, field);
                 JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());
                 field.set(sdkPojo, unmarshaller.unmarshall(context, jsonFieldContent, (SdkField<Object>) field));
             }
         }
-        return ((SdkBuilder<?, TypeT>) sdkPojo).build();
+        return (TypeT) ((Buildable) sdkPojo).build();
     }
 
-    private static JsonNode getJsonNode(JsonNode jsonContent, SdkField<?> field) {
+    private static SdkJsonNode getSdkJsonNode(SdkJsonNode jsonContent, SdkField<?> field) {
         if (jsonContent == null) {
             return null;
         }

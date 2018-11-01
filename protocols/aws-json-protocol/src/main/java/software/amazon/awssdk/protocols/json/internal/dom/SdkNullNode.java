@@ -13,14 +13,42 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.json.internal.unmarshall;
+package software.amazon.awssdk.protocols.json.internal.dom;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 
+/**
+ * Represents an explicit JSON null.
+ */
 @SdkInternalApi
-public interface ErrorMessageParser {
+public final class SdkNullNode implements SdkJsonNode {
 
-    String parseErrorMessage(SdkHttpFullResponse httpResponse, SdkJsonNode jsonNode);
+    private static final SdkNullNode INSTANCE = new SdkNullNode();
+
+    private SdkNullNode() {
+    }
+
+    @Override
+    public boolean isNull() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof SdkNullNode;
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "null";
+    }
+
+    static SdkNullNode instance() {
+        return INSTANCE;
+    }
 }

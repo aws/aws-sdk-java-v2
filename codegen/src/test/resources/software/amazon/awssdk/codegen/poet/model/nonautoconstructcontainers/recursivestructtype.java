@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +29,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class RecursiveStructType implements SdkPojo, ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
+public final class RecursiveStructType implements SdkPojo, Serializable,
+                                                  ToCopyableBuilder<RecursiveStructType.Builder, RecursiveStructType> {
     private static final SdkField<String> NO_RECURSE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(RecursiveStructType::noRecurse)).setter(setter(Builder::noRecurse))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NoRecurse").build()).build();
@@ -68,6 +70,8 @@ public final class RecursiveStructType implements SdkPojo, ToCopyableBuilder<Rec
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NO_RECURSE_FIELD,
                                                                                                    RECURSIVE_STRUCT_FIELD, RECURSIVE_LIST_FIELD, RECURSIVE_MAP_FIELD));
+
+    private static final long serialVersionUID = 1L;
 
     private final String noRecurse;
 
@@ -382,3 +386,4 @@ public final class RecursiveStructType implements SdkPojo, ToCopyableBuilder<Rec
         }
     }
 }
+

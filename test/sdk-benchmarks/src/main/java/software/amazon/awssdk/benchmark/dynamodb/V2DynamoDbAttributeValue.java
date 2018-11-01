@@ -33,13 +33,13 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BackupInUseException;
 import software.amazon.awssdk.services.dynamodb.model.BackupNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.ContinuousBackupsUnavailableException;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.GlobalTableAlreadyExistsException;
 import software.amazon.awssdk.services.dynamodb.model.GlobalTableNotFoundException;
@@ -65,78 +65,42 @@ public class V2DynamoDbAttributeValue {
 
     private static final AwsJsonProtocolFactory JSON_PROTOCOL_FACTORY = AwsJsonProtocolFactory
         .builder()
+        .defaultServiceExceptionSupplier(DynamoDbException::builder)
         .protocol(AwsJsonProtocol.AWS_JSON)
         .protocolVersion("1.0")
-        .baseServiceExceptionClass(software.amazon.awssdk.services.dynamodb.model.DynamoDbException.class)
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ResourceInUseException").withModeledClass(
-                ResourceInUseException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("TableAlreadyExistsException").withModeledClass(
-                TableAlreadyExistsException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("GlobalTableAlreadyExistsException").withModeledClass(
-                GlobalTableAlreadyExistsException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("InvalidRestoreTimeException").withModeledClass(
-                InvalidRestoreTimeException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ReplicaAlreadyExistsException").withModeledClass(
-                ReplicaAlreadyExistsException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ConditionalCheckFailedException").withModeledClass(
-                ConditionalCheckFailedException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("BackupNotFoundException").withModeledClass(
-                BackupNotFoundException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("IndexNotFoundException").withModeledClass(
-                IndexNotFoundException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("LimitExceededException").withModeledClass(
-                LimitExceededException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("GlobalTableNotFoundException").withModeledClass(
-                GlobalTableNotFoundException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ItemCollectionSizeLimitExceededException").withModeledClass(
-                ItemCollectionSizeLimitExceededException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ReplicaNotFoundException").withModeledClass(
-                ReplicaNotFoundException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("TableNotFoundException").withModeledClass(
-                TableNotFoundException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("BackupInUseException").withModeledClass(
-                BackupInUseException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ResourceNotFoundException").withModeledClass(
-                ResourceNotFoundException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ContinuousBackupsUnavailableException").withModeledClass(
-                ContinuousBackupsUnavailableException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("TableInUseException").withModeledClass(
-                TableInUseException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("ProvisionedThroughputExceededException").withModeledClass(
-                ProvisionedThroughputExceededException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("PointInTimeRecoveryUnavailableException").withModeledClass(
-                PointInTimeRecoveryUnavailableException.class))
-        .addErrorMetadata(
-            new JsonErrorShapeMetadata().withErrorCode("InternalServerError").withModeledClass(
-                InternalServerErrorException.class))
+        .registerModeledException("ResourceInUseException", ResourceInUseException::builder)
+        .registerModeledException("TableAlreadyExistsException", TableAlreadyExistsException::builder)
+        .registerModeledException("GlobalTableAlreadyExistsException", GlobalTableAlreadyExistsException::builder)
+        .registerModeledException("InvalidRestoreTimeException", InvalidRestoreTimeException::builder)
+        .registerModeledException("ReplicaAlreadyExistsException", ReplicaAlreadyExistsException::builder)
+        .registerModeledException("ConditionalCheckFailedException", ConditionalCheckFailedException::builder)
+        .registerModeledException("BackupNotFoundException", BackupNotFoundException::builder)
+        .registerModeledException("IndexNotFoundException", IndexNotFoundException::builder)
+        .registerModeledException("LimitExceededException", LimitExceededException::builder)
+        .registerModeledException("GlobalTableNotFoundException", GlobalTableNotFoundException::builder)
+        .registerModeledException("ItemCollectionSizeLimitExceededException",
+                                  ItemCollectionSizeLimitExceededException::builder)
+        .registerModeledException("ReplicaNotFoundException", ReplicaNotFoundException::builder)
+        .registerModeledException("TableNotFoundException", TableNotFoundException::builder)
+        .registerModeledException("BackupInUseException", BackupInUseException::builder)
+        .registerModeledException("ResourceNotFoundException", ResourceNotFoundException::builder)
+        .registerModeledException("ContinuousBackupsUnavailableException", ContinuousBackupsUnavailableException::builder)
+        .registerModeledException("TableInUseException", TableInUseException::builder)
+        .registerModeledException("ProvisionedThroughputExceededException",
+                                  ProvisionedThroughputExceededException::builder)
+        .registerModeledException("PointInTimeRecoveryUnavailableException",
+                                  PointInTimeRecoveryUnavailableException::builder)
+        .registerModeledException("InternalServerError", InternalServerErrorException::builder)
         .build();
 
     private static final PutItemRequestMarshaller PUT_ITEM_REQUEST_MARSHALLER
         = new PutItemRequestMarshaller(getJsonProtocolFactory());
 
     private static HttpResponseHandler<GetItemResponse> getItemResponseJsonResponseHandler() {
-        return JSON_PROTOCOL_FACTORY.createResponseHandler(new JsonOperationMetadata()
-                                                               .withPayloadJson(true)
-                                                               .withHasStreamingSuccessResponse(false),
+        return JSON_PROTOCOL_FACTORY.createResponseHandler(JsonOperationMetadata.builder()
+                                                                                .isPayloadJson(true)
+                                                                                .hasStreamingSuccessResponse(false)
+                                                                                .build(),
                                                            GetItemResponse::builder);
     }
 

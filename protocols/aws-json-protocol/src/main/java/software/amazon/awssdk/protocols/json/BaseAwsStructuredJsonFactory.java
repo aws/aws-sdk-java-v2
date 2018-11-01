@@ -16,10 +16,7 @@
 package software.amazon.awssdk.protocols.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser;
 
 /**
@@ -27,7 +24,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodePa
  * JSON.
  */
 @SdkProtectedApi
-public abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonFactory {
+public abstract class BaseAwsStructuredJsonFactory implements StructuredJsonFactory {
 
     private final JsonFactory jsonFactory;
 
@@ -40,19 +37,11 @@ public abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonF
         return createWriter(jsonFactory, contentType);
     }
 
-    @Override
-    public AwsJsonErrorResponseHandler createErrorResponseHandler(
-        final List<AwsJsonErrorUnmarshaller> errorUnmarshallers, String customErrorCodeFieldName) {
-        return new AwsJsonErrorResponseHandler(errorUnmarshallers,
-                                               getErrorCodeParser(customErrorCodeFieldName),
-                                               AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
-                                               jsonFactory);
-    }
-
     protected abstract StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
                                                             String contentType);
 
-    protected ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
+    @Override
+    public ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
         return new JsonErrorCodeParser(customErrorCodeFieldName);
     }
 }

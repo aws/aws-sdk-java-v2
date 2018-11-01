@@ -20,9 +20,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
-
 import javax.lang.model.element.Modifier;
-
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -61,28 +59,30 @@ public class BaseExceptionClass implements ClassSpec {
     }
 
     public TypeSpec builderInterface() {
-        TypeSpec.Builder builder = TypeSpec.interfaceBuilder(baseExceptionClassName.nestedClass("Builder"))
-                .addSuperinterface(ClassName.get(AwsServiceException.class).nestedClass("Builder"))
-                .addModifiers(Modifier.PUBLIC)
-                .addMethods(ExceptionProperties.builderInterfaceMethods(className().nestedClass("Builder")));
+        TypeSpec.Builder builder =
+            TypeSpec.interfaceBuilder(baseExceptionClassName.nestedClass("Builder"))
+                    .addSuperinterface(ClassName.get(AwsServiceException.class).nestedClass("Builder"))
+                    .addModifiers(Modifier.PUBLIC)
+                    .addMethods(ExceptionProperties.builderInterfaceMethods(className().nestedClass("Builder")));
 
         return builder.build();
     }
 
     public TypeSpec builderImplClass() {
         return TypeSpec.classBuilder(baseExceptionClassName.nestedClass("BuilderImpl"))
-                .addSuperinterface(className().nestedClass("Builder"))
-                .superclass(ClassName.get(AwsServiceException.class).nestedClass("BuilderImpl"))
-                .addModifiers(Modifier.STATIC, Modifier.PROTECTED)
-                .addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PROTECTED).build())
-                .addMethod(copyModelConstructor())
-                .addMethods(ExceptionProperties.builderImplMethods(className().nestedClass("BuilderImpl")))
-                .addMethod(MethodSpec.methodBuilder("build")
-                        .addModifiers(Modifier.PUBLIC)
-                        .addStatement("return new $T(this)", className())
-                        .returns(className())
-                        .build())
-                .build();
+                       .addSuperinterface(className().nestedClass("Builder"))
+                       .superclass(ClassName.get(AwsServiceException.class).nestedClass("BuilderImpl"))
+                       .addModifiers(Modifier.STATIC, Modifier.PROTECTED)
+                       .addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PROTECTED).build())
+                       .addMethod(copyModelConstructor())
+                       .addMethods(ExceptionProperties.builderImplMethods(className().nestedClass("BuilderImpl")))
+                       .addMethod(MethodSpec.methodBuilder("build")
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .addAnnotation(Override.class)
+                                            .addStatement("return new $T(this)", className())
+                                            .returns(className())
+                                            .build())
+                       .build();
     }
 
     private MethodSpec copyModelConstructor() {
@@ -104,7 +104,6 @@ public class BaseExceptionClass implements ClassSpec {
     private MethodSpec toBuilderMethod() {
         return MethodSpec.methodBuilder("toBuilder")
                 .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
                 .returns(className().nestedClass("Builder"))
                 .addStatement("return new $T(this)", className().nestedClass("BuilderImpl"))
                 .build();

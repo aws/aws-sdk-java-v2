@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +21,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class SimpleStruct implements SdkPojo, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
+public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD));
+
+    private static final long serialVersionUID = 1L;
 
     private final String stringMember;
 
