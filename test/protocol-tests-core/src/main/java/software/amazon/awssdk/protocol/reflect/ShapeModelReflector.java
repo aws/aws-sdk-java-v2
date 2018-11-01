@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -155,6 +156,8 @@ public class ShapeModelReflector {
                 case "SdkBytes":
                 case "InputStream":
                     return memberModel.getSetterModel().getVariableSetterType();
+                case "BigDecimal":
+                    return "java.math.BigDecimal";
                 default:
                     return "java.lang." + memberModel.getSetterModel().getVariableSetterType();
             }
@@ -234,6 +237,8 @@ public class ShapeModelReflector {
                 return (float) currentNode.asDouble();
             case "Character":
                 return asCharacter(currentNode);
+            case "BigDecimal":
+                return new BigDecimal(currentNode.asText());
             default:
                 throw new IllegalArgumentException(
                         "Unsupported fieldType " + memberModel.getVariable().getSimpleType());

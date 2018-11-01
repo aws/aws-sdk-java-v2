@@ -69,6 +69,7 @@
         "BooleanMember":{"shape":"Boolean"},
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
+        "BigDecimalMember":{"shape":"NumericValue"},
         "LongMember":{"shape":"Long"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -135,6 +136,11 @@
       }
     },
     "Integer":{"type":"integer"},
+    // Shape is customized to BigDecimal in customization.config
+    "NumericValue": {
+      "type": "string",
+      "pattern":"([0-9]*\\.)?[0-9]+"
+    },
     "IsoTimestamp":{
       "type":"timestamp",
       "timestampFormat":"iso8601"
