@@ -15,15 +15,40 @@
 
 package software.amazon.awssdk.benchmark.utils;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.protocolec2.model.AllTypesRequest;
 
-/**
- * Class javadoc
- */
-public class ApiCallUtils {
+public final class BenchmarkUtils {
+
+    public static final int PORT_NUMBER = 8089;
+    public static final String JSON_BODY = "{\"StringMember\":\"foo\",\"IntegerMember\":123,\"BooleanMember\":true,"
+                                            + "\"FloatMember\":123.0,\"DoubleMember\":123.9,\"LongMember\":123,"
+                                            + "\"SimpleList\":[\"so simple\"],"
+                                            + "\"ListOfStructs\":[{\"StringMember\":\"listOfStructs1\"}],"
+                                            + "\"TimestampMember\":1540982918.887,"
+                                            + "\"StructWithNestedTimestampMember\":{\"NestedTimestamp\":1540982918.908},"
+                                            + "\"BlobArg\":\"aGVsbG8gd29ybGQ=\"}";
+
+    public static final String XML_BODY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><AllTypesResponse "
+                                           + "xmlns=\"https://restxml/\"><stringMember>foo</stringMember><integerMember>123"
+                                           + "</integerMember><booleanMember>true</booleanMember><floatMember>123"
+                                           + ".0</floatMember><doubleMember>123"
+                                           + ".9</doubleMember><longMember>123</longMember><simpleList><member>so "
+                                           + "simple</member></simpleList><listOfStructs><member><StringMember>listOfStructs1"
+                                           + "</StringMember></member></listOfStructs><timestampMember>2018-10-31T10:51:12"
+                                           + ".302183Z</timestampMember><structWithNestedTimestampMember><NestedTimestamp>2018"
+                                           + "-10-31T10:51:12.311305Z</NestedTimestamp></structWithNestedTimestampMember"
+                                           + "><blobArg>aGVsbG8gd29ybGQ=</blobArg></AllTypesResponse>";
+
+    private BenchmarkUtils() {
+    }
+
+    public static URI getUri() {
+        return URI.create(String.format("http://localhost:%s", PORT_NUMBER));
+    }
 
     @SuppressWarnings("unchecked")
     public static AllTypesRequest ec2AllTypeRequest() {

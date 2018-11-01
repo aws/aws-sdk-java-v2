@@ -21,6 +21,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.JSON_BODY;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.PORT_NUMBER;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getUri;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
@@ -37,19 +40,19 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.benchmark.utils.ApiCallUtils;
+import software.amazon.awssdk.benchmark.utils.BenchmarkUtils;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
 /**
- * Benchmarking for running with different http clients. Takes around 6 mins
+ * Benchmarking for running with different http clients.
  */
 @State(Scope.Thread)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
@@ -58,8 +61,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 @BenchmarkMode(Mode.Throughput)
 public class ApiCallHttpClientBenchmark {
 
-    private WireMockServer wireMockServer = new WireMockServer(options().port(8089)); //No-args constructor will start on port
-    // 8080, no HTTPS
+    private WireMockServer wireMockServer = new WireMockServer(options().port(PORT_NUMBER));
 
     @Param( {"UrlConnectionHttpClient", "ApacheHttpClient"})
     private String clientType;
@@ -70,21 +72,12 @@ public class ApiCallHttpClientBenchmark {
 
     private Runnable runnable;
 
-    private static final String JSON_BODY = "{\"StringMember\":\"foo\",\"IntegerMember\":123,\"BooleanMember\":true,"
-                                            + "\"FloatMember\":123.0,\"DoubleMember\":123.9,\"LongMember\":123,"
-                                            + "\"SimpleList\":[\"so simple\"],"
-                                            + "\"ListOfStructs\":[{\"StringMember\":\"listOfStructs1\"}],"
-                                            + "\"TimestampMember\":1540982918.887,"
-                                            + "\"StructWithNestedTimestampMember\":{\"NestedTimestamp\":1540982918.908},"
-                                            + "\"BlobArg\":\"aGVsbG8gd29ybGQ=\"}";
-
-
     @Setup(Level.Trial)
     public void setup() {
         wireMockServer.start();
 
-        configureFor("localhost", 8089);
-        URI uri = URI.create("http://localhost:8089");
+        configureFor("http","localhost", PORT_NUMBER);
+        URI uri = getUri();
 
         if (clientType.equalsIgnoreCase("UrlConnectionHttpClient")) {
             sdkHttpClient = UrlConnectionHttpClient.builder().build();
@@ -97,7 +90,7 @@ public class ApiCallHttpClientBenchmark {
                                        .httpClient(sdkHttpClient)
                                        .build();
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(JSON_BODY)));
-        runnable = () -> client.allTypes(ApiCallUtils.jsonAllTypeRequest());
+        runnable = () -> client.allTypes(BenchmarkUtils.jsonAllTypeRequest());
     }
 
     @TearDown(Level.Trial)
@@ -107,17 +100,13 @@ public class ApiCallHttpClientBenchmark {
 
     @Benchmark
     public void apiCall() {
-        try {
-            runnable.run();
-        } catch (AwsServiceException exception) {
-            // Ignore
-        }
+        runnable.run();
     }
 
     public static void main(String... args) throws RunnerException {
         Options opt = new OptionsBuilder()
             .include(ApiCallHttpClientBenchmark.class.getSimpleName())
-            //.addProfiler(StackProfiler.class)
+            .addProfiler(StackProfiler.class)
             //.addProfiler(GCProfiler.class)
             .build();
         new Runner(opt).run();
