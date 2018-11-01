@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(5) // To reduce difference between each run
+@Fork(5)
 public class ClientCreationBenchmark {
 
     @Benchmark

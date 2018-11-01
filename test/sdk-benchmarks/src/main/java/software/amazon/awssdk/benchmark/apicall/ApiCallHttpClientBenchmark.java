@@ -48,6 +48,9 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
+/**
+ * Benchmarking for running with different http clients. Takes around 6 mins
+ */
 @State(Scope.Thread)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
