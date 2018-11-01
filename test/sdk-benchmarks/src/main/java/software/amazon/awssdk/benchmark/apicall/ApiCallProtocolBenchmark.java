@@ -24,7 +24,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -38,7 +39,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -49,25 +49,31 @@ import software.amazon.awssdk.services.protocolec2.ProtocolEc2Client;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
+import software.amazon.awssdk.utils.Pair;
 
-/**
- * Class javadoc
- */
 @State(Scope.Thread)
-@Warmup(iterations = 2, time = 15, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class ApiCallBenchmark {
+public class ApiCallProtocolBenchmark {
 
+    private static final String JSON_ERROR_RESPONSE= "{\"__type\": \"SomeUnknownType\"}";
     private WireMockServer wireMockServer = new WireMockServer(options().port(8089)); //No-args constructor will start on port 8080, no HTTPS
 
-    @Param({"json","ec2", "xml", "query"})
+    @Param({"xml", "json", "ec2", "query"})
     private String protocol;
+
+//    @Param({"true", "false"})
+//    private boolean isSuccessful;
 
     private SdkClient client;
 
     private Runnable runnable;
+
+    private Map<String, List<Pair<String, String>>> protocolToResponseMap;
+
+    private static final String XML_ERROR_RESPONSE = "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>";
 
     private static final String XML_BODY = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><AllTypesResponse "
                                            + "xmlns=\"https://restxml/\"><stringMember>foo</stringMember><integerMember>123"
@@ -88,36 +94,46 @@ public class ApiCallBenchmark {
                                             + "\"StructWithNestedTimestampMember\":{\"NestedTimestamp\":1540982918.908},"
                                             + "\"BlobArg\":\"aGVsbG8gd29ybGQ=\"}";
 
+
     @Setup(Level.Trial)
     public void setup() {
         wireMockServer.start();
 
         configureFor("localhost", 8089);
-
+        URI uri = URI.create("http://localhost:8089");
 
         switch (protocol) {
             case "xml":
                 client = ProtocolRestXmlClient.builder()
-                                              .endpointOverride(URI.create("http://localhost:8089"))
+                                              .endpointOverride(uri)
                                               .build();
-                stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(XML_BODY)));
+                //if (isSuccessful) {
+                    stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(XML_BODY)));
+                //} else {
+                    //stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(XML_ERROR_RESPONSE)));
+                //}
                 runnable = () -> ((ProtocolRestXmlClient) client).allTypes(ApiCallUtils.xmlAllTypeRequest());
                 break;
             case "ec2":
                 stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(XML_BODY)));
-                client = ProtocolEc2Client.builder().endpointOverride(URI.create("http://localhost:8089")).build();
+                client = ProtocolEc2Client.builder().endpointOverride(uri).build();
                 runnable = () -> ((ProtocolEc2Client) client).allTypes(ApiCallUtils.ec2AllTypeRequest());
                 break;
             case "json":
                 client = ProtocolRestJsonClient.builder()
-                                               .endpointOverride(URI.create("http://localhost:8089"))
+                                               .endpointOverride(uri)
                                                .build();
-                stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(JSON_BODY)));
+                //if (isSuccessful) {
+                    stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(JSON_BODY)));
+                //} else {
+                //    stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(JSON_ERROR_RESPONSE)));
+                //}
+                //stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(JSON_BODY)));
                 runnable = () -> ((ProtocolRestJsonClient) client).allTypes(ApiCallUtils.jsonAllTypeRequest());
                 break;
             case "query":
                 client = ProtocolQueryClient.builder()
-                                            .endpointOverride(URI.create("http://localhost:8089"))
+                                            .endpointOverride(uri)
                                             .build();
                 stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(XML_BODY)));
                 runnable = () -> ((ProtocolQueryClient) client).allTypes(ApiCallUtils.queryAllTypeRequest());
@@ -133,17 +149,17 @@ public class ApiCallBenchmark {
     }
 
     @Benchmark
-    public void test() {
+    public void apiCall() {
         runnable.run();
     }
 
     public static void main(String... args) throws RunnerException {
         Options opt = new OptionsBuilder()
-            .include(ApiCallBenchmark.class.getSimpleName())
+            .include(ApiCallProtocolBenchmark.class.getSimpleName())
             //.addProfiler(StackProfiler.class)
             //.addProfiler(GCProfiler.class)
             .build();
-        Collection<RunResult> results = new Runner(opt).run();
+        new Runner(opt).run();
 //        results.iterator().forEachRemaining(r -> {
 //            r.
 //        });

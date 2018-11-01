@@ -6,4 +6,4 @@ phases:
       - mvn clean install -P quick
       - cd test/sdk-benchmarks
       - mvn package
-      - java -jar target/benchmarks.jar ApiCallBenchmark
+      - java -jar target/benchmarks.jar ApiCallHttpClientBenchmark ClientCreationBenchmark
