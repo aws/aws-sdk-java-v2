@@ -31,7 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public interface AwsCredentials {
 
     /**
-     * Retrieve the AWS access key, used to identify the user interacting with AWS.
+     * Retrieve the AWS access key, used to identify the user interacting with AWS.test
      */
     String accessKeyId();
 

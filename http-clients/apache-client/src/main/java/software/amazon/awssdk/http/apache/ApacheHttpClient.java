@@ -86,7 +86,7 @@ import software.amazon.awssdk.utils.Validate;
  * powerful synchronous client that adds an extra dependency and additional startup latency in exchange for more functionality,
  * like support for HTTP proxies.
  *
- * <p>See software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient for an alternative implementation.</p>
+ * <p>See software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient for an alternative implementation.</p> test
  *
  * <p>This can be created via {@link #builder()}</p>
  */

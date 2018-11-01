@@ -3,7 +3,16 @@ version: 0.2
 phases:
   build:
     commands:
-      - mvn clean install -P quick
+      - mvn clean install -P quick -pl :dynamodb,:ec2,:url-connection-client,:protocol-tests --am
       - cd test/sdk-benchmarks
       - mvn package
-      - java -jar target/benchmarks.jar ApiCallHttpClientBenchmark ClientCreationBenchmark
+      - |
+        if git diff --name-only master HEAD | grep -q "http-clients/"; then
+          echo "Found changes in http-clients running ApiCallProtocolBenchmark"
+          java -jar target/benchmarks.jar ApiCallHttpClientBenchmark
+        fi
+      - |
+        if git diff --name-only master HEAD | grep -q "core/"; then
+          echo "Found changes in core running ApiCallProtocolBenchmark and ClientCreationBenchmark"
+          java -jar target/benchmarks.jar ApiCallProtocolBenchmark ClientCreationBenchmark
+        fi
