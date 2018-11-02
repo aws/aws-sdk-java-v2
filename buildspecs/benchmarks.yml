@@ -4,4 +4,6 @@ phases:
   build:
     commands:
       - mvn clean install -P quick -pl :sdk-benchmarks --am
-      - /bin/bash buildspecs/runBenchmarks.sh
+      - cd test/sdk-benchmarks
+      - mvn exec:exec -Dbenchmarks=ClientCreationBenchmark
+      - /bin/bash ../../buildspecs/runBenchmarks.sh

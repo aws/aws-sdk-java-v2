@@ -25,11 +25,15 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.CommandLineOptionException;
+import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.util.Multimap;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -43,8 +47,8 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @BenchmarkMode({Mode.SingleShotTime})
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 5)
-@Measurement(iterations = 10)
-@Fork(5)
+@Measurement(iterations = 5)
+@Fork(3)
 public class ClientCreationBenchmark {
 
     @Benchmark
@@ -63,14 +67,38 @@ public class ClientCreationBenchmark {
                                                       .build();
         blackhole.consume(dynamoDbClient);
     }
-    public static void main(String... args) throws RunnerException {
+//    public static void main(String... args) throws RunnerException {
+//        Options opt = new OptionsBuilder()
+//            .include(ClientCreationBenchmark.class.getSimpleName())
+//            //.addProfiler(StackProfiler.class)
+//            .build();
+//        Collection<RunResult> run = new Runner(opt).run();
+//
+//        run.stream().forEach(b ->
+//            b.getBenchmarkResults().stream().forEach(e -> e.getBenchmarkResults()));
+//    }
+
+    public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
+        .parent(new CommandLineOptions())
             .include(ClientCreationBenchmark.class.getSimpleName())
             //.addProfiler(StackProfiler.class)
+            //.addProfiler(GCProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
 
-        run.stream().forEach(b ->
-            b.getBenchmarkResults().stream().forEach(e -> e.getBenchmarkResults()));
+        for (RunResult result : run) {
+//            BenchmarkResult aggregatedResult =
+//                result.getAggregatedResult();
+//            Multimap<String, Result> benchmarkResults = aggregatedResult.getBenchmarkResults();
+
+            result.getBenchmarkResults().forEach(benchmarkResult -> {
+                Multimap<String, Result> benchmarkResults = benchmarkResult.getBenchmarkResults();
+                System.out.println(benchmarkResults.keys());
+
+            });
+
+            //System.out.println(benchmarkResults.keys());
+        }
     }
 }

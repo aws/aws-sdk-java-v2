@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-cd test/sdk-benchmarks
 BENCH_MARKS=()
 if git diff --name-only master HEAD | grep -q "http-clients/"; then
     echo "Found changes in http-clients module, will run ApiCallHttpClientBenchmark and ClientCreationBenchmark"

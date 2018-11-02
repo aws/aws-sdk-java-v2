@@ -50,8 +50,9 @@
         <uberjar.name>benchmarks</uberjar.name>
 
         <sdk-v1.version>1.11.404</sdk-v1.version>
-        <jackson.version>2.9.1</jackson.version>
+        <jackson.version>2.9.6</jackson.version>
         <awsjavasdk.version>2.0.0-preview-13-SNAPSHOT</awsjavasdk.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -149,17 +150,17 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.9.6</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>2.9.6</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>2.9.6</version>
+                <version>${jackson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -211,6 +212,47 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!--<plugin>-->
+                <!--<artifactId>maven-dependency-plugin</artifactId>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>build-classpath</id>-->
+                        <!--<goals>-->
+                            <!--<goal>build-classpath</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<includeScope>runtime</includeScope>-->
+                            <!--<outputProperty>depClasspath</outputProperty>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <!-- Need to use exec not java see:http://mail.openjdk.java.net/pipermail/jmh-dev/2014-July/001192.html, https://stackoverflow.com/questions/15013651/using-maven-execexec-with-arguments -->
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin.version}</version>
+                <!--<configuration>-->
+                    <!--<mainClass>software.amazon.awssdk.benchmark.BenchmarkRunner</mainClass>-->
+                    <!--<systemProperties>-->
+                        <!--<systemProperty>-->
+                            <!--<key>java.class.path</key>-->
+                            <!--<value>${project.build.outputDirectory}${path.separator}${depClasspath}</value>-->
+                        <!--</systemProperty>-->
+                    <!--</systemProperties>-->
+                <!--</configuration>-->
+                <!-- mvn exec:exec -Dbenchmarks=ClientCreationBenchmark -->
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-classpath</argument>
+                        <classpath/>
+                        <argument>software.amazon.awssdk.benchmark.BenchmarkRunner</argument>
+                        <argument>-benchmarks</argument>
+                        <argument>${benchmarks}</argument>
+                    </arguments>
+                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>

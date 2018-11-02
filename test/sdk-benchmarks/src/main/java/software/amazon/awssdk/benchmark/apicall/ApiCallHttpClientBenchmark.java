@@ -27,6 +27,7 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getUri;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -41,10 +42,14 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.profile.StackProfiler;
+import org.openjdk.jmh.results.BenchmarkResult;
+import org.openjdk.jmh.results.Result;
+import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.util.Multimap;
 import software.amazon.awssdk.benchmark.utils.BenchmarkUtils;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -109,10 +114,14 @@ public class ApiCallHttpClientBenchmark {
             .addProfiler(StackProfiler.class)
             //.addProfiler(GCProfiler.class)
             .build();
-        new Runner(opt).run();
-        //        results.iterator().forEachRemaining(r -> {
-        //            r.
-        //        });
+        Collection<RunResult> run = new Runner(opt).run();
 
+        for (RunResult result : run) {
+            BenchmarkResult aggregatedResult =
+                result.getAggregatedResult();
+            Multimap<String, Result> benchmarkResults = aggregatedResult.getBenchmarkResults();
+
+            System.out.println(benchmarkResults.keys());
+        }
     }
 }
