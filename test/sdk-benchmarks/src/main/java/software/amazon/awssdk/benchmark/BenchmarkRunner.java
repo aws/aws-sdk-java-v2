@@ -16,29 +16,33 @@
 package software.amazon.awssdk.benchmark;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.runner.options.VerboseMode;
 
 public class BenchmarkRunner {
 
+    private static final String BENCHMARK_ARG = "-benchmarks";
+
     public static void main(String... args) throws RunnerException {
         if (args.length == 0) {
-            System.out.println("no argument");
+            System.out.println("No Argument");
             System.exit(0);
         }
 
         ChainedOptionsBuilder optionsBuilder = new OptionsBuilder();
-        //optionsBuilder.include(ClientCreationBenchmark.class.getSimpleName());
+        List<String> benchmarks = parseBenchmarkArgs(args);
 
-        for(String arg : args) {
-            optionsBuilder.include(arg).verbosity(VerboseMode.EXTRA);
-        }
+        System.out.println("benchmarks to include " + benchmarks);
+
+        benchmarks.forEach(optionsBuilder::include);
 
         Collection<RunResult> results = new Runner(optionsBuilder.build()).run();
         BenchmarkResultProcessor processor = new BenchmarkResultProcessor();
@@ -46,8 +50,23 @@ public class BenchmarkRunner {
 
         if (!failedBenchmarkResults.isEmpty()) {
             throw new RuntimeException("Failed the benchmark regression " + failedBenchmarkResults);
-        } else {
-            System.out.println("Passing the performance regression tests!");
         }
+
+        System.out.println("Passing the performance regression tests!");
+    }
+
+    private static List<String> parseBenchmarkArgs(String[] args) {
+        List<String> filteredArgs = Arrays.asList(args);
+        Iterator<String> iterator = filteredArgs.iterator();
+
+        while (iterator.hasNext()) {
+            String arg = iterator.next();
+            if (arg.equalsIgnoreCase(BENCHMARK_ARG)) {
+                String value = iterator.next();
+                return Arrays.asList(value.split(","));
+            }
+        }
+
+        return new ArrayList<>();
     }
 }

@@ -25,7 +25,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-import org.openjdk.jmh.results.Result;
+import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -33,7 +33,6 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.util.Multimap;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -44,7 +43,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 /**
  * Benchmark for creating the clients
  */
-@BenchmarkMode({Mode.SingleShotTime})
+@BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
@@ -61,44 +60,19 @@ public class ClientCreationBenchmark {
     public void clientWithRegionCredential(Blackhole blackhole) {
         DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
                                                       .region(Region.US_WEST_2)
-                                                      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("dgs", "sdfs")))
+                                                      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test")))
                                                       .httpClient(ApacheHttpClient.builder().build())
                                                       .overrideConfiguration(ClientOverrideConfiguration.builder().build())
                                                       .build();
         blackhole.consume(dynamoDbClient);
     }
-//    public static void main(String... args) throws RunnerException {
-//        Options opt = new OptionsBuilder()
-//            .include(ClientCreationBenchmark.class.getSimpleName())
-//            //.addProfiler(StackProfiler.class)
-//            .build();
-//        Collection<RunResult> run = new Runner(opt).run();
-//
-//        run.stream().forEach(b ->
-//            b.getBenchmarkResults().stream().forEach(e -> e.getBenchmarkResults()));
-//    }
 
     public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
-        .parent(new CommandLineOptions())
+            .parent(new CommandLineOptions())
             .include(ClientCreationBenchmark.class.getSimpleName())
-            //.addProfiler(StackProfiler.class)
-            //.addProfiler(GCProfiler.class)
+            .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
-
-        for (RunResult result : run) {
-//            BenchmarkResult aggregatedResult =
-//                result.getAggregatedResult();
-//            Multimap<String, Result> benchmarkResults = aggregatedResult.getBenchmarkResults();
-
-            result.getBenchmarkResults().forEach(benchmarkResult -> {
-                Multimap<String, Result> benchmarkResults = benchmarkResult.getBenchmarkResults();
-                System.out.println(benchmarkResults.keys());
-
-            });
-
-            //System.out.println(benchmarkResults.keys());
-        }
     }
 }
