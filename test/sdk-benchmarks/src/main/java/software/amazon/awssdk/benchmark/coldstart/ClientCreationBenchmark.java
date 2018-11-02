@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.benchmark.coldstart;
 
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -26,7 +25,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
-import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.CommandLineOptionException;
@@ -51,7 +49,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 public class ClientCreationBenchmark {
 
     @Benchmark
-    public void defaultClient(Blackhole blackhole) {
+    public void run(Blackhole blackhole) {
         DynamoDbClient dynamoDbClient = DynamoDbClient.create();
         blackhole.consume(dynamoDbClient);
     }
@@ -73,6 +71,6 @@ public class ClientCreationBenchmark {
             .include(ClientCreationBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
-        Collection<RunResult> run = new Runner(opt).run();
+        new Runner(opt).run();
     }
 }

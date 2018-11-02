@@ -104,7 +104,7 @@ public class ApiCallHttpClientBenchmark {
     }
 
     @Benchmark
-    public void apiCall() {
+    public void run() {
         runnable.run();
     }
 
@@ -112,7 +112,6 @@ public class ApiCallHttpClientBenchmark {
         Options opt = new OptionsBuilder()
             .include(ApiCallHttpClientBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
-            //.addProfiler(GCProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
 

@@ -114,7 +114,7 @@ public class ApiCallProtocolBenchmark {
     }
 
     @Benchmark
-    public void apiCall() {
+    public void run() {
         runnable.run();
     }
 
@@ -122,12 +122,7 @@ public class ApiCallProtocolBenchmark {
         Options opt = new OptionsBuilder()
             .include(ApiCallProtocolBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
-            //.addProfiler(GCProfiler.class)
             .build();
         new Runner(opt).run();
-        //        results.iterator().forEachRemaining(r -> {
-        //            r.
-        //        });
-
     }
 }
