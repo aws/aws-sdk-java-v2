@@ -68,6 +68,8 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, QueryException {
+        String hostPrefix = "foo-";
+        String resolvedHostExpression = "foo-";
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(APostOperationResponse::builder);
@@ -76,7 +78,8 @@ final class DefaultQueryClient implements QueryClient {
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                                         .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest)
+                                         .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
     }
 
     /**

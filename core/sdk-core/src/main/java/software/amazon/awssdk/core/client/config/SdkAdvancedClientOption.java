@@ -45,6 +45,16 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
      */
     public static final SdkAdvancedClientOption<Signer> SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 
+
+    /**
+     * SDK uses endpoint trait and hostPrefix trait specified in service model to modify
+     * the endpoint host that the API request is sent to.
+     *
+     * Customers can set this value to True to disable the behavior.
+     */
+    public static final SdkAdvancedClientOption<Boolean> DISABLE_HOST_PREFIX_INJECTION =
+        new SdkAdvancedClientOption<>(Boolean.class);
+
     protected SdkAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);
     }

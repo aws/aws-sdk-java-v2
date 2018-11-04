@@ -1,0 +1,61 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"jsonrpc",
+    "jsonVersion":"1.1",
+    "protocol":"json",
+    "serviceAbbreviation":"JsonEndpointTraitTests",
+    "serviceFullName":"AWS DR Tools JSON Protocol Endpoint Trait Tests",
+    "serviceId":"ProtocolJsonEndpointTrait",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsJsonRpcService",
+    "uid":"jsonrpc-2016-03-11"
+  },
+  "operations":{
+    "EndpointTraitOne": {
+      "name":"EndpointTraitOne",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "endpoint": {
+        "hostPrefix": "data."
+      },
+      "input":{"shape":"EndpointTraitStructureOne"},
+      "output":{"shape":"EndpointTraitStructureOne"}
+    },
+    "EndpointTraitTwo": {
+      "name":"EndpointTraitTwo",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "endpoint": {
+        "hostPrefix": "{StringMember}-"
+      },
+      "input":{"shape":"EndpointTraitStructureTwo"},
+      "output":{"shape":"EndpointTraitStructureTwo"}
+    }
+  },
+  "shapes":{
+    "EndpointTraitStructureOne": {
+      "type":"structure",
+      "members":{
+      }
+    },
+    "EndpointTraitStructureTwo": {
+      "type":"structure",
+      "required":[
+        "StringMember"
+      ],
+      "members":{
+        "StringMember":{
+          "shape":"String",
+          "hostLabel": true
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

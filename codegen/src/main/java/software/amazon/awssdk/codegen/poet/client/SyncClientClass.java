@@ -143,6 +143,7 @@ public class SyncClientClass implements ClassSpec {
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
                                        .addAnnotation(Override.class)
                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+                                       .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
                                        .addCode(protocolSpec.responseHandler(model, opModel))
                                        .addCode(protocolSpec.errorResponseHandler(opModel))
                                        .addCode(protocolSpec.executionHandler(opModel))

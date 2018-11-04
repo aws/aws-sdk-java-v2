@@ -23,17 +23,20 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 final class ClientClassUtils {
@@ -160,5 +163,45 @@ final class ClientClassUtils {
         }
 
         return code.build();
+    }
+
+    static CodeBlock addEndpointTraitCode(OperationModel opModel) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+
+        if (opModel.getEndpointTrait() != null && !StringUtils.isEmpty(opModel.getEndpointTrait().getHostPrefix())) {
+            String hostPrefix = opModel.getEndpointTrait().getHostPrefix();
+            HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
+
+            builder.addStatement("String hostPrefix = $S", hostPrefix);
+
+            if (processor.c2jNames().isEmpty()) {
+                builder.addStatement("String resolvedHostExpression = $S", processor.hostWithStringSpecifier());
+            } else {
+                processor.c2jNames()
+                         .forEach(name -> builder.addStatement("$T.paramNotBlank($L, $S)", Validate.class,
+                                                              inputShapeMemberGetter(opModel, name),
+                                                               name));
+
+                builder.addStatement("String resolvedHostExpression = String.format($S, $L)",
+                                     processor.hostWithStringSpecifier(),
+                                     processor.c2jNames().stream()
+                                              .map(n -> inputShapeMemberGetter(opModel, n))
+                                              .collect(Collectors.joining(",")));
+            }
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Given operation and c2j name, returns the String that represents calling the
+     * c2j member's getter method in the opmodel input shape.
+     *
+     * For example, Operation is CreateConnection and c2j name is CatalogId,
+     * returns "createConnectionRequest.catalogId()"
+     */
+    private static String inputShapeMemberGetter(OperationModel opModel, String c2jName) {
+        return opModel.getInput().getVariableName() + "." +
+               opModel.getInputShape().getMemberByC2jName(c2jName).getFluentGetterMethodName() + "()";
     }
 }

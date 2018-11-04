@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.client.handler;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -27,7 +28,9 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.util.UriResourcePathUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkProtectedApi
 public abstract class BaseClientHandler {
@@ -71,6 +74,22 @@ public abstract class BaseClientHandler {
     private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().beforeMarshalling(executionContext.interceptorContext(),
                                                               executionContext.executionAttributes());
+    }
+
+    /**
+     * Returns a new URI to be used for making the API call using the original URI and
+     * the hostPrefixExpression from the endpoint trait.
+     */
+    private static URI resolveEndpoint(SdkClientConfiguration clientConfiguration, String hostPrefix) {
+        URI originalEndpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
+
+        Boolean disableHostPrefixInjection = clientConfiguration.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION);
+        if ((disableHostPrefixInjection != null && disableHostPrefixInjection.equals(Boolean.TRUE)) ||
+            StringUtils.isEmpty(hostPrefix)) {
+            return originalEndpoint;
+        }
+
+        return UriResourcePathUtils.updateUriHost(originalEndpoint, hostPrefix);
     }
 
     private static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
