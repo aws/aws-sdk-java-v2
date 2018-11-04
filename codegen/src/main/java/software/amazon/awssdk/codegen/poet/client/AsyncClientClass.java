@@ -169,6 +169,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .addAnnotation(Override.class)
                .beginControlFlow("try")
                .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+               .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
                .addCode(protocolSpec.responseHandler(model, opModel))
                .addCode(protocolSpec.errorResponseHandler(opModel))
                .addCode(eventToByteBufferPublisher(opModel))

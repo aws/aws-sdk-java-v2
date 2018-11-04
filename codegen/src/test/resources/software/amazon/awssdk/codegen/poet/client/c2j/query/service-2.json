@@ -19,6 +19,9 @@
         "method": "POST",
         "requestUri": "/"
       },
+      "endpoint": {
+        "hostPrefix": "foo-"
+      },
       "input": {
         "shape": "APostOperationRequest"
       },

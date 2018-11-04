@@ -38,6 +38,8 @@ public class Operation {
 
     private boolean requiresApiKey;
 
+    private EndpointTrait endpoint;
+
     @JsonProperty("authtype")
     private AuthType authType = AuthType.IAM;
 
@@ -134,5 +136,13 @@ public class Operation {
 
     public void setRequiresApiKey(boolean requiresApiKey) {
         this.requiresApiKey = requiresApiKey;
+    }
+
+    public EndpointTrait getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(EndpointTrait endpoint) {
+        this.endpoint = endpoint;
     }
 }

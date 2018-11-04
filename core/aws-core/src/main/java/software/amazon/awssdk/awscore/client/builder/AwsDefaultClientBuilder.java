@@ -26,6 +26,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.EndpointUtils;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -109,6 +110,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                   .option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
                                   .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
                                   .option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.defaultRetryPolicy())
+                                  .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
                                   .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
                                   .option(SdkClientOption.SERVICE_NAME, serviceName()));
     }

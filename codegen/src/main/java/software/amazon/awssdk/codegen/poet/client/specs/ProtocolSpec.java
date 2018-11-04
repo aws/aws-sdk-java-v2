@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
+import software.amazon.awssdk.utils.StringUtils;
 
 public interface ProtocolSpec {
 
@@ -77,5 +78,11 @@ public interface ProtocolSpec {
     default String populateHttpStatusCode(ShapeModel shapeModel) {
         return shapeModel.getHttpStatusCode() != null
                ? String.format(".httpStatusCode(%d)", shapeModel.getHttpStatusCode()) : "";
+    }
+
+    default String hostPrefixExpression(OperationModel opModel) {
+        return opModel.getEndpointTrait() != null && !StringUtils.isEmpty(opModel.getEndpointTrait().getHostPrefix())
+               ? ".hostPrefixExpression(resolvedHostExpression)\n"
+               : "";
     }
 }

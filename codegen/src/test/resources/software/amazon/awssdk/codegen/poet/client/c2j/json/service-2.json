@@ -19,6 +19,9 @@
         "method": "POST",
         "requestUri": "/"
       },
+      "endpoint": {
+        "hostPrefix": "{StringMember}-foo."
+      },
       "input": {
         "shape": "APostOperationRequest"
       },
@@ -160,7 +163,8 @@
     "APostOperationRequest": {
       "type": "structure",
       "required": [
-        "SomeNestedMember"
+        "SomeNestedMember",
+        "StringMember"
       ],
       "members": {
         "SomeNestedMember": {
@@ -170,6 +174,11 @@
         "OptionalMember": {
           "shape": "dateType",
           "documentation": "<p>An optional member</p>"
+        },
+        "StringMember": {
+          "shape": "String",
+          "hostLabel": true,
+          "documentation": "<p>Member to compute the endpoint host</p>"
         }
       }
     },

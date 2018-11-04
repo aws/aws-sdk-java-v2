@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.OperationDocs;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 
 public class OperationModel extends DocumentationModel {
 
@@ -49,6 +50,8 @@ public class OperationModel extends DocumentationModel {
 
     @JsonIgnore
     private ShapeModel outputShape;
+
+    private EndpointTrait endpointTrait;
 
     public String getOperationName() {
         return operationName;
@@ -187,6 +190,20 @@ public class OperationModel extends DocumentationModel {
 
     public void setPaginated(boolean paginated) {
         isPaginated = paginated;
+    }
+
+    /**
+     * Returns the endpoint trait that will be used to resolve the endpoint of an API.
+     */
+    public EndpointTrait getEndpointTrait() {
+        return endpointTrait;
+    }
+
+    /**
+     * Sets the endpoint trait that will be used to resolve the endpoint of an API.
+     */
+    public void setEndpointTrait(EndpointTrait endpointTrait) {
+        this.endpointTrait = endpointTrait;
     }
 
     /**
