@@ -15,25 +15,31 @@
 
 package software.amazon.awssdk.protocol.tests.exception;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolquery.model.EmptyModeledException;
+import software.amazon.awssdk.services.protocolquery.model.ImplicitPayloadException;
 import software.amazon.awssdk.services.protocolquery.model.ProtocolQueryException;
 
 public class QueryExceptionTests {
@@ -57,7 +63,7 @@ public class QueryExceptionTests {
     @Test
     public void unmodeledException_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
+                        "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
         assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
             .isExactlyInstanceOf(ProtocolQueryException.class);
     }
@@ -65,61 +71,61 @@ public class QueryExceptionTests {
     @Test
     public void unmodeledException_ErrorCodeSetOnServiceException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final AwsServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals("UnmodeledException", exception.awsErrorDetails().errorCode());
+                        "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
+        AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertThat(exception.awsErrorDetails().errorCode()).isEqualTo("UnmodeledException");
     }
 
     @Test
     public void unmodeledExceptionWithMessage_MessageSetOnServiceException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
-        final AwsServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals("Something happened", exception.awsErrorDetails().errorMessage());
+                        "<ErrorResponse><Error><Code>UnmodeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
+        AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertThat(exception.awsErrorDetails().errorMessage()).isEqualTo("Something happened");
     }
 
     @Test
     public void unmodeledException_StatusCodeSetOnServiceException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals(404, exception.statusCode());
+                        "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
+        SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertThat(exception.statusCode()).isEqualTo(404);
     }
 
     @Test
     public void modeledException_UnmarshalledIntoModeledException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
+                        "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
         try {
             callAllTypes();
         } catch (EmptyModeledException e) {
-            assertThat(e, instanceOf(ProtocolQueryException.class));
-            assertEquals("EmptyModeledException", e.awsErrorDetails().errorCode());
+            assertThat(e).isInstanceOf(ProtocolQueryException.class);
+            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("EmptyModeledException");
         }
     }
 
     @Test
     public void modeledExceptionWithMessage_MessageSetOnServiceExeption() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>EmptyModeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
-        final EmptyModeledException exception = captureModeledException(this::callAllTypes);
-        assertEquals("Something happened", exception.awsErrorDetails().errorMessage());
+                        "<ErrorResponse><Error><Code>EmptyModeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
+        EmptyModeledException exception = captureModeledException(this::callAllTypes);
+        assertThat(exception.awsErrorDetails().errorMessage()).isEqualTo("Something happened");
     }
 
     @Test
     public void modeledException_ErrorCodeSetOnServiceException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
+                        "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
         final EmptyModeledException exception = captureModeledException(this::callAllTypes);
-        assertEquals("EmptyModeledException", exception.awsErrorDetails().errorCode());
+        assertThat(exception.awsErrorDetails().errorCode()).isEqualTo("EmptyModeledException");
     }
 
     @Test
     public void modeledException_StatusCodeSetOnServiceException() {
         stub404Response(PATH,
-                "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
+                        "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
         final EmptyModeledException exception = captureModeledException(this::callAllTypes);
-        assertEquals(404, exception.statusCode());
+        assertThat(exception.statusCode()).isEqualTo(404);
     }
 
     @Test
@@ -137,17 +143,109 @@ public class QueryExceptionTests {
     @Test
     public void emptyErrorResponse_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH, "");
-        final AwsServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals("404 Not Found", exception.awsErrorDetails().errorCode());
-        assertEquals(404, exception.statusCode());
+        AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertThat(exception.statusCode()).isEqualTo(404);
     }
 
     @Test
     public void malformedErrorResponse_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH, "THIS ISN'T XML");
-        final AwsServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals("404 Not Found", exception.awsErrorDetails().errorCode());
-        assertEquals(404, exception.statusCode());
+        AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertThat(exception.statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    public void modeledExceptionWithImplicitPayloadMembers_UnmarshalledIntoModeledException() {
+        String xml = "<ErrorResponse>"
+                     + "   <Error>"
+                     + "      <Code>ImplicitPayloadException</Code>"
+                     + "      <Message>this is the service message</Message>"
+                     + "      <StringMember>foo</StringMember>"
+                     + "      <IntegerMember>42</IntegerMember>"
+                     + "      <LongMember>9001</LongMember>"
+                     + "      <DoubleMember>1234.56</DoubleMember>"
+                     + "      <FloatMember>789.10</FloatMember>"
+                     + "      <TimestampMember>2015-01-25T08:00:12Z</TimestampMember>"
+                     + "      <BooleanMember>true</BooleanMember>"
+                     + "      <BlobMember>dGhlcmUh</BlobMember>"
+                     + "      <ListMember>"
+                     + "         <member>valOne</member>"
+                     + "         <member>valTwo</member>"
+                     + "      </ListMember>"
+                     + "      <MapMember>"
+                     + "         <entry>"
+                     + "            <key>keyOne</key>"
+                     + "            <value>valOne</value>"
+                     + "         </entry>"
+                     + "         <entry>"
+                     + "            <key>keyTwo</key>"
+                     + "            <value>valTwo</value>"
+                     + "         </entry>"
+                     + "      </MapMember>"
+                     + "      <SimpleStructMember>"
+                     + "         <StringMember>foobar</StringMember>"
+                     + "      </SimpleStructMember>"
+                     + "   </Error>"
+                     + "</ErrorResponse>";
+        stubFor(post(urlEqualTo(PATH)).willReturn(
+            aResponse().withStatus(404)
+                       .withBody(xml)));
+        try {
+            client.allTypes();
+        } catch (ImplicitPayloadException e) {
+            assertThat(e.stringMember()).isEqualTo("foo");
+            assertThat(e.integerMember()).isEqualTo(42);
+            assertThat(e.longMember()).isEqualTo(9001);
+            assertThat(e.doubleMember()).isEqualTo(1234.56);
+            assertThat(e.floatMember()).isEqualTo(789.10f);
+            assertThat(e.timestampMember()).isEqualTo(Instant.ofEpochMilli(1422172812000L));
+            assertThat(e.booleanMember()).isEqualTo(true);
+            assertThat(e.blobMember().asUtf8String()).isEqualTo("there!");
+            assertThat(e.listMember()).contains("valOne", "valTwo");
+            assertThat(e.mapMember())
+                .containsOnly(new SimpleEntry<>("keyOne", "valOne"),
+                              new SimpleEntry<>("keyTwo", "valTwo"));
+            assertThat(e.simpleStructMember().stringMember()).isEqualTo("foobar");
+        }
+    }
+
+    @Test
+    public void modeledException_HasExceptionMetadataSet() {
+        String xml = "<ErrorResponse>"
+                     + "   <Error>"
+                     + "      <Code>EmptyModeledException</Code>"
+                     + "      <Message>This is the service message</Message>"
+                     + "   </Error>"
+                     + "   <RequestId>1234</RequestId>"
+                     + "</ErrorResponse>";
+        stubFor(post(urlEqualTo(PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withBody(xml)));
+        try {
+            client.allTypes();
+        } catch (EmptyModeledException e) {
+            AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
+            assertThat(awsErrorDetails.errorCode()).isEqualTo("EmptyModeledException");
+            assertThat(awsErrorDetails.errorMessage()).isEqualTo("This is the service message");
+            assertThat(awsErrorDetails.serviceName()).isEqualTo("AmazonProtocolQuery");
+            assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
+            assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.statusCode()).isEqualTo(404);
+        }
+    }
+
+    @Test
+    public void requestIdInHeader_IsSetOnException() {
+        stubFor(post(urlEqualTo(PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withHeader("x-amzn-RequestId", "1234")));
+        try {
+            client.allTypes();
+        } catch (ProtocolQueryException e) {
+            assertThat(e.requestId()).isEqualTo("1234");
+        }
     }
 
     private void callAllTypes() {
@@ -155,11 +253,8 @@ public class QueryExceptionTests {
     }
 
     private void assertThrowsServiceBaseException(Runnable runnable) {
-        try {
-            runnable.run();
-        } catch (ProtocolQueryException e) {
-            assertEquals(ProtocolQueryException.class, e.getClass());
-        }
+        assertThatThrownBy(runnable::run)
+            .isExactlyInstanceOf(ProtocolQueryException.class);
     }
 
     private AwsServiceException captureServiceException(Runnable runnable) {

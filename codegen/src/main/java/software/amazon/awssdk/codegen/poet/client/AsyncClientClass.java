@@ -94,7 +94,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                     .addMethods(operations())
                     .addMethod(closeMethod())
                     .addMethods(protocolSpec.additionalMethods())
-                    .addFields(protocolSpec.additionalFields())
                     .addMethod(protocolSpec.initProtocolFactory(model));
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON

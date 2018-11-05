@@ -13,15 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.query;
+package software.amazon.awssdk.protocols.query.unmarshall;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
@@ -30,15 +29,15 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 @SdkProtectedApi
 public final class XmlElement {
 
+    private static final XmlElement EMPTY = XmlElement.builder().elementName("eof").build();
+
     private final String elementName;
-    private final Map<String, String> attributes;
     private final HashMap<String, List<XmlElement>> childrenByElement;
     private final List<XmlElement> children;
     private final String textContent;
 
     private XmlElement(Builder builder) {
         this.elementName = builder.elementName;
-        this.attributes = builder.attributes != null ? new HashMap<>(builder.attributes) : Collections.emptyMap();
         this.childrenByElement = new HashMap<>(builder.childrenByElement);
         this.children = Collections.unmodifiableList(new ArrayList<>(builder.children));
         this.textContent = builder.textContent;
@@ -49,21 +48,6 @@ public final class XmlElement {
      */
     public String elementName() {
         return elementName;
-    }
-
-    @SdkTestInternalApi
-    Map<String, String> attributes() {
-        return attributes;
-    }
-
-    /**
-     * Gets an attribute by name.
-     *
-     * @param attributeName Name of attribute to get.
-     * @return Attribute value or null if attribute is not present.
-     */
-    public String attribute(String attributeName) {
-        return attributes.get(attributeName);
     }
 
     /**
@@ -108,6 +92,17 @@ public final class XmlElement {
     }
 
     /**
+     * Retrieves a single child element by tag name. If more than one element is found then this method will throw an exception.
+     *
+     * @param tagName Tag name of element to get.
+     * @return Fulfilled {@link Optional} of XmlElement with the matching tag name or empty {@link Optional} if no element exists.
+     * @throws SdkClientException If more than one element with the given tag name is found.
+     */
+    public Optional<XmlElement> getOptionalElementByName(String tagName) {
+        return Optional.ofNullable(getElementByName(tagName));
+    }
+
+    /**
      * @return Text content of this element.
      */
     public String textContent() {
@@ -122,12 +117,18 @@ public final class XmlElement {
     }
 
     /**
+     * @return An empty {@link XmlElement} (<eof/>).
+     */
+    public static XmlElement empty() {
+        return EMPTY;
+    }
+
+    /**
      * Builder for {@link XmlElement}.
      */
     public static final class Builder {
 
         private String elementName;
-        private Map<String, String> attributes;
         private final HashMap<String, List<XmlElement>> childrenByElement = new HashMap<>();
         private final List<XmlElement> children = new ArrayList<>();
         private String textContent = "";
@@ -137,11 +138,6 @@ public final class XmlElement {
 
         public Builder elementName(String elementName) {
             this.elementName = elementName;
-            return this;
-        }
-
-        public Builder attributes(Map<String, String> attributes) {
-            this.attributes = attributes;
             return this;
         }
 

@@ -19,7 +19,6 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.emitters.tasks.SharedModelsTaskParamsValidator;
-import software.amazon.awssdk.codegen.internal.Freemarker;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
@@ -29,16 +28,13 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 public class GeneratorTaskParams {
     private static final Consumer<GeneratorTaskParams> TASK_PARAMS_VALIDATORS = new SharedModelsTaskParamsValidator();
 
-    private final Freemarker freemarker;
     private final IntermediateModel model;
     private final GeneratorPathProvider pathProvider;
     private final PoetExtensions poetExtensions;
     private final Logger log = LoggerFactory.getLogger(GeneratorTaskParams.class);
 
-    private GeneratorTaskParams(Freemarker freemarker,
-                                IntermediateModel model,
+    private GeneratorTaskParams(IntermediateModel model,
                                 GeneratorPathProvider pathProvider) {
-        this.freemarker = freemarker;
         this.model = model;
         this.pathProvider = pathProvider;
         this.poetExtensions = new PoetExtensions(model);
@@ -46,16 +42,9 @@ public class GeneratorTaskParams {
 
     public static GeneratorTaskParams create(IntermediateModel model, String sourceDirectory, String testDirectory) {
         GeneratorPathProvider pathProvider = new GeneratorPathProvider(model, sourceDirectory, testDirectory);
-        GeneratorTaskParams params = new GeneratorTaskParams(Freemarker.create(model), model, pathProvider);
+        GeneratorTaskParams params = new GeneratorTaskParams(model, pathProvider);
         TASK_PARAMS_VALIDATORS.accept(params);
         return params;
-    }
-
-    /**
-     * @return Freemarker processing engine
-     */
-    public Freemarker getFreemarker() {
-        return freemarker;
     }
 
     /**

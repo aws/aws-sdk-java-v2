@@ -20,6 +20,7 @@ import java.io.Serializable;
 /**
  * Provides various pieces of information that are specific to certain protocols.
  */
+// TODO this isn't really pulling it's weight anymore, consider removing
 public interface ProtocolMetadataProvider extends Serializable {
 
     /**
@@ -47,11 +48,5 @@ public interface ProtocolMetadataProvider extends Serializable {
      *     protocols.
      */
     String getContentType();
-
-    /**
-     * @return The default implementation of exception unmarshallers to use or derive from.
-     *     Currently only used by XML protocols.
-     */
-    String getExceptionUnmarshallerImpl();
 
 }

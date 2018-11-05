@@ -13,19 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.query;
+package software.amazon.awssdk.protocols.query.unmarshall;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Parses an XML document into a simple DOM like structure, {@link XmlElement}.
@@ -38,27 +35,30 @@ public final class XmlDomParser {
     private XmlDomParser() {
     }
 
-    public static XmlElement parse(InputStream inputStream) throws XMLStreamException {
-        XMLEventReader reader = FACTORY.get().createXMLEventReader(inputStream);
-        XMLEvent nextEvent;
-        // Skip ahead to the first start element
-        do {
-            nextEvent = reader.nextEvent();
-        } while (reader.hasNext() && !nextEvent.isStartElement());
-        return parseElement(nextEvent.asStartElement(), reader);
+    public static XmlElement parse(InputStream inputStream) {
+        try {
+            XMLEventReader reader = FACTORY.get().createXMLEventReader(inputStream);
+            XMLEvent nextEvent;
+            // Skip ahead to the first start element
+            do {
+                nextEvent = reader.nextEvent();
+            } while (reader.hasNext() && !nextEvent.isStartElement());
+            return parseElement(nextEvent.asStartElement(), reader);
+        } catch (XMLStreamException e) {
+            throw SdkClientException.create("Could not parse XML response.", e);
+        }
     }
 
     /**
      * Parse an XML elemnt and any nested elements by recursively calling this method.
      *
-     * @param startElement Start element object containing attributes and element name.
+     * @param startElement Start element object containing element name.
      * @param reader XML reader to get more events.
      * @return Parsed {@link XmlElement}.
      */
     private static XmlElement parseElement(StartElement startElement, XMLEventReader reader) throws XMLStreamException {
         XmlElement.Builder elementBuilder = XmlElement.builder()
-                                                      .elementName(startElement.getName().getLocalPart())
-                                                      .attributes(attributesToMap(startElement.getAttributes()));
+                                                      .elementName(startElement.getName().getLocalPart());
         XMLEvent nextEvent;
         do {
             nextEvent = reader.nextEvent();
@@ -89,22 +89,6 @@ public final class XmlDomParser {
                 return sb.toString();
             }
         }
-    }
-
-    /**
-     * Converts an iterator of {@link Attribute}s to a map.
-     *
-     * @param attributes Attribute iterator.
-     * @return Map of attributes.
-     */
-    @SuppressWarnings("unchecked")
-    private static Map<String, String> attributesToMap(Iterator attributes) {
-        Map<String, String> attributeMap = new HashMap<>();
-        attributes.forEachRemaining(a -> {
-            Attribute attr = (Attribute) a;
-            attributeMap.put(attr.getName().getLocalPart(), attr.getValue());
-        });
-        return attributeMap;
     }
 
 }

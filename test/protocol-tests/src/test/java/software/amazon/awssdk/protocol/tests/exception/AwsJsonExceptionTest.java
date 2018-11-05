@@ -21,13 +21,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
 import static util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.time.Instant;
-import org.assertj.core.api.Condition;
+import java.util.AbstractMap.SimpleEntry;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -88,16 +87,19 @@ public class AwsJsonExceptionTest {
         try {
             client.allTypes();
         } catch (ImplicitPayloadException e) {
-            assertEquals("foo", e.stringMember());
-            assertEquals(42, (int) e.integerMember());
-            assertEquals(9001, (long) e.longMember());
-            assertEquals(1234.56, e.doubleMember(), 0.1);
-            assertEquals(789.10, e.floatMember(), 0.1);
-            assertEquals(Instant.ofEpochMilli(1398796238123L), e.timestampMember());
-            assertEquals(true, e.booleanMember());
-            assertEquals("there!", e.blobMember().asUtf8String());
+            assertThat(e.stringMember()).isEqualTo("foo");
+            assertThat(e.integerMember()).isEqualTo(42);
+            assertThat(e.longMember()).isEqualTo(9001);
+            assertThat(e.doubleMember()).isEqualTo(1234.56);
+            assertThat(e.floatMember()).isEqualTo(789.10f);
+            assertThat(e.timestampMember()).isEqualTo(Instant.ofEpochMilli(1398796238123L));
+            assertThat(e.booleanMember()).isEqualTo(true);
+            assertThat(e.blobMember().asUtf8String()).isEqualTo("there!");
             assertThat(e.listMember()).contains("valOne", "valTwo");
-            assertEquals("foobar", e.simpleStructMember().stringMember());
+            assertThat(e.mapMember())
+                .containsOnly(new SimpleEntry<>("keyOne", "valOne"),
+                              new SimpleEntry<>("keyTwo", "valTwo"));
+            assertThat(e.simpleStructMember().stringMember()).isEqualTo("foobar");
         }
     }
 

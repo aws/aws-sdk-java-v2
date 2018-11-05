@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkProtectedApi
@@ -118,12 +117,6 @@ public abstract class BaseClientHandler {
         HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
             runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
-    }
-
-    protected static <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addErrorResponseHandler(
-        ClientExecutionParams<InputT, OutputT> params) {
-        return params.withErrorResponseHandler(
-            new SdkErrorResponseHandler(params.getErrorResponseHandler()));
     }
 
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(

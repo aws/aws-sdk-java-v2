@@ -78,7 +78,6 @@ public class SyncClientClass implements ClassSpec {
                                         .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
                                         .addMethod(constructor())
                                         .addMethod(nameMethod())
-                                        .addFields(protocolSpec.additionalFields())
                                         .addMethods(protocolSpec.additionalMethods())
                                         .addMethods(operations());
 

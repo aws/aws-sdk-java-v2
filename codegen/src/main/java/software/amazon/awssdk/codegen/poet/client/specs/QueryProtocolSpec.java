@@ -15,43 +15,29 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
-import static java.util.Collections.singletonList;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
-import org.w3c.dom.Node;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
-import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
-import software.amazon.awssdk.utils.StringUtils;
 
 public class QueryProtocolSpec implements ProtocolSpec {
 
     protected final PoetExtensions poetExtensions;
-    private final TypeName unmarshallerType = ParameterizedTypeName.get(Unmarshaller.class,
-                                                                        AwsServiceException.class,
-                                                                        Node.class);
-    private final TypeName listOfUnmarshallersType = ParameterizedTypeName.get(ClassName.get("java.util", "List"),
-                                                                               unmarshallerType);
 
     public QueryProtocolSpec(PoetExtensions poetExtensions) {
         this.poetExtensions = poetExtensions;
@@ -68,34 +54,20 @@ public class QueryProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public List<FieldSpec> additionalFields() {
-        return singletonList(FieldSpec.builder(listOfUnmarshallersType, "exceptionUnmarshallers")
-                                      .addModifiers(Modifier.PRIVATE)
-                                      .build());
-    }
-
-    @Override
     public MethodSpec initProtocolFactory(IntermediateModel model) {
         MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("init")
                                                   .returns(protocolFactoryClass())
                                                   .addModifiers(Modifier.PRIVATE);
 
-        methodSpec.addStatement("$T<$T> unmarshallers = new $T<>()", List.class, unmarshallerType, ArrayList.class);
+        methodSpec.addCode("return $T.builder()\n", protocolFactoryClass());
+
         errorUnmarshallers(model).forEach(methodSpec::addCode);
-        methodSpec.addCode(CodeBlock.builder().add("unmarshallers.add(new $T($T.class));",
-                                                   getErrorUnmarshallerClass(model),
-                                                   poetExtensions.getModelClass(model.getSdkModeledExceptionBaseClassName()))
-                                    .build());
-        methodSpec.addStatement("this.exceptionUnmarshallers = unmarshallers");
-        methodSpec.addStatement("return $T.builder().build()", protocolFactoryClass());
+
+        methodSpec.addCode(".defaultServiceExceptionSupplier($T::builder)\n",
+                           poetExtensions.getModelClass(model.getSdkModeledExceptionBaseClassName()));
+        methodSpec.addCode(".build();");
 
         return methodSpec.build();
-    }
-
-    private ClassName getErrorUnmarshallerClass(IntermediateModel model) {
-        return StringUtils.isNotBlank(model.getExceptionUnmarshallerImpl()) ?
-               PoetUtils.classNameFromFqcn(model.getExceptionUnmarshallerImpl()) :
-               ClassName.get(StandardErrorUnmarshaller.class);
     }
 
     @Override
@@ -113,10 +85,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock errorResponseHandler(OperationModel opModel) {
-        return CodeBlock.builder().add("\n\n$T errorResponseHandler = new $T($N);",
-                                       DefaultErrorResponseHandler.class,
-                                       DefaultErrorResponseHandler.class,
-                                       "exceptionUnmarshallers")
+        return CodeBlock.builder().add("\n\n$T errorResponseHandler = protocolFactory.createErrorResponseHandler();",
+                                       ParameterizedTypeName.get(HttpResponseHandler.class, AwsServiceException.class))
                         .build();
     }
 
@@ -178,16 +148,12 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
     @Override
     public List<CodeBlock> errorUnmarshallers(IntermediateModel model) {
-        List<ShapeModel> exceptions = model.getShapes()
-                                           .values()
-                                           .stream()
-                                           .filter(s -> s.getType().equals("Exception"))
-                                           .collect(Collectors.toList());
-
-        return exceptions.stream().map(s -> {
-            ClassName exceptionClass = poetExtensions.getTransformClass(s.getShapeName() + "Unmarshaller");
-            return CodeBlock.builder()
-                            .add("unmarshallers.add(new $T());", exceptionClass).build();
-        }).collect(Collectors.toList());
+        return model.getShapes().values().stream()
+                    .filter(s -> s.getShapeType() == ShapeType.Exception)
+                    .map(e -> CodeBlock.builder()
+                                       .add(".registerModeledException($S, $T::builder)\n",
+                                            e.getErrorCode(), poetExtensions.getModelClass(e.getShapeName()))
+                                       .build())
+                    .collect(Collectors.toList());
     }
 }

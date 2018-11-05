@@ -13,57 +13,48 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.query;
+package software.amazon.awssdk.protocols.xml;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 /**
- * Protocol factory for the AWS/EC2 protocol.
+ * Factory to generate the various protocol handlers and generators to be used for communicating with
+ * Amazon S3. S3 has some unique differences from typical REST/XML that warrant a custom protocol factory.
  */
 @SdkProtectedApi
-public final class AwsEc2ProtocolFactory extends AwsQueryProtocolFactory {
+public final class AwsS3ProtocolFactory extends AwsXmlProtocolFactory {
 
-    private AwsEc2ProtocolFactory(Builder builder) {
+    private AwsS3ProtocolFactory(Builder builder) {
         super(builder);
     }
 
-    @Override
-    boolean isEc2() {
-        return true;
-    }
-
     /**
-     * EC2 has a slightly different location for the <Error/> element than traditional AWS/Query.
+     * For Amazon S3, the Code, Message, and modeled fields are in the top level document.
      *
      * @param document Root XML document.
      * @return If error root is found than a fulfilled {@link Optional}, otherwise an empty one.
      */
     @Override
     Optional<XmlElement> getErrorRoot(XmlElement document) {
-        return document.getOptionalElementByName("Errors")
-                       .flatMap(e -> e.getOptionalElementByName("Error"));
+        return Optional.of(document);
     }
 
-    /**
-     * @return New builder instance.
-     */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Builder for {@link AwsEc2ProtocolFactory}.
+     * Builder for {@link AwsS3ProtocolFactory}.
      */
-    public static final class Builder extends AwsQueryProtocolFactory.Builder<Builder> {
+    public static final class Builder extends AwsXmlProtocolFactory.Builder<Builder> {
 
         private Builder() {
         }
 
-        @Override
-        public AwsEc2ProtocolFactory build() {
-            return new AwsEc2ProtocolFactory(this);
+        public AwsS3ProtocolFactory build() {
+            return new AwsS3ProtocolFactory(this);
         }
     }
 }

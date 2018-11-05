@@ -17,27 +17,23 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.codegen.emitters.FreemarkerGeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 
 public class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
 
-    private final String baseDirectory;
+    //private final String baseDirectory;
 
     public PackageInfoGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
-        this.baseDirectory = dependencies.getPathProvider().getClientDirectory();
+        //this.baseDirectory = dependencies.getPathProvider().getClientDirectory();
     }
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting package info file");
-        return Collections.singletonList(
-                new FreemarkerGeneratorTask(baseDirectory,
-                                            "package-info.java",
-                                            freemarker.getPackageInfoTemplate(),
-                                            model));
+        // TODO fix this
+        return Collections.emptyList();
     }
 
 }

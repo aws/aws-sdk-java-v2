@@ -38,11 +38,11 @@ public final class AwsXmlResponseHandler<T extends AwsResponse> implements HttpR
 
     private static final Logger log = Logger.loggerFor(AwsXmlResponseHandler.class);
 
-    private final XmlProtocolUnmarshaller<T> unmarshaller;
+    private final XmlProtocolUnmarshaller unmarshaller;
     private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;
     private final boolean needsConnectionLeftOpen;
 
-    public AwsXmlResponseHandler(XmlProtocolUnmarshaller<T> unmarshaller,
+    public AwsXmlResponseHandler(XmlProtocolUnmarshaller unmarshaller,
                                  Function<SdkHttpFullResponse, SdkPojo> pojoSupplier,
                                  boolean needsConnectionLeftOpen) {
         this.unmarshaller = unmarshaller;

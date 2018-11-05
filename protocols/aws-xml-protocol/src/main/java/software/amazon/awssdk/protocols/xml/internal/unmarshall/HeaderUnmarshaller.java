@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 @SdkInternalApi
 public final class HeaderUnmarshaller {

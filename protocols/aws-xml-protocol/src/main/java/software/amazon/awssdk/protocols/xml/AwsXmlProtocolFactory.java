@@ -15,15 +15,23 @@
 
 package software.amazon.awssdk.protocols.xml;
 
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.AwsQueryErrorProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlGenerator;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshaller;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshallerBuilder;
@@ -32,13 +40,26 @@ import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlOperationMeta
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmarshaller;
 
 /**
- * Factory to generate the various protocol handlers and generators
- * to be used for communicating with xml services.
+ * Factory to generate the various protocol handlers and generators to be used for
+ * communicating with REST/XML services.
  */
 @SdkProtectedApi
-public final class AwsXmlProtocolFactory {
+public class AwsXmlProtocolFactory {
 
-    private AwsXmlProtocolFactory() {
+    private final Map<String, Supplier<SdkPojo>> modeledExceptions;
+    private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
+    private final AwsQueryErrorProtocolUnmarshaller errorUnmarshaller;
+
+    AwsXmlProtocolFactory(Builder<?> builder) {
+        this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
+        this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
+        this.errorUnmarshaller = AwsQueryErrorProtocolUnmarshaller
+            .builder()
+            .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+            .exceptions(modeledExceptions)
+            .errorUnmarshaller(new XmlProtocolUnmarshaller(false))
+            .errorRootExtractor(this::getErrorRoot)
+            .build();
     }
 
     /**
@@ -64,8 +85,23 @@ public final class AwsXmlProtocolFactory {
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
                                                                                 XmlOperationMetadata staxOperationMetadata) {
         return new AwsXmlResponseHandler<>(
-            new XmlProtocolUnmarshaller<>(staxOperationMetadata.useRootElement()), r -> pojoSupplier.get(),
+            new XmlProtocolUnmarshaller(staxOperationMetadata.useRootElement()), r -> pojoSupplier.get(),
             staxOperationMetadata.isHasStreamingSuccessResponse());
+    }
+
+    public HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
+        return errorUnmarshaller;
+    }
+
+    /**
+     * Extracts the <Error/> element from the root XML document. This method is protected as S3 has
+     * a slightly different location.
+     *
+     * @param document Root XML document.
+     * @return If error root is found than a fulfilled {@link Optional}, otherwise an empty one.
+     */
+    Optional<XmlElement> getErrorRoot(XmlElement document) {
+        return document.getOptionalElementByName("Error");
     }
 
     private XmlGenerator createGenerator(OperationInfo operationInfo, String xmlNameSpaceUri) {
@@ -79,10 +115,31 @@ public final class AwsXmlProtocolFactory {
     /**
      * Builder for {@link AwsXmlProtocolFactory}.
      */
-    public static final class Builder {
+    public static class Builder<SubclassT extends Builder> {
+
+        private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
+        private Supplier<SdkPojo> defaultServiceExceptionSupplier;
+
+        Builder() {
+        }
+
+        public SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
+            modeledExceptions.put(errorCode, exceptionBuilderSupplier);
+            return getSubclass();
+        }
+
+        public SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
+            this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
+            return getSubclass();
+        }
+
+        @SuppressWarnings("unchecked")
+        private SubclassT getSubclass() {
+            return (SubclassT) this;
+        }
 
         public AwsXmlProtocolFactory build() {
-            return new AwsXmlProtocolFactory();
+            return new AwsXmlProtocolFactory(this);
         }
     }
 }

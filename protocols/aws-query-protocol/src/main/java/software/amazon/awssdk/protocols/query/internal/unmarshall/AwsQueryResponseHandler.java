@@ -43,11 +43,11 @@ public final class AwsQueryResponseHandler<T extends AwsResponse> implements Htt
 
     private static final Logger log = Logger.loggerFor(AwsQueryResponseHandler.class);
 
-    private final QueryProtocolUnmarshaller<T> unmarshaller;
+    private final QueryProtocolUnmarshaller unmarshaller;
     private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;
 
 
-    public AwsQueryResponseHandler(QueryProtocolUnmarshaller<T> unmarshaller,
+    public AwsQueryResponseHandler(QueryProtocolUnmarshaller unmarshaller,
                                    Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
         this.unmarshaller = unmarshaller;
         this.pojoSupplier = pojoSupplier;

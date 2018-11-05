@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 public final class QueryUnmarshallerContext {
 
     private final QueryUnmarshallerRegistry registry;
-    private final QueryProtocolUnmarshaller<?> protocolUnmarshaller;
+    private final QueryProtocolUnmarshaller protocolUnmarshaller;
 
     private QueryUnmarshallerContext(Builder builder) {
         this.registry = builder.registry;
@@ -36,7 +36,7 @@ public final class QueryUnmarshallerContext {
     /**
      * @return Protocol unmarshaller used for unmarshalling nested structs.
      */
-    public QueryProtocolUnmarshaller<?> protocolUnmarshaller() {
+    public QueryProtocolUnmarshaller protocolUnmarshaller() {
         return protocolUnmarshaller;
     }
 
@@ -65,7 +65,7 @@ public final class QueryUnmarshallerContext {
     public static final class Builder {
 
         private QueryUnmarshallerRegistry registry;
-        private QueryProtocolUnmarshaller<?> protocolUnmarshaller;
+        private QueryProtocolUnmarshaller protocolUnmarshaller;
 
         private Builder() {
         }
@@ -75,7 +75,7 @@ public final class QueryUnmarshallerContext {
             return this;
         }
 
-        public Builder protocolUnmarshaller(QueryProtocolUnmarshaller<?> protocolUnmarshaller) {
+        public Builder protocolUnmarshaller(QueryProtocolUnmarshaller protocolUnmarshaller) {
             this.protocolUnmarshaller = protocolUnmarshaller;
             return this;
         }

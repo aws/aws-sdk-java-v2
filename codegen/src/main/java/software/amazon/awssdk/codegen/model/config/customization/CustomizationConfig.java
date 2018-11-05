@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesConfig;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class CustomizationConfig {
@@ -44,7 +43,6 @@ public class CustomizationConfig {
      * Custom service and intermediate model metadata properties.
      */
     private MetadataConfig customServiceMetadata;
-    private CodeGenTemplatesConfig customCodeTemplates;
     /**
      * Codegen customization mechanism shared by the .NET SDK
      */
@@ -137,14 +135,6 @@ public class CustomizationConfig {
 
     public static CustomizationConfig create() {
         return new CustomizationConfig();
-    }
-
-    public CodeGenTemplatesConfig getCustomCodeTemplates() {
-        return customCodeTemplates;
-    }
-
-    public void setCustomCodeTemplates(CodeGenTemplatesConfig customCodeTemplates) {
-        this.customCodeTemplates = customCodeTemplates;
     }
 
     public Map<String, OperationModifier> getOperationModifiers() {

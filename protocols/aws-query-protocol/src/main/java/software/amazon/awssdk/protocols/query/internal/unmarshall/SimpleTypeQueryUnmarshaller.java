@@ -19,7 +19,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 /**
  * Unmarshaller implementation for simple, scalar values.

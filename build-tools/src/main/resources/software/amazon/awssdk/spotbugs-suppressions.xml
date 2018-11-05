@@ -77,14 +77,6 @@
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
 
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller" />
-            <Class name="software.amazon.awssdk.awscore.protocol.xml.LegacyErrorUnmarshaller" />
-        </Or>
-        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
-    </Match>
-
     <!-- Currently they look the same and we will revisit this when we add APIG -->
     <Match>
         <Or>

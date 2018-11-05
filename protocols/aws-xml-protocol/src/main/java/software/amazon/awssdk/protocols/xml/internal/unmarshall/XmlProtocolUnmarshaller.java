@@ -31,14 +31,15 @@ import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.XmlDomParser;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.Buildable;
 
 @SdkInternalApi
-public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
+public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
@@ -52,18 +53,13 @@ public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
      */
     private final boolean useRootElement;
 
+    // TODO builder and use PayloadTrait rather then this boolean
     public XmlProtocolUnmarshaller(boolean useRootElement) {
         this.useRootElement = useRootElement;
     }
 
-    public Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
-                                                       SdkHttpFullResponse response) throws Exception {
-
-        XmlUnmarshallerContext unmarshallerContext = XmlUnmarshallerContext.builder()
-                                                                           .response(response)
-                                                                           .registry(REGISTRY)
-                                                                           .protocolUnmarshaller(this)
-                                                                           .build();
+    public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
+                                                                               SdkHttpFullResponse response) {
 
         XmlElement document = hasPayloadMembers(sdkPojo) && response.content().isPresent()
                               ? XmlDomParser.parse(response.content().get()) : null;
@@ -71,7 +67,23 @@ public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
         XmlElement resultRoot = document != null && useRootElement ? XmlElement.builder().addChildElement(document).build()
                                                                    : document;
 
-        return Pair.of((TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot), parseMetadata(document));
+        return Pair.of(unmarshall(sdkPojo, resultRoot, response), parseMetadata(document));
+    }
+
+    /**
+     * This method is also used to unmarshall exceptions. We use this since we've already parsed the XML
+     * and the result root is in a different location depending on the protocol/service.
+     */
+    @Override
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
+                                                    XmlElement resultRoot,
+                                                    SdkHttpFullResponse response) {
+        XmlUnmarshallerContext unmarshallerContext = XmlUnmarshallerContext.builder()
+                                                                           .response(response)
+                                                                           .registry(REGISTRY)
+                                                                           .protocolUnmarshaller(this)
+                                                                           .build();
+        return (TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot);
     }
 
     SdkPojo unmarshall(XmlUnmarshallerContext context, SdkPojo sdkPojo, XmlElement root) {
@@ -89,9 +101,10 @@ public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
                 field.set(sdkPojo, unmarshalled);
             }
         }
-        return ((SdkBuilder<?, SdkPojo>) sdkPojo).build();
+        return (SdkPojo) ((Buildable) sdkPojo).build();
     }
 
+    // TODO I don't think this is present for REST-XML
     private Map<String, String> parseMetadata(XmlElement document) {
         if (document == null) {
             return new HashMap<>();

@@ -25,24 +25,21 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.XmlDomParser;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.StringInputStream;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
  * Unmarshaller implementation for AWS/Query and EC2 services.
- *
- * @param <TypeT> Type to unmarshall into.
  */
 @SdkInternalApi
-public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
+public class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private static final QueryUnmarshallerRegistry UNMARSHALLER_REGISTRY = QueryUnmarshallerRegistry
         .builder()
@@ -65,20 +62,30 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     private final boolean hasResultWrapper;
 
-    // TODO builder
-    public QueryProtocolUnmarshaller(boolean hasResultWrapper) {
+    private QueryProtocolUnmarshaller(boolean hasResultWrapper) {
         this.hasResultWrapper = hasResultWrapper;
     }
 
-    public Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
-                                                       SdkHttpFullResponse response) throws Exception {
+    public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
+                                                                               SdkHttpFullResponse response) {
+        XmlElement document = response.content().map(XmlDomParser::parse).orElse(XmlElement.empty());
+        XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
+        return Pair.of(unmarshall(sdkPojo, resultRoot, response), parseMetadata(document));
+    }
+
+    /**
+     * This method is also used to unmarshall exceptions. We use this since we've already parsed the XML
+     * and the result root is in a different location depending on the protocol/service.
+     */
+    @Override
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
+                                                    XmlElement resultRoot,
+                                                    SdkHttpFullResponse response) {
         QueryUnmarshallerContext unmarshallerContext = QueryUnmarshallerContext.builder()
                                                                                .registry(UNMARSHALLER_REGISTRY)
                                                                                .protocolUnmarshaller(this)
                                                                                .build();
-        XmlElement document = XmlDomParser.parse(response.content().orElseGet(this::emptyStream));
-        XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
-        return Pair.of((TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot), parseMetadata(document));
+        return (TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot);
     }
 
     private Map<String, String> parseMetadata(XmlElement document) {
@@ -110,10 +117,27 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
                 }
             }
         }
-        return ((SdkBuilder<?, SdkPojo>) sdkPojo).build();
+        return (SdkPojo) ((Buildable) sdkPojo).build();
     }
 
-    private AbortableInputStream emptyStream() {
-        return AbortableInputStream.create(new StringInputStream("</eof>"));
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private boolean hasResultWrapper;
+
+        private Builder() {
+        }
+
+        public Builder hasResultWrapper(boolean hasResultWrapper) {
+            this.hasResultWrapper = hasResultWrapper;
+            return this;
+        }
+
+        public QueryProtocolUnmarshaller build() {
+            return new QueryProtocolUnmarshaller(hasResultWrapper);
+        }
     }
 }
