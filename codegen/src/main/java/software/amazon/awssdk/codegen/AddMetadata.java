@@ -16,8 +16,6 @@
 package software.amazon.awssdk.codegen;
 
 import software.amazon.awssdk.codegen.internal.Constant;
-import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -39,7 +37,6 @@ final class AddMetadata {
 
 
     public static Metadata constructMetadata(ServiceModel serviceModel,
-                                             BasicCodeGenConfig codeGenConfig,
                                              CustomizationConfig customizationConfig) {
 
         Metadata metadata = new Metadata();
@@ -50,18 +47,17 @@ final class AddMetadata {
         String serviceName;
         String rootPackageName;
 
-        // API Gateway uses additional codegen.config settings
         if (serviceMetadata.getProtocol().equals(Protocol.API_GATEWAY.getValue())) {
-            // TODO: The meaning of root package name has changed a bit since this code was written. Specifically, the root for
-            // AWS no longer includes the service name. This changed the behavior of the API gateway generation, but we're not
-            // keeping it up to date at this time. Just be aware this has happened when updating the API gateway code.
-            serviceName = codeGenConfig.getInterfaceName();
-            rootPackageName = codeGenConfig.getPackageName();
-
-            metadata.withDefaultEndpoint(codeGenConfig.getEndpoint())
-                    .withDefaultEndpointWithoutHttpProtocol(
-                            Utils.getDefaultEndpointWithoutHttpProtocol(codeGenConfig.getEndpoint()))
-                    .withDefaultRegion(codeGenConfig.getDefaultRegion());
+            // TODO: We don't use codegen config for aws services in v2. Revisit this code when we support
+            // API gateway generation in V2
+            //            serviceName = codeGenConfig.getInterfaceName();
+            //            rootPackageName = codeGenConfig.getPackageName();
+            //
+            //            metadata.withDefaultEndpoint(codeGenConfig.getEndpoint())
+            //                    .withDefaultEndpointWithoutHttpProtocol(
+            //                            Utils.getDefaultEndpointWithoutHttpProtocol(codeGenConfig.getEndpoint()))
+            //                    .withDefaultRegion(codeGenConfig.getDefaultRegion());
+            throw new UnsupportedOperationException("Java SDK V2 doesn't support api-gateway protocol yet");
         } else {
             serviceName = namingStrategy.getServiceName();
             rootPackageName = AWS_PACKAGE_PREFIX;

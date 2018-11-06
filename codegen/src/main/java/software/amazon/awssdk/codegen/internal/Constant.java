@@ -17,8 +17,6 @@ package software.amazon.awssdk.codegen.internal;
 
 public final class Constant {
 
-    public static final String CODEGEN_CONFIG_FILE = "codegen.config";
-
     public static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
 
     public static final String ASYNC_CLIENT_INTERFACE_NAME_PATTERN = "%sAsyncClient";

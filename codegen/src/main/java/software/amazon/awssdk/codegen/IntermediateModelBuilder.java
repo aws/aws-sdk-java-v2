@@ -31,7 +31,6 @@ import software.amazon.awssdk.codegen.customization.processors.DefaultCustomizat
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.AuthorizerModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -55,7 +54,6 @@ public class IntermediateModelBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(IntermediateModelBuilder.class);
     private final CustomizationConfig customConfig;
-    private final BasicCodeGenConfig codeGenConfig;
     private final ServiceModel service;
     private final ServiceExamples examples;
     private final NamingStrategy namingStrategy;
@@ -65,7 +63,6 @@ public class IntermediateModelBuilder {
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
-        this.codeGenConfig = models.codeGenConfig();
         this.service = models.serviceModel();
         this.examples = models.examplesModel();
         this.namingStrategy = new DefaultNamingStrategy(service, customConfig);
@@ -117,7 +114,7 @@ public class IntermediateModelBuilder {
         log.info("{} shapes found in total.", shapes.size());
 
         IntermediateModel fullModel = new IntermediateModel(
-            constructMetadata(service, codeGenConfig, customConfig), operations, shapes,
+            constructMetadata(service, customConfig), operations, shapes,
             customConfig, examples, authorizers, paginators.getPaginators(), namingStrategy);
 
         customization.postprocess(fullModel);
@@ -259,10 +256,6 @@ public class IntermediateModelBuilder {
 
     public CustomizationConfig getCustomConfig() {
         return customConfig;
-    }
-
-    public BasicCodeGenConfig codeGenConfig() {
-        return codeGenConfig;
     }
 
     public ServiceModel getService() {

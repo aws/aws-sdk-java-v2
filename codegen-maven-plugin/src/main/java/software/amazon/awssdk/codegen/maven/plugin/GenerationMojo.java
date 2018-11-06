@@ -31,7 +31,6 @@ import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -46,7 +45,6 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 public class GenerationMojo extends AbstractMojo {
 
     private static final String MODEL_FILE = "service-2.json";
-    private static final String CODE_GEN_CONFIG_FILE = "codegen.config";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String EXAMPLES_FILE = "examples-1.json";
     private static final String WAITERS_FILE = "waiters-2.json";
@@ -71,7 +69,6 @@ public class GenerationMojo extends AbstractMojo {
         findModelRoots().forEach(p -> {
             getLog().info("Loading from: " + p.toString());
             generateCode(C2jModels.builder()
-                                  .applyMutation(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
                                   .customizationConfig(loadCustomizationConfig(p))
                                   .serviceModel(loadServiceModel(p))
                                   .waitersModel(loadWaiterModel(p))
@@ -109,10 +106,6 @@ public class GenerationMojo extends AbstractMojo {
                      .fileNamePrefix(Utils.getFileNamePrefix(models.serviceModel()))
                      .build()
                      .execute();
-    }
-
-    private Optional<BasicCodeGenConfig> loadCodeGenConfig(Path root) {
-        return loadOptionalModel(BasicCodeGenConfig.class, root.resolve(CODE_GEN_CONFIG_FILE));
     }
 
     private CustomizationConfig loadCustomizationConfig(Path root) {
