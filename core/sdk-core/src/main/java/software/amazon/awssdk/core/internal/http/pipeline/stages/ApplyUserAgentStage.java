@@ -50,14 +50,13 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames());
+        StringBuilder userAgentBuilder = getUserAgent(clientConfig, context.requestConfig().apiNames());
+        String userAgent = addUserAgentSuffix(userAgentBuilder, clientConfig);
         return request.putHeader(HEADER_USER_AGENT, userAgent);
     }
 
-    private String getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
+    private StringBuilder getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
         String userDefinedPrefix = config.option(SdkAdvancedClientOption.USER_AGENT_PREFIX);
-        String userDefinedSuffix = config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
-
         String awsExecutionEnvironment = SdkSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
 
         StringBuilder userAgent = new StringBuilder(StringUtils.trimToEmpty(userDefinedPrefix));
@@ -65,10 +64,6 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         String systemUserAgent = UserAgentUtils.getUserAgent();
         if (!systemUserAgent.equals(userDefinedPrefix)) {
             userAgent.append(COMMA).append(systemUserAgent);
-        }
-
-        if (!StringUtils.isEmpty(userDefinedSuffix)) {
-            userAgent.append(COMMA).append(userDefinedSuffix.trim());
         }
 
         if (!StringUtils.isEmpty(awsExecutionEnvironment)) {
@@ -81,6 +76,20 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                     .collect(Collectors.joining(" "));
 
             userAgent.append(SPACE).append(requestUserAgent);
+        }
+
+        return userAgent;
+    }
+
+    /**
+     * Only user agent suffix needs to be added in this method. Any other changes to user agent should be handled in
+     * {@link #getUserAgent(SdkClientConfiguration, List)} method.
+     */
+    private String addUserAgentSuffix(StringBuilder userAgent, SdkClientConfiguration config) {
+        String userDefinedSuffix = config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
+
+        if (!StringUtils.isEmpty(userDefinedSuffix)) {
+            userAgent.append(COMMA).append(userDefinedSuffix.trim());
         }
 
         return userAgent.toString();
