@@ -234,7 +234,7 @@ public class IntermediateModelBuilder {
     }
 
     private void setSimpleMethods(IntermediateModel model) {
-        model.getOperations().entrySet().stream().forEach(m -> {
+        model.getOperations().entrySet().forEach(m -> {
 
             ShapeModel inputShape = m.getValue().getInputShape();
             String methodName = m.getValue().getMethodName();
@@ -245,12 +245,14 @@ public class IntermediateModelBuilder {
                 && !(config.getBlacklistedSimpleMethods().size() == 1 && config.getBlacklistedSimpleMethods().get(0).equals("*"))
                 && !m.getValue().hasStreamingInput()
                 && !m.getValue().hasStreamingOutput()) {
+
                 if (!methodName.matches(Constant.APPROVED_SIMPLE_METHOD_VERBS) &&
                     !config.getVerifiedSimpleMethods().contains(methodName)) {
-                    throw new RuntimeException("Simple method encountered that is not approved or blacklisted: " + methodName);
+                    // TODO: How do we prevent these from being missed before services launch?
+                    log.warn("Simple method encountered that is not approved or blacklisted: " + methodName);
+                } else {
+                    inputShape.setSimpleMethod(true);
                 }
-
-                inputShape.setSimpleMethod(true);
             }
         });
     }
