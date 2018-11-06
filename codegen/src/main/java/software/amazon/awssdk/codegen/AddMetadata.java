@@ -48,15 +48,6 @@ final class AddMetadata {
         String rootPackageName;
 
         if (serviceMetadata.getProtocol().equals(Protocol.API_GATEWAY.getValue())) {
-            // TODO: We don't use codegen config for aws services in v2. Revisit this code when we support
-            // API gateway generation in V2
-            //            serviceName = codeGenConfig.getInterfaceName();
-            //            rootPackageName = codeGenConfig.getPackageName();
-            //
-            //            metadata.withDefaultEndpoint(codeGenConfig.getEndpoint())
-            //                    .withDefaultEndpointWithoutHttpProtocol(
-            //                            Utils.getDefaultEndpointWithoutHttpProtocol(codeGenConfig.getEndpoint()))
-            //                    .withDefaultRegion(codeGenConfig.getDefaultRegion());
             throw new UnsupportedOperationException("Java SDK V2 doesn't support api-gateway protocol yet");
         } else {
             serviceName = namingStrategy.getServiceName();
