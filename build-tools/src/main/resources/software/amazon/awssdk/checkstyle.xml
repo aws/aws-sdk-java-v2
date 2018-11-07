@@ -421,7 +421,7 @@
         <module name="Regexp">
             <property name="format" value="\bObjects.hash\b"/>
             <property name="illegalPattern" value="true"/>
-            <property name="message" value="Don't use Objects.hashCode, use Objects.hash instead"/>
+            <property name="message" value="Don't use Objects.hash, use Objects.hashCode instead"/>
             <property name="ignoreComments" value="true"/>
         </module>
 
