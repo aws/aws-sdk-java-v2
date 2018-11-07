@@ -71,19 +71,22 @@ class NonCollectionSetters extends AbstractMemberSetters {
         return fluentSetters;
     }
 
+
     public MethodSpec convenienceDeclaration(TypeName returnType, ConvenienceTypeOverload overload) {
         return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
                          .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                          .returns(returnType)
                          .build();
+
     }
+
 
     public MethodSpec fluentConvenience(TypeName returnType, ConvenienceTypeOverload overload) {
         return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
-                         .addStatement("$L(new $T().adapt($L))",
+                         .addStatement("$L($T.instance().adapt($L))",
                                        memberModel().getFluentSetterMethodName(),
                                        PoetUtils.classNameFromFqcn(overload.getTypeAdapterFqcn()),
                                        memberAsParameter().name)
@@ -98,17 +101,6 @@ class NonCollectionSetters extends AbstractMemberSetters {
             .addCode(beanCopySetterBody());
 
         return builder.build();
-    }
-
-    public MethodSpec beanStyleConvenience(ConvenienceTypeOverload overload) {
-        return MethodSpec.methodBuilder(memberModel().getBeanStyleSetterMethodName())
-                         .addModifiers(Modifier.PUBLIC)
-                         .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
-                         .addStatement("this.$L = new $T().adapt($L)",
-                                       memberAsParameter().name,
-                                       PoetUtils.classNameFromFqcn(overload.getTypeAdapterFqcn()),
-                                       memberAsParameter().name)
-                         .build();
     }
 
     private MethodSpec fluentAssignmentSetter(TypeName returnType) {

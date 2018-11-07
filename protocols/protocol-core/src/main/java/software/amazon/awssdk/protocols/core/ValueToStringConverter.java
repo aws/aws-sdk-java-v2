@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -73,20 +72,20 @@ public final class ValueToStringConverter {
      */
     public static final SimpleValueToString<String> FROM_STRING = val -> val;
 
-    public static final SimpleValueToString<Integer> FROM_INTEGER = StringConversion::fromInteger;
+    public static final SimpleValueToString<Integer> FROM_INTEGER = Object::toString;
 
-    public static final SimpleValueToString<Long> FROM_LONG = StringConversion::fromLong;
+    public static final SimpleValueToString<Long> FROM_LONG = Object::toString;
 
-    public static final SimpleValueToString<Float> FROM_FLOAT = StringConversion::fromFloat;
+    public static final SimpleValueToString<Float> FROM_FLOAT = Object::toString;
 
-    public static final SimpleValueToString<Double> FROM_DOUBLE = StringConversion::fromDouble;
+    public static final SimpleValueToString<Double> FROM_DOUBLE = Object::toString;
 
-    public static final SimpleValueToString<BigDecimal> FROM_BIG_DECIMAL = BigDecimal::toString;
+    public static final SimpleValueToString<BigDecimal> FROM_BIG_DECIMAL = Object::toString;
 
     /**
      * Marshalls boolean as a literal 'true' or 'false' string.
      */
-    public static final SimpleValueToString<Boolean> FROM_BOOLEAN = StringConversion::fromBoolean;
+    public static final SimpleValueToString<Boolean> FROM_BOOLEAN = Object::toString;
 
     /**
      * Marshalls bytes as a Base64 string.

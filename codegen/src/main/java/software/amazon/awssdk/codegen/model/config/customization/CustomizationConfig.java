@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class CustomizationConfig {
@@ -28,6 +29,7 @@ public class CustomizationConfig {
      * different type that is adapted to the real type
      */
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
+
     /**
      * Specifies the name of the client configuration class to use if a service
      * has a specific advanced client configuration class. Null if the service
@@ -121,9 +123,10 @@ public class CustomizationConfig {
     private boolean skipSyncClientGeneration;
 
     /**
-     * List of output shapes for which the root xml element should be used while unmarshalling the response
+     * Customization to attach the {@link PayloadTrait} to a member. Currently this is only used for
+     * S3 which doesn't model a member as a payload trait even though it is.
      */
-    private List<String> useRootXmlElementForResult = new ArrayList<>();
+    private Map<String, String> attachPayloadTraitToMember = new HashMap<>();
 
     /**
      * Custom Response metadata
@@ -175,26 +178,6 @@ public class CustomizationConfig {
 
     public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
         this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
-    }
-
-    /**
-     * Customization to generate a method overload for a member setter that takes a string rather
-     * than an InputStream. Currently only used by Lambda
-     */
-    public void setStringOverloadForInputStreamMember(
-        StringOverloadForInputStreamMember stringOverloadForInputStreamMember) {
-        this.convenienceTypeOverloads
-            .add(stringOverloadForInputStreamMember.getConvenienceTypeOverload());
-    }
-
-    /**
-     * Customization to generate a method overload for a member setter that takes a string rather
-     * than an SdkBytes. Currently only used by Lambda
-     */
-    public void setStringOverloadForSdkBytesMember(
-        StringOverloadForSdkBytesMember stringOverloadForSdkBytesMember) {
-        this.convenienceTypeOverloads
-            .add(stringOverloadForSdkBytesMember.getConvenienceTypeOverload());
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {
@@ -342,12 +325,12 @@ public class CustomizationConfig {
         this.skipSyncClientGeneration = skipSyncClientGeneration;
     }
 
-    public List<String> getUseRootXmlElementForResult() {
-        return useRootXmlElementForResult;
+    public Map<String, String> getAttachPayloadTraitToMember() {
+        return attachPayloadTraitToMember;
     }
 
-    public void setUseRootXmlElementForResult(List<String> useRootXmlElementForResult) {
-        this.useRootXmlElementForResult = useRootXmlElementForResult;
+    public void setAttachPayloadTraitToMember(Map<String, String> attachPayloadTraitToMember) {
+        this.attachPayloadTraitToMember = attachPayloadTraitToMember;
     }
 
     public Map<String, String> getCustomResponseMetadata() {

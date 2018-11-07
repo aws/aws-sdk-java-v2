@@ -13,16 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.services.s3.internal;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.adapter.TypeAdapter;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
-@SdkPublicApi
+/**
+ * {@link TypeAdapter} that converts the {@link Tagging} modeled object into a
+ * URL encoded map of key to values. Used for Put and Copy object operations
+ * which models the Tagging as a string.
+ */
+@SdkInternalApi
 public final class TaggingAdapter implements TypeAdapter<Tagging, String> {
+
+    private static final TaggingAdapter INSTANCE = new TaggingAdapter();
+
+
+    private TaggingAdapter() {
+    }
 
     @Override
     public String adapt(Tagging tagging) {
@@ -44,5 +55,12 @@ public final class TaggingAdapter implements TypeAdapter<Tagging, String> {
         }
 
         return tagBuilder.toString();
+    }
+
+    /**
+     * @return Singleton instance of {@link TaggingAdapter}.
+     */
+    public static TaggingAdapter instance() {
+        return INSTANCE;
     }
 }

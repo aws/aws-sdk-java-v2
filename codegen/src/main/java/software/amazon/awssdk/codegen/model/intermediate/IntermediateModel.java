@@ -126,18 +126,6 @@ public final class IntermediateModel {
         return namingStrategy;
     }
 
-    /**
-     * @return Exception unmarshaller implementation to use. Currently only needed by XML based
-     * protocols.
-     */
-    public String getExceptionUnmarshallerImpl() {
-        if (customizationConfig.getDefaultExceptionUnmarshaller() != null) {
-            return customizationConfig.getDefaultExceptionUnmarshaller();
-        } else {
-            return metadata.getProtocolDefaultExceptionUmarshallerImpl();
-        }
-    }
-
     public String getCustomRetryPolicy() {
         return customizationConfig.getCustomRetryPolicy();
     }

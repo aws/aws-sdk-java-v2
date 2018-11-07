@@ -82,7 +82,7 @@ public abstract class BaseAwsJsonProtocolFactory {
      */
     public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
                                                                             Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
-        JsonProtocolUnmarshaller<T> unmarshaller = createJsonProtocolUnmarshaller();
+        JsonProtocolUnmarshaller unmarshaller = createJsonProtocolUnmarshaller();
         return new AwsJsonResponseHandler<>(
             new JsonResponseHandler<>(unmarshaller,
                                       pojoSupplier,
@@ -90,8 +90,8 @@ public abstract class BaseAwsJsonProtocolFactory {
                                       operationMetadata.isPayloadJson()));
     }
 
-    private <T extends SdkPojo> JsonProtocolUnmarshaller<T> createJsonProtocolUnmarshaller() {
-        return new JsonProtocolUnmarshaller<>(getSdkFactory().getJsonFactory());
+    private <T extends SdkPojo> JsonProtocolUnmarshaller createJsonProtocolUnmarshaller() {
+        return new JsonProtocolUnmarshaller(getSdkFactory().getJsonFactory());
     }
 
     /**

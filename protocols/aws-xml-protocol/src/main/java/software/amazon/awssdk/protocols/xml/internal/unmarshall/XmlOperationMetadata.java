@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class XmlOperationMetadata {
 
     private boolean hasStreamingSuccessResponse;
-    private boolean useRootElement;
 
     public boolean isHasStreamingSuccessResponse() {
         return hasStreamingSuccessResponse;
@@ -37,20 +36,4 @@ public final class XmlOperationMetadata {
         return this;
     }
 
-    public boolean useRootElement() {
-        return useRootElement;
-    }
-
-    /**
-     * This value indicates if the root element in the response xml document should be ignored
-     * or not while unmarshalling the content. The value is true if the root element is a member of the output shape
-     * and false if the root element can be ignored.
-     *
-     * This value is true if the output shape either has an explicit payload member or
-     * the customization member "useRootXmlElementForResult" is set.
-     */
-    public XmlOperationMetadata useRootElement(boolean useRootElement) {
-        this.useRootElement = useRootElement;
-        return this;
-    }
 }

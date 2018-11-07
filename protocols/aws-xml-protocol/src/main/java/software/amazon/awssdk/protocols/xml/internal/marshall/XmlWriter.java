@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.util.xml;
+package software.amazon.awssdk.protocols.xml.internal.marshall;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Stack;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
@@ -28,8 +28,8 @@ import software.amazon.awssdk.utils.DateUtils;
 /**
  * Utility for creating easily creating XML documents, one element at a time.
  */
-@SdkProtectedApi
-public class XmlWriter {
+@SdkInternalApi
+final class XmlWriter {
 
     /** Standard XML prolog to add to the beginning of each XML document. */
     private static final String PROLOG = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -40,20 +40,8 @@ public class XmlWriter {
     /** Optional XML namespace attribute value to include in the root element. */
     private final String xmlns;
 
-    private Stack<String> elementStack = new Stack<String>();
+    private Stack<String> elementStack = new Stack<>();
     private boolean rootElement = true;
-
-
-    /**
-     * Creates a new XMLWriter, ready to write an XML document to the specified
-     * writer.  The XML document will not specify an xmlns attribute.
-     *
-     * @param w
-     *            The writer this XMLWriter will write to.
-     */
-    public XmlWriter(Writer w) {
-        this(w, null);
-    }
 
     /**
      * Creates a new XMLWriter, ready to write an XML document to the specified
@@ -66,7 +54,7 @@ public class XmlWriter {
      *            The XML namespace to include in the xmlns attribute of the
      *            root element.
      */
-    public XmlWriter(Writer w, String xmlns) {
+    XmlWriter(Writer w, String xmlns) {
         this.writer = w;
         this.xmlns = xmlns;
         append(PROLOG);
@@ -82,7 +70,7 @@ public class XmlWriter {
      * @return This XMLWriter so that additional method calls can be chained
      *         together.
      */
-    public XmlWriter startElement(String element) {
+    XmlWriter startElement(String element) {
         append("<" + element);
         if (rootElement && xmlns != null) {
             append(" xmlns=\"" + xmlns + "\"");
@@ -100,7 +88,7 @@ public class XmlWriter {
      * @return This XMLWriter so that additional method calls can be chained
      *         together.
      */
-    public XmlWriter endElement() {
+    XmlWriter endElement() {
         String lastElement = elementStack.pop();
         append("</" + lastElement + ">");
         return this;
@@ -176,9 +164,7 @@ public class XmlWriter {
     }
 
     private String escapeXmlEntities(String s) {
-        /**
-         * Unescape any escaped characters.
-         */
+        // Unescape any escaped characters.
         if (s.contains("&")) {
             s = s.replace("&quot;", "\"");
             s = s.replace("&apos;", "'");

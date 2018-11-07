@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.core;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -45,45 +44,17 @@ public abstract class PathMarshaller {
 
     /**
      * @param resourcePath Current resource path with path param placeholder
-     * @param paramName    Name of parameter (i.e. placeholder value {Foo})
-     * @param pathValue    String value of path parameter.
+     * @param paramName Name of parameter (i.e. placeholder value {Foo})
+     * @param pathValue String value of path parameter.
      * @return New URI with placeholder replaced with marshalled value.
      */
     public abstract String marshall(String resourcePath, String paramName, String pathValue);
-
-    /**
-     * @param resourcePath Current resource path with path param placeholder
-     * @param paramName    Name of parameter (i.e. placeholder value {Foo})
-     * @param pathValue    Integer value of path parameter.
-     * @return New URI with placeholder replaced with marshalled value.
-     */
-    public abstract String marshall(String resourcePath, String paramName, Integer pathValue);
-
-    /**
-     * @param resourcePath Current resource path with path param placeholder
-     * @param paramName    Name of parameter (i.e. placeholder value {Foo})
-     * @param pathValue    Long value of path parameter.
-     * @return New URI with placeholder replaced with marshalled value.
-     */
-    public abstract String marshall(String resourcePath, String paramName, Long pathValue);
 
     private static class NonGreedyPathMarshaller extends PathMarshaller {
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
             Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
             return resourcePath.replace(String.format("{%s}", paramName), SdkHttpUtils.urlEncode(pathValue));
-        }
-
-        @Override
-        public String marshall(String resourcePath, String paramName, Integer pathValue) {
-            Validate.paramNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringConversion.fromInteger(pathValue));
-        }
-
-        @Override
-        public String marshall(String resourcePath, String paramName, Long pathValue) {
-            Validate.paramNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringConversion.fromLong(pathValue));
         }
     }
 
@@ -94,18 +65,6 @@ public abstract class PathMarshaller {
             Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
             return resourcePath.replace(String.format("{%s+}", paramName),
                                         SdkHttpUtils.urlEncodeIgnoreSlashes(trimLeadingSlash(pathValue)));
-        }
-
-        @Override
-        public String marshall(String resourcePath, String paramName, Integer pathValue) {
-            Validate.paramNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringConversion.fromInteger(pathValue));
-        }
-
-        @Override
-        public String marshall(String resourcePath, String paramName, Long pathValue) {
-            Validate.paramNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringConversion.fromLong(pathValue));
         }
     }
 

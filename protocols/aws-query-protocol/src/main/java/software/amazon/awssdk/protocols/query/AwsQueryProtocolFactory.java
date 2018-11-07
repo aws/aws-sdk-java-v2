@@ -32,7 +32,7 @@ import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.internal.marshall.QueryProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.internal.unmarshall.AwsQueryResponseHandler;
 import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolUnmarshaller;
-import software.amazon.awssdk.protocols.query.unmarshall.AwsQueryErrorProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 /**
@@ -43,12 +43,12 @@ public class AwsQueryProtocolFactory {
 
     private final Map<String, Supplier<SdkPojo>> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
-    private final AwsQueryErrorProtocolUnmarshaller errorUnmarshaller;
+    private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
 
     AwsQueryProtocolFactory(Builder<?> builder) {
         this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
-        this.errorUnmarshaller = AwsQueryErrorProtocolUnmarshaller
+        this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
             .builder()
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
             .exceptions(modeledExceptions)

@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
-    private final JsonProtocolUnmarshaller<?> jsonProtocolUnmarshaller;
+    private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
     private final Map<String, Supplier<SdkPojo>> exceptions;
     private final ErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
@@ -119,7 +119,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
      */
     public static final class Builder {
 
-        private JsonProtocolUnmarshaller<?> jsonProtocolUnmarshaller;
+        private JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
         private Map<String, Supplier<SdkPojo>> exceptions;
         private ErrorMessageParser errorMessageParser;
         private JsonFactory jsonFactory;
@@ -135,7 +135,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
          *
          * @return This builder for method chaining.
          */
-        public Builder jsonProtocolUnmarshaller(JsonProtocolUnmarshaller<?> jsonProtocolUnmarshaller) {
+        public Builder jsonProtocolUnmarshaller(JsonProtocolUnmarshaller jsonProtocolUnmarshaller) {
             this.jsonProtocolUnmarshaller = jsonProtocolUnmarshaller;
             return this;
         }

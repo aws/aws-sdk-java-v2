@@ -69,12 +69,11 @@ public class JsonContent {
     }
 
     private static SdkJsonNode parseJsonContent(byte[] rawJsonContent, JsonFactory jsonFactory) {
-        JsonDomParser parser = JsonDomParser.create(jsonFactory);
         if (rawJsonContent == null || rawJsonContent.length == 0) {
-            // TODO andrew
             return SdkObjectNode.emptyObject();
         }
         try {
+            JsonDomParser parser = JsonDomParser.create(jsonFactory);
             return parser.parse(new ByteArrayInputStream(rawJsonContent));
         } catch (Exception e) {
             LOG.debug("Unable to parse HTTP response content", e);

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.codegen.protocol.ProtocolMetadataProvider;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class Metadata {
@@ -24,8 +23,6 @@ public class Metadata {
     private String apiVersion;
 
     private Protocol protocol;
-
-    private ProtocolMetadataProvider protocolMetadataProvider;
 
     private String documentation;
 
@@ -116,20 +113,11 @@ public class Metadata {
 
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
-        this.protocolMetadataProvider = protocol.getProvider();
     }
 
     public Metadata withProtocol(Protocol protocol) {
         setProtocol(protocol);
         return this;
-    }
-
-    /**
-     * @return The default implementation of exception unmarshallers to use when no custom one is
-     *     provided through {@link software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig}
-     */
-    public String getProtocolDefaultExceptionUmarshallerImpl() {
-        return protocolMetadataProvider.getExceptionUnmarshallerImpl();
     }
 
     public String getDocumentation() {
@@ -509,19 +497,25 @@ public class Metadata {
     }
 
     public boolean isIonProtocol() {
-        return protocolMetadataProvider.isIonProtocol();
+        return protocol == Protocol.ION;
     }
 
     public boolean isCborProtocol() {
-        return protocolMetadataProvider.isCborProtocol();
+        return protocol == Protocol.CBOR;
     }
 
     public boolean isJsonProtocol() {
-        return protocolMetadataProvider.isJsonProtocol();
+        return protocol == Protocol.CBOR ||
+               protocol == Protocol.ION ||
+               protocol == Protocol.AWS_JSON ||
+               protocol == Protocol.API_GATEWAY ||
+               protocol == Protocol.REST_JSON;
     }
 
     public boolean isXmlProtocol() {
-        return protocolMetadataProvider.isXmlProtocol();
+        return protocol == Protocol.EC2 ||
+               protocol == Protocol.QUERY ||
+               protocol == Protocol.REST_XML;
     }
 
     /**
@@ -569,10 +563,7 @@ public class Metadata {
     }
 
     public String getContentType() {
-        if (contentType != null) {
-            return contentType;
-        }
-        return protocolMetadataProvider.getContentType();
+        return contentType;
     }
 
     public boolean isRequiresIamSigners() {

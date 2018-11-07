@@ -17,10 +17,8 @@ package software.amazon.awssdk.codegen.poet.client.specs;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import java.util.List;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
@@ -44,26 +42,13 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
         return CodeBlock.builder()
                         .addStatement("\n\n$T<$T> responseHandler = protocolFactory.createResponseHandler($T::builder,"
-                                      + "new $T().withHasStreamingSuccessResponse($L)"
-                                      + "$L)",
+                                      + "new $T().withHasStreamingSuccessResponse($L))",
                                       HttpResponseHandler.class,
                                       responseType,
                                       responseType,
                                       XmlOperationMetadata.class,
-                                      opModel.hasStreamingOutput(),
-                                      useRootElement(model, opModel))
+                                      opModel.hasStreamingOutput())
                         .build();
     }
 
-    private String useRootElement(IntermediateModel model, OperationModel operationModel) {
-        ShapeModel output = operationModel.getOutputShape();
-        List<String> shapesToUseRootElement = model.getCustomizationConfig().getUseRootXmlElementForResult();
-
-        if (output != null && (output.isHasPayloadMember() ||
-                              shapesToUseRootElement.contains(output.getC2jName()))) {
-            return ".useRootElement(true)";
-        }
-
-        return "";
-    }
 }

@@ -43,11 +43,9 @@ import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
  * Unmarshaller implementation for both JSON RPC and REST JSON services.
- *
- * @param <TypeT> Type to unmarshall into.
  */
 @SdkInternalApi
-public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
+public final class JsonProtocolUnmarshaller {
 
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
@@ -146,7 +144,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
         }
     }
 
-    public TypeT unmarshall(SdkPojo sdkPojo,
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response) throws IOException {
         if (hasPayloadMembers(sdkPojo) && !hasExplicitBlobPayloadMember(sdkPojo)) {
             SdkJsonNode jsonNode = parser.parse(ReleasableInputStream.wrap(response.content().orElse(null)).disableClose());
@@ -172,7 +170,7 @@ public final class JsonProtocolUnmarshaller<TypeT extends SdkPojo> {
                       .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
     }
 
-    public TypeT unmarshall(SdkPojo sdkPojo,
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                             SdkHttpFullResponse response,
                             SdkJsonNode jsonContent) {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()

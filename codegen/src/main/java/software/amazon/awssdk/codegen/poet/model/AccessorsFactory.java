@@ -98,15 +98,11 @@ class AccessorsFactory {
 
         intermediateModel.getCustomizationConfig().getConvenienceTypeOverloads().stream()
                          .filter(c -> c.accepts(shapeModel, memberModel))
-                         .forEach(s -> {
-                             convenienceSetters.add(
-                                 new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider)
-                                     .fluentConvenience(returnType, s));
-                             convenienceSetters.add(
-                                 new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider)
-                                     .beanStyleConvenience(s));
-                         });
+                         .forEach(s -> convenienceSetters.add(
+                             new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider)
+                                 .fluentConvenience(returnType, s)));
 
         return convenienceSetters;
     }
+
 }

@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
-import software.amazon.awssdk.protocols.query.unmarshall.AwsQueryErrorProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlGenerator;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshaller;
@@ -48,16 +48,16 @@ public class AwsXmlProtocolFactory {
 
     private final Map<String, Supplier<SdkPojo>> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
-    private final AwsQueryErrorProtocolUnmarshaller errorUnmarshaller;
+    private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
 
     AwsXmlProtocolFactory(Builder<?> builder) {
         this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
-        this.errorUnmarshaller = AwsQueryErrorProtocolUnmarshaller
+        this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
             .builder()
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
             .exceptions(modeledExceptions)
-            .errorUnmarshaller(new XmlProtocolUnmarshaller(false))
+            .errorUnmarshaller(XmlProtocolUnmarshaller.builder().build())
             .errorRootExtractor(this::getErrorRoot)
             .build();
     }
@@ -85,7 +85,7 @@ public class AwsXmlProtocolFactory {
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
                                                                                 XmlOperationMetadata staxOperationMetadata) {
         return new AwsXmlResponseHandler<>(
-            new XmlProtocolUnmarshaller(staxOperationMetadata.useRootElement()), r -> pojoSupplier.get(),
+            XmlProtocolUnmarshaller.builder().build(), r -> pojoSupplier.get(),
             staxOperationMetadata.isHasStreamingSuccessResponse());
     }
 

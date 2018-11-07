@@ -19,21 +19,37 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.emitters.SimpleGeneratorTask;
+import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 
-public class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
+/**
+ * Emits the package-info.java for the base service package. Includes the service
+ * level documentation.
+ */
+public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
 
-    //private final String baseDirectory;
+    private final String baseDirectory;
 
-    public PackageInfoGeneratorTasks(GeneratorTaskParams dependencies) {
+    PackageInfoGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
-        //this.baseDirectory = dependencies.getPathProvider().getClientDirectory();
+        this.baseDirectory = dependencies.getPathProvider().getClientDirectory();
     }
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
+        Metadata metadata = model.getMetadata();
+        String packageInfoContents =
+            String.format("/**%n"
+                          + " * %s%n"
+                          + "*/%n"
+                          + "package %s;",
+                          metadata.getDocumentation(),
+                          metadata.getFullClientPackageName());
         info("Emitting package info file");
-        // TODO fix this
-        return Collections.emptyList();
+        return Collections.singletonList(new SimpleGeneratorTask(baseDirectory,
+                                                                 "package-info.java",
+                                                                 model.getFileHeader(),
+                                                                 packageInfoContents));
     }
 
 }

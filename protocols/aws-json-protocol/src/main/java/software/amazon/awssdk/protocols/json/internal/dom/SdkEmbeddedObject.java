@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Represents an embedded object returned by a {@link JsonParser}. This is used for the ION
- * format which embeds @{@link Date} and {@link ByteBuffer} objects.
+ * format which embeds {@link Date} and {@link ByteBuffer} objects.
  */
 @SdkInternalApi
 public final class SdkEmbeddedObject implements SdkJsonNode {

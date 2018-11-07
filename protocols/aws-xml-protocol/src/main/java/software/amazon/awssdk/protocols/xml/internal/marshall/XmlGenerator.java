@@ -17,7 +17,6 @@ package software.amazon.awssdk.protocols.xml.internal.marshall;
 
 import java.io.StringWriter;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.xml.XmlWriter;
 
 /**
  * Wrapper around the {@link XmlWriter} for marshalling requests for XML protocol

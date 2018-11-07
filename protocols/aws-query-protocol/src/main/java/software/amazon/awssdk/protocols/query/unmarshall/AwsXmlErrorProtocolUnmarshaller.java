@@ -72,7 +72,7 @@ import software.amazon.awssdk.utils.Pair;
  * </ErrorResponse>
  */
 @SdkProtectedApi
-public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {
+public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
     private final Map<String, Supplier<SdkPojo>> exceptions;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
@@ -80,7 +80,7 @@ public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHand
 
     private final XmlErrorUnmarshaller errorUnmarshaller;
 
-    private AwsQueryErrorProtocolUnmarshaller(Builder builder) {
+    private AwsXmlErrorProtocolUnmarshaller(Builder builder) {
         this.exceptions = builder.exceptions;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.errorRootExtractor = builder.errorRootExtractor;
@@ -217,7 +217,7 @@ public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHand
      */
     private String getRequestId(SdkHttpFullResponse response, XmlElement document) {
         XmlElement requestId = document.getOptionalElementByName("RequestId")
-                                       .orElse(document.getElementByName("RequestId"));
+                                       .orElse(document.getElementByName("RequestID"));
         return requestId != null ?
                requestId.textContent() :
                response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null);
@@ -231,7 +231,7 @@ public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHand
     }
 
     /**
-     * Builder for {@link AwsQueryErrorProtocolUnmarshaller}.
+     * Builder for {@link AwsXmlErrorProtocolUnmarshaller}.
      */
     public static final class Builder {
 
@@ -269,7 +269,7 @@ public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHand
          * Extracts the <Error/> element from the top level XML document. Different protocols have slightly
          * different formats for where the Error element is located.  The error root of the XML document contains
          * the code, message and any modeled fields of the exception. See javadocs of
-         * {@link AwsQueryErrorProtocolUnmarshaller} for examples.
+         * {@link AwsXmlErrorProtocolUnmarshaller} for examples.
          *
          * @param errorRootExtractor Function that extracts the <Error/> element from the root XML document.
          * @return This builder for method chaining.
@@ -281,7 +281,7 @@ public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHand
 
         /**
          * The unmarshaller to use. The unmarshaller only unmarshalls any modeled fields of the exception,
-         * additional metadata is extracted by {@link AwsQueryErrorProtocolUnmarshaller}.
+         * additional metadata is extracted by {@link AwsXmlErrorProtocolUnmarshaller}.
          *
          * @param errorUnmarshaller Error unmarshaller to use.
          * @return This builder for method chaining.
@@ -292,10 +292,10 @@ public final class AwsQueryErrorProtocolUnmarshaller implements HttpResponseHand
         }
 
         /**
-         * @return New instance of {@link AwsQueryErrorProtocolUnmarshaller}.
+         * @return New instance of {@link AwsXmlErrorProtocolUnmarshaller}.
          */
-        public AwsQueryErrorProtocolUnmarshaller build() {
-            return new AwsQueryErrorProtocolUnmarshaller(this);
+        public AwsXmlErrorProtocolUnmarshaller build() {
+            return new AwsXmlErrorProtocolUnmarshaller(this);
         }
     }
 }

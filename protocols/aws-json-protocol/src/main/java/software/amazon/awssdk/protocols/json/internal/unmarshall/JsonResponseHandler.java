@@ -42,7 +42,7 @@ public final class JsonResponseHandler<T extends SdkPojo> implements HttpRespons
     /**
      * The JSON unmarshaller to use when handling the response
      */
-    private JsonProtocolUnmarshaller<T> unmarshaller;
+    private JsonProtocolUnmarshaller unmarshaller;
 
     /**
      * Constructs a new response handler that will use the specified JSON unmarshaller to unmarshall
@@ -51,7 +51,7 @@ public final class JsonResponseHandler<T extends SdkPojo> implements HttpRespons
      *
      * @param unmarshaller    The JSON unmarshaller to use on the response.
      */
-    public JsonResponseHandler(JsonProtocolUnmarshaller<T> unmarshaller,
+    public JsonResponseHandler(JsonProtocolUnmarshaller unmarshaller,
                                Function<SdkHttpFullResponse, SdkPojo> pojoSupplier,
                                boolean needsConnectionLeftOpen,
                                boolean isPayloadJson) {

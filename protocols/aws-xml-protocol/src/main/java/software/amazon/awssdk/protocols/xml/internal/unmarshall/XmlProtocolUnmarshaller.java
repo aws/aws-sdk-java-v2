@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
+import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
 import java.time.Instant;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
@@ -46,16 +48,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private static final XmlUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
 
-    /**
-     * If response shape has explicit payload, then root element is a member of response and should
-     * be used when population fields. In this case, this value is set to True.
-     * If no explicit payload member is present, root element can be ignored and this value is set to False.
-     */
-    private final boolean useRootElement;
-
-    // TODO builder and use PayloadTrait rather then this boolean
-    public XmlProtocolUnmarshaller(boolean useRootElement) {
-        this.useRootElement = useRootElement;
+    private XmlProtocolUnmarshaller() {
     }
 
     public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
@@ -64,10 +57,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
         XmlElement document = hasPayloadMembers(sdkPojo) && response.content().isPresent()
                               ? XmlDomParser.parse(response.content().get()) : null;
 
-        XmlElement resultRoot = document != null && useRootElement ? XmlElement.builder().addChildElement(document).build()
-                                                                   : document;
-
-        return Pair.of(unmarshall(sdkPojo, resultRoot, response), parseMetadata(document));
+        return Pair.of(unmarshall(sdkPojo, document, response), parseMetadata(document));
     }
 
     /**
@@ -91,7 +81,9 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
-                List<XmlElement> element = root.getElementsByName(field.unmarshallLocationName());
+                List<XmlElement> element = isExplicitPayloadMember(field) ?
+                                           singletonList(root) :
+                                           root.getElementsByName(field.unmarshallLocationName());
                 if (!CollectionUtils.isNullOrEmpty(element)) {
                     Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
                     field.set(sdkPojo, unmarshalled);
@@ -102,6 +94,10 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             }
         }
         return (SdkPojo) ((Buildable) sdkPojo).build();
+    }
+
+    private boolean isExplicitPayloadMember(SdkField<?> field) {
+        return field.containsTrait(PayloadTrait.class);
     }
 
     // TODO I don't think this is present for REST-XML
@@ -166,5 +162,19 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             .payloadUnmarshaller(MarshallingType.LIST, XmlPayloadUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, XmlPayloadUnmarshaller::unmarshallMap)
             .build();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private Builder() {
+        }
+
+        public XmlProtocolUnmarshaller build() {
+            return new XmlProtocolUnmarshaller();
+        }
     }
 }
