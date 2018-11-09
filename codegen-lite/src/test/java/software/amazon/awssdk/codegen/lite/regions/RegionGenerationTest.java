@@ -29,6 +29,7 @@ public class RegionGenerationTest {
     private static final String ENDPOINTS = "/software/amazon/awssdk/codegen/lite/endpoints.json";
     private static final String SERVICE_METADATA_BASE = "software.amazon.awssdk.regions.servicemetadata";
     private static final String REGION_METADATA_BASE = "software.amazon.awssdk.regions.regionmetadata";
+    private static final String PARTITION_METADATA_BASE = "software.amazon.awssdk.regions.partitionmetadata";
     private static final String REGION_BASE = "software.amazon.awssdk.regions";
 
     private File endpoints;
@@ -83,5 +84,22 @@ public class RegionGenerationTest {
                                                                                                                  REGION_BASE);
 
         assertThat(serviceMetadataProviderGenerator, generatesTo("service-metadata-provider.java"));
+    }
+
+    @Test
+    public void partitionMetadataClass() {
+        PartitionMetadataGenerator partitionMetadataGenerator = new PartitionMetadataGenerator(partitions.getPartitions().get(0),
+                                                                              PARTITION_METADATA_BASE,
+                                                                              REGION_BASE);
+
+        assertThat(partitionMetadataGenerator, generatesTo("partition-metadata.java"));
+    }
+
+    @Test
+    public void partitionMetadataProviderClass() {
+        PartitionMetadataProviderGenerator partitionMetadataProviderGenerator =
+            new PartitionMetadataProviderGenerator(partitions, PARTITION_METADATA_BASE, REGION_BASE);
+
+        assertThat(partitionMetadataProviderGenerator, generatesTo("partition-metadata-provider.java"));
     }
 }

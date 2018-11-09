@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -40,7 +41,7 @@ public class DefaultServiceMetadata implements ServiceMetadata {
 
     @Override
     public URI endpointFor(Region region) {
-        return URI.create(computeEndpoint(endpointPrefix, region));
+        return URI.create(computeEndpoint(endpointPrefix, new HashMap<>(), region));
     }
 
     @Override
