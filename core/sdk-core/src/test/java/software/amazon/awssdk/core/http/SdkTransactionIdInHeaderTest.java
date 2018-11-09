@@ -63,7 +63,7 @@ public class SdkTransactionIdInHeaderTest extends WireMockTestBase {
     private void executeRequest() throws Exception {
         AmazonSyncHttpClient httpClient = HttpTestUtils.testAmazonHttpClient();
         try {
-            SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
+            SdkHttpFullRequest request = newGetRequest(RESOURCE_PATH).build();
             httpClient.requestExecutionBuilder()
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())

@@ -23,7 +23,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
-import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 
@@ -37,7 +37,7 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
     private final IntermediateModel intermediateModel;
 
     public EventStreamJsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
-        super(model, shapeModel);
+        super(shapeModel);
         this.intermediateModel = model;
     }
 
@@ -48,10 +48,10 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
             CodeBlock.builder()
                      .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
                                    + "(SDK_OPERATION_BINDING, $L)",
-                                   ProtocolMarshaller.class, Request.class,
+                                   ProtocolMarshaller.class, SdkHttpFullRequest.class,
                                    requestClassName, variableName)
                      .addStatement("$T<$T> request = protocolMarshaller.marshall($L)",
-                                   Request.class, requestClassName, variableName)
+                                   SdkHttpFullRequest.class, requestClassName, variableName)
                      .addStatement("request.addHeader(\":message-type\", \"event\")")
                      .addStatement("request.addHeader(\":event-type\", \"$L\")", getMemberNameFromEventStream());
 

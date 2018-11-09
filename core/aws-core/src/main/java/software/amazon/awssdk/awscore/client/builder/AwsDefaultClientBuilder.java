@@ -85,6 +85,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      */
     protected abstract String signingName();
 
+    /**
+     * Implemented by child classes to define the service name used to identify the request in things like metrics.
+     */
+    protected abstract String serviceName();
+
     @Override
     protected final AttributeMap childHttpConfig() {
         return serviceHttpConfig();
@@ -104,7 +109,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                   .option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
                                   .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
                                   .option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.defaultRetryPolicy())
-                                  .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName()));
+                                  .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
+                                  .option(SdkClientOption.SERVICE_NAME, serviceName()));
     }
 
     /**

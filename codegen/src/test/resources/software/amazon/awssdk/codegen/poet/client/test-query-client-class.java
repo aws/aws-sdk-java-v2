@@ -117,7 +117,7 @@ final class DefaultQueryClient implements QueryClient {
 
     private AwsQueryProtocolFactory init() {
         return AwsQueryProtocolFactory.builder().registerModeledException("InvalidInput", InvalidInputException::builder)
-                                      .defaultServiceExceptionSupplier(QueryException::builder).build();
+                                      .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     @Override
@@ -125,3 +125,4 @@ final class DefaultQueryClient implements QueryClient {
         clientHandler.close();
     }
 }
+

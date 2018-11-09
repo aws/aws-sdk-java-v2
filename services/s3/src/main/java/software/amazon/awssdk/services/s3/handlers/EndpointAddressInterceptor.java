@@ -55,9 +55,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
                                        executionAttributes, serviceConfiguration);
-        mutableRequest.protocol(endpoint.getScheme())
-                      .host(endpoint.getHost())
-                      .port(endpoint.getPort())
+        mutableRequest.uri(endpoint)
                       .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), mutableRequest.encodedPath()));
 
         if (serviceConfiguration == null || !serviceConfiguration.pathStyleAccessEnabled()) {

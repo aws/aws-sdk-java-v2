@@ -66,7 +66,7 @@ public final class SimpleTypeQueryMarshaller<T> implements QueryMarshaller<T> {
 
     @Override
     public void marshall(QueryMarshallerContext context, String path, T val, SdkField<T> sdkField) {
-        context.request().addParameter(path, valueToString.convert(val, sdkField));
+        context.request().putRawQueryParameter(path, valueToString.convert(val, sdkField));
     }
 
     /**

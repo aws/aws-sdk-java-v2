@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
 
+import java.net.URI;
 import org.junit.Test;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
@@ -183,9 +184,7 @@ public class EnableChunkedEncodingInterceptorTest {
 
     private SdkHttpFullRequest sdkHttpFullRequest() {
         return SdkHttpFullRequest.builder()
-                                 .protocol("http")
-                                 .host("test.com")
-                                 .port(80)
+                                 .uri(URI.create("http://test.com:80"))
                                  .method(SdkHttpMethod.GET)
                                  .build();
     }

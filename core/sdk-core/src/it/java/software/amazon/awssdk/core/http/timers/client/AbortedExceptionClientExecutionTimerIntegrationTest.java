@@ -60,7 +60,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest  {
     public void clientExecutionTimeoutEnabled_aborted_exception_occurs_timeout_not_expired() throws Exception {
         when(abortableCallable.call()).thenThrow(AbortedException.builder().build());
 
-        execute(httpClient, createMockGetRequest());
+        execute(httpClient, createMockGetRequest().build());
     }
 
     @Test(expected = ApiCallTimeoutException.class)
@@ -71,6 +71,6 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest  {
             return null;
         });
 
-        execute(httpClient, createMockGetRequest());
+        execute(httpClient, createMockGetRequest().build());
     }
 }

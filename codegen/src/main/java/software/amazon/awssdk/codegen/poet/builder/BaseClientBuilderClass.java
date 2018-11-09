@@ -70,6 +70,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
         builder.addMethod(serviceEndpointPrefixMethod());
+        builder.addMethod(serviceNameMethod());
         builder.addMethod(mergeServiceDefaultsMethod());
         builder.addMethod(finalizeServiceConfigurationMethod());
         builder.addMethod(defaultSignerMethod());
@@ -112,6 +113,15 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(String.class)
                          .addCode("return $S;", model.getMetadata().getEndpointPrefix())
+                         .build();
+    }
+
+    private MethodSpec serviceNameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .returns(String.class)
+                         .addCode("return $S;", model.getMetadata().getServiceName())
                          .build();
     }
 

@@ -47,9 +47,7 @@ public final class PredictEndpointInterceptor implements ExecutionInterceptor {
             try {
                 URI endpoint = new URI(pr.predictEndpoint());
                 return request.toBuilder()
-                              .protocol(endpoint.getScheme())
-                              .host(endpoint.getHost())
-                              .port(endpoint.getPort())
+                              .uri(endpoint)
                               .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), request.encodedPath()))
                               .build();
             } catch (URISyntaxException e) {

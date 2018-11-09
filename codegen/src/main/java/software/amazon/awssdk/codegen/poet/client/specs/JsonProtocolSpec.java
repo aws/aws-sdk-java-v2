@@ -87,7 +87,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
                                                       "return builder\n" +
-                                                      ".defaultServiceExceptionSupplier($T::builder)" +
+                                                      ".clientConfiguration(clientConfiguration)\n" +
+                                                      ".defaultServiceExceptionSupplier($T::builder)\n" +
                                                       ".protocol($T.$L)\n" +
                                                       ".protocolVersion($S)\n"
                                                       + "$L",

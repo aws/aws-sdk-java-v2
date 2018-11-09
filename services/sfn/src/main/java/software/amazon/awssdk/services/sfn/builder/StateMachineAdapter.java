@@ -17,12 +17,24 @@ package software.amazon.awssdk.services.sfn.builder;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.adapter.TypeAdapter;
+import software.amazon.awssdk.services.sfn.model.CreateStateMachineRequest;
 
 /**
- * This is an internal API.
+ * Adapter from a StateMachine object to the JSON string. For the convenience overload in {@link CreateStateMachineRequest}.
+ *
  */
 @SdkInternalApi
 public final class StateMachineAdapter implements TypeAdapter<StateMachine, String> {
+
+    private static final StateMachineAdapter INSTANCE = new StateMachineAdapter();
+
+    /**
+     * @return The singleton instance of {@link StateMachineAdapter}.
+     */
+    public static StateMachineAdapter instance() {
+        return INSTANCE;
+    }
+
     @Override
     public String adapt(StateMachine stateMachine) {
         return stateMachine == null ? null : stateMachine.toJson();

@@ -15,24 +15,22 @@
 
 package software.amazon.awssdk.protocols.query.internal.marshall;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.core.util.UriResourcePathUtils;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.core.ProtocolUtils;
 
 /**
  * Implementation of {@link ProtocolMarshaller} for AWS Query services.
- *
- * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public final class QueryProtocolMarshaller<OrigRequestT>
-    implements ProtocolMarshaller<Request<OrigRequestT>> {
+public final class QueryProtocolMarshaller
+    implements ProtocolMarshaller<SdkHttpFullRequest> {
 
     private static final QueryMarshallerRegistry AWS_QUERY_MARSHALLER_REGISTRY = commonRegistry()
         .marshaller(MarshallingType.LIST, ListQueryMarshaller.awsQuery())
@@ -42,33 +40,32 @@ public final class QueryProtocolMarshaller<OrigRequestT>
         .marshaller(MarshallingType.LIST, ListQueryMarshaller.ec2Query())
         .build();
 
-    private final Request<OrigRequestT> request;
+    private final SdkHttpFullRequest.Builder request;
     private final QueryMarshallerRegistry registry;
+    private final URI endpoint;
 
-    private QueryProtocolMarshaller(Builder<OrigRequestT> builder) {
-        this.request = fillBasicRequestParams(builder.operationInfo, builder.originalRequest);
+    private QueryProtocolMarshaller(Builder builder) {
+        this.endpoint = builder.endpoint;
+        this.request = fillBasicRequestParams(builder.operationInfo);
         this.registry = builder.isEc2 ? EC2_QUERY_MARSHALLER_REGISTRY : AWS_QUERY_MARSHALLER_REGISTRY;
     }
 
-    private Request<OrigRequestT> fillBasicRequestParams(OperationInfo operationInfo, OrigRequestT originalRequest) {
-        Request<OrigRequestT> request = new DefaultRequest<>(originalRequest, operationInfo.serviceName());
-        request.setHttpMethod(operationInfo.httpMethodName());
-        // AWS/Query doesn't have a resource path so we just use empty string
-        request.setResourcePath(UriResourcePathUtils.addStaticQueryParametersToRequest(request, ""));
-        request.addParameter("Action", operationInfo.operationIdentifier());
-        request.addParameter("Version", operationInfo.apiVersion());
-        return request;
+    private SdkHttpFullRequest.Builder fillBasicRequestParams(OperationInfo operationInfo) {
+        return ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint)
+                            .encodedPath("")
+                            .putRawQueryParameter("Action", operationInfo.operationIdentifier())
+                            .putRawQueryParameter("Version", operationInfo.apiVersion());
     }
 
     @Override
-    public Request<OrigRequestT> marshall(SdkPojo pojo) {
+    public SdkHttpFullRequest marshall(SdkPojo pojo) {
         QueryMarshallerContext context = QueryMarshallerContext.builder()
                                                                .request(request)
                                                                .protocolHandler(this)
                                                                .marshallerRegistry(registry)
                                                                .build();
         doMarshall(null, context, pojo);
-        return request;
+        return request.build();
     }
 
     private void doMarshall(String path, QueryMarshallerContext context, SdkPojo pojo) {
@@ -83,8 +80,8 @@ public final class QueryProtocolMarshaller<OrigRequestT>
         return path == null ? sdkField.locationName() : path + "." + sdkField.locationName();
     }
 
-    public static <T> Builder<T> builder(T origRequest) {
-        return new Builder<>(origRequest);
+    public static Builder builder() {
+        return new Builder();
     }
 
     private static QueryMarshallerRegistry.Builder commonRegistry() {
@@ -104,28 +101,29 @@ public final class QueryProtocolMarshaller<OrigRequestT>
                 context.protocolHandler().doMarshall(path, context, val));
     }
 
-    public static final class Builder<T> {
+    public static final class Builder {
 
-        private final T originalRequest;
         private OperationInfo operationInfo;
         private boolean isEc2;
+        private URI endpoint;
 
-        private Builder(T originalRequest) {
-            this.originalRequest = originalRequest;
-        }
-
-        public Builder<T> operationInfo(OperationInfo operationInfo) {
+        public Builder operationInfo(OperationInfo operationInfo) {
             this.operationInfo = operationInfo;
             return this;
         }
 
-        public Builder<T> isEc2(boolean ec2) {
+        public Builder isEc2(boolean ec2) {
             isEc2 = ec2;
             return this;
         }
 
-        public QueryProtocolMarshaller<T> build() {
-            return new QueryProtocolMarshaller<>(this);
+        public Builder endpoint(URI endpoint) {
+            this.endpoint = endpoint;
+            return this;
+        }
+
+        public QueryProtocolMarshaller build() {
+            return new QueryProtocolMarshaller(this);
         }
     }
 

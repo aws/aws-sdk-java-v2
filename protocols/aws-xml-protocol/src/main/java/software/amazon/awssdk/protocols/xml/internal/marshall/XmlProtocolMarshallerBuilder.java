@@ -15,43 +15,41 @@
 
 package software.amazon.awssdk.protocols.xml.internal.marshall;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 
 /**
  * Builder to create an appropriate implementation of {@link ProtocolMarshaller} for Xml based services.
- *
- * @param <T> Type of the original request object.
  */
 @SdkInternalApi
-public class XmlProtocolMarshallerBuilder<T extends SdkRequest>  {
+public class XmlProtocolMarshallerBuilder  {
 
+    private URI endpoint;
     private XmlGenerator xmlGenerator;
     private OperationInfo operationInfo;
-    private T originalRequest;
     private String rootElement;
 
-    public static <T extends SdkRequest> XmlProtocolMarshallerBuilder<T> builder() {
-        return new XmlProtocolMarshallerBuilder<T>();
+    public static XmlProtocolMarshallerBuilder builder() {
+        return new XmlProtocolMarshallerBuilder();
     }
 
-    public XmlProtocolMarshaller<T> build() {
-        return new XmlProtocolMarshaller<T>(xmlGenerator, originalRequest, operationInfo, rootElement);
+    public XmlProtocolMarshaller build() {
+        return new XmlProtocolMarshaller(endpoint, xmlGenerator, operationInfo, rootElement);
     }
 
-    public XmlProtocolMarshallerBuilder<T> xmlGenerator(XmlGenerator xmlGenerator) {
+    public XmlProtocolMarshallerBuilder endpoint(URI endpoint) {
+        this.endpoint = endpoint;
+        return this;
+    }
+
+    public XmlProtocolMarshallerBuilder xmlGenerator(XmlGenerator xmlGenerator) {
         this.xmlGenerator = xmlGenerator;
         return this;
     }
 
-    public XmlProtocolMarshallerBuilder<T> originalRequest(T originalRequest) {
-        this.originalRequest = originalRequest;
-        return this;
-    }
-
-    public XmlProtocolMarshallerBuilder<T> operationInfo(OperationInfo operationInfo) {
+    public XmlProtocolMarshallerBuilder operationInfo(OperationInfo operationInfo) {
         this.operationInfo = operationInfo;
         return this;
     }
@@ -62,7 +60,7 @@ public class XmlProtocolMarshallerBuilder<T extends SdkRequest>  {
      *
      * Other services Cloudfront, s3 don't specify location param for the request shape. For them, this value will be null.
      */
-    public XmlProtocolMarshallerBuilder<T> rootElement(String rootElement) {
+    public XmlProtocolMarshallerBuilder rootElement(String rootElement) {
         this.rootElement = rootElement;
         return this;
     }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -85,10 +86,9 @@ public class AsyncApiCallTimeoutTrackingStageTest {
                 .build();
 
         httpRequest = SdkHttpFullRequest.builder()
-                .protocol("https")
-                .host("localhost")
-                .method(SdkHttpMethod.GET)
-                .build();
+                                        .uri(URI.create("https://localhost"))
+                                        .method(SdkHttpMethod.GET)
+                                        .build();
 
         requestExecutionContext = RequestExecutionContext.builder()
                 .originalRequest(sdkRequest)

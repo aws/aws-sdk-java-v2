@@ -37,39 +37,48 @@ import software.amazon.awssdk.utils.Pair;
  * Error unmarshaller for Query/EC2/XML based protocols. Some examples of error responses from
  * the various protocols are below.
  *
- * // TODO formatting
- * SimpleDB/EC2
+ * <h3>Legacy Query (SimpleDB/EC2)</h3>
+ * <pre>
+ * {@code
  * <Response>
- * <Errors>
- * <Error>
- * <Code>MissingParameter</Code>
- * <Message>The request must contain the parameter DomainName</Message>
- * <BoxUsage>0.0055590278</BoxUsage>
- * </Error>
- * </Errors>
- * <RequestID>ad3280dd-5ac1-efd1-b9b0-a86969a9234d</RequestID>
+ *    <Errors>
+ *       <Error>
+ *          <Code>MissingParameter</Code>
+ *          <Message>The request must contain the parameter DomainName</Message>
+ *          <BoxUsage>0.0055590278</BoxUsage>
+ *       </Error>
+ *    </Errors>
+ *    <RequestID>ad3280dd-5ac1-efd1-b9b0-a86969a9234d</RequestID>
  * </Response>
+ * }
+ * </pre>
  *
- * Amazon S3
- * <?xml version="1.0" encoding="UTF-8"?>
- * <Error>
- * <Code>NoSuchBucket</Code>
- * <Message>The specified bucket does not exist</Message>
- * <BucketName>flajdfadjfladjf</BucketName>
- * <RequestId>D9DBB9F267849CA3</RequestId>
- * <HostId>fn8B1fUvWzg7I3CIeMT4UMqCZDF4+QO1JlbOJlQAVOosACZsLWv/K2dapVncz34a2mArhp11PjI=</HostId>
- * </Error>
- *
- * TRADITIONAL QUERY
- * <?xml version="1.0" encoding="UTF-8"?>
+ * <h3>Traditional Query/Rest-XML (Cloudfront)</h3>
+ * <pre>
+ * {@code
  * <ErrorResponse xmlns="http://cloudfront.amazonaws.com/doc/2017-10-30/">
- * <Error>
- * <Type>Sender</Type>
- * <Code>MalformedInput</Code>
- * <Message>Invalid XML document</Message>
- * </Error>
- * <RequestId>7c8da4af-de44-11e8-a60e-1b2014315455</RequestId>
+ *    <Error>
+ *       <Type>Sender</Type>
+ *       <Code>MalformedInput</Code>
+ *       <Message>Invalid XML document</Message>
+ *    </Error>
+ *    <RequestId>7c8da4af-de44-11e8-a60e-1b2014315455</RequestId>
  * </ErrorResponse>
+ * }
+ * </pre>
+ *
+ * <h3>Amazon S3</h3>
+ * <pre>
+ * {@code
+ * <Error>
+ *    <Code>NoSuchBucket</Code>
+ *    <Message>The specified bucket does not exist</Message>
+ *    <BucketName>flajdfadjfladjf</BucketName>
+ *    <RequestId>D9DBB9F267849CA3</RequestId>
+ *    <HostId>fn8B1fUvWzg7I3CIeMT4UMqCZDF4+QO1JlbOJlQAVOosACZsLWv/K2dapVncz34a2mArhp11PjI=</HostId>
+ * </Error>
+ * }
+ * </pre>
  */
 @SdkProtectedApi
 public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {

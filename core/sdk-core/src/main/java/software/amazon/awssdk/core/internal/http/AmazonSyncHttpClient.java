@@ -18,14 +18,12 @@ package software.amazon.awssdk.core.internal.http;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
@@ -113,16 +111,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     public interface RequestExecutionBuilder {
 
         /**
-         * Fluent setter for {@link Request}
-         *
-         * @param request Request object
-         * @return This builder for method chaining.
-         * @deprecated Use {@link #request(SdkHttpFullRequest)}
-         */
-        @Deprecated
-        RequestExecutionBuilder request(Request<?> request);
-
-        /**
          * Fluent setter for {@link SdkHttpFullRequest}
          *
          * @param request Request object
@@ -184,12 +172,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         private HttpResponseHandler<? extends SdkException> errorResponseHandler;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
-
-        @Override
-        public RequestExecutionBuilder request(Request<?> request) {
-            this.request = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
-            return this;
-        }
 
         @Override
         @ReviewBeforeRelease("This is duplicating information in the interceptor context. Can they be consolidated?")

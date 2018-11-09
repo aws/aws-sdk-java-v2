@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.http;
 import org.junit.After;
 import org.junit.Before;
 import software.amazon.awssdk.core.http.server.MockServer;
-import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 
 public abstract class MockServerTestBase {
 
@@ -33,10 +32,6 @@ public abstract class MockServerTestBase {
     @After
     public void tearDownBaseFixture() {
         server.stopServer();
-    }
-
-    protected EmptyHttpRequest newGetRequest() {
-        return new EmptyHttpRequest(server.getEndpoint(), HttpMethodName.GET);
     }
 
     /**

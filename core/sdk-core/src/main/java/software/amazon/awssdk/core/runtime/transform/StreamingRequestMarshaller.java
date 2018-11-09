@@ -17,12 +17,12 @@ package software.amazon.awssdk.core.runtime.transform;
 
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
-import static software.amazon.awssdk.utils.StringUtils.isBlank;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Augments a {@link Marshaller} to add contents for a streamed request.
@@ -30,29 +30,31 @@ import software.amazon.awssdk.core.sync.RequestBody;
  * @param <T> Type of POJO being marshalled.
  */
 @SdkProtectedApi
-public final class StreamingRequestMarshaller<T> implements Marshaller<Request<T>, T> {
+public final class StreamingRequestMarshaller<T> implements Marshaller<SdkHttpFullRequest, T> {
 
-    private final Marshaller<Request<T>, T> delegate;
+    private final Marshaller<SdkHttpFullRequest, T> delegate;
     private final RequestBody requestBody;
 
     /**
      * @param delegate    POJO marshaller (for path/query/header members).
      * @param requestBody {@link RequestBody} representing HTTP contents.
      */
-    public StreamingRequestMarshaller(Marshaller<Request<T>, T> delegate, RequestBody requestBody) {
+    public StreamingRequestMarshaller(Marshaller<SdkHttpFullRequest, T> delegate, RequestBody requestBody) {
         this.delegate = paramNotNull(delegate, "delegate");
         this.requestBody = paramNotNull(requestBody, "requestBody");
     }
 
     @Override
-    public Request<T> marshall(T in) {
-        Request<T> marshalled = delegate.marshall(in);
-        marshalled.setContentProvider(requestBody.contentStreamProvider());
-        if (!marshalled.getHeaders().containsKey(CONTENT_TYPE) || isBlank(marshalled.getHeaders().get(CONTENT_TYPE))) {
-            marshalled.addHeader(CONTENT_TYPE, requestBody.contentType());
+    public SdkHttpFullRequest marshall(T in) {
+        SdkHttpFullRequest.Builder marshalled = delegate.marshall(in).toBuilder();
+        marshalled.contentStreamProvider(requestBody.contentStreamProvider());
+        String contentType = marshalled.firstMatchingHeader(CONTENT_TYPE)
+                                       .orElse(null);
+        if (StringUtils.isEmpty(contentType)) {
+            marshalled.putHeader(CONTENT_TYPE, requestBody.contentType());
         }
 
-        marshalled.addHeader(CONTENT_LENGTH, String.valueOf(requestBody.contentLength()));
-        return marshalled;
+        marshalled.putHeader(CONTENT_LENGTH, String.valueOf(requestBody.contentLength()));
+        return marshalled.build();
     }
 }

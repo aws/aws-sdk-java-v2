@@ -40,6 +40,9 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      */
     public static final AwsClientOption<Region> SIGNING_REGION = new AwsClientOption<>(Region.class);
 
+    /**
+     * Scope name to use during signing of a request.
+     */
     public static final AwsClientOption<String> SERVICE_SIGNING_NAME = new AwsClientOption<>(String.class);
 
     private AwsClientOption(Class<T> valueClass) {

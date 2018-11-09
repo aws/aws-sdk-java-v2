@@ -19,13 +19,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
-import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.http.SdkHttpMethod;
 
-public class HttpMethodNameDeserializer extends JsonDeserializer<HttpMethodName> {
+public class SdkHttpMethodDeserializer extends JsonDeserializer<SdkHttpMethod> {
 
     @Override
-    public HttpMethodName deserialize(JsonParser p, DeserializationContext ctxt) throws
-                                                                                 IOException {
-        return HttpMethodName.fromValue(p.getText());
+    public SdkHttpMethod deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        return SdkHttpMethod.fromValue(p.getText());
     }
 }

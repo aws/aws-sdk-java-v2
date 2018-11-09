@@ -63,7 +63,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
         errorUnmarshallers(model).forEach(methodSpec::addCode);
 
-        methodSpec.addCode(".defaultServiceExceptionSupplier($T::builder)\n",
+        methodSpec.addCode(".clientConfiguration(clientConfiguration)\n"
+                           + ".defaultServiceExceptionSupplier($T::builder)\n",
                            poetExtensions.getModelClass(model.getSdkModeledExceptionBaseClassName()));
         methodSpec.addCode(".build();");
 

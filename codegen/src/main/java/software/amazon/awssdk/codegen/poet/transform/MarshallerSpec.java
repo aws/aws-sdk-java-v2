@@ -34,9 +34,9 @@ import software.amazon.awssdk.codegen.poet.transform.protocols.JsonMarshallerSpe
 import software.amazon.awssdk.codegen.poet.transform.protocols.MarshallerProtocolSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.QueryMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.protocols.XmlMarshallerSpec;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Validate;
 
 public class MarshallerSpec implements ClassSpec {
@@ -44,7 +44,7 @@ public class MarshallerSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
     private final ClassName baseMashallerName;
-    private final TypeName requestWrapperName;
+    private final TypeName httpRequestName;
     private final ClassName requestName;
     private final ClassName className;
     private final ClassName requestClassName;
@@ -55,8 +55,7 @@ public class MarshallerSpec implements ClassSpec {
         this.shapeModel = shapeModel;
         String modelPackage = intermediateModel.getMetadata().getFullModelPackageName();
         this.baseMashallerName = ClassName.get(Marshaller.class);
-        ClassName modelRequestClass = ClassName.get(modelPackage, shapeModel.getShapeName());
-        this.requestWrapperName = ParameterizedTypeName.get(ClassName.get(Request.class), modelRequestClass);
+        this.httpRequestName = ClassName.get(SdkHttpFullRequest.class);
         this.requestName = ClassName.get(modelPackage, shapeModel.getShapeName());
         this.className = new PoetExtensions(intermediateModel).getRequestTransformClass(shapeModel.getShapeName() + "Marshaller");
         this.requestClassName = ClassName.get(modelPackage, shapeModel.getShapeName());
@@ -73,7 +72,7 @@ public class MarshallerSpec implements ClassSpec {
                        .addAnnotation(SdkInternalApi.class)
                        .addSuperinterface(
                            ParameterizedTypeName.get(baseMashallerName,
-                                                     requestWrapperName,
+                                                     httpRequestName,
                                                      requestName))
                        .addFields(protocolSpec.memberVariables())
                        .addFields(protocolSpec.additionalFields())
@@ -102,7 +101,7 @@ public class MarshallerSpec implements ClassSpec {
                                                          .addAnnotation(Override.class)
                                                          .addModifiers(Modifier.PUBLIC)
                                                          .addParameter(requestClassName, variableName)
-                                                         .returns(requestWrapperName);
+                                                         .returns(httpRequestName);
 
         methodSpecBuilder.addStatement("$T.paramNotNull($L, $S)", ClassName.get(Validate.class), variableName, variableName);
         methodSpecBuilder.beginControlFlow("try");
@@ -144,6 +143,6 @@ public class MarshallerSpec implements ClassSpec {
         if (shapeModel.isEvent()) {
             return new EventStreamJsonMarshallerSpec(intermediateModel, shapeModel);
         }
-        return new JsonMarshallerSpec(intermediateModel, shapeModel);
+        return new JsonMarshallerSpec(shapeModel);
     }
 }

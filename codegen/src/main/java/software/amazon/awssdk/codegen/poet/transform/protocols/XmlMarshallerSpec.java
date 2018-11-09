@@ -24,8 +24,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 
@@ -42,10 +43,9 @@ public class XmlMarshallerSpec extends QueryMarshallerSpec {
     public CodeBlock marshalCodeBlock(ClassName requestClassName) {
         String variableName = shapeModel.getVariable().getVariableName();
         return CodeBlock.builder()
-                        .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
-                                      + "(SDK_OPERATION_BINDING, $L, rootMarshallLocationName, xmlNameSpaceUri)",
-                                      ProtocolMarshaller.class, Request.class,
-                                      requestClassName, variableName)
+                        .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller"
+                                      + "(SDK_OPERATION_BINDING, rootMarshallLocationName, xmlNameSpaceUri)",
+                                      ProtocolMarshaller.class, SdkHttpFullRequest.class)
                         .addStatement("return protocolMarshaller.marshall($L)", variableName)
                         .build();
     }
@@ -90,7 +90,7 @@ public class XmlMarshallerSpec extends QueryMarshallerSpec {
 
         Set<String> xmlUris = shapeModel.getMembers().stream()
                                         .filter(m -> m.getXmlNameSpaceUri() != null)
-                                        .map(m -> m.getXmlNameSpaceUri())
+                                        .map(MemberModel::getXmlNameSpaceUri)
                                         .collect(Collectors.toSet());
 
         if (xmlUris.isEmpty()) {

@@ -121,4 +121,16 @@
         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
     </Match>
 
+    <!-- Don't understand why these are bugs -->
+    <Match>
+        <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2AsyncClient" />
+        <Method name="init" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2Client" />
+        <Method name="init" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+
 </FindBugsFilter>

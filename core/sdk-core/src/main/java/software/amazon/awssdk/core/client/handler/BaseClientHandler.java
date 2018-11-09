@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.client.handler;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -24,7 +23,6 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
@@ -50,13 +48,12 @@ public abstract class BaseClientHandler {
         SdkClientConfiguration clientConfiguration) {
 
         runBeforeMarshallingInterceptors(executionContext);
-        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
-        request.setEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT));
+        SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
 
         executionContext.executionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME,
-                                                            request.getServiceName());
+                                                            clientConfiguration.option(SdkClientOption.SERVICE_NAME));
 
-        addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
+        addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
         return runModifyHttpRequestInterceptors(executionContext);
     }

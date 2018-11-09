@@ -24,11 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -39,11 +37,9 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
-    protected final Metadata metadata;
     protected final ShapeModel shapeModel;
 
-    public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
-        this.metadata = model.getMetadata();
+    public JsonMarshallerSpec(ShapeModel shapeModel) {
         this.shapeModel = shapeModel;
     }
 
@@ -65,10 +61,9 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
     public CodeBlock marshalCodeBlock(ClassName requestClassName) {
         String variableName = shapeModel.getVariable().getVariableName();
         return CodeBlock.builder()
-                        .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
-                                      + "(SDK_OPERATION_BINDING, $L)",
-                                      ProtocolMarshaller.class, Request.class,
-                                      requestClassName, variableName)
+                        .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller"
+                                      + "(SDK_OPERATION_BINDING)",
+                                      ProtocolMarshaller.class, SdkHttpFullRequest.class)
                         .addStatement("return protocolMarshaller.marshall($L)", variableName)
                         .build();
     }
@@ -95,11 +90,10 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
         CodeBlock.Builder initializationCodeBlockBuilder = CodeBlock.builder()
                                                                     .add("$T.builder()", OperationInfo.class);
         initializationCodeBlockBuilder.add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
-                                      .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
+                                      .add(".httpMethod($T.$L)", SdkHttpMethod.class, shapeModel.getMarshaller().getVerb())
                                       .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                                             shapeModel.getExplicitEventPayloadMember() != null)
-                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
-                                      .add(".serviceName($S)", metadata.getServiceName());
+                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
             initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget());

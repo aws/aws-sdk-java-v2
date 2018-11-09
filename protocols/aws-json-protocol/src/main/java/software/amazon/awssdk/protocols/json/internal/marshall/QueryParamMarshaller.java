@@ -71,7 +71,7 @@ public final class QueryParamMarshaller {
 
         @Override
         public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
-            context.request().addParameter(paramName, converter.convert(val, sdkField));
+            context.request().appendRawQueryParameter(paramName, converter.convert(val, sdkField));
         }
     }
 }

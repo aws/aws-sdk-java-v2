@@ -25,9 +25,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnmarshaller;
@@ -49,10 +51,12 @@ public class AwsXmlProtocolFactory {
     private final Map<String, Supplier<SdkPojo>> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
+    private final SdkClientConfiguration clientConfiguration;
 
     AwsXmlProtocolFactory(Builder<?> builder) {
         this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
+        this.clientConfiguration = builder.clientConfiguration;
         this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
             .builder()
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
@@ -66,20 +70,18 @@ public class AwsXmlProtocolFactory {
      * Creates an instance of {@link XmlProtocolMarshaller} to be used for marshalling the requess.
      *
      * @param operationInfo Info required to marshall the request
-     * @param origRequest The original request to marshall
      * @param rootElement The root of the xml document if present. See {@link XmlProtocolMarshallerBuilder#rootElement(String)}.
      * @param xmlNameSpaceUri The XML namespace to include in the xmlns attribute of the root element.
      */
-    public <T extends AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(OperationInfo operationInfo,
-                                                                                          T origRequest,
-                                                                                          String rootElement,
-                                                                                          String xmlNameSpaceUri) {
-        return XmlProtocolMarshallerBuilder.<T>builder()
-            .xmlGenerator(createGenerator(operationInfo, xmlNameSpaceUri))
-            .originalRequest(origRequest)
-            .operationInfo(operationInfo)
-            .rootElement(rootElement)
-            .build();
+    public <T extends AwsRequest> ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo,
+                                                                                                  String rootElement,
+                                                                                                  String xmlNameSpaceUri) {
+        return XmlProtocolMarshallerBuilder.builder()
+                                           .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                           .xmlGenerator(createGenerator(operationInfo, xmlNameSpaceUri))
+                                           .operationInfo(operationInfo)
+                                           .rootElement(rootElement)
+                                           .build();
     }
 
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
@@ -119,6 +121,7 @@ public class AwsXmlProtocolFactory {
 
         private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
+        private SdkClientConfiguration clientConfiguration;
 
         Builder() {
         }
@@ -130,6 +133,11 @@ public class AwsXmlProtocolFactory {
 
         public SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
+            return getSubclass();
+        }
+
+        public SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
             return getSubclass();
         }
 

@@ -94,7 +94,7 @@ public final class SyncClientInterface implements ClassSpec {
     }
 
     private String getJavadoc() {
-        return "Service client for accessing " + model.getMetadata().getServiceAbbreviation() + ". This can be "
+        return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + ". This can be "
                + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
     }
 

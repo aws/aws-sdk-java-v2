@@ -34,8 +34,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.EmptyPublisher;
@@ -46,11 +44,13 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncClientHandlerTest {
@@ -60,9 +60,9 @@ public class AsyncClientHandlerTest {
     private SdkRequest request;
 
     @Mock
-    private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
+    private Marshaller<SdkHttpFullRequest, SdkRequest> marshaller;
 
-    private Request<SdkRequest> marshalledRequest = new DefaultRequest<>(request, "");
+    private SdkHttpFullRequest marshalledRequest = ValidSdkObjects.sdkHttpFullRequest().build();
 
     @Mock
     private SdkAsyncHttpClient httpClient;

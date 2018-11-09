@@ -16,7 +16,8 @@
 package software.amazon.awssdk.protocols.query.internal.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolUnmarshaller;
 
 /**
@@ -27,7 +28,7 @@ public final class QueryMarshallerContext {
 
     private final QueryProtocolMarshaller protocolHandler;
     private final QueryMarshallerRegistry marshallerRegistry;
-    private final Request<?> request;
+    private final SdkHttpFullRequest.Builder request;
 
     private QueryMarshallerContext(Builder builder) {
         this.protocolHandler = builder.protocolHandler;
@@ -52,9 +53,10 @@ public final class QueryMarshallerContext {
     }
 
     /**
-     * @return Mutable {@link Request} object that can be used to add headers, query params, modify request URI, etc.
+     * @return Mutable {@link SdkHttpFullRequest.Builder} object that can be used to add headers, query params,
+     * modify request URI, etc.
      */
-    public Request<?> request() {
+    public SdkHttpFullRequest.Builder request() {
         return request;
     }
 
@@ -72,7 +74,7 @@ public final class QueryMarshallerContext {
 
         private QueryProtocolMarshaller protocolHandler;
         private QueryMarshallerRegistry marshallerRegistry;
-        private Request<?> request;
+        private SdkHttpFullRequest.Builder request;
 
         private Builder() {
         }
@@ -87,7 +89,7 @@ public final class QueryMarshallerContext {
             return this;
         }
 
-        public Builder request(Request<?> request) {
+        public Builder request(SdkHttpFullRequest.Builder request) {
             this.request = request;
             return this;
         }

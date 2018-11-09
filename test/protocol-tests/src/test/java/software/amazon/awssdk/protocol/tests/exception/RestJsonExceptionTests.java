@@ -155,7 +155,7 @@ public class RestJsonExceptionTests {
             AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
             assertThat(awsErrorDetails.errorCode()).isEqualTo("EmptyModeledException");
             assertThat(awsErrorDetails.errorMessage()).isEqualTo("This is the service message");
-            assertThat(awsErrorDetails.serviceName()).isEqualTo("RestJsonProtocolTests");
+            assertThat(awsErrorDetails.serviceName()).isEqualTo("ProtocolRestJson");
             assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
             assertThat(e.requestId()).isEqualTo("1234");
             assertThat(e.statusCode()).isEqualTo(404);

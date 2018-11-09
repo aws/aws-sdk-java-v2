@@ -228,10 +228,30 @@ public class QueryExceptionTests {
             AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
             assertThat(awsErrorDetails.errorCode()).isEqualTo("EmptyModeledException");
             assertThat(awsErrorDetails.errorMessage()).isEqualTo("This is the service message");
-            assertThat(awsErrorDetails.serviceName()).isEqualTo("AmazonProtocolQuery");
+            assertThat(awsErrorDetails.serviceName()).isEqualTo("ProtocolQuery");
             assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
             assertThat(e.requestId()).isEqualTo("1234");
             assertThat(e.statusCode()).isEqualTo(404);
+        }
+    }
+
+    @Test
+    public void modeledException_RequestIDInXml_SetCorrectly() {
+        String xml = "<ErrorResponse>"
+                     + "   <Error>"
+                     + "      <Code>EmptyModeledException</Code>"
+                     + "      <Message>This is the service message</Message>"
+                     + "   </Error>"
+                     + "   <RequestID>1234</RequestID>"
+                     + "</ErrorResponse>";
+        stubFor(post(urlEqualTo(PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withBody(xml)));
+        try {
+            client.allTypes();
+        } catch (EmptyModeledException e) {
+            assertThat(e.requestId()).isEqualTo("1234");
         }
     }
 

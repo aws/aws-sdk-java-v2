@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -69,6 +70,8 @@ public class Metadata {
     private String serviceAbbreviation;
 
     private String serviceFullName;
+
+    private String serviceName;
 
     private String baseExceptionName;
 
@@ -432,15 +435,6 @@ public class Metadata {
         return this;
     }
 
-    /**
-     * Returns an abbreviated name for the service if one is defined in the
-     * service model; for example "Amazon EC2". Returns null if no abbreviation
-     * is defined.
-     */
-    public String getServiceAbbreviation() {
-        return serviceAbbreviation;
-    }
-
     public void setServiceAbbreviation(String serviceAbbreviation) {
         this.serviceAbbreviation = serviceAbbreviation;
     }
@@ -448,14 +442,6 @@ public class Metadata {
     public Metadata withServiceAbbreviation(String serviceAbbreviation) {
         setServiceAbbreviation(serviceAbbreviation);
         return this;
-    }
-
-    /**
-     * Returns the full name of the service as defined in the service model;
-     * for example "Amazon Elastic Compute Cloud".
-     */
-    public String getServiceFullName() {
-        return serviceFullName;
     }
 
     public void setServiceFullName(String serviceFullName) {
@@ -471,16 +457,29 @@ public class Metadata {
      * Returns a convenient name for the service. If an abbreviated form
      * of the service name is available it will return that, otherwise it
      * will return the full service name.
-     * <p>
-     * Use me when casually referring to a service in documentation. Use
-     * {@code getServiceFullName} if you want to make sure you have the
-     * full-on official name of the service.
      */
-    public String getServiceName() {
+    public String getDescriptiveServiceName() {
         if (serviceAbbreviation != null) {
             return serviceAbbreviation;
         }
         return serviceFullName;
+    }
+
+    /**
+     * @return Unique, short name for the service. Suitable for displaying in metadata like {@link AwsErrorDetails} and
+     * for use in metrics. Should not be used in documentation, use {@link #getDescriptiveServiceName()} for that.
+     */
+    public String getServiceName() {
+        return this.serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public Metadata withServiceName(String serviceName) {
+        setServiceName(serviceName);
+        return this;
     }
 
     public String getJsonVersion() {

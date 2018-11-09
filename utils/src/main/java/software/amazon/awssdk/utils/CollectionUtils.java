@@ -59,6 +59,20 @@ public final class CollectionUtils {
     }
 
     /**
+     * @param list List to get first element from.
+     * @param <T> Type of elements in the list.
+     * @return The first element in the list if it exists. If the list is null or empty this will
+     * return null.
+     */
+    public static <T> T firstIfPresent(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        } else {
+            return list.get(0);
+        }
+    }
+
+    /**
      * Perform a deep copy of the provided map of lists. This only performs a deep copy of the map and lists. Entries are not
      * copied, so care should be taken to ensure that entries are immutable if preventing unwanted mutations of the elements is
      * desired.

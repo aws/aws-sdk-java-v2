@@ -42,7 +42,7 @@ public class SharedModelsTaskParamsValidator implements Consumer<GeneratorTaskPa
                                              + "generating '%s'.",
                                              sharedModelService,
                                              modelPackageDirectory,
-                                             params.getModel().getMetadata().getServiceName());
+                                             params.getModel().getMetadata().getDescriptiveServiceName());
                 throw new IllegalStateException(error);
             }
         }

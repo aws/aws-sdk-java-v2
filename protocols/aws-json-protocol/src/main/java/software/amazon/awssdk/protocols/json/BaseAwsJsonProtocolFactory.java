@@ -24,9 +24,11 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
@@ -40,20 +42,24 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHan
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
+
     /**
      * Content type resolver implementation for plain text AWS_JSON services.
      */
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
-    protected final AwsJsonProtocolMetadata protocolMetadata;
+
+    private final AwsJsonProtocolMetadata protocolMetadata;
     private final Map<String, Supplier<SdkPojo>> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
+    private final SdkClientConfiguration clientConfiguration;
 
     protected BaseAwsJsonProtocolFactory(Builder<?> builder) {
         this.protocolMetadata = builder.protocolMetadata.build();
         this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
+        this.clientConfiguration = builder.clientConfiguration;
     }
 
     /**
@@ -65,7 +71,7 @@ public abstract class BaseAwsJsonProtocolFactory {
      * @param <T> Type being unmarshalled.
      * @return HttpResponseHandler that will handle the HTTP response and unmarshall into a POJO.
      */
-    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
+    public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
                                                                             Supplier<SdkPojo> pojoSupplier) {
         return createResponseHandler(operationMetadata, r -> pojoSupplier.get());
     }
@@ -80,7 +86,7 @@ public abstract class BaseAwsJsonProtocolFactory {
      * @param <T> Type being unmarshalled.
      * @return HttpResponseHandler that will handle the HTTP response and unmarshall into a POJO.
      */
-    public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
+    public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
                                                                             Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
         JsonProtocolUnmarshaller unmarshaller = createJsonProtocolUnmarshaller();
         return new AwsJsonResponseHandler<>(
@@ -90,14 +96,15 @@ public abstract class BaseAwsJsonProtocolFactory {
                                       operationMetadata.isPayloadJson()));
     }
 
-    private <T extends SdkPojo> JsonProtocolUnmarshaller createJsonProtocolUnmarshaller() {
+    private JsonProtocolUnmarshaller createJsonProtocolUnmarshaller() {
         return new JsonProtocolUnmarshaller(getSdkFactory().getJsonFactory());
     }
 
     /**
      * Creates a response handler for handling a error response (non 2xx response).
      */
-    public HttpResponseHandler<AwsServiceException> createErrorResponseHandler(JsonOperationMetadata errorResponseMetadata) {
+    public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
+        JsonOperationMetadata errorResponseMetadata) {
         return AwsJsonProtocolErrorUnmarshaller
             .builder()
             .jsonProtocolUnmarshaller(createJsonProtocolUnmarshaller())
@@ -118,12 +125,12 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     @SdkTestInternalApi
-    StructuredJsonGenerator createGenerator() {
+    final StructuredJsonGenerator createGenerator() {
         return getSdkFactory().createWriter(getContentType());
     }
 
     @SdkTestInternalApi
-    protected String getContentType() {
+    protected final String getContentType() {
         return getContentTypeResolver().resolveContentType(protocolMetadata);
     }
 
@@ -141,15 +148,14 @@ public abstract class BaseAwsJsonProtocolFactory {
         return AwsStructuredPlainJsonFactory.SDK_JSON_FACTORY;
     }
 
-    public <T> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
-        OperationInfo operationInfo, T origRequest) {
-        return JsonProtocolMarshallerBuilder.<T>standard()
-            .jsonGenerator(createGenerator(operationInfo))
-            .contentType(getContentType())
-            .operationInfo(operationInfo)
-            .originalRequest(origRequest)
-            .sendExplicitNullForPayload(false)
-            .build();
+    public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
+        return JsonProtocolMarshallerBuilder.standard()
+                                            .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                            .jsonGenerator(createGenerator(operationInfo))
+                                            .contentType(getContentType())
+                                            .operationInfo(operationInfo)
+                                            .sendExplicitNullForPayload(false)
+                                            .build();
     }
 
     /**
@@ -161,32 +167,38 @@ public abstract class BaseAwsJsonProtocolFactory {
         private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private String customErrorCodeFieldName;
+        private SdkClientConfiguration clientConfiguration;
 
         protected Builder() {
         }
 
-        public SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
+        public final SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
             modeledExceptions.put(errorCode, exceptionBuilderSupplier);
             return getSubclass();
         }
 
-        public SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
+        public final SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
             return getSubclass();
         }
 
-        public SubclassT protocol(AwsJsonProtocol protocol) {
+        public final SubclassT protocol(AwsJsonProtocol protocol) {
             protocolMetadata.protocol(protocol);
             return getSubclass();
         }
 
-        public SubclassT protocolVersion(String protocolVersion) {
+        public final SubclassT protocolVersion(String protocolVersion) {
             protocolMetadata.protocolVersion(protocolVersion);
             return getSubclass();
         }
 
-        public SubclassT customErrorCodeFieldName(String customErrorCodeFieldName) {
+        public final SubclassT customErrorCodeFieldName(String customErrorCodeFieldName) {
             this.customErrorCodeFieldName = customErrorCodeFieldName;
+            return getSubclass();
+        }
+
+        public final SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
             return getSubclass();
         }
 

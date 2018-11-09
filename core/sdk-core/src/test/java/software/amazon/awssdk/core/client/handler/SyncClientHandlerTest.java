@@ -32,8 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -50,8 +48,10 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyncClientHandlerTest {
@@ -61,9 +61,9 @@ public class SyncClientHandlerTest {
     private SdkRequest request;
 
     @Mock
-    private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
+    private Marshaller<SdkHttpFullRequest, SdkRequest> marshaller;
 
-    private Request<SdkRequest> marshalledRequest = new DefaultRequest<>(request, "");
+    private SdkHttpFullRequest marshalledRequest = ValidSdkObjects.sdkHttpFullRequest().build();
 
     @Mock
     private SdkHttpClient httpClient;

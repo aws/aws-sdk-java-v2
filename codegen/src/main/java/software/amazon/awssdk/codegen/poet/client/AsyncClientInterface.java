@@ -96,7 +96,7 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     private String getJavadoc() {
-        return "Service client for accessing " + model.getMetadata().getServiceAbbreviation() + " asynchronously. This can be "
+        return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + " asynchronously. This can be "
                + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
     }
 

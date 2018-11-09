@@ -573,8 +573,9 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder.defaultServiceExceptionSupplier(JsonException::builder).protocol(AwsJsonProtocol.REST_JSON)
-                      .protocolVersion("1.1").registerModeledException("InvalidInput", InvalidInputException::builder);
+        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(JsonException::builder)
+                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1")
+                      .registerModeledException("InvalidInput", InvalidInputException::builder);
     }
 
     @Override

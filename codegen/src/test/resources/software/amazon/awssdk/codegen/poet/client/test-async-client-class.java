@@ -101,10 +101,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final AwsJsonProtocolFactory protocolFactory;
 
+    private final SdkClientConfiguration clientConfiguration;
+
     private final Executor executor;
 
     protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
+        this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -781,8 +784,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder.defaultServiceExceptionSupplier(JsonException::builder).protocol(AwsJsonProtocol.REST_JSON)
-                      .protocolVersion("1.1").registerModeledException("InvalidInput", InvalidInputException::builder);
+        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(JsonException::builder)
+                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1")
+                      .registerModeledException("InvalidInput", InvalidInputException::builder);
     }
 
     private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
@@ -810,3 +814,4 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 }
+

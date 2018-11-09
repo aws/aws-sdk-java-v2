@@ -344,9 +344,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                          Map<String, String> params) {
         String contentLength = body == null ? null : String.valueOf(body.getBytes(UTF_8).length);
         return SdkHttpFullRequest.builder()
-                                 .host(uri.getHost())
-                                 .protocol(uri.getScheme())
-                                 .port(uri.getPort())
+                                 .uri(uri)
                                  .method(method)
                                  .encodedPath(resourcePath)
                                  .applyMutation(b -> params.forEach(b::putRawQueryParameter))

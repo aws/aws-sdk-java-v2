@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -69,9 +70,7 @@ public class PutObjectInterceptorTest {
 
     private SdkHttpFullRequest sdkHttpFullRequest() {
         return SdkHttpFullRequest.builder()
-                                 .protocol("http")
-                                 .host("test.com")
-                                 .port(80)
+                                 .uri(URI.create("http://test.com:80"))
                                  .method(SdkHttpMethod.GET)
                                  .build();
     }

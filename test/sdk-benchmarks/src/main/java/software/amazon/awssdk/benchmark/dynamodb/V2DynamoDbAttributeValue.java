@@ -26,10 +26,10 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
@@ -185,8 +185,8 @@ public class V2DynamoDbAttributeValue {
     }
 
     private static byte[] toUtf8ByteArray(Map<String, AttributeValue> item) {
-        Request<?> marshalled = putItemRequestMarshaller().marshall(PutItemRequest.builder().item(item).build());
-        InputStream content = marshalled.getContentStreamProvider().get().newStream();
+        SdkHttpFullRequest marshalled = putItemRequestMarshaller().marshall(PutItemRequest.builder().item(item).build());
+        InputStream content = marshalled.contentStreamProvider().get().newStream();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buff = new byte[8192];
         int read;

@@ -20,6 +20,7 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -154,6 +155,12 @@ public class SdkHttpRequestResponseTest {
             }
 
             @Override
+            public BuilderProxy appendValue(String key, String value) {
+                builder.appendRawQueryParameter(key, value);
+                return this;
+            }
+
+            @Override
             public BuilderProxy setValues(String key, List<String> values) {
                 builder.putRawQueryParameter(key, values);
                 return this;
@@ -192,6 +199,12 @@ public class SdkHttpRequestResponseTest {
             @Override
             public BuilderProxy setValue(String key, String value) {
                 builder.putHeader(key, value);
+                return this;
+            }
+
+            @Override
+            public BuilderProxy appendValue(String key, String value) {
+                builder.appendHeader(key, value);
                 return this;
             }
 
@@ -248,6 +261,12 @@ public class SdkHttpRequestResponseTest {
             }
 
             @Override
+            public BuilderProxy appendValue(String key, String value) {
+                builder.appendHeader(key, value);
+                return this;
+            }
+
+            @Override
             public BuilderProxy setValues(String key, List<String> values) {
                 builder.putHeader(key, values);
                 return this;
@@ -280,6 +299,7 @@ public class SdkHttpRequestResponseTest {
 
     private interface BuilderProxy {
         BuilderProxy setValue(String key, String value);
+        BuilderProxy appendValue(String key, String value);
         BuilderProxy setValues(String key, List<String> values);
         BuilderProxy removeValue(String key);
         BuilderProxy clearValues();
@@ -287,48 +307,108 @@ public class SdkHttpRequestResponseTest {
         Map<String, List<String>> getMap();
     }
 
-    public void headerOrQueryStringNormalizationIsCorrect(Supplier<BuilderProxy> builderFactory) {
-        assertThat(builderFactory.get().setMap(Collections.emptyMap()).getMap()).isEmpty();
+    private void headerOrQueryStringNormalizationIsCorrect(Supplier<BuilderProxy> builderFactory) {
+        assertMapIsInitiallyEmpty(builderFactory);
 
+        setValue_SetsSingleValueCorrectly(builderFactory);
+
+        setValue_SettingMultipleKeysAppendsToMap(builderFactory);
+
+        setValue_OverwritesExistingValue(builderFactory);
+
+        setValues_SetsAllValuesCorrectly(builderFactory);
+
+        setValue_OverwritesAllExistingValues(builderFactory);
+
+        removeValue_OnlyRemovesThatKey(builderFactory);
+
+        clearValues_RemovesAllExistingValues(builderFactory);
+
+        setMap_OverwritesAllExistingValues(builderFactory);
+
+        appendWithExistingValues_AddsValueToList(builderFactory);
+
+        appendWithNoValues_AddsSingleElementToList(builderFactory);
+    }
+
+    private void assertMapIsInitiallyEmpty(Supplier<BuilderProxy> builderFactory) {
+        assertThat(builderFactory.get().setMap(Collections.emptyMap()).getMap()).isEmpty();
+    }
+
+    private void setValue_SetsSingleValueCorrectly(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValue("Foo", "Bar").getMap()).satisfies(params -> {
             assertThat(params).containsOnlyKeys("Foo");
             assertThat(params.get("Foo")).containsExactly("Bar");
         });
+    }
 
+    private void setValue_SettingMultipleKeysAppendsToMap(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValue("Foo", "Bar").setValue("Foo2", "Bar2").getMap()).satisfies(params -> {
             assertThat(params).containsOnlyKeys("Foo", "Foo2");
             assertThat(params.get("Foo")).containsExactly("Bar");
             assertThat(params.get("Foo2")).containsExactly("Bar2");
         });
+    }
 
+    private void setValue_OverwritesExistingValue(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValue("Foo", "Bar").setValue("Foo", "Bar2").getMap()).satisfies(params -> {
             assertThat(params).containsOnlyKeys("Foo");
             assertThat(params.get("Foo")).containsExactly("Bar2");
         });
+    }
 
+    private void setValues_SetsAllValuesCorrectly(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValues("Foo", Arrays.asList("Bar", "Baz")).getMap()).satisfies(params -> {
             assertThat(params).containsOnlyKeys("Foo");
             assertThat(params.get("Foo")).containsExactly("Bar", "Baz");
         });
+    }
 
+    private void setValue_OverwritesAllExistingValues(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValues("Foo", Arrays.asList("Bar", "Baz")).setValue("Foo", "Bar").getMap())
                 .satisfies(params -> {
             assertThat(params).containsOnlyKeys("Foo");
             assertThat(params.get("Foo")).containsExactly("Bar");
         });
+    }
 
-        assertThat(builderFactory.get().setValues("Foo", Arrays.asList("Bar", "Baz")).removeValue("Foo").getMap())
-                .doesNotContainKeys("Foo");
+    private void removeValue_OnlyRemovesThatKey(Supplier<BuilderProxy> builderFactory) {
+        assertThat(builderFactory.get().setValues("Foo", Arrays.asList("Bar", "Baz"))
+                                 .setValues("Foo2", Arrays.asList("Bar", "Baz"))
+                                 .removeValue("Foo").getMap())
+        .satisfies(params -> {
+            assertThat(params).doesNotContainKeys("Foo");
+            assertThat(params.get("Foo2")).containsExactly("Bar", "Baz");
+        });
+    }
 
+    private void clearValues_RemovesAllExistingValues(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValues("Foo", Arrays.asList("Bar", "Baz")).clearValues().getMap())
                 .doesNotContainKeys("Foo");
+    }
 
+    private void setMap_OverwritesAllExistingValues(Supplier<BuilderProxy> builderFactory) {
         assertThat(builderFactory.get().setValues("Foo", Arrays.asList("Bar", "Baz"))
                                  .setMap(singletonMap("Foo2", singletonList("Baz2"))).getMap())
                 .satisfies(params -> {
             assertThat(params).containsOnlyKeys("Foo2");
             assertThat(params.get("Foo2")).containsExactly("Baz2");
         });
+    }
+
+    private void appendWithExistingValues_AddsValueToList(Supplier<BuilderProxy> builderFactory) {
+        assertThat(builderFactory.get().setValues("Key", Arrays.asList("Foo", "Bar"))
+                                 .appendValue("Key", "Baz").getMap())
+            .satisfies(params -> {
+                assertThat(params).containsOnly(new AbstractMap.SimpleEntry<>("Key", Arrays.asList("Foo", "Bar", "Baz")));
+            });
+    }
+
+    private void appendWithNoValues_AddsSingleElementToList(Supplier<BuilderProxy> builderFactory) {
+        assertThat(builderFactory.get().appendValue("AppendNotExists", "Baz").getMap())
+            .satisfies(params -> {
+                assertThat(params).containsOnly(new AbstractMap.SimpleEntry<>("AppendNotExists", Arrays.asList("Baz")));
+            });
     }
 
     private SdkHttpFullRequest validRequest() {

@@ -16,8 +16,6 @@
 package utils;
 
 import java.net.URI;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -35,17 +33,10 @@ public final class ValidSdkObjects {
 
     public static SdkHttpFullRequest.Builder sdkHttpFullRequest(int port) {
         return SdkHttpFullRequest.builder()
-                                 .protocol("http")
-                                 .host("localhost")
-                                 .putHeader("Host", "localhost")
+                                 .uri(URI.create("http://localhost"))
                                  .port(port)
+                                 .putHeader("Host", "localhost")
                                  .method(SdkHttpMethod.GET);
-    }
-
-    public static <T> Request<T> legacyRequest() {
-        DefaultRequest<T> request = new DefaultRequest<>("testService");
-        request.setEndpoint(URI.create("http://localhost"));
-        return request;
     }
 
     public static SdkHttpFullResponse.Builder sdkHttpFullResponse() {

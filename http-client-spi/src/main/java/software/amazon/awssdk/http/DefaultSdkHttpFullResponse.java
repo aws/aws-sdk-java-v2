@@ -137,6 +137,14 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
         }
 
         @Override
+        public SdkHttpFullResponse.Builder appendHeader(String headerName, String headerValue) {
+            Validate.paramNotNull(headerName, "headerName");
+            Validate.paramNotNull(headerValue, "headerValue");
+            this.headers.computeIfAbsent(headerName, k -> new ArrayList<>()).add(headerValue);
+            return this;
+        }
+
+        @Override
         public Builder headers(Map<String, List<String>> headers) {
             Validate.paramNotNull(headers, "headers");
             this.headers = CollectionUtils.deepCopyMap(headers);

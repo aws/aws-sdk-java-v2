@@ -15,41 +15,45 @@
 
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
  * Builder to create an appropriate implementation of {@link ProtocolMarshaller} for JSON based services.
- *
- * @param <T> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshallerBuilder<T> {
+public class JsonProtocolMarshallerBuilder {
 
+    private URI endpoint;
     private StructuredJsonGenerator jsonGenerator;
     private String contentType;
     private OperationInfo operationInfo;
     private boolean sendExplicitNullForPayload;
-    private T originalRequest;
 
-    public static <T> JsonProtocolMarshallerBuilder<T> standard() {
-        return new JsonProtocolMarshallerBuilder<>();
+    public static JsonProtocolMarshallerBuilder standard() {
+        return new JsonProtocolMarshallerBuilder();
     }
 
-    public JsonProtocolMarshallerBuilder<T> jsonGenerator(StructuredJsonGenerator jsonGenerator) {
+    public JsonProtocolMarshallerBuilder endpoint(URI endpoint) {
+        this.endpoint = endpoint;
+        return this;
+    }
+
+    public JsonProtocolMarshallerBuilder jsonGenerator(StructuredJsonGenerator jsonGenerator) {
         this.jsonGenerator = jsonGenerator;
         return this;
     }
 
-    public JsonProtocolMarshallerBuilder<T> contentType(String contentType) {
+    public JsonProtocolMarshallerBuilder contentType(String contentType) {
         this.contentType = contentType;
         return this;
     }
 
-    public JsonProtocolMarshallerBuilder<T> operationInfo(OperationInfo operationInfo) {
+    public JsonProtocolMarshallerBuilder operationInfo(OperationInfo operationInfo) {
         this.operationInfo = operationInfo;
         return this;
     }
@@ -58,22 +62,18 @@ public class JsonProtocolMarshallerBuilder<T> {
      * @param sendExplicitNullForPayload True if an explicit JSON null should be sent as the body when the
      *                                   payload member is null. See {@link NullAsEmptyBodyProtocolRequestMarshaller}.
      */
-    public JsonProtocolMarshallerBuilder<T> sendExplicitNullForPayload(boolean sendExplicitNullForPayload) {
+    public JsonProtocolMarshallerBuilder sendExplicitNullForPayload(boolean sendExplicitNullForPayload) {
         this.sendExplicitNullForPayload = sendExplicitNullForPayload;
         return this;
     }
 
-    public JsonProtocolMarshallerBuilder<T> originalRequest(T originalRequest) {
-        this.originalRequest = originalRequest;
-        return this;
-    }
-
-    public ProtocolMarshaller<Request<T>> build() {
-        ProtocolMarshaller<Request<T>> protocolMarshaller = new JsonProtocolMarshaller<>(jsonGenerator,
-                                                                                         contentType,
-                                                                                         operationInfo,
-                                                                                         originalRequest);
+    public ProtocolMarshaller<SdkHttpFullRequest> build() {
+        ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = new JsonProtocolMarshaller(
+            endpoint,
+            jsonGenerator,
+            contentType,
+            operationInfo);
         return sendExplicitNullForPayload ? protocolMarshaller
-                                          : new NullAsEmptyBodyProtocolRequestMarshaller<>(protocolMarshaller);
+                                          : new NullAsEmptyBodyProtocolRequestMarshaller(protocolMarshaller);
     }
 }

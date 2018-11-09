@@ -137,18 +137,16 @@ public class NettyNioAsyncHttpClientSpiVerificationTest {
 
         String contentLength = body == null ? null : String.valueOf(body.getBytes(UTF_8).length);
         return SdkHttpFullRequest.builder()
-                .host(endpoint.getHost())
-                .protocol(endpoint.getScheme())
-                .port(endpoint.getPort())
-                .method(method)
-                .encodedPath(resourcePath)
-                .applyMutation(b -> params.forEach(b::putRawQueryParameter))
-                .applyMutation(b -> {
-                    b.putHeader("Host", endpoint.getHost());
-                    if (contentLength != null) {
-                        b.putHeader("Content-Length", contentLength);
-                    }
-                }).build();
+                                 .uri(endpoint)
+                                 .method(method)
+                                 .encodedPath(resourcePath)
+                                 .applyMutation(b -> params.forEach(b::putRawQueryParameter))
+                                 .applyMutation(b -> {
+                                     b.putHeader("Host", endpoint.getHost());
+                                     if (contentLength != null) {
+                                         b.putHeader("Content-Length", contentLength);
+                                     }
+                                 }).build();
     }
 
     private static class EmptyPublisher implements SdkHttpContentPublisher {

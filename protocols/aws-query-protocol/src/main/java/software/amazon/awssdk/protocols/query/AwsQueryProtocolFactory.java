@@ -24,9 +24,11 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.internal.marshall.QueryProtocolMarshaller;
@@ -41,11 +43,13 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 @SdkProtectedApi
 public class AwsQueryProtocolFactory {
 
+    private final SdkClientConfiguration clientConfiguration;
     private final Map<String, Supplier<SdkPojo>> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
 
     AwsQueryProtocolFactory(Builder<?> builder) {
+        this.clientConfiguration = builder.clientConfiguration;
         this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
@@ -62,13 +66,12 @@ public class AwsQueryProtocolFactory {
      * Creates a new marshaller for the given request.
      *
      * @param operationInfo Object containing metadata about the operation.
-     * @param origRequest Request to marshall.
-     * @param <T> Type to marshall.
      * @return New {@link ProtocolMarshaller}.
      */
-    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
-        OperationInfo operationInfo, T origRequest) {
-        return QueryProtocolMarshaller.builder(origRequest)
+    public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(
+        OperationInfo operationInfo) {
+        return QueryProtocolMarshaller.builder()
+                                      .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                       .operationInfo(operationInfo)
                                       .isEc2(isEc2())
                                       .build();
@@ -81,7 +84,7 @@ public class AwsQueryProtocolFactory {
      * @param <T> Type being unmarshalled.
      * @return New {@link HttpResponseHandler} for success responses.
      */
-    public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
+    public final <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
         return new AwsQueryResponseHandler<>(QueryProtocolUnmarshaller.builder()
                                                                       .hasResultWrapper(!isEc2())
                                                                       .build(),
@@ -92,7 +95,7 @@ public class AwsQueryProtocolFactory {
      * @return A {@link HttpResponseHandler} that will unmarshall the service exceptional response into
      * a modeled exception or the service base exception.
      */
-    public HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
+    public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
         return errorUnmarshaller;
     }
 
@@ -129,9 +132,16 @@ public class AwsQueryProtocolFactory {
     public static class Builder<SubclassT extends Builder> {
 
         private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
+        private SdkClientConfiguration clientConfiguration;
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
 
         Builder() {
+        }
+
+        // TODO docs
+        public final SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
+            return getSubclass();
         }
 
         /**
@@ -141,7 +151,7 @@ public class AwsQueryProtocolFactory {
          * @param exceptionBuilderSupplier Supplier of the modeled exceptions Builder.
          * @return This builder for method chaining.
          */
-        public SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
+        public final SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
             modeledExceptions.put(errorCode, exceptionBuilderSupplier);
             return getSubclass();
         }
@@ -153,7 +163,7 @@ public class AwsQueryProtocolFactory {
          * @param exceptionBuilderSupplier Suppplier of the base service exceptions Builder.
          * @return This builder for method chaining.
          */
-        public SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
+        public final SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
             return getSubclass();
         }

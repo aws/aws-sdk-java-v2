@@ -86,6 +86,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                        .build())
                     .addField(AsyncClientHandler.class, "clientHandler", Modifier.PRIVATE, Modifier.FINAL)
                     .addField(protocolSpec.protocolFactory(model))
+                    .addField(SdkClientConfiguration.class, "clientConfiguration", Modifier.PRIVATE, Modifier.FINAL)
                     .addSuperinterface(interfaceClass)
                     .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                 interfaceClass)
@@ -119,7 +120,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                .addModifiers(Modifier.PROTECTED)
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                                                .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             AwsAsyncClientHandler.class);
+                                                             AwsAsyncClientHandler.class)
+                                               .addStatement("this.clientConfiguration = clientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,

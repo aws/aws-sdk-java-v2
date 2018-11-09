@@ -30,8 +30,6 @@ import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.EmptyPublisher;
@@ -47,11 +45,13 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 /**
  * Tests to verify that when exceptions are thrown during various stages of
@@ -65,7 +65,7 @@ public class AsyncClientHandlerExceptionTest {
 
     private final SdkAsyncHttpClient asyncHttpClient = mock(SdkAsyncHttpClient.class);
 
-    private final Marshaller<Request<SdkRequest>, SdkRequest> marshaller = mock(Marshaller.class);
+    private final Marshaller<SdkHttpFullRequest, SdkRequest> marshaller = mock(Marshaller.class);
 
     private final HttpResponseHandler<SdkResponse> responseHandler = mock(HttpResponseHandler.class);
 
@@ -93,7 +93,7 @@ public class AsyncClientHandlerExceptionTest {
 
         when(request.overrideConfiguration()).thenReturn(Optional.empty());
 
-        when(marshaller.marshall(eq(request))).thenReturn(new DefaultRequest<>(null));
+        when(marshaller.marshall(eq(request))).thenReturn(ValidSdkObjects.sdkHttpFullRequest().build());
 
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(VoidSdkResponse.builder().build());

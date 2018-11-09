@@ -56,7 +56,7 @@ public final class HeaderMarshaller {
 
         @Override
         public void marshall(T val, JsonMarshallerContext context, String paramName, SdkField<T> sdkField) {
-            context.request().addHeader(paramName, converter.convert(val, sdkField));
+            context.request().putHeader(paramName, converter.convert(val, sdkField));
         }
     }
 
