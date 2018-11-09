@@ -78,8 +78,8 @@ public final class AwsQueryResponseHandler<T extends AwsResponse> implements Htt
     }
 
     /**
-     * Create the default {@link AwsResponseMetadata}. Subclasses may override this to create a
-     * subclass of {@link AwsResponseMetadata}.
+     * Create the default {@link AwsResponseMetadata}. This might be wrapped by a service
+     * specific metadata object to provide modeled access to additional metadata. (See S3 and Kinesis).
      */
     private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response, Map<String, String> metadata) {
         if (!metadata.containsKey(AWS_REQUEST_ID)) {

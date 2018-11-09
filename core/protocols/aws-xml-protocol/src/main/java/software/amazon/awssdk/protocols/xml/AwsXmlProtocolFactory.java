@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkPojo;
@@ -36,7 +35,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnma
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlGenerator;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshaller;
-import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseHandler;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlOperationMetadata;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmarshaller;
@@ -70,18 +68,18 @@ public class AwsXmlProtocolFactory {
      * Creates an instance of {@link XmlProtocolMarshaller} to be used for marshalling the requess.
      *
      * @param operationInfo Info required to marshall the request
-     * @param rootElement The root of the xml document if present. See {@link XmlProtocolMarshallerBuilder#rootElement(String)}.
+     * @param rootElement The root of the xml document if present.
      * @param xmlNameSpaceUri The XML namespace to include in the xmlns attribute of the root element.
      */
-    public <T extends AwsRequest> ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo,
-                                                                                                  String rootElement,
-                                                                                                  String xmlNameSpaceUri) {
-        return XmlProtocolMarshallerBuilder.builder()
-                                           .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
-                                           .xmlGenerator(createGenerator(operationInfo, xmlNameSpaceUri))
-                                           .operationInfo(operationInfo)
-                                           .rootElement(rootElement)
-                                           .build();
+    public ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo,
+                                                                           String rootElement,
+                                                                           String xmlNameSpaceUri) {
+        return XmlProtocolMarshaller.builder()
+                                    .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                    .xmlGenerator(createGenerator(operationInfo, xmlNameSpaceUri))
+                                    .operationInfo(operationInfo)
+                                    .rootElement(rootElement)
+                                    .build();
     }
 
     public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,
@@ -126,16 +124,37 @@ public class AwsXmlProtocolFactory {
         Builder() {
         }
 
+        /**
+         * Registers a new modeled exception by the error code.
+         *
+         * @param errorCode Error code identifying this modeled exception.
+         * @param exceptionBuilderSupplier Supplier of the modeled exceptions Builder.
+         * @return This builder for method chaining.
+         */
         public SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
             modeledExceptions.put(errorCode, exceptionBuilderSupplier);
             return getSubclass();
         }
 
+
+        /**
+         * A supplier for the services base exception builder. This is used when we can't identify any modeled
+         * exception to unmarshall into.
+         *
+         * @param exceptionBuilderSupplier Suppplier of the base service exceptions Builder.
+         * @return This builder for method chaining.
+         */
         public SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
             return getSubclass();
         }
 
+        /**
+         * Sets the {@link SdkClientConfiguration} which contains the service endpoint.
+         *
+         * @param clientConfiguration Configuration of the client.
+         * @return This builder for method chaining.
+         */
         public SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
             this.clientConfiguration = clientConfiguration;
             return getSubclass();

@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.builder.Buildable;
  * Unmarshaller implementation for AWS/Query and EC2 services.
  */
 @SdkInternalApi
-public class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
+public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private static final QueryUnmarshallerRegistry UNMARSHALLER_REGISTRY = QueryUnmarshallerRegistry
         .builder()
@@ -62,8 +62,8 @@ public class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private final boolean hasResultWrapper;
 
-    private QueryProtocolUnmarshaller(boolean hasResultWrapper) {
-        this.hasResultWrapper = hasResultWrapper;
+    private QueryProtocolUnmarshaller(Builder builder) {
+        this.hasResultWrapper = builder.hasResultWrapper;
     }
 
     public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
@@ -120,10 +120,16 @@ public class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
         return (SdkPojo) ((Buildable) sdkPojo).build();
     }
 
+    /**
+     * @return New {@link Builder} instance.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder for {@link QueryProtocolUnmarshaller}.
+     */
     public static final class Builder {
 
         private boolean hasResultWrapper;
@@ -131,13 +137,56 @@ public class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
         private Builder() {
         }
 
+        /**
+         * <h3>Example response with result wrapper</h3>
+         * <pre>
+         * {@code
+         * <ListQueuesResponse>
+         *     <ListQueuesResult>
+         *         <QueueUrl>https://sqs.us-east-2.amazonaws.com/123456789012/MyQueue</QueueUrl>
+         *     </ListQueuesResult>
+         *     <ResponseMetadata>
+         *         <RequestId>725275ae-0b9b-4762-b238-436d7c65a1ac</RequestId>
+         *     </ResponseMetadata>
+         * </ListQueuesResponse>
+         * }
+         * </pre>
+         *
+         * <h3>Example response without result wrapper</h3>
+         * <pre>
+         * {@code
+         * <DescribeAddressesResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
+         *    <requestId>f7de5e98-491a-4c19-a92d-908d6EXAMPLE</requestId>
+         *    <addressesSet>
+         *      <item>
+         *        <publicIp>203.0.113.41</publicIp>
+         *        <allocationId>eipalloc-08229861</allocationId>
+         *        <domain>vpc</domain>
+         *        <instanceId>i-0598c7d356eba48d7</instanceId>
+         *        <associationId>eipassoc-f0229899</associationId>
+         *        <networkInterfaceId>eni-ef229886</networkInterfaceId>
+         *        <networkInterfaceOwnerId>053230519467</networkInterfaceOwnerId>
+         *        <privateIpAddress>10.0.0.228</privateIpAddress>
+         *      </item>
+         *    </addressesSet>
+         * </DescribeAddressesResponse>
+         * }
+         * </pre>
+         *
+         * @param hasResultWrapper True if the response has a result wrapper, false if the result is in the top level
+         * XML document.
+         * @return This builder for method chaining.
+         */
         public Builder hasResultWrapper(boolean hasResultWrapper) {
             this.hasResultWrapper = hasResultWrapper;
             return this;
         }
 
+        /**
+         * @return New instance of {@link QueryProtocolUnmarshaller}.
+         */
         public QueryProtocolUnmarshaller build() {
-            return new QueryProtocolUnmarshaller(hasResultWrapper);
+            return new QueryProtocolUnmarshaller(this);
         }
     }
 }

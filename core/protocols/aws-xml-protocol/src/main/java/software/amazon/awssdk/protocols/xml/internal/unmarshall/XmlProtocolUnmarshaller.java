@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import static java.util.Collections.singletonList;
-import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -37,7 +36,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 @SdkInternalApi
@@ -51,13 +49,13 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     private XmlProtocolUnmarshaller() {
     }
 
-    public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
-                                                                               SdkHttpFullResponse response) {
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
+                                                    SdkHttpFullResponse response) {
 
         XmlElement document = hasPayloadMembers(sdkPojo) && response.content().isPresent()
                               ? XmlDomParser.parse(response.content().get()) : null;
 
-        return Pair.of(unmarshall(sdkPojo, document, response), parseMetadata(document));
+        return unmarshall(sdkPojo, document, response);
     }
 
     /**
@@ -98,28 +96,6 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
         return field.containsTrait(PayloadTrait.class);
-    }
-
-    // TODO I don't think this is present for REST-XML
-    private Map<String, String> parseMetadata(XmlElement document) {
-        if (document == null) {
-            return new HashMap<>();
-        }
-
-        XmlElement responseMetadata = document.getElementByName("ResponseMetadata");
-        Map<String, String> metadata = new HashMap<>();
-        if (responseMetadata != null) {
-            responseMetadata.children().forEach(c -> metadata.put(metadataKeyName(c), c.textContent()));
-        }
-        XmlElement requestId = document.getElementByName("requestId");
-        if (requestId != null) {
-            metadata.put(AWS_REQUEST_ID, requestId.textContent());
-        }
-        return metadata;
-    }
-
-    private String metadataKeyName(XmlElement c) {
-        return c.elementName().equals("RequestId") ? AWS_REQUEST_ID : c.elementName();
     }
 
     private boolean hasPayloadMembers(SdkPojo sdkPojo) {
@@ -164,15 +140,24 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             .build();
     }
 
+    /**
+     * @return New {@link Builder} instance.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder for {@link XmlProtocolUnmarshaller}.
+     */
     public static final class Builder {
 
         private Builder() {
         }
 
+        /**
+         * @return New instance of {@link XmlProtocolUnmarshaller}.
+         */
         public XmlProtocolUnmarshaller build() {
             return new XmlProtocolUnmarshaller();
         }

@@ -80,10 +80,6 @@ public final class QueryProtocolMarshaller
         return path == null ? sdkField.locationName() : path + "." + sdkField.locationName();
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     private static QueryMarshallerRegistry.Builder commonRegistry() {
         return QueryMarshallerRegistry
             .builder()
@@ -101,27 +97,53 @@ public final class QueryProtocolMarshaller
                 context.protocolHandler().doMarshall(path, context, val));
     }
 
+    /**
+     * @return New {@link Builder} instance.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link QueryProtocolMarshaller}.
+     */
     public static final class Builder {
 
         private OperationInfo operationInfo;
         private boolean isEc2;
         private URI endpoint;
 
+        /**
+         * @param operationInfo Metadata about the operation like URI, HTTP method, etc.
+         * @return This builder for method chaining.
+         */
         public Builder operationInfo(OperationInfo operationInfo) {
             this.operationInfo = operationInfo;
             return this;
         }
 
+        /**
+         * @param ec2 True if the service is EC2. EC2 has some slightly different behavior so we wire things up
+         * a bit differently for it.
+         * @return This builder for method chaining.
+         */
         public Builder isEc2(boolean ec2) {
             isEc2 = ec2;
             return this;
         }
 
+        /**
+         * @param endpoint Endpoint to set on the marshalled request.
+         * @return This builder for method chaining.
+         */
         public Builder endpoint(URI endpoint) {
             this.endpoint = endpoint;
             return this;
         }
 
+        /**
+         * @return New instance of {@link QueryProtocolMarshaller}.
+         */
         public QueryProtocolMarshaller build() {
             return new QueryProtocolMarshaller(this);
         }

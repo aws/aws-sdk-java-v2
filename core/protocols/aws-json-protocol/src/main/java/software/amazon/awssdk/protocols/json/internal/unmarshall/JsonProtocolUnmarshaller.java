@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
@@ -54,8 +53,8 @@ public final class JsonProtocolUnmarshaller {
 
     private final JsonDomParser parser;
 
-    public JsonProtocolUnmarshaller(JsonFactory jsonFactory) {
-        this.parser = JsonDomParser.create(jsonFactory);
+    private JsonProtocolUnmarshaller(Builder builder) {
+        this.parser = builder.parser;
     }
 
     private static JsonUnmarshallerRegistry createUnmarshallerRegistry() {
@@ -204,6 +203,40 @@ public final class JsonProtocolUnmarshaller {
             return null;
         }
         return isExplicitPayloadMember(field) ? jsonContent : jsonContent.get(field.locationName());
+    }
+
+    /**
+     * @return New instance of {@link Builder}.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link JsonProtocolUnmarshaller}.
+     */
+    public static final class Builder {
+
+        private JsonDomParser parser;
+
+        private Builder() {
+        }
+
+        /**
+         * @param parser JSON parser to use.
+         * @return This builder for method chaining.
+         */
+        public Builder parser(JsonDomParser parser) {
+            this.parser = parser;
+            return this;
+        }
+
+        /**
+         * @return New instance of {@link JsonProtocolUnmarshaller}.
+         */
+        public JsonProtocolUnmarshaller build() {
+            return new JsonProtocolUnmarshaller(this);
+        }
     }
 
 }

@@ -41,8 +41,12 @@ import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 import software.amazon.awssdk.utils.StringInputStream;
 
+/**
+ * Implementation of {@link ProtocolMarshaller} for REST-XML services. This is currently only Cloudfront, Route53,
+ * and S3.
+ */
 @SdkInternalApi
-public class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullRequest> {
+public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullRequest> {
 
     public static final ValueToStringConverter.ValueToString<Instant> INSTANT_VALUE_TO_STRING =
         InstantToString.create(getDefaultTimestampFormats());
@@ -54,16 +58,12 @@ public class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullRequ
     private final String rootElement;
     private final XmlMarshallerContext marshallerContext;
 
-    // TODO builder
-    XmlProtocolMarshaller(URI endpoint,
-                          XmlGenerator xmlGenerator,
-                          OperationInfo operationInfo,
-                          String rootElement) {
-        this.endpoint = endpoint;
-        this.request = ProtocolUtils.createSdkHttpRequest(operationInfo, this.endpoint);
-        this.rootElement = rootElement;
+    private XmlProtocolMarshaller(Builder builder) {
+        this.endpoint = builder.endpoint;
+        this.request = ProtocolUtils.createSdkHttpRequest(builder.operationInfo, this.endpoint);
+        this.rootElement = builder.rootElement;
         this.marshallerContext = XmlMarshallerContext.builder()
-                                                     .xmlGenerator(xmlGenerator)
+                                                     .xmlGenerator(builder.xmlGenerator)
                                                      .marshallerRegistry(MARSHALLER_REGISTRY)
                                                      .protocolMarshaller(this)
                                                      .request(request)
@@ -194,5 +194,73 @@ public class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullRequ
             .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
             .greedyPathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
             .build();
+    }
+
+    /**
+     * @return New {@link Builder} instance.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link XmlProtocolMarshaller}.
+     */
+    public static final class Builder {
+
+        private URI endpoint;
+        private XmlGenerator xmlGenerator;
+        private OperationInfo operationInfo;
+        private String rootElement;
+
+        private Builder() {
+        }
+
+        /**
+         * @param endpoint Endpoint to set on the marshalled request.
+         * @return This builder for method chaining.
+         */
+        public Builder endpoint(URI endpoint) {
+            this.endpoint = endpoint;
+            return this;
+        }
+
+        /**
+         * @param xmlGenerator Object to write XML data.
+         * @return This builder for method chaining.
+         */
+        public Builder xmlGenerator(XmlGenerator xmlGenerator) {
+            this.xmlGenerator = xmlGenerator;
+            return this;
+        }
+
+        /**
+         * @param operationInfo Metadata about the operation like URI, HTTP method, etc.
+         * @return This builder for method chaining.
+         */
+        public Builder operationInfo(OperationInfo operationInfo) {
+            this.operationInfo = operationInfo;
+            return this;
+        }
+
+        /**
+         * Some services like Route53 specifies the location for the request shape. This should be the root of the
+         * generated xml document.
+         *
+         * Other services Cloudfront, s3 don't specify location param for the request shape. For them, this value will be null.
+         *
+         * @param rootElement Root element
+         */
+        public Builder rootElement(String rootElement) {
+            this.rootElement = rootElement;
+            return this;
+        }
+
+        /**
+         * @return New instance of {@link XmlProtocolMarshaller}.
+         */
+        public XmlProtocolMarshaller build() {
+            return new XmlProtocolMarshaller(this);
+        }
     }
 }

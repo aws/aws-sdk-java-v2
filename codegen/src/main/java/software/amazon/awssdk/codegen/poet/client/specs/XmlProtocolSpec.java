@@ -26,12 +26,23 @@ import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlOperationMeta
 
 public final class XmlProtocolSpec extends QueryProtocolSpec {
 
-    public XmlProtocolSpec(PoetExtensions poetExtensions) {
+    private final IntermediateModel model;
+
+    public XmlProtocolSpec(IntermediateModel model,
+                           PoetExtensions poetExtensions) {
         super(poetExtensions);
+        this.model = model;
     }
 
     @Override
     protected Class<?> protocolFactoryClass() {
+        if (model.getCustomizationConfig().getCustomProtocolFactoryFqcn() != null) {
+            try {
+                return Class.forName(model.getCustomizationConfig().getCustomProtocolFactoryFqcn());
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Could not find custom protocol factory class", e);
+            }
+        }
         return AwsXmlProtocolFactory.class;
     }
 

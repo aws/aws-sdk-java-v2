@@ -20,9 +20,9 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.protocols.cbor.internal.AwsStructuredCborFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.DefaultJsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
+import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 
 /**
  * Protocol factory for AWS/CBOR protocols. Supports both JSON RPC and REST JSON versions of CBOR. Defaults to
@@ -54,10 +54,10 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
     }
 
     /**
-     * @return Instance of {@link AwsStructuredJsonFactory} to use in creating handlers.
+     * @return Instance of {@link StructuredJsonFactory} to use in creating handlers.
      */
     @Override
-    protected BaseAwsStructuredJsonFactory getSdkFactory() {
+    protected StructuredJsonFactory getSdkFactory() {
         if (isCborEnabled()) {
             return AwsStructuredCborFactory.SDK_CBOR_FACTORY;
         } else {

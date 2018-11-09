@@ -133,6 +133,12 @@ public class CustomizationConfig {
      */
     private Map<String, String> customResponseMetadata;
 
+    /**
+     * Custom protocol factory implementation. Currently this is only respected by the REST-XML protocol as only S3
+     * needs a custom factory.
+     */
+    private String customProtocolFactoryFqcn;
+
     private CustomizationConfig() {
     }
 
@@ -339,5 +345,13 @@ public class CustomizationConfig {
 
     public void setCustomResponseMetadata(Map<String, String> customResponseMetadata) {
         this.customResponseMetadata = customResponseMetadata;
+    }
+
+    public String getCustomProtocolFactoryFqcn() {
+        return customProtocolFactoryFqcn;
+    }
+
+    public void setCustomProtocolFactoryFqcn(String customProtocolFactoryFqcn) {
+        this.customProtocolFactoryFqcn = customProtocolFactoryFqcn;
     }
 }

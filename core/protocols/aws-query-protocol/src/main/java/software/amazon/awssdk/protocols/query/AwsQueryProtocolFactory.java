@@ -138,7 +138,12 @@ public class AwsQueryProtocolFactory {
         Builder() {
         }
 
-        // TODO docs
+        /**
+         * Sets the {@link SdkClientConfiguration} which contains the service endpoint.
+         *
+         * @param clientConfiguration Configuration of the client.
+         * @return This builder for method chaining.
+         */
         public final SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
             this.clientConfiguration = clientConfiguration;
             return getSubclass();

@@ -192,7 +192,7 @@ public class SyncClientClass implements ClassSpec {
             case QUERY:
                 return new QueryProtocolSpec(poetExtensions);
             case REST_XML:
-                return new XmlProtocolSpec(poetExtensions);
+                return new XmlProtocolSpec(model, poetExtensions);
             case EC2:
                 return new Ec2ProtocolSpec(poetExtensions);
             case AWS_JSON:

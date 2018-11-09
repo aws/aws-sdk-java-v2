@@ -33,6 +33,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonProtocolErrorUnmarshaller;
@@ -97,7 +98,9 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private JsonProtocolUnmarshaller createJsonProtocolUnmarshaller() {
-        return new JsonProtocolUnmarshaller(getSdkFactory().getJsonFactory());
+        return JsonProtocolUnmarshaller.builder()
+                                       .parser(JsonDomParser.create(getSdkFactory().getJsonFactory()))
+                                       .build();
     }
 
     /**
@@ -125,7 +128,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     @SdkTestInternalApi
-    final StructuredJsonGenerator createGenerator() {
+    private StructuredJsonGenerator createGenerator() {
         return getSdkFactory().createWriter(getContentType());
     }
 
@@ -144,12 +147,12 @@ public abstract class BaseAwsJsonProtocolFactory {
     /**
      * @return Instance of {@link StructuredJsonFactory} to use in creating handlers.
      */
-    protected BaseAwsStructuredJsonFactory getSdkFactory() {
+    protected StructuredJsonFactory getSdkFactory() {
         return AwsStructuredPlainJsonFactory.SDK_JSON_FACTORY;
     }
 
     public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
-        return JsonProtocolMarshallerBuilder.standard()
+        return JsonProtocolMarshallerBuilder.create()
                                             .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                             .jsonGenerator(createGenerator(operationInfo))
                                             .contentType(getContentType())
@@ -172,31 +175,68 @@ public abstract class BaseAwsJsonProtocolFactory {
         protected Builder() {
         }
 
+        /**
+         * Registers a new modeled exception by the error code.
+         *
+         * @param errorCode Error code identifying this modeled exception.
+         * @param exceptionBuilderSupplier Supplier of the modeled exceptions Builder.
+         * @return This builder for method chaining.
+         */
         public final SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
             modeledExceptions.put(errorCode, exceptionBuilderSupplier);
             return getSubclass();
         }
 
+        /**
+         * A supplier for the services base exception builder. This is used when we can't identify any modeled
+         * exception to unmarshall into.
+         *
+         * @param exceptionBuilderSupplier Suppplier of the base service exceptions Builder.
+         * @return This builder for method chaining.
+         */
         public final SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
             return getSubclass();
         }
 
+        /**
+         * @param protocol Protocol of the client (i.e. REST or RPC).
+         * @return This builder for method chaining.
+         */
         public final SubclassT protocol(AwsJsonProtocol protocol) {
             protocolMetadata.protocol(protocol);
             return getSubclass();
         }
 
+        /**
+         * Protocol version of the client (right now supports JSON 1.0 and JSON 1.1). Used to determine content type.
+         *
+         * @param protocolVersion JSON protocol version.
+         * @return This builder for method chaining.
+         */
         public final SubclassT protocolVersion(String protocolVersion) {
             protocolMetadata.protocolVersion(protocolVersion);
             return getSubclass();
         }
 
+        /**
+         * Custom field name containing the error code that identifies the exception. Currently only used by Glacier
+         * which uses the "code" field instead of the traditional "__type".
+         *
+         * @param customErrorCodeFieldName Custom field name to look for error code.
+         * @return This builder for method chaining.
+         */
         public final SubclassT customErrorCodeFieldName(String customErrorCodeFieldName) {
             this.customErrorCodeFieldName = customErrorCodeFieldName;
             return getSubclass();
         }
 
+        /**
+         * Sets the {@link SdkClientConfiguration} which contains the service endpoint.
+         *
+         * @param clientConfiguration Configuration of the client.
+         * @return This builder for method chaining.
+         */
         public final SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
             this.clientConfiguration = clientConfiguration;
             return getSubclass();
