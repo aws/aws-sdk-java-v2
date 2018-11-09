@@ -37,7 +37,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Abstract pre-sign handler that follows the pre-signing scheme outlined in the 'RDS Presigned URL for Cross-Region Copying'
@@ -113,8 +112,7 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
                                                                          .uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
-                marshalledRequest.encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), marshalledRequest.encodedPath()))
-                                 .method(SdkHttpMethod.GET)
+                marshalledRequest.method(SdkHttpMethod.GET)
                                  .putRawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
                                  .removeQueryParameter(PARAM_SOURCE_REGION)
                                  .build();

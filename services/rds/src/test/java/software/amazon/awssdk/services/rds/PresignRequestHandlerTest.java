@@ -89,7 +89,7 @@ public class PresignRequestHandlerTest {
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
 
-        final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com/?" +
+        final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com?" +
                 "Action=CopyDBSnapshot" +
                 "&Version=2014-10-31" +
                 "&SourceDBSnapshotIdentifier=arn%3Aaws%3Ards%3Aus-east-1%3A123456789012%3Asnapshot%3Ards%3Atest-instance-ss-2016-12-20-23-19" +
@@ -157,9 +157,7 @@ public class PresignRequestHandlerTest {
         URI endpoint = new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
                           .withRegion(DESTINATION_REGION)
                           .getServiceEndpoint();
-        return marshalled.uri(endpoint)
-                         .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), marshalled.encodedPath()))
-                         .build();
+        return marshalled.uri(endpoint).build();
     }
 
     private ExecutionAttributes executionAttributes() {

@@ -66,7 +66,7 @@ public interface SdkHttpFullRequest
             return this.protocol(uri.getScheme())
                        .host(uri.getHost())
                        .port(uri.getPort())
-                       .encodedPath(uri.getRawPath());
+                       .encodedPath(SdkHttpUtils.appendUri(uri.getRawPath(), encodedPath()));
         }
 
         /**

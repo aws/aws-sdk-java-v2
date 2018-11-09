@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.s3.internal.BucketUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkProtectedApi
 public final class EndpointAddressInterceptor implements ExecutionInterceptor {
@@ -55,8 +54,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
                                        executionAttributes, serviceConfiguration);
-        mutableRequest.uri(endpoint)
-                      .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), mutableRequest.encodedPath()));
+        mutableRequest.uri(endpoint);
 
         if (serviceConfiguration == null || !serviceConfiguration.pathStyleAccessEnabled()) {
             sdkRequest.getValueForField("Bucket", String.class).ifPresent(b -> {
