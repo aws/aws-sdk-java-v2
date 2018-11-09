@@ -373,7 +373,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
-            Validate.isPositive(writeTimeout, "connectionAcquisitionTimeout");
+            Validate.isPositive(writeTimeout, "writeTimeout");
             standardOptions.put(WRITE_TIMEOUT, writeTimeout);
             return this;
         }
