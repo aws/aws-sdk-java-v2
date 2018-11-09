@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.regions;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Metadata about a partition such as aws or aws-cn.
  *
  * <p>This is useful for building meta-functionality around AWS services. Partition metadata helps to provide
  * data about regions which may not yet be in the endpoints.json file but have a specific prefix.</p>
  */
+@SdkPublicApi
 public interface PartitionMetadata {
 
     /**
