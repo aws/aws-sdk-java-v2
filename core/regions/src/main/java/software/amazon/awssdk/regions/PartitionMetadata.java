@@ -15,18 +15,56 @@
 
 package software.amazon.awssdk.regions;
 
+/**
+ * Metadata about a partition such as aws or aws-cn.
+ *
+ * <p>This is useful for building meta-functionality around AWS services. Partition metadata helps to provide
+ * data about regions which may not yet be in the endpoints.json file but have a specific prefix.</p>
+ */
 public interface PartitionMetadata {
 
+    /**
+     * Returns the DNS suffix, such as amazonaws.com for this partition.
+     *
+     * @return The DNS suffix for this partition.
+     */
     String dnsSuffix();
 
+    /**
+     * Returns the hostname pattern, such as {service}.{region}.{dnsSuffix} for this partition.
+     *
+     * @return The hostname pattern for this partition
+     */
     String hostname();
 
+    /**
+     * Returns the identifier for this partition, such as aws.
+     *
+     * @return The identifier for this partition.
+     */
     String id();
 
+    /**
+     * Returns the partition name for this partition, such as AWS Standard
+     *
+     * @return The name of this partition
+     */
     String partitionName();
 
+    /**
+     * Returns the region regex used for pattern matching for this partition.
+     *
+     * @return The region regex of this partition.
+     */
     String regionRegex();
 
+    /**
+     * Retrieves the partition metadata for a given partition.
+     *
+     * @param partition The partition to get metadata for.
+     *
+     * @return {@link PartitionMetadata} for the given partition.
+     */
     static PartitionMetadata of(String partition) {
         return MetadataLoader.partitionMetadata(partition);
     }
