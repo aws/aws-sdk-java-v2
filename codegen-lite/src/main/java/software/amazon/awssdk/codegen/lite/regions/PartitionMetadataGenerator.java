@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
 import software.amazon.awssdk.codegen.lite.regions.model.Partition;
@@ -52,6 +53,7 @@ public class PartitionMetadataGenerator implements PoetClass {
         return TypeSpec.classBuilder(className())
                        .addModifiers(FINAL, PUBLIC)
                        .addSuperinterface(ClassName.get(regionBasePackage, "PartitionMetadata"))
+                       .addAnnotation(SdkPublicApi.class)
                        .addAnnotation(AnnotationSpec.builder(Generated.class)
                                                     .addMember("value",
                                                                "$S",
