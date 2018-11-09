@@ -41,7 +41,6 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.Record;
@@ -56,15 +55,15 @@ public class SubscribeToShardIntegrationTest {
 
     private String streamName;
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
-    private KinesisAsyncClient client;
-    private String consumerArn;
-    private String shardId;
+    private static KinesisAsyncClient client;
+    private static String consumerArn;
+    private static String shardId;
 
     @Before
     public void setup() throws InterruptedException {
         streamName = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
+
         client = KinesisAsyncClient.builder()
-                                   .region(Region.EU_CENTRAL_1)
                                    .build();
         client.createStream(r -> r.streamName(streamName)
                                   .shardCount(1)).join();
@@ -72,6 +71,7 @@ public class SubscribeToShardIntegrationTest {
         String streamARN = client.describeStream(r -> r.streamName(streamName)).join()
                                  .streamDescription()
                                  .streamARN();
+
         this.shardId = client.listShards(r -> r.streamName(streamName))
                              .join()
                              .shards().get(0).shardId();
@@ -174,7 +174,7 @@ public class SubscribeToShardIntegrationTest {
         }
     }
 
-    private void waitForConsumerToBeActive() throws InterruptedException {
+    private static void waitForConsumerToBeActive() throws InterruptedException {
         waitUntilTrue(() -> ConsumerStatus.ACTIVE == client.describeStreamConsumer(r -> r.consumerARN(consumerArn))
                                                            .join()
                                                            .consumerDescription()
@@ -188,7 +188,7 @@ public class SubscribeToShardIntegrationTest {
                                                          .streamStatus());
     }
 
-    private void waitUntilTrue(Supplier<Boolean> state) throws InterruptedException {
+    private static void waitUntilTrue(Supplier<Boolean> state) throws InterruptedException {
         int attempt = 0;
         do {
             if (attempt > 10) {

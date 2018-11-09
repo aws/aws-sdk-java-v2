@@ -215,4 +215,11 @@ public final class IntermediateModel {
                           .findAny()
                           .isPresent();
     }
+
+    public boolean containsRequestEventStreams() {
+        return getOperations().values().stream()
+                              .filter(opModel -> opModel.hasEventStreamInput())
+                              .findAny()
+                              .isPresent();
+    }
 }

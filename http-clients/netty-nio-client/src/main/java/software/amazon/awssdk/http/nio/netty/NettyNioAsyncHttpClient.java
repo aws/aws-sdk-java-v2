@@ -77,7 +77,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
-        this.maxStreams = 200;
+        this.maxStreams = builder.maxHttp2Streams == null ? Integer.MAX_VALUE : builder.maxHttp2Streams;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
         this.sdkChannelOptions = channelOptions(builder);
@@ -285,6 +285,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @see SdkEventLoopGroup.Builder
          */
         Builder putChannelOption(ChannelOption channelOption, Object value);
+
+        /**
+         * Sets the max number of concurrent streams for an HTTP/2 connection. This setting is only respected when the HTTP/2
+         * protocol is used.
+         *
+         * <p>Note that this cannot exceed the value of the MAX_CONCURRENT_STREAMS setting returned by the service. If it
+         * does the service setting is used instead.</p>
+         *
+         * @param maxHttp2Streams Max concurrent HTTP/2 streams per connection.
+         * @return This builder for method chaining.
+         */
+        Builder maxHttp2Streams(Integer maxHttp2Streams);
     }
 
     /**
@@ -299,6 +311,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
+        private Integer maxHttp2Streams;
 
         private DefaultBuilder() {
         }
@@ -360,7 +373,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
-            Validate.isPositive(writeTimeout, "connectionAcquisitionTimeout");
+            Validate.isPositive(writeTimeout, "writeTimeout");
             standardOptions.put(WRITE_TIMEOUT, writeTimeout);
             return this;
         }
@@ -436,6 +449,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder putChannelOption(ChannelOption channelOption, Object value) {
             this.sdkChannelOptions.putOption(channelOption, value);
             return this;
+        }
+
+        @Override
+        public Builder maxHttp2Streams(Integer maxHttp2Streams) {
+            this.maxHttp2Streams = maxHttp2Streams;
+            return this;
+        }
+
+        public void setMaxHttp2Streams(Integer maxHttp2Streams) {
+            maxHttp2Streams(maxHttp2Streams);
         }
 
         @Override

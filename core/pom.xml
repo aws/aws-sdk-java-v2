@@ -43,6 +43,7 @@
         <module>aws-core</module>
         <module>profiles</module>
         <module>regions</module>
+        <module>protocols</module>
     </modules>
 
     <build>

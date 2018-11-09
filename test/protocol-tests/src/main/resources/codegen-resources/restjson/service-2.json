@@ -204,6 +204,7 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
+        "BigDecimalMember":{"shape":"NumericValue"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
@@ -350,6 +351,11 @@
       "exception":true
     },
     "Integer":{"type":"integer"},
+    // Shape is customized to BigDecimal in customization.config
+    "NumericValue": {
+      "type": "string",
+      "pattern":"([0-9]*\\.)?[0-9]+"
+    },
     "IsoTimestamp":{
       "type":"timestamp",
       "timestampFormat":"iso8601"

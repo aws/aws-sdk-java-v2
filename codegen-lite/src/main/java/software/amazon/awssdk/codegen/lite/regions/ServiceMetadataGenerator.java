@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -130,10 +129,10 @@ public class ServiceMetadataGenerator implements PoetClass {
         partitions.getPartitions()
                   .stream()
                   .filter(p -> p.getServices().containsKey(service))
-                  .forEach(p -> regions.addAll(p.getRegions().keySet()));
+                  .forEach(p -> regions.addAll(p.getServices().get(service).getEndpoints().keySet()));
 
         for (int i = 0; i < regions.size(); i++) {
-            builder.add("$T.$L", regionClass, regions.get(i).replace("-", "_").toUpperCase(Locale.US));
+            builder.add("$T.of($S)", regionClass, regions.get(i));
             if (i != regions.size() - 1) {
                 builder.add(",");
             }

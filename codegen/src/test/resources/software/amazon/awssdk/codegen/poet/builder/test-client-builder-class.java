@@ -66,7 +66,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final AttributeMap serviceHttpConfig() {
-        return MyServiceHttpConfig.defaultHttpConfig();
+        AttributeMap result = MyServiceHttpConfig.defaultHttpConfig();
+        return result;
     }
 }
 

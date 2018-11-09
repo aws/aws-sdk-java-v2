@@ -23,7 +23,6 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -41,8 +40,6 @@ import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 /**
  * Functional tests for various endpoint related behavior in S3.
  */
-@ReviewBeforeRelease("If we add back protocol (HTTP/HTTPS) to client builder we need to account for it in " +
-                     "EndpointAddressInterceptor and add tests for it.")
 public class S3EndpointResolutionTest {
 
     private static final String BUCKET = "some-bucket";

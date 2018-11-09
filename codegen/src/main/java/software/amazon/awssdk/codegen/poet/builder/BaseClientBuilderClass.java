@@ -81,11 +81,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                    .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
-        if (model.getCustomizationConfig().getServiceSpecificHttpConfig() != null) {
-            builder.addMethod(serviceSpecificHttpConfigMethod());
-        } else if (model.getMetadata().supportsH2()) {
-            builder.addMethod(enableH2HttpConfigMethod());
-        }
+        addServiceHttpConfigIfNeeded(builder, model);
 
         return builder.build();
     }
@@ -190,25 +186,45 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec serviceSpecificHttpConfigMethod() {
+    private void addServiceHttpConfigIfNeeded(TypeSpec.Builder builder, IntermediateModel model) {
+        String serviceDefaultFqcn = model.getCustomizationConfig().getServiceSpecificHttpConfig();
+        boolean supportsH2 = model.getMetadata().supportsH2();
+
+        if (serviceDefaultFqcn != null || supportsH2) {
+            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2));
+        }
+    }
+
+    private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AttributeMap.class)
-                         .addCode("return $T.defaultHttpConfig();",
-                                  PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getServiceSpecificHttpConfig()))
+                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2))
                          .build();
     }
 
-    private MethodSpec enableH2HttpConfigMethod() {
-        return MethodSpec.methodBuilder("serviceHttpConfig")
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(AttributeMap.class)
-                         .addCode("return $T.builder()\n"
-                                  + ".put($T.PROTOCOL, $T.HTTP2)\n"
-                                  + ".build();", AttributeMap.class, SdkHttpConfigurationOption.class, Protocol.class)
-                         .build();
+    private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2) {
+        CodeBlock.Builder builder =  CodeBlock.builder();
+
+        if (serviceDefaultFqcn != null) {
+            builder.addStatement("$T result = $T.defaultHttpConfig()",
+                                 AttributeMap.class,
+                                 PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getServiceSpecificHttpConfig()));
+        } else {
+            builder.addStatement("$1T result = $1T.empty()", AttributeMap.class);
+        }
+
+        if (supportsH2) {
+            builder.addStatement("return result.merge(AttributeMap.builder()"
+                                 + ".put($T.PROTOCOL, $T.HTTP2)"
+                                 + ".build())",
+                                 SdkHttpConfigurationOption.class, Protocol.class);
+        } else {
+            builder.addStatement("return result");
+        }
+
+        return builder.build();
     }
 
     private CodeBlock signerDefinitionMethodBody() {
