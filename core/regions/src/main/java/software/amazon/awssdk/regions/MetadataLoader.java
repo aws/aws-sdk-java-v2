@@ -28,7 +28,17 @@ public class MetadataLoader {
 
     private static final ServiceMetadataProvider SERVICE_METADATA_PROVIDER = new GeneratedServiceMetadataProvider();
 
+    private static final PartitionMetadataProvider PARTITION_METADATA_PROVIDER = new GeneratedPartitionMetadataProvider();
+
     private MetadataLoader() {}
+
+    public static PartitionMetadata partitionMetadata(Region region) {
+        return PARTITION_METADATA_PROVIDER.partitionMetadata(region);
+    }
+
+    public static PartitionMetadata partitionMetadata(String partition) {
+        return PARTITION_METADATA_PROVIDER.partitionMetadata(partition);
+    }
 
     public static RegionMetadata regionMetadata(Region region) {
         return REGION_METADATA_PROVIDER.regionMetadata(region);

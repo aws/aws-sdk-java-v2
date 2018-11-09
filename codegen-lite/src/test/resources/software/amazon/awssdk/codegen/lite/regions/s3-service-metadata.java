@@ -16,13 +16,15 @@ import software.amazon.awssdk.utils.ImmutableMap;
 public final class S3ServiceMetadata implements ServiceMetadata {
     private static final String ENDPOINT_PREFIX = "s3";
 
+    private static final Map<String, String> PARTITION_OVERRIDDEN_ENDPOINTS = ImmutableMap.<String, String> builder().build();
+
     private static final Map<String, String> REGION_OVERRIDDEN_ENDPOINTS = ImmutableMap.<String, String> builder()
-            .put("ap-northeast-1", "s3.ap-northeast-1.amazonaws.com").put("ap-southeast-1", "s3.ap-southeast-1.amazonaws.com")
-            .put("ap-southeast-2", "s3.ap-southeast-2.amazonaws.com").put("eu-west-1", "s3.eu-west-1.amazonaws.com")
-            .put("s3-external-1", "s3-external-1.amazonaws.com").put("sa-east-1", "s3.sa-east-1.amazonaws.com")
-            .put("us-east-1", "s3.amazonaws.com").put("us-west-1", "s3.us-west-1.amazonaws.com")
-            .put("us-west-2", "s3.us-west-2.amazonaws.com").put("fips-us-gov-west-1", "s3-fips-us-gov-west-1.amazonaws.com")
-            .put("us-gov-west-1", "s3.us-gov-west-1.amazonaws.com").build();
+            .put("fips-us-gov-west-1", "s3-fips-us-gov-west-1.amazonaws.com")
+            .put("us-gov-west-1", "s3.us-gov-west-1.amazonaws.com").put("ap-northeast-1", "s3.ap-northeast-1.amazonaws.com")
+            .put("ap-southeast-1", "s3.ap-southeast-1.amazonaws.com").put("ap-southeast-2", "s3.ap-southeast-2.amazonaws.com")
+            .put("eu-west-1", "s3.eu-west-1.amazonaws.com").put("s3-external-1", "s3-external-1.amazonaws.com")
+            .put("sa-east-1", "s3.sa-east-1.amazonaws.com").put("us-east-1", "s3.amazonaws.com")
+            .put("us-west-1", "s3.us-west-1.amazonaws.com").put("us-west-2", "s3.us-west-2.amazonaws.com").build();
 
     private static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(Region.of("ap-northeast-1"),
             Region.of("ap-northeast-2"), Region.of("ap-south-1"), Region.of("ap-southeast-1"), Region.of("ap-southeast-2"),
@@ -32,7 +34,7 @@ public final class S3ServiceMetadata implements ServiceMetadata {
             Region.of("cn-northwest-1"), Region.of("fips-us-gov-west-1"), Region.of("us-gov-west-1")));
 
     private static final Map<String, String> SIGNING_REGION_OVERRIDES = ImmutableMap.<String, String> builder()
-            .put("s3-external-1", "us-east-1").put("fips-us-gov-west-1", "us-gov-west-1").build();
+            .put("fips-us-gov-west-1", "us-gov-west-1").put("s3-external-1", "us-east-1").build();
 
     @Override
     public List<Region> regions() {
@@ -42,7 +44,7 @@ public final class S3ServiceMetadata implements ServiceMetadata {
     @Override
     public URI endpointFor(Region region) {
         return URI.create(REGION_OVERRIDDEN_ENDPOINTS.containsKey(region.id()) ? REGION_OVERRIDDEN_ENDPOINTS.get(region.id())
-                : computeEndpoint(ENDPOINT_PREFIX, region));
+                : computeEndpoint(ENDPOINT_PREFIX, PARTITION_OVERRIDDEN_ENDPOINTS, region));
     }
 
     @Override

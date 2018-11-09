@@ -31,6 +31,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,6 +79,10 @@ public class ServiceMetadataGenerator implements PoetClass {
                                           .addModifiers(PRIVATE, FINAL, STATIC)
                                           .initializer("$S", service)
                                           .build())
+                       .addField(FieldSpec.builder(mapOfStringString, "PARTITION_OVERRIDDEN_ENDPOINTS")
+                                          .addModifiers(PRIVATE, FINAL, STATIC)
+                                          .initializer(partitionEndpoints(partitions))
+                                          .build())
                        .addField(FieldSpec.builder(mapOfStringString, "REGION_OVERRIDDEN_ENDPOINTS")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
                                           .initializer(serviceEndpoints(partitions))
@@ -104,12 +109,27 @@ public class ServiceMetadataGenerator implements PoetClass {
                                                 .collect(Collectors.joining()) + "ServiceMetadata");
     }
 
-    private CodeBlock serviceEndpoints(Partitions partitions) {
-        List<Service> services = getServiceData(partitions);
+    private CodeBlock partitionEndpoints(Partitions partitions) {
+        Map<String, Service> services = getServiceData(partitions);
 
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
-        services.stream()
+        services.entrySet().forEach(e -> {
+            if (e.getValue().getDefaults() != null && e.getValue().getDefaults().getHostname() != null) {
+                builder.add(".put($S, $S)", e.getKey(), e.getValue().getDefaults().getHostname());
+            }
+        });
+
+        return builder.add(".build()").build();
+    }
+
+    private CodeBlock serviceEndpoints(Partitions partitions) {
+        Map<String, Service> services = getServiceData(partitions);
+
+        CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
+
+        services.values()
+                .stream()
                 .forEach(s -> s.getEndpoints()
                                .entrySet()
                                .stream()
@@ -142,11 +162,12 @@ public class ServiceMetadataGenerator implements PoetClass {
     }
 
     private CodeBlock signingRegionOverrides(Partitions partitions) {
-        List<Service> serviceData = getServiceData(partitions);
+        Map<String, Service> serviceData = getServiceData(partitions);
 
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
-        serviceData.stream()
+        serviceData.values()
+                   .stream()
                    .forEach(s -> s.getEndpoints()
                                   .entrySet()
                                   .stream()
@@ -178,7 +199,7 @@ public class ServiceMetadataGenerator implements PoetClass {
                          .returns(URI.class)
                          .addStatement("return $T.create(REGION_OVERRIDDEN_ENDPOINTS.containsKey(region.id()) ? "
                                        + "REGION_OVERRIDDEN_ENDPOINTS.get(region.id()) : "
-                                       + "computeEndpoint(ENDPOINT_PREFIX, region))",
+                                       + "computeEndpoint(ENDPOINT_PREFIX, PARTITION_OVERRIDDEN_ENDPOINTS, region))",
                                        URI.class)
                          .build();
     }
@@ -193,15 +214,15 @@ public class ServiceMetadataGenerator implements PoetClass {
                          .build();
     }
 
-    private List<Service> getServiceData(Partitions partitions) {
-        List<Service> serviceData = new ArrayList<>();
+    private Map<String, Service> getServiceData(Partitions partitions) {
+        Map<String, Service> serviceData = new HashMap<>();
         partitions.getPartitions()
                   .stream()
                   .forEach(p -> p.getServices()
                                  .entrySet()
                                  .stream()
                                  .filter(s -> s.getKey().equalsIgnoreCase(service))
-                                 .forEach(r -> serviceData.add(r.getValue())));
+                                 .forEach(r -> serviceData.put(p.getPartition(), r.getValue())));
 
         return serviceData;
     }
