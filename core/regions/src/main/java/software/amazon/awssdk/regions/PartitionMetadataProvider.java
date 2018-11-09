@@ -20,7 +20,19 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public interface PartitionMetadataProvider {
 
+    /**
+     * Returns the partition metadata for a given partition.
+     *
+     * @param partition The partition to find partition metadata for.
+     * @return {@link PartitionMetadata} for the given partition
+     */
     PartitionMetadata partitionMetadata(String partition);
 
+    /**
+     * Returns the partition metadata for a given region.
+     *
+     * @param region The region to find partition metadata for.
+     * @return {@link PartitionMetadata} for the given region.
+     */
     PartitionMetadata partitionMetadata(Region region);
 }
