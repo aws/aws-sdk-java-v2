@@ -29,7 +29,8 @@ public class OperationModifier {
 
     /**
      * @return true if this operation should be excluded when processing the
-     *         service model.
+     *         service model. When this option is set, both input and output
+     *         shapes are excluded too.
      */
     public boolean isExclude() {
         return exclude;
