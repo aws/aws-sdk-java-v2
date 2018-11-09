@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -68,8 +69,22 @@ public interface ServiceMetadata {
         return metadata == null ? new DefaultServiceMetadata(serviceEndpointPrefix) : metadata;
     }
 
-    default String computeEndpoint(String endpointPrefix, Region region) {
+    default String computeEndpoint(String endpointPrefix,
+                                   Map<String, String> partitionOverriddenEndpoints,
+                                   Region region) {
         RegionMetadata regionMetadata = RegionMetadata.of(region);
-        return String.format("%s.%s.%s", endpointPrefix, region.id(), regionMetadata.domain());
+
+        if (regionMetadata != null) {
+            return String.format("%s.%s.%s", endpointPrefix, region.id(), regionMetadata.domain());
+        }
+
+        PartitionMetadata partitionMetadata = MetadataLoader.partitionMetadata(region);
+        
+        String endpointPattern = partitionOverriddenEndpoints.getOrDefault(partitionMetadata.id(),
+                                                                           partitionMetadata.hostname());
+
+        return endpointPattern.replace("{region}", region.id())
+                              .replace("{service}", endpointPrefix)
+                              .replace("{dnsSuffix}", partitionMetadata.dnsSuffix());
     }
 }
