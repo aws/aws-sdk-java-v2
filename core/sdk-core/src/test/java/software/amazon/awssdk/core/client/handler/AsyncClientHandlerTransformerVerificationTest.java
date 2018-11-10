@@ -32,8 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -55,6 +53,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 /**
  * Verification tests to ensure that the behavior of {@link SdkAsyncClientHandler} is in line with the
@@ -65,7 +64,7 @@ public class AsyncClientHandlerTransformerVerificationTest {
 
     private final SdkRequest request = mock(SdkRequest.class);
 
-    private final Marshaller<Request<SdkRequest>, SdkRequest> marshaller = mock(Marshaller.class);
+    private final Marshaller<SdkRequest> marshaller = mock(Marshaller.class);
 
     private final HttpResponseHandler<SdkResponse> responseHandler = mock(HttpResponseHandler.class);
 
@@ -97,7 +96,7 @@ public class AsyncClientHandlerTransformerVerificationTest {
 
         when(request.overrideConfiguration()).thenReturn(Optional.empty());
 
-        when(marshaller.marshall(eq(request))).thenReturn(new DefaultRequest<>(null));
+        when(marshaller.marshall(eq(request))).thenReturn(ValidSdkObjects.sdkHttpFullRequest().build());
 
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(VoidSdkResponse.builder().build());

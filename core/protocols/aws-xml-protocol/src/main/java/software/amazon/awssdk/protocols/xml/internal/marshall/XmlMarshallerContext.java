@@ -16,9 +16,9 @@
 package software.amazon.awssdk.protocols.xml.internal.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkInternalApi
 public final class XmlMarshallerContext {
@@ -26,7 +26,7 @@ public final class XmlMarshallerContext {
     private final XmlGenerator xmlGenerator;
     private final XmlProtocolMarshaller protocolMarshaller;
     private final XmlMarshallerRegistry marshallerRegistry;
-    private final Request<?> request;
+    private final SdkHttpFullRequest.Builder request;
 
     public XmlMarshallerContext(Builder builder) {
         this.xmlGenerator = builder.xmlGenerator;
@@ -52,9 +52,10 @@ public final class XmlMarshallerContext {
     }
 
     /**
-     * @return Mutable {@link Request} object that can be used to add headers, query params, modify request URI, etc.
+     * @return Mutable {@link SdkHttpFullRequest.Builder} object that can be used to add headers, query params,
+     * modify request URI, etc.
      */
-    public Request<?> request() {
+    public SdkHttpFullRequest.Builder request() {
         return request;
     }
 
@@ -96,7 +97,7 @@ public final class XmlMarshallerContext {
         private XmlGenerator xmlGenerator;
         private XmlProtocolMarshaller protocolMarshaller;
         private XmlMarshallerRegistry marshallerRegistry;
-        private Request<?> request;
+        private SdkHttpFullRequest.Builder request;
 
         private Builder() {
         }
@@ -116,7 +117,7 @@ public final class XmlMarshallerContext {
             return this;
         }
 
-        public Builder request(Request<?> request) {
+        public Builder request(SdkHttpFullRequest.Builder request) {
             this.request = request;
             return this;
         }

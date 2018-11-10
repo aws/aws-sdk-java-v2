@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
-import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
+import static java.util.Collections.singletonList;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -27,51 +27,51 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.XmlDomParser;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.Buildable;
 
 @SdkInternalApi
-public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
+public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
 
     private static final XmlUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
 
-    /**
-     * If response shape has explicit payload, then root element is a member of response and should
-     * be used when population fields. In this case, this value is set to True.
-     * If no explicit payload member is present, root element can be ignored and this value is set to False.
-     */
-    private final boolean useRootElement;
-
-    public XmlProtocolUnmarshaller(boolean useRootElement) {
-        this.useRootElement = useRootElement;
+    private XmlProtocolUnmarshaller() {
     }
 
-    public Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
-                                                       SdkHttpFullResponse response) throws Exception {
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
+                                                    SdkHttpFullResponse response) {
 
+        XmlElement document = hasPayloadMembers(sdkPojo) && response.content().isPresent()
+                              ? XmlDomParser.parse(response.content().get()) : null;
+
+        return unmarshall(sdkPojo, document, response);
+    }
+
+    /**
+     * This method is also used to unmarshall exceptions. We use this since we've already parsed the XML
+     * and the result root is in a different location depending on the protocol/service.
+     */
+    @Override
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
+                                                    XmlElement resultRoot,
+                                                    SdkHttpFullResponse response) {
         XmlUnmarshallerContext unmarshallerContext = XmlUnmarshallerContext.builder()
                                                                            .response(response)
                                                                            .registry(REGISTRY)
                                                                            .protocolUnmarshaller(this)
                                                                            .build();
-
-        XmlElement document = hasPayloadMembers(sdkPojo) && response.content().isPresent()
-                              ? XmlDomParser.parse(response.content().get()) : null;
-
-        XmlElement resultRoot = document != null && useRootElement ? XmlElement.builder().addChildElement(document).build()
-                                                                   : document;
-
-        return Pair.of((TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot), parseMetadata(document));
+        return (TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot);
     }
 
     SdkPojo unmarshall(XmlUnmarshallerContext context, SdkPojo sdkPojo, XmlElement root) {
@@ -79,7 +79,9 @@ public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
-                List<XmlElement> element = root.getElementsByName(field.unmarshallLocationName());
+                List<XmlElement> element = isExplicitPayloadMember(field) ?
+                                           singletonList(root) :
+                                           root.getElementsByName(field.unmarshallLocationName());
                 if (!CollectionUtils.isNullOrEmpty(element)) {
                     Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
                     field.set(sdkPojo, unmarshalled);
@@ -89,28 +91,11 @@ public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
                 field.set(sdkPojo, unmarshalled);
             }
         }
-        return ((SdkBuilder<?, SdkPojo>) sdkPojo).build();
+        return (SdkPojo) ((Buildable) sdkPojo).build();
     }
 
-    private Map<String, String> parseMetadata(XmlElement document) {
-        if (document == null) {
-            return new HashMap<>();
-        }
-
-        XmlElement responseMetadata = document.getElementByName("ResponseMetadata");
-        Map<String, String> metadata = new HashMap<>();
-        if (responseMetadata != null) {
-            responseMetadata.children().forEach(c -> metadata.put(metadataKeyName(c), c.textContent()));
-        }
-        XmlElement requestId = document.getElementByName("requestId");
-        if (requestId != null) {
-            metadata.put(AWS_REQUEST_ID, requestId.textContent());
-        }
-        return metadata;
-    }
-
-    private String metadataKeyName(XmlElement c) {
-        return c.elementName().equals("RequestId") ? AWS_REQUEST_ID : c.elementName();
+    private boolean isExplicitPayloadMember(SdkField<?> field) {
+        return field.containsTrait(PayloadTrait.class);
     }
 
     private boolean hasPayloadMembers(SdkPojo sdkPojo) {
@@ -153,5 +138,28 @@ public final class XmlProtocolUnmarshaller<TypeT extends SdkPojo> {
             .payloadUnmarshaller(MarshallingType.LIST, XmlPayloadUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, XmlPayloadUnmarshaller::unmarshallMap)
             .build();
+    }
+
+    /**
+     * @return New {@link Builder} instance.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link XmlProtocolUnmarshaller}.
+     */
+    public static final class Builder {
+
+        private Builder() {
+        }
+
+        /**
+         * @return New instance of {@link XmlProtocolUnmarshaller}.
+         */
+        public XmlProtocolUnmarshaller build() {
+            return new XmlProtocolUnmarshaller();
+        }
     }
 }

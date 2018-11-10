@@ -49,14 +49,14 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return super.execute(addErrorResponseHandler(executionParams));
+        return super.execute(executionParams);
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
-        return super.execute(addErrorResponseHandler(executionParams), asyncResponseTransformer);
+        return super.execute(executionParams, asyncResponseTransformer);
     }
 
     @Override

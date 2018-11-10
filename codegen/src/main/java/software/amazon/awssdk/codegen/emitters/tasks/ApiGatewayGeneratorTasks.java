@@ -28,8 +28,8 @@ public class ApiGatewayGeneratorTasks implements Iterable<GeneratorTask> {
     private final Iterable<GeneratorTask> tasks;
 
     public ApiGatewayGeneratorTasks(GeneratorTaskParams params) {
-        this.tasks = new CompositeIterable<>(new CommonGeneratorTasks(params),
-                                             new AuthorizerGeneratorTasks(params));
+        // TODO add authorizers back when we get around to apig
+        this.tasks = new CompositeIterable<>(new CommonGeneratorTasks(params));
     }
 
     @Override

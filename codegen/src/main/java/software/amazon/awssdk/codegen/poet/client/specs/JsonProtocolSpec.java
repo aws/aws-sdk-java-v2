@@ -54,8 +54,6 @@ import software.amazon.awssdk.protocols.ion.AwsIonProtocolFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.protocols.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 
 public class JsonProtocolSpec implements ProtocolSpec {
@@ -89,11 +87,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
                                                       "return builder\n" +
-                                                      ".baseServiceExceptionClass($T.class)\n" +
+                                                      ".clientConfiguration(clientConfiguration)\n" +
+                                                      ".defaultServiceExceptionSupplier($T::builder)\n" +
                                                       ".protocol($T.$L)\n" +
-                                                      ".protocolVersion($S)\n",
+                                                      ".protocolVersion($S)\n"
+                                                      + "$L",
                                                       baseException, AwsJsonProtocol.class,
-                                                      protocolEnumName(metadata.getProtocol()), metadata.getJsonVersion());
+                                                      protocolEnumName(metadata.getProtocol()), metadata.getJsonVersion(),
+                                                      customErrorCodeFieldName());
 
         if (metadata.getContentType() != null) {
             methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
@@ -103,6 +104,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
         methodSpec.addCode(";");
 
         return methodSpec.build();
+    }
+
+    private CodeBlock customErrorCodeFieldName() {
+        return model.getCustomizationConfig().getCustomErrorCodeFieldName() == null ?
+               CodeBlock.builder().build() :
+               CodeBlock.of(".customErrorCodeFieldName($S)", model.getCustomizationConfig().getCustomErrorCodeFieldName());
     }
 
     private Class<?> protocolFactoryClass() {
@@ -121,18 +128,18 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         String protocolFactory = protocolFactoryLiteral(opModel);
         CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T operationMetadata = $T.builder()\n"
+                    + ".hasStreamingSuccessResponse($L)\n"
+                    + ".isPayloadJson($L)\n"
+                    + ".build();", JsonOperationMetadata.class, JsonOperationMetadata.class,
+                    opModel.hasStreamingOutput(), !opModel.getHasBlobMemberAsPayload());
         if (opModel.hasEventStreamOutput()) {
             responseHandlersForEventStreaming(opModel, pojoResponseType, protocolFactory, builder);
         } else {
-            builder.add("\n\n$T<$T> responseHandler = $L.createResponseHandler(new $T()" +
-                        "                                   .withPayloadJson($L)" +
-                        "                                   .withHasStreamingSuccessResponse($L), $T::builder);",
+            builder.add("\n\n$T<$T> responseHandler = $L.createResponseHandler(operationMetadata, $T::builder);",
                         HttpResponseHandler.class,
                         pojoResponseType,
                         protocolFactory,
-                        JsonOperationMetadata.class,
-                        !opModel.getHasBlobMemberAsPayload(),
-                        opModel.hasStreamingOutput(),
                         pojoResponseType);
         }
         return builder.build();
@@ -144,7 +151,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         return CodeBlock
             .builder()
-            .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L);",
+            .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
                  HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
             .build();
     }
@@ -361,10 +368,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
                                      .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
+                                     .addParameter(JsonOperationMetadata.class, "operationMetadata")
                                      .returns(responseHandlerOfException)
                                      .addModifiers(Modifier.PRIVATE)
-                                     .addStatement("return protocolFactory.createErrorResponseHandler(new $T())",
-                                                   JsonErrorResponseMetadata.class)
+                                     .addStatement("return protocolFactory.createErrorResponseHandler(operationMetadata)")
                                      .build());
     }
 
@@ -376,8 +383,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         return exceptions.stream().map(s -> {
             ClassName exceptionClass = poetExtensions.getModelClass(s.getShapeName());
-            return CodeBlock.builder().add(".addErrorMetadata(new $T().withErrorCode($S).withModeledClass($T.class))",
-                                           JsonErrorShapeMetadata.class,
+            return CodeBlock.builder().add(".registerModeledException($S, $T::builder)",
                                            s.getErrorCode(),
                                            exceptionClass)
                             .build();
@@ -407,21 +413,17 @@ public class JsonProtocolSpec implements ProtocolSpec {
      */
     private void responseHandlersForEventStreaming(OperationModel opModel, TypeName pojoResponseType,
                                                    String protocolFactory, CodeBlock.Builder builder) {
-        builder.add("\n\n$T<$T> responseHandler = new $T($L.createResponseHandler(new $T()" +
-                    "                                    .withPayloadJson($L)" +
-                    "                                    .withHasStreamingSuccessResponse($L), $T::builder));",
+        builder.add("\n\n$T<$T> responseHandler = new $T($L.createResponseHandler(operationMetadata, $T::builder));",
                     HttpResponseHandler.class,
                     pojoResponseType,
                     AttachHttpMetadataResponseHandler.class,
                     protocolFactory,
-                    JsonOperationMetadata.class,
-                    !opModel.getHasBlobMemberAsPayload(),
-                    opModel.hasStreamingOutput(),
                     pojoResponseType);
 
-        builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler(new $T()" +
-                    "                                   .withPayloadJson(false)" +
-                    "                                   .withHasStreamingSuccessResponse(true), $T::builder);",
+        builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler($T.builder()\n" +
+                    "                                   .isPayloadJson(false)\n" +
+                    "                                   .hasStreamingSuccessResponse(true)\n" +
+                    "                                   .build(), $T::builder);",
                     HttpResponseHandler.class,
                     SdkResponse.class,
                     protocolFactory,
@@ -431,16 +433,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ShapeModel eventStream = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
         ClassName eventStreamBaseClass = poetExtensions.getModelClassFromShape(eventStream);
         builder
-            .add("\n\n$T<$T> eventResponseHandler = $L.createResponseHandler(new $T()" +
-                 "                                   .withPayloadJson($L)" +
-                 "                                   .withHasStreamingSuccessResponse($L), "
-                 + "$T.builder()",
+            .add("\n\n$T<$T> eventResponseHandler = $L.createResponseHandler($T.builder()\n" +
+                 "                                   .isPayloadJson(true)\n" +
+                 "                                   .hasStreamingSuccessResponse(false)\n" +
+                 "                                   .build(), $T.builder()",
                  HttpResponseHandler.class,
                  WildcardTypeName.subtypeOf(eventStreamBaseClass),
                  protocolFactory,
                  JsonOperationMetadata.class,
-                 true,
-                 false,
                  ClassName.get(EventStreamTaggedUnionPojoSupplier.class));
         EventStreamUtils.getEvents(eventStream)
                         .forEach(m -> builder.add(".putSdkPojoSupplier(\"$L\", $T::builder)\n",

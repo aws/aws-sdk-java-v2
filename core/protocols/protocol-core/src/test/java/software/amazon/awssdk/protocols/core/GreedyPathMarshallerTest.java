@@ -25,7 +25,7 @@ public class GreedyPathMarshallerTest {
 
     @Test(expected = NullPointerException.class)
     public void nullPathValue_ThrowsException() {
-        marshaller.marshall("/foo/{greedyParam+}", "greedyParam", (String) null);
+        marshaller.marshall("/foo/{greedyParam+}", "greedyParam", null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -48,23 +48,4 @@ public class GreedyPathMarshallerTest {
         assertEquals("/foo/my/greedy/value", marshaller.marshall("/foo/{greedyParam+}", "greedyParam", "/my/greedy/value"));
     }
 
-    @Test
-    public void integerPathValue_ReplacesPlaceholder() {
-        assertEquals("/foo/1234", marshaller.marshall("/foo/{greedyParam+}", "greedyParam", 1234));
-    }
-
-    @Test
-    public void longPathValue_ReplacesPlaceholder() {
-        assertEquals("/foo/9001", marshaller.marshall("/foo/{greedyParam+}", "greedyParam", 9001L));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void nullIntegerPathValue_ThrowsException() {
-        marshaller.marshall("/foo/{greedyParam+}", "greedyParam", (Integer) null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void nullLongPathValue_ThrowsException() {
-        marshaller.marshall("/foo/{greedyParam+}", "greedyParam", (Long) null);
-    }
 }

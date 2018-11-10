@@ -153,7 +153,7 @@ class ShapeModelSpec {
         } else if (m.isMap()) {
             traits.add(createMapTrait(m));
         }
-        if (m.getHttp().getIsPayload() || m.isEventPayload()) {
+        if (m.getHttp().getIsPayload() || m.isEventPayload() || attachPayloadTraitToMember(m)) {
             traits.add(createPayloadTrait());
         }
         if (m.isJsonValue()) {
@@ -177,6 +177,12 @@ class ShapeModelSpec {
         } else {
             return CodeBlock.builder().build();
         }
+    }
+
+    private boolean attachPayloadTraitToMember(MemberModel m) {
+        return customizationConfig.getAttachPayloadTraitToMember()
+                                  .getOrDefault(shapeModel.getC2jName(), "")
+                                  .equals(m.getC2jName());
     }
 
     private CodeBlock createTimestampFormatTrait(MemberModel m) {

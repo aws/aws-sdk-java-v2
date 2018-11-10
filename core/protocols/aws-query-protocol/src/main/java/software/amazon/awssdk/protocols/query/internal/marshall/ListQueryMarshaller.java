@@ -37,7 +37,7 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
     public void marshall(QueryMarshallerContext context, String path, List<?> val, SdkField<List<?>> sdkField) {
         // Explicitly empty lists are marshalled as a query param with empty value in AWS/Query
         if (val.isEmpty() && !(val instanceof SdkAutoConstructList)) {
-            context.request().addParameter(path, "");
+            context.request().putRawQueryParameter(path, "");
             return;
         }
         for (int i = 0; i < val.size(); i++) {

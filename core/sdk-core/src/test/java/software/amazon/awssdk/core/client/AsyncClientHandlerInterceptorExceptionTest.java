@@ -35,8 +35,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.stubbing.Answer;
 import org.testng.Assert;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.EmptyPublisher;
@@ -60,6 +58,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 /**
  * Tests to ensure that any failures thrown from calling into the {@link
@@ -72,7 +71,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
 
     private final SdkAsyncHttpClient asyncHttpClient = mock(SdkAsyncHttpClient.class);
 
-    private final Marshaller<Request<SdkRequest>, SdkRequest> marshaller = mock(Marshaller.class);
+    private final Marshaller<SdkRequest> marshaller = mock(Marshaller.class);
 
     private final HttpResponseHandler<SdkResponse> responseHandler = mock(HttpResponseHandler.class);
 
@@ -112,7 +111,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
 
         when(request.overrideConfiguration()).thenReturn(Optional.empty());
 
-        when(marshaller.marshall(eq(request))).thenReturn(new DefaultRequest<>(null));
+        when(marshaller.marshall(eq(request))).thenReturn(ValidSdkObjects.sdkHttpFullRequest().build());
 
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class)))
                 .thenReturn(VoidSdkResponse.builder().build());

@@ -18,14 +18,18 @@ package software.amazon.awssdk.protocols.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonFactory;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.ErrorMessageParser;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class AwsJsonErrorMessageParserTest {
 
@@ -37,83 +41,103 @@ public class AwsJsonErrorMessageParserTest {
 
     private SdkHttpFullResponse.Builder responseBuilder;
 
-    private ObjectNode jsonNode;
+    private JsonDomParser jsonParser;
 
     @Before
     public void setup() {
-        jsonNode = JsonNodeFactory.instance.objectNode();
+        jsonParser = JsonDomParser.create(new JsonFactory());
         responseBuilder = ValidSdkObjects.sdkHttpFullResponse();
     }
 
     @Test
     public void testErrorMessageAt_message() {
-        jsonNode.put("message", MESSAGE_CONTENT);
+        SdkJsonNode jsonNode = parseJson("message", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
         assertEquals(MESSAGE_CONTENT, parsed);
     }
 
+    private SdkJsonNode parseJson(String fieldName, String value) {
+        try {
+            return jsonParser.parse(new StringInputStream(String.format("{\"%s\": \"%s\"}", fieldName, value)));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private SdkJsonNode parseJson(String json) {
+        try {
+            return jsonParser.parse(new StringInputStream(json));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     @Test
     public void testErrorMessageAt_Message() {
-        jsonNode.put("Message", MESSAGE_CONTENT);
+        SdkJsonNode jsonNode = parseJson("Message", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
         assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void testErrorMessageAt_errorMessage() {
-        jsonNode.put("errorMessage", MESSAGE_CONTENT);
+        SdkJsonNode jsonNode = parseJson("errorMessage", MESSAGE_CONTENT);
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
         assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void testNoErrorMessage_ReturnsNull() {
-        String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
+        String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson("{}"));
         assertNull(parsed);
     }
 
     @Test
-    public void testErrorMessageIsNumber_ReturnsNull() {
-        jsonNode.put("message", 1);
+    public void testErrorMessageIsNumber_ReturnsStringValue() {
+        SdkJsonNode jsonNode = parseJson("{\"message\": 1}");
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
-        assertNull(parsed);
+        assertEquals("1", parsed);
     }
 
     @Test
     public void testErrorMessageIsObject_ReturnsNull() {
-        jsonNode.set("message", JsonNodeFactory.instance.objectNode().put("foo", "bar"));
+        SdkJsonNode jsonNode = parseJson("{\"message\": {\"foo\": \"bar\"}}");
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
         assertNull(parsed);
     }
 
     @Test
     public void testErrorMessageAtMultipleLocations_ReturnsLowerMessage() {
-        jsonNode.put("message", MESSAGE_CONTENT);
         String randomStuff = UUID.randomUUID().toString();
-        jsonNode.put("Message", randomStuff);
-        jsonNode.put("errorMessage", randomStuff);
-        String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
+        String json = String.format("{"
+                                    + "   \"%s\": \"%s\","
+                                    + "   \"%s\": \"%s\","
+                                    + "   \"%s\": \"%s\""
+                                    + "}", "message", MESSAGE_CONTENT,
+                                    "Message", randomStuff,
+                                    "errorMessage", randomStuff);
+        String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson(json));
         assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void errorMessageInHeader_ReturnsHeaderValue() {
         responseBuilder.putHeader(X_AMZN_ERROR_MESSAGE, MESSAGE_CONTENT);
-        String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
+        String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson("{}"));
         assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void errorMessageInHeader_ReturnsHeaderValue_CaseInsensitive() {
         responseBuilder.putHeader("x-AMZN-error-message", MESSAGE_CONTENT);
-        String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
+        String parsed = parser.parseErrorMessage(responseBuilder.build(), parseJson("{}"));
         assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
     public void errorMessageInHeader_TakesPrecedenceOverMessageInBody() {
         responseBuilder.putHeader(X_AMZN_ERROR_MESSAGE, MESSAGE_CONTENT);
-        jsonNode.put("message", "other message in body");
+        SdkJsonNode jsonNode = parseJson("message", "other message in body");
         String parsed = parser.parseErrorMessage(responseBuilder.build(), jsonNode);
         assertEquals(MESSAGE_CONTENT, parsed);
     }

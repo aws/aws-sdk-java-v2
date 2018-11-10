@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -32,8 +31,7 @@ public class DefaultJsonContentTypeResolver implements JsonContentTypeResolver {
     }
 
     @Override
-    public String resolveContentType(JsonClientMetadata clientMetadata, AwsJsonProtocolMetadata protocolMetadata) {
-        return Optional.ofNullable(clientMetadata.getContentTypeOverride())
-                       .orElse(prefix + protocolMetadata.protocolVersion());
+    public String resolveContentType(AwsJsonProtocolMetadata protocolMetadata) {
+        return prefix + protocolMetadata.protocolVersion();
     }
 }

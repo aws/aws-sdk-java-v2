@@ -16,8 +16,8 @@
 package software.amazon.awssdk.protocols.core;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Static information about an API operation used to marshall it correctly.
@@ -26,23 +26,23 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 public final class OperationInfo {
 
     private final String requestUri;
-    private final HttpMethodName httpMethodName;
+    private final SdkHttpMethod httpMethod;
     private final String operationIdentifier;
     private final String apiVersion;
-    private final String serviceName;
     private final boolean hasExplicitPayloadMember;
     private final boolean hasPayloadMembers;
     private final boolean hasStreamingInput;
+    private final AttributeMap additionalMetadata;
 
     private OperationInfo(Builder builder) {
         this.requestUri = builder.requestUri;
-        this.httpMethodName = builder.httpMethodName;
+        this.httpMethod = builder.httpMethod;
         this.operationIdentifier = builder.operationIdentifier;
         this.apiVersion = builder.apiVersion;
-        this.serviceName = builder.serviceName;
         this.hasExplicitPayloadMember = builder.hasExplicitPayloadMember;
         this.hasPayloadMembers = builder.hasPayloadMembers;
         this.hasStreamingInput = builder.hasStreamingInput;
+        this.additionalMetadata = builder.additionalMetadata.build();
     }
 
     /**
@@ -55,8 +55,8 @@ public final class OperationInfo {
     /**
      * @return HTTP Method that should be used when sending the request.
      */
-    public HttpMethodName httpMethodName() {
-        return httpMethodName;
+    public SdkHttpMethod httpMethod() {
+        return httpMethod;
     }
 
     /**
@@ -73,14 +73,6 @@ public final class OperationInfo {
      */
     public String apiVersion() {
         return apiVersion;
-    }
-
-    /**
-     * @return Display name for the service. Available in the {@link SdkExecutionAttribute} object. This is usually the service
-     * interface name but may be customized at generation time ('AmazonDynamoDBv2' for example).
-     */
-    public String serviceName() {
-        return serviceName;
     }
 
     /**
@@ -107,6 +99,17 @@ public final class OperationInfo {
     }
 
     /**
+     * Gets an unmodeled piece of metadata. Useful for protocol specific options.
+     *
+     * @param key Key the metadata was registered under.
+     * @param <T> Type of metadata being requested.
+     * @return The value of the additional metadata being requested or null if it's not present.
+     */
+    public <T> T addtionalMetadata(OperationMetadataAttribute<T> key) {
+        return additionalMetadata.get(key);
+    }
+
+    /**
      * @return Builder instance to construct a {@link OperationInfo}.
      */
     public static Builder builder() {
@@ -119,13 +122,13 @@ public final class OperationInfo {
     public static final class Builder {
 
         private String requestUri;
-        private HttpMethodName httpMethodName;
+        private SdkHttpMethod httpMethod;
         private String operationIdentifier;
         private String apiVersion;
-        private String serviceName;
         private boolean hasExplicitPayloadMember;
         private boolean hasPayloadMembers;
         private boolean hasStreamingInput;
+        private AttributeMap.Builder additionalMetadata = AttributeMap.builder();
 
         private Builder() {
         }
@@ -135,8 +138,8 @@ public final class OperationInfo {
             return this;
         }
 
-        public Builder httpMethodName(HttpMethodName httpMethodName) {
-            this.httpMethodName = httpMethodName;
+        public Builder httpMethod(SdkHttpMethod httpMethod) {
+            this.httpMethod = httpMethod;
             return this;
         }
 
@@ -147,11 +150,6 @@ public final class OperationInfo {
 
         public Builder apiVersion(String apiVersion) {
             this.apiVersion = apiVersion;
-            return this;
-        }
-
-        public Builder serviceName(String serviceName) {
-            this.serviceName = serviceName;
             return this;
         }
 
@@ -167,6 +165,20 @@ public final class OperationInfo {
 
         public Builder hasStreamingInput(boolean hasStreamingInput) {
             this.hasStreamingInput = hasStreamingInput;
+            return this;
+        }
+
+        /**
+         * Adds additional unmodeled metadata to the {@link OperationInfo}. Useful for communicating protocol
+         * specific operation metadata.
+         *
+         * @param key Key to register metadata.
+         * @param value Value of metadata.
+         * @param <T> Type of metadata being registered.
+         * @return This builder for method chaining.
+         */
+        public <T> Builder putAdditionalMetadata(OperationMetadataAttribute<T> key, T value) {
+            additionalMetadata.put(key, value);
             return this;
         }
 

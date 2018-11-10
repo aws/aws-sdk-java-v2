@@ -136,9 +136,7 @@ public abstract class SdkHttpClientTestSuite {
     private SdkHttpFullRequest mockSdkRequest(String uriString) {
         URI uri = URI.create(uriString);
         return SdkHttpFullRequest.builder()
-                                 .host(uri.getHost())
-                                 .protocol(uri.getScheme())
-                                 .port(uri.getPort())
+                                 .uri(uri)
                                  .method(SdkHttpMethod.POST)
                                  .putHeader("Host", uri.getHost())
                                  .putHeader("User-Agent", "hello-world!")

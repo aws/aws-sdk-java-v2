@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesConfig;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class CustomizationConfig {
@@ -29,6 +29,7 @@ public class CustomizationConfig {
      * different type that is adapted to the real type
      */
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
+
     /**
      * Specifies the name of the client configuration class to use if a service
      * has a specific advanced client configuration class. Null if the service
@@ -44,7 +45,6 @@ public class CustomizationConfig {
      * Custom service and intermediate model metadata properties.
      */
     private MetadataConfig customServiceMetadata;
-    private CodeGenTemplatesConfig customCodeTemplates;
     /**
      * Codegen customization mechanism shared by the .NET SDK
      */
@@ -107,7 +107,6 @@ public class CustomizationConfig {
     private String sdkRequestBaseClassName;
 
     private String sdkResponseBaseClassName;
-    private String defaultExceptionUnmarshaller;
 
     private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
@@ -123,28 +122,27 @@ public class CustomizationConfig {
     private boolean skipSyncClientGeneration;
 
     /**
-     * List of output shapes for which the root xml element should be used while unmarshalling the response
+     * Customization to attach the {@link PayloadTrait} to a member. Currently this is only used for
+     * S3 which doesn't model a member as a payload trait even though it is.
      */
-    private List<String> useRootXmlElementForResult = new ArrayList<>();
+    private Map<String, String> attachPayloadTraitToMember = new HashMap<>();
 
     /**
      * Custom Response metadata
      */
     private Map<String, String> customResponseMetadata;
 
+    /**
+     * Custom protocol factory implementation. Currently this is only respected by the REST-XML protocol as only S3
+     * needs a custom factory.
+     */
+    private String customProtocolFactoryFqcn;
+
     private CustomizationConfig() {
     }
 
     public static CustomizationConfig create() {
         return new CustomizationConfig();
-    }
-
-    public CodeGenTemplatesConfig getCustomCodeTemplates() {
-        return customCodeTemplates;
-    }
-
-    public void setCustomCodeTemplates(CodeGenTemplatesConfig customCodeTemplates) {
-        this.customCodeTemplates = customCodeTemplates;
     }
 
     public Map<String, OperationModifier> getOperationModifiers() {
@@ -185,26 +183,6 @@ public class CustomizationConfig {
 
     public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
         this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
-    }
-
-    /**
-     * Customization to generate a method overload for a member setter that takes a string rather
-     * than an InputStream. Currently only used by Lambda
-     */
-    public void setStringOverloadForInputStreamMember(
-        StringOverloadForInputStreamMember stringOverloadForInputStreamMember) {
-        this.convenienceTypeOverloads
-            .add(stringOverloadForInputStreamMember.getConvenienceTypeOverload());
-    }
-
-    /**
-     * Customization to generate a method overload for a member setter that takes a string rather
-     * than an SdkBytes. Currently only used by Lambda
-     */
-    public void setStringOverloadForSdkBytesMember(
-        StringOverloadForSdkBytesMember stringOverloadForSdkBytesMember) {
-        this.convenienceTypeOverloads
-            .add(stringOverloadForSdkBytesMember.getConvenienceTypeOverload());
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {
@@ -304,14 +282,6 @@ public class CustomizationConfig {
         this.sdkResponseBaseClassName = sdkResponseBaseClassName;
     }
 
-    public String getDefaultExceptionUnmarshaller() {
-        return defaultExceptionUnmarshaller;
-    }
-
-    public void setDefaultExceptionUnmarshaller(String defaultExceptionUnmarshaller) {
-        this.defaultExceptionUnmarshaller = defaultExceptionUnmarshaller;
-    }
-
     public Map<String, String> getModelMarshallerDefaultValueSupplier() {
         return modelMarshallerDefaultValueSupplier;
     }
@@ -352,12 +322,12 @@ public class CustomizationConfig {
         this.skipSyncClientGeneration = skipSyncClientGeneration;
     }
 
-    public List<String> getUseRootXmlElementForResult() {
-        return useRootXmlElementForResult;
+    public Map<String, String> getAttachPayloadTraitToMember() {
+        return attachPayloadTraitToMember;
     }
 
-    public void setUseRootXmlElementForResult(List<String> useRootXmlElementForResult) {
-        this.useRootXmlElementForResult = useRootXmlElementForResult;
+    public void setAttachPayloadTraitToMember(Map<String, String> attachPayloadTraitToMember) {
+        this.attachPayloadTraitToMember = attachPayloadTraitToMember;
     }
 
     public Map<String, String> getCustomResponseMetadata() {
@@ -366,5 +336,13 @@ public class CustomizationConfig {
 
     public void setCustomResponseMetadata(Map<String, String> customResponseMetadata) {
         this.customResponseMetadata = customResponseMetadata;
+    }
+
+    public String getCustomProtocolFactoryFqcn() {
+        return customProtocolFactoryFqcn;
+    }
+
+    public void setCustomProtocolFactoryFqcn(String customProtocolFactoryFqcn) {
+        this.customProtocolFactoryFqcn = customProtocolFactoryFqcn;
     }
 }

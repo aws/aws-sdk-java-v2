@@ -31,7 +31,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -74,7 +73,7 @@ public class AmazonHttpClientTest {
 
         try {
             client.requestExecutionBuilder()
-                    .request(ValidSdkObjects.legacyRequest())
+                    .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
                     .execute();
@@ -100,7 +99,7 @@ public class AmazonHttpClientTest {
 
         try {
             client.requestExecutionBuilder()
-                    .request(ValidSdkObjects.legacyRequest())
+                    .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
                     .execute(mockHandler);
@@ -116,10 +115,9 @@ public class AmazonHttpClientTest {
 
 
     @Test
-    public void testUserAgentPrefixAndSuffixAreAdded() throws Exception {
+    public void testUserAgentPrefixAndSuffixAreAdded() {
         String prefix = "somePrefix";
         String suffix = "someSuffix-blah-blah";
-        Request<?> request = ValidSdkObjects.legacyRequest();
 
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
@@ -132,7 +130,7 @@ public class AmazonHttpClientTest {
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
         client.requestExecutionBuilder()
-              .request(request)
+              .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
               .execute(handler);

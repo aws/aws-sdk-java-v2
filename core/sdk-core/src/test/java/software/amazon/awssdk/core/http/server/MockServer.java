@@ -20,12 +20,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URI;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -90,12 +92,14 @@ public class MockServer {
         return serverSocket.getLocalPort();
     }
 
-    public String getEndpoint() {
-        return "http://localhost:" + getPort();
+    public SdkHttpFullRequest.Builder configureHttpsEndpoint(SdkHttpFullRequest.Builder request) {
+        return request.uri(URI.create("https://localhost"))
+                      .port(getPort());
     }
 
-    public String getHttpsEndpoint() {
-        return "https://localhost:" + getPort();
+    public SdkHttpFullRequest.Builder configureHttpEndpoint(SdkHttpFullRequest.Builder request) {
+        return request.uri(URI.create("http://localhost"))
+                      .port(getPort());
     }
 
     public enum ServerBehavior {
@@ -105,7 +109,7 @@ public class MockServer {
     }
 
     public interface ServerBehaviorStrategy {
-        public void runServer(ServerSocket serverSocket);
+        void runServer(ServerSocket serverSocket);
     }
 
     private static class MockServerListenerThread extends Thread {

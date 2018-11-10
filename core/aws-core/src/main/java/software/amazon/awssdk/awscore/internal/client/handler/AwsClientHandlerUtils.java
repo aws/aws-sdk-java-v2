@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore.internal.client.handler;
 
+import static software.amazon.awssdk.utils.CollectionUtils.firstIfPresent;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
@@ -28,7 +30,6 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.eventstream.HeaderValue;
@@ -94,16 +96,16 @@ public final class AwsClientHandlerUtils {
      * @param request The request to encode
      * @return A bytebuffer representing the given request
      */
-    public static ByteBuffer encodeEventStreamRequestToByteBuffer(Request<?> request) {
-        Map<String, HeaderValue> headers = request.getHeaders()
+    public static ByteBuffer encodeEventStreamRequestToByteBuffer(SdkHttpFullRequest request) {
+        Map<String, HeaderValue> headers = request.headers()
                                                   .entrySet()
                                                   .stream()
                                                   .collect(Collectors.toMap(Map.Entry::getKey, e -> HeaderValue.fromString(
-                                                      e.getValue())));
+                                                      firstIfPresent(e.getValue()))));
         byte[] payload = null;
-        if (request.getContentStreamProvider().isPresent()) {
+        if (request.contentStreamProvider().isPresent()) {
             try {
-                payload = IoUtils.toByteArray(request.getContentStreamProvider().get().newStream());
+                payload = IoUtils.toByteArray(request.contentStreamProvider().get().newStream());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

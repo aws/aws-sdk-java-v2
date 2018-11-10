@@ -80,7 +80,7 @@ public final class StringToValueConverter {
 
     public static final SimpleStringToValue<Double> TO_DOUBLE = Double::parseDouble;
 
-    public static final SimpleStringToValue<BigDecimal> TO_BIG_DECIMAL = val -> new BigDecimal(val);
+    public static final SimpleStringToValue<BigDecimal> TO_BIG_DECIMAL = BigDecimal::new;
 
     public static final SimpleStringToValue<Boolean> TO_BOOLEAN = Boolean::parseBoolean;
 

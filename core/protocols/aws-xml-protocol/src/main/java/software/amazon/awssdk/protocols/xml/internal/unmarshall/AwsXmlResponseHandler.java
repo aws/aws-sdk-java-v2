@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -31,18 +32,22 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Pair;
 
+/**
+ * Response handler for REST-XML services (Cloudfront, Route53, and S3).
+ *
+ * @param <T> Indicates the type being unmarshalled by this response handler.
+ */
 @SdkInternalApi
 public final class AwsXmlResponseHandler<T extends AwsResponse> implements HttpResponseHandler<T> {
 
     private static final Logger log = Logger.loggerFor(AwsXmlResponseHandler.class);
 
-    private final XmlProtocolUnmarshaller<T> unmarshaller;
+    private final XmlProtocolUnmarshaller unmarshaller;
     private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;
     private final boolean needsConnectionLeftOpen;
 
-    public AwsXmlResponseHandler(XmlProtocolUnmarshaller<T> unmarshaller,
+    public AwsXmlResponseHandler(XmlProtocolUnmarshaller unmarshaller,
                                  Function<SdkHttpFullResponse, SdkPojo> pojoSupplier,
                                  boolean needsConnectionLeftOpen) {
         this.unmarshaller = unmarshaller;
@@ -74,21 +79,20 @@ public final class AwsXmlResponseHandler<T extends AwsResponse> implements HttpR
     @SuppressWarnings("unchecked")
     private T unmarshallResponse(SdkHttpFullResponse response) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response XML.");
-        Pair<T, Map<String, String>> result = unmarshaller.unmarshall(pojoSupplier.apply(response), response);
+        T result = unmarshaller.unmarshall(pojoSupplier.apply(response), response);
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Done parsing service response.");
-        AwsResponseMetadata responseMetadata = generateResponseMetadata(response, result.right());
-        return (T) result.left().toBuilder().responseMetadata(responseMetadata).build();
+        AwsResponseMetadata responseMetadata = generateResponseMetadata(response);
+        return (T) result.toBuilder().responseMetadata(responseMetadata).build();
     }
 
     /**
-     * Create the default {@link AwsResponseMetadata}. Subclasses may override this to create a
-     * subclass of {@link AwsResponseMetadata}.
+     * Create the default {@link AwsResponseMetadata}. This might be wrapped by a service
+     * specific metadata object to provide modeled access to additional metadata. (See S3 and Kinesis).
      */
-    private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response, Map<String, String> metadata) {
-        if (!metadata.containsKey(AWS_REQUEST_ID)) {
-            metadata.put(AWS_REQUEST_ID,
-                         response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null));
-        }
+    private AwsResponseMetadata generateResponseMetadata(SdkHttpResponse response) {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put(AWS_REQUEST_ID,
+                     response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER).orElse(null));
 
         response.headers().forEach((key, value) -> metadata.put(key, value.get(0)));
         return DefaultAwsResponseMetadata.create(metadata);

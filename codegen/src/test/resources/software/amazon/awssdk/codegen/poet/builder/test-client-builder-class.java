@@ -27,6 +27,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     @Override
+    protected final String serviceName() {
+        return "Json";
+    }
+
+    @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner()).option(
             SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
@@ -65,3 +70,4 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return result;
     }
 }
+

@@ -72,7 +72,7 @@ public final class QueryParamMarshaller {
                 SimpleQueryParamMarshaller valueMarshaller = (SimpleQueryParamMarshaller)
                     context.marshallerRegistry().getMarshaller(MarshallLocation.QUERY_PARAM, entry.getValue());
 
-                context.request().addParameter(entry.getKey(), valueMarshaller.convert(entry.getValue(), null));
+                context.request().putRawQueryParameter(entry.getKey(), valueMarshaller.convert(entry.getValue(), null));
             }
         }
     };
@@ -90,7 +90,7 @@ public final class QueryParamMarshaller {
 
         @Override
         public void marshall(T val, XmlMarshallerContext context, String paramName, SdkField<T> sdkField) {
-            context.request().addParameter(paramName, converter.convert(val, sdkField));
+            context.request().appendRawQueryParameter(paramName, converter.convert(val, sdkField));
         }
 
         public String convert(T val, SdkField<T> sdkField) {

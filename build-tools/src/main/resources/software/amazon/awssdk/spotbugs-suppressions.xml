@@ -77,14 +77,6 @@
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
 
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller" />
-            <Class name="software.amazon.awssdk.awscore.protocol.xml.LegacyErrorUnmarshaller" />
-        </Or>
-        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
-    </Match>
-
     <!-- Currently they look the same and we will revisit this when we add APIG -->
     <Match>
         <Or>
@@ -114,6 +106,31 @@
         <Class name="software.amazon.awssdk.benchmark.dynamodb.V2DynamoDbAttributeValue$TestItemUnmarshalling" />
         <Method name="utf8" />
         <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
+        <Method name="unmarshallStructured" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+
+    <!-- We want the content to be restored to the default vaue of null -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.DefaultSdkHttpFullResponse" />
+        <Field name="content" />
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+    </Match>
+
+    <!-- Don't understand why these are bugs -->
+    <Match>
+        <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2AsyncClient" />
+        <Method name="init" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2Client" />
+        <Method name="init" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
 
 </FindBugsFilter>

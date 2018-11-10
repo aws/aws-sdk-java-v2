@@ -55,14 +55,14 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
         ClientExecutionParams<InputT, OutputT> clientExecutionParams = addCrc32Validation(executionParams);
-        return super.execute(addErrorResponseHandler(clientExecutionParams));
+        return super.execute(clientExecutionParams);
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
-        return super.execute(addErrorResponseHandler(executionParams), responseTransformer);
+        return super.execute(executionParams, responseTransformer);
     }
 
     @Override

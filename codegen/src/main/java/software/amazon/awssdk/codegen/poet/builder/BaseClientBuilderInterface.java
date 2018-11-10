@@ -59,7 +59,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private CodeBlock getJavadoc() {
         return CodeBlock.of("This includes configuration specific to $L that is supported by both {@link $T} and {@link $T}.",
-                            model.getMetadata().getServiceAbbreviation(),
+                            model.getMetadata().getDescriptiveServiceName(),
                             ClassName.get(basePackage, model.getMetadata().getSyncBuilderInterface()),
                             ClassName.get(basePackage, model.getMetadata().getAsyncBuilderInterface()));
     }

@@ -43,8 +43,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -65,6 +65,7 @@ public class DefaultAwsClientBuilderTest {
 
     private static final String ENDPOINT_PREFIX = "s3";
     private static final String SIGNING_NAME = "demo";
+    private static final String SERVICE_NAME = "Demo";
     private static final Signer TEST_SIGNER = Aws4Signer.create();
     private static final URI ENDPOINT = URI.create("https://example.com");
 
@@ -85,6 +86,7 @@ public class DefaultAwsClientBuilderTest {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
         assertThat(client.clientConfiguration.option(SIGNER)).isEqualTo(TEST_SIGNER);
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isNotNull();
+        assertThat(client.clientConfiguration.option(SdkClientOption.SERVICE_NAME)).isEqualTo(SERVICE_NAME);
     }
 
     @Test
@@ -248,6 +250,11 @@ public class DefaultAwsClientBuilderTest {
         }
 
         @Override
+        protected String serviceName() {
+            return SERVICE_NAME;
+        }
+
+        @Override
         protected AttributeMap serviceHttpConfig() {
             return MOCK_DEFAULTS;
         }
@@ -281,6 +288,11 @@ public class DefaultAwsClientBuilderTest {
         @Override
         protected String signingName() {
             return SIGNING_NAME;
+        }
+
+        @Override
+        protected String serviceName() {
+            return SERVICE_NAME;
         }
 
         @Override

@@ -32,7 +32,7 @@ public class MapQueryMarshaller implements QueryMarshaller<Map<String, ?>> {
 
             String mapKeyPath = resolveMapPath(path, mapTrait, entryNum, mapTrait.keyLocationName());
 
-            context.request().addParameter(mapKeyPath, key);
+            context.request().putRawQueryParameter(mapKeyPath, key);
 
             String mapValuePath = resolveMapPath(path, mapTrait, entryNum, mapTrait.valueLocationName());
 

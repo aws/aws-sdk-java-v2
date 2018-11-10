@@ -81,11 +81,6 @@
             <version>${org.eclipse.text.version}</version>
         </dependency>
         <dependency>
-            <artifactId>freemarker</artifactId>
-            <groupId>org.freemarker</groupId>
-            <version>2.3.24-incubating</version>
-        </dependency>
-        <dependency>
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>${javapoet.verion}</version>

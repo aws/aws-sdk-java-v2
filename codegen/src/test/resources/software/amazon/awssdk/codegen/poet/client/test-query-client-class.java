@@ -1,20 +1,14 @@
 package software.amazon.awssdk.services.query;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
-import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
@@ -24,7 +18,6 @@ import software.amazon.awssdk.services.query.model.InvalidInputException;
 import software.amazon.awssdk.services.query.model.QueryException;
 import software.amazon.awssdk.services.query.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
-import software.amazon.awssdk.services.query.transform.InvalidInputExceptionUnmarshaller;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -39,8 +32,6 @@ final class DefaultQueryClient implements QueryClient {
     private final AwsQueryProtocolFactory protocolFactory;
 
     private final SdkClientConfiguration clientConfiguration;
-
-    private List<Unmarshaller<AwsServiceException, Node>> exceptionUnmarshallers;
 
     protected DefaultQueryClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
@@ -80,7 +71,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(APostOperationResponse::builder);
 
-        DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
@@ -115,7 +106,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
             .createResponseHandler(APostOperationWithOutputResponse::builder);
 
-        DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
         return clientHandler
             .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
@@ -125,11 +116,8 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     private AwsQueryProtocolFactory init() {
-        List<Unmarshaller<AwsServiceException, Node>> unmarshallers = new ArrayList<>();
-        unmarshallers.add(new InvalidInputExceptionUnmarshaller());
-        unmarshallers.add(new StandardErrorUnmarshaller(QueryException.class));
-        this.exceptionUnmarshallers = unmarshallers;
-        return AwsQueryProtocolFactory.builder().build();
+        return AwsQueryProtocolFactory.builder().registerModeledException("InvalidInput", InvalidInputException::builder)
+                                      .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     @Override
@@ -137,3 +125,4 @@ final class DefaultQueryClient implements QueryClient {
         clientHandler.close();
     }
 }
+

@@ -19,10 +19,10 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.protocols.ion.internal.AwsStructuredIonFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.AwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.DefaultJsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
+import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 
 /**
  * Protocol factory for AWS/Ion protocols. Supports both JSON RPC and REST JSON versions of Ion. Defaults
@@ -59,10 +59,10 @@ public final class AwsIonProtocolFactory extends BaseAwsJsonProtocolFactory {
     }
 
     /**
-     * @return Instance of {@link AwsStructuredJsonFactory} to use in creating handlers.
+     * @return Instance of {@link StructuredJsonFactory} to use in creating handlers.
      */
     @Override
-    protected AwsStructuredJsonFactory getSdkFactory() {
+    protected StructuredJsonFactory getSdkFactory() {
         return isIonBinaryEnabled()
                ? AwsStructuredIonFactory.SDK_ION_BINARY_FACTORY
                : AwsStructuredIonFactory.SDK_ION_TEXT_FACTORY;

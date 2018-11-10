@@ -81,7 +81,7 @@ public final class HeaderMarshaller {
                 return;
             }
 
-            context.request().addHeader(paramName, converter.convert(val, sdkField));
+            context.request().putHeader(paramName, converter.convert(val, sdkField));
         }
 
         protected boolean shouldEmit(T val) {

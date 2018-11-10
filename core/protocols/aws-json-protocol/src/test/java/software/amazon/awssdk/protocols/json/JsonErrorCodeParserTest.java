@@ -18,11 +18,15 @@ package software.amazon.awssdk.protocols.json;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonFactory;
+import java.io.IOException;
 import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkObjectNode;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class JsonErrorCodeParserTest {
 
@@ -37,13 +41,12 @@ public class JsonErrorCodeParserTest {
     private static final String JSON_ERROR_TYPE = "jsonErrorType";
 
     private static final String ERROR_FIELD_NAME = "testErrorCode";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final JsonErrorCodeParser parser = new JsonErrorCodeParser(ERROR_FIELD_NAME);
 
-    private static JsonContent toJsonContent(String errorType) {
-        ObjectNode node = MAPPER.createObjectNode();
-        node.put(ERROR_FIELD_NAME, errorType);
+    private static JsonContent toJsonContent(String errorType) throws IOException {
+        SdkJsonNode node = JsonDomParser.create(new JsonFactory()).parse(new StringInputStream(
+            String.format("{\"%s\": \"%s\"}", ERROR_FIELD_NAME, errorType)));
         return new JsonContent(null, node);
     }
 
@@ -56,29 +59,29 @@ public class JsonErrorCodeParserTest {
     }
 
     @Test
-    public void parseErrorType_ErrorTypeInHeadersTakesPrecedence_NoSuffix() {
+    public void parseErrorType_ErrorTypeInHeadersTakesPrecedence_NoSuffix() throws IOException {
         String actualErrorType = parser.parseErrorCode(
-                httpResponseWithHeaders(JsonErrorCodeParser.X_AMZN_ERROR_TYPE, HEADER_ERROR_TYPE),
-                toJsonContent(JSON_ERROR_TYPE));
+            httpResponseWithHeaders(JsonErrorCodeParser.X_AMZN_ERROR_TYPE, HEADER_ERROR_TYPE),
+            toJsonContent(JSON_ERROR_TYPE));
         assertEquals(HEADER_ERROR_TYPE, actualErrorType);
     }
 
     @Test
-    public void parseErrorType_ErrorTypeInHeadersTakesPrecedence_SuffixIgnored() {
+    public void parseErrorType_ErrorTypeInHeadersTakesPrecedence_SuffixIgnored() throws IOException {
         String actualErrorType = parser.parseErrorCode(
-                httpResponseWithHeaders(JsonErrorCodeParser.X_AMZN_ERROR_TYPE,
-                                        String.format("%s:%s", HEADER_ERROR_TYPE, "someSuffix")), toJsonContent(JSON_ERROR_TYPE));
+            httpResponseWithHeaders(JsonErrorCodeParser.X_AMZN_ERROR_TYPE,
+                                    String.format("%s:%s", HEADER_ERROR_TYPE, "someSuffix")), toJsonContent(JSON_ERROR_TYPE));
         assertEquals(HEADER_ERROR_TYPE, actualErrorType);
     }
 
     @Test
-    public void parseErrorType_ErrorTypeInContent_NoPrefix() {
+    public void parseErrorType_ErrorTypeInContent_NoPrefix() throws IOException {
         String actualErrorType = parser.parseErrorCode(httpResponseWithoutHeaders(), toJsonContent(JSON_ERROR_TYPE));
         assertEquals(JSON_ERROR_TYPE, actualErrorType);
     }
 
     @Test
-    public void parseErrorType_ErrorTypeInContent_PrefixIgnored() {
+    public void parseErrorType_ErrorTypeInContent_PrefixIgnored() throws IOException {
         String actualErrorType = parser.parseErrorCode(httpResponseWithoutHeaders(),
                                                        toJsonContent(String.format("%s#%s", "somePrefix", JSON_ERROR_TYPE)));
         assertEquals(JSON_ERROR_TYPE, actualErrorType);
@@ -91,6 +94,7 @@ public class JsonErrorCodeParserTest {
 
     @Test
     public void parseErrorType_NotPresentInHeadersAndEmptyContent_ReturnsNull() {
-        assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(), new JsonContent(null, new ObjectMapper().createObjectNode())));
+        assertNull(parser.parseErrorCode(httpResponseWithoutHeaders(),
+                                         new JsonContent(null, SdkObjectNode.emptyObject())));
     }
 }

@@ -23,15 +23,20 @@ import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class QueryMarshallerSpec implements MarshallerProtocolSpec {
@@ -57,10 +62,9 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
     public CodeBlock marshalCodeBlock(ClassName requestClassName) {
         String variableName = shapeModel.getVariable().getVariableName();
         return CodeBlock.builder()
-                        .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
-                                      + "(SDK_OPERATION_BINDING, $L)",
-                                      ProtocolMarshaller.class, Request.class,
-                                      requestClassName, variableName)
+                        .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller"
+                                      + "(SDK_OPERATION_BINDING)",
+                                      ProtocolMarshaller.class, SdkHttpFullRequest.class)
                         .addStatement("return protocolMarshaller.marshall($L)", variableName)
                         .build();
     }
@@ -87,11 +91,10 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         CodeBlock.Builder initializationCodeBlockBuilder = CodeBlock.builder()
                                                                     .add("$T.builder()", OperationInfo.class);
         initializationCodeBlockBuilder.add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
-                                      .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
+                                      .add(".httpMethod($T.$L)", SdkHttpMethod.class, shapeModel.getMarshaller().getVerb())
                                       .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                                             shapeModel.getExplicitEventPayloadMember() != null)
-                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
-                                      .add(".serviceName($S)", metadata.getServiceName());
+                                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
             initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget())
@@ -100,6 +103,14 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
 
         if (shapeModel.isHasStreamingMember()) {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
+        }
+        if (metadata.getProtocol() == Protocol.REST_XML) {
+            String rootMarshallLocationName = shapeModel.getMarshaller() != null ?
+                                              shapeModel.getMarshaller().getLocationName() : null;
+            initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.ROOT_MARSHALL_LOCATION_ATTRIBUTE, $S)",
+                                               AwsXmlProtocolFactory.class, rootMarshallLocationName);
+            initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.XML_NAMESPACE_ATTRIBUTE, $S)",
+                                               AwsXmlProtocolFactory.class, xmlNameSpaceUri());
         }
 
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
@@ -113,5 +124,23 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         return fields;
     }
 
+    private String xmlNameSpaceUri() {
+        if (shapeModel.getMarshaller() != null && shapeModel.getMarshaller().getXmlNameSpaceUri() != null) {
+            return shapeModel.getMarshaller().getXmlNameSpaceUri();
+        }
+
+        Set<String> xmlUris = shapeModel.getMembers().stream()
+                                        .filter(m -> m.getXmlNameSpaceUri() != null)
+                                        .map(MemberModel::getXmlNameSpaceUri)
+                                        .collect(Collectors.toSet());
+
+        if (xmlUris.isEmpty()) {
+            return null;
+        } else if (xmlUris.size() == 1) {
+            return xmlUris.iterator().next();
+        } else {
+            throw new RuntimeException("Request has more than 1 xmlNameSpace uri.");
+        }
+    }
 
 }

@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -141,6 +142,14 @@ public class AwsServiceModel implements ClassSpec {
                                                    .addMethod(sdkFieldsMethod())
                                                    .addTypes(nestedModelClassTypes());
 
+            // Add serializable version UID for model and exceptions.
+            if (shapeModel.getShapeType() == ShapeType.Model || shapeModel.getShapeType() == ShapeType.Exception) {
+                specBuilder.addField(FieldSpec.builder(long.class, "serialVersionUID",
+                                                       Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                              .initializer("1L")
+                                              .build());
+            }
+
             if (!fields.isEmpty()) {
                 specBuilder
                     .addMethod(getterCreator())
@@ -246,11 +255,12 @@ public class AwsServiceModel implements ClassSpec {
 
 
         switch (shapeModel.getShapeType()) {
-            case Exception:
             case Model:
                 interfaces.add(ClassName.get(SdkPojo.class));
+                interfaces.add(ClassName.get(Serializable.class));
                 interfaces.add(toCopyableBuilderInterface());
                 break;
+            case Exception:
             case Request:
             case Response:
                 interfaces.add(toCopyableBuilderInterface());

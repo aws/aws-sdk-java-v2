@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.client.handler;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -38,17 +37,16 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     private InputT input;
     private AsyncRequestBody asyncRequestBody;
-    private Marshaller<Request<InputT>, InputT> marshaller;
+    private Marshaller<InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
     private boolean fullDuplex;
 
-    public Marshaller<Request<InputT>, InputT> getMarshaller() {
+    public Marshaller<InputT> getMarshaller() {
         return marshaller;
     }
 
-    public ClientExecutionParams<InputT, OutputT> withMarshaller(
-            Marshaller<Request<InputT>, InputT> marshaller) {
+    public ClientExecutionParams<InputT, OutputT> withMarshaller(Marshaller<InputT> marshaller) {
         this.marshaller = marshaller;
         return this;
     }

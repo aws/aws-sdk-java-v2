@@ -22,7 +22,8 @@
       "input":{"shape":"AllTypesStructure"},
       "output":{"shape":"AllTypesStructure"},
       "errors":[
-        {"shape":"EmptyModeledException"}
+        {"shape":"EmptyModeledException"},
+        {"shape":"ImplicitPayloadException"}
       ]
     },
     "FurtherNestedContainers":{
@@ -134,6 +135,23 @@
           "idempotencyToken":true
         }
       }
+    },
+    "ImplicitPayloadException":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"},
+        "IntegerMember":{"shape":"Integer"},
+        "LongMember":{"shape":"Long"},
+        "DoubleMember":{"shape":"Double"},
+        "FloatMember":{"shape":"Float"},
+        "TimestampMember":{"shape":"Timestamp"},
+        "BooleanMember":{"shape":"Boolean"},
+        "BlobMember":{"shape":"BlobType"},
+        "ListMember":{"shape":"ListOfStrings"},
+        "MapMember":{"shape":"MapOfStringToString"},
+        "SimpleStructMember":{"shape":"SimpleStruct"}
+      },
+      "exception":true
     },
     "Integer":{"type":"integer"},
     // Shape is customized to BigDecimal in customization.config

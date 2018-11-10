@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.json;
 
+import java.net.URI;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -28,9 +29,7 @@ public final class ValidSdkObjects {
 
     public static SdkHttpFullRequest.Builder sdkHttpFullRequest() {
         return SdkHttpFullRequest.builder()
-                                 .protocol("http")
-                                 .host("test.com")
-                                 .port(80)
+                                 .uri(URI.create("http://test.com:80"))
                                  .method(SdkHttpMethod.GET);
     }
 

@@ -25,24 +25,21 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
-import software.amazon.awssdk.protocols.query.XmlDomParser;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.StringInputStream;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
  * Unmarshaller implementation for AWS/Query and EC2 services.
- *
- * @param <TypeT> Type to unmarshall into.
  */
 @SdkInternalApi
-public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
+public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private static final QueryUnmarshallerRegistry UNMARSHALLER_REGISTRY = QueryUnmarshallerRegistry
         .builder()
@@ -65,20 +62,30 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
 
     private final boolean hasResultWrapper;
 
-    // TODO builder
-    public QueryProtocolUnmarshaller(boolean hasResultWrapper) {
-        this.hasResultWrapper = hasResultWrapper;
+    private QueryProtocolUnmarshaller(Builder builder) {
+        this.hasResultWrapper = builder.hasResultWrapper;
     }
 
-    public Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
-                                                       SdkHttpFullResponse response) throws Exception {
+    public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
+                                                                               SdkHttpFullResponse response) {
+        XmlElement document = response.content().map(XmlDomParser::parse).orElse(XmlElement.empty());
+        XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
+        return Pair.of(unmarshall(sdkPojo, resultRoot, response), parseMetadata(document));
+    }
+
+    /**
+     * This method is also used to unmarshall exceptions. We use this since we've already parsed the XML
+     * and the result root is in a different location depending on the protocol/service.
+     */
+    @Override
+    public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
+                                                    XmlElement resultRoot,
+                                                    SdkHttpFullResponse response) {
         QueryUnmarshallerContext unmarshallerContext = QueryUnmarshallerContext.builder()
                                                                                .registry(UNMARSHALLER_REGISTRY)
                                                                                .protocolUnmarshaller(this)
                                                                                .build();
-        XmlElement document = XmlDomParser.parse(response.content().orElseGet(this::emptyStream));
-        XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
-        return Pair.of((TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot), parseMetadata(document));
+        return (TypeT) unmarshall(unmarshallerContext, sdkPojo, resultRoot);
     }
 
     private Map<String, String> parseMetadata(XmlElement document) {
@@ -110,10 +117,76 @@ public class QueryProtocolUnmarshaller<TypeT extends SdkPojo> {
                 }
             }
         }
-        return ((SdkBuilder<?, SdkPojo>) sdkPojo).build();
+        return (SdkPojo) ((Buildable) sdkPojo).build();
     }
 
-    private AbortableInputStream emptyStream() {
-        return AbortableInputStream.create(new StringInputStream("</eof>"));
+    /**
+     * @return New {@link Builder} instance.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link QueryProtocolUnmarshaller}.
+     */
+    public static final class Builder {
+
+        private boolean hasResultWrapper;
+
+        private Builder() {
+        }
+
+        /**
+         * <h3>Example response with result wrapper</h3>
+         * <pre>
+         * {@code
+         * <ListQueuesResponse>
+         *     <ListQueuesResult>
+         *         <QueueUrl>https://sqs.us-east-2.amazonaws.com/123456789012/MyQueue</QueueUrl>
+         *     </ListQueuesResult>
+         *     <ResponseMetadata>
+         *         <RequestId>725275ae-0b9b-4762-b238-436d7c65a1ac</RequestId>
+         *     </ResponseMetadata>
+         * </ListQueuesResponse>
+         * }
+         * </pre>
+         *
+         * <h3>Example response without result wrapper</h3>
+         * <pre>
+         * {@code
+         * <DescribeAddressesResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
+         *    <requestId>f7de5e98-491a-4c19-a92d-908d6EXAMPLE</requestId>
+         *    <addressesSet>
+         *      <item>
+         *        <publicIp>203.0.113.41</publicIp>
+         *        <allocationId>eipalloc-08229861</allocationId>
+         *        <domain>vpc</domain>
+         *        <instanceId>i-0598c7d356eba48d7</instanceId>
+         *        <associationId>eipassoc-f0229899</associationId>
+         *        <networkInterfaceId>eni-ef229886</networkInterfaceId>
+         *        <networkInterfaceOwnerId>053230519467</networkInterfaceOwnerId>
+         *        <privateIpAddress>10.0.0.228</privateIpAddress>
+         *      </item>
+         *    </addressesSet>
+         * </DescribeAddressesResponse>
+         * }
+         * </pre>
+         *
+         * @param hasResultWrapper True if the response has a result wrapper, false if the result is in the top level
+         * XML document.
+         * @return This builder for method chaining.
+         */
+        public Builder hasResultWrapper(boolean hasResultWrapper) {
+            this.hasResultWrapper = hasResultWrapper;
+            return this;
+        }
+
+        /**
+         * @return New instance of {@link QueryProtocolUnmarshaller}.
+         */
+        public QueryProtocolUnmarshaller build() {
+            return new QueryProtocolUnmarshaller(this);
+        }
     }
 }

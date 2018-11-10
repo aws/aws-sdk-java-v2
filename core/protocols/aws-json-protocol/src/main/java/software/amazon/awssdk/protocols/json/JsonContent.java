@@ -16,15 +16,16 @@
 package software.amazon.awssdk.protocols.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkObjectNode;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -37,16 +38,16 @@ public class JsonContent {
     private static final Logger LOG = LoggerFactory.getLogger(JsonContent.class);
 
     private final byte[] rawContent;
-    private final JsonNode jsonNode;
+    private final SdkJsonNode jsonNode;
 
-    public JsonContent(byte[] rawJsonContent, JsonNode jsonNode) {
+    JsonContent(byte[] rawJsonContent, SdkJsonNode jsonNode) {
         this.rawContent = rawJsonContent;
         this.jsonNode = jsonNode;
     }
 
-    private JsonContent(byte[] rawJsonContent, ObjectMapper mapper) {
+    private JsonContent(byte[] rawJsonContent, JsonFactory jsonFactory) {
         this.rawContent = rawJsonContent;
-        this.jsonNode = parseJsonContent(rawJsonContent, mapper);
+        this.jsonNode = parseJsonContent(rawJsonContent, jsonFactory);
     }
 
     /**
@@ -64,23 +65,19 @@ public class JsonContent {
             }
             return null;
         }).orElse(null);
-        return new JsonContent(rawJsonContent, new ObjectMapper(jsonFactory)
-            .configure(JsonParser.Feature.ALLOW_COMMENTS, true));
+        return new JsonContent(rawJsonContent, jsonFactory);
     }
 
-    private static JsonNode parseJsonContent(byte[] rawJsonContent, ObjectMapper mapper) {
+    private static SdkJsonNode parseJsonContent(byte[] rawJsonContent, JsonFactory jsonFactory) {
         if (rawJsonContent == null || rawJsonContent.length == 0) {
-            // Note: behavior of mapper.readTree changed in 2.9 so we need to explicitly
-            // check for an empty input and return an empty object or else the return
-            // value will be null:
-            // https://github.com/FasterXML/jackson-databind/issues/1406
-            return mapper.createObjectNode();
+            return SdkObjectNode.emptyObject();
         }
         try {
-            return mapper.readTree(rawJsonContent);
+            JsonDomParser parser = JsonDomParser.create(jsonFactory);
+            return parser.parse(new ByteArrayInputStream(rawJsonContent));
         } catch (Exception e) {
             LOG.debug("Unable to parse HTTP response content", e);
-            return mapper.createObjectNode();
+            return SdkObjectNode.emptyObject();
         }
     }
 
@@ -88,7 +85,7 @@ public class JsonContent {
         return rawContent;
     }
 
-    public JsonNode getJsonNode() {
+    public SdkJsonNode getJsonNode() {
         return jsonNode;
     }
 }

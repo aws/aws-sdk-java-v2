@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.codegen.protocol.ProtocolMetadataProvider;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class Metadata {
@@ -24,8 +24,6 @@ public class Metadata {
     private String apiVersion;
 
     private Protocol protocol;
-
-    private ProtocolMetadataProvider protocolMetadataProvider;
 
     private String documentation;
 
@@ -73,6 +71,8 @@ public class Metadata {
 
     private String serviceFullName;
 
+    private String serviceName;
+
     private String baseExceptionName;
 
     private String contentType;
@@ -116,20 +116,11 @@ public class Metadata {
 
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
-        this.protocolMetadataProvider = protocol.getProvider();
     }
 
     public Metadata withProtocol(Protocol protocol) {
         setProtocol(protocol);
         return this;
-    }
-
-    /**
-     * @return The default implementation of exception unmarshallers to use when no custom one is
-     *     provided through {@link software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig}
-     */
-    public String getProtocolDefaultExceptionUmarshallerImpl() {
-        return protocolMetadataProvider.getExceptionUnmarshallerImpl();
     }
 
     public String getDocumentation() {
@@ -444,15 +435,6 @@ public class Metadata {
         return this;
     }
 
-    /**
-     * Returns an abbreviated name for the service if one is defined in the
-     * service model; for example "Amazon EC2". Returns null if no abbreviation
-     * is defined.
-     */
-    public String getServiceAbbreviation() {
-        return serviceAbbreviation;
-    }
-
     public void setServiceAbbreviation(String serviceAbbreviation) {
         this.serviceAbbreviation = serviceAbbreviation;
     }
@@ -460,14 +442,6 @@ public class Metadata {
     public Metadata withServiceAbbreviation(String serviceAbbreviation) {
         setServiceAbbreviation(serviceAbbreviation);
         return this;
-    }
-
-    /**
-     * Returns the full name of the service as defined in the service model;
-     * for example "Amazon Elastic Compute Cloud".
-     */
-    public String getServiceFullName() {
-        return serviceFullName;
     }
 
     public void setServiceFullName(String serviceFullName) {
@@ -483,16 +457,29 @@ public class Metadata {
      * Returns a convenient name for the service. If an abbreviated form
      * of the service name is available it will return that, otherwise it
      * will return the full service name.
-     * <p>
-     * Use me when casually referring to a service in documentation. Use
-     * {@code getServiceFullName} if you want to make sure you have the
-     * full-on official name of the service.
      */
-    public String getServiceName() {
+    public String getDescriptiveServiceName() {
         if (serviceAbbreviation != null) {
             return serviceAbbreviation;
         }
         return serviceFullName;
+    }
+
+    /**
+     * @return Unique, short name for the service. Suitable for displaying in metadata like {@link AwsErrorDetails} and
+     * for use in metrics. Should not be used in documentation, use {@link #getDescriptiveServiceName()} for that.
+     */
+    public String getServiceName() {
+        return this.serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public Metadata withServiceName(String serviceName) {
+        setServiceName(serviceName);
+        return this;
     }
 
     public String getJsonVersion() {
@@ -509,19 +496,25 @@ public class Metadata {
     }
 
     public boolean isIonProtocol() {
-        return protocolMetadataProvider.isIonProtocol();
+        return protocol == Protocol.ION;
     }
 
     public boolean isCborProtocol() {
-        return protocolMetadataProvider.isCborProtocol();
+        return protocol == Protocol.CBOR;
     }
 
     public boolean isJsonProtocol() {
-        return protocolMetadataProvider.isJsonProtocol();
+        return protocol == Protocol.CBOR ||
+               protocol == Protocol.ION ||
+               protocol == Protocol.AWS_JSON ||
+               protocol == Protocol.API_GATEWAY ||
+               protocol == Protocol.REST_JSON;
     }
 
     public boolean isXmlProtocol() {
-        return protocolMetadataProvider.isXmlProtocol();
+        return protocol == Protocol.EC2 ||
+               protocol == Protocol.QUERY ||
+               protocol == Protocol.REST_XML;
     }
 
     /**
@@ -569,10 +562,7 @@ public class Metadata {
     }
 
     public String getContentType() {
-        if (contentType != null) {
-            return contentType;
-        }
-        return protocolMetadataProvider.getContentType();
+        return contentType;
     }
 
     public boolean isRequiresIamSigners() {

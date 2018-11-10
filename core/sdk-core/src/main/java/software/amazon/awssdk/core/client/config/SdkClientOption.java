@@ -96,6 +96,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<Duration> API_CALL_TIMEOUT = new SdkClientOption<>(Duration.class);
 
+    /**
+     * Descriptive name for the service. Used primarily for metrics and also in metadata like AwsErrorDetails.
+     */
+    public static final SdkClientOption<String> SERVICE_NAME = new SdkClientOption<>(String.class);
+
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
     }

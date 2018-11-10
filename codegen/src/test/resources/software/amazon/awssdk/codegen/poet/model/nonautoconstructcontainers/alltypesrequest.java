@@ -20,7 +20,6 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.adapter.StandardMemberCopier;
-import software.amazon.awssdk.core.adapter.StringToSdkBytesAdapter;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.runtime.TypeConverter;
@@ -1237,8 +1236,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          */
         Builder blobArg(SdkBytes blobArg);
 
-        Builder blobArg(String blobArg);
-
         /**
          * Sets the value of the StructWithNestedBlob property for this object.
          *
@@ -1849,15 +1846,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             blobArg(blobArg == null ? null : SdkBytes.fromByteBuffer(blobArg));
         }
 
-        public Builder blobArg(String blobArg) {
-            blobArg(new StringToSdkBytesAdapter().adapt(blobArg));
-            return this;
-        }
-
-        public void setBlobArg(String blobArg) {
-            this.blobArg = new StringToSdkBytesAdapter().adapt(blobArg);
-        }
-
         public final StructWithNestedBlobType.Builder getStructWithNestedBlob() {
             return structWithNestedBlob != null ? structWithNestedBlob.toBuilder() : null;
         }
@@ -1996,3 +1984,4 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
     }
 }
+

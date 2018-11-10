@@ -15,7 +15,11 @@
 
 package software.amazon.awssdk.core.exception;
 
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.http.HttpStatusCode;
 
 /**
@@ -34,7 +38,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
  * @see SdkClientException
  */
 @SdkPublicApi
-public class SdkServiceException extends SdkException {
+public class SdkServiceException extends SdkException implements SdkPojo {
 
     private final String requestId;
     private final int statusCode;
@@ -98,7 +102,12 @@ public class SdkServiceException extends SdkException {
         return BuilderImpl.class;
     }
 
-    public interface Builder extends SdkException.Builder {
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return Collections.emptyList();
+    }
+
+    public interface Builder extends SdkException.Builder, SdkPojo {
         Builder message(String message);
 
         Builder cause(Throwable cause);
@@ -207,6 +216,11 @@ public class SdkServiceException extends SdkException {
         @Override
         public SdkServiceException build() {
             return new SdkServiceException(this);
+        }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return Collections.emptyList();
         }
     }
 }

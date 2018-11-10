@@ -16,27 +16,24 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 
 /**
  * AWS services expect an empty body when the payload member is null instead of an explicit JSON null.
- * This implementation can be removed once CR-6541513 has been deployed to all services that use the payload trait.
- *
- * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class NullAsEmptyBodyProtocolRequestMarshaller<OrigRequestT> implements ProtocolMarshaller<Request<OrigRequestT>> {
+public class NullAsEmptyBodyProtocolRequestMarshaller implements ProtocolMarshaller<SdkHttpFullRequest> {
 
-    private final ProtocolMarshaller<Request<OrigRequestT>> delegate;
+    private final ProtocolMarshaller<SdkHttpFullRequest> delegate;
 
-    public NullAsEmptyBodyProtocolRequestMarshaller(ProtocolMarshaller<Request<OrigRequestT>> delegate) {
+    public NullAsEmptyBodyProtocolRequestMarshaller(ProtocolMarshaller<SdkHttpFullRequest> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public Request<OrigRequestT> marshall(SdkPojo pojo) {
+    public SdkHttpFullRequest marshall(SdkPojo pojo) {
         return delegate.marshall(pojo);
     }
 }

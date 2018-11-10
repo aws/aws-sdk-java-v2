@@ -25,7 +25,7 @@ public final class XmlUnmarshallerContext {
 
     private final SdkHttpFullResponse response;
     private final XmlUnmarshallerRegistry registry;
-    private final XmlProtocolUnmarshaller<?> protocolUnmarshaller;
+    private final XmlProtocolUnmarshaller protocolUnmarshaller;
 
     private XmlUnmarshallerContext(Builder builder) {
         this.response = builder.response;
@@ -40,7 +40,7 @@ public final class XmlUnmarshallerContext {
         return response;
     }
 
-    public XmlProtocolUnmarshaller<?> protocolUnmarshaller() {
+    public XmlProtocolUnmarshaller protocolUnmarshaller() {
         return protocolUnmarshaller;
     }
 
@@ -62,7 +62,7 @@ public final class XmlUnmarshallerContext {
 
         private SdkHttpFullResponse response;
         private XmlUnmarshallerRegistry registry;
-        private XmlProtocolUnmarshaller<?> protocolUnmarshaller;
+        private XmlProtocolUnmarshaller protocolUnmarshaller;
 
         private Builder() {
         }
@@ -77,7 +77,7 @@ public final class XmlUnmarshallerContext {
             return this;
         }
 
-        public Builder protocolUnmarshaller(XmlProtocolUnmarshaller<?> protocolUnmarshaller) {
+        public Builder protocolUnmarshaller(XmlProtocolUnmarshaller protocolUnmarshaller) {
             this.protocolUnmarshaller = protocolUnmarshaller;
             return this;
         }

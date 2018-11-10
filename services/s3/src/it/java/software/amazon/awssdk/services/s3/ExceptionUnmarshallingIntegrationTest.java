@@ -40,7 +40,7 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
     private static final String KEY = "some-key";
 
     @BeforeClass
-    public static void setupFixture() throws IOException {
+    public static void setupFixture() {
         createBucket(BUCKET);
     }
 
@@ -49,39 +49,53 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @Test(expected = BucketAlreadyOwnedByYouException.class)
+    @Test
     public void createBucketAlreadyOwnedByYou() {
-        s3.createBucket(b -> b.bucket(BUCKET));
+        assertThatThrownBy(() -> s3.createBucket(b -> b.bucket(BUCKET)))
+            .isInstanceOf(BucketAlreadyOwnedByYouException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "BucketAlreadyOwnedByYou"));
     }
 
-    @Test(expected = BucketAlreadyExistsException.class)
+    @Test
     public void createBucketAlreadyExists() {
-        s3.createBucket(b -> b.bucket("development"));
+        assertThatThrownBy(() -> s3.createBucket(b -> b.bucket("development")))
+            .isInstanceOf(BucketAlreadyExistsException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "BucketAlreadyExists"));
     }
 
-    @Test(expected = NoSuchKeyException.class)
+    @Test
     public void getObjectNoSuchKey() {
-        s3.getObject(GetObjectRequest.builder().bucket(BUCKET).key(KEY).build());
+        assertThatThrownBy(() -> s3.getObject(GetObjectRequest.builder().bucket(BUCKET).key(KEY).build()))
+            .isInstanceOf(NoSuchKeyException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "NoSuchKey"));
     }
 
-    @Test(expected = NoSuchBucketException.class)
+    @Test
     public void getObjectNoSuchBucket() {
-        s3.getObject(GetObjectRequest.builder().bucket(BUCKET + KEY).key(KEY).build());
+        assertThatThrownBy(() -> s3.getObject(GetObjectRequest.builder().bucket(BUCKET + KEY).key(KEY).build()))
+            .isInstanceOf(NoSuchBucketException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "NoSuchBucket"));
     }
 
-    @Test(expected = NoSuchKeyException.class)
+    @Test
     public void getObjectAclNoSuchKey() {
-        s3.getObjectAcl(b -> b.bucket(BUCKET).key(KEY));
+        assertThatThrownBy(() -> s3.getObjectAcl(b -> b.bucket(BUCKET).key(KEY)))
+            .isInstanceOf(NoSuchKeyException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "NoSuchKey"));
     }
 
-    @Test(expected = NoSuchBucketException.class)
+    @Test
     public void getObjectAclNoSuchBucket() {
-        s3.getObjectAcl(b -> b.bucket(BUCKET + KEY).key(KEY));
+        assertThatThrownBy(() -> s3.getObjectAcl(b -> b.bucket(BUCKET + KEY).key(KEY)))
+            .isInstanceOf(NoSuchBucketException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "NoSuchBucket"));
     }
 
-    @Test(expected = NoSuchUploadException.class)
+    @Test
     public void abortMultipartNoSuchUpload() {
-        s3.abortMultipartUpload(b -> b.bucket(BUCKET).key(KEY).uploadId("23232"));
+        assertThatThrownBy(() -> s3.abortMultipartUpload(b -> b.bucket(BUCKET).key(KEY).uploadId("23232")))
+            .isInstanceOf(NoSuchUploadException.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, "NoSuchUpload"));
     }
 
     @Test
@@ -91,31 +105,35 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
                 client.listObjectsV2(b -> b.bucket(BUCKET));
             }
         }).isExactlyInstanceOf(S3Exception.class) // Make sure it's not a modeled exception, because that's what we're testing
-          .hasMessageContaining("The bucket you are attempting to access must be addressed using the specified endpoint.");
+          .hasMessageContaining("The bucket you are attempting to access must be addressed using the specified endpoint.")
+          .satisfies(e -> assertMetadata((S3Exception) e, "PermanentRedirect"));
     }
 
     @Test
     public void headObjectNoSuchKey() {
-        try {
-
-            s3.headObject(b -> b.bucket(BUCKET).key(KEY));
-            fail("No exception has been thrown");
-        } catch (S3Exception ex) {
-            // This is a limitation of HEAD requests since S3 doesn't return an XML body containing the error details.
-            assertThat(ex.statusCode()).isEqualTo(404);
-            assertThat(ex.awsErrorDetails().errorCode()).isEqualTo("404 Not Found");
-        }
+        assertThatThrownBy(() -> s3.headObject(b -> b.bucket(BUCKET).key(KEY)))
+            .isInstanceOf(S3Exception.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, null))
+            .satisfies(e -> assertThat(((S3Exception) e).statusCode()).isEqualTo(404));
     }
 
     @Test
-    public void headBuckettNoSuchBucket() {
-        try {
-            s3.headBucket(b -> b.bucket(KEY));
-            fail("No exception has been thrown");
-        } catch (S3Exception ex) {
-            // This is a limitation of HEAD requests since S3 doesn't return an XML body containing the error details.
-            assertThat(ex.statusCode()).isEqualTo(404);
-            assertThat(ex.awsErrorDetails().errorCode()).isEqualTo("404 Not Found");
-        }
+    public void headBucketNoSuchBucket() {
+        assertThatThrownBy(() -> s3.headBucket(b -> b.bucket(KEY)))
+            .isInstanceOf(S3Exception.class)
+            .satisfies(e -> assertMetadata((S3Exception) e, null))
+            .satisfies(e -> assertThat(((S3Exception) e).statusCode()).isEqualTo(404));
+    }
+
+    private void assertMetadata(S3Exception e, String expectedErrorCode) {
+        assertThat(e.awsErrorDetails()).satisfies(
+            errorDetails -> {
+                assertThat(errorDetails.errorCode()).isEqualTo(expectedErrorCode);
+                assertThat(errorDetails.errorMessage()).isNotBlank();
+                assertThat(errorDetails.sdkHttpResponse()).isNotNull();
+                assertThat(errorDetails.serviceName()).isEqualTo("S3");
+            }
+        );
+        assertThat(e.requestId()).isNotBlank();
     }
 }

@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.route53;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import junit.framework.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.services.route53.model.GetHealthCheckLastFailureReasonRequest;
 import software.amazon.awssdk.services.route53.model.ListHealthChecksRequest;
@@ -28,7 +31,12 @@ import software.amazon.awssdk.services.route53.transform.ListHealthChecksRequest
 
 public class QueryParamBindingTest {
 
-    private static final AwsXmlProtocolFactory protocolFactory = AwsXmlProtocolFactory.builder().build();
+    protected static final AwsXmlProtocolFactory PROTOCOL_FACTORY = AwsXmlProtocolFactory
+        .builder()
+        .clientConfiguration(SdkClientConfiguration.builder()
+                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .build())
+        .build();
 
     /**
      * Make sure the marshaller is able to handle @UriLabel parameter values
@@ -46,10 +54,10 @@ public class QueryParamBindingTest {
                 .maxItems(VALUE_WITH_AMPERSAND)
                 .build();
 
-        Request<ListHealthChecksRequest> httpReq_List = new ListHealthChecksRequestMarshaller(protocolFactory).marshall(listReq);
-        Assert.assertEquals("/2013-04-01/healthcheck", httpReq_List.getResourcePath());
+        SdkHttpFullRequest httpReq_List = new ListHealthChecksRequestMarshaller(PROTOCOL_FACTORY).marshall(listReq);
+        Assert.assertEquals("/2013-04-01/healthcheck", httpReq_List.encodedPath());
 
-        Map<String, List<String>> queryParams = httpReq_List.getParameters();
+        Map<String, List<String>> queryParams = httpReq_List.rawQueryParameters();
         Assert.assertEquals(2, queryParams.size());
         Assert.assertEquals(VALUE_WITH_SEMICOLON, queryParams.get("marker").get(0));
         Assert.assertEquals(VALUE_WITH_AMPERSAND, queryParams.get("maxitems").get(0));
@@ -58,15 +66,15 @@ public class QueryParamBindingTest {
                 .healthCheckId(VALUE_WITH_QUESTION_MARK)
                 .build();
 
-        Request<GetHealthCheckLastFailureReasonRequest> httpReq_GetFailure =
-                new GetHealthCheckLastFailureReasonRequestMarshaller(protocolFactory).marshall(getFailureReq);
+        SdkHttpFullRequest httpReq_GetFailure =
+                new GetHealthCheckLastFailureReasonRequestMarshaller(PROTOCOL_FACTORY).marshall(getFailureReq);
         System.out.println(httpReq_GetFailure);
         // parameter value should be URL encoded
         Assert.assertEquals(
                 "/2013-04-01/healthcheck/%3Fcharlie/lastfailurereason",
-                httpReq_GetFailure.getResourcePath());
+                httpReq_GetFailure.encodedPath());
 
-        queryParams = httpReq_GetFailure.getParameters();
+        queryParams = httpReq_GetFailure.rawQueryParameters();
         Assert.assertEquals(0, queryParams.size());
     }
 }

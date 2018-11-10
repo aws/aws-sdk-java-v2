@@ -16,8 +16,8 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
@@ -30,7 +30,7 @@ public final class JsonMarshallerContext {
     private final StructuredJsonGenerator jsonGenerator;
     private final JsonProtocolMarshaller protocolHandler;
     private final JsonMarshallerRegistry marshallerRegistry;
-    private final Request<?> request;
+    private final SdkHttpFullRequest.Builder request;
 
     private JsonMarshallerContext(Builder builder) {
         this.jsonGenerator = builder.jsonGenerator;
@@ -63,9 +63,10 @@ public final class JsonMarshallerContext {
     }
 
     /**
-     * @return Mutable {@link Request} object that can be used to add headers, query params, modify request URI, etc.
+     * @return Mutable {@link SdkHttpFullRequest.Builder} object that can be used to add headers, query params,
+     * modify request URI, etc.
      */
-    public Request<?> request() {
+    public SdkHttpFullRequest.Builder request() {
         return request;
     }
 
@@ -105,7 +106,7 @@ public final class JsonMarshallerContext {
         private StructuredJsonGenerator jsonGenerator;
         private JsonProtocolMarshaller protocolHandler;
         private JsonMarshallerRegistry marshallerRegistry;
-        private Request<?> request;
+        private SdkHttpFullRequest.Builder request;
 
         private Builder() {
         }
@@ -125,7 +126,7 @@ public final class JsonMarshallerContext {
             return this;
         }
 
-        public Builder request(Request<?> request) {
+        public Builder request(SdkHttpFullRequest.Builder request) {
             this.request = request;
             return this;
         }

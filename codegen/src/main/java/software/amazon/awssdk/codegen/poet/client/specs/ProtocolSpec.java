@@ -56,8 +56,4 @@ public interface ProtocolSpec {
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }
-
-    default List<FieldSpec> additionalFields() {
-        return new ArrayList<>();
-    }
 }

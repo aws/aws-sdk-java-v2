@@ -20,8 +20,8 @@ import static java.util.stream.Collectors.toList;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Composite {@link Marshaller} that dispatches the given event to the
@@ -30,20 +30,19 @@ import software.amazon.awssdk.core.runtime.transform.Marshaller;
  * @param <BaseEventT> Base type for all events.
  */
 @SdkProtectedApi
-public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
-    implements Marshaller<Request<? extends BaseEventT>, BaseEventT> {
+public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT> implements Marshaller<BaseEventT> {
 
     private final Map<Class<? extends BaseEventT>,
-        Marshaller<Request<? extends BaseEventT>, BaseEventT>> marshallers;
-    private final Marshaller<Request<? extends BaseEventT>, BaseEventT> defaultMarshaller;
+        Marshaller<BaseEventT>> marshallers;
+    private final Marshaller<BaseEventT> defaultMarshaller;
 
     private EventStreamTaggedUnionJsonMarshaller(Builder<BaseEventT> builder) {
-        this.marshallers = new HashMap(builder.marshallers);
+        this.marshallers = new HashMap<>(builder.marshallers);
         this.defaultMarshaller = builder.defaultMarshaller;
     }
 
     @Override
-    public Request<? extends BaseEventT> marshall(BaseEventT eventT) {
+    public SdkHttpFullRequest marshall(BaseEventT eventT) {
         return marshallers.getOrDefault(eventT.getClass(), defaultMarshaller).marshall(eventT);
     }
 
@@ -52,9 +51,8 @@ public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
     }
 
     public static final class Builder<BaseEventT> {
-        private final Map<Class<? extends BaseEventT>,
-            Marshaller<Request<? extends BaseEventT>, BaseEventT>> marshallers = new HashMap<>();
-        private Marshaller<Request<? extends BaseEventT>, BaseEventT> defaultMarshaller;
+        private final Map<Class<? extends BaseEventT>, Marshaller<BaseEventT>> marshallers = new HashMap<>();
+        private Marshaller<BaseEventT> defaultMarshaller;
 
         private Builder() {
         }
@@ -67,7 +65,7 @@ public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
          * @return This object for method chaining
          */
         public Builder putMarshaller(Class<? extends BaseEventT> eventClass,
-                                     Marshaller<Request<? extends BaseEventT>, BaseEventT> marshaller) {
+                                     Marshaller<BaseEventT> marshaller) {
             marshallers.put(eventClass, marshaller);
             return this;
         }
@@ -75,7 +73,7 @@ public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
         public EventStreamTaggedUnionJsonMarshaller<BaseEventT> build() {
             defaultMarshaller =  e -> {
                 String errorMsg = "Event type should be one of the following types: " +
-                                  marshallers.keySet().stream().map(c -> c.getSimpleName()).collect(toList());
+                                  marshallers.keySet().stream().map(Class::getSimpleName).collect(toList());
                 throw new IllegalArgumentException(errorMsg);
             };
 

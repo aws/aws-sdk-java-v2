@@ -18,7 +18,11 @@
         "requestUri":"/"
       },
       "input":{"shape":"AllTypesStructure"},
-      "output":{"shape":"AllTypesStructure"}
+      "output":{"shape":"AllTypesStructure"},
+      "errors":[
+        {"shape":"EmptyModeledException"},
+        {"shape":"ImplicitPayloadException"}
+      ]
     },
     "Ec2Types":{
       "name":"Ec2Types",
@@ -142,6 +146,34 @@
       "members":{
         "NestedTimestamp":{"shape":"Timestamp"}
       }
+    },
+    "ImplicitPayloadException":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"},
+        "IntegerMember":{"shape":"Integer"},
+        "LongMember":{"shape":"Long"},
+        "DoubleMember":{"shape":"Double"},
+        "FloatMember":{"shape":"Float"},
+        "TimestampMember":{"shape":"Timestamp"},
+        "BooleanMember":{"shape":"Boolean"},
+        "BlobMember":{"shape":"BlobType"},
+        "ListMember":{"shape":"ListOfStrings"},
+        "MapMember":{"shape":"MapOfStringToString"},
+        "SimpleStructMember":{"shape":"SimpleStruct"}
+      },
+      "exception":true
+    },
+    "EmptyModeledException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true
+    },
+    "MapOfStringToString":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
     },
     "Timestamp":{"type":"timestamp"}
   }

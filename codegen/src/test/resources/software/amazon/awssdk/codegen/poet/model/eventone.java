@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +21,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class EventOne implements SdkPojo, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
+public final class EventOne implements SdkPojo, Serializable, ToCopyableBuilder<EventOne.Builder, EventOne>, EventStream {
     private static final SdkField<String> FOO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
         .getter(getter(EventOne::foo)).setter(setter(Builder::foo))
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Foo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(FOO_FIELD));
+
+    private static final long serialVersionUID = 1L;
 
     private final String foo;
 

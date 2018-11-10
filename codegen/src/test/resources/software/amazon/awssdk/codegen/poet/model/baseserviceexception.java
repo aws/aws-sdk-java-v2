@@ -14,7 +14,6 @@ public class JsonProtocolTestsException extends AwsServiceException {
         return new BuilderImpl();
     }
 
-    @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
     }
@@ -78,8 +77,10 @@ public class JsonProtocolTestsException extends AwsServiceException {
             return this;
         }
 
+        @Override
         public JsonProtocolTestsException build() {
             return new JsonProtocolTestsException(this);
         }
     }
 }
+

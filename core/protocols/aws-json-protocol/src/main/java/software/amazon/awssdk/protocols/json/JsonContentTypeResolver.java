@@ -26,9 +26,8 @@ public interface JsonContentTypeResolver {
     /**
      * Computes content type to send in requests.
      *
-     * @param clientMetadata Metadata about the client making the request.
      * @param protocolMetadata Metadata about the protocol.
      * @return Correct content type to send in request based on metadata about the client.
      */
-    String resolveContentType(JsonClientMetadata clientMetadata, AwsJsonProtocolMetadata protocolMetadata);
+    String resolveContentType(AwsJsonProtocolMetadata protocolMetadata);
 }

@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.rds;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -34,13 +34,10 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
-import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
@@ -56,10 +53,10 @@ public class PresignRequestHandlerTest {
 
     private static RdsPresignInterceptor<CopyDbSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
     private final CopyDbSnapshotRequestMarshaller marshaller =
-        new CopyDbSnapshotRequestMarshaller(AwsQueryProtocolFactory.builder().build());
+        new CopyDbSnapshotRequestMarshaller(RdsPresignInterceptor.PROTOCOL_FACTORY);
 
     @Test
-    public void testSetsPresignedUrl() throws URISyntaxException {
+    public void testSetsPresignedUrl() {
         CopyDbSnapshotRequest request = makeTestRequest();
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
@@ -67,7 +64,7 @@ public class PresignRequestHandlerTest {
     }
 
     @Test
-    public void testComputesPresignedUrlCorrectly() throws URISyntaxException {
+    public void testComputesPresignedUrlCorrectly() {
         // Note: test data was baselined by performing actual calls, with real
         // credentials to RDS and checking that they succeeded. Then the
         // request was recreated with all the same parameters but with test
@@ -83,7 +80,7 @@ public class PresignRequestHandlerTest {
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
         // 20161221T180735Z
         // Note: month is 0-based
-        c.set(2016, 11, 21, 18, 7, 35);
+        c.set(2016, Calendar.DECEMBER, 21, 18, 7, 35);
 
         Clock signingDateOverride = Mockito.mock(Clock.class);
         when(signingDateOverride.millis()).thenReturn(c.getTimeInMillis());
@@ -110,7 +107,7 @@ public class PresignRequestHandlerTest {
     }
 
     @Test
-    public void testSkipsPresigningIfUrlSet() throws URISyntaxException {
+    public void testSkipsPresigningIfUrlSet() {
         CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder()
                 .sourceRegion("us-west-2")
                 .preSignedUrl("PRESIGNED")
@@ -123,7 +120,7 @@ public class PresignRequestHandlerTest {
     }
 
     @Test
-    public void testSkipsPresigningIfSourceRegionNotSet() throws URISyntaxException {
+    public void testSkipsPresigningIfSourceRegionNotSet() {
         CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder().build();
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
@@ -146,7 +143,7 @@ public class PresignRequestHandlerTest {
     }
 
     @Test
-    public void testSourceRegionRemovedFromOriginalRequest() throws URISyntaxException {
+    public void testSourceRegionRemovedFromOriginalRequest() {
         CopyDbSnapshotRequest request = makeTestRequest();
         SdkHttpFullRequest marshalled = marshallRequest(request);
         SdkHttpFullRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
@@ -154,23 +151,16 @@ public class PresignRequestHandlerTest {
         assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
     }
 
-    private SdkHttpFullRequest marshallRequest(CopyDbSnapshotRequest request) throws URISyntaxException {
-        Request<CopyDbSnapshotRequest> legacyMarshalled = marshaller.marshall(request);
-        legacyMarshalled.setEndpoint(URI.create("https://example.com"));
+    private SdkHttpFullRequest marshallRequest(CopyDbSnapshotRequest request) {
+        SdkHttpFullRequest.Builder marshalled = marshaller.marshall(request).toBuilder();
 
-        SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(legacyMarshalled);
         URI endpoint = new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
                           .withRegion(DESTINATION_REGION)
                           .getServiceEndpoint();
-        return marshalled.toBuilder()
-                         .protocol(endpoint.getScheme())
-                         .host(endpoint.getHost())
-                         .port(endpoint.getPort())
-                         .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), marshalled.encodedPath()))
-                         .build();
+        return marshalled.uri(endpoint).build();
     }
 
-    private ExecutionAttributes executionAttributes(RdsRequest request) {
+    private ExecutionAttributes executionAttributes() {
         return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS);
     }
 
@@ -187,6 +177,6 @@ public class PresignRequestHandlerTest {
                                                  RdsRequest request,
                                                  SdkHttpFullRequest httpRequest) {
         InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
-        return interceptor.modifyHttpRequest(context, executionAttributes(request));
+        return interceptor.modifyHttpRequest(context, executionAttributes());
     }
 }

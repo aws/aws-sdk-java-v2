@@ -15,17 +15,27 @@
 
 package software.amazon.awssdk.protocols.query;
 
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.internal.marshall.QueryProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.internal.unmarshall.AwsQueryResponseHandler;
 import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 /**
  * Protocol factory for the AWS/Query protocol.
@@ -33,29 +43,144 @@ import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolU
 @SdkProtectedApi
 public class AwsQueryProtocolFactory {
 
-    protected AwsQueryProtocolFactory(Builder builder) {
+    private final SdkClientConfiguration clientConfiguration;
+    private final Map<String, Supplier<SdkPojo>> modeledExceptions;
+    private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
+    private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
+
+    AwsQueryProtocolFactory(Builder<?> builder) {
+        this.clientConfiguration = builder.clientConfiguration;
+        this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
+        this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
+        this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
+            .builder()
+            .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+            .exceptions(modeledExceptions)
+            // We don't set result wrapper since that's handled by the errorRootExtractor
+            .errorUnmarshaller(QueryProtocolUnmarshaller.builder().build())
+            .errorRootExtractor(this::getErrorRoot)
+            .build();
     }
 
-    public <T extends software.amazon.awssdk.awscore.AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(
-        OperationInfo operationInfo, T origRequest) {
-        return QueryProtocolMarshaller.builder(origRequest)
+    /**
+     * Creates a new marshaller for the given request.
+     *
+     * @param operationInfo Object containing metadata about the operation.
+     * @return New {@link ProtocolMarshaller}.
+     */
+    public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(
+        OperationInfo operationInfo) {
+        return QueryProtocolMarshaller.builder()
+                                      .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                       .operationInfo(operationInfo)
+                                      .isEc2(isEc2())
                                       .build();
     }
 
-    public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
-        return new AwsQueryResponseHandler<>(new QueryProtocolUnmarshaller<>(true), r -> pojoSupplier.get());
+    /**
+     * Creates the success response handler to unmarshall the response into a POJO.
+     *
+     * @param pojoSupplier Supplier of the POJO builder we are unmarshalling into.
+     * @param <T> Type being unmarshalled.
+     * @return New {@link HttpResponseHandler} for success responses.
+     */
+    public final <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
+        return new AwsQueryResponseHandler<>(QueryProtocolUnmarshaller.builder()
+                                                                      .hasResultWrapper(!isEc2())
+                                                                      .build(),
+            r -> pojoSupplier.get());
     }
 
+    /**
+     * @return A {@link HttpResponseHandler} that will unmarshall the service exceptional response into
+     * a modeled exception or the service base exception.
+     */
+    public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
+        return errorUnmarshaller;
+    }
+
+    /**
+     * Extracts the <Error/> element from the root XML document. Method is protected as EC2 has a slightly
+     * different location.
+     *
+     * @param document Root XML document.
+     * @return If error root is found than a fulfilled {@link Optional}, otherwise an empty one.
+     */
+    Optional<XmlElement> getErrorRoot(XmlElement document) {
+        return document.getOptionalElementByName("Error");
+    }
+
+    /**
+     * EC2 has a few distinct differences from query so we wire things up a bit differently.
+     */
+    boolean isEc2() {
+        return false;
+    }
+
+    /**
+     * @return New Builder instance.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
-    public static class Builder<T extends Builder> {
+    /**
+     * Builder for {@link AwsQueryProtocolFactory}.
+     *
+     * @param <SubclassT> Subclass of Builder for fluent method chaining.
+     */
+    public static class Builder<SubclassT extends Builder> {
 
-        protected Builder() {
+        private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
+        private SdkClientConfiguration clientConfiguration;
+        private Supplier<SdkPojo> defaultServiceExceptionSupplier;
+
+        Builder() {
         }
 
+        /**
+         * Sets the {@link SdkClientConfiguration} which contains the service endpoint.
+         *
+         * @param clientConfiguration Configuration of the client.
+         * @return This builder for method chaining.
+         */
+        public final SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
+            return getSubclass();
+        }
+
+        /**
+         * Registers a new modeled exception by the error code.
+         *
+         * @param errorCode Error code identifying this modeled exception.
+         * @param exceptionBuilderSupplier Supplier of the modeled exceptions Builder.
+         * @return This builder for method chaining.
+         */
+        public final SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
+            modeledExceptions.put(errorCode, exceptionBuilderSupplier);
+            return getSubclass();
+        }
+
+        /**
+         * A supplier for the services base exception builder. This is used when we can't identify any modeled
+         * exception to unmarshall into.
+         *
+         * @param exceptionBuilderSupplier Suppplier of the base service exceptions Builder.
+         * @return This builder for method chaining.
+         */
+        public final SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
+            this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
+            return getSubclass();
+        }
+
+        @SuppressWarnings("unchecked")
+        private SubclassT getSubclass() {
+            return (SubclassT) this;
+        }
+
+        /**
+         * @return New instance of {@link AwsQueryProtocolFactory}.
+         */
         public AwsQueryProtocolFactory build() {
             return new AwsQueryProtocolFactory(this);
         }

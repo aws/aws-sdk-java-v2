@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 
 @SdkInternalApi
 public class JsonErrorCodeParser implements ErrorCodeParser {
@@ -49,10 +49,6 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
     private final List<String> errorCodeHeaders;
     private final String errorCodeFieldName;
 
-    public JsonErrorCodeParser() {
-        this(null);
-    }
-
     public JsonErrorCodeParser(String errorCodeFieldName) {
         this.errorCodeFieldName = errorCodeFieldName == null ? "__type" : errorCodeFieldName;
         this.errorCodeHeaders = Arrays.asList(X_AMZN_ERROR_TYPE, ERROR_CODE_HEADER, EXCEPTION_TYPE_HEADER);
@@ -63,6 +59,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      *
      * @return Error Code of exceptional response or null if it can't be determined
      */
+    @Override
     public String parseErrorCode(SdkHttpFullResponse response, JsonContent jsonContent) {
         String errorCodeFromHeader = parseErrorCodeFromHeader(response);
         if (errorCodeFromHeader != null) {
@@ -117,11 +114,15 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * <b>"prefix#typeName"</b> Examples : "AccessDeniedException",
      * "software.amazon.awssdk.dynamodb.v20111205#ProvisionedThroughputExceededException"
      */
-    private String parseErrorCodeFromContents(JsonNode jsonContents) {
-        if (jsonContents == null || !jsonContents.has(errorCodeFieldName)) {
+    private String parseErrorCodeFromContents(SdkJsonNode jsonContents) {
+        if (jsonContents == null) {
             return null;
         }
-        String code = jsonContents.findValue(errorCodeFieldName).asText();
+        SdkJsonNode errorCodeField = jsonContents.get(errorCodeFieldName);
+        if (errorCodeField == null) {
+            return null;
+        }
+        String code = errorCodeField.asText();
         int separator = code.lastIndexOf("#");
         return code.substring(separator + 1);
     }

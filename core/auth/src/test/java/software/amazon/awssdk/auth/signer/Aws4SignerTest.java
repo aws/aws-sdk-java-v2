@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.Calendar;
@@ -162,8 +163,7 @@ public class Aws4SignerTest {
                                  .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                  .putHeader("x-amz-archive-description", "test  test")
                                  .encodedPath("/")
-                                 .protocol("http")
-                                 .host("demo.us-east-1.amazonaws.com");
+                                 .uri(URI.create("http://demo.us-east-1.amazonaws.com"));
     }
 
     private void mockClock() {

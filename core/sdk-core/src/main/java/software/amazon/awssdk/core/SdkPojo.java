@@ -16,8 +16,18 @@
 package software.amazon.awssdk.core;
 
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+/**
+ * Interface to provide the list of {@link SdkField}s in a POJO. {@link SdkField} contains
+ * metadata about how a field should be marshalled/unmarshalled and allows for generic
+ * accessing/setting/creating of that field on an object.
+ */
+@SdkProtectedApi
 public interface SdkPojo {
 
+    /**
+     * @return List of {@link SdkField} in this POJO. May be empty list but should never be null.
+     */
     List<SdkField<?>> sdkFields();
 }

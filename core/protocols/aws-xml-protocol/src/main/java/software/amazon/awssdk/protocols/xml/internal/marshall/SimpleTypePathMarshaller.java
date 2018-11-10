@@ -59,8 +59,8 @@ public final class SimpleTypePathMarshaller {
 
         @Override
         public void marshall(T val, XmlMarshallerContext context, String paramName, SdkField<T> sdkField) {
-            context.request().setResourcePath(
-                pathMarshaller.marshall(context.request().getResourcePath(), paramName, converter.convert(val, sdkField)));
+            context.request().encodedPath(
+                pathMarshaller.marshall(context.request().encodedPath(), paramName, converter.convert(val, sdkField)));
         }
     }
 }

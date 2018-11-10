@@ -54,6 +54,21 @@ public interface SdkHttpFullRequest
      * {@link SdkHttpFullRequest#builder()}.
      */
     interface Builder extends CopyableBuilder<Builder, SdkHttpFullRequest> {
+
+        /**
+         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()}, and
+         * {@link #encodedPath()} from a {@link URI} object.
+         *
+         * @param uri URI containing protocol, host, port and path.
+         * @return This builder for method chaining.
+         */
+        default Builder uri(URI uri) {
+            return this.protocol(uri.getScheme())
+                       .host(uri.getHost())
+                       .port(uri.getPort())
+                       .encodedPath(SdkHttpUtils.appendUri(uri.getRawPath(), encodedPath()));
+        }
+
         /**
          * The protocol, exactly as it was configured with {@link #protocol(String)}.
          */
@@ -112,7 +127,7 @@ public interface SdkHttpFullRequest
         /**
          * Add a single un-encoded query parameter to be included in the created HTTP request.
          *
-         * <p>This completely overrides any values already configured with this parameter name in the builder.</p>
+         * <p>This completely <b>OVERRIDES</b> any values already configured with this parameter name in the builder.</p>
          *
          * @param paramName The name of the query parameter to add
          * @param paramValue The un-encoded value for the query parameter.
@@ -122,9 +137,20 @@ public interface SdkHttpFullRequest
         }
 
         /**
+         * Add a single un-encoded query parameter to be included in the created HTTP request.
+         *
+         * <p>This will <b>ADD</b> the value to any existing values already configured with this parameter name in
+         * the builder.</p>
+         *
+         * @param paramName The name of the query parameter to add
+         * @param paramValue The un-encoded value for the query parameter.
+         */
+        Builder appendRawQueryParameter(String paramName, String paramValue);
+
+        /**
          * Add a single un-encoded query parameter with multiple values to be included in the created HTTP request.
          *
-         * <p>This completely overrides any values already configured with this parameter name in the builder.</p>
+         * <p>This completely <b>OVERRIDES</b> any values already configured with this parameter name in the builder.</p>
          *
          * @param paramName The name of the query parameter to add
          * @param paramValues The un-encoded values for the query parameter.
@@ -187,7 +213,7 @@ public interface SdkHttpFullRequest
         /**
          * Add a single header to be included in the created HTTP request.
          *
-         * <p>This completely overrides any values already configured with this header name in the builder.</p>
+         * <p>This completely <b>OVERRIDES</b> any values already configured with this header name in the builder.</p>
          *
          * @param headerName The name of the header to add (eg. "Host")
          * @param headerValue The value for the header
@@ -199,12 +225,23 @@ public interface SdkHttpFullRequest
         /**
          * Add a single header with multiple values to be included in the created HTTP request.
          *
-         * <p>This completely overrides any values already configured with this header name in the builder.</p>
+         * <p>This completely <b>OVERRIDES</b> any values already configured with this header name in the builder.</p>
          *
          * @param headerName The name of the header to add
          * @param headerValues The values for the header
          */
         Builder putHeader(String headerName, List<String> headerValues);
+
+        /**
+         * Add a single header to be included in the created HTTP request.
+         *
+         * <p>This will <b>ADD</b> the value to any existing values already configured with this header name in
+         * the builder.</p>
+         *
+         * @param headerName The name of the header to add
+         * @param headerValue The value for the header
+         */
+        Builder appendHeader(String headerName, String headerValue);
 
         /**
          * Configure an {@link SdkHttpRequest#headers()} to be used in the created HTTP request. This is not validated

@@ -19,7 +19,6 @@ import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -86,6 +85,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                        .build())
                     .addField(AsyncClientHandler.class, "clientHandler", Modifier.PRIVATE, Modifier.FINAL)
                     .addField(protocolSpec.protocolFactory(model))
+                    .addField(SdkClientConfiguration.class, "clientConfiguration", Modifier.PRIVATE, Modifier.FINAL)
                     .addSuperinterface(interfaceClass)
                     .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                 interfaceClass)
@@ -94,7 +94,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                     .addMethods(operations())
                     .addMethod(closeMethod())
                     .addMethods(protocolSpec.additionalMethods())
-                    .addFields(protocolSpec.additionalFields())
                     .addMethod(protocolSpec.initProtocolFactory(model));
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
@@ -120,7 +119,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                .addModifiers(Modifier.PROTECTED)
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                                                .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             AwsAsyncClientHandler.class);
+                                                             AwsAsyncClientHandler.class)
+                                               .addStatement("this.clientConfiguration = clientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -164,17 +164,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     @Override
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         builder.addModifiers(Modifier.PUBLIC)
-                      .addAnnotation(Override.class)
-                      .beginControlFlow("try")
-                          .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                          .addCode(getCustomResponseHandler(opModel, returnType)
-                                       .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
-                          .addCode(protocolSpec.errorResponseHandler(opModel))
-                          .addCode(eventToByteBufferPublisher(opModel))
-                          .addCode(protocolSpec.asyncExecutionHandler(model, opModel))
+               .addAnnotation(Override.class)
+               .beginControlFlow("try")
+               .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+               .addCode(protocolSpec.responseHandler(model, opModel))
+               .addCode(protocolSpec.errorResponseHandler(opModel))
+               .addCode(eventToByteBufferPublisher(opModel))
+               .addCode(protocolSpec.asyncExecutionHandler(model, opModel))
                .endControlFlow()
                .beginControlFlow("catch ($T t)", Throwable.class);
 

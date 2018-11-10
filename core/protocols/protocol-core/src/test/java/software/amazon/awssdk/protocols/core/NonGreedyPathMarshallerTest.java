@@ -25,7 +25,7 @@ public class NonGreedyPathMarshallerTest {
 
     @Test(expected = NullPointerException.class)
     public void nullPathValue_ThrowsException() {
-        marshaller.marshall("/foo/{pathParam}", "pathParam", (String) null);
+        marshaller.marshall("/foo/{pathParam}", "pathParam", null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -43,23 +43,4 @@ public class NonGreedyPathMarshallerTest {
         assertEquals("/foo/has%2Fslash", marshaller.marshall("/foo/{pathParam}", "pathParam", "has/slash"));
     }
 
-    @Test
-    public void integerPathValue_ReplacesPlaceholder() {
-        assertEquals("/foo/1234", marshaller.marshall("/foo/{pathParam}", "pathParam", 1234));
-    }
-
-    @Test
-    public void longPathValue_ReplacesPlaceholder() {
-        assertEquals("/foo/9001", marshaller.marshall("/foo/{pathParam}", "pathParam", 9001L));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void nullIntegerPathValue_ThrowsException() {
-        marshaller.marshall("/foo/{pathParam}", "pathParam", (Integer) null);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void nullLongPathValue_ThrowsException() {
-        marshaller.marshall("/foo/{pathParam}", "pathParam", (Long) null);
-    }
 }

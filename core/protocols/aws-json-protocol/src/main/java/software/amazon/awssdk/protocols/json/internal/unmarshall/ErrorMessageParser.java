@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 
 @SdkInternalApi
 public interface ErrorMessageParser {
 
-    String parseErrorMessage(SdkHttpFullResponse httpResponse, JsonNode jsonNode);
+    String parseErrorMessage(SdkHttpFullResponse httpResponse, SdkJsonNode jsonNode);
 }

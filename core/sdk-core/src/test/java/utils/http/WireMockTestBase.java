@@ -22,14 +22,12 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import org.junit.Rule;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
  * Base class for tests that use a WireMock server
@@ -39,16 +37,16 @@ public abstract class WireMockTestBase {
     @Rule
     public WireMockRule mockServer = new WireMockRule(0);
 
-    protected Request<?> newGetRequest(String resourcePath) {
-        Request<?> request = newRequest(resourcePath);
-        request.setHttpMethod(HttpMethodName.GET);
-        return request;
+    protected SdkHttpFullRequest.Builder newGetRequest(String resourcePath) {
+        return newRequest(resourcePath)
+            .method(SdkHttpMethod.GET);
     }
 
-    protected Request<?> newRequest(String resourcePath) {
-        Request<?> request = new DefaultRequest<NoopTestRequest>("mock");
-        request.setEndpoint(URI.create("http://localhost:" + mockServer.port() + resourcePath));
-        return request;
+    protected SdkHttpFullRequest.Builder newRequest(String resourcePath) {
+        return SdkHttpFullRequest.builder()
+                                 .uri(URI.create("http://localhost"))
+                                 .port(mockServer.port())
+                                 .encodedPath(resourcePath);
     }
 
     protected HttpResponseHandler<SdkServiceException> stubErrorHandler() throws Exception {

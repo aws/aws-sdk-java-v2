@@ -15,18 +15,9 @@
 
 package software.amazon.awssdk.protocols.query;
 
-import java.util.function.Supplier;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.protocols.core.OperationInfo;
-import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
-import software.amazon.awssdk.protocols.query.internal.marshall.QueryProtocolMarshaller;
-import software.amazon.awssdk.protocols.query.internal.unmarshall.AwsQueryResponseHandler;
-import software.amazon.awssdk.protocols.query.internal.unmarshall.QueryProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 /**
  * Protocol factory for the AWS/EC2 protocol.
@@ -39,27 +30,38 @@ public final class AwsEc2ProtocolFactory extends AwsQueryProtocolFactory {
     }
 
     @Override
-    public <T extends AwsRequest> ProtocolMarshaller<Request<T>> createProtocolMarshaller(OperationInfo operationInfo,
-                                                                                          T origRequest) {
-        return QueryProtocolMarshaller.builder(origRequest)
-                                      .operationInfo(operationInfo)
-                                      .isEc2(true)
-                                      .build();
+    boolean isEc2() {
+        return true;
     }
 
-    public <T extends AwsResponse> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier) {
-        return new AwsQueryResponseHandler<>(new QueryProtocolUnmarshaller<>(false), r -> pojoSupplier.get());
+    /**
+     * EC2 has a slightly different location for the <Error/> element than traditional AWS/Query.
+     *
+     * @param document Root XML document.
+     * @return If error root is found than a fulfilled {@link Optional}, otherwise an empty one.
+     */
+    @Override
+    Optional<XmlElement> getErrorRoot(XmlElement document) {
+        return document.getOptionalElementByName("Errors")
+                       .flatMap(e -> e.getOptionalElementByName("Error"));
     }
 
+    /**
+     * @return New builder instance.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builder for {@link AwsEc2ProtocolFactory}.
+     */
     public static final class Builder extends AwsQueryProtocolFactory.Builder<Builder> {
 
         private Builder() {
         }
 
+        @Override
         public AwsEc2ProtocolFactory build() {
             return new AwsEc2ProtocolFactory(this);
         }

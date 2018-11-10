@@ -2,24 +2,25 @@ package software.amazon.awssdk.protocols.query;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import javax.xml.stream.XMLStreamException;
 import org.junit.Test;
-import software.amazon.awssdk.protocols.query.XmlDomParser;
-import software.amazon.awssdk.protocols.query.XmlElement;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
+import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class XmlDomParserTest {
 
     @Test
-    public void simpleXmlDocument_ParsedCorrectly() throws XMLStreamException {
+    public void simpleXmlDocument_ParsedCorrectly() {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                      + "<Struct>"
                      + " <stringMember>stringVal</stringMember>"
                      + " <integerMember>42</integerMember>"
                      + "</Struct>";
         XmlElement element = XmlDomParser.parse(new StringInputStream(xml));
-        assertThat(element.attributes()).isEmpty();
         assertThat(element.elementName()).isEqualTo("Struct");
         assertThat(element.children()).hasSize(2);
         assertThat(element.getElementsByName("stringMember"))
@@ -33,20 +34,7 @@ public class XmlDomParserTest {
     }
 
     @Test
-    public void elementWithAttributes_ParsedCorrectly() throws XMLStreamException {
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                     + "<Struct attrOne=\"valOne\" attrTwo=\"valTwo\">"
-                     + " <stringMember>stringVal</stringMember>"
-                     + " <integerMember>42</integerMember>"
-                     + "</Struct>";
-        XmlElement element = XmlDomParser.parse(new StringInputStream(xml));
-        assertThat(element.attributes()).hasSize(2);
-        assertThat(element.attribute("attrOne")).isEqualTo("valOne");
-        assertThat(element.attribute("attrTwo")).isEqualTo("valTwo");
-    }
-
-    @Test
-    public void multipleElementsWithSameName_ParsedCorrectly() throws XMLStreamException {
+    public void multipleElementsWithSameName_ParsedCorrectly() {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                      + "<Struct>"
                      + " <member>valOne</member>"
@@ -61,14 +49,16 @@ public class XmlDomParserTest {
             .isEqualTo("valTwo");
     }
 
-    @Test(expected = XMLStreamException.class)
-    public void invalidXml_ThrowsException() throws XMLStreamException {
+    @Test
+    public void invalidXml_ThrowsException() {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                      + "<Struct>"
                      + " <member>valOne"
                      + " <member>valTwo</member>"
                      + "</Struct>";
-        XmlDomParser.parse(new StringInputStream(xml));
+        assertThatThrownBy(() -> XmlDomParser.parse(new StringInputStream(xml)))
+            .isInstanceOf(SdkClientException.class)
+            .hasCauseInstanceOf(XMLStreamException.class);
     }
 
 }

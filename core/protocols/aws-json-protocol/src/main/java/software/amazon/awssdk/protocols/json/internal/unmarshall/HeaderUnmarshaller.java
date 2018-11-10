@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
+import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -71,7 +71,7 @@ final class HeaderUnmarshaller {
 
         @Override
         public T unmarshall(JsonUnmarshallerContext context,
-                            JsonNode jsonContent,
+                            SdkJsonNode jsonContent,
                             SdkField<T> field) {
             return context.response().firstMatchingHeader(field.locationName())
                           .map(s -> stringToValue.convert(s, field))

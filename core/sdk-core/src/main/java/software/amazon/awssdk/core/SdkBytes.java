@@ -18,6 +18,7 @@ package software.amazon.awssdk.core;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +36,15 @@ import software.amazon.awssdk.utils.Validate;
  * via instance methods, like {@link SdkBytes#asByteArray()}.
  */
 @SdkPublicApi
-public final class SdkBytes extends BytesWrapper {
+public final class SdkBytes extends BytesWrapper implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    // Needed for serialization
+    private SdkBytes() {
+        super();
+    }
+
     /**
      * @see #fromByteArray(byte[])
      * @see #fromByteBuffer(ByteBuffer)

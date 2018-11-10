@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -32,10 +31,8 @@ public interface StructuredJsonFactory {
      */
     StructuredJsonGenerator createWriter(String contentType);
 
-    /**
-     * @return An ObjectMapper with the appropriate {@link JsonFactory} configured for the wire format.
-     */
-    // TODO move off object mapper
-    ObjectMapper createObjectMapper();
+    JsonFactory getJsonFactory();
+
+    ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName);
 
 }

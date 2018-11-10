@@ -19,13 +19,12 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -33,43 +32,44 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
-import software.amazon.awssdk.core.util.UriResourcePathUtils;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
  * Implementation of {@link ProtocolMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
- *
- * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<Request<OrigRequestT>> {
+public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullRequest> {
 
     public static final ValueToString<Instant> INSTANT_VALUE_TO_STRING =
         InstantToString.create(getDefaultTimestampFormats());
 
     private static final JsonMarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
 
+    private final URI endpoint;
     private final StructuredJsonGenerator jsonGenerator;
-    private final Request<OrigRequestT> request;
+    private final SdkHttpFullRequest.Builder request;
     private final String contentType;
     private final boolean hasExplicitPayloadMember;
     private final boolean hasStreamingInput;
 
     private final JsonMarshallerContext marshallerContext;
 
-    JsonProtocolMarshaller(StructuredJsonGenerator jsonGenerator,
+    JsonProtocolMarshaller(URI endpoint,
+                           StructuredJsonGenerator jsonGenerator,
                            String contentType,
-                           OperationInfo operationInfo,
-                           OrigRequestT originalRequest) {
+                           OperationInfo operationInfo) {
+        this.endpoint = endpoint;
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
-        this.request = fillBasicRequestParams(operationInfo, originalRequest);
+        this.request = fillBasicRequestParams(operationInfo);
         this.marshallerContext = JsonMarshallerContext.builder()
                                                       .jsonGenerator(jsonGenerator)
                                                       .marshallerRegistry(MARSHALLER_REGISTRY)
@@ -135,14 +135,13 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
         return Collections.unmodifiableMap(formats);
     }
 
-    private Request<OrigRequestT> fillBasicRequestParams(OperationInfo operationInfo, OrigRequestT originalRequest) {
-        Request<OrigRequestT> request = new DefaultRequest<>(originalRequest, operationInfo.serviceName());
-        request.setHttpMethod(operationInfo.httpMethodName());
-        request.setResourcePath(UriResourcePathUtils.addStaticQueryParametersToRequest(request, operationInfo.requestUri()));
-        if (operationInfo.operationIdentifier() != null) {
-            request.addHeader("X-Amz-Target", operationInfo.operationIdentifier());
-        }
-        return request;
+    private SdkHttpFullRequest.Builder fillBasicRequestParams(OperationInfo operationInfo) {
+        return ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint)
+                            .applyMutation(b -> {
+                                if (operationInfo.operationIdentifier() != null) {
+                                    b.putHeader("X-Amz-Target", operationInfo.operationIdentifier());
+                                }
+                            });
     }
 
     /**
@@ -159,7 +158,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = field.getValueOrDefault(pojo);
             if (isBinary(field, val)) {
-                request.setContentProvider(((SdkBytes) val)::asInputStream);
+                request.contentStreamProvider(((SdkBytes) val)::asInputStream);
             } else {
                 if (val != null && field.containsTrait(PayloadTrait.class)) {
                     jsonGenerator.writeStartObject();
@@ -182,33 +181,33 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolMarshaller<
     }
 
     @Override
-    public Request<OrigRequestT> marshall(SdkPojo pojo) {
+    public SdkHttpFullRequest marshall(SdkPojo pojo) {
         startMarshalling();
         doMarshall(pojo);
         return finishMarshalling();
     }
 
-    private Request<OrigRequestT> finishMarshalling() {
+    private SdkHttpFullRequest finishMarshalling() {
         // Content may already be set if the payload is binary data.
-        if (!request.getContentStreamProvider().isPresent()) {
+        if (request.contentStreamProvider() == null) {
             // End the implicit request object if needed.
             if (!hasExplicitPayloadMember) {
                 jsonGenerator.writeEndObject();
             }
 
             byte[] content = jsonGenerator.getBytes();
-            request.setContentProvider(() -> new ByteArrayInputStream(content));
+            request.contentStreamProvider(() -> new ByteArrayInputStream(content));
             if (content.length > 0) {
-                request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
+                request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }
         }
 
         // We skip setting the default content type if the request is streaming as
         // content-type is determined based on the body of the stream
-        if (!request.getHeaders().containsKey(CONTENT_TYPE) && contentType != null && !hasStreamingInput) {
-            request.addHeader(CONTENT_TYPE, contentType);
+        if (!request.headers().containsKey(CONTENT_TYPE) && contentType != null && !hasStreamingInput) {
+            request.putHeader(CONTENT_TYPE, contentType);
         }
-        return request;
+        return request.build();
     }
 
 }

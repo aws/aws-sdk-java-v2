@@ -35,7 +35,6 @@ class CommonGeneratorTasks implements Iterable<GeneratorTask> {
         return new CompositeIterable<>(new CommonClientGeneratorTasks(params),
                                        new SyncClientGeneratorTasks(params),
                                        new MarshallerGeneratorTasks(params),
-                                       new UnmarshallerGeneratorTasks(params),
                                        new ModelClassGeneratorTasks(params),
                                        new PackageInfoGeneratorTasks(params),
                                        new BaseExceptionClassGeneratorTasks(params));
