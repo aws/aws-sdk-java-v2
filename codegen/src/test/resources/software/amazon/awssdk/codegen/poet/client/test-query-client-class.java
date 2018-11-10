@@ -9,6 +9,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.protocols.core.ErrorMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
@@ -116,8 +117,13 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     private AwsQueryProtocolFactory init() {
-        return AwsQueryProtocolFactory.builder().registerModeledException("InvalidInput", InvalidInputException::builder)
-                                      .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+        return AwsQueryProtocolFactory
+            .builder()
+            .registerModeledException(
+                "InvalidInput",
+                ErrorMetadata.builder().exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400)
+                             .build()).clientConfiguration(clientConfiguration)
+            .defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     @Override
@@ -125,4 +131,3 @@ final class DefaultQueryClient implements QueryClient {
         clientHandler.close();
     }
 }
-

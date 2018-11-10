@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.core.ErrorMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -40,10 +41,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
-    private final Map<String, Supplier<SdkPojo>> exceptions;
+    private final Map<String, ErrorMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
-    private final Supplier<SdkPojo> defaultExceptionSupplier;
+    private final ErrorMetadata defaultExceptionMetadata;
     private final ErrorCodeParser errorCodeParser;
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
@@ -52,7 +53,10 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.errorCodeParser = builder.errorCodeParser;
         this.errorMessageParser = builder.errorMessageParser;
         this.jsonFactory = builder.jsonFactory;
-        this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
+        this.defaultExceptionMetadata = ErrorMetadata.builder()
+                                                     .exceptionBuilderSupplier(builder.defaultExceptionSupplier)
+                                                     .httpStatusCode(500)
+                                                     .build();
     }
 
     @Override
@@ -63,7 +67,8 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private AwsServiceException unmarshall(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
-        SdkPojo sdkPojo = exceptions.getOrDefault(errorCode, defaultExceptionSupplier).get();
+        SdkPojo sdkPojo = exceptions.getOrDefault(errorCode, defaultExceptionMetadata)
+                                    .exceptionBuilderSupplier().get();
 
         AwsServiceException.Builder exception = ((AwsServiceException) jsonProtocolUnmarshaller
             .unmarshall(sdkPojo, response, jsonContent.getJsonNode())).toBuilder();
@@ -72,9 +77,18 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
                                                          errorCode, errorMessage));
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
-        exception.statusCode(response.statusCode());
+        exception.statusCode(statusCode(response, errorCode));
         exception.requestId(getRequestIdFromHeaders(response.headers()));
         return exception.build();
+    }
+
+    private int statusCode(SdkHttpFullResponse response, String errorCode) {
+        if (response.statusCode() != 0) {
+            return response.statusCode();
+        }
+
+        return exceptions.getOrDefault(errorCode, defaultExceptionMetadata)
+                         .httpStatusCode();
     }
 
     /**
@@ -120,7 +134,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     public static final class Builder {
 
         private JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
-        private Map<String, Supplier<SdkPojo>> exceptions;
+        private Map<String, ErrorMetadata> exceptions;
         private ErrorMessageParser errorMessageParser;
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
@@ -146,7 +160,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
          *
          * @return This builder for method chaining.
          */
-        public Builder exceptions(Map<String, Supplier<SdkPojo>> exceptions) {
+        public Builder exceptions(Map<String, ErrorMetadata> exceptions) {
             this.exceptions = exceptions;
             return this;
         }

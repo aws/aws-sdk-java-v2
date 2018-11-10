@@ -75,6 +75,14 @@ public class JsonErrorCodeParserTest {
     }
 
     @Test
+    public void parseErrorType_ErrorTypeInHeaders_HonorCaseInsensitivity() throws IOException {
+        String actualErrorType = parser.parseErrorCode(
+            httpResponseWithHeaders("x-amzn-errortype",
+                                    String.format("%s:%s", HEADER_ERROR_TYPE, "someSuffix")), toJsonContent(JSON_ERROR_TYPE));
+        assertEquals(HEADER_ERROR_TYPE, actualErrorType);
+    }
+
+    @Test
     public void parseErrorType_ErrorTypeInContent_NoPrefix() throws IOException {
         String actualErrorType = parser.parseErrorCode(httpResponseWithoutHeaders(), toJsonContent(JSON_ERROR_TYPE));
         assertEquals(JSON_ERROR_TYPE, actualErrorType);

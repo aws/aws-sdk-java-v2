@@ -77,7 +77,8 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      */
     private String parseErrorCodeFromHeader(SdkHttpFullResponse response) {
         Map<String, List<String>> filteredHeaders = response.headers().entrySet().stream()
-                                                            .filter(e -> errorCodeHeaders.contains(e.getKey()))
+                                                            .filter(e -> errorCodeHeaders.stream()
+                                                                                         .anyMatch(e.getKey()::equalsIgnoreCase))
                                                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         if (filteredHeaders.isEmpty()) {
@@ -91,7 +92,7 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
         String headerKey = filteredHeaders.keySet().stream().findFirst().get();
         String headerValue = filteredHeaders.get(headerKey).get(0);
 
-        if (X_AMZN_ERROR_TYPE.equals(headerKey)) {
+        if (X_AMZN_ERROR_TYPE.equalsIgnoreCase(headerKey)) {
             return parseErrorCodeFromXAmzErrorType(headerValue);
         }
 
