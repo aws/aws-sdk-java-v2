@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.handlers;
+package software.amazon.awssdk.services.s3.internal.handlers;
 
 import java.io.ByteArrayInputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;

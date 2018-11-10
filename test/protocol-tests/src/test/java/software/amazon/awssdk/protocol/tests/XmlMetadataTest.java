@@ -62,21 +62,6 @@ public class XmlMetadataTest {
     }
 
     @Test
-    public void syncResponse_shouldContainResponseMetadata() {
-        stubResponseWithMetadata();
-        AllTypesResponse allTypesResponse = client.allTypes(SdkBuilder::build);
-
-        verifyResponseMetadata(allTypesResponse);
-    }
-
-    @Test
-    public void asyncResponse_shouldContainResponseMetadata() {
-        stubResponseWithMetadata();
-        AllTypesResponse allTypesResponse = asyncClient.allTypes(SdkBuilder::build).join();
-        verifyResponseMetadata(allTypesResponse);
-    }
-
-    @Test
     public void requestIdInHeaderButNotXml_ShouldContainsResponseMetadata() {
         stubResponseWithHeaders();
         AllTypesResponse allTypesResponse = asyncClient.allTypes(SdkBuilder::build).join();
@@ -105,18 +90,6 @@ public class XmlMetadataTest {
                     .willReturn(aResponse().withStatus(200)
                                            .withHeader("x-amzn-RequestId", REQUEST_ID)
                                            .withBody("<AllTypesResponse/>")));
-    }
-
-    private void stubResponseWithMetadata() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200)
-                                           .withBody("<AllTypesResponse>"
-                                                     + "<ResponseMetadata>"
-                                                     + "<RequestId>"
-                                                     + REQUEST_ID
-                                                     + "</RequestId>"
-                                                     + "</ResponseMetadata>"
-                                                     + "</AllTypesResponse>")));
     }
 
     private void stubResponseWithoutHeaders() {

@@ -42,6 +42,7 @@ final class XmlWriter {
 
     private Stack<String> elementStack = new Stack<>();
     private boolean rootElement = true;
+    private boolean writtenProlog = false;
 
     /**
      * Creates a new XMLWriter, ready to write an XML document to the specified
@@ -57,7 +58,6 @@ final class XmlWriter {
     XmlWriter(Writer w, String xmlns) {
         this.writer = w;
         this.xmlns = xmlns;
-        append(PROLOG);
     }
 
     /**
@@ -71,6 +71,11 @@ final class XmlWriter {
      *         together.
      */
     XmlWriter startElement(String element) {
+        // Only append the PROLOG if there is XML written.
+        if (!writtenProlog) {
+            writtenProlog = true;
+            append(PROLOG);
+        }
         append("<" + element);
         if (rootElement && xmlns != null) {
             append(" xmlns=\"" + xmlns + "\"");

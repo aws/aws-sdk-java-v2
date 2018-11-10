@@ -30,12 +30,11 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * @param <BaseEventT> Base type for all events.
  */
 @SdkProtectedApi
-public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
-    implements Marshaller<SdkHttpFullRequest, BaseEventT> {
+public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT> implements Marshaller<BaseEventT> {
 
     private final Map<Class<? extends BaseEventT>,
-        Marshaller<SdkHttpFullRequest, BaseEventT>> marshallers;
-    private final Marshaller<SdkHttpFullRequest, BaseEventT> defaultMarshaller;
+        Marshaller<BaseEventT>> marshallers;
+    private final Marshaller<BaseEventT> defaultMarshaller;
 
     private EventStreamTaggedUnionJsonMarshaller(Builder<BaseEventT> builder) {
         this.marshallers = new HashMap<>(builder.marshallers);
@@ -52,9 +51,8 @@ public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
     }
 
     public static final class Builder<BaseEventT> {
-        private final Map<Class<? extends BaseEventT>,
-            Marshaller<SdkHttpFullRequest, BaseEventT>> marshallers = new HashMap<>();
-        private Marshaller<SdkHttpFullRequest, BaseEventT> defaultMarshaller;
+        private final Map<Class<? extends BaseEventT>, Marshaller<BaseEventT>> marshallers = new HashMap<>();
+        private Marshaller<BaseEventT> defaultMarshaller;
 
         private Builder() {
         }
@@ -67,7 +65,7 @@ public final class EventStreamTaggedUnionJsonMarshaller<BaseEventT>
          * @return This object for method chaining
          */
         public Builder putMarshaller(Class<? extends BaseEventT> eventClass,
-                                     Marshaller<SdkHttpFullRequest, BaseEventT> marshaller) {
+                                     Marshaller<BaseEventT> marshaller) {
             marshallers.put(eventClass, marshaller);
             return this;
         }

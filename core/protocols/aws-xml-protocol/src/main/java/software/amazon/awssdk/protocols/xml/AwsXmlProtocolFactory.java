@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.unmarshall.AwsXmlErrorProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
@@ -45,6 +46,21 @@ import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmar
  */
 @SdkProtectedApi
 public class AwsXmlProtocolFactory {
+
+    /**
+     * Attribute for configuring the XML namespace to include in the xmlns attribute of the root element.
+     */
+    public static final OperationMetadataAttribute<String> XML_NAMESPACE_ATTRIBUTE =
+        new OperationMetadataAttribute<>(String.class);
+
+    /**
+     * Some services like Route53 specifies the location for the request shape. This should be the root of the
+     * generated xml document.
+     *
+     * Other services Cloudfront, s3 don't specify location param for the request shape. For them, this value will be null.
+     */
+    public static final OperationMetadataAttribute<String> ROOT_MARSHALL_LOCATION_ATTRIBUTE =
+        new OperationMetadataAttribute<>(String.class);
 
     private final Map<String, Supplier<SdkPojo>> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
@@ -68,17 +84,12 @@ public class AwsXmlProtocolFactory {
      * Creates an instance of {@link XmlProtocolMarshaller} to be used for marshalling the requess.
      *
      * @param operationInfo Info required to marshall the request
-     * @param rootElement The root of the xml document if present.
-     * @param xmlNameSpaceUri The XML namespace to include in the xmlns attribute of the root element.
      */
-    public ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo,
-                                                                           String rootElement,
-                                                                           String xmlNameSpaceUri) {
+    public ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
         return XmlProtocolMarshaller.builder()
                                     .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
-                                    .xmlGenerator(createGenerator(operationInfo, xmlNameSpaceUri))
+                                    .xmlGenerator(createGenerator(operationInfo))
                                     .operationInfo(operationInfo)
-                                    .rootElement(rootElement)
                                     .build();
     }
 
@@ -104,8 +115,10 @@ public class AwsXmlProtocolFactory {
         return document.getOptionalElementByName("Error");
     }
 
-    private XmlGenerator createGenerator(OperationInfo operationInfo, String xmlNameSpaceUri) {
-        return operationInfo.hasPayloadMembers() ? XmlGenerator.create(xmlNameSpaceUri) : null;
+    private XmlGenerator createGenerator(OperationInfo operationInfo) {
+        return operationInfo.hasPayloadMembers() ?
+               XmlGenerator.create(operationInfo.addtionalMetadata(XML_NAMESPACE_ATTRIBUTE)) :
+               null;
     }
 
     public static Builder builder() {

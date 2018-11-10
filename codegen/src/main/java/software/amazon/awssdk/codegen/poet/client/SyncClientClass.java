@@ -19,7 +19,6 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -140,13 +139,11 @@ public class SyncClientClass implements ClassSpec {
 
     private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
-        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
                                        .addAnnotation(Override.class)
                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                                       .addCode(getCustomResponseHandler(opModel, returnType)
-                                                    .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
+                                       .addCode(protocolSpec.responseHandler(model, opModel))
                                        .addCode(protocolSpec.errorResponseHandler(opModel))
                                        .addCode(protocolSpec.executionHandler(opModel))
                                        .build());

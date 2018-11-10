@@ -18,7 +18,7 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public class EventStreamOperationWithOnlyInputRequestMarshaller implements
-                                                                Marshaller<SdkHttpFullRequest, EventStreamOperationWithOnlyInputRequest> {
+                                                                Marshaller<EventStreamOperationWithOnlyInputRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/EventStreamOperationWithOnlyInput").httpMethod(SdkHttpMethod.POST)
                                                                             .hasExplicitPayloadMember(false).hasPayloadMembers(true).build();

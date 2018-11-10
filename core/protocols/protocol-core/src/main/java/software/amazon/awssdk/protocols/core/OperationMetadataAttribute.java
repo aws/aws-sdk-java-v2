@@ -13,13 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.protocols.core;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.AttributeMap;
 
+/**
+ * Key for additional metadata in {@link OperationInfo}. Used to register protocol specific metadata about
+ * an operation.
+ *
+ * @param <T> Type of metadata.
+ */
 @SdkProtectedApi
-public interface Unmarshaller<T, R> {
+public final class OperationMetadataAttribute<T> extends AttributeMap.Key<T> {
 
-    T unmarshall(R in) throws Exception;
-
+    public OperationMetadataAttribute(Class<T> valueType) {
+        super(valueType);
+    }
 }

@@ -18,7 +18,7 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public class OperationWithNoInputOrOutputRequestMarshaller implements
-                                                           Marshaller<SdkHttpFullRequest, OperationWithNoInputOrOutputRequest> {
+                                                           Marshaller<OperationWithNoInputOrOutputRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
                                                                             .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
 

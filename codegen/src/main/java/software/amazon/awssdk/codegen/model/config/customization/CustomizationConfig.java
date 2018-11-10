@@ -107,7 +107,6 @@ public class CustomizationConfig {
     private String sdkRequestBaseClassName;
 
     private String sdkResponseBaseClassName;
-    private String defaultExceptionUnmarshaller;
 
     private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
@@ -281,14 +280,6 @@ public class CustomizationConfig {
 
     public void setSdkResponseBaseClassName(String sdkResponseBaseClassName) {
         this.sdkResponseBaseClassName = sdkResponseBaseClassName;
-    }
-
-    public String getDefaultExceptionUnmarshaller() {
-        return defaultExceptionUnmarshaller;
-    }
-
-    public void setDefaultExceptionUnmarshaller(String defaultExceptionUnmarshaller) {
-        this.defaultExceptionUnmarshaller = defaultExceptionUnmarshaller;
     }
 
     public Map<String, String> getModelMarshallerDefaultValueSupplier() {

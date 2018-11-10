@@ -19,7 +19,6 @@ import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -165,17 +164,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     @Override
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         builder.addModifiers(Modifier.PUBLIC)
-                      .addAnnotation(Override.class)
-                      .beginControlFlow("try")
-                          .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                          .addCode(getCustomResponseHandler(opModel, returnType)
-                                       .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
-                          .addCode(protocolSpec.errorResponseHandler(opModel))
-                          .addCode(eventToByteBufferPublisher(opModel))
-                          .addCode(protocolSpec.asyncExecutionHandler(model, opModel))
+               .addAnnotation(Override.class)
+               .beginControlFlow("try")
+               .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+               .addCode(protocolSpec.responseHandler(model, opModel))
+               .addCode(protocolSpec.errorResponseHandler(opModel))
+               .addCode(eventToByteBufferPublisher(opModel))
+               .addCode(protocolSpec.asyncExecutionHandler(model, opModel))
                .endControlFlow()
                .beginControlFlow("catch ($T t)", Throwable.class);
 

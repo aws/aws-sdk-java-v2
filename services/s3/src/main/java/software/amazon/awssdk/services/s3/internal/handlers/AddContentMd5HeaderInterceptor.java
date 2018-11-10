@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.handlers;
+package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.http.Header.CONTENT_MD5;
 

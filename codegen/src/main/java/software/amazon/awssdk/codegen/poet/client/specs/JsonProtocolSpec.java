@@ -108,8 +108,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private CodeBlock customErrorCodeFieldName() {
         return model.getCustomizationConfig().getCustomErrorCodeFieldName() == null ?
-        CodeBlock.builder().build() :
-        CodeBlock.of(".customErrorCodeFieldName($S)", model.getCustomizationConfig().getCustomErrorCodeFieldName());
+               CodeBlock.builder().build() :
+               CodeBlock.of(".customErrorCodeFieldName($S)", model.getCustomizationConfig().getCustomErrorCodeFieldName());
     }
 
     private Class<?> protocolFactoryClass() {

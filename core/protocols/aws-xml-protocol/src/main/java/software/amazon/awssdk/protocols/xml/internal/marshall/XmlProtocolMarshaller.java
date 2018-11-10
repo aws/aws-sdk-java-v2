@@ -39,6 +39,7 @@ import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -61,7 +62,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
     private XmlProtocolMarshaller(Builder builder) {
         this.endpoint = builder.endpoint;
         this.request = ProtocolUtils.createSdkHttpRequest(builder.operationInfo, this.endpoint);
-        this.rootElement = builder.rootElement;
+        this.rootElement = builder.operationInfo.addtionalMetadata(AwsXmlProtocolFactory.ROOT_MARSHALL_LOCATION_ATTRIBUTE);
         this.marshallerContext = XmlMarshallerContext.builder()
                                                      .xmlGenerator(builder.xmlGenerator)
                                                      .marshallerRegistry(MARSHALLER_REGISTRY)
@@ -211,7 +212,6 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
         private URI endpoint;
         private XmlGenerator xmlGenerator;
         private OperationInfo operationInfo;
-        private String rootElement;
 
         private Builder() {
         }
@@ -240,19 +240,6 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
          */
         public Builder operationInfo(OperationInfo operationInfo) {
             this.operationInfo = operationInfo;
-            return this;
-        }
-
-        /**
-         * Some services like Route53 specifies the location for the request shape. This should be the root of the
-         * generated xml document.
-         *
-         * Other services Cloudfront, s3 don't specify location param for the request shape. For them, this value will be null.
-         *
-         * @param rootElement Root element
-         */
-        public Builder rootElement(String rootElement) {
-            this.rootElement = rootElement;
             return this;
         }
 

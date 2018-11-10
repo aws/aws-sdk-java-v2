@@ -23,15 +23,20 @@ import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
+import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class QueryMarshallerSpec implements MarshallerProtocolSpec {
@@ -99,6 +104,14 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         if (shapeModel.isHasStreamingMember()) {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
         }
+        if (metadata.getProtocol() == Protocol.REST_XML) {
+            String rootMarshallLocationName = shapeModel.getMarshaller() != null ?
+                                              shapeModel.getMarshaller().getLocationName() : null;
+            initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.ROOT_MARSHALL_LOCATION_ATTRIBUTE, $S)",
+                                               AwsXmlProtocolFactory.class, rootMarshallLocationName);
+            initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.XML_NAMESPACE_ATTRIBUTE, $S)",
+                                               AwsXmlProtocolFactory.class, xmlNameSpaceUri());
+        }
 
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
 
@@ -111,5 +124,23 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         return fields;
     }
 
+    private String xmlNameSpaceUri() {
+        if (shapeModel.getMarshaller() != null && shapeModel.getMarshaller().getXmlNameSpaceUri() != null) {
+            return shapeModel.getMarshaller().getXmlNameSpaceUri();
+        }
+
+        Set<String> xmlUris = shapeModel.getMembers().stream()
+                                        .filter(m -> m.getXmlNameSpaceUri() != null)
+                                        .map(MemberModel::getXmlNameSpaceUri)
+                                        .collect(Collectors.toSet());
+
+        if (xmlUris.isEmpty()) {
+            return null;
+        } else if (xmlUris.size() == 1) {
+            return xmlUris.iterator().next();
+        } else {
+            throw new RuntimeException("Request has more than 1 xmlNameSpace uri.");
+        }
+    }
 
 }

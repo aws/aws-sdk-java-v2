@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.core;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Static information about an API operation used to marshall it correctly.
@@ -31,6 +32,7 @@ public final class OperationInfo {
     private final boolean hasExplicitPayloadMember;
     private final boolean hasPayloadMembers;
     private final boolean hasStreamingInput;
+    private final AttributeMap additionalMetadata;
 
     private OperationInfo(Builder builder) {
         this.requestUri = builder.requestUri;
@@ -40,6 +42,7 @@ public final class OperationInfo {
         this.hasExplicitPayloadMember = builder.hasExplicitPayloadMember;
         this.hasPayloadMembers = builder.hasPayloadMembers;
         this.hasStreamingInput = builder.hasStreamingInput;
+        this.additionalMetadata = builder.additionalMetadata.build();
     }
 
     /**
@@ -96,6 +99,17 @@ public final class OperationInfo {
     }
 
     /**
+     * Gets an unmodeled piece of metadata. Useful for protocol specific options.
+     *
+     * @param key Key the metadata was registered under.
+     * @param <T> Type of metadata being requested.
+     * @return The value of the additional metadata being requested or null if it's not present.
+     */
+    public <T> T addtionalMetadata(OperationMetadataAttribute<T> key) {
+        return additionalMetadata.get(key);
+    }
+
+    /**
      * @return Builder instance to construct a {@link OperationInfo}.
      */
     public static Builder builder() {
@@ -114,6 +128,7 @@ public final class OperationInfo {
         private boolean hasExplicitPayloadMember;
         private boolean hasPayloadMembers;
         private boolean hasStreamingInput;
+        private AttributeMap.Builder additionalMetadata = AttributeMap.builder();
 
         private Builder() {
         }
@@ -150,6 +165,20 @@ public final class OperationInfo {
 
         public Builder hasStreamingInput(boolean hasStreamingInput) {
             this.hasStreamingInput = hasStreamingInput;
+            return this;
+        }
+
+        /**
+         * Adds additional unmodeled metadata to the {@link OperationInfo}. Useful for communicating protocol
+         * specific operation metadata.
+         *
+         * @param key Key to register metadata.
+         * @param value Value of metadata.
+         * @param <T> Type of metadata being registered.
+         * @return This builder for method chaining.
+         */
+        public <T> Builder putAdditionalMetadata(OperationMetadataAttribute<T> key, T value) {
+            additionalMetadata.put(key, value);
             return this;
         }
 

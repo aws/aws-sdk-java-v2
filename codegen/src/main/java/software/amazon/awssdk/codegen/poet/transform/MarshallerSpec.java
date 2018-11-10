@@ -64,16 +64,12 @@ public class MarshallerSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-
         return TypeSpec.classBuilder(className)
                        .addJavadoc("{@link $T} Marshaller", requestClassName)
                        .addModifiers(Modifier.PUBLIC)
                        .addAnnotation(PoetUtils.generatedAnnotation())
                        .addAnnotation(SdkInternalApi.class)
-                       .addSuperinterface(
-                           ParameterizedTypeName.get(baseMashallerName,
-                                                     httpRequestName,
-                                                     requestName))
+                       .addSuperinterface(ParameterizedTypeName.get(baseMashallerName, requestName))
                        .addFields(protocolSpec.memberVariables())
                        .addFields(protocolSpec.additionalFields())
                        .addMethods(methods())

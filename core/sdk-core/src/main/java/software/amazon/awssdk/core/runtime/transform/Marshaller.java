@@ -16,14 +16,22 @@
 package software.amazon.awssdk.core.runtime.transform;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-@SdkProtectedApi
-// TODO the order of these params is backwards (possibly just get rid of the marshalled type)
 /**
- * Interface to marshall a POJO into a HTTP request.
+ * Interface to marshall a POJO into a {@link SdkHttpFullRequest}.
+ *
+ * @param <InputT> Type to marshall.
  */
-public interface Marshaller<InputT, MarshalledT> {
+@SdkProtectedApi
+public interface Marshaller<InputT> {
 
-    InputT marshall(MarshalledT in);
+    /**
+     * Marshalls the given POJO into a {@link SdkHttpFullRequest}.
+     *
+     * @param in POJO type.
+     * @return Marshalled {@link SdkHttpFullRequest}.
+     */
+    SdkHttpFullRequest marshall(InputT in);
 
 }

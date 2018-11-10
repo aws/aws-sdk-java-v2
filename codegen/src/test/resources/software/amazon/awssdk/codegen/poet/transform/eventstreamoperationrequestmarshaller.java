@@ -17,7 +17,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class EventStreamOperationRequestMarshaller implements Marshaller<SdkHttpFullRequest, EventStreamOperationRequest> {
+public class EventStreamOperationRequestMarshaller implements Marshaller<EventStreamOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/eventStreamOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(true)
                                                                             .hasPayloadMembers(true).build();

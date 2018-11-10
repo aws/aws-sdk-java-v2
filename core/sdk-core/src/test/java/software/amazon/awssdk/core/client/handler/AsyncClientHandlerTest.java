@@ -60,7 +60,7 @@ public class AsyncClientHandlerTest {
     private SdkRequest request;
 
     @Mock
-    private Marshaller<SdkHttpFullRequest, SdkRequest> marshaller;
+    private Marshaller<SdkRequest> marshaller;
 
     private SdkHttpFullRequest marshalledRequest = ValidSdkObjects.sdkHttpFullRequest().build();
 

@@ -18,6 +18,9 @@ package software.amazon.awssdk.services.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,12 +63,15 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
 
 
     @Test
-    public void getBucketPolicyReturnsAResult() {
+    public void getBucketPolicyReturnsAResult() throws IOException {
         String policy = createPolicy();
         s3.putBucketPolicy(PutBucketPolicyRequest.builder().bucket(bucketName).policy(policy).build());
 
         GetBucketPolicyRequest request = GetBucketPolicyRequest.builder().bucket(bucketName).build();
-        assertThat(s3.getBucketPolicy(request).policy()).contains("arn:aws:s3:::" + bucketName);
+        String returnedPolicy = s3.getBucketPolicy(request).policy();
+        assertThat(returnedPolicy).contains("arn:aws:s3:::" + bucketName);
+        // Asserts that the policy is valid JSON
+        assertThat(new ObjectMapper().readTree(returnedPolicy)).isInstanceOf(JsonNode.class);
     }
 
     @Test

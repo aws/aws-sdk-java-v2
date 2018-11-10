@@ -71,7 +71,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
 
     private final SdkAsyncHttpClient asyncHttpClient = mock(SdkAsyncHttpClient.class);
 
-    private final Marshaller<SdkHttpFullRequest, SdkRequest> marshaller = mock(Marshaller.class);
+    private final Marshaller<SdkRequest> marshaller = mock(Marshaller.class);
 
     private final HttpResponseHandler<SdkResponse> responseHandler = mock(HttpResponseHandler.class);
 

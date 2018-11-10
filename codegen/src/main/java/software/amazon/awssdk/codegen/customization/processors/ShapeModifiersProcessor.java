@@ -106,11 +106,6 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                     shapeModel.getCustomization().setStaxTargetDepthOffset(modifier.getStaxTargetDepthOffset());
                 }
 
-                if (modifier.getCustomUnmarshallerFqcn() != null) {
-                    shapeModel.getCustomization().setCustomUnmarshallerFqcn(modifier.getCustomUnmarshallerFqcn());
-                    shapeModel.getCustomization().setSkipGeneratingUnmarshaller(true);
-                }
-
                 if (modifier.isExcludeShape()) {
                     shapeModel.getCustomization().setSkipGeneratingModelClass(true);
                     shapeModel.getCustomization().setSkipGeneratingMarshaller(true);

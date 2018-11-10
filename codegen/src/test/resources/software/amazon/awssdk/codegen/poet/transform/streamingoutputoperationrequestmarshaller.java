@@ -17,7 +17,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class StreamingOutputOperationRequestMarshaller implements Marshaller<SdkHttpFullRequest, StreamingOutputOperationRequest> {
+public class StreamingOutputOperationRequestMarshaller implements Marshaller<StreamingOutputOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/streamingOutputOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false)
                                                                             .hasPayloadMembers(false).build();

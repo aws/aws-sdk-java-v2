@@ -30,16 +30,16 @@ import software.amazon.awssdk.utils.StringUtils;
  * @param <T> Type of POJO being marshalled.
  */
 @SdkProtectedApi
-public final class StreamingRequestMarshaller<T> implements Marshaller<SdkHttpFullRequest, T> {
+public final class StreamingRequestMarshaller<T> implements Marshaller<T> {
 
-    private final Marshaller<SdkHttpFullRequest, T> delegate;
+    private final Marshaller<T> delegate;
     private final RequestBody requestBody;
 
     /**
      * @param delegate    POJO marshaller (for path/query/header members).
      * @param requestBody {@link RequestBody} representing HTTP contents.
      */
-    public StreamingRequestMarshaller(Marshaller<SdkHttpFullRequest, T> delegate, RequestBody requestBody) {
+    public StreamingRequestMarshaller(Marshaller<T> delegate, RequestBody requestBody) {
         this.delegate = paramNotNull(delegate, "delegate");
         this.requestBody = paramNotNull(requestBody, "requestBody");
     }

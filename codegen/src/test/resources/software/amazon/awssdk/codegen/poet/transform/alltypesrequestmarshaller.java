@@ -17,7 +17,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class AllTypesRequestMarshaller implements Marshaller<SdkHttpFullRequest, AllTypesRequest> {
+public class AllTypesRequestMarshaller implements Marshaller<AllTypesRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
                                                                             .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
 

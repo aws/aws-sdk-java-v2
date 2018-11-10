@@ -17,7 +17,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class NestedContainersRequestMarshaller implements Marshaller<SdkHttpFullRequest, NestedContainersRequest> {
+public class NestedContainersRequestMarshaller implements Marshaller<NestedContainersRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
                                                                             .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
 
