@@ -330,14 +330,16 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             headers.put(X_AMZN_REQUEST_ID_HEADER, singletonList(requestId));
         }
 
-        //TODO: fix the hard-coded status code
-        int statusCode = isException ? 500 : 200;
+        SdkHttpFullResponse.Builder builder =
+            SdkHttpFullResponse.builder()
+                               .content(AbortableInputStream.create(new ByteArrayInputStream(message.getPayload())))
+                               .headers(headers);
 
-        return SdkHttpFullResponse.builder()
-                                  .content(AbortableInputStream.create(new ByteArrayInputStream(message.getPayload())))
-                                  .headers(headers)
-                                  .statusCode(statusCode)
-                                  .build();
+        if (!isException) {
+            builder.statusCode(200);
+        }
+
+        return builder.build();
     }
 
     private static boolean shouldSurfaceErrorToEventSubscriber(Throwable t) {

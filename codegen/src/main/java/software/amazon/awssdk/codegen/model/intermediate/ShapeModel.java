@@ -56,6 +56,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private ShapeUnmarshaller unmarshaller;
 
     private String errorCode;
+    private Integer httpStatusCode;
 
     private ShapeCustomizationInfo customization = new ShapeCustomizationInfo();
 
@@ -484,6 +485,17 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setErrorCode(String errorCode) {
         this.errorCode = errorCode;
+    }
+
+    /**
+     * Return the httpStatusCode of the exception shape. This value is present only for modeled exceptions.
+     */
+    public Integer getHttpStatusCode() {
+        return httpStatusCode;
+    }
+
+    public void setHttpStatusCode(Integer httpStatusCode) {
+        this.httpStatusCode = httpStatusCode;
     }
 
     public boolean isRequestSignerAware() {

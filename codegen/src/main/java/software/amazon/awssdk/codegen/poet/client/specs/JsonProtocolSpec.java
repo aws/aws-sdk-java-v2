@@ -28,7 +28,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
@@ -39,7 +38,6 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkResponse;
@@ -377,17 +375,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public List<CodeBlock> errorUnmarshallers(IntermediateModel model) {
-        List<ShapeModel> exceptions = model.getShapes().values().stream()
-                                           .filter(s -> s.getShapeType().equals(ShapeType.Exception))
-                                           .collect(Collectors.toList());
-
-        return exceptions.stream().map(s -> {
-            ClassName exceptionClass = poetExtensions.getModelClass(s.getShapeName());
-            return CodeBlock.builder().add(".registerModeledException($S, $T::builder)",
-                                           s.getErrorCode(),
-                                           exceptionClass)
-                            .build();
-        }).collect(Collectors.toList());
+        return errorUnmarshallers(model, poetExtensions);
     }
 
     private String protocolEnumName(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {

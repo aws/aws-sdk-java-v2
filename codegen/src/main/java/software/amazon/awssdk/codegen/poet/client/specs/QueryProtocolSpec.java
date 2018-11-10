@@ -23,12 +23,10 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -149,12 +147,6 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
     @Override
     public List<CodeBlock> errorUnmarshallers(IntermediateModel model) {
-        return model.getShapes().values().stream()
-                    .filter(s -> s.getShapeType() == ShapeType.Exception)
-                    .map(e -> CodeBlock.builder()
-                                       .add(".registerModeledException($S, $T::builder)\n",
-                                            e.getErrorCode(), poetExtensions.getModelClass(e.getShapeName()))
-                                       .build())
-                    .collect(Collectors.toList());
+        return errorUnmarshallers(model, poetExtensions);
     }
 }

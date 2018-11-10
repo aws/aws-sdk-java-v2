@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.core.ErrorMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
@@ -50,7 +51,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
 
     private final AwsJsonProtocolMetadata protocolMetadata;
-    private final Map<String, Supplier<SdkPojo>> modeledExceptions;
+    private final Map<String, ErrorMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
     private final SdkClientConfiguration clientConfiguration;
@@ -167,7 +168,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     public abstract static class Builder<SubclassT extends Builder> {
 
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
-        private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
+        private final Map<String, ErrorMetadata> modeledExceptions = new HashMap<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private String customErrorCodeFieldName;
         private SdkClientConfiguration clientConfiguration;
@@ -179,11 +180,11 @@ public abstract class BaseAwsJsonProtocolFactory {
          * Registers a new modeled exception by the error code.
          *
          * @param errorCode Error code identifying this modeled exception.
-         * @param exceptionBuilderSupplier Supplier of the modeled exceptions Builder.
+         * @param errorMetadata Metadata to unmarshall the modeled exception.
          * @return This builder for method chaining.
          */
-        public final SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
-            modeledExceptions.put(errorCode, exceptionBuilderSupplier);
+        public final SubclassT registerModeledException(String errorCode, ErrorMetadata errorMetadata) {
+            modeledExceptions.put(errorCode, errorMetadata);
             return getSubclass();
         }
 

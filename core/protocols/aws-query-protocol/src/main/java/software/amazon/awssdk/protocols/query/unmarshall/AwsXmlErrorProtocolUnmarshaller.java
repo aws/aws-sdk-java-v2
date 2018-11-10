@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.core.ErrorMetadata;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -83,17 +84,20 @@ import software.amazon.awssdk.utils.Pair;
 @SdkProtectedApi
 public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
-    private final Map<String, Supplier<SdkPojo>> exceptions;
-    private final Supplier<SdkPojo> defaultExceptionSupplier;
+    private final Map<String, ErrorMetadata> exceptions;
+    private final ErrorMetadata defaultExceptionMetadata;
     private final Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
 
     private final XmlErrorUnmarshaller errorUnmarshaller;
 
     private AwsXmlErrorProtocolUnmarshaller(Builder builder) {
         this.exceptions = builder.exceptions;
-        this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.errorRootExtractor = builder.errorRootExtractor;
         this.errorUnmarshaller = builder.errorUnmarshaller;
+        this.defaultExceptionMetadata = ErrorMetadata.builder()
+                                                     .exceptionBuilderSupplier(builder.defaultExceptionSupplier)
+                                                     .httpStatusCode(500)
+                                                     .build();
     }
 
     @Override
@@ -169,7 +173,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
      * any known modeled exception or when we can't determine the error code.
      */
     private AwsServiceException.Builder defaultException() {
-        return (AwsServiceException.Builder) defaultExceptionSupplier.get();
+        return (AwsServiceException.Builder) defaultExceptionMetadata.exceptionBuilderSupplier().get();
     }
 
     /**
@@ -183,7 +187,8 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
     private AwsServiceException.Builder unmarshallFromErrorCode(SdkHttpFullResponse response,
                                                                 XmlElement errorRoot,
                                                                 String errorCode) {
-        SdkPojo sdkPojo = exceptions.getOrDefault(errorCode, defaultExceptionSupplier).get();
+        SdkPojo sdkPojo = exceptions.getOrDefault(errorCode, defaultExceptionMetadata)
+                                    .exceptionBuilderSupplier().get();
         AwsServiceException.Builder builder =
             ((AwsServiceException) errorUnmarshaller.unmarshall(sdkPojo, errorRoot, response)).toBuilder();
         builder.message(getMessage(errorRoot));
@@ -244,7 +249,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
      */
     public static final class Builder {
 
-        private Map<String, Supplier<SdkPojo>> exceptions;
+        private Map<String, ErrorMetadata> exceptions;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
         private XmlErrorUnmarshaller errorUnmarshaller;
@@ -258,7 +263,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
          *
          * @return This builder for method chaining.
          */
-        public Builder exceptions(Map<String, Supplier<SdkPojo>> exceptions) {
+        public Builder exceptions(Map<String, ErrorMetadata> exceptions) {
             this.exceptions = exceptions;
             return this;
         }

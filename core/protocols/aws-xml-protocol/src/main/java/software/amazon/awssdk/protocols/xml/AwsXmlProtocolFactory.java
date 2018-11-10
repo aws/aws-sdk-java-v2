@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.protocols.core.ErrorMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
@@ -62,7 +63,7 @@ public class AwsXmlProtocolFactory {
     public static final OperationMetadataAttribute<String> ROOT_MARSHALL_LOCATION_ATTRIBUTE =
         new OperationMetadataAttribute<>(String.class);
 
-    private final Map<String, Supplier<SdkPojo>> modeledExceptions;
+    private final Map<String, ErrorMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
     private final SdkClientConfiguration clientConfiguration;
@@ -130,7 +131,7 @@ public class AwsXmlProtocolFactory {
      */
     public static class Builder<SubclassT extends Builder> {
 
-        private final Map<String, Supplier<SdkPojo>> modeledExceptions = new HashMap<>();
+        private final Map<String, ErrorMetadata> modeledExceptions = new HashMap<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private SdkClientConfiguration clientConfiguration;
 
@@ -141,11 +142,11 @@ public class AwsXmlProtocolFactory {
          * Registers a new modeled exception by the error code.
          *
          * @param errorCode Error code identifying this modeled exception.
-         * @param exceptionBuilderSupplier Supplier of the modeled exceptions Builder.
+         * @param errorMetadata Metadata to unmarshall the modeled exception.
          * @return This builder for method chaining.
          */
-        public SubclassT registerModeledException(String errorCode, Supplier<SdkPojo> exceptionBuilderSupplier) {
-            modeledExceptions.put(errorCode, exceptionBuilderSupplier);
+        public SubclassT registerModeledException(String errorCode, ErrorMetadata errorMetadata) {
+            modeledExceptions.put(errorCode, errorMetadata);
             return getSubclass();
         }
 

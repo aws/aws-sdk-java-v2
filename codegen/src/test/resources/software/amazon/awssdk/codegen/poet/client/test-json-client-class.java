@@ -18,6 +18,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.protocols.core.ErrorMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -573,9 +574,15 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(JsonException::builder)
-                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1")
-                      .registerModeledException("InvalidInput", InvalidInputException::builder);
+        return builder
+            .clientConfiguration(clientConfiguration)
+            .defaultServiceExceptionSupplier(JsonException::builder)
+            .protocol(AwsJsonProtocol.REST_JSON)
+            .protocolVersion("1.1")
+            .registerModeledException(
+                "InvalidInput",
+                ErrorMetadata.builder().exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400)
+                             .build());
     }
 
     @Override
@@ -603,4 +610,3 @@ final class DefaultJsonClient implements JsonClient {
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 }
-
