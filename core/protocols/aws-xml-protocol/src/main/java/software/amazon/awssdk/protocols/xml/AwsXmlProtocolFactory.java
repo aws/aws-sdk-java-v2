@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.protocols.xml;
 
-import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableList;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -63,13 +63,13 @@ public class AwsXmlProtocolFactory {
     public static final OperationMetadataAttribute<String> ROOT_MARSHALL_LOCATION_ATTRIBUTE =
         new OperationMetadataAttribute<>(String.class);
 
-    private final Map<String, ErrorMetadata> modeledExceptions;
+    private final List<ErrorMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
     private final SdkClientConfiguration clientConfiguration;
 
     AwsXmlProtocolFactory(Builder<?> builder) {
-        this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
+        this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.clientConfiguration = builder.clientConfiguration;
         this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
@@ -131,7 +131,7 @@ public class AwsXmlProtocolFactory {
      */
     public static class Builder<SubclassT extends Builder> {
 
-        private final Map<String, ErrorMetadata> modeledExceptions = new HashMap<>();
+        private final List<ErrorMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private SdkClientConfiguration clientConfiguration;
 
@@ -141,15 +141,13 @@ public class AwsXmlProtocolFactory {
         /**
          * Registers a new modeled exception by the error code.
          *
-         * @param errorCode Error code identifying this modeled exception.
-         * @param errorMetadata Metadata to unmarshall the modeled exception.
+         * @param errorMetadata metadata for unmarshalling the exceptions
          * @return This builder for method chaining.
          */
-        public SubclassT registerModeledException(String errorCode, ErrorMetadata errorMetadata) {
-            modeledExceptions.put(errorCode, errorMetadata);
+        public final SubclassT registerModeledException(ErrorMetadata errorMetadata) {
+            modeledExceptions.add(errorMetadata);
             return getSubclass();
         }
-
 
         /**
          * A supplier for the services base exception builder. This is used when we can't identify any modeled

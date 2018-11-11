@@ -795,9 +795,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             .protocol(AwsJsonProtocol.REST_JSON)
             .protocolVersion("1.1")
             .registerModeledException(
-                "InvalidInput",
-                ErrorMetadata.builder().exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400)
-                             .build());
+                ErrorMetadata.builder().errorCode("InvalidInput")
+                             .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
     }
 
     private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {

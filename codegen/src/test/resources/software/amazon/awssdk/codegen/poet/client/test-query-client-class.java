@@ -120,10 +120,9 @@ final class DefaultQueryClient implements QueryClient {
         return AwsQueryProtocolFactory
             .builder()
             .registerModeledException(
-                "InvalidInput",
-                ErrorMetadata.builder().exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400)
-                             .build()).clientConfiguration(clientConfiguration)
-            .defaultServiceExceptionSupplier(QueryException::builder).build();
+                ErrorMetadata.builder().errorCode("InvalidInput")
+                             .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     @Override

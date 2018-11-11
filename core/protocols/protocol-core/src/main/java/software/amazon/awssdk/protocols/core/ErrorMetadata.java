@@ -16,19 +16,30 @@
 package software.amazon.awssdk.protocols.core;
 
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkPojo;
 
 /**
  * Metadata needed to unmarshall the exceptions.
  */
-public class ErrorMetadata {
+@SdkProtectedApi
+public final class ErrorMetadata {
 
+    private final String errorCode;
     private final Supplier<SdkPojo> exceptionBuilderSupplier;
     private final Integer httpStatusCode;
 
-    public ErrorMetadata(Builder builder) {
+    private ErrorMetadata(Builder builder) {
+        this.errorCode = builder.errorCode;
         this.exceptionBuilderSupplier = builder.exceptionBuilderSupplier;
         this.httpStatusCode = builder.httpStatusCode;
+    }
+
+    /**
+     * Return the error code for the modeled exception.
+     */
+    public String errorCode() {
+        return errorCode;
     }
 
     /**
@@ -40,7 +51,7 @@ public class ErrorMetadata {
 
     /**
      * Returns the http status code for the exception.
-     * For modeled exceptions, this value is populated from the c2j model
+     * For modeled exceptions, this value is populated from the c2j model.
      */
     public Integer httpStatusCode() {
         return httpStatusCode;
@@ -54,8 +65,17 @@ public class ErrorMetadata {
      * Builder for {@link ErrorMetadata}
      */
     public static final class Builder {
+        private String errorCode;
         private Supplier<SdkPojo> exceptionBuilderSupplier;
         private Integer httpStatusCode;
+
+        private Builder() {
+        }
+
+        public Builder errorCode(String errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
 
         public Builder exceptionBuilderSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.exceptionBuilderSupplier = exceptionBuilderSupplier;

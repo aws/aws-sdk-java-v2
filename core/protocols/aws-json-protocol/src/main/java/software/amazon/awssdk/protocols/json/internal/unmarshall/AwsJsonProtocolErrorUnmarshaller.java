@@ -41,10 +41,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
-    private final Map<String, ErrorMetadata> exceptions;
+    private final List<ErrorMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
-    private final ErrorMetadata defaultExceptionMetadata;
+    private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
@@ -53,10 +53,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.errorCodeParser = builder.errorCodeParser;
         this.errorMessageParser = builder.errorMessageParser;
         this.jsonFactory = builder.jsonFactory;
-        this.defaultExceptionMetadata = ErrorMetadata.builder()
-                                                     .exceptionBuilderSupplier(builder.defaultExceptionSupplier)
-                                                     .httpStatusCode(500)
-                                                     .build();
+        this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
     }
 
     @Override
@@ -67,8 +64,12 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private AwsServiceException unmarshall(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
-        SdkPojo sdkPojo = exceptions.getOrDefault(errorCode, defaultExceptionMetadata)
-                                    .exceptionBuilderSupplier().get();
+        SdkPojo sdkPojo = exceptions.stream()
+                                    .filter(e -> e.errorCode().equals(errorCode))
+                                    .map(e -> e.exceptionBuilderSupplier())
+                                    .findAny()
+                                    .orElse(defaultExceptionSupplier)
+                                    .get();
 
         AwsServiceException.Builder exception = ((AwsServiceException) jsonProtocolUnmarshaller
             .unmarshall(sdkPojo, response, jsonContent.getJsonNode())).toBuilder();
@@ -87,8 +88,11 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
             return response.statusCode();
         }
 
-        return exceptions.getOrDefault(errorCode, defaultExceptionMetadata)
-                         .httpStatusCode();
+        return exceptions.stream()
+                         .filter(e -> e.errorCode().equals(errorCode))
+                         .map(ErrorMetadata::httpStatusCode)
+                         .findAny()
+                         .orElse(500);
     }
 
     /**
@@ -134,7 +138,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     public static final class Builder {
 
         private JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
-        private Map<String, ErrorMetadata> exceptions;
+        private List<ErrorMetadata> exceptions;
         private ErrorMessageParser errorMessageParser;
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
@@ -155,12 +159,12 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         }
 
         /**
-         * Map of "error type" or "error code" to the appropriate modeled exception. For AWS services the error type
+         * List of {@link ErrorMetadata} for the service modeled exceptions. For AWS services the error type
          * is a string representing the type of the modeled exception.
          *
          * @return This builder for method chaining.
          */
-        public Builder exceptions(Map<String, ErrorMetadata> exceptions) {
+        public Builder exceptions(List<ErrorMetadata> exceptions) {
             this.exceptions = exceptions;
             return this;
         }

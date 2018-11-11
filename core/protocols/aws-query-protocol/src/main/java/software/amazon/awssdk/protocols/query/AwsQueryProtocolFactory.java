@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.protocols.query;
 
-import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableList;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -45,13 +45,13 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 public class AwsQueryProtocolFactory {
 
     private final SdkClientConfiguration clientConfiguration;
-    private final Map<String, ErrorMetadata> modeledExceptions;
+    private final List<ErrorMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
 
     AwsQueryProtocolFactory(Builder<?> builder) {
         this.clientConfiguration = builder.clientConfiguration;
-        this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
+        this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.errorUnmarshaller = AwsXmlErrorProtocolUnmarshaller
             .builder()
@@ -132,7 +132,7 @@ public class AwsQueryProtocolFactory {
      */
     public static class Builder<SubclassT extends Builder> {
 
-        private final Map<String, ErrorMetadata> modeledExceptions = new HashMap<>();
+        private final List<ErrorMetadata> modeledExceptions = new ArrayList<>();
         private SdkClientConfiguration clientConfiguration;
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
 
@@ -153,12 +153,11 @@ public class AwsQueryProtocolFactory {
         /**
          * Registers a new modeled exception by the error code.
          *
-         * @param errorCode Error code identifying this modeled exception.
          * @param errorMetadata metadata for unmarshalling the exceptions
          * @return This builder for method chaining.
          */
-        public final SubclassT registerModeledException(String errorCode, ErrorMetadata errorMetadata) {
-            modeledExceptions.put(errorCode, errorMetadata);
+        public final SubclassT registerModeledException(ErrorMetadata errorMetadata) {
+            modeledExceptions.add(errorMetadata);
             return getSubclass();
         }
 

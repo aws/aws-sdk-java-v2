@@ -56,18 +56,18 @@ public interface ProtocolSpec {
 
     Optional<MethodSpec> createErrorResponseHandler();
 
-    List<CodeBlock> errorUnmarshallers(IntermediateModel model);
-
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }
 
-    default List<CodeBlock> errorUnmarshallers(IntermediateModel model, PoetExtensions poetExtensions) {
+    default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtensions poetExtensions) {
         return model.getShapes().values().stream()
                     .filter(s -> s.getShapeType() == ShapeType.Exception)
                     .map(e -> CodeBlock.builder()
-                                       .add(".registerModeledException($S, $T.builder().exceptionBuilderSupplier($T::builder)"
-                                            + "$L.build())", e.getErrorCode(), ErrorMetadata.class,
+                                       .add(".registerModeledException($T.builder().errorCode($S)"
+                                            + ".exceptionBuilderSupplier($T::builder)$L.build())",
+                                            ErrorMetadata.class,
+                                            e.getErrorCode(),
                                             poetExtensions.getModelClass(e.getShapeName()),
                                             populateHttpStatusCode(e))
                                        .build())

@@ -25,7 +25,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
@@ -98,7 +97,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
             methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
         }
 
-        errorUnmarshallers(model).forEach(methodSpec::addCode);
+        registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);
         methodSpec.addCode(";");
 
         return methodSpec.build();
@@ -371,11 +370,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                      .addModifiers(Modifier.PRIVATE)
                                      .addStatement("return protocolFactory.createErrorResponseHandler(operationMetadata)")
                                      .build());
-    }
-
-    @Override
-    public List<CodeBlock> errorUnmarshallers(IntermediateModel model) {
-        return errorUnmarshallers(model, poetExtensions);
     }
 
     private String protocolEnumName(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {

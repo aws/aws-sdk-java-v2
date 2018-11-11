@@ -18,7 +18,7 @@ package software.amazon.awssdk.protocols.query.unmarshall;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -84,8 +84,8 @@ import software.amazon.awssdk.utils.Pair;
 @SdkProtectedApi
 public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
-    private final Map<String, ErrorMetadata> exceptions;
-    private final ErrorMetadata defaultExceptionMetadata;
+    private final List<ErrorMetadata> exceptions;
+    private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
 
     private final XmlErrorUnmarshaller errorUnmarshaller;
@@ -94,10 +94,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         this.exceptions = builder.exceptions;
         this.errorRootExtractor = builder.errorRootExtractor;
         this.errorUnmarshaller = builder.errorUnmarshaller;
-        this.defaultExceptionMetadata = ErrorMetadata.builder()
-                                                     .exceptionBuilderSupplier(builder.defaultExceptionSupplier)
-                                                     .httpStatusCode(500)
-                                                     .build();
+        this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
     }
 
     @Override
@@ -173,7 +170,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
      * any known modeled exception or when we can't determine the error code.
      */
     private AwsServiceException.Builder defaultException() {
-        return (AwsServiceException.Builder) defaultExceptionMetadata.exceptionBuilderSupplier().get();
+        return (AwsServiceException.Builder) defaultExceptionSupplier.get();
     }
 
     /**
@@ -187,8 +184,12 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
     private AwsServiceException.Builder unmarshallFromErrorCode(SdkHttpFullResponse response,
                                                                 XmlElement errorRoot,
                                                                 String errorCode) {
-        SdkPojo sdkPojo = exceptions.getOrDefault(errorCode, defaultExceptionMetadata)
-                                    .exceptionBuilderSupplier().get();
+        SdkPojo sdkPojo = exceptions.stream()
+                                    .filter(e -> e.errorCode().equals(errorCode))
+                                    .map(e -> e.exceptionBuilderSupplier().get())
+                                    .findAny()
+                                    .orElse(defaultExceptionSupplier.get());
+
         AwsServiceException.Builder builder =
             ((AwsServiceException) errorUnmarshaller.unmarshall(sdkPojo, errorRoot, response)).toBuilder();
         builder.message(getMessage(errorRoot));
@@ -249,7 +250,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
      */
     public static final class Builder {
 
-        private Map<String, ErrorMetadata> exceptions;
+        private List<ErrorMetadata> exceptions;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
         private XmlErrorUnmarshaller errorUnmarshaller;
@@ -258,12 +259,12 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         }
 
         /**
-         * Map of "error type" or "error code" to the appropriate modeled exception. For AWS services the error type
+         * List of {@link ErrorMetadata} for the service modeled exceptions. For AWS services the error type
          * is a string representing the type of the modeled exception.
          *
          * @return This builder for method chaining.
          */
-        public Builder exceptions(Map<String, ErrorMetadata> exceptions) {
+        public Builder exceptions(List<ErrorMetadata> exceptions) {
             this.exceptions = exceptions;
             return this;
         }

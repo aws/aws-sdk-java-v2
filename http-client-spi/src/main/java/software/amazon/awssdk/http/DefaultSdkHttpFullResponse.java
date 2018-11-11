@@ -45,7 +45,7 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
     private final transient AbortableInputStream content;
 
     private DefaultSdkHttpFullResponse(Builder builder) {
-        this.statusCode = builder.statusCode;
+        this.statusCode = Validate.isNotNegative(builder.statusCode, "Status code must not be negative.");
         this.statusText = builder.statusText;
         this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.content = builder.content;
