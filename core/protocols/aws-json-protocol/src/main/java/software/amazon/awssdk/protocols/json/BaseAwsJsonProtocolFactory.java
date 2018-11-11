@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.protocols.json;
 
-import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableList;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -51,14 +51,14 @@ public abstract class BaseAwsJsonProtocolFactory {
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
 
     private final AwsJsonProtocolMetadata protocolMetadata;
-    private final Map<String, ErrorMetadata> modeledExceptions;
+    private final List<ErrorMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
     private final SdkClientConfiguration clientConfiguration;
 
     protected BaseAwsJsonProtocolFactory(Builder<?> builder) {
         this.protocolMetadata = builder.protocolMetadata.build();
-        this.modeledExceptions = unmodifiableMap(new HashMap<>(builder.modeledExceptions));
+        this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.clientConfiguration = builder.clientConfiguration;
@@ -168,7 +168,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     public abstract static class Builder<SubclassT extends Builder> {
 
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
-        private final Map<String, ErrorMetadata> modeledExceptions = new HashMap<>();
+        private final List<ErrorMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private String customErrorCodeFieldName;
         private SdkClientConfiguration clientConfiguration;
@@ -179,12 +179,11 @@ public abstract class BaseAwsJsonProtocolFactory {
         /**
          * Registers a new modeled exception by the error code.
          *
-         * @param errorCode Error code identifying this modeled exception.
          * @param errorMetadata Metadata to unmarshall the modeled exception.
          * @return This builder for method chaining.
          */
-        public final SubclassT registerModeledException(String errorCode, ErrorMetadata errorMetadata) {
-            modeledExceptions.put(errorCode, errorMetadata);
+        public final SubclassT registerModeledException(ErrorMetadata errorMetadata) {
+            modeledExceptions.add(errorMetadata);
             return getSubclass();
         }
 

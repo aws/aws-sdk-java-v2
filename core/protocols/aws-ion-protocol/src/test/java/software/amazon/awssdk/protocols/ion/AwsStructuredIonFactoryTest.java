@@ -130,10 +130,11 @@ public class AwsStructuredIonFactoryTest {
 
     private AwsServiceException handleError(SdkHttpFullResponse error) throws Exception {
         return AwsIonProtocolFactory.builder()
-                                    .registerModeledException(ERROR_TYPE, ErrorMetadata
-                                        .builder()
-                                        .exceptionBuilderSupplier(InvalidParameterException::builder)
-                                        .build())
+                                    .registerModeledException(
+                                        ErrorMetadata.builder()
+                                                     .exceptionBuilderSupplier(InvalidParameterException::builder)
+                                                     .errorCode(ERROR_TYPE)
+                                                     .build())
                                     .customErrorCodeFieldName(NO_CUSTOM_ERROR_CODE_FIELD_NAME)
                                     .build()
                                     .createErrorResponseHandler(JsonOperationMetadata.builder()

@@ -21,7 +21,6 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -59,7 +58,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
         methodSpec.addCode("return $T.builder()\n", protocolFactoryClass());
 
-        errorUnmarshallers(model).forEach(methodSpec::addCode);
+        registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);
 
         methodSpec.addCode(".clientConfiguration(clientConfiguration)\n"
                            + ".defaultServiceExceptionSupplier($T::builder)\n",
@@ -143,10 +142,5 @@ public class QueryProtocolSpec implements ProtocolSpec {
     @Override
     public Optional<MethodSpec> createErrorResponseHandler() {
         return Optional.empty();
-    }
-
-    @Override
-    public List<CodeBlock> errorUnmarshallers(IntermediateModel model) {
-        return errorUnmarshallers(model, poetExtensions);
     }
 }

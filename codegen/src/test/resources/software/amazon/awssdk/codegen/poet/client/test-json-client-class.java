@@ -580,9 +580,8 @@ final class DefaultJsonClient implements JsonClient {
             .protocol(AwsJsonProtocol.REST_JSON)
             .protocolVersion("1.1")
             .registerModeledException(
-                "InvalidInput",
-                ErrorMetadata.builder().exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400)
-                             .build());
+                ErrorMetadata.builder().errorCode("InvalidInput")
+                             .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
     }
 
     @Override
