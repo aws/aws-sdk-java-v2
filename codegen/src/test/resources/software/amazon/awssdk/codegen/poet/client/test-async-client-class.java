@@ -35,7 +35,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -795,8 +795,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             .protocol(AwsJsonProtocol.REST_JSON)
             .protocolVersion("1.1")
             .registerModeledException(
-                ErrorMetadata.builder().errorCode("InvalidInput")
-                             .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+                ExceptionMetadata.builder().errorCode("InvalidInput")
+                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
     }
 
     private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {

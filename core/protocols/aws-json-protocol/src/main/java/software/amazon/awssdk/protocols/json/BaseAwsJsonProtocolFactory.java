@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
@@ -51,7 +51,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
 
     private final AwsJsonProtocolMetadata protocolMetadata;
-    private final List<ErrorMetadata> modeledExceptions;
+    private final List<ExceptionMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
     private final SdkClientConfiguration clientConfiguration;
@@ -168,7 +168,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     public abstract static class Builder<SubclassT extends Builder> {
 
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
-        private final List<ErrorMetadata> modeledExceptions = new ArrayList<>();
+        private final List<ExceptionMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private String customErrorCodeFieldName;
         private SdkClientConfiguration clientConfiguration;
@@ -182,7 +182,7 @@ public abstract class BaseAwsJsonProtocolFactory {
          * @param errorMetadata Metadata to unmarshall the modeled exception.
          * @return This builder for method chaining.
          */
-        public final SubclassT registerModeledException(ErrorMetadata errorMetadata) {
+        public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
             return getSubclass();
         }

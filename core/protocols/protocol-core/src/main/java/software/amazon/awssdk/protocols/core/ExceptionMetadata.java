@@ -20,30 +20,30 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkPojo;
 
 /**
- * Metadata needed to unmarshall the exceptions.
+ * Metadata needed to unmarshall a modeled exception.
  */
 @SdkProtectedApi
-public final class ErrorMetadata {
+public final class ExceptionMetadata {
 
     private final String errorCode;
     private final Supplier<SdkPojo> exceptionBuilderSupplier;
     private final Integer httpStatusCode;
 
-    private ErrorMetadata(Builder builder) {
+    private ExceptionMetadata(Builder builder) {
         this.errorCode = builder.errorCode;
         this.exceptionBuilderSupplier = builder.exceptionBuilderSupplier;
         this.httpStatusCode = builder.httpStatusCode;
     }
 
     /**
-     * Return the error code for the modeled exception.
+     * Returns the error code for the modeled exception.
      */
     public String errorCode() {
         return errorCode;
     }
 
     /**
-     * Return the Supplier to get the builder class for the exception.
+     * Returns the Supplier to get the builder class for the exception.
      */
     public Supplier<SdkPojo> exceptionBuilderSupplier() {
         return exceptionBuilderSupplier;
@@ -62,7 +62,7 @@ public final class ErrorMetadata {
     }
 
     /**
-     * Builder for {@link ErrorMetadata}
+     * Builder for {@link ExceptionMetadata}
      */
     public static final class Builder {
         private String errorCode;
@@ -87,8 +87,8 @@ public final class ErrorMetadata {
             return this;
         }
 
-        public ErrorMetadata build() {
-            return new ErrorMetadata(this);
+        public ExceptionMetadata build() {
+            return new ExceptionMetadata(this);
         }
     }
 }

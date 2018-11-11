@@ -9,32 +9,32 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.services.jsonprotocoltests.model.EventStreamOperationRequest;
+import software.amazon.awssdk.services.jsonprotocoltests.model.InputEventTwo;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * {@link EventStreamOperationRequest} Marshaller
+ * {@link InputEventTwo} Marshaller
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class EventStreamOperationRequestMarshaller implements Marshaller<EventStreamOperationRequest> {
-    private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-                                                                            .requestUri("/2016-03-11/eventStreamOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(true)
-                                                                            .hasPayloadMembers(true).build();
+public class InputEventTwoMarshaller implements Marshaller<InputEventTwo> {
+    private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().hasExplicitPayloadMember(false)
+                                                                            .hasPayloadMembers(true).httpMethod(SdkHttpMethod.GET).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
-    public EventStreamOperationRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
+    public InputEventTwoMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 
     @Override
-    public SdkHttpFullRequest marshall(EventStreamOperationRequest eventStreamOperationRequest) {
-        Validate.paramNotNull(eventStreamOperationRequest, "eventStreamOperationRequest");
+    public SdkHttpFullRequest marshall(InputEventTwo inputEventTwo) {
+        Validate.paramNotNull(inputEventTwo, "inputEventTwo");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
                 .createProtocolMarshaller(SDK_OPERATION_BINDING);
-            return protocolMarshaller.marshall(eventStreamOperationRequest);
+            return protocolMarshaller.marshall(inputEventTwo).toBuilder().putHeader(":message-type", "event")
+                                     .putHeader(":event-type", "InputEventTwo").putHeader(":content-type", "application/json").build();
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }

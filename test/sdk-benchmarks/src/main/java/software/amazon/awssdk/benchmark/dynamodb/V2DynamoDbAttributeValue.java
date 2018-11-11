@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
@@ -68,29 +69,66 @@ public class V2DynamoDbAttributeValue {
         .defaultServiceExceptionSupplier(DynamoDbException::builder)
         .protocol(AwsJsonProtocol.AWS_JSON)
         .protocolVersion("1.0")
-        .registerModeledException("ResourceInUseException", ResourceInUseException::builder)
-        .registerModeledException("TableAlreadyExistsException", TableAlreadyExistsException::builder)
-        .registerModeledException("GlobalTableAlreadyExistsException", GlobalTableAlreadyExistsException::builder)
-        .registerModeledException("InvalidRestoreTimeException", InvalidRestoreTimeException::builder)
-        .registerModeledException("ReplicaAlreadyExistsException", ReplicaAlreadyExistsException::builder)
-        .registerModeledException("ConditionalCheckFailedException", ConditionalCheckFailedException::builder)
-        .registerModeledException("BackupNotFoundException", BackupNotFoundException::builder)
-        .registerModeledException("IndexNotFoundException", IndexNotFoundException::builder)
-        .registerModeledException("LimitExceededException", LimitExceededException::builder)
-        .registerModeledException("GlobalTableNotFoundException", GlobalTableNotFoundException::builder)
-        .registerModeledException("ItemCollectionSizeLimitExceededException",
-                                  ItemCollectionSizeLimitExceededException::builder)
-        .registerModeledException("ReplicaNotFoundException", ReplicaNotFoundException::builder)
-        .registerModeledException("TableNotFoundException", TableNotFoundException::builder)
-        .registerModeledException("BackupInUseException", BackupInUseException::builder)
-        .registerModeledException("ResourceNotFoundException", ResourceNotFoundException::builder)
-        .registerModeledException("ContinuousBackupsUnavailableException", ContinuousBackupsUnavailableException::builder)
-        .registerModeledException("TableInUseException", TableInUseException::builder)
-        .registerModeledException("ProvisionedThroughputExceededException",
-                                  ProvisionedThroughputExceededException::builder)
-        .registerModeledException("PointInTimeRecoveryUnavailableException",
-                                  PointInTimeRecoveryUnavailableException::builder)
-        .registerModeledException("InternalServerError", InternalServerErrorException::builder)
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ResourceInUseException")
+                             .exceptionBuilderSupplier(ResourceInUseException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("TableAlreadyExistsException")
+                             .exceptionBuilderSupplier(TableAlreadyExistsException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("GlobalTableAlreadyExistsException")
+                             .exceptionBuilderSupplier(GlobalTableAlreadyExistsException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("InvalidRestoreTimeException")
+                             .exceptionBuilderSupplier(InvalidRestoreTimeException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ReplicaAlreadyExistsException")
+                             .exceptionBuilderSupplier(ReplicaAlreadyExistsException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ConditionalCheckFailedException")
+                             .exceptionBuilderSupplier(ConditionalCheckFailedException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("BackupNotFoundException")
+                             .exceptionBuilderSupplier(BackupNotFoundException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("IndexNotFoundException")
+                             .exceptionBuilderSupplier(IndexNotFoundException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("LimitExceededException")
+                             .exceptionBuilderSupplier(LimitExceededException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("GlobalTableNotFoundException")
+                             .exceptionBuilderSupplier(GlobalTableNotFoundException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ItemCollectionSizeLimitExceededException")
+                             .exceptionBuilderSupplier(ItemCollectionSizeLimitExceededException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ReplicaNotFoundException")
+                             .exceptionBuilderSupplier(ReplicaNotFoundException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("TableNotFoundException")
+                             .exceptionBuilderSupplier(TableNotFoundException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("BackupInUseException")
+                             .exceptionBuilderSupplier(BackupInUseException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ResourceNotFoundException")
+                             .exceptionBuilderSupplier(ResourceNotFoundException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ContinuousBackupsUnavailableException")
+                             .exceptionBuilderSupplier(ContinuousBackupsUnavailableException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("TableInUseException")
+                             .exceptionBuilderSupplier(TableInUseException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("ProvisionedThroughputExceededException")
+                             .exceptionBuilderSupplier(ProvisionedThroughputExceededException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("PointInTimeRecoveryUnavailableException")
+                             .exceptionBuilderSupplier(PointInTimeRecoveryUnavailableException::builder).build())
+        .registerModeledException(
+            ExceptionMetadata.builder().errorCode("InternalServerError")
+                             .exceptionBuilderSupplier(InternalServerErrorException::builder).build())
         .build();
 
     private static final PutItemRequestMarshaller PUT_ITEM_REQUEST_MARSHALLER

@@ -24,6 +24,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 
@@ -46,21 +47,18 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
         String variableName = shapeModel.getVariable().getVariableName();
         CodeBlock.Builder builder =
             CodeBlock.builder()
-                     .addStatement("$T<$T<$T>> protocolMarshaller = protocolFactory.createProtocolMarshaller"
-                                   + "(SDK_OPERATION_BINDING, $L)",
-                                   ProtocolMarshaller.class, SdkHttpFullRequest.class,
-                                   requestClassName, variableName)
-                     .addStatement("$T<$T> request = protocolMarshaller.marshall($L)",
-                                   SdkHttpFullRequest.class, requestClassName, variableName)
-                     .addStatement("request.addHeader(\":message-type\", \"event\")")
-                     .addStatement("request.addHeader(\":event-type\", \"$L\")", getMemberNameFromEventStream());
+                     .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller(SDK_OPERATION_BINDING)",
+                                   ProtocolMarshaller.class, SdkHttpFullRequest.class)
+                     .add("return protocolMarshaller.marshall($L).toBuilder()", variableName)
+                     .add(".putHeader(\":message-type\", \"event\")")
+                     .add(".putHeader(\":event-type\", \"$L\")", getMemberNameFromEventStream());
 
         // Add :content-type header only if payload is present
         if (!shapeModel.hasNoEventPayload()) {
-            builder.addStatement("request.addHeader(\":content-type\", \"$L\")", determinePayloadContentType());
+            builder.add(".putHeader(\":content-type\", \"$L\")", determinePayloadContentType());
         }
 
-        builder.addStatement("return request");
+        builder.add(".build();");
 
         return builder.build();
     }
@@ -73,6 +71,8 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
                      .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                            shapeModel.getExplicitEventPayloadMember() != null)
                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
+                     // Adding httpMethod to avoid validation failure while creating the SdkHttpFullRequest
+                     .add(".httpMethod($T.GET)", SdkHttpMethod.class)
                      .add(".build()");
 
 

@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -84,7 +84,7 @@ import software.amazon.awssdk.utils.Pair;
 @SdkProtectedApi
 public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
-    private final List<ErrorMetadata> exceptions;
+    private final List<ExceptionMetadata> exceptions;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
 
@@ -186,9 +186,10 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
                                                                 String errorCode) {
         SdkPojo sdkPojo = exceptions.stream()
                                     .filter(e -> e.errorCode().equals(errorCode))
-                                    .map(e -> e.exceptionBuilderSupplier().get())
+                                    .map(ExceptionMetadata::exceptionBuilderSupplier)
                                     .findAny()
-                                    .orElse(defaultExceptionSupplier.get());
+                                    .orElse(defaultExceptionSupplier)
+                                    .get();
 
         AwsServiceException.Builder builder =
             ((AwsServiceException) errorUnmarshaller.unmarshall(sdkPojo, errorRoot, response)).toBuilder();
@@ -250,7 +251,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
      */
     public static final class Builder {
 
-        private List<ErrorMetadata> exceptions;
+        private List<ExceptionMetadata> exceptions;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
         private XmlErrorUnmarshaller errorUnmarshaller;
@@ -259,12 +260,12 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         }
 
         /**
-         * List of {@link ErrorMetadata} for the service modeled exceptions. For AWS services the error type
-         * is a string representing the type of the modeled exception.
+         * List of {@link ExceptionMetadata} to represent the modeled exceptions for the service.
+         * For AWS services the error type is a string representing the type of the modeled exception.
          *
          * @return This builder for method chaining.
          */
-        public Builder exceptions(List<ErrorMetadata> exceptions) {
+        public Builder exceptions(List<ExceptionMetadata> exceptions) {
             this.exceptions = exceptions;
             return this;
         }
