@@ -29,7 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 
 public interface ProtocolSpec {
 
@@ -66,7 +66,7 @@ public interface ProtocolSpec {
                     .map(e -> CodeBlock.builder()
                                        .add(".registerModeledException($T.builder().errorCode($S)"
                                             + ".exceptionBuilderSupplier($T::builder)$L.build())",
-                                            ErrorMetadata.class,
+                                            ExceptionMetadata.class,
                                             e.getErrorCode(),
                                             poetExtensions.getModelClass(e.getShapeName()),
                                             populateHttpStatusCode(e))

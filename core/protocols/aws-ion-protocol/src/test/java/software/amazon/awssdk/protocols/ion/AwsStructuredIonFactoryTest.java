@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.ion.IonStruct;
 import software.amazon.ion.IonSystem;
@@ -131,10 +131,10 @@ public class AwsStructuredIonFactoryTest {
     private AwsServiceException handleError(SdkHttpFullResponse error) throws Exception {
         return AwsIonProtocolFactory.builder()
                                     .registerModeledException(
-                                        ErrorMetadata.builder()
-                                                     .exceptionBuilderSupplier(InvalidParameterException::builder)
-                                                     .errorCode(ERROR_TYPE)
-                                                     .build())
+                                        ExceptionMetadata.builder()
+                                                         .exceptionBuilderSupplier(InvalidParameterException::builder)
+                                                         .errorCode(ERROR_TYPE)
+                                                         .build())
                                     .customErrorCodeFieldName(NO_CUSTOM_ERROR_CODE_FIELD_NAME)
                                     .build()
                                     .createErrorResponseHandler(JsonOperationMetadata.builder()

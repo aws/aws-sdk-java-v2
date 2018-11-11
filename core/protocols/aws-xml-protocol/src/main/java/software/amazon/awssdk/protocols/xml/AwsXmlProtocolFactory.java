@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
@@ -63,7 +63,7 @@ public class AwsXmlProtocolFactory {
     public static final OperationMetadataAttribute<String> ROOT_MARSHALL_LOCATION_ATTRIBUTE =
         new OperationMetadataAttribute<>(String.class);
 
-    private final List<ErrorMetadata> modeledExceptions;
+    private final List<ExceptionMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final AwsXmlErrorProtocolUnmarshaller errorUnmarshaller;
     private final SdkClientConfiguration clientConfiguration;
@@ -131,7 +131,7 @@ public class AwsXmlProtocolFactory {
      */
     public static class Builder<SubclassT extends Builder> {
 
-        private final List<ErrorMetadata> modeledExceptions = new ArrayList<>();
+        private final List<ExceptionMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private SdkClientConfiguration clientConfiguration;
 
@@ -144,7 +144,7 @@ public class AwsXmlProtocolFactory {
          * @param errorMetadata metadata for unmarshalling the exceptions
          * @return This builder for method chaining.
          */
-        public final SubclassT registerModeledException(ErrorMetadata errorMetadata) {
+        public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
             return getSubclass();
         }

@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.core.ErrorMetadata;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
-    private final List<ErrorMetadata> exceptions;
+    private final List<ExceptionMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
@@ -66,7 +66,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
         SdkPojo sdkPojo = exceptions.stream()
                                     .filter(e -> e.errorCode().equals(errorCode))
-                                    .map(e -> e.exceptionBuilderSupplier())
+                                    .map(ExceptionMetadata::exceptionBuilderSupplier)
                                     .findAny()
                                     .orElse(defaultExceptionSupplier)
                                     .get();
@@ -90,7 +90,8 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
 
         return exceptions.stream()
                          .filter(e -> e.errorCode().equals(errorCode))
-                         .map(ErrorMetadata::httpStatusCode)
+                         .filter(e -> e.httpStatusCode() != null)
+                         .map(ExceptionMetadata::httpStatusCode)
                          .findAny()
                          .orElse(500);
     }
@@ -138,7 +139,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     public static final class Builder {
 
         private JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
-        private List<ErrorMetadata> exceptions;
+        private List<ExceptionMetadata> exceptions;
         private ErrorMessageParser errorMessageParser;
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
@@ -159,12 +160,12 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         }
 
         /**
-         * List of {@link ErrorMetadata} for the service modeled exceptions. For AWS services the error type
-         * is a string representing the type of the modeled exception.
+         * List of {@link ExceptionMetadata} to represent the modeled exceptions for the service.
+         * For AWS services the error type is a string representing the type of the modeled exception.
          *
          * @return This builder for method chaining.
          */
-        public Builder exceptions(List<ErrorMetadata> exceptions) {
+        public Builder exceptions(List<ExceptionMetadata> exceptions) {
             this.exceptions = exceptions;
             return this;
         }

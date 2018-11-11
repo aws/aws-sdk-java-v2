@@ -29,7 +29,7 @@ public class MarshallerSpecTest {
     public static Collection<Object[]> data() {
         invokeSafely(MarshallerSpecTest::setUp);
         return intermediateModel.getShapes().values().stream()
-                                .filter(shape -> "Request".equals(shape.getType()))
+                                .filter(shape -> "Request".equals(shape.getType()) || shape.isEvent())
                                 .map(shape -> new Object[] {shape}).collect(toList());
     }
 
