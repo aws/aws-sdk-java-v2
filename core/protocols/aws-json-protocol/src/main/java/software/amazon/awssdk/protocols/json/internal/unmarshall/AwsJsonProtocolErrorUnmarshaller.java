@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -49,11 +50,11 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
         this.jsonProtocolUnmarshaller = builder.jsonProtocolUnmarshaller;
-        this.exceptions = builder.exceptions;
         this.errorCodeParser = builder.errorCodeParser;
         this.errorMessageParser = builder.errorMessageParser;
         this.jsonFactory = builder.jsonFactory;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
+        this.exceptions = builder.exceptions;
     }
 
     @Override
@@ -64,12 +65,14 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private AwsServiceException unmarshall(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
-        SdkPojo sdkPojo = exceptions.stream()
-                                    .filter(e -> e.errorCode().equals(errorCode))
-                                    .map(ExceptionMetadata::exceptionBuilderSupplier)
-                                    .findAny()
-                                    .orElse(defaultExceptionSupplier)
-                                    .get();
+
+        Optional<ExceptionMetadata> modeledExceptionMetadata = exceptions.stream()
+                                                                         .filter(e -> e.errorCode().equals(errorCode))
+                                                                         .findAny();
+
+        SdkPojo sdkPojo = modeledExceptionMetadata.map(ExceptionMetadata::exceptionBuilderSupplier)
+                                                  .orElse(defaultExceptionSupplier)
+                                                  .get();
 
         AwsServiceException.Builder exception = ((AwsServiceException) jsonProtocolUnmarshaller
             .unmarshall(sdkPojo, response, jsonContent.getJsonNode())).toBuilder();
@@ -78,22 +81,19 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
                                                          errorCode, errorMessage));
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
-        exception.statusCode(statusCode(response, errorCode));
+        exception.statusCode(statusCode(response, modeledExceptionMetadata));
         exception.requestId(getRequestIdFromHeaders(response.headers()));
         return exception.build();
     }
 
-    private int statusCode(SdkHttpFullResponse response, String errorCode) {
+    private int statusCode(SdkHttpFullResponse response, Optional<ExceptionMetadata> modeledExceptionMetadata) {
         if (response.statusCode() != 0) {
             return response.statusCode();
         }
 
-        return exceptions.stream()
-                         .filter(e -> e.errorCode().equals(errorCode))
-                         .filter(e -> e.httpStatusCode() != null)
-                         .map(ExceptionMetadata::httpStatusCode)
-                         .findAny()
-                         .orElse(500);
+        return modeledExceptionMetadata.filter(m -> m.httpStatusCode() != null)
+                                       .map(ExceptionMetadata::httpStatusCode)
+                                       .orElse(500);
     }
 
     /**
