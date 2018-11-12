@@ -74,7 +74,7 @@ public abstract class BaseAwsJsonProtocolFactory {
      * @return HttpResponseHandler that will handle the HTTP response and unmarshall into a POJO.
      */
     public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
-                                                                            Supplier<SdkPojo> pojoSupplier) {
+                                                                                  Supplier<SdkPojo> pojoSupplier) {
         return createResponseHandler(operationMetadata, r -> pojoSupplier.get());
     }
 
@@ -88,8 +88,9 @@ public abstract class BaseAwsJsonProtocolFactory {
      * @param <T> Type being unmarshalled.
      * @return HttpResponseHandler that will handle the HTTP response and unmarshall into a POJO.
      */
-    public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
-                                                                            Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
+    public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
+        JsonOperationMetadata operationMetadata,
+        Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
         JsonProtocolUnmarshaller unmarshaller = createJsonProtocolUnmarshaller();
         return new AwsJsonResponseHandler<>(
             new JsonResponseHandler<>(unmarshaller,
