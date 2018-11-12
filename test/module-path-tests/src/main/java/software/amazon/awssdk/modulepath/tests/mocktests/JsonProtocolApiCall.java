@@ -59,15 +59,4 @@ public class JsonProtocolApiCall extends BaseMockApiCall {
         return () -> asyncClient.allTypes().join();
     }
 
-    //TODO: remove override once we fix the json error unmarshalling to not use reflection
-    @Override
-    public void failedApiCall() {
-        logger.info("Skipping failed api call testing for json");
-    }
-
-    //TODO: remove override once we fix the json error unmarshalling to not use reflection
-    @Override
-    public void failedAsyncApiCall() {
-        logger.info("Skipping async failed api call testing for json");
-    }
 }
