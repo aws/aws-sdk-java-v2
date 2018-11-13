@@ -16,14 +16,14 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import java.io.ByteArrayInputStream;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 
-@SdkProtectedApi
+@SdkInternalApi
 public class CreateMultipartUploadRequestInterceptor implements ExecutionInterceptor {
 
     @Override

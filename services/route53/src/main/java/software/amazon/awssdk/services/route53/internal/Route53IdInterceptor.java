@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.route53.internal;
 
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -47,7 +47,7 @@ import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
  * cannot be included, otherwise requests fail. This handler removes those
  * partial resource path elements from IDs returned by Route 53.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class Route53IdInterceptor implements ExecutionInterceptor {
     @Override
     public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {

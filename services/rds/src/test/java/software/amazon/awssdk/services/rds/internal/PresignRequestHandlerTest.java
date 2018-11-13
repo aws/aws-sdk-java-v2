@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.rds;
+package software.amazon.awssdk.services.rds.internal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,10 +39,11 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.internal.CopyDbSnapshotPresignInterceptor;
+import software.amazon.awssdk.services.rds.internal.RdsPresignInterceptor;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}

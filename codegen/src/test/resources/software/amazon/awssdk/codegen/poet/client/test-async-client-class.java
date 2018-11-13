@@ -15,12 +15,12 @@ import software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
+import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -824,3 +824,4 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 }
+

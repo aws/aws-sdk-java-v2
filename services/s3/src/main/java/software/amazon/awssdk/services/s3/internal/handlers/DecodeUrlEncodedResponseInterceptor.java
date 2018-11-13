@@ -19,7 +19,7 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlDecode;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
  * and <a
  * href="https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html">https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html</a>
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class DecodeUrlEncodedResponseInterceptor implements ExecutionInterceptor {
 
     @Override
