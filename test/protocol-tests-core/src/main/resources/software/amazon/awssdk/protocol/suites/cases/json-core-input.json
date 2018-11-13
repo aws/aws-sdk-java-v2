@@ -8,6 +8,7 @@
         "IntegerMember": 42,
         "FloatMember": 1.234,
         "DoubleMember": 5.678,
+        "BigDecimalMember": 1177.61699999,
         "LongMember": 2147483647
       }
     },
@@ -18,7 +19,7 @@
     "then": {
       "serializedAs": {
         "body": {
-          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"LongMember\":2147483647 }"
+          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"BigDecimalMember\":\"1177.61699999\",\"LongMember\":2147483647}"
         }
       }
     }
@@ -76,6 +77,25 @@
       "serializedAs": {
         "body": {
           "jsonEquals": "{\"TimestampMember\": 1422172801.123}"
+        }
+      }
+    }
+  },
+  {
+    "description": "ISO8601 timestamp member marshalled correctly",
+    "given": {
+      "input": {
+        "TimestampFormatMember": 1398796238123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"TimestampFormatMember\": \"2014-04-29T18:30:38.123Z\"}"
         }
       }
     }

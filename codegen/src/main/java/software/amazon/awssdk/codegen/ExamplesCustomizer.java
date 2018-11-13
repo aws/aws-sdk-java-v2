@@ -233,18 +233,18 @@ public class ExamplesCustomizer {
             return node;
         }
 
-        final ObjectNode obj = (ObjectNode) node;
+        ObjectNode obj = (ObjectNode) node;
 
         ObjectNode modified = MAPPER.createObjectNode();
         // Filter any excluded members
-        final List<String> excludes = modifier.getExclude() != null ? modifier.getExclude() : Collections.emptyList();
+        List<String> excludes = modifier.getExclude() != null ? modifier.getExclude() : Collections.emptyList();
         obj.fieldNames().forEachRemaining(m -> {
             if (!excludes.contains(m)) {
                 modified.set(m, obj.get(m));
             }
         });
         // Apply property renames
-        final List<Map<String, ModifyModelShapeModifier>> modify = modifier.getModify() != null ? modifier.getModify()
+        List<Map<String, ModifyModelShapeModifier>> modify = modifier.getModify() != null ? modifier.getModify()
                                                                                                 : Collections.emptyList();
         modify.forEach(memberMods ->
                                memberMods.entrySet().forEach(memberMod -> {

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.glacier;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.glacier.model.ListVaultsRequest;
+import software.amazon.awssdk.services.glacier.model.ResourceNotFoundException;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class ServiceIntegrationTest extends AwsIntegrationTestBase {
@@ -57,6 +59,15 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                                           .orElseThrow(() -> new AssertionError("x-amz-glacier-version header not found"))
                                           .equals("2012-06-01"),
                                     "Glacier API version is present in header"));
+    }
+
+    /**
+     * Glacier has a custom field name for it's error code so we make sure that works here.
+     */
+    @Test
+    public void modeledException_IsUnmarshalledCorrectly() {
+        assertThatThrownBy(() -> client.describeVault(r -> r.vaultName("nope")))
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
     public static class CapturingExecutionInterceptor implements ExecutionInterceptor {

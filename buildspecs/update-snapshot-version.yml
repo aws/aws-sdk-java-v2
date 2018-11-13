@@ -17,6 +17,7 @@ phases:
     - RELEASE_VERSION=$VERSION-preview-$BUILD
     - NEXT_SNAPSHOT=$VERSION-preview-${NEXT_BUILD}-SNAPSHOT
     - echo Next snapshot version - $NEXT_SNAPSHOT
+    - chmod +x scripts/finalize-release-changes
     - scripts/finalize-release-changes --release-version $RELEASE_VERSION --release-date $(date +%Y-%m-%d) --generate-changelog
     - mvn versions:set -DnewVersion=$NEXT_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
     - sed -i -E "s/(<version>).+(<\/version>)/\1$RELEASE_VERSION\2/" README.md

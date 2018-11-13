@@ -15,22 +15,30 @@
 
 package software.amazon.awssdk.protocol.tests.exception;
 
-import static org.hamcrest.Matchers.instanceOf;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 import software.amazon.awssdk.services.protocolrestxml.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestxml.model.EmptyModeledException;
+import software.amazon.awssdk.services.protocolrestxml.model.ImplicitPayloadException;
 import software.amazon.awssdk.services.protocolrestxml.model.MultiLocationOperationRequest;
 import software.amazon.awssdk.services.protocolrestxml.model.ProtocolRestXmlException;
 
@@ -66,7 +74,88 @@ public class RestXmlExceptionTests {
         try {
             callAllTypes();
         } catch (EmptyModeledException e) {
-            assertThat(e, instanceOf(ProtocolRestXmlException.class));
+            assertThat(e).isInstanceOf(ProtocolRestXmlException.class);
+        }
+    }
+
+    @Test
+    public void modeledExceptionWithImplicitPayloadMembers_UnmarshalledIntoModeledException() {
+        String xml = "<ErrorResponse>"
+                     + "   <Error>"
+                     + "      <Code>ImplicitPayloadException</Code>"
+                     + "      <Message>this is the service message</Message>"
+                     + "      <StringMember>foo</StringMember>"
+                     + "      <IntegerMember>42</IntegerMember>"
+                     + "      <LongMember>9001</LongMember>"
+                     + "      <DoubleMember>1234.56</DoubleMember>"
+                     + "      <FloatMember>789.10</FloatMember>"
+                     + "      <TimestampMember>2015-01-25T08:00:12Z</TimestampMember>"
+                     + "      <BooleanMember>true</BooleanMember>"
+                     + "      <BlobMember>dGhlcmUh</BlobMember>"
+                     + "      <ListMember>"
+                     + "         <member>valOne</member>"
+                     + "         <member>valTwo</member>"
+                     + "      </ListMember>"
+                     + "      <MapMember>"
+                     + "         <entry>"
+                     + "            <key>keyOne</key>"
+                     + "            <value>valOne</value>"
+                     + "         </entry>"
+                     + "         <entry>"
+                     + "            <key>keyTwo</key>"
+                     + "            <value>valTwo</value>"
+                     + "         </entry>"
+                     + "      </MapMember>"
+                     + "      <SimpleStructMember>"
+                     + "         <StringMember>foobar</StringMember>"
+                     + "      </SimpleStructMember>"
+                     + "   </Error>"
+                     + "</ErrorResponse>";
+        stubFor(post(urlEqualTo(ALL_TYPES_PATH)).willReturn(
+            aResponse().withStatus(404)
+                       .withBody(xml)));
+        try {
+            client.allTypes();
+        } catch (ImplicitPayloadException e) {
+            assertThat(e.stringMember()).isEqualTo("foo");
+            assertThat(e.integerMember()).isEqualTo(42);
+            assertThat(e.longMember()).isEqualTo(9001);
+            assertThat(e.doubleMember()).isEqualTo(1234.56);
+            assertThat(e.floatMember()).isEqualTo(789.10f);
+            assertThat(e.timestampMember()).isEqualTo(Instant.ofEpochMilli(1422172812000L));
+            assertThat(e.booleanMember()).isEqualTo(true);
+            assertThat(e.blobMember().asUtf8String()).isEqualTo("there!");
+            assertThat(e.listMember()).contains("valOne", "valTwo");
+            assertThat(e.mapMember())
+                .containsOnly(new SimpleEntry<>("keyOne", "valOne"),
+                              new SimpleEntry<>("keyTwo", "valTwo"));
+            assertThat(e.simpleStructMember().stringMember()).isEqualTo("foobar");
+        }
+    }
+
+    @Test
+    public void modeledException_HasExceptionMetadataSet() {
+        String xml = "<ErrorResponse>"
+                     + "   <Error>"
+                     + "      <Code>EmptyModeledException</Code>"
+                     + "      <Message>This is the service message</Message>"
+                     + "   </Error>"
+                     + "   <RequestId>1234</RequestId>"
+                     + "</ErrorResponse>";
+        stubFor(post(urlEqualTo(ALL_TYPES_PATH)).willReturn(
+            aResponse()
+                .withStatus(404)
+                .withBody(xml)));
+        try {
+            client.allTypes();
+        } catch (EmptyModeledException e) {
+            AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
+            assertThat(awsErrorDetails.errorCode()).isEqualTo("EmptyModeledException");
+            assertThat(awsErrorDetails.errorMessage()).isEqualTo("This is the service message");
+            assertThat(awsErrorDetails.serviceName()).isEqualTo("ProtocolRestXml");
+            assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
+            assertThat(e.requestId()).isEqualTo("1234");
+            assertThat(e.statusCode()).isEqualTo(404);
         }
     }
 
@@ -83,14 +172,19 @@ public class RestXmlExceptionTests {
     }
 
     @Test
-    public void nullPointerException_nullPathParam() {
-        assertThrowsNullPointerException(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()));
+    public void illegalArgumentException_nullPathParam() {
+        assertThrowsNestedExceptions(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()),
+                                     SdkClientException.class,
+                                     IllegalArgumentException.class);
     }
 
     @Test
     public void illegalArgumentException_emptyPathParam() {
-        assertThrowsIllegalArgumentException(() -> client.multiLocationOperation(
-                MultiLocationOperationRequest.builder().pathParam("").build()));
+        assertThrowsNestedExceptions(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder()
+                                                                                                      .pathParam("")
+                                                                                                      .build()),
+                                     SdkClientException.class,
+                                     IllegalArgumentException.class);
     }
 
     private void callAllTypes() {
@@ -114,6 +208,16 @@ public class RestXmlExceptionTests {
             runnable.run();
         } catch (Exception e) {
             assertEquals(expectedException, e.getClass());
+        }
+    }
+
+    private void assertThrowsNestedExceptions(Runnable runnable, Class<? extends Exception> parentException,
+                                              Class<? extends Exception> nestedException) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            assertEquals(parentException, e.getClass());
+            assertEquals(nestedException, e.getCause().getClass());
         }
     }
 }

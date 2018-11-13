@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     @Mock
-    private StsClient stsClient;
+    protected StsClient stsClient;
 
     @Test
     public void cachingDoesNotApplyToExpiredSession() {
@@ -68,7 +68,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     protected abstract ResponseT getResponse(Credentials credentials);
 
     protected abstract StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider>
-            createCredentialsProviderBuilder(RequestT request);
+    createCredentialsProviderBuilder(RequestT request);
 
     protected abstract ResponseT callClient(StsClient client, RequestT request);
 
@@ -80,7 +80,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
         when(callClient(stsClient, request)).thenReturn(response);
 
         try (StsCredentialsProvider credentialsProvider = createCredentialsProviderBuilder(request).stsClient(stsClient).build()) {
-            for(int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {
+            for (int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {
                 AwsSessionCredentials providedCredentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
                 assertThat(providedCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(providedCredentials.secretAccessKey()).isEqualTo("b");

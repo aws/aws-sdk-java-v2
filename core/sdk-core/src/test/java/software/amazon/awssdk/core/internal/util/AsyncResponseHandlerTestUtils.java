@@ -16,66 +16,114 @@
 package software.amazon.awssdk.core.internal.util;
 
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.async.DrainingSubscriber;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 
 public class AsyncResponseHandlerTestUtils {
     private AsyncResponseHandlerTestUtils() {
     }
 
-    public static SdkHttpResponseHandler noOpResponseHandler() {
-        return new SdkHttpResponseHandler() {
-
-            @Override
-            public void headersReceived(SdkHttpResponse response) {
-
-            }
-
-            @Override
-            public void exceptionOccurred(Throwable throwable) {
-
-            }
-
-            @Override
-            public Object complete() {
-                return null;
-            }
-
-            @Override
-            public void onStream(Publisher publisher) {
-
-            }
-        };
+    public static <T> TransformingAsyncResponseHandler<T> noOpResponseHandler() {
+        return noOpResponseHandler(null);
     }
 
-    public static SdkHttpResponseHandler<SdkServiceException> superSlowResponseHandler(long sleepInMills) {
+    public static <T> TransformingAsyncResponseHandler<T> noOpResponseHandler(T result) {
+        return new NoOpResponseHandler<>(result);
+    }
 
-        return new SdkHttpResponseHandler<SdkServiceException>() {
-            @Override
-            public void headersReceived(SdkHttpResponse response) {
+    public static <T> TransformingAsyncResponseHandler<T> superSlowResponseHandler(long sleepInMillis) {
+        return superSlowResponseHandler(null, sleepInMillis);
+    }
 
-            }
+    public static <T> TransformingAsyncResponseHandler<T> superSlowResponseHandler(T result, long sleepInMillis) {
+        return new SuperSlowResponseHandler<>(result, sleepInMillis);
+    }
 
-            @Override
-            public void onStream(Publisher publisher) {
+    private static class NoOpResponseHandler<T> implements TransformingAsyncResponseHandler<T> {
+        private final CompletableFuture<T> cf = new CompletableFuture<>();
+        private final T result;
 
-            }
+        NoOpResponseHandler(T result) {
+            this.result = result;
+        }
 
-            @Override
-            public void exceptionOccurred(Throwable throwable) {
+        @Override
+        public CompletableFuture<T> prepare() {
+            return cf;
+        }
 
-            }
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+        }
 
-            @Override
-            public SdkServiceException complete() {
-                try {
-                    Thread.sleep(sleepInMills);
-                } catch (InterruptedException e) {
-                    // ignore
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            stream.subscribe(new DrainingSubscriber<ByteBuffer>() {
+                @Override
+                public void onError(Throwable t) {
+                    cf.completeExceptionally(t);
                 }
-                return null;
-            }
-        };
+
+                @Override
+                public void onComplete() {
+                    cf.complete(result);
+                }
+            });
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            cf.completeExceptionally(error);
+        }
+    }
+
+    private static class SuperSlowResponseHandler<T> implements TransformingAsyncResponseHandler<T> {
+        private final CompletableFuture<T> cf = new CompletableFuture<>();
+        private final T result;
+        private final long sleepMillis;
+
+        SuperSlowResponseHandler(T result, long sleepMillis) {
+            this.result = result;
+            this.sleepMillis = sleepMillis;
+        }
+
+        @Override
+        public CompletableFuture<T> prepare() {
+            return cf.thenApply(r -> {
+                try {
+                    Thread.sleep(sleepMillis);
+                } catch (InterruptedException ignored) {
+                }
+                return r;
+            });
+        }
+
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            stream.subscribe(new DrainingSubscriber<ByteBuffer>() {
+                @Override
+                public void onError(Throwable t) {
+                    cf.completeExceptionally(t);
+                }
+
+                @Override
+                public void onComplete() {
+                    cf.complete(result);
+                }
+            });
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            cf.completeExceptionally(error);
+        }
     }
 }

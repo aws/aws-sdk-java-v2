@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.0.0-preview-12</version>
+        <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
     <artifactId>rds</artifactId>
     <name>AWS Java SDK :: Services :: Amazon RDS</name>
@@ -29,20 +29,32 @@
         Amazon Relational Database Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.rds</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
-        <!-- Test Dependencies -->
         <dependency>
-            <artifactId>sns</artifactId>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-query-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
-            <artifactId>elasticloadbalancing</artifactId>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>protocol-core</artifactId>
             <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

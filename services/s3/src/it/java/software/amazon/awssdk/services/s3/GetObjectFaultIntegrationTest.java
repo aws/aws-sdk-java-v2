@@ -20,12 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
@@ -54,9 +53,10 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
                                      .key(KEY)
                                      .build(), RequestBody.fromString("some contents"));
         s3ClientWithTimeout = s3ClientBuilder()
-                .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                  .build())
-                .build();
+            .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                              .apiCallTimeout(Duration.ofSeconds(5))
+                                                              .build())
+            .build();
     }
 
     @AfterClass
@@ -67,41 +67,39 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void handlerThrowsRetryableException_RetriedUpToLimit() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
-                (resp, in) -> {
-                    throw RetryableException.builder().build();
-                });
+            (resp, in) -> {
+                throw RetryableException.builder().build();
+            });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
-                .isInstanceOf(SdkClientException.class);
+            .isInstanceOf(SdkClientException.class);
         assertThat(handler.currentCallCount()).isEqualTo(4);
     }
 
     @Test
     public void handlerThrowsNonRetryableException_RequestNotRetried() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
-                (resp, in) -> {
-                    throw NonRetryableException.builder().build();
-                });
+            (resp, in) -> {
+                throw NonRetryableException.builder().build();
+            });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
-                .isInstanceOf(SdkClientException.class);
+            .isInstanceOf(SdkClientException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
     }
 
     @Test
-    @Ignore
-    @ReviewBeforeRelease("add it back once execution time out is added back")
     public void slowHandlerIsInterrupted() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
-                (resp, in) -> {
-                    try {
-                        Thread.sleep(10_000);
-                        fail("Expected Interrupted Exception");
-                    } catch (InterruptedException ie) {
-                        throw ie;
-                    }
-                    return null;
-                });
+            (resp, in) -> {
+                try {
+                    Thread.sleep(10_000);
+                    fail("Expected Interrupted Exception");
+                } catch (InterruptedException ie) {
+                    throw ie;
+                }
+                return null;
+            });
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler))
-                .isInstanceOf(ApiCallTimeoutException.class);
+            .isInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
     }
 
@@ -109,23 +107,22 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      * Customers should be able to just re-interrupt the current thread instead of having to throw {@link InterruptedException}.
      */
     @Test
-    @Ignore
-    @ReviewBeforeRelease("add it back once execution time out is added back")
     public void slowHandlerIsInterrupted_SetsInterruptFlag() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
-                (resp, in) -> {
-                    try {
-                        Thread.sleep(10_000);
-                        fail("Expected Interrupted Exception");
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException("Interrupted");
-                    }
-                    return null;
-                });
+            (resp, in) -> {
+                try {
+                    Thread.sleep(10_000);
+                    fail("Expected Interrupted Exception");
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted");
+                }
+                return null;
+            });
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler))
-                .isInstanceOf(ApiCallTimeoutException.class);
+            .isInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
+        assertThat(Thread.currentThread().isInterrupted()).isFalse();
     }
 
     /**
@@ -135,18 +132,19 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void handlerSquashsInterrupt_DoesNotThrowClientTimeoutException() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
-                (resp, in) -> {
-                    try {
-                        Thread.sleep(10_000);
-                        fail("Expected Interrupted Exception");
-                    } catch (InterruptedException ie) {
-                        throw new RuntimeException(ie);
-                    }
-                    return null;
-                });
+            (resp, in) -> {
+                try {
+                    Thread.sleep(10_000);
+                    fail("Expected Interrupted Exception");
+                } catch (InterruptedException ie) {
+                    throw new RuntimeException(ie);
+                }
+                return null;
+            });
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler))
-                .isNotInstanceOf(ApiCallTimeoutException.class);
+            .isNotInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
+        assertThat(Thread.currentThread().isInterrupted()).isFalse();
     }
 
     private GetObjectRequest getObjectRequest() {
@@ -160,7 +158,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      * Wrapper around a {@link ResponseTransformer} that counts how many times it's been invoked.
      */
     private static class RequestCountingResponseTransformer<ResponseT, ReturnT>
-            implements ResponseTransformer<ResponseT, ReturnT> {
+        implements ResponseTransformer<ResponseT, ReturnT> {
 
         private final ResponseTransformer<ResponseT, ReturnT> delegate;
         private final AtomicInteger callCount = new AtomicInteger(0);

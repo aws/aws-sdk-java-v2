@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Optional;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -50,12 +51,37 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @see ByteArrayAsyncRequestBody
  */
 @SdkPublicApi
-public interface AsyncRequestBody extends Publisher<ByteBuffer> {
+public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
      * @return The content length of the data being produced.
      */
-    long contentLength();
+    Optional<Long> contentLength();
+
+    /**
+     * Creates an {@link AsyncRequestBody} the produces data from the input ByteBuffer publisher.
+     * The data is delivered when the publisher publishes the data.
+     *
+     * @param publisher Publisher of source data
+     * @return Implementation of {@link AsyncRequestBody} that produces data send by the publisher
+     */
+    static AsyncRequestBody fromPublisher(Publisher<ByteBuffer> publisher) {
+        return new AsyncRequestBody() {
+
+            /**
+             * Returns empty optional as size of the each bytebuffer sent is unknown
+             */
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.empty();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                publisher.subscribe(s);
+            }
+        };
+    }
 
     /**
      * Creates an {@link AsyncRequestBody} that produces data from the contents of a file. See

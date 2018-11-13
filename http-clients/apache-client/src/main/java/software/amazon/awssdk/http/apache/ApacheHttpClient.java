@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.apache;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
@@ -62,15 +63,15 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
+import software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheHttpRequestFactory;
@@ -78,6 +79,7 @@ import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHt
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An implementation of {@link SdkHttpClient} that uses Apache HTTP client to communicate with the service. This is the most
@@ -111,11 +113,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                                           AttributeMap standardOptions) {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
-        final HttpClientBuilder builder = HttpClients.custom();
+        HttpClientBuilder builder = HttpClients.custom();
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
-        final HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+        HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
@@ -128,10 +130,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         addProxyConfig(builder, configuration.proxyConfiguration);
 
-        // TODO idle connection reaper
-        //        if (.useReaper()) {
-        //            IdleConnectionReaper.registerConnectionManager(cm, settings.getMaxIdleConnectionTime());
-        //        }
+        if (useIdleConnectionReaper(configuration)) {
+            IdleConnectionReaper.getInstance().registerConnectionManager(
+                    cm, connectionMaxIdleTime(configuration).toMillis());
+        }
 
         return new software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient(builder.build(), cm);
     }
@@ -140,10 +142,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                 ProxyConfiguration proxyConfiguration) {
         if (isProxyEnabled(proxyConfiguration)) {
 
-            log.debug(() -> "Configuring Proxy. Proxy Host: " + proxyConfiguration.endpoint());
+            log.debug(() -> "Configuring Proxy. Proxy Host: " + proxyConfiguration.host());
 
-            builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.endpoint().getHost(),
-                                                             proxyConfiguration.endpoint().getPort(),
+            builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.host(),
+                                                             proxyConfiguration.port(),
+                                                             proxyConfiguration.scheme(),
                                                              proxyConfiguration.nonProxyHosts()));
 
             if (isAuthenticatedProxy(proxyConfiguration)) {
@@ -153,10 +156,17 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheHttpClient.DefaultBuilder configuration) {
-        final long maxIdle = Optional.ofNullable(configuration.connectionMaxIdleTime)
-                                     .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME)
-                                     .toMillis();
+        long maxIdle = connectionMaxIdleTime(configuration).toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
+    }
+
+    private Duration connectionMaxIdleTime(DefaultBuilder configuration) {
+        return Optional.ofNullable(configuration.connectionMaxIdleTime)
+                       .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME);
+    }
+
+    private boolean useIdleConnectionReaper(DefaultBuilder configuration) {
+        return Boolean.TRUE.equals(configuration.useIdleConnectionReaper);
     }
 
     private boolean isAuthenticatedProxy(ProxyConfiguration proxyConfiguration) {
@@ -164,14 +174,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private boolean isProxyEnabled(ProxyConfiguration proxyConfiguration) {
-        return proxyConfiguration.endpoint() != null
-               && proxyConfiguration.endpoint().getHost() != null
-               && proxyConfiguration.endpoint().getPort() > 0;
+        return proxyConfiguration.host() != null
+               && proxyConfiguration.port() > 0;
     }
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext context) {
-        final HttpRequestBase apacheRequest = toApacheRequest(request);
+    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+        HttpRequestBase apacheRequest = toApacheRequest(request);
         return new AbortableCallable<SdkHttpFullResponse>() {
             @Override
             public SdkHttpFullResponse call() throws Exception {
@@ -186,13 +195,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(resolvedOptions.get(key));
-    }
-
-    @Override
     public void close() {
-        httpClient.getHttpClientConnectionManager().shutdown();
+        HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
+        IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
+        cm.shutdown();
     }
 
     private SdkHttpFullResponse execute(HttpRequestBase apacheRequest) throws IOException {
@@ -201,8 +207,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return createResponse(httpResponse, apacheRequest);
     }
 
-    private HttpRequestBase toApacheRequest(SdkHttpFullRequest request) {
-        return apacheHttpRequestFactory.create(request, requestConfig);
+    private HttpRequestBase toApacheRequest(ExecuteRequest request) {
+        return apacheHttpRequestFactory.create(request.httpRequest(), requestConfig);
     }
 
     /**
@@ -240,6 +246,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return ApacheHttpRequestConfig.builder()
                                       .socketTimeout(resolvedOptions.get(READ_TIMEOUT))
                                       .connectionTimeout(resolvedOptions.get(CONNECTION_TIMEOUT))
+                                      .connectionAcquireTimeout(resolvedOptions.get(CONNECTION_ACQUIRE_TIMEOUT))
                                       .proxyConfiguration(builder.proxyConfiguration)
                                       .localAddress(Optional.ofNullable(builder.localAddress).orElse(null))
                                       .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
@@ -274,6 +281,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder connectionTimeout(Duration connectionTimeout);
 
         /**
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * @param connectionAcquisitionTimeout the timeout duration
+         * @return this builder for method chaining.
+         */
+        Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
+
+        /**
          * The maximum number of connections allowed in the connection pool. Each built HTTP client has it's own private
          * connection pool.
          */
@@ -303,6 +317,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
          */
         Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout);
+
+        /**
+         * Configure whether the idle connections in the connection pool should be closed asynchronously.
+         * <p>
+         * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
+         * closed. If no value is set, the default value of {@link DefaultConfiguration#MAX_IDLE_CONNECTION_TIME} is used.
+         */
+        Builder useIdleConnectionReaper(Boolean useConnectionReaper);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -312,6 +334,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private Boolean expectContinueEnabled;
         private Duration connectionTimeToLive;
         private Duration connectionMaxIdleTime;
+        private Boolean useIdleConnectionReaper;
 
         private DefaultBuilder() {
         }
@@ -334,6 +357,22 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public void setConnectionTimeout(Duration connectionTimeout) {
             connectionTimeout(connectionTimeout);
+        }
+
+        /**
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * @param connectionAcquisitionTimeout the timeout duration
+         * @return this builder for method chaining.
+         */
+        @Override
+        public Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+            Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
+            standardOptions.put(CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
+            return this;
+        }
+
+        public void setConnectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+            connectionAcquisitionTimeout(connectionAcquisitionTimeout);
         }
 
         @Override
@@ -397,6 +436,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         @Override
+        public Builder useIdleConnectionReaper(Boolean useIdleConnectionReaper) {
+            this.useIdleConnectionReaper = useIdleConnectionReaper;
+            return this;
+        }
+
+        public void setUseIdleConnectionReaper(Boolean useIdleConnectionReaper) {
+            useIdleConnectionReaper(useIdleConnectionReaper);
+        }
+
+        @Override
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(GLOBAL_HTTP_DEFAULTS);
             return new ApacheHttpClient(this, resolvedOptions);
@@ -409,7 +458,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                                   AttributeMap standardOptions) {
             ConnectionSocketFactory sslsf = getPreferredSocketFactory(standardOptions);
 
-            final PoolingHttpClientConnectionManager cm = new
+            PoolingHttpClientConnectionManager cm = new
                     PoolingHttpClientConnectionManager(
                     createSocketFactoryRegistry(sslsf),
                     null,
@@ -447,7 +496,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
             }
 
             try {
-                final SSLContext sslcontext = SSLContext.getInstance("TLS");
+                SSLContext sslcontext = SSLContext.getInstance("TLS");
                 // http://download.java.net/jdk9/docs/technotes/guides/security/jsse/JSSERefGuide.html
                 sslcontext.init(null, trustManagers, null);
                 return sslcontext;

@@ -85,7 +85,7 @@ public class VariableModel extends DocumentationModel {
      * Returns the Java type used for the input parameter of a setter method.
      */
     public String getVariableSetterType() {
-        final String prefix = List.class.getName();
+        String prefix = List.class.getName();
         if (variableType.startsWith(prefix)) {
             return Collection.class.getName() + variableType.substring(prefix.length());
         } else {

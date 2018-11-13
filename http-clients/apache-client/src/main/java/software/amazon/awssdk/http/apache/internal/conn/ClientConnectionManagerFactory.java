@@ -43,7 +43,7 @@ public final class ClientConnectionManagerFactory {
         if (orig instanceof Wrapped) {
             throw new IllegalArgumentException();
         }
-        final Class<?>[] interfaces;
+        Class<?>[] interfaces;
         if (orig instanceof ConnPoolControl) {
             interfaces = new Class<?>[]{
                     HttpClientConnectionManager.class,

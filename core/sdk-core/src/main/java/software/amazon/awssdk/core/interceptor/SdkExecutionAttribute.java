@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
 
@@ -24,14 +23,8 @@ import software.amazon.awssdk.core.signer.Signer;
  * Contains attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  */
-@SdkProtectedApi
+@SdkPublicApi
 public class SdkExecutionAttribute {
-
-    /**
-     * The key under which the request config is stored.
-     */
-    public static final ExecutionAttribute<RequestOverrideConfiguration> REQUEST_CONFIG =
-        new ExecutionAttribute<>("RequestConfig");
 
     /**
      * Handler context key for advanced configuration.

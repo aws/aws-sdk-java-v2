@@ -23,7 +23,6 @@ public class ShapeCustomizationInfo {
     private boolean skipGeneratingModelClass;
     private boolean skipGeneratingMarshaller;
     private boolean skipGeneratingUnmarshaller;
-    private String customUnmarshallerFqcn;
     private int staxTargetDepthOffset;
     private boolean hasStaxTargetDepthOffset = false;
 
@@ -58,14 +57,6 @@ public class ShapeCustomizationInfo {
 
     public void setSkipGeneratingUnmarshaller(boolean skipGeneratingUnmarshaller) {
         this.skipGeneratingUnmarshaller = skipGeneratingUnmarshaller;
-    }
-
-    public String getCustomUnmarshallerFqcn() {
-        return customUnmarshallerFqcn;
-    }
-
-    public void setCustomUnmarshallerFqcn(String customUnmarshallerFqcn) {
-        this.customUnmarshallerFqcn = customUnmarshallerFqcn;
     }
 
     public Integer getStaxTargetDepthOffset() {

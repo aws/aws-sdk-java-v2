@@ -21,6 +21,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,21 +32,26 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyncClientHandlerTest {
@@ -55,9 +61,9 @@ public class SyncClientHandlerTest {
     private SdkRequest request;
 
     @Mock
-    private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
+    private Marshaller<SdkRequest> marshaller;
 
-    private Request<SdkRequest> marshalledRequest = new DefaultRequest<>(request, "");
+    private SdkHttpFullRequest marshalledRequest = ValidSdkObjects.sdkHttpFullRequest().build();
 
     @Mock
     private SdkHttpClient httpClient;
@@ -71,6 +77,9 @@ public class SyncClientHandlerTest {
     @Mock
     private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
+    @Mock
+    private ResponseTransformer<SdkResponse, ?> responseTransformer;
+
     @Before
     public void setup() {
         this.syncClientHandler = new SdkSyncClientHandler(clientConfiguration());
@@ -80,7 +89,7 @@ public class SyncClientHandlerTest {
     @Test
     public void successfulExecutionCallsResponseHandler() throws Exception {
 
-        SdkResponse expected = EmptySdkResponse.builder().build();
+        SdkResponse expected = VoidSdkResponse.builder().build();
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("foo", Arrays.asList("bar"));
 
@@ -118,9 +127,60 @@ public class SyncClientHandlerTest {
         verifyNoMoreInteractions(responseHandler); // No response handler calls
     }
 
+    @Test
+    public void responseTransformerThrowsRetryableException_shouldPropogate() throws Exception {
+        mockSuccessfulApiCall();
+        when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class))).thenThrow(
+            RetryableException.create("test"));
+
+        assertThatThrownBy(() -> syncClientHandler.execute(clientExecutionParams(), responseTransformer))
+            .isInstanceOf(RetryableException.class);
+    }
+
+    @Test
+    public void responseTransformerThrowsInterruptedException_shouldPropagate() throws Exception {
+        try {
+            verifyResponseTransformerPropagateException(new InterruptedException());
+        } finally {
+            Thread.interrupted();
+        }
+    }
+
+    @Test
+    public void responseTransformerThrowsAbortedException_shouldPropagate() throws Exception {
+        verifyResponseTransformerPropagateException(AbortedException.create(""));
+    }
+
+    @Test
+    public void responseTransformerThrowsOtherException_shouldWrappWithNonRetryableException() throws Exception {
+        mockSuccessfulApiCall();
+        when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class))).thenThrow(
+            new RuntimeException());
+
+        assertThatThrownBy(() -> syncClientHandler.execute(clientExecutionParams(), responseTransformer))
+            .hasCauseInstanceOf(NonRetryableException.class);
+    }
+
+    private void verifyResponseTransformerPropagateException(Exception exception) throws Exception {
+        mockSuccessfulApiCall();
+        when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class))).thenThrow(
+            exception);
+
+        assertThatThrownBy(() -> syncClientHandler.execute(clientExecutionParams(), responseTransformer))
+            .hasCauseInstanceOf(exception.getClass());
+    }
+
+    private void mockSuccessfulApiCall() throws Exception {
+        expectRetrievalFromMocks();
+        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder()
+                                                                  .content(AbortableInputStream.create(new ByteArrayInputStream("TEST".getBytes())))
+                                                                  .statusCode(200).build());
+        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
+    }
+
     private void expectRetrievalFromMocks() {
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
-        when(httpClient.prepareRequest(any(), any())).thenReturn(httpClientCall);
+        when(httpClient.prepareRequest(any())).thenReturn(httpClientCall);
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {

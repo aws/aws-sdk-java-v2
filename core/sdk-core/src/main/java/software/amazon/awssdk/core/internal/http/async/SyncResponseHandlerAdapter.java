@@ -18,20 +18,22 @@ package software.amazon.awssdk.core.internal.http.async;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.util.ThrowableUtils;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Adapts an {@link HttpResponseHandler} to the asynchronous {@link SdkHttpResponseHandler}. Buffers
@@ -41,13 +43,12 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @param <T> Type that the response handler produces.
  */
 @SdkInternalApi
-public final class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandler<T> {
-
+public final class SyncResponseHandlerAdapter<T> implements TransformingAsyncResponseHandler<T> {
+    private volatile CompletableFuture<ByteArrayOutputStream> streamFuture;
     private final HttpResponseHandler<T> responseHandler;
-    private ByteArrayOutputStream baos;
     private final ExecutionAttributes executionAttributes;
-    private SdkHttpFullResponse.Builder httpResponse;
     private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
+    private SdkHttpFullResponse.Builder httpResponse;
 
     public SyncResponseHandlerAdapter(HttpResponseHandler<T> responseHandler,
                                       Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator,
@@ -58,39 +59,72 @@ public final class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandl
     }
 
     @Override
-    public void headersReceived(SdkHttpResponse response) {
+    public void onHeaders(SdkHttpResponse response) {
         this.httpResponse = ((SdkHttpFullResponse) response).toBuilder();
     }
 
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
-        baos = new ByteArrayOutputStream();
-        publisher.subscribe(new SimpleSubscriber(b -> {
+        publisher.subscribe(new BaosSubscriber(streamFuture));
+    }
+
+    @Override
+    public void onError(Throwable err) {
+        streamFuture.completeExceptionally(err);
+    }
+
+    @Override
+    public CompletableFuture<T> prepare() {
+        streamFuture = new CompletableFuture<>();
+        return streamFuture.thenComposeAsync(baos -> {
+            ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
+            // Ignore aborts - we already have all of the content.
+            AbortableInputStream abortableContent = AbortableInputStream.create(content);
+            httpResponse.content(abortableContent);
             try {
-                baos.write(BinaryUtils.copyBytesFrom(b));
+                return CompletableFuture.completedFuture(responseHandler.handle(crc32Validator
+                        .apply(httpResponse.build()),
+                        executionAttributes));
+            } catch (Exception e) {
+                return CompletableFutureUtils.failedFuture(e);
+            }
+        });
+    }
+
+    private static class BaosSubscriber implements Subscriber<ByteBuffer> {
+        private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        private final CompletableFuture<ByteArrayOutputStream> streamFuture;
+        private Subscription subscription;
+
+        private BaosSubscriber(CompletableFuture<ByteArrayOutputStream> streamFuture) {
+            this.streamFuture = streamFuture;
+        }
+
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            try {
+                baos.write(BinaryUtils.copyBytesFrom(byteBuffer));
+                this.subscription.request(Long.MAX_VALUE);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                // Should never happen
+                streamFuture.completeExceptionally(e);
             }
-        }));
-    }
+        }
 
-    @Override
-    public void exceptionOccurred(Throwable throwable) {
-    }
+        @Override
+        public void onError(Throwable throwable) {
+            streamFuture.completeExceptionally(throwable);
+        }
 
-    @Override
-    public T complete() {
-        try {
-            // Once we've buffered all the content we can invoke the response handler
-            if (baos != null) {
-                // Ignore aborts - we already have all of the content.
-                ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
-                AbortableInputStream abortableContent = AbortableInputStream.create(content);
-                httpResponse.content(abortableContent);
-            }
-            return responseHandler.handle(crc32Validator.apply(httpResponse.build()), executionAttributes);
-        } catch (Exception e) {
-            throw ThrowableUtils.failure(e);
+        @Override
+        public void onComplete() {
+            streamFuture.complete(baos);
         }
     }
 }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sns;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -115,7 +116,7 @@ public class SNSIntegrationTest extends IntegrationTestBase {
             assertEquals("InvalidParameter", exception.awsErrorDetails().errorCode());
             assertTrue(exception.getMessage().length() > 5);
             assertTrue(exception.requestId().length() > 5);
-            assertTrue(exception.awsErrorDetails().serviceName().length() > 5);
+            assertThat(exception.awsErrorDetails().serviceName()).isEqualTo("Sns");
             assertEquals(400, exception.statusCode());
         }
     }

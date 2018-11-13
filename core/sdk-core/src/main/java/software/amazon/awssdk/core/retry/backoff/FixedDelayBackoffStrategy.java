@@ -52,7 +52,7 @@ public final class FixedDelayBackoffStrategy implements BackoffStrategy {
             return false;
         }
 
-        final FixedDelayBackoffStrategy that = (FixedDelayBackoffStrategy) o;
+        FixedDelayBackoffStrategy that = (FixedDelayBackoffStrategy) o;
 
         return fixedBackoff.equals(that.fixedBackoff);
     }

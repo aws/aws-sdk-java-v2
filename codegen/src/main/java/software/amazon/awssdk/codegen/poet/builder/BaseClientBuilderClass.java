@@ -32,10 +32,10 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -70,6 +70,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
         builder.addMethod(serviceEndpointPrefixMethod());
+        builder.addMethod(serviceNameMethod());
         builder.addMethod(mergeServiceDefaultsMethod());
         builder.addMethod(finalizeServiceConfigurationMethod());
         builder.addMethod(defaultSignerMethod());
@@ -80,11 +81,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                    .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
-        if (model.getCustomizationConfig().getServiceSpecificHttpConfig() != null) {
-            builder.addMethod(serviceSpecificHttpConfigMethod());
-        } else if (model.getMetadata().supportsH2()) {
-            builder.addMethod(enableH2HttpConfigMethod());
-        }
+        addServiceHttpConfigIfNeeded(builder, model);
 
         return builder.build();
     }
@@ -112,6 +109,15 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(String.class)
                          .addCode("return $S;", model.getMetadata().getEndpointPrefix())
+                         .build();
+    }
+
+    private MethodSpec serviceNameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .returns(String.class)
+                         .addCode("return $S;", model.getMetadata().getServiceName())
                          .build();
     }
 
@@ -180,24 +186,45 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec serviceSpecificHttpConfigMethod() {
+    private void addServiceHttpConfigIfNeeded(TypeSpec.Builder builder, IntermediateModel model) {
+        String serviceDefaultFqcn = model.getCustomizationConfig().getServiceSpecificHttpConfig();
+        boolean supportsH2 = model.getMetadata().supportsH2();
+
+        if (serviceDefaultFqcn != null || supportsH2) {
+            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2));
+        }
+    }
+
+    private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AttributeMap.class)
-                         .addCode("return $L;", model.getCustomizationConfig().getServiceSpecificHttpConfig())
+                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2))
                          .build();
     }
 
-    private MethodSpec enableH2HttpConfigMethod() {
-        return MethodSpec.methodBuilder("serviceHttpConfig")
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(AttributeMap.class)
-                         .addCode("return $T.builder()\n"
-                                  + ".put($T.PROTOCOL, $T.HTTP2)\n"
-                                  + ".build();", AttributeMap.class, SdkHttpConfigurationOption.class, Protocol.class)
-                         .build();
+    private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2) {
+        CodeBlock.Builder builder =  CodeBlock.builder();
+
+        if (serviceDefaultFqcn != null) {
+            builder.addStatement("$T result = $T.defaultHttpConfig()",
+                                 AttributeMap.class,
+                                 PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getServiceSpecificHttpConfig()));
+        } else {
+            builder.addStatement("$1T result = $1T.empty()", AttributeMap.class);
+        }
+
+        if (supportsH2) {
+            builder.addStatement("return result.merge(AttributeMap.builder()"
+                                 + ".put($T.PROTOCOL, $T.HTTP2)"
+                                 + ".build())",
+                                 SdkHttpConfigurationOption.class, Protocol.class);
+        } else {
+            builder.addStatement("return result");
+        }
+
+        return builder.build();
     }
 
     private CodeBlock signerDefinitionMethodBody() {

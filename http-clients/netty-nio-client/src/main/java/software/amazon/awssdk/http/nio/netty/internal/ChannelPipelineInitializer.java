@@ -61,7 +61,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     }
 
     @Override
-    public void channelCreated(Channel ch) throws Exception {
+    public void channelCreated(Channel ch) {
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
@@ -73,6 +73,8 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         } else {
             configureHttp11(ch, pipeline);
         }
+
+        pipeline.addLast(new FutureCancelHandler());
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
@@ -87,7 +89,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
         pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
             @Override
-            protected void channelRead0(ChannelHandlerContext ctx, Http2SettingsFrame msg) throws Exception {
+            protected void channelRead0(ChannelHandlerContext ctx, Http2SettingsFrame msg) {
                 Long serverMaxStreams = Optional.ofNullable(msg.settings().maxConcurrentStreams()).orElse(Long.MAX_VALUE);
                 ch.attr(MAX_CONCURRENT_STREAMS).set(Math.min(clientMaxStreams, serverMaxStreams));
                 ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP2);
@@ -101,7 +103,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             }
 
             @Override
-            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
                 channelError(cause, ch);
             }
         });
@@ -134,7 +136,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
     private static class NoOpChannelInitializer extends ChannelInitializer<Channel> {
         @Override
-        protected void initChannel(Channel ch) throws Exception {
+        protected void initChannel(Channel ch) {
         }
     }
 

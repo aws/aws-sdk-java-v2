@@ -35,6 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -43,16 +44,18 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
+import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Verify response contains correct {@link SdkHttpResponse}.
+ * Verify response contains correct {@link SdkHttpResponse} and {@link AwsResponseMetadata}.
  */
 public class SdkHttpResponseTest {
 
     private static final String JSON_BODY = "{\"StringMember\":\"foo\"}";
     private static final String STATUS_TEXT = "hello world";
+    private static final String REQUEST_ID = "uiadfsdbeqir62";
 
     @Rule
     public final WireMockRule wireMock = new WireMockRule(0);
@@ -64,6 +67,7 @@ public class SdkHttpResponseTest {
     private static final Map<String, List<String>> EXPECTED_HEADERS = new HashMap<String, List<String>>() {{
         put("x-foo", Collections.singletonList("a"));
         put("x-bar", Collections.singletonList("b"));
+        put("x-amzn-RequestId", Collections.singletonList(REQUEST_ID));
     }};
 
     @Before
@@ -88,6 +92,7 @@ public class SdkHttpResponseTest {
         stubWithHeaders(EXPECTED_HEADERS);
         AllTypesResponse response = client.allTypes(b -> b.simpleList("test"));
         verifySdkHttpResponse(response);
+        verifyResponseMetadata(response);
     }
 
     @Test
@@ -99,6 +104,7 @@ public class SdkHttpResponseTest {
         StreamingOutputOperationResponse response = responseBytes.response();
 
         verifySdkHttpResponse(response);
+        verifyResponseMetadata(response);
     }
 
     @Test
@@ -106,6 +112,7 @@ public class SdkHttpResponseTest {
         stubWithHeaders(EXPECTED_HEADERS);
         AllTypesResponse response = asyncClient.allTypes(b -> b.simpleList("test")).join();
         verifySdkHttpResponse(response);
+        verifyResponseMetadata(response);
     }
 
     @Test
@@ -117,6 +124,7 @@ public class SdkHttpResponseTest {
         StreamingOutputOperationResponse response = responseBytes.response();
 
         verifySdkHttpResponse(response);
+        verifyResponseMetadata(response);
     }
 
     private void stubWithHeaders(Map<String, List<String>> headers) {
@@ -138,4 +146,7 @@ public class SdkHttpResponseTest {
         EXPECTED_HEADERS.entrySet().forEach(entry -> assertThat(sdkHttpResponse.headers()).contains(entry));
     }
 
+    private void verifyResponseMetadata(ProtocolRestJsonResponse response) {
+        assertThat(response.responseMetadata().requestId()).isEqualTo(REQUEST_ID);
+    }
 }

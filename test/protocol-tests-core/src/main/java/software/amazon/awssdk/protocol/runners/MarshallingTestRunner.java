@@ -75,7 +75,7 @@ class MarshallingTestRunner {
     private void resetWireMock() {
         WireMock.reset();
         // Stub to return 200 for all requests
-        final ResponseDefinitionBuilder responseDefBuilder = aResponse().withStatus(200);
+        ResponseDefinitionBuilder responseDefBuilder = aResponse().withStatus(200);
         // XML Unmarshallers expect at least one level in the XML document.
         if (model.getMetadata().isXmlProtocol()) {
             responseDefBuilder.withBody("<foo></foo>");
@@ -84,9 +84,9 @@ class MarshallingTestRunner {
     }
 
     private ShapeModelReflector createShapeModelReflector(TestCase testCase) {
-        final String operationName = testCase.getWhen().getOperationName();
-        final String requestClassName = getOperationRequestClassName(operationName);
-        final JsonNode input = testCase.getGiven().getInput();
+        String operationName = testCase.getWhen().getOperationName();
+        String requestClassName = getOperationRequestClassName(operationName);
+        JsonNode input = testCase.getGiven().getInput();
         return new ShapeModelReflector(model, requestClassName, input);
     }
 

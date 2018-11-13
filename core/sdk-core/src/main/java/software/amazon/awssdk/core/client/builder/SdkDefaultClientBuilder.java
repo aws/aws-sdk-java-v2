@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -46,25 +47,20 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -370,14 +366,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         @Override
-        public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request,
-                                                                     SdkRequestContext requestContext) {
-            return delegate.prepareRequest(request, requestContext);
-        }
-
-        @Override
-        public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-            return delegate.getConfigurationValue(key);
+        public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+            return delegate.prepareRequest(request);
         }
 
         @Override
@@ -400,14 +390,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         @Override
-        public AbortableRunnable prepareRequest(SdkHttpRequest request, SdkRequestContext context,
-                                                SdkHttpRequestProvider requestProvider, SdkHttpResponseHandler handler) {
-            return delegate.prepareRequest(request, context, requestProvider, handler);
-        }
-
-        @Override
-        public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-            return delegate.getConfigurationValue(key);
+        public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+            return delegate.execute(request);
         }
 
         @Override

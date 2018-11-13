@@ -16,15 +16,12 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.Response;
@@ -65,24 +62,6 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
 
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         return new RetryExecutor(request, context).execute();
-    }
-
-    /**
-     * Reset the input stream of the request before a retry.
-     *
-     * @throws ResetException If Input Stream can't be reset which means the request can't be retried.
-     */
-    private static void resetRequestInputStream(InputStream inputStream) throws ResetException {
-        if (inputStream.markSupported()) {
-            try {
-                inputStream.reset();
-            } catch (IOException ex) {
-                throw ResetException.builder()
-                                    .message("Failed to reset the request input stream")
-                                    .cause(ex)
-                                    .build();
-            }
-        }
     }
 
     /**
@@ -127,11 +106,8 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
 
         private Response<OutputT> doExecute() throws Exception {
             if (retryHandler.isRetry()) {
-                request.content().ifPresent(RetryableStage::resetRequestInputStream);
                 doPauseBeforeRetry();
             }
-
-            request.content().ifPresent(this::markInputStream);
 
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") + "Request: " +
                                                          request);
@@ -174,28 +150,10 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         }
 
         /**
-         * Mark the input stream at the current position to allow a reset on retries.
-         */
-        private void markInputStream(InputStream originalContent) {
-            if (originalContent.markSupported()) {
-                originalContent.mark(readLimit());
-            }
-        }
-
-        /**
-         * @return Allowed read limit that we can mark request input stream. If we read past this limit we cannot reset the stream
-         * so we cannot retry the request.
-         */
-        @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
-        private int readLimit() {
-            return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
-        }
-
-        /**
          * Sleep for a period of time on failed request to avoid flooding a service with retries.
          */
         private void doPauseBeforeRetry() throws InterruptedException {
-            final int retriesAttempted = requestCount - 2;
+            int retriesAttempted = requestCount - 2;
             Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected, will retry in " + delay.toMillis() + "ms,"

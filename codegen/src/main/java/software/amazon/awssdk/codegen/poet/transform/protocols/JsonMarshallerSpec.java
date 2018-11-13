@@ -24,14 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -39,19 +37,15 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
-    private final Metadata metadata;
-    private final ShapeModel shapeModel;
-    private final PoetExtensions poetExtensions;
+    protected final ShapeModel shapeModel;
 
-    public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeMode) {
-        this.metadata = model.getMetadata();
-        this.poetExtensions = new PoetExtensions(model);
-        this.shapeModel = shapeMode;
+    public JsonMarshallerSpec(ShapeModel shapeModel) {
+        this.shapeModel = shapeModel;
     }
 
     @Override
     public ParameterSpec protocolFactoryParameter() {
-        return ParameterSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory").build();
+        return ParameterSpec.builder(protocolFactoryClass(), "protocolFactory").build();
     }
 
     @Override
@@ -68,51 +62,52 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
         String variableName = shapeModel.getVariable().getVariableName();
         return CodeBlock.builder()
                         .addStatement("$T<$T> protocolMarshaller = protocolFactory.createProtocolMarshaller"
-                                      + "(SDK_OPERATION_BINDING, $L)",
-                                      ProtocolRequestMarshaller.class,
-                                      requestClassName, variableName)
-                        .addStatement("protocolMarshaller.startMarshalling()")
-                        .addStatement("$T.getInstance().marshall($L, protocolMarshaller)",
-                                      poetExtensions.getTransformClass(shapeModel.getShapeName() + "ModelMarshaller"),
-                                      variableName)
-                        .addStatement("return protocolMarshaller.finishMarshalling()")
+                                      + "(SDK_OPERATION_BINDING)",
+                                      ProtocolMarshaller.class, SdkHttpFullRequest.class)
+                        .addStatement("return protocolMarshaller.marshall($L)", variableName)
                         .build();
     }
 
     @Override
     public FieldSpec protocolFactory() {
-        return FieldSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(protocolFactoryClass(), "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
+    }
+
+    private Class<BaseAwsJsonProtocolFactory> protocolFactoryClass() {
+        return BaseAwsJsonProtocolFactory.class;
     }
 
     @Override
     public List<FieldSpec> memberVariables() {
         List<FieldSpec> fields = new ArrayList<>();
+        fields.add(operationInfoField());
+        fields.add(protocolFactory());
+        return fields;
+    }
 
+    protected FieldSpec operationInfoField() {
         CodeBlock.Builder initializationCodeBlockBuilder = CodeBlock.builder()
                                                                     .add("$T.builder()", OperationInfo.class);
         initializationCodeBlockBuilder.add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
-                                      .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
-                                      .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember())
+                                      .add(".httpMethod($T.$L)", SdkHttpMethod.class, shapeModel.getMarshaller().getVerb())
+                                      .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
+                                                                            shapeModel.getExplicitEventPayloadMember() != null)
                                       .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
 
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
-            initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget())
-                                          .add(".serviceName($S)", metadata.getServiceName());
+            initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget());
+        }
+
+        if (shapeModel.isHasStreamingMember()) {
+            initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
         }
 
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
 
-        FieldSpec instance = FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
-                                      .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
-                                      .initializer(codeBlock)
-                                      .build();
-
-        FieldSpec protocolFactory = protocolFactory();
-
-        fields.add(instance);
-        fields.add(protocolFactory);
-        return fields;
+        return FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
+                        .initializer(codeBlock)
+                        .build();
     }
-
 }

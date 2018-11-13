@@ -29,15 +29,14 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -217,16 +216,16 @@ public abstract class AbstractAwsSigner implements Signer {
      */
     protected String getCanonicalizedQueryString(Map<String, List<String>> parameters) {
 
-        final SortedMap<String, List<String>> sorted = new TreeMap<>();
+        SortedMap<String, List<String>> sorted = new TreeMap<>();
 
         /**
          * Signing protocol expects the param values also to be sorted after url
          * encoding in addition to sorted parameter names.
          */
         for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
-            final String encodedParamName = SdkHttpUtils.urlEncode(entry.getKey());
-            final List<String> paramValues = entry.getValue();
-            final List<String> encodedValues = new ArrayList<>(paramValues.size());
+            String encodedParamName = SdkHttpUtils.urlEncode(entry.getKey());
+            List<String> paramValues = entry.getValue();
+            List<String> encodedValues = new ArrayList<>(paramValues.size());
             for (String value : paramValues) {
                 String encodedValue = SdkHttpUtils.urlEncode(value);
 
@@ -244,23 +243,12 @@ public abstract class AbstractAwsSigner implements Signer {
         return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
     }
 
-    @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
-    protected static int getReadLimit() {
-        return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
-
-    }
-
-    protected InputStream getBinaryRequestPayloadStream(InputStream stream) {
+    protected InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
         try {
-            if (stream == null) {
+            if (streamProvider == null) {
                 return new ByteArrayInputStream(new byte[0]);
             }
-            if (!stream.markSupported()) {
-                throw SdkClientException.builder()
-                                        .message("Unable to read request payload to sign request.")
-                                        .build();
-            }
-            return stream;
+            return streamProvider.newStream();
         } catch (SdkClientException e) {
             throw e;
         } catch (Exception e) {

@@ -44,7 +44,7 @@ public final class ProtocolTestRunner {
 
     public ProtocolTestRunner(String intermediateModelLocation) {
         WireMockUtils.startWireMockServer();
-        final IntermediateModel model = loadModel(intermediateModelLocation);
+        IntermediateModel model = loadModel(intermediateModelLocation);
         this.clientReflector = new ClientReflector(model);
         this.marshallingTestRunner = new MarshallingTestRunner(model, clientReflector);
         this.unmarshallingTestRunner = new UnmarshallingTestRunner(model, clientReflector);
@@ -75,5 +75,6 @@ public final class ProtocolTestRunner {
                             "Unsupported action " + testCase.getWhen().getAction());
             }
         }
+        clientReflector.close();
     }
 }

@@ -37,6 +37,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -129,8 +131,7 @@ public class ExecutionInterceptorTest {
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
-        beforeTransmissionArg.httpRequest().content().get().reset();
-        assertThat(beforeTransmissionArg.httpRequest().content().get().read()).isEqualTo(0);
+        assertThat(beforeTransmissionArg.httpRequest().contentStreamProvider().get().newStream().read()).isEqualTo(0);
     }
 
     @Test
@@ -147,13 +148,12 @@ public class ExecutionInterceptorTest {
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
-        beforeTransmissionArg.httpRequest().content().get().reset();
 
         // TODO: The content should actually be empty to match responses. We can fix this by updating the StructuredJsonGenerator
         // to use null for NO-OP marshalling of payloads. This will break streaming POST operations for JSON because of a hack in
         // the MoveParametersToBodyStage, but we can move the logic from there into the query marshallers (why the hack exists)
         // and then everything should be good for JSON.
-        assertThat(beforeTransmissionArg.httpRequest().content().get().read()).isEqualTo(-1);
+        assertThat(beforeTransmissionArg.httpRequest().contentStreamProvider().get().newStream().read()).isEqualTo(-1);
     }
 
     @Test
@@ -255,7 +255,9 @@ public class ExecutionInterceptorTest {
 
         // When
         assertThatExceptionOfType(ExecutionException.class).isThrownBy(() -> client.membersInHeaders(request).get())
-                                                           .withCause(exception);
+                                                           .withCause(SdkClientException.builder()
+                                                                                        .cause(exception)
+                                                                                        .build());
 
         // Expect
         expectAllMethodsCalled(interceptor, request, exception);
@@ -513,8 +515,8 @@ public class ExecutionInterceptorTest {
 
     private static class NoOpAsyncRequestBody implements AsyncRequestBody {
         @Override
-        public long contentLength() {
-            return 0;
+        public Optional<Long> contentLength() {
+            return Optional.of(0L);
         }
 
         @Override
@@ -535,10 +537,17 @@ public class ExecutionInterceptorTest {
 
     private static class NoOpAsyncResponseTransformer
             implements AsyncResponseTransformer<StreamingOutputOperationResponse, Object> {
-        private StreamingOutputOperationResponse response;
+        private volatile StreamingOutputOperationResponse response;
+        private volatile CompletableFuture<Object> cf;
 
         @Override
-        public void responseReceived(StreamingOutputOperationResponse response) {
+        public CompletableFuture<Object> prepare() {
+            cf = new CompletableFuture<>();
+            return cf;
+        }
+
+        @Override
+        public void onResponse(StreamingOutputOperationResponse response) {
             this.response = response;
         }
 
@@ -565,7 +574,7 @@ public class ExecutionInterceptorTest {
 
                 @Override
                 public void onComplete() {
-
+                    cf.complete(response);
                 }
             });
         }
@@ -573,14 +582,7 @@ public class ExecutionInterceptorTest {
         @Override
         public void exceptionOccurred(Throwable throwable) {
             throwable.printStackTrace();
-        }
-
-        @Override
-        public Object complete() {
-            // TODO: If I throw an exception here, the future isn't completed exceptionally.
-            // TODO: We have to return "response" here. We should verify other response types are cool once we switch this off of
-            // being the unmarshaller
-            return response;
+            cf.completeExceptionally(throwable);
         }
     }
 }

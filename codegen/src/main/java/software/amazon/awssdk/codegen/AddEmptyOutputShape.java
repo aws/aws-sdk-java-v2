@@ -48,9 +48,9 @@ public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
 
     private Map<String, ShapeModel> addEmptyOutputShapes(
         Map<String, OperationModel> currentOperations) {
-        final Map<String, Operation> operations = serviceModel.getOperations();
+        Map<String, Operation> operations = serviceModel.getOperations();
 
-        final Map<String, ShapeModel> emptyOutputShapes = new HashMap<>();
+        Map<String, ShapeModel> emptyOutputShapes = new HashMap<>();
 
         for (Map.Entry<String, Operation> entry : operations.entrySet()) {
             String operationName = entry.getKey();
@@ -58,8 +58,8 @@ public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
 
             Output output = operation.getOutput();
             if (output == null) {
-                final String outputShape = operationName + RESPONSE_CLASS_SUFFIX;
-                final OperationModel operationModel = currentOperations.get(operationName);
+                String outputShape = operationName + RESPONSE_CLASS_SUFFIX;
+                OperationModel operationModel = currentOperations.get(operationName);
 
                 operationModel.setReturnType(new ReturnTypeModel(outputShape));
 
@@ -67,7 +67,7 @@ public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
                     .withType(ShapeType.Response.getValue());
                 shape.setShapeName(outputShape);
 
-                final VariableModel outputVariable = new VariableModel(
+                VariableModel outputVariable = new VariableModel(
                     namingStrategy.getVariableName(outputShape), outputShape);
                 shape.setVariable(outputVariable);
                 shape.setUnmarshaller(new ShapeUnmarshaller());

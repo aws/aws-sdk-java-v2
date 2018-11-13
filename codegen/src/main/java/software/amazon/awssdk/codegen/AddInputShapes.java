@@ -43,7 +43,7 @@ final class AddInputShapes extends AddShapes implements IntermediateModelShapePr
 
     private Map<String, ShapeModel> constructInputShapes() {
         // Java input shape models, to be constructed
-        final Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
 
         for (Map.Entry<String, Operation> entry : getServiceModel().getOperations().entrySet()) {
 

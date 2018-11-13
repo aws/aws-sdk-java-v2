@@ -37,7 +37,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 @SdkPublicApi
 public class AwsServiceException extends SdkServiceException {
 
-    private transient AwsErrorDetails awsErrorDetails;
+    private AwsErrorDetails awsErrorDetails;
 
     protected AwsServiceException(Builder b) {
         super(b);

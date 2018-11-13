@@ -22,16 +22,16 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
-import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.Validate;
@@ -40,22 +40,6 @@ final class ClientClassUtils {
     private static final String PAGINATOR_USER_AGENT = "PAGINATED";
 
     private ClientClassUtils() {
-    }
-
-    static Optional<CodeBlock> getCustomResponseHandler(OperationModel operationModel, ClassName returnType) {
-        Optional<String> customUnmarshaller = Optional.ofNullable(operationModel.getOutputShape())
-                                                      .map(ShapeModel::getCustomization)
-                                                      .flatMap(c -> Optional.ofNullable(c.getCustomUnmarshallerFqcn()));
-        return customUnmarshaller.map(unmarshaller -> {
-            if (operationModel.hasStreamingOutput()) {
-                throw new UnsupportedOperationException("Custom unmarshallers cannot be applied to streaming operations yet.");
-            }
-
-            return CodeBlock.builder().add("$T<$T> responseHandler = (response, __) -> new $T().unmarshall(response);",
-                                           HttpResponseHandler.class,
-                                           returnType,
-                                           ClassName.bestGuess(unmarshaller)).build();
-        });
     }
 
     static MethodSpec consumerBuilderVariant(MethodSpec spec, String javadoc) {
@@ -124,7 +108,7 @@ final class ClientClassUtils {
     }
 
     static MethodSpec applySignerOverrideMethod(PoetExtensions poetExtensions, IntermediateModel model) {
-        final String signerOverrideVariable = "signerOverride";
+        String signerOverrideVariable = "signerOverride";
 
         TypeVariableName typeVariableName =
             TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
@@ -166,13 +150,13 @@ final class ClientClassUtils {
         ShapeModel inputShape = opModel.getInputShape();
 
         if (inputShape.getRequestSignerClassFqcn() != null) {
-            try {
-                code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                                  opModel.getInput().getVariableName(),
-                                  Class.forName(inputShape.getRequestSignerClassFqcn()));
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
+                              opModel.getInput().getVariableName(),
+                              PoetUtils.classNameFromFqcn(inputShape.getRequestSignerClassFqcn()));
+        } else if (opModel.hasEventStreamInput()) {
+            code.addStatement("$1L = applySignerOverride($1L, $2T.create())",
+                              opModel.getInput().getVariableName(), EventStreamAws4Signer.class);
+
         }
 
         return code.build();

@@ -19,9 +19,9 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
@@ -41,11 +41,13 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
-import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
+import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
+import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
+//TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
 
     private final IntermediateModel model;
@@ -57,7 +59,7 @@ public class SyncClientClass implements ClassSpec {
         this.model = taskParams.getModel();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
-        this.protocolSpec = getProtocolSpecs(poetExtensions, model.getMetadata().getProtocol());
+        this.protocolSpec = getProtocolSpecs(poetExtensions, model);
     }
 
     @Override
@@ -75,6 +77,7 @@ public class SyncClientClass implements ClassSpec {
                                         .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
                                         .addMethod(constructor())
                                         .addMethod(nameMethod())
+                                        .addMethods(protocolSpec.additionalMethods())
                                         .addMethods(operations());
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
@@ -115,17 +118,19 @@ public class SyncClientClass implements ClassSpec {
                                                .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                                              protocolSpec.getClientHandlerClass())
                                                .addStatement("this.clientConfiguration = clientConfiguration");
+        FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
-            builder.addStatement("this.$N = init($L)", protocolSpec.protocolFactory(model).name,
-                                 model.getMetadata().isCborProtocol());
+            builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
+                                 protocolFactoryField.type);
         } else {
-            builder.addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name);
+            builder.addStatement("this.$N = init()", protocolFactoryField.name);
         }
         return builder.build();
     }
 
     private List<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpecs)
                     .flatMap(List::stream)
@@ -134,13 +139,11 @@ public class SyncClientClass implements ClassSpec {
 
     private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
-        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
                                        .addAnnotation(Override.class)
                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                                       .addCode(getCustomResponseHandler(opModel, returnType)
-                                                    .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
+                                       .addCode(protocolSpec.responseHandler(model, opModel))
                                        .addCode(protocolSpec.errorResponseHandler(opModel))
                                        .addCode(protocolSpec.executionHandler(opModel))
                                        .build());
@@ -180,18 +183,20 @@ public class SyncClientClass implements ClassSpec {
                          .build();
     }
 
-    static ProtocolSpec getProtocolSpecs(PoetExtensions poetExtensions, Protocol protocol) {
+    static ProtocolSpec getProtocolSpecs(PoetExtensions poetExtensions, IntermediateModel model) {
+        Protocol protocol = model.getMetadata().getProtocol();
         switch (protocol) {
             case QUERY:
+                return new QueryProtocolSpec(poetExtensions);
             case REST_XML:
-                return new QueryXmlProtocolSpec(poetExtensions);
+                return new XmlProtocolSpec(model, poetExtensions);
             case EC2:
                 return new Ec2ProtocolSpec(poetExtensions);
             case AWS_JSON:
             case REST_JSON:
             case CBOR:
             case ION:
-                return new JsonProtocolSpec(poetExtensions);
+                return new JsonProtocolSpec(poetExtensions, model);
             case API_GATEWAY:
                 throw new UnsupportedOperationException("Not yet supported.");
             default:

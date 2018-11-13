@@ -138,8 +138,21 @@
         "method": "POST",
         "requestUri": "/2016-03-11/eventStreamOperation"
       },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
       "output": {
         "shape": "EventStreamOutput"
+      }
+    },
+    "EventStreamOperationWithOnlyInput": {
+      "name": "EventStreamOperationWithOnlyInput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/EventStreamOperationWithOnlyInput"
+      },
+      "input": {
+        "shape": "EventStreamOperationWithOnlyInputRequest"
       }
     }
   },
@@ -323,6 +336,18 @@
       },
       "documentation": "<p>Response type of a single page</p>"
     },
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStream": {
+          "shape": "InputEventStream"
+        }
+      },
+      "payload":"InputEventStream"
+    },
     "EventStreamOutput": {
       "type": "structure",
       "required": [
@@ -334,6 +359,26 @@
         }
       }
     },
+    "InputEventStream": {
+      "type": "structure",
+      "members": {
+        "InputEvent": {
+          "shape": "InputEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEvent": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        }
+      },
+      "event": true
+    },
+    "ExplicitPayloadMember":{"type":"blob"},
     "EventStream": {
       "type": "structure",
       "members": {
@@ -363,7 +408,47 @@
         }
       },
       "event": true
-    }
+    },
+    "EventStreamOperationWithOnlyInputRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStreamTwo"
+      ],
+      "members": {
+        "InputEventStreamTwo": {
+          "shape": "InputEventStreamTwo"
+        }
+      }
+    },
+    "InputEventStreamTwo": {
+      "type": "structure",
+      "members": {
+        "InputEventOne": {
+          "shape": "InputEvent"
+        },
+        "InputEventTwo": {
+          "shape": "InputEventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEventTwo": {
+      "type": "structure",
+      "members": {
+        "ImplicitPayloadMemberOne": {
+          "shape": "ImplicitPayloadMemberOne"
+        },
+        "ImplicitPayloadMemberTwo": {
+          "shape": "String"
+        },
+        "EventHeaderMember": {
+          "shape":"String",
+          "eventheader":true
+        }
+      },
+      "event": true
+    },
+    "ImplicitPayloadMemberOne":{"type":"blob"}
   },
   "documentation": "A service that is implemented using the query protocol"
 }

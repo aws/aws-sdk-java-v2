@@ -55,7 +55,7 @@ public final class OrRetryCondition implements RetryCondition {
             return false;
         }
 
-        final OrRetryCondition that = (OrRetryCondition) o;
+        OrRetryCondition that = (OrRetryCondition) o;
 
         return conditions.equals(that.conditions);
     }

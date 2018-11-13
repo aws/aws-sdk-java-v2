@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.exception;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
  * Base class for all exceptions thrown by the SDK.
@@ -55,7 +56,7 @@ public class SdkException extends RuntimeException {
         return new BuilderImpl();
     }
 
-    public interface Builder {
+    public interface Builder extends Buildable {
         /**
          * Specifies the exception that caused this exception to occur.
          *
@@ -91,6 +92,7 @@ public class SdkException extends RuntimeException {
          *
          * @return The new {@link SdkException}.
          */
+        @Override
         SdkException build();
     }
 

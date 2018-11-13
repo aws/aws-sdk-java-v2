@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.poet.common.EnumClass;
 import software.amazon.awssdk.codegen.poet.model.AwsServiceBaseRequestSpec;
 import software.amazon.awssdk.codegen.poet.model.AwsServiceBaseResponseSpec;
 import software.amazon.awssdk.codegen.poet.model.AwsServiceModel;
+import software.amazon.awssdk.codegen.poet.model.ResponseMetadataSpec;
 import software.amazon.awssdk.codegen.poet.model.ServiceModelCopiers;
 
 class ModelClassGeneratorTasks extends BaseGeneratorTasks {
@@ -58,6 +59,8 @@ class ModelClassGeneratorTasks extends BaseGeneratorTasks {
         new ServiceModelCopiers(model).copierSpecs().stream()
                 .map(safeFunction(spec -> new PoetGeneratorTask(modelClassDir, model.getFileHeader(), spec)))
                 .forEach(tasks::add);
+
+        tasks.add(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new ResponseMetadataSpec(model)));
 
         return tasks;
     }

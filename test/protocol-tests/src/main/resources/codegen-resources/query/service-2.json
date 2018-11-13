@@ -8,7 +8,6 @@
     "serviceFullName":"AWS DR Tools Query Protocol Tests",
     "serviceId":"AmazonProtocolQuery",
     "signatureVersion":"v4",
-    "targetPrefix":"ProtocolTestsQueryService",
     "timestampFormat":"unixTimestamp"
   },
   "operations":{
@@ -24,7 +23,8 @@
         "resultWrapper":"AllTypesResult"
       },
       "errors":[
-        {"shape":"EmptyModeledException"}
+        {"shape":"EmptyModeledException"},
+        {"shape":"ImplicitPayloadException"}
       ]
     },
     "IdempotentOperation":{
@@ -200,6 +200,29 @@
       "members":{
         "NestedTimestamp":{"shape":"Timestamp"}
       }
+    },
+    "ImplicitPayloadException":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"},
+        "IntegerMember":{"shape":"Integer"},
+        "LongMember":{"shape":"Long"},
+        "DoubleMember":{"shape":"Double"},
+        "FloatMember":{"shape":"Float"},
+        "TimestampMember":{"shape":"Timestamp"},
+        "BooleanMember":{"shape":"Boolean"},
+        "BlobMember":{"shape":"BlobType"},
+        "ListMember":{"shape":"ListOfStrings"},
+        "MapMember":{"shape":"MapOfStringToString"},
+        "SimpleStructMember":{"shape":"SimpleStruct"}
+      },
+      "exception":true
+    },
+    "EmptyModeledException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true
     },
     "Timestamp":{"type":"timestamp"}
   }

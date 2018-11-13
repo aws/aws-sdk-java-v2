@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.function.Function;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.pagination.async.PaginationSubscription;
 
 /**
  * An implementation of the {@link Subscription} interface that can be used to signal and cancel demand for

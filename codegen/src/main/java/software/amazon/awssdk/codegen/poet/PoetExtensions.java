@@ -16,7 +16,10 @@
 package software.amazon.awssdk.codegen.poet;
 
 import com.squareup.javapoet.ClassName;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 
 /**
  * Extension and convenience methods to Poet that use the intermediate model.
@@ -81,5 +84,64 @@ public class PoetExtensions {
      */
     public ClassName getResponseClassForPaginatedAsyncOperation(String operationName) {
         return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Publisher");
+    }
+
+    /**
+     * @return ResponseMetadata className. eg: "S3ResponseMetadata"
+     */
+    public ClassName getResponseMetadataClass() {
+        return ClassName.get(model.getMetadata().getFullModelPackageName(),
+                             model.getSdkResponseBaseClassName() + "Metadata");
+    }
+
+    /**
+     * @return The correctly cased name of the API.
+     */
+    public String getApiName(OperationModel operation) {
+        return Utils.capitalize(operation.getOperationName());
+    }
+
+    /**
+     * @return The {@link ClassName} for the response pojo.
+     */
+    public ClassName responsePojoType(OperationModel operation) {
+        return getModelClass(operation.getOutputShape().getShapeName());
+    }
+
+    // TODO Should we move the event stream specific methods to a new class
+    /**
+     * @return {@link ClassName} for generated event stream response handler interface.
+     */
+    public ClassName eventStreamResponseHandlerType(OperationModel operation) {
+        return getModelClass(getApiName(operation) + "ResponseHandler");
+    }
+
+    /**
+     * @return {@link ClassName} for the builder interface for the response handler interface
+     */
+    public ClassName eventStreamResponseHandlerBuilderType(OperationModel operation) {
+        return eventStreamResponseHandlerType(operation).nestedClass("Builder");
+    }
+
+    /**
+     * @return {@link ClassName} for the event stream visitor interface.
+     */
+    public ClassName eventStreamResponseHandlerVisitorType(OperationModel operation) {
+        return eventStreamResponseHandlerType(operation).nestedClass("Visitor");
+    }
+
+    /**
+     * @return {@link ClassName} for the builder interface for the event stream visitor interface.
+     */
+    public ClassName eventStreamResponseHandlerVisitorBuilderType(OperationModel operation) {
+        return eventStreamResponseHandlerVisitorType(operation).nestedClass("Builder");
+    }
+
+    /**
+     * @param shapeModel shape model for the class in model package
+     * @return {@link ClassName} for the shape represented by the given {@link ShapeModel}.
+     */
+    public ClassName getModelClassFromShape(ShapeModel shapeModel) {
+        return getModelClass(shapeModel.getShapeName());
     }
 }

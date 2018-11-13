@@ -26,7 +26,7 @@ public class PartitionServiceMetadataTest {
             "budgets", "cloudfront", "iam", "importexport", "route53", "waf");
 
     private static final List<String> AWS_PARTITION_REGIONALIZED_SERVICES = Arrays.asList(
-            "acm", "apigateway", "application-autoscaling", "appstream", "appstream2", "autoscaling", "batch",
+            "acm", "apigateway", "application-autoscaling", "appstream2", "autoscaling", "batch",
             "cloudformation", "cloudhsm", "cloudsearch", "cloudtrail", "codebuild", "codecommit", "codedeploy",
             "codepipeline", "cognito-identity", "cognito-idp", "cognito-sync", "config", "cur", "data.iot",
             "datapipeline", "directconnect", "dms", "ds", "dynamodb", "ec2", "ecr", "ecs", "elasticache",

@@ -173,6 +173,8 @@ public class ParameterHttpMapping {
         switch (location) {
             default:
                 return MarshallLocation.PAYLOAD;
+            case STATUS_CODE:
+                return MarshallLocation.STATUS_CODE;
             case HEADER:
             case HEADERS:
                 return MarshallLocation.HEADER;

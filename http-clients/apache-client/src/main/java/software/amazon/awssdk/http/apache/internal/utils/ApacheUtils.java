@@ -57,7 +57,7 @@ public final class ApacheUtils {
      * Returns a new HttpClientContext used for request execution.
      */
     public static HttpClientContext newClientContext(ProxyConfiguration proxyConfiguration) {
-        final HttpClientContext clientContext = new HttpClientContext();
+        HttpClientContext clientContext = new HttpClientContext();
         addPreemptiveAuthenticationProxy(clientContext, proxyConfiguration);
         return clientContext;
 
@@ -67,7 +67,7 @@ public final class ApacheUtils {
      * Returns a new Credentials Provider for use with proxy authentication.
      */
     public static CredentialsProvider newProxyCredentialsProvider(ProxyConfiguration proxyConfiguration) {
-        final CredentialsProvider provider = new BasicCredentialsProvider();
+        CredentialsProvider provider = new BasicCredentialsProvider();
         provider.setCredentials(newAuthScope(proxyConfiguration), newNtCredentials(proxyConfiguration));
         return provider;
     }
@@ -86,15 +86,15 @@ public final class ApacheUtils {
      * Returns a new instance of AuthScope used for proxy authentication.
      */
     private static AuthScope newAuthScope(ProxyConfiguration proxyConfiguration) {
-        return new AuthScope(proxyConfiguration.endpoint().getHost(), proxyConfiguration.endpoint().getPort());
+        return new AuthScope(proxyConfiguration.host(), proxyConfiguration.port());
     }
 
     private static void addPreemptiveAuthenticationProxy(HttpClientContext clientContext,
                                                          ProxyConfiguration proxyConfiguration) {
 
         if (proxyConfiguration.preemptiveBasicAuthenticationEnabled()) {
-            HttpHost targetHost = new HttpHost(proxyConfiguration.endpoint().getHost(), proxyConfiguration.endpoint().getPort());
-            final CredentialsProvider credsProvider = newProxyCredentialsProvider(proxyConfiguration);
+            HttpHost targetHost = new HttpHost(proxyConfiguration.host(), proxyConfiguration.port());
+            CredentialsProvider credsProvider = newProxyCredentialsProvider(proxyConfiguration);
             // Create AuthCache instance
             AuthCache authCache = new BasicAuthCache();
             // Generate BASIC scheme object and add it to the local auth cache

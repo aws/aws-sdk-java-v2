@@ -31,7 +31,6 @@ import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -46,7 +45,6 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 public class GenerationMojo extends AbstractMojo {
 
     private static final String MODEL_FILE = "service-2.json";
-    private static final String CODE_GEN_CONFIG_FILE = "codegen.config";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String EXAMPLES_FILE = "examples-1.json";
     private static final String WAITERS_FILE = "waiters-2.json";
@@ -69,19 +67,14 @@ public class GenerationMojo extends AbstractMojo {
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         findModelRoots().forEach(p -> {
-            try {
-                getLog().info("Loading from: " + p.toString());
-                generateCode(C2jModels.builder()
-                                      .applyMutation(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
-                                      .customizationConfig(loadCustomizationConfig(p))
-                                      .serviceModel(loadServiceModel(p))
-                                      .waitersModel(loadWaiterModel(p))
-                                      .paginatorsModel(loadPaginatorModel(p))
-                                      .examplesModel(loadExamplesModel(p))
-                                      .build());
-            } catch (MojoExecutionException e) {
-                throw new RuntimeException(e);
-            }
+            getLog().info("Loading from: " + p.toString());
+            generateCode(C2jModels.builder()
+                                  .customizationConfig(loadCustomizationConfig(p))
+                                  .serviceModel(loadServiceModel(p))
+                                  .waitersModel(loadWaiterModel(p))
+                                  .paginatorsModel(loadPaginatorModel(p))
+                                  .examplesModel(loadExamplesModel(p))
+                                  .build());
         });
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
@@ -115,16 +108,14 @@ public class GenerationMojo extends AbstractMojo {
                      .execute();
     }
 
-    private Optional<BasicCodeGenConfig> loadCodeGenConfig(Path root) {
-        return loadOptionalModel(BasicCodeGenConfig.class, root.resolve(CODE_GEN_CONFIG_FILE));
-    }
-
     private CustomizationConfig loadCustomizationConfig(Path root) {
-        return loadOptionalModel(CustomizationConfig.class, root.resolve(CUSTOMIZATION_CONFIG_FILE))
-                .orElse(CustomizationConfig.create());
+        return ModelLoaderUtils.loadOptionalModel(CustomizationConfig.class,
+                                                  root.resolve(CUSTOMIZATION_CONFIG_FILE).toFile(),
+                                                  true)
+                               .orElse(CustomizationConfig.create());
     }
 
-    private ServiceModel loadServiceModel(Path root) throws MojoExecutionException {
+    private ServiceModel loadServiceModel(Path root) {
         return loadRequiredModel(ServiceModel.class, root.resolve(MODEL_FILE));
     }
 
@@ -143,7 +134,7 @@ public class GenerationMojo extends AbstractMojo {
     /**
      * Load required model from the project resources.
      */
-    private <T> T loadRequiredModel(Class<T> clzz, Path location) throws MojoExecutionException {
+    private <T> T loadRequiredModel(Class<T> clzz, Path location) {
         return ModelLoaderUtils.loadModel(clzz, location.toFile());
     }
 

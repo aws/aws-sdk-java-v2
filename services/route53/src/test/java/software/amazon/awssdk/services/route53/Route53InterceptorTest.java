@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.route53.internal.Route53IdInterceptor;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneRequest;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
@@ -42,8 +42,7 @@ public class Route53InterceptorTest {
 
     private static final String id = "delegationSetId";
 
-    private static final String delegationSetId = "/" + delegationPrefix + "/"
-            + id;
+    private static final String delegationSetId = "/" + delegationPrefix + "/" + id;
 
     /**
      * Tests if the request handler strips the delegation set prefixes. Asserts

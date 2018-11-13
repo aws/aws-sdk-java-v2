@@ -23,6 +23,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -32,15 +33,16 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
  * Spec for builder interface for visitor.
  */
 public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
-
-    final EventStreamUtils eventStreamUtils;
     private final PoetExtensions poetExt;
+    private final OperationModel operationModel;
+    private final ShapeModel eventStreamShape;
     private final ClassName visitorBuilderType;
 
-    EventStreamVisitorBuilderInterfaceSpec(EventStreamUtils eventStreamUtils, PoetExtensions poetExt) {
-        this.eventStreamUtils = eventStreamUtils;
+    EventStreamVisitorBuilderInterfaceSpec(PoetExtensions poetExt, OperationModel opModel) {
         this.poetExt = poetExt;
-        this.visitorBuilderType = eventStreamUtils.responseHandlerVisitorBuilderType();
+        this.operationModel = opModel;
+        this.eventStreamShape = EventStreamUtils.getEventStreamInResponse(operationModel.getOutputShape());
+        this.visitorBuilderType = poetExt.eventStreamResponseHandlerVisitorBuilderType(opModel);
     }
 
     @Override
@@ -49,7 +51,7 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
             .addMethod(applyOnDefaultMethodSpecUpdates(createOnDefaultMethodSpec()).build())
             .addMethod(applyBuildMethodSpecUpdates(createBuildMethodSpec()).build());
 
-        eventStreamUtils.getEventSubTypes()
+        EventStreamUtils.getEvents(eventStreamShape)
                         .forEach(s -> typeBuilder.addMethod(
                             applyOnSubTypeMethodSpecUpdates(typeBuilder, createOnSubTypeMethodSpec(s), s)
                                 .build()));
@@ -63,7 +65,7 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
                           + "will callback methods.";
         return PoetUtils.createInterfaceBuilder(className())
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                        .addJavadoc(javadocs, eventStreamUtils.responseHandlerVisitorType());
+                        .addJavadoc(javadocs, poetExt.eventStreamResponseHandlerVisitorType(operationModel));
     }
 
     @Override
@@ -73,7 +75,7 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
 
     private MethodSpec.Builder createOnDefaultMethodSpec() {
         ParameterizedTypeName eventConsumerType = ParameterizedTypeName.get(ClassName.get(Consumer.class),
-                                                                            eventStreamUtils.eventStreamBaseClass());
+                                                                            poetExt.getModelClassFromShape(eventStreamShape));
         return MethodSpec.methodBuilder("onDefault")
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(ParameterSpec.builder(eventConsumerType, "c").build())
@@ -93,7 +95,7 @@ public class EventStreamVisitorBuilderInterfaceSpec implements ClassSpec {
     private MethodSpec.Builder createBuildMethodSpec() {
         return MethodSpec.methodBuilder("build")
                          .addModifiers(Modifier.PUBLIC)
-                         .returns(eventStreamUtils.responseHandlerVisitorType());
+                         .returns(poetExt.eventStreamResponseHandlerVisitorType(operationModel));
     }
 
     protected MethodSpec.Builder applyBuildMethodSpecUpdates(MethodSpec.Builder builder) {

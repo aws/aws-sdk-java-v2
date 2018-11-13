@@ -130,7 +130,7 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
             return false;
         }
 
-        final FullJitterBackoffStrategy that = (FullJitterBackoffStrategy) o;
+        FullJitterBackoffStrategy that = (FullJitterBackoffStrategy) o;
 
         if (!baseDelay.equals(that.baseDelay)) {
             return false;

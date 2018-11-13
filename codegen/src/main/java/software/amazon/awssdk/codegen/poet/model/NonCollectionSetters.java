@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -73,19 +71,22 @@ class NonCollectionSetters extends AbstractMemberSetters {
         return fluentSetters;
     }
 
+
     public MethodSpec convenienceDeclaration(TypeName returnType, ConvenienceTypeOverload overload) {
         return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
                          .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                          .returns(returnType)
                          .build();
+
     }
+
 
     public MethodSpec fluentConvenience(TypeName returnType, ConvenienceTypeOverload overload) {
         return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
-                         .addStatement("$L(new $T().adapt($L))",
+                         .addStatement("$L($T.instance().adapt($L))",
                                        memberModel().getFluentSetterMethodName(),
                                        PoetUtils.classNameFromFqcn(overload.getTypeAdapterFqcn()),
                                        memberAsParameter().name)
@@ -99,24 +100,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
             .addCode(beanCopySetterBody());
 
-        if (annotateJsonProperty()) {
-            builder.addAnnotation(
-                AnnotationSpec.builder(JsonProperty.class)
-                              .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
-        }
-
         return builder.build();
-    }
-
-    public MethodSpec beanStyleConvenience(ConvenienceTypeOverload overload) {
-        return MethodSpec.methodBuilder(memberModel().getBeanStyleSetterMethodName())
-                         .addModifiers(Modifier.PUBLIC)
-                         .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
-                         .addStatement("this.$L = new $T().adapt($L)",
-                                       memberAsParameter().name,
-                                       PoetUtils.classNameFromFqcn(overload.getTypeAdapterFqcn()),
-                                       memberAsParameter().name)
-                         .build();
     }
 
     private MethodSpec fluentAssignmentSetter(TypeName returnType) {

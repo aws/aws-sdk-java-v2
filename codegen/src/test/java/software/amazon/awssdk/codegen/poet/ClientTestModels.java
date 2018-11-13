@@ -16,8 +16,6 @@
 package software.amazon.awssdk.codegen.poet;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -43,11 +41,7 @@ public class ClientTestModels {
                                     .paginatorsModel(getPaginatorsModel(paginatorsModel))
                                     .build();
 
-        try {
-            return new IntermediateModelBuilder(models).build();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return new IntermediateModelBuilder(models).build();
     }
 
     public static IntermediateModel queryServiceModels() {
@@ -62,11 +56,7 @@ public class ClientTestModels {
                 .waitersModel(getWaiters(waitersModel))
                 .build();
 
-        try {
-            return new IntermediateModelBuilder(models).build();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return new IntermediateModelBuilder(models).build();
     }
 
     private static ServiceModel getServiceModel(File file) {

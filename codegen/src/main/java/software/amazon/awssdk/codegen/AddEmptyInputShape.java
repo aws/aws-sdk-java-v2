@@ -52,9 +52,9 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
 
     private Map<String, ShapeModel> addEmptyInputShapes(
             Map<String, OperationModel> javaOperationMap) {
-        final Map<String, Operation> operations = serviceModel.getOperations();
+        Map<String, Operation> operations = serviceModel.getOperations();
 
-        final Map<String, ShapeModel> emptyInputShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> emptyInputShapes = new HashMap<String, ShapeModel>();
 
         for (Map.Entry<String, Operation> entry : operations.entrySet()) {
             String operationName = entry.getKey();
@@ -62,8 +62,8 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
 
             Input input = operation.getInput();
             if (input == null) {
-                final String inputShape = operationName + REQUEST_CLASS_SUFFIX;
-                final OperationModel operationModel = javaOperationMap.get(operationName);
+                String inputShape = operationName + REQUEST_CLASS_SUFFIX;
+                OperationModel operationModel = javaOperationMap.get(operationName);
 
                 operationModel.setInput(new VariableModel(unCapitalize(inputShape), inputShape));
 
@@ -71,7 +71,7 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
                         .withType(ShapeType.Request.getValue());
                 shape.setShapeName(inputShape);
 
-                final VariableModel inputVariable = new VariableModel(
+                VariableModel inputVariable = new VariableModel(
                         namingStrategy.getVariableName(inputShape), inputShape);
                 shape.setVariable(inputVariable);
 

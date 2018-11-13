@@ -59,7 +59,7 @@ public class UnreliableRandomInputStream extends RandomInputStream {
     private void triggerException() throws IOException {
         if (remainingBytes <= (lengthInBytes / 2) && !hasTriggeredAnException) {
             hasTriggeredAnException = true;
-            final String msg = "UnreliableBogusInputStream fired an IOException after reading " + getBytesRead() + " bytes.";
+            String msg = "UnreliableBogusInputStream fired an IOException after reading " + getBytesRead() + " bytes.";
             if (DEBUG) {
                 log.error(msg);
             }

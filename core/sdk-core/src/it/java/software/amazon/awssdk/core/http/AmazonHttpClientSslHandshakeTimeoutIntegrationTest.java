@@ -24,9 +24,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import utils.HttpTestUtils;
 
@@ -53,11 +54,13 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
         System.out.println("Sending request to localhost...");
 
         try {
-            EmptyHttpRequest request = new EmptyHttpRequest(server.getHttpsEndpoint(), HttpMethodName.GET);
+            SdkHttpFullRequest request = server.configureHttpsEndpoint(SdkHttpFullRequest.builder())
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
             httpClient.requestExecutionBuilder()
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())
-                      .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                      .executionContext(executionContext(request))
                       .errorResponseHandler(new NullErrorResponseHandler())
                       .execute();
             fail("Client-side socket read timeout is expected!");

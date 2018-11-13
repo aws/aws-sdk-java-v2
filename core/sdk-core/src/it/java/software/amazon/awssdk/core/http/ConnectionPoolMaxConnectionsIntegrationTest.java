@@ -23,13 +23,13 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.EmptySdkResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import utils.HttpTestUtils;
 
@@ -53,8 +53,6 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
     @Test(timeout = 60 * 1000)
     public void leasing_a_new_connection_fails_with_connection_pool_timeout() {
 
-        String localhostEndpoint = "http://localhost:" + server.getPort();
-
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                        .retryPolicy(RetryPolicy.none())
                                                        .httpClient(ApacheHttpClient.builder()
@@ -63,13 +61,15 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
                                                                                    .build())
                                                        .build();
 
-        Request<?> request = new EmptyHttpRequest(localhostEndpoint, HttpMethodName.GET);
+        SdkHttpFullRequest request = server.configureHttpEndpoint(SdkHttpFullRequest.builder())
+                                           .method(SdkHttpMethod.GET)
+                                           .build();
 
         // Block the first connection in the pool with this request.
         httpClient.requestExecutionBuilder()
                   .request(request)
                   .originalRequest(NoopTestRequest.builder().build())
-                  .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                  .executionContext(executionContext(request))
                   .execute(new EmptySdkResponseHandler());
 
         try {
@@ -78,7 +78,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
             httpClient.requestExecutionBuilder()
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())
-                      .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                      .executionContext(executionContext(request))
                       .execute();
             Assert.fail("Connection pool timeout exception is expected!");
         } catch (SdkClientException e) {

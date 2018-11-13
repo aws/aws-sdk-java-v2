@@ -30,7 +30,6 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.SdkBytes;
 
@@ -41,7 +40,6 @@ abstract class AbstractMemberSetters implements MemberSetters {
     protected final PoetExtensions poetExtensions;
     private final ShapeModel shapeModel;
     private final MemberModel memberModel;
-    private final IntermediateModel intermediateModel;
     private final TypeProvider typeProvider;
     private final ServiceModelCopiers serviceModelCopiers;
 
@@ -51,7 +49,6 @@ abstract class AbstractMemberSetters implements MemberSetters {
                           TypeProvider typeProvider) {
         this.shapeModel = shapeModel;
         this.memberModel = memberModel;
-        this.intermediateModel = intermediateModel;
         this.typeProvider = typeProvider;
         this.serviceModelCopiers = new ServiceModelCopiers(intermediateModel);
         this.poetExtensions = new PoetExtensions(intermediateModel);
@@ -214,10 +211,6 @@ abstract class AbstractMemberSetters implements MemberSetters {
 
     protected String fieldName() {
         return memberModel.getVariable().getVariableName();
-    }
-
-    protected boolean annotateJsonProperty() {
-        return intermediateModel.getMetadata().isJsonProtocol() && shapeModel.getShapeType() == ShapeType.Exception;
     }
 
     private MethodSpec.Builder fluentSetterDeclaration(ParameterSpec parameter, TypeName returnType) {

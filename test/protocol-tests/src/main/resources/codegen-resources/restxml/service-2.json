@@ -25,7 +25,9 @@
       },
       "output":{"shape":"AllTypesStructure"},
       "errors":[
-        {"shape":"EmptyModeledException"}
+        {"shape":"EmptyModeledException"},
+        {"shape":"ExplicitPayloadAndHeadersException"},
+        {"shape":"ImplicitPayloadException"}
       ]
     },
     "DeleteOperation":{
@@ -124,7 +126,7 @@
         "locationName":"RestXmlTypesRequest",
         "xmlNamespace":{"uri":"https://restxml/"}
       },
-      "output":{"shape":"RestXmlTypesStructure"}
+      "output":{"shape":"RestXmlTypesOutput"}
     }
   },
   "shapes":{
@@ -443,6 +445,29 @@
       "members":{
       }
     },
+    "RestXmlTypesOutput":{
+      "type":"structure",
+      "members":{
+        "FlattenedListOfStrings":{"shape":"FlattenedListOfStrings"},
+        "NonFlattenedListWithLocation":{"shape":"NonFlattenedListWithLocation"},
+        "FlattenedListOfStructs":{"shape":"FlattenedListOfStructs"},
+        "FlattenedListWithLocation":{"shape":"FlattenedListWithLocation"},
+        "FlattenedMap":{"shape":"FlattenedMap"},
+        "FlattenedMapWithLocation":{
+          "shape":"FlattenedMapWithLocation",
+          "locationName":"flatmap"
+        },
+        "NonFlattenedMapWithLocation":{
+          "shape":"NonFlattenedMapWithLocation",
+          "locationName":"themap"
+        },
+        "TimestampMemberInHeader":{
+          "shape":"Timestamp",
+          "location":"header",
+          "locationName":"x-amz-timearg"
+        }
+      }
+    },
     "RestXmlTypesStructure":{
       "type":"structure",
       "members":{
@@ -492,6 +517,72 @@
       "members":{
         "NestedTimestamp":{"shape":"Timestamp"}
       }
+    },
+    "ImplicitPayloadException":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"},
+        "IntegerMember":{"shape":"Integer"},
+        "LongMember":{"shape":"Long"},
+        "DoubleMember":{"shape":"Double"},
+        "FloatMember":{"shape":"Float"},
+        "TimestampMember":{"shape":"Timestamp"},
+        "BooleanMember":{"shape":"Boolean"},
+        "BlobMember":{"shape":"BlobType"},
+        "ListMember":{"shape":"ListOfStrings"},
+        "MapMember":{"shape":"MapOfStringToString"},
+        "SimpleStructMember":{"shape":"SimpleStruct"}
+      },
+      "exception":true
+    },
+    "EmptyModeledException":{
+      "type":"structure",
+      "members":{
+      },
+      "exception":true
+    },
+    "ExplicitPayloadAndHeadersException":{
+      "type":"structure",
+      "members":{
+        "StringHeader":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-string"
+        },
+        "IntegerHeader":{
+          "shape":"Integer",
+          "location":"header",
+          "locationName":"x-amz-integer"
+        },
+        "LongHeader":{
+          "shape":"Long",
+          "location":"header",
+          "locationName":"x-amz-long"
+        },
+        "DoubleHeader":{
+          "shape":"Double",
+          "location":"header",
+          "locationName":"x-amz-double"
+        },
+        "FloatHeader":{
+          "shape":"Float",
+          "location":"header",
+          "locationName":"x-amz-float"
+        },
+        "TimestampHeader":{
+          "shape":"Timestamp",
+          "location":"header",
+          "locationName":"x-amz-timestamp"
+        },
+        "BooleanHeader":{
+          "shape":"Boolean",
+          "location":"header",
+          "locationName":"x-amz-boolean"
+        },
+        "PayloadMember":{"shape":"SimpleStruct"}
+      },
+      "exception":true,
+      "payload":"PayloadMember"
     },
     "Timestamp":{"type":"timestamp"}
   }

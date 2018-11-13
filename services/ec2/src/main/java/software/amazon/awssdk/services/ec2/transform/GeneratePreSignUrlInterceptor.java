@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.ec2.transform;
 
-import static software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -23,13 +23,15 @@ import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
@@ -40,6 +42,16 @@ import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
  */
 @SdkProtectedApi
 public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
+
+    private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory
+        .builder()
+        // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
+        .clientConfiguration(SdkClientConfiguration.builder()
+                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .build())
+        .build();
+
+    private static final CopySnapshotRequestMarshaller MARSHALLER = new CopySnapshotRequestMarshaller(PROTOCOL_FACTORY);
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
@@ -83,16 +95,14 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
             SdkHttpFullRequest requestForPresigning = generateRequestForPresigning(
                     sourceSnapshotId, sourceRegion, destinationRegion)
                     .toBuilder()
-                    .protocol(endPointSource.getScheme())
-                    .host(endPointSource.getHost())
-                    .port(endPointSource.getPort())
+                    .uri(endPointSource)
                     .method(SdkHttpMethod.GET)
                     .build();
 
-            final Aws4Signer signer = Aws4Signer.create();
+            Aws4Signer signer = Aws4Signer.create();
             Aws4PresignerParams signingParams = getPresignerParams(executionAttributes, sourceRegion, serviceName);
 
-            final SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
+            SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
 
             return request.toBuilder()
                           .putRawQueryParameter("DestinationRegion", destinationRegion)
@@ -124,12 +134,12 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                                                                      .destinationRegion(destinationRegion)
                                                                      .build();
 
-        return SdkHttpFullRequestAdapter.toHttpFullRequest(new CopySnapshotRequestMarshaller().marshall(copySnapshotRequest));
+        return MARSHALLER.marshall(copySnapshotRequest);
     }
 
     private URI createEndpoint(String regionName, String serviceName) {
 
-        final Region region = Region.of(regionName);
+        Region region = Region.of(regionName);
 
         if (region == null) {
             throw SdkClientException.builder()

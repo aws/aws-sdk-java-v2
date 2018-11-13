@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Member {
 
     private String shape;
@@ -38,6 +40,17 @@ public class Member {
     private boolean idempotencyToken;
 
     private boolean deprecated;
+
+    @JsonProperty("jsonvalue")
+    private boolean jsonValue;
+
+    private String timestampFormat;
+
+    @JsonProperty(value = "eventpayload")
+    private boolean eventPayload;
+
+    @JsonProperty(value = "eventheader")
+    private boolean eventHeader;
 
     public String getShape() {
         return shape;
@@ -125,5 +138,37 @@ public class Member {
 
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public boolean getJsonValue() {
+        return jsonValue;
+    }
+
+    public void setJsonValue(boolean jsonValue) {
+        this.jsonValue = jsonValue;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
+    }
+
+    public boolean isEventPayload() {
+        return eventPayload;
+    }
+
+    public void setEventPayload(boolean eventPayload) {
+        this.eventPayload = eventPayload;
+    }
+
+    public boolean isEventHeader() {
+        return eventHeader;
+    }
+
+    public void setEventHeader(boolean eventHeader) {
+        this.eventHeader = eventHeader;
     }
 }

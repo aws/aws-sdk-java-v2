@@ -1,12 +1,19 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.StructuredPojo;
-import software.amazon.awssdk.services.jsonprotocoltests.transform.SimpleStructMarshaller;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -14,7 +21,15 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
+public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
+    private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD));
+
+    private static final long serialVersionUID = 1L;
+
     private final String stringMember;
 
     private SimpleStruct(BuilderImpl builder) {
@@ -72,20 +87,27 @@ public final class SimpleStruct implements StructuredPojo, ToCopyableBuilder<Sim
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "StringMember":
-            return Optional.ofNullable(clazz.cast(stringMember()));
-        default:
-            return Optional.empty();
+            case "StringMember":
+                return Optional.ofNullable(clazz.cast(stringMember()));
+            default:
+                return Optional.empty();
         }
     }
 
-    @SdkInternalApi
     @Override
-    public void marshall(ProtocolMarshaller protocolMarshaller) {
-        SimpleStructMarshaller.getInstance().marshall(this, protocolMarshaller);
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
     }
 
-    public interface Builder extends CopyableBuilder<Builder, SimpleStruct> {
+    private static <T> Function<Object, T> getter(Function<SimpleStruct, T> g) {
+        return obj -> g.apply((SimpleStruct) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, SimpleStruct> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -124,5 +146,11 @@ public final class SimpleStruct implements StructuredPojo, ToCopyableBuilder<Sim
         public SimpleStruct build() {
             return new SimpleStruct(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

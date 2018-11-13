@@ -54,17 +54,17 @@ final class RemoveUnusedShapes {
                                            Map<String, ShapeModel> in,
                                            Map<String, ShapeModel> out) {
 
-        final VariableModel input = op.getInput();
+        VariableModel input = op.getInput();
         if (input != null) {
             addShapeAndMembers(input.getSimpleType(), in, out);
         }
 
-        final ReturnTypeModel output = op.getReturnType();
+        ReturnTypeModel output = op.getReturnType();
         if (output != null) {
             addShapeAndMembers(output.getReturnType(), in, out);
         }
 
-        final List<ExceptionModel> exceptions = op.getExceptions();
+        List<ExceptionModel> exceptions = op.getExceptions();
         if (op.getExceptions() != null) {
             for (ExceptionModel e : exceptions) {
                 addShapeAndMembers(e.getExceptionName(), in, out);
@@ -83,7 +83,7 @@ final class RemoveUnusedShapes {
             return;
         }
 
-        final ShapeModel shape = in.get(shapeName);
+        ShapeModel shape = in.get(shapeName);
         if (shape == null) {
             return;
         }

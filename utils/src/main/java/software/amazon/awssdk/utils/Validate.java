@@ -373,7 +373,7 @@ public final class Validate {
     public static <T extends Iterable<?>> T noNullElements(final T iterable, final String message, final Object... values) {
         Validate.notNull(iterable, DEFAULT_IS_NULL_EX_MESSAGE);
         int i = 0;
-        for (final Iterator<?> it = iterable.iterator(); it.hasNext(); i++) {
+        for (Iterator<?> it = iterable.iterator(); it.hasNext(); i++) {
             if (it.next() == null) {
                 throw new IllegalArgumentException(String.format(message, values));
             }

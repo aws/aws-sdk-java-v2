@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -186,4 +187,21 @@ public class DateUtilsTest {
         assertTrue(now >=  Duration.ofDays(days).toMillis());
         assertTrue((now -  Duration.ofDays(days).toMillis()) <= oneDayMilli);
     }
+
+    /**
+     * Tests the Date marshalling and unmarshalling. Asserts that the value is
+     * same before and after marshalling/unmarshalling
+     */
+    @Test
+    public void testUnixTimestampRoundtrip() throws Exception {
+        long[] testValues = new long[] {System.currentTimeMillis(), 1L, 0L};
+        Arrays.stream(testValues)
+              .mapToObj(Instant::ofEpochMilli)
+              .forEach(instant -> {
+                  String serverSpecificDateFormat = DateUtils.formatUnixTimestampInstant(instant);
+                  Instant parsed = DateUtils.parseUnixTimestampInstant(String.valueOf(serverSpecificDateFormat));
+                  assertEquals(instant, parsed);
+              });
+    }
+
 }

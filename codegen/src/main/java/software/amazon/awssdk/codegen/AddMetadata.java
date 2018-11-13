@@ -16,8 +16,6 @@
 package software.amazon.awssdk.codegen;
 
 import software.amazon.awssdk.codegen.internal.Constant;
-import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -39,29 +37,18 @@ final class AddMetadata {
 
 
     public static Metadata constructMetadata(ServiceModel serviceModel,
-                                             BasicCodeGenConfig codeGenConfig,
                                              CustomizationConfig customizationConfig) {
 
-        final Metadata metadata = new Metadata();
+        Metadata metadata = new Metadata();
 
-        final NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
-        final ServiceMetadata serviceMetadata = serviceModel.getMetadata();
+        NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
+        ServiceMetadata serviceMetadata = serviceModel.getMetadata();
 
-        final String serviceName;
-        final String rootPackageName;
+        String serviceName;
+        String rootPackageName;
 
-        // API Gateway uses additional codegen.config settings
         if (serviceMetadata.getProtocol().equals(Protocol.API_GATEWAY.getValue())) {
-            // TODO: The meaning of root package name has changed a bit since this code was written. Specifically, the root for
-            // AWS no longer includes the service name. This changed the behavior of the API gateway generation, but we're not
-            // keeping it up to date at this time. Just be aware this has happened when updating the API gateway code.
-            serviceName = codeGenConfig.getInterfaceName();
-            rootPackageName = codeGenConfig.getPackageName();
-
-            metadata.withDefaultEndpoint(codeGenConfig.getEndpoint())
-                    .withDefaultEndpointWithoutHttpProtocol(
-                            Utils.getDefaultEndpointWithoutHttpProtocol(codeGenConfig.getEndpoint()))
-                    .withDefaultRegion(codeGenConfig.getDefaultRegion());
+            throw new UnsupportedOperationException("Java SDK V2 doesn't support api-gateway protocol yet");
         } else {
             serviceName = namingStrategy.getServiceName();
             rootPackageName = AWS_PACKAGE_PREFIX;
@@ -81,9 +68,9 @@ final class AddMetadata {
                 .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
                 .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
-                .withSmokeTestsPackageName(namingStrategy.getSmokeTestPackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
+                .withServiceName(serviceName)
                 .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
                 .withSyncInterface(String.format(Constant.SYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
                 .withSyncBuilder(String.format(Constant.SYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
@@ -100,12 +87,9 @@ final class AddMetadata {
                 .withUid(serviceMetadata.getUid())
                 .withSupportsH2(supportsH2(serviceMetadata));
 
-        final String jsonVersion = getJsonVersion(metadata, serviceMetadata);
+        String jsonVersion = getJsonVersion(metadata, serviceMetadata);
         metadata.setJsonVersion(jsonVersion);
 
-        // TODO: iterate through all the operations and check whether any of
-        // them accept stream input
-        metadata.setHasApiWithStreamInput(false);
         return metadata;
     }
 

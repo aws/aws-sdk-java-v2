@@ -54,7 +54,7 @@ public class ApacheHttpRequestFactory {
 
     public HttpRequestBase create(final SdkHttpFullRequest request, final ApacheHttpRequestConfig requestConfig) {
         URI uri = request.getUri();
-        final HttpRequestBase base = createApacheRequest(request, uri.toString());
+        HttpRequestBase base = createApacheRequest(request, uri.toString());
         addHeadersToRequest(base, request);
         addRequestConfig(base, request, requestConfig);
 
@@ -64,10 +64,11 @@ public class ApacheHttpRequestFactory {
     private void addRequestConfig(final HttpRequestBase base,
                                   final SdkHttpFullRequest request,
                                   final ApacheHttpRequestConfig requestConfig) {
-        final int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
-        final RequestConfig.Builder requestConfigBuilder = RequestConfig
+        int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
+        int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
+        RequestConfig.Builder requestConfigBuilder = RequestConfig
                 .custom()
-                .setConnectionRequestTimeout(connectTimeout)
+                .setConnectionRequestTimeout(connectAcquireTimeout)
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()))
                 .setLocalAddress(requestConfig.localAddress());
@@ -121,7 +122,7 @@ public class ApacheHttpRequestFactory {
          * preparation for the retry. Eventually, these wrappers would
          * return incorrect validation result.
          */
-        if (request.content().isPresent()) {
+        if (request.contentStreamProvider().isPresent()) {
             HttpEntity entity = new RepeatableInputStreamRequestEntity(request);
             if (request.headers().get(HttpHeaders.CONTENT_LENGTH) == null) {
                 entity = ApacheUtils.newBufferedHttpEntity(entity);

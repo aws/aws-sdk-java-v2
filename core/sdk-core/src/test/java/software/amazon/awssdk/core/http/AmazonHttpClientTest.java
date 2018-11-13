@@ -31,16 +31,15 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
@@ -60,7 +59,7 @@ public class AmazonHttpClientTest {
     public void setUp() throws Exception {
         BasicConfigurator.configure();
         client = HttpTestUtils.testClientBuilder().httpClient(sdkHttpClient).build();
-        when(sdkHttpClient.prepareRequest(any(), any())).thenReturn(abortableCallable);
+        when(sdkHttpClient.prepareRequest(any())).thenReturn(abortableCallable);
         stubSuccessfulResponse();
     }
 
@@ -74,7 +73,7 @@ public class AmazonHttpClientTest {
 
         try {
             client.requestExecutionBuilder()
-                    .request(ValidSdkObjects.legacyRequest())
+                    .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
                     .execute();
@@ -85,7 +84,7 @@ public class AmazonHttpClientTest {
         }
 
         // Verify that we called execute 4 times.
-        verify(sdkHttpClient, times(4)).prepareRequest(any(), any());
+        verify(sdkHttpClient, times(4)).prepareRequest(any());
     }
 
     @Test
@@ -100,7 +99,7 @@ public class AmazonHttpClientTest {
 
         try {
             client.requestExecutionBuilder()
-                    .request(ValidSdkObjects.legacyRequest())
+                    .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
                     .execute(mockHandler);
@@ -116,10 +115,9 @@ public class AmazonHttpClientTest {
 
 
     @Test
-    public void testUserAgentPrefixAndSuffixAreAdded() throws Exception {
+    public void testUserAgentPrefixAndSuffixAreAdded() {
         String prefix = "somePrefix";
         String suffix = "someSuffix-blah-blah";
-        Request<?> request = ValidSdkObjects.legacyRequest();
 
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
@@ -132,15 +130,15 @@ public class AmazonHttpClientTest {
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
         client.requestExecutionBuilder()
-              .request(request)
+              .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
               .execute(handler);
 
-        ArgumentCaptor<SdkHttpFullRequest> httpRequestCaptor = ArgumentCaptor.forClass(SdkHttpFullRequest.class);
-        verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture(), any());
+        ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+        verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
 
-        final String userAgent = httpRequestCaptor.getValue().firstMatchingHeader("User-Agent")
+        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
                                                   .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
         Assert.assertTrue(userAgent.startsWith(prefix));

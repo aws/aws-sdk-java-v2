@@ -384,7 +384,7 @@
         <!-- Checks for imports of certain packages           -->
         <!-- See http://checkstyle.sf.net/config_imports.html -->
         <module name="IllegalImport">
-            <property name="illegalPkgs" value="org.apache.http.annotation"/>
+            <property name="illegalPkgs" value="org.apache.http.annotation,javax.annotation.Generated"/>
         </module>
 
         <!-- Checks that the override annotation is specified when using @inheritDoc javadoc. -->
@@ -421,7 +421,7 @@
         <module name="Regexp">
             <property name="format" value="\bObjects.hash\b"/>
             <property name="illegalPattern" value="true"/>
-            <property name="message" value="Don't use Objects.hashCode, use Objects.hash instead"/>
+            <property name="message" value="Don't use Objects.hash, use Objects.hashCode instead"/>
             <property name="ignoreComments" value="true"/>
         </module>
 
@@ -436,5 +436,8 @@
 
         <!-- Checks that every class is marked with Sdk Annotation -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.MissingSdkAnnotationCheck" />
+
+        <!-- Checks that no 'final' are added on local variables -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.UnnecessaryFinalOnLocalVariableCheck" />
     </module>
 </module>

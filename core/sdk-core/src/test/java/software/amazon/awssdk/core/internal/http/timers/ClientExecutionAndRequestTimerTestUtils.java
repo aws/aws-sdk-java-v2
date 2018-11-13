@@ -17,23 +17,21 @@ package software.amazon.awssdk.core.internal.http.timers;
 
 import static org.junit.Assert.assertEquals;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
  * Useful asserts and utilities for verifying behavior or the client execution timeout and request
@@ -87,19 +85,20 @@ public class ClientExecutionAndRequestTimerTestUtils {
         assertEquals(expectedNumberOfTasks, timerExecutor.getCompletedTaskCount());
     }
 
-    public static Request<?> createMockGetRequest() {
-        String localhostEndpoint = "http://localhost:0";
-        return new EmptyHttpRequest(localhostEndpoint, HttpMethodName.GET);
+    public static SdkHttpFullRequest.Builder createMockGetRequest() {
+        return SdkHttpFullRequest.builder()
+                                 .uri(URI.create("http://localhost:0"))
+                                 .method(SdkHttpMethod.GET);
     }
 
     /**
      * Execute the request with a dummy response handler and error response handler
      */
-    public static void execute(AmazonSyncHttpClient httpClient, Request<?> request) {
+    public static void execute(AmazonSyncHttpClient httpClient, SdkHttpFullRequest request) {
         httpClient.requestExecutionBuilder()
                 .request(request)
                 .originalRequest(NoopTestRequest.builder().build())
-                  .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                  .executionContext(executionContext(request))
                 .errorResponseHandler(new NullErrorResponseHandler())
                 .execute(new ErrorDuringUnmarshallingResponseHandler());
     }

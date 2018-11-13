@@ -42,7 +42,7 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
 
     private Map<String, ShapeModel> constructExceptionShapes() {
         // Java shape models, to be constructed
-        final Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
 
         for (Map.Entry<String, Shape> shape : getServiceModel().getShapes().entrySet()) {
             if (shape.getValue().isException()) {
@@ -54,6 +54,7 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
 
                 exceptionShapeModel.setType(ShapeType.Exception.getValue());
                 exceptionShapeModel.setErrorCode(getErrorCode(errorShapeName));
+                exceptionShapeModel.setHttpStatusCode(getHttpStatusCode(errorShapeName));
                 if (exceptionShapeModel.getDocumentation() == null) {
                     exceptionShapeModel.setDocumentation(shape.getValue().getDocumentation());
                 }
@@ -81,5 +82,10 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
 
     private boolean isErrorCodeOverridden(ErrorTrait errorTrait) {
         return errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getErrorCode());
+    }
+
+    private Integer getHttpStatusCode(String errorShapeName) {
+        ErrorTrait errorTrait = getServiceModel().getShapes().get(errorShapeName).getErrorTrait();
+        return errorTrait != null ? errorTrait.getHttpStatusCode() : null;
     }
 }

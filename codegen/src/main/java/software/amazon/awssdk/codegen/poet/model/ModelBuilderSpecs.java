@@ -21,6 +21,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -31,6 +32,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -100,7 +103,7 @@ class ModelBuilderSpecs {
     }
 
     private ClassName parentExceptionBuilder() {
-        final String customExceptionBase = intermediateModel.getCustomizationConfig()
+        String customExceptionBase = intermediateModel.getCustomizationConfig()
                 .getSdkModeledExceptionBaseClassName();
         if (customExceptionBase != null) {
             return poetExtensions.getModelClass(customExceptionBase);
@@ -125,8 +128,20 @@ class ModelBuilderSpecs {
         builderClassBuilder.addMethod(modelCopyConstructor());
         builderClassBuilder.addMethods(accessors());
         builderClassBuilder.addMethod(buildMethod());
+        builderClassBuilder.addMethod(sdkFieldsMethod());
 
         return builderClassBuilder.build();
+    }
+
+    private MethodSpec sdkFieldsMethod() {
+        ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                       WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
+        return MethodSpec.methodBuilder("sdkFields")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .returns(ParameterizedTypeName.get(ClassName.get(List.class), sdkFieldType))
+                         .addCode("return SDK_FIELDS;")
+                         .build();
     }
 
     private TypeName builderImplSuperClass() {
@@ -254,6 +269,7 @@ class ModelBuilderSpecs {
         if (isResponse()) {
             superInterfaces.add(new AwsServiceBaseResponseSpec(intermediateModel).className().nestedClass("Builder"));
         }
+        superInterfaces.add(ClassName.get(SdkPojo.class));
         superInterfaces.add(ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
                 classToBuild().nestedClass("Builder"), classToBuild()));
         return superInterfaces;

@@ -16,10 +16,10 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Pair;
@@ -30,6 +30,7 @@ public class AfterTransmissionExecutionInterceptorsStage
     @Override
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                                  RequestExecutionContext context) throws Exception {
+        InterruptMonitor.checkInterrupted();
         // Update interceptor context
         InterceptorContext interceptorContext =
                 context.executionContext().interceptorContext().copy(b -> b.httpResponse(input.right()));
@@ -43,8 +44,6 @@ public class AfterTransmissionExecutionInterceptorsStage
         // Store updated context
         context.executionContext().interceptorContext(interceptorContext);
 
-        // TODO: Why do we do this for sync, but not async? Are there other places it should be? Not having this fails the
-        // AbortedExceptionClientExecutionTimerIntegrationTest
         InterruptMonitor.checkInterrupted(interceptorContext.httpResponse());
 
         return Pair.of(input.left(), interceptorContext.httpResponse());

@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -50,14 +50,13 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        final String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames());
+        StringBuilder userAgentBuilder = getUserAgent(clientConfig, context.requestConfig().apiNames());
+        String userAgent = addUserAgentSuffix(userAgentBuilder, clientConfig);
         return request.putHeader(HEADER_USER_AGENT, userAgent);
     }
 
-    private String getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
+    private StringBuilder getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
         String userDefinedPrefix = config.option(SdkAdvancedClientOption.USER_AGENT_PREFIX);
-        String userDefinedSuffix = config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
-
         String awsExecutionEnvironment = SdkSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
 
         StringBuilder userAgent = new StringBuilder(StringUtils.trimToEmpty(userDefinedPrefix));
@@ -67,20 +66,30 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             userAgent.append(COMMA).append(systemUserAgent);
         }
 
-        if (!StringUtils.isEmpty(userDefinedSuffix)) {
-            userAgent.append(COMMA).append(userDefinedSuffix.trim());
-        }
-
         if (!StringUtils.isEmpty(awsExecutionEnvironment)) {
             userAgent.append(SPACE).append(AWS_EXECUTION_ENV_PREFIX).append(awsExecutionEnvironment.trim());
         }
 
         if (!requestApiNames.isEmpty()) {
-            final String requestUserAgent = requestApiNames.stream()
+            String requestUserAgent = requestApiNames.stream()
                     .map(n -> n.name() + "/" + n.version())
                     .collect(Collectors.joining(" "));
 
             userAgent.append(SPACE).append(requestUserAgent);
+        }
+
+        return userAgent;
+    }
+
+    /**
+     * Only user agent suffix needs to be added in this method. Any other changes to user agent should be handled in
+     * {@link #getUserAgent(SdkClientConfiguration, List)} method.
+     */
+    private String addUserAgentSuffix(StringBuilder userAgent, SdkClientConfiguration config) {
+        String userDefinedSuffix = config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
+
+        if (!StringUtils.isEmpty(userDefinedSuffix)) {
+            userAgent.append(COMMA).append(userDefinedSuffix.trim());
         }
 
         return userAgent.toString();

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-  ~  
+  ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
   ~ A copy of the License is located at
-  ~  
+  ~
   ~  http://aws.amazon.com/apache2.0
-  ~  
+  ~
   ~ or in the "license" file accompanying this file. This file is distributed
   ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
   ~ express or implied. See the License for the specific language governing
@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.0.0-preview-12</version>
+        <version>2.0.0-preview-13-SNAPSHOT</version>
     </parent>
 
     <artifactId>regions</artifactId>
@@ -31,22 +31,22 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>utils</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>profiles</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -57,18 +57,13 @@
             <artifactId>jackson-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.jr</groupId>
-            <artifactId>jackson-jr-objects</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -94,4 +89,55 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>codegen-lite-maven-plugin</artifactId>
+                    <version>${awsjavasdk.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>generate-regions</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Automatic-Module-Name>software.amazon.awssdk.regions</Automatic-Module-Name>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <!-- Generate region and service metadata -->
+        <profile>
+            <id>generated-service</id>
+            <activation>
+                <file>
+                    <exists>src/main/resources/software/amazon/awssdk/regions/internal/region</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>software.amazon.awssdk</groupId>
+                        <artifactId>codegen-lite-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

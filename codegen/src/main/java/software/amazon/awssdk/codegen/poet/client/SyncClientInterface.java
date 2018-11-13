@@ -94,7 +94,7 @@ public final class SyncClientInterface implements ClassSpec {
     }
 
     private String getJavadoc() {
-        return "Service client for accessing " + model.getMetadata().getServiceAbbreviation() + ". This can be "
+        return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + ". This can be "
                + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
     }
 
@@ -124,6 +124,7 @@ public final class SyncClientInterface implements ClassSpec {
     private Iterable<MethodSpec> operations() {
         return model.getOperations().values().stream()
                     // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
+                    .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpec)
                     .flatMap(List::stream)
@@ -172,7 +173,7 @@ public final class SyncClientInterface implements ClassSpec {
                                               opModel.getReturnType().getReturnType());
         TypeName returnType = opModel.hasStreamingOutput() ? STREAMING_TYPE_VARIABLE : responseType;
 
-        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
                                                            .returns(returnType)
                                                            .addModifiers(Modifier.PUBLIC)
                                                            .addJavadoc(opModel.getDocs(model, ClientType.SYNC,

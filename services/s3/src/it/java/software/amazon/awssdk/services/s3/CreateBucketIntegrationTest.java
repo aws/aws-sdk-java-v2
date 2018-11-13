@@ -22,14 +22,33 @@ import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 
 public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
 
     private static final String BUCKET_NAME = temporaryBucketName("java-create-bucket-integ-test");
+    private static final String US_EAST_1_BUCKET_NAME = temporaryBucketName("java-create-bucket-integ-test");
+    private static final S3Client US_EAST_1_CLIENT = S3Client.builder()
+                                                             .region(Region.US_EAST_1)
+                                                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                             .build();
 
     @AfterClass
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET_NAME);
+        S3TestUtils.deleteBucketAndAllContents(US_EAST_1_CLIENT, US_EAST_1_BUCKET_NAME);
+        US_EAST_1_CLIENT.close();
+    }
+
+    @Test
+    public void createBucket_InUsEast1_Succeeds() {
+        US_EAST_1_CLIENT.createBucket(CreateBucketRequest.builder().bucket(US_EAST_1_BUCKET_NAME).build());
+
+        String region = US_EAST_1_CLIENT.getBucketLocation(GetBucketLocationRequest.builder()
+                                                                         .bucket(US_EAST_1_BUCKET_NAME)
+                                                                         .build())
+                              .locationConstraintAsString();
+        assertThat(region).isEqualToIgnoringCase("");
     }
 
     @Test

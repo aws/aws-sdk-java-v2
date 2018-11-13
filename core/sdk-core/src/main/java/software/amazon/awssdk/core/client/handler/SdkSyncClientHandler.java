@@ -20,8 +20,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOptionValidation;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
@@ -41,14 +41,14 @@ public class SdkSyncClientHandler extends BaseSyncClientHandler implements SyncC
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return super.execute(addErrorResponseHandler(executionParams));
+        return super.execute(executionParams);
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
-        return super.execute(addErrorResponseHandler(executionParams), responseTransformer);
+        return super.execute(executionParams, responseTransformer);
     }
 
 }

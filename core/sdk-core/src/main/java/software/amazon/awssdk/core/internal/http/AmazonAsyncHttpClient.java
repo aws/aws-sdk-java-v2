@@ -22,14 +22,16 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
@@ -43,9 +45,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
+import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
@@ -91,12 +92,12 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
     public interface RequestExecutionBuilder {
 
         /**
-         * Fluent setter for {@link SdkHttpRequestProvider}
+         * Fluent setter for {@link AsyncRequestBody}
          *
          * @param requestProvider Request provider object
          * @return This builder for method chaining.
          */
-        RequestExecutionBuilder requestProvider(SdkHttpRequestProvider requestProvider);
+        RequestExecutionBuilder requestProvider(AsyncRequestBody requestProvider);
 
         /**
          * Fluent setter for {@link SdkHttpFullRequest}
@@ -113,7 +114,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @return This builder for method chaining.
          */
         RequestExecutionBuilder errorResponseHandler(
-                SdkHttpResponseHandler<? extends SdkException> errorResponseHandler);
+                TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler);
 
         /**
          * Fluent setter for the execution context
@@ -139,19 +140,19 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @param <OutputT>       Result type
          * @return Unmarshalled result type.
          */
-        <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler);
+        <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<OutputT> responseHandler);
     }
 
     private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
-        private SdkHttpRequestProvider requestProvider;
+        private AsyncRequestBody requestProvider;
         private SdkHttpFullRequest request;
-        private SdkHttpResponseHandler<? extends SdkException> errorResponseHandler;
+        private TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
         @Override
-        public RequestExecutionBuilder requestProvider(SdkHttpRequestProvider requestProvider) {
+        public RequestExecutionBuilder requestProvider(AsyncRequestBody requestProvider) {
             this.requestProvider = requestProvider;
             return this;
         }
@@ -164,7 +165,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
 
         @Override
         public RequestExecutionBuilder errorResponseHandler(
-                SdkHttpResponseHandler<? extends SdkException> errorResponseHandler) {
+                TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler) {
             this.errorResponseHandler = errorResponseHandler;
             return this;
         }
@@ -183,31 +184,30 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
-        public <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler) {
+        public <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<OutputT> responseHandler) {
             try {
                 return RequestPipelineBuilder
-                    .first(RequestPipelineBuilder
-                               .first(MakeRequestMutableStage::new)
-                               .then(ApplyTransactionIdStage::new)
-                               .then(ApplyUserAgentStage::new)
-                               .then(MergeCustomHeadersStage::new)
-                               .then(MergeCustomQueryParamsStage::new)
-                               .then(MoveParametersToBodyStage::new)
-                               .then(MakeRequestImmutableStage::new)
-                               .then(RequestPipelineBuilder
-                                         .first(SigningStage::new)
-                                         .then(BeforeTransmissionExecutionInterceptorsStage::new)
-                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
-                                         .wrappedWith((deps, wrapped) ->
-                                                          new AsyncRetryableStage<>(responseHandler, deps, wrapped))
-                                         ::build)
-                               .then(async(() -> new UnwrapResponseContainer<>()))
-                               .then(async(() -> new AfterExecutionInterceptorsStage<>()))::build)
-                    .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
-                    .build(httpClientDependencies)
-                    .execute(request, createRequestExecutionDependencies());
+                        .first(RequestPipelineBuilder
+                                .first(MakeRequestMutableStage::new)
+                                .then(ApplyTransactionIdStage::new)
+                                .then(ApplyUserAgentStage::new)
+                                .then(MergeCustomHeadersStage::new)
+                                .then(MergeCustomQueryParamsStage::new)
+                                .then(MoveParametersToBodyStage::new)
+                                .then(MakeRequestImmutableStage::new)
+                                .then(RequestPipelineBuilder
+                                        .first(SigningStage::new)
+                                        .then(BeforeTransmissionExecutionInterceptorsStage::new)
+                                        .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
+                                        .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
+                                        .then(async(() -> new UnwrapResponseContainer<>()))
+                                        .then(async(() -> new AfterExecutionInterceptorsStage<>()))
+                                        .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
+                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)::build)::build)
+                        .build(httpClientDependencies)
+                        .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {
-                throw e;
+                throw ThrowableUtils.asSdkException(e);
             } catch (Exception e) {
                 throw SdkClientException.builder().cause(e).build();
             }

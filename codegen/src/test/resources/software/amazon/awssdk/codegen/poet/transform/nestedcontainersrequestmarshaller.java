@@ -2,13 +2,13 @@ package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.services.jsonprotocoltests.model.NestedContainersRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -17,28 +17,26 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class NestedContainersRequestMarshaller implements Marshaller<Request<NestedContainersRequest>, NestedContainersRequest> {
+public class NestedContainersRequestMarshaller implements Marshaller<NestedContainersRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
+                                                                            .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
 
-    private final AwsJsonProtocolFactory protocolFactory;
+    private final BaseAwsJsonProtocolFactory protocolFactory;
 
-    public NestedContainersRequestMarshaller(AwsJsonProtocolFactory protocolFactory) {
+    public NestedContainersRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 
     @Override
-    public Request<NestedContainersRequest> marshall(NestedContainersRequest nestedContainersRequest) {
+    public SdkHttpFullRequest marshall(NestedContainersRequest nestedContainersRequest) {
         Validate.paramNotNull(nestedContainersRequest, "nestedContainersRequest");
         try {
-            ProtocolRequestMarshaller<NestedContainersRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
-                    SDK_OPERATION_BINDING, nestedContainersRequest);
-            protocolMarshaller.startMarshalling();
-            NestedContainersRequestModelMarshaller.getInstance().marshall(nestedContainersRequest, protocolMarshaller);
-            return protocolMarshaller.finishMarshalling();
+            ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
+                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+            return protocolMarshaller.marshall(nestedContainersRequest);
         } catch (Exception e) {
-            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
-                    .build();
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

@@ -106,11 +106,6 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                     shapeModel.getCustomization().setStaxTargetDepthOffset(modifier.getStaxTargetDepthOffset());
                 }
 
-                if (modifier.getCustomUnmarshallerFqcn() != null) {
-                    shapeModel.getCustomization().setCustomUnmarshallerFqcn(modifier.getCustomUnmarshallerFqcn());
-                    shapeModel.getCustomization().setSkipGeneratingUnmarshaller(true);
-                }
-
                 if (modifier.isExcludeShape()) {
                     shapeModel.getCustomization().setSkipGeneratingModelClass(true);
                     shapeModel.getCustomization().setSkipGeneratingMarshaller(true);
@@ -220,7 +215,7 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
             // Must create a shape for the primitive type.
             Shape newShapeForType = new Shape();
             newShapeForType.setType(modifyModel.getEmitAsType());
-            final String shapeName = "SDK_" + modifyModel.getEmitAsType();
+            String shapeName = "SDK_" + modifyModel.getEmitAsType();
             serviceModel.getShapes().put(shapeName, newShapeForType);
 
             shape.getMembers().get(memberToModify).setShape(shapeName);

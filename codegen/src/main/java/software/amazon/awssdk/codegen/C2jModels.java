@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen;
 
-import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -31,17 +30,17 @@ public class C2jModels {
     private final ServiceModel serviceModel;
     private final Waiters waitersModel;
     private final ServiceExamples examplesModel;
-    private final BasicCodeGenConfig codeGenConfig;
     private final CustomizationConfig customizationConfig;
     private final Paginators paginatorsModel;
 
-    private C2jModels(ServiceModel serviceModel, Waiters waitersModel, ServiceExamples examplesModel,
-                      BasicCodeGenConfig codeGenConfig, CustomizationConfig customizationConfig,
+    private C2jModels(ServiceModel serviceModel,
+                      Waiters waitersModel,
+                      ServiceExamples examplesModel,
+                      CustomizationConfig customizationConfig,
                       Paginators paginatorsModel) {
         this.serviceModel = serviceModel;
         this.waitersModel = waitersModel;
         this.examplesModel = examplesModel;
-        this.codeGenConfig = codeGenConfig;
         this.customizationConfig = customizationConfig;
         this.paginatorsModel = paginatorsModel;
     }
@@ -62,10 +61,6 @@ public class C2jModels {
         return examplesModel;
     }
 
-    public BasicCodeGenConfig codeGenConfig() {
-        return codeGenConfig;
-    }
-
     public CustomizationConfig customizationConfig() {
         return customizationConfig;
     }
@@ -79,7 +74,6 @@ public class C2jModels {
         private ServiceModel serviceModel;
         private Waiters waitersModel;
         private ServiceExamples examplesModel;
-        private BasicCodeGenConfig codeGenConfig;
         private CustomizationConfig customizationConfig;
         private Paginators paginatorsModel;
 
@@ -101,11 +95,6 @@ public class C2jModels {
             return this;
         }
 
-        public Builder codeGenConfig(BasicCodeGenConfig codeGenConfig) {
-            this.codeGenConfig = codeGenConfig;
-            return this;
-        }
-
         public Builder customizationConfig(CustomizationConfig customizationConfig) {
             this.customizationConfig = customizationConfig;
             return this;
@@ -117,10 +106,10 @@ public class C2jModels {
         }
 
         public C2jModels build() {
-            final Waiters waiters = waitersModel != null ? waitersModel : Waiters.none();
-            final Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.none();
-            final ServiceExamples examples = examplesModel != null ? examplesModel : ServiceExamples.none();
-            return new C2jModels(serviceModel, waiters, examples, codeGenConfig, customizationConfig, paginators);
+            Waiters waiters = waitersModel != null ? waitersModel : Waiters.none();
+            Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.none();
+            ServiceExamples examples = examplesModel != null ? examplesModel : ServiceExamples.none();
+            return new C2jModels(serviceModel, waiters, examples, customizationConfig, paginators);
         }
     }
 }

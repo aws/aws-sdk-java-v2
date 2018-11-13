@@ -16,9 +16,11 @@
 package software.amazon.awssdk.codegen.model.config.customization;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesConfig;
+import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class CustomizationConfig {
 
@@ -27,20 +29,7 @@ public class CustomizationConfig {
      * different type that is adapted to the real type
      */
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
-    /**
-     * Overrides the request-level service name that will be used for request metrics and service
-     * exceptions. If not specified, the client will use the service interface name by default.
-     *
-     * Example: for backwards compatibility, this is set to "AmazonDynamoDBv2" for DynamoDB client.
-     *
-     * @see {@link software.amazon.awssdk.core.Request#getServiceName()}
-     */
-    private String customServiceNameForRequest;
-    /**
-     * True if the generated code should enable client-side validation on required input
-     * parameters.
-     */
-    private boolean requiredParamValidationEnabled;
+
     /**
      * Specifies the name of the client configuration class to use if a service
      * has a specific advanced client configuration class. Null if the service
@@ -56,7 +45,6 @@ public class CustomizationConfig {
      * Custom service and intermediate model metadata properties.
      */
     private MetadataConfig customServiceMetadata;
-    private CodeGenTemplatesConfig customCodeTemplates;
     /**
      * Codegen customization mechanism shared by the .NET SDK
      */
@@ -84,10 +72,6 @@ public class CustomizationConfig {
      * Service calculates CRC32 checksum from compressed file when Accept-Encoding: gzip header is provided.
      */
     private boolean calculateCrc32FromCompressedData;
-    /**
-     * Skips generating smoketests if set to true.
-     */
-    private boolean skipSmokeTests;
 
     /**
      * Exclude the create() method on a client. This is useful for global services that will need a global region configured to
@@ -102,11 +86,10 @@ public class CustomizationConfig {
     private ShareModelConfig shareModelConfig;
 
     /**
-     * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOption}. If
-     * present, the client builder will override the hook to return service specific HTTP config and inject this expression into
-     * that method. At some point we may want to have a more data driven way to declare these settings but right now we don't
-     * have any requirements to necessitate that and referencing handwritten code is simpler. See SWF customization.config
-     * for an example.
+     * Fully qualified name of the class that contains the custom http config. The class should expose a public static method
+     * with name "defaultHttpConfig" that returns an {@link AttributeMap} containing the desired http config defaults.
+     *
+     * See SWF customization.config for an example.
      */
     private String serviceSpecificHttpConfig;
 
@@ -124,9 +107,8 @@ public class CustomizationConfig {
     private String sdkRequestBaseClassName;
 
     private String sdkResponseBaseClassName;
-    private String defaultExceptionUnmarshaller;
 
-    private Map<String, String> modelMarshallerDefaultValueSupplier;
+    private Map<String, String> modelMarshallerDefaultValueSupplier = new HashMap<>();
 
     private boolean useAutoConstructList = true;
 
@@ -139,27 +121,28 @@ public class CustomizationConfig {
 
     private boolean skipSyncClientGeneration;
 
+    /**
+     * Customization to attach the {@link PayloadTrait} to a member. Currently this is only used for
+     * S3 which doesn't model a member as a payload trait even though it is.
+     */
+    private Map<String, String> attachPayloadTraitToMember = new HashMap<>();
+
+    /**
+     * Custom Response metadata
+     */
+    private Map<String, String> customResponseMetadata;
+
+    /**
+     * Custom protocol factory implementation. Currently this is only respected by the REST-XML protocol as only S3
+     * needs a custom factory.
+     */
+    private String customProtocolFactoryFqcn;
+
     private CustomizationConfig() {
     }
 
     public static CustomizationConfig create() {
         return new CustomizationConfig();
-    }
-
-    public String getCustomServiceNameForRequest() {
-        return customServiceNameForRequest;
-    }
-
-    public void setCustomServiceNameForRequest(String customServiceNameForRequest) {
-        this.customServiceNameForRequest = customServiceNameForRequest;
-    }
-
-    public CodeGenTemplatesConfig getCustomCodeTemplates() {
-        return customCodeTemplates;
-    }
-
-    public void setCustomCodeTemplates(CodeGenTemplatesConfig customCodeTemplates) {
-        this.customCodeTemplates = customCodeTemplates;
     }
 
     public Map<String, OperationModifier> getOperationModifiers() {
@@ -194,40 +177,12 @@ public class CustomizationConfig {
         this.shapeModifiers = shapeModifiers;
     }
 
-    public boolean isRequiredParamValidationEnabled() {
-        return requiredParamValidationEnabled;
-    }
-
-    public void setRequiredParamValidationEnabled(boolean requiredParamValidationEnabled) {
-        this.requiredParamValidationEnabled = requiredParamValidationEnabled;
-    }
-
     public String getServiceSpecificClientConfigClass() {
         return serviceSpecificClientConfigClass;
     }
 
     public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
         this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
-    }
-
-    /**
-     * Customization to generate a method overload for a member setter that takes a string rather
-     * than an InputStream. Currently only used by Lambda
-     */
-    public void setStringOverloadForInputStreamMember(
-        StringOverloadForInputStreamMember stringOverloadForInputStreamMember) {
-        this.convenienceTypeOverloads
-            .add(stringOverloadForInputStreamMember.getConvenienceTypeOverload());
-    }
-
-    /**
-     * Customization to generate a method overload for a member setter that takes a string rather
-     * than an SdkBytes. Currently only used by Lambda
-     */
-    public void setStringOverloadForSdkBytesMember(
-        StringOverloadForSdkBytesMember stringOverloadForSdkBytesMember) {
-        this.convenienceTypeOverloads
-            .add(stringOverloadForSdkBytesMember.getConvenienceTypeOverload());
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {
@@ -269,14 +224,6 @@ public class CustomizationConfig {
     public void setCalculateCrc32FromCompressedData(
         boolean calculateCrc32FromCompressedData) {
         this.calculateCrc32FromCompressedData = calculateCrc32FromCompressedData;
-    }
-
-    public boolean isSkipSmokeTests() {
-        return skipSmokeTests;
-    }
-
-    public void setSkipSmokeTests(boolean skipSmokeTests) {
-        this.skipSmokeTests = skipSmokeTests;
     }
 
     public boolean isExcludeClientCreateMethod() {
@@ -335,14 +282,6 @@ public class CustomizationConfig {
         this.sdkResponseBaseClassName = sdkResponseBaseClassName;
     }
 
-    public String getDefaultExceptionUnmarshaller() {
-        return defaultExceptionUnmarshaller;
-    }
-
-    public void setDefaultExceptionUnmarshaller(String defaultExceptionUnmarshaller) {
-        this.defaultExceptionUnmarshaller = defaultExceptionUnmarshaller;
-    }
-
     public Map<String, String> getModelMarshallerDefaultValueSupplier() {
         return modelMarshallerDefaultValueSupplier;
     }
@@ -381,5 +320,29 @@ public class CustomizationConfig {
 
     public void setSkipSyncClientGeneration(boolean skipSyncClientGeneration) {
         this.skipSyncClientGeneration = skipSyncClientGeneration;
+    }
+
+    public Map<String, String> getAttachPayloadTraitToMember() {
+        return attachPayloadTraitToMember;
+    }
+
+    public void setAttachPayloadTraitToMember(Map<String, String> attachPayloadTraitToMember) {
+        this.attachPayloadTraitToMember = attachPayloadTraitToMember;
+    }
+
+    public Map<String, String> getCustomResponseMetadata() {
+        return customResponseMetadata;
+    }
+
+    public void setCustomResponseMetadata(Map<String, String> customResponseMetadata) {
+        this.customResponseMetadata = customResponseMetadata;
+    }
+
+    public String getCustomProtocolFactoryFqcn() {
+        return customProtocolFactoryFqcn;
+    }
+
+    public void setCustomProtocolFactoryFqcn(String customProtocolFactoryFqcn) {
+        this.customProtocolFactoryFqcn = customProtocolFactoryFqcn;
     }
 }

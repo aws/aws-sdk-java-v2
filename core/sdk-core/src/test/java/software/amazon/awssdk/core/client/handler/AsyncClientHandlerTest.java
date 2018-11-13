@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.client.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -35,22 +34,23 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.DefaultRequest;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.EmptyPublisher;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncClientHandlerTest {
@@ -60,15 +60,14 @@ public class AsyncClientHandlerTest {
     private SdkRequest request;
 
     @Mock
-    private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
+    private Marshaller<SdkRequest> marshaller;
 
-    private Request<SdkRequest> marshalledRequest = new DefaultRequest<>(request, "");
+    private SdkHttpFullRequest marshalledRequest = ValidSdkObjects.sdkHttpFullRequest().build();
 
     @Mock
     private SdkAsyncHttpClient httpClient;
 
-    @Mock
-    private AbortableRunnable httpClientCall;
+    private CompletableFuture<Void> httpClientFuture = CompletableFuture.completedFuture(null);
 
     @Mock
     private HttpResponseHandler<SdkResponse> responseHandler;
@@ -85,25 +84,25 @@ public class AsyncClientHandlerTest {
     @Test
     public void successfulExecutionCallsResponseHandler() throws Exception {
         // Given
-        SdkResponse expected = EmptySdkResponse.builder().build();
+        SdkResponse expected = VoidSdkResponse.builder().build();
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("foo", Arrays.asList("bar"));
-        ArgumentCaptor<SdkHttpResponseHandler> sdkHttpResponseHandler = ArgumentCaptor.forClass(SdkHttpResponseHandler.class);
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
 
         expectRetrievalFromMocks();
-        when(httpClient.prepareRequest(any(), any(), any(), sdkHttpResponseHandler.capture())).thenReturn(httpClientCall);
+        when(httpClient.execute(executeRequest.capture())).thenReturn(httpClientFuture);
         when(responseHandler.handle(any(), any())).thenReturn(expected); // Response handler call
 
         // When
         CompletableFuture<SdkResponse> responseFuture = asyncClientHandler.execute(clientExecutionParams());
-        sdkHttpResponseHandler.getValue().headersReceived(SdkHttpFullResponse.builder().statusCode(200)
+        SdkAsyncHttpResponseHandler capturedHandler = executeRequest.getValue().responseHandler();
+        capturedHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200)
                                                                              .headers(headers).build());
-        sdkHttpResponseHandler.getValue().complete();
+        capturedHandler.onStream(new EmptyPublisher<>());
         SdkResponse actualResponse = responseFuture.get(1, TimeUnit.SECONDS);
 
         // Then
         verifyNoMoreInteractions(errorResponseHandler); // No error handler calls
-        verify(httpClientCall).run(); // Response handler is invoked
         assertThat(actualResponse.sdkHttpResponse().statusCode()).isEqualTo(200);
         assertThat(actualResponse.sdkHttpResponse().headers()).isEqualTo(headers);
     }
@@ -113,16 +112,17 @@ public class AsyncClientHandlerTest {
         SdkServiceException exception = SdkServiceException.builder().message("Uh oh!").statusCode(500).build();
 
         // Given
-        ArgumentCaptor<SdkHttpResponseHandler> sdkHttpResponseHandler = ArgumentCaptor.forClass(SdkHttpResponseHandler.class);
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
 
         expectRetrievalFromMocks();
-        when(httpClient.prepareRequest(any(), any(), any(), sdkHttpResponseHandler.capture())).thenReturn(httpClientCall);
+        when(httpClient.execute(executeRequest.capture())).thenReturn(httpClientFuture);
         when(errorResponseHandler.handle(any(), any())).thenReturn(exception); // Error response handler call
 
         // When
         CompletableFuture<SdkResponse> responseFuture = asyncClientHandler.execute(clientExecutionParams());
-        sdkHttpResponseHandler.getValue().headersReceived(SdkHttpFullResponse.builder().statusCode(500).build());
-        sdkHttpResponseHandler.getValue().complete();
+        SdkAsyncHttpResponseHandler capturedHandler = executeRequest.getValue().responseHandler();
+        capturedHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(500).build());
+        capturedHandler.onStream(new EmptyPublisher<>());
         assertThatThrownBy(() -> responseFuture.get(1, TimeUnit.SECONDS)).hasCause(exception);
 
         // Then

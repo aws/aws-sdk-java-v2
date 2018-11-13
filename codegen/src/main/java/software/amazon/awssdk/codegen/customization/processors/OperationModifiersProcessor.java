@@ -115,6 +115,11 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
     }
 
     private void preprocessExclude(ServiceModel serviceModel, String operationName) {
+        Operation operation = serviceModel.getOperation(operationName);
+        // Remove input and output shapes of the operation
+        serviceModel.getShapes().remove(operation.getInput().getShape());
+        serviceModel.getShapes().remove(operation.getOutput().getShape());
+
         serviceModel.getOperations().remove(operationName);
     }
 

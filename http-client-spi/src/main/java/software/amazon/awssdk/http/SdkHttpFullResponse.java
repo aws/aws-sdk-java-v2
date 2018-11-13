@@ -106,7 +106,7 @@ public interface SdkHttpFullResponse
         /**
          * Add a single header to be included in the created HTTP response.
          *
-         * <p>This completely overrides any values already configured with this header name in the builder.</p>
+         * <p>This completely <b>OVERRIDES</b> any values already configured with this header name in the builder.</p>
          *
          * @param headerName The name of the header to add (eg. "Host")
          * @param headerValue The value for the header
@@ -118,12 +118,24 @@ public interface SdkHttpFullResponse
         /**
          * Add a single header with multiple values to be included in the created HTTP response.
          *
-         * <p>This completely overrides any values already configured with this header name in the builder.</p>
+         * <p>This completely <b>OVERRIDES</b> any values already configured with this header name in the builder.</p>
          *
          * @param headerName The name of the header to add
          * @param headerValues The values for the header
          */
         Builder putHeader(String headerName, List<String> headerValues);
+
+
+        /**
+         * Add a single header to be included in the created HTTP request.
+         *
+         * <p>This will <b>ADD</b> the value to any existing values already configured with this header name in
+         * the builder.</p>
+         *
+         * @param headerName The name of the header to add
+         * @param headerValue The value for the header
+         */
+        Builder appendHeader(String headerName, String headerValue);
 
         /**
          * Configure an {@link SdkHttpResponse#headers()} to be used in the created HTTP response. This is not validated

@@ -12,7 +12,7 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfMapStringToStringCopier {
-    static List<Map<String, String>> copy(Collection<Map<String, String>> listOfMapStringToStringParam) {
+    static List<Map<String, String>> copy(Collection<? extends Map<String, String>> listOfMapStringToStringParam) {
         if (listOfMapStringToStringParam == null || listOfMapStringToStringParam instanceof SdkAutoConstructList) {
             return DefaultSdkAutoConstructList.getInstance();
         }

@@ -16,24 +16,18 @@
 package software.amazon.awssdk.core.client.handler;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
-import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
 
 @SdkProtectedApi
 public abstract class BaseClientHandler {
@@ -54,13 +48,12 @@ public abstract class BaseClientHandler {
         SdkClientConfiguration clientConfiguration) {
 
         runBeforeMarshallingInterceptors(executionContext);
-        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
-        request.setEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT));
+        SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
 
         executionContext.executionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME,
-                                                            request.getServiceName());
+                                                            clientConfiguration.option(SdkClientOption.SERVICE_NAME));
 
-        addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
+        addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
         return runModifyHttpRequestInterceptors(executionContext);
     }
@@ -117,47 +110,19 @@ public abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
-    /**
-     * Add {@link SdkHttpResponse} to SdkResponse.
-     */
-    @SuppressWarnings("unchecked")
-    private static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> addHttpResponseMetadataResponseHandler(
-        HttpResponseHandler<OutputT> delegate) {
-        return (response, executionAttributes) -> {
-            OutputT sdkResponse = delegate.handle(response, executionAttributes);
-
-            return (OutputT) sdkResponse.toBuilder()
-                                        .sdkHttpResponse(response)
-                                        .build();
-        };
-    }
-
     static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
         HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
             runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
     }
 
-    protected static <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addErrorResponseHandler(
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
         ClientExecutionParams<InputT, OutputT> params) {
-        return params.withErrorResponseHandler(
-            new SdkErrorResponseHandler(params.getErrorResponseHandler()));
-    }
 
-    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+        SdkRequest originalRequest = params.getInput();
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                               .filter(c -> c instanceof
-                                                                                        SdkRequestOverrideConfiguration)
-                                                                               .map(c -> (RequestOverrideConfiguration) c)
-                                                                               .orElse(SdkRequestOverrideConfiguration.builder()
-                                                                                                                       .build()))
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
-                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                               .map(c -> (SdkRequestOverrideConfiguration) c)
-                                                                               .orElse(SdkRequestOverrideConfiguration.builder()
-                                                                                                                       .build()));
+                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION));
 
         ExecutionInterceptorChain interceptorChain =
                 new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -182,6 +147,6 @@ public abstract class BaseClientHandler {
     <OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
         HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
-        return addHttpResponseMetadataResponseHandler(interceptorCallingResponseHandler);
+        return new AttachHttpMetadataResponseHandler<>(interceptorCallingResponseHandler);
     }
 }

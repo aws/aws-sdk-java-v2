@@ -2,13 +2,13 @@ package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.services.jsonprotocoltests.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -17,31 +17,27 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class StreamingInputOperationRequestMarshaller implements
-        Marshaller<Request<StreamingInputOperationRequest>, StreamingInputOperationRequest> {
+public class StreamingInputOperationRequestMarshaller implements Marshaller<StreamingInputOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-            .requestUri("/2016-03-11/streamingInputOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(true)
-            .hasPayloadMembers(true).build();
+                                                                            .requestUri("/2016-03-11/streamingInputOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(true)
+                                                                            .hasPayloadMembers(true).hasStreamingInput(true).build();
 
-    private final AwsJsonProtocolFactory protocolFactory;
+    private final BaseAwsJsonProtocolFactory protocolFactory;
 
-    public StreamingInputOperationRequestMarshaller(AwsJsonProtocolFactory protocolFactory) {
+    public StreamingInputOperationRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 
     @Override
-    public Request<StreamingInputOperationRequest> marshall(StreamingInputOperationRequest streamingInputOperationRequest) {
+    public SdkHttpFullRequest marshall(StreamingInputOperationRequest streamingInputOperationRequest) {
         Validate.paramNotNull(streamingInputOperationRequest, "streamingInputOperationRequest");
         try {
-            ProtocolRequestMarshaller<StreamingInputOperationRequest> protocolMarshaller = protocolFactory
-                    .createProtocolMarshaller(SDK_OPERATION_BINDING, streamingInputOperationRequest);
-            protocolMarshaller.startMarshalling();
-            StreamingInputOperationRequestModelMarshaller.getInstance().marshall(streamingInputOperationRequest,
-                    protocolMarshaller);
-            return protocolMarshaller.finishMarshalling();
+            ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
+                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+            return protocolMarshaller.marshall(streamingInputOperationRequest);
         } catch (Exception e) {
-            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
-                    .build();
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
+

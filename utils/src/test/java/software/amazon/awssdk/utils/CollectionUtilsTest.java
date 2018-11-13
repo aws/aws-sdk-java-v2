@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.utils;
 
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import org.junit.Test;
 
 public class CollectionUtilsTest {
@@ -38,5 +41,32 @@ public class CollectionUtilsTest {
     @Test
     public void isEmpty_NonEmptyCollection_ReturnsFalse() {
         assertFalse(CollectionUtils.isNullOrEmpty(Arrays.asList("something")));
+    }
+
+    @Test
+    public void firstIfPresent_NullList_ReturnsNull() {
+        List<String> list = null;
+        assertThat(CollectionUtils.firstIfPresent(list)).isNull();
+    }
+
+    @Test
+    public void firstIfPresent_EmptyList_ReturnsNull() {
+        List<String> list = Collections.emptyList();
+        assertThat(CollectionUtils.firstIfPresent(list)).isNull();
+    }
+
+    @Test
+    public void firstIfPresent_SingleElementList_ReturnsOnlyElement() {
+        assertThat(CollectionUtils.firstIfPresent(singletonList("foo"))).isEqualTo("foo");
+    }
+
+    @Test
+    public void firstIfPresent_MultipleElementList_ReturnsFirstElement() {
+        assertThat(CollectionUtils.firstIfPresent(Arrays.asList("foo", "bar", "baz"))).isEqualTo("foo");
+    }
+
+    @Test
+    public void firstIfPresent_FirstElementNull_ReturnsNull() {
+        assertThat(CollectionUtils.firstIfPresent(Arrays.asList(null, "bar", "baz"))).isNull();
     }
 }

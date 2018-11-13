@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkRequest;
 
 public class NoopTestRequest extends SdkRequest {
@@ -36,6 +39,11 @@ public class NoopTestRequest extends SdkRequest {
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return Collections.emptyList();
     }
 
     public interface Builder extends SdkRequest.Builder {

@@ -18,23 +18,22 @@ package software.amazon.awssdk.core.internal.http;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.Crc32ValidationStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
@@ -45,6 +44,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQuer
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
@@ -57,11 +57,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @ReviewBeforeRelease("come up with better name, Also this can be moved to an internal package if we "
                      + "deal with HttpTestUtils.")
 public final class AmazonSyncHttpClient implements SdkAutoCloseable {
-    /**
-     * Used for testing via failure injection.
-     */
-    static UnreliableTestConfig unreliableTestConfig;
-
     private final HttpClientDependencies httpClientDependencies;
 
     public AmazonSyncHttpClient(SdkClientConfiguration clientConfiguration) {
@@ -75,17 +70,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
         return new CapacityManager(SdkDefaultRetrySetting.RETRY_THROTTLING_COST * SdkDefaultRetrySetting.THROTTLED_RETRIES);
-    }
-
-    /**
-     * Used to configure the test conditions for injecting intermittent failures to the content
-     * input stream.
-     *
-     * @param config unreliable test configuration for failure injection; or null to disable such
-     * test.
-     */
-    static void configUnreliableTestConditions(UnreliableTestConfig config) {
-        unreliableTestConfig = config;
     }
 
     /**
@@ -125,16 +109,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
      * Interface to configure a request execution and execute the request.
      */
     public interface RequestExecutionBuilder {
-
-        /**
-         * Fluent setter for {@link Request}
-         *
-         * @param request Request object
-         * @return This builder for method chaining.
-         * @deprecated Use {@link #request(SdkHttpFullRequest)}
-         */
-        @Deprecated
-        RequestExecutionBuilder request(Request<?> request);
 
         /**
          * Fluent setter for {@link SdkHttpFullRequest}
@@ -200,12 +174,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         private ExecutionContext executionContext;
 
         @Override
-        public RequestExecutionBuilder request(Request<?> request) {
-            this.request = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
-            return this;
-        }
-
-        @Override
         @ReviewBeforeRelease("This is duplicating information in the interceptor context. Can they be consolidated?")
         public RequestExecutionBuilder request(SdkHttpFullRequest request) {
             this.request = request;
@@ -245,26 +213,28 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                 return RequestPipelineBuilder
                     // Start of mutating request
                     .first(RequestPipelineBuilder
-                                   .first(MakeRequestMutableStage::new)
-                                   .then(ApplyTransactionIdStage::new)
-                                   .then(ApplyUserAgentStage::new)
-                                   .then(MergeCustomHeadersStage::new)
-                                   .then(MergeCustomQueryParamsStage::new)
-                                   .then(MoveParametersToBodyStage::new)
-                                   .then(MakeRequestImmutableStage::new)
-                                   // End of mutating request
-                                   .then(RequestPipelineBuilder
-                                             .first(SigningStage::new)
-                                             .then(BeforeTransmissionExecutionInterceptorsStage::new)
-                                             .then(MakeHttpRequestStage::new)
-                                             .then(AfterTransmissionExecutionInterceptorsStage::new)
-                                             .then(Crc32ValidationStage::new)
-                                             .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
-                                             .then(() -> new HandleResponseStage<>(
-                                                 getNonNullResponseHandler(responseHandler),
-                                                 getNonNullResponseHandler(errorResponseHandler)))
-                                             .wrappedWith(RetryableStage::new)::build)
-                                   .wrappedWith(StreamManagingStage::new)::build)
+                               .first(MakeRequestMutableStage::new)
+                               .then(ApplyTransactionIdStage::new)
+                               .then(ApplyUserAgentStage::new)
+                               .then(MergeCustomHeadersStage::new)
+                               .then(MergeCustomQueryParamsStage::new)
+                               .then(MoveParametersToBodyStage::new)
+                               .then(MakeRequestImmutableStage::new)
+                               // End of mutating request
+                               .then(RequestPipelineBuilder
+                                         .first(SigningStage::new)
+                                         .then(BeforeTransmissionExecutionInterceptorsStage::new)
+                                         .then(MakeHttpRequestStage::new)
+                                         .then(AfterTransmissionExecutionInterceptorsStage::new)
+                                         .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
+                                         .then(() -> new HandleResponseStage<>(
+                                             getNonNullResponseHandler(responseHandler),
+                                             getNonNullResponseHandler(errorResponseHandler)))
+                                         .wrappedWith(ApiCallAttemptTimeoutTrackingStage::new)
+                                         .wrappedWith(TimeoutExceptionHandlingStage::new)
+                                         .wrappedWith(RetryableStage::new)::build)
+                               .wrappedWith(StreamManagingStage::new)
+                               .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)

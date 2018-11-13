@@ -27,5 +27,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public interface TypeAdapter<SourceT, DestinationT> {
+
     DestinationT adapt(SourceT source);
 }

@@ -20,13 +20,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
-import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -37,10 +37,11 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
-    private final SdkHttpRequestProvider requestProvider;
+    private AsyncRequestBody requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
     private TimeoutTracker apiCallTimeoutTracker;
+    private TimeoutTracker apiCallAttemptTimeoutTracker;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -55,7 +56,7 @@ public final class RequestExecutionContext {
         return new Builder();
     }
 
-    public SdkHttpRequestProvider requestProvider() {
+    public AsyncRequestBody requestProvider() {
         return requestProvider;
     }
 
@@ -109,17 +110,33 @@ public final class RequestExecutionContext {
         this.apiCallTimeoutTracker = timeoutTracker;
     }
 
+    public TimeoutTracker apiCallAttemptTimeoutTracker() {
+        return apiCallAttemptTimeoutTracker;
+    }
+
+    public void apiCallAttemptTimeoutTracker(TimeoutTracker timeoutTracker) {
+        this.apiCallAttemptTimeoutTracker = timeoutTracker;
+    }
+
+    /**
+     * Sets the request body provider.
+     * Used for transforming the original body provider to sign events for
+     * event stream operations that support signing.
+     */
+    public void requestProvider(AsyncRequestBody publisher) {
+        requestProvider = publisher;
+    }
 
     /**
      * An SDK-internal implementation of {@link Builder}.
      */
     public static final class Builder {
 
-        private SdkHttpRequestProvider requestProvider;
+        private AsyncRequestBody requestProvider;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
-        public Builder requestProvider(SdkHttpRequestProvider requestProvider) {
+        public Builder requestProvider(AsyncRequestBody requestProvider) {
             this.requestProvider = requestProvider;
             return this;
         }

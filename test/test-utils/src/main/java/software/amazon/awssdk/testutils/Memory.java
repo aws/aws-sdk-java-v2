@@ -34,10 +34,10 @@ public final class Memory {
      */
     public static String heapSummary() {
         Runtime rt = Runtime.getRuntime();
-        final long totalMem = rt.totalMemory();
-        final long freeMem = rt.freeMemory();
-        final long usedMem = totalMem - freeMem;
-        final long spareMem = rt.maxMemory() - usedMem;
+        long totalMem = rt.totalMemory();
+        long freeMem = rt.freeMemory();
+        long usedMem = totalMem - freeMem;
+        long spareMem = rt.maxMemory() - usedMem;
         return String.format(
                 "Heap usedMem=%d (KB), freeMem=%d (KB), spareMem=%d (KB)%n",
                 usedMem / 1024, freeMem / 1024, spareMem / 1024);

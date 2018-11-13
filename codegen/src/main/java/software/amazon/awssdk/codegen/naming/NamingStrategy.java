@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.naming;
 
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
 /**
@@ -143,4 +144,12 @@ public interface NamingStrategy {
      * @return Name of the getter method for an enum model class member.
      */
     String getFluentEnumSetterMethodName(String memberName, Shape shape);
+
+    /**
+     * Stuttering is intentional, returns the name of the {@link SdkField} field.
+     *
+     * @param memberModel Member to generate field name for.
+     * @return Name of field for {@link SdkField} pojo.
+     */
+    String getSdkFieldFieldName(MemberModel memberModel);
 }

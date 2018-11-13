@@ -36,7 +36,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
         setUpCredentials();
         sts = StsClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                       .region(Region.AWS_GLOBAL)
+                       .region(Region.US_EAST_1)
                        .build();
     }
 }

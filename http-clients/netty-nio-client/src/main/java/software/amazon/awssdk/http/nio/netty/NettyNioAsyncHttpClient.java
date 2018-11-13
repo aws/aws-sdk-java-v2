@@ -35,7 +35,7 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
@@ -43,19 +43,15 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
+import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.ReleaseOnceChannelPool;
-import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
-import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
@@ -71,7 +67,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
-    private final RequestAdapter requestAdapter = new RequestAdapter();
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final ChannelPoolMap<URI, ChannelPool> pools;
     private final SdkChannelOptions sdkChannelOptions;
@@ -82,7 +77,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
-        this.maxStreams = 200;
+        this.maxStreams = builder.maxHttp2Streams == null ? Integer.MAX_VALUE : builder.maxHttp2Streams;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
         this.sdkChannelOptions = channelOptions(builder);
@@ -92,28 +87,27 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         return builder.sdkChannelOptions;
     }
 
-    private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
-        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
-                        "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
-        return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupBuilder)
-                     .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
-                     .orElseGet(SharedSdkEventLoopGroup::get);
+    @Override
+    public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+        RequestContext ctx = createRequestContext(request);
+        return new NettyRequestExecutor(ctx).execute();
     }
 
     public static Builder builder() {
         return new DefaultBuilder();
     }
 
-    @Override
-    public AbortableRunnable prepareRequest(SdkHttpRequest sdkRequest,
-                                            SdkRequestContext sdkRequestContext,
-                                            SdkHttpRequestProvider requestProvider,
-                                            SdkHttpResponseHandler handler) {
-        RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
-                                                    sdkRequest, requestProvider,
-                                                    requestAdapter.adapt(sdkRequest),
-                                                    handler, configuration);
-        return new RunnableRequest(context);
+    private RequestContext createRequestContext(AsyncExecuteRequest request) {
+        ChannelPool pool = pools.get(poolKey(request.request()));
+        return new RequestContext(pool, request, configuration);
+    }
+
+    private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
+        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
+                "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
+        return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupBuilder)
+                .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
+                .orElseGet(SharedSdkEventLoopGroup::get);
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
@@ -168,11 +162,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
         return SdkEventLoopGroup.create(new NonManagedEventLoopGroup(eventLoopGroup.eventLoopGroup()),
                                         eventLoopGroup.channelFactory());
-    }
-
-    @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(configuration.attribute(key));
     }
 
     @Override
@@ -296,6 +285,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @see SdkEventLoopGroup.Builder
          */
         Builder putChannelOption(ChannelOption channelOption, Object value);
+
+        /**
+         * Sets the max number of concurrent streams for an HTTP/2 connection. This setting is only respected when the HTTP/2
+         * protocol is used.
+         *
+         * <p>Note that this cannot exceed the value of the MAX_CONCURRENT_STREAMS setting returned by the service. If it
+         * does the service setting is used instead.</p>
+         *
+         * @param maxHttp2Streams Max concurrent HTTP/2 streams per connection.
+         * @return This builder for method chaining.
+         */
+        Builder maxHttp2Streams(Integer maxHttp2Streams);
     }
 
     /**
@@ -310,6 +311,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
+        private Integer maxHttp2Streams;
 
         private DefaultBuilder() {
         }
@@ -371,7 +373,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
-            Validate.isPositive(writeTimeout, "connectionAcquisitionTimeout");
+            Validate.isPositive(writeTimeout, "writeTimeout");
             standardOptions.put(WRITE_TIMEOUT, writeTimeout);
             return this;
         }
@@ -447,6 +449,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder putChannelOption(ChannelOption channelOption, Object value) {
             this.sdkChannelOptions.putOption(channelOption, value);
             return this;
+        }
+
+        @Override
+        public Builder maxHttp2Streams(Integer maxHttp2Streams) {
+            this.maxHttp2Streams = maxHttp2Streams;
+            return this;
+        }
+
+        public void setMaxHttp2Streams(Integer maxHttp2Streams) {
+            maxHttp2Streams(maxHttp2Streams);
         }
 
         @Override

@@ -26,9 +26,9 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
 
 import org.junit.Test;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -77,7 +77,7 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
 
         AmazonSyncHttpClient httpClient = new AmazonSyncHttpClient(config);
         try {
-            SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
+            SdkHttpFullRequest request = newGetRequest(RESOURCE_PATH).build();
             httpClient.requestExecutionBuilder()
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())

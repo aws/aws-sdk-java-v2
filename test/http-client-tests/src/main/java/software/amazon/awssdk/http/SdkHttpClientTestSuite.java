@@ -92,7 +92,8 @@ public abstract class SdkHttpClientTestSuite {
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
 
-        assertThatThrownBy(client.prepareRequest(request, requestContext)::call).isInstanceOf(SSLHandshakeException.class);
+        assertThatThrownBy(client.prepareRequest(ExecuteRequest.builder().request(request).build())::call)
+                .isInstanceOf(SSLHandshakeException.class);
     }
 
     private void testForResponseCode(int returnCode) throws Exception {
@@ -101,7 +102,7 @@ public abstract class SdkHttpClientTestSuite {
         stubForMockRequest(returnCode);
 
         SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port());
-        SdkHttpFullResponse response = client.prepareRequest(request, requestContext).call();
+        SdkHttpFullResponse response = client.prepareRequest(ExecuteRequest.builder().request(request).build()).call();
 
         validateResponse(response, returnCode);
     }
@@ -110,7 +111,7 @@ public abstract class SdkHttpClientTestSuite {
         stubForMockRequest(returnCode);
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
-        SdkHttpFullResponse response = client.prepareRequest(request, requestContext).call();
+        SdkHttpFullResponse response = client.prepareRequest(ExecuteRequest.builder().request(request).build()).call();
 
         validateResponse(response, returnCode);
     }
@@ -135,13 +136,11 @@ public abstract class SdkHttpClientTestSuite {
     private SdkHttpFullRequest mockSdkRequest(String uriString) {
         URI uri = URI.create(uriString);
         return SdkHttpFullRequest.builder()
-                                 .host(uri.getHost())
-                                 .protocol(uri.getScheme())
-                                 .port(uri.getPort())
+                                 .uri(uri)
                                  .method(SdkHttpMethod.POST)
                                  .putHeader("Host", uri.getHost())
                                  .putHeader("User-Agent", "hello-world!")
-                                 .content(new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)))
+                                 .contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)))
                                  .build();
     }
 

@@ -32,6 +32,11 @@ import software.amazon.awssdk.utils.Validate;
 abstract class BytesWrapper {
     private final byte[] bytes;
 
+    // Needed for serialization
+    BytesWrapper() {
+        this(null);
+    }
+
     BytesWrapper(byte[] bytes) {
         this.bytes = Validate.paramNotNull(bytes, "bytes");
     }
@@ -91,7 +96,7 @@ abstract class BytesWrapper {
             return false;
         }
 
-        final BytesWrapper sdkBytes = (BytesWrapper) o;
+        BytesWrapper sdkBytes = (BytesWrapper) o;
 
         return Arrays.equals(bytes, sdkBytes.bytes);
     }

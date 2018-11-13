@@ -191,7 +191,7 @@ public final class Utils {
                     "Invalid path directory. Path directory cannot be null or empty");
         }
 
-        final File dir = new File(path);
+        File dir = new File(path);
         createDirectory(dir);
         return dir;
     }
@@ -314,8 +314,10 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (!StringUtils.isEmpty(service.getTargetPrefix()) && Metadata.isNotRestProtocol(service.getProtocol())) {
-            marshaller.setTarget(service.getTargetPrefix() + "." + operation.getName());
+        if (Metadata.isNotRestProtocol(service.getProtocol())) {
+            marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
+                                 operation.getName() :
+                                 service.getTargetPrefix() + "." + operation.getName());
         }
         return marshaller;
 

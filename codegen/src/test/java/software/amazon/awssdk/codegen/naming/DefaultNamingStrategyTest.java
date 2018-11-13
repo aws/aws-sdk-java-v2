@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -272,7 +273,74 @@ public class DefaultNamingStrategyTest {
         strat.getServiceName();
     }
 
+    @Test
+    public void getSdkFieldFieldName_SingleWord() {
+        assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("foo")))
+            .isEqualTo("FOO_FIELD");
+    }
+
+    @Test
+    public void getSdkFieldFieldName_CamalCaseConvertedToScreamCase() {
+        assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("fooBar")))
+            .isEqualTo("FOO_BAR_FIELD");
+    }
+
+    @Test
+    public void getSdkFieldFieldName_PascalCaseConvertedToScreamCase() {
+        assertThat(strat.getSdkFieldFieldName(new MemberModel().withName("FooBar")))
+            .isEqualTo("FOO_BAR_FIELD");
+    }
+
     private void validateConversion(String input, String expectedOutput) {
         assertThat(strat.getEnumValueName(input)).isEqualTo(expectedOutput);
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithUnderscore() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("_MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithDoubleUnderscore() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("__MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithDoublePeriods() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("..MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_ClassStartingWithDoubleDashes() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("--MyClass");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_DoubleUnderscoresInClass() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("My__Class");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_DoublePeriodsInClass() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("My..Class");
+        assertThat(javaClassName).isEqualTo("MyClass");
+    }
+
+    @Test
+    public void getJavaClassName_ReturnsSanitizedName_DoubleDashesInClass() {
+        NamingStrategy strategy = new DefaultNamingStrategy(null, null);
+        String javaClassName = strategy.getJavaClassName("My--Class");
+        assertThat(javaClassName).isEqualTo("MyClass");
     }
 }

@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Validate;
  * Api Call Timeout Tracker to track the {@link TimeoutTask} and the {@link ScheduledFuture}.
  */
 @SdkInternalApi
-public class ApiCallTimeoutTracker implements TimeoutTracker {
+public final class ApiCallTimeoutTracker implements TimeoutTracker {
 
     private final TimeoutTask timeoutTask;
 
@@ -42,7 +42,7 @@ public class ApiCallTimeoutTracker implements TimeoutTracker {
 
     @Override
     public boolean isEnabled() {
-        return timeoutTask.isEnabled();
+        return true;
     }
 
     @Override

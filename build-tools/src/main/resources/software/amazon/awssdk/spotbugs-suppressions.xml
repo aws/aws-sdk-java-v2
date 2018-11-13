@@ -27,14 +27,14 @@
     <Match>
         <Or>
             <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.core.internal.protocol.json.JsonContent" />
+            <Class name="software.amazon.awssdk.protocols.json.JsonContent" />
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
     </Match>
 
     <!-- Delegate closes input stream. -->
     <Match>
-        <Class name="software.amazon.awssdk.core.internal.protocol.json.IonFactory" />
+        <Class name="software.amazon.awssdk.protocols.ion.internal.IonFactory" />
         <Method name="createParser" />
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
     </Match>
@@ -44,7 +44,7 @@
     <Match>
         <Or>
             <Class name="software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDBMapper$BatchGetItemException"/>
-            <Class name="software.amazon.awssdk.core.internal.protocol.json.IonFactory"/>
+            <Class name="software.amazon.awssdk.protocols.ion.internal.IonFactory"/>
         </Or>
         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
     </Match>
@@ -77,14 +77,6 @@
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
 
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller" />
-            <Class name="software.amazon.awssdk.awscore.protocol.xml.LegacyErrorUnmarshaller" />
-        </Or>
-        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
-    </Match>
-
     <!-- Currently they look the same and we will revisit this when we add APIG -->
     <Match>
         <Or>
@@ -102,6 +94,43 @@
             <Class name="software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool" />
         </Or>
         <Bug pattern="BC_UNCONFIRMED_CAST,SIC_INNER_SHOULD_BE_STATIC_ANON,DLS_DEAD_LOCAL_STORE,DM_CONVERT_CASE,NM_CLASS_NOT_EXCEPTION,NP_NULL_ON_SOME_PATH"/>
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.benchmark.dynamodb.V1DynamoDbAttributeValue$TestItemUnmarshalling" />
+        <Method name="utf8" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.benchmark.dynamodb.V2DynamoDbAttributeValue$TestItemUnmarshalling" />
+        <Method name="utf8" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
+        <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
+        <Method name="unmarshallStructured" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+
+    <!-- We want the content to be restored to the default vaue of null -->
+    <Match>
+        <Class name="software.amazon.awssdk.http.DefaultSdkHttpFullResponse" />
+        <Field name="content" />
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+    </Match>
+
+    <!-- Don't understand why these are bugs -->
+    <Match>
+        <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2AsyncClient" />
+        <Method name="init" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.services.protocolec2.DefaultProtocolEc2Client" />
+        <Method name="init" />
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
 
 </FindBugsFilter>

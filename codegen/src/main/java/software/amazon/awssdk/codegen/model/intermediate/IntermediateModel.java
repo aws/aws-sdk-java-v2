@@ -28,10 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
-import software.amazon.awssdk.core.SdkResponseMetadata;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.utils.IoUtils;
 
 public final class IntermediateModel {
@@ -56,6 +57,9 @@ public final class IntermediateModel {
     @JsonIgnore
     private final Map<String, PaginatorDefinition> paginators;
 
+    @JsonIgnore
+    private final NamingStrategy namingStrategy;
+
     @JsonCreator
     public IntermediateModel(
         @JsonProperty("metadata") Metadata metadata,
@@ -64,7 +68,7 @@ public final class IntermediateModel {
         @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
         @JsonProperty("serviceExamples") ServiceExamples examples) {
 
-        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap());
+        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap(), null);
     }
 
     public IntermediateModel(
@@ -74,7 +78,8 @@ public final class IntermediateModel {
         CustomizationConfig customizationConfig,
         ServiceExamples examples,
         Map<String, AuthorizerModel> customAuthorizers,
-        Map<String, PaginatorDefinition> paginators) {
+        Map<String, PaginatorDefinition> paginators,
+        NamingStrategy namingStrategy) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -82,6 +87,7 @@ public final class IntermediateModel {
         this.examples = examples;
         this.customAuthorizers = customAuthorizers;
         this.paginators = paginators;
+        this.namingStrategy = namingStrategy;
     }
 
     public Metadata getMetadata() {
@@ -116,25 +122,12 @@ public final class IntermediateModel {
         return paginators;
     }
 
-    /**
-     * @return Exception unmarshaller implementation to use. Currently only needed by XML based
-     * protocols.
-     */
-    public String getExceptionUnmarshallerImpl() {
-        if (customizationConfig.getDefaultExceptionUnmarshaller() != null) {
-            return customizationConfig.getDefaultExceptionUnmarshaller();
-        } else {
-            return metadata.getProtocolDefaultExceptionUmarshallerImpl();
-        }
+    public NamingStrategy getNamingStrategy() {
+        return namingStrategy;
     }
 
     public String getCustomRetryPolicy() {
         return customizationConfig.getCustomRetryPolicy();
-    }
-
-    public String getServiceBaseExceptionFqcn() {
-        // TODO Move this into Metadata
-        return metadata.getProtocol().getProvider().getBaseExceptionFqcn();
     }
 
     public String getSdkModeledExceptionBaseFqcn() {
@@ -180,8 +173,8 @@ public final class IntermediateModel {
     }
 
     private String getCopyrightDateRange() {
-        final int currentYear = ZonedDateTime.now().getYear();
-        final int copyrightStartYear = currentYear - 5;
+        int currentYear = ZonedDateTime.now().getYear();
+        int copyrightStartYear = currentYear - 5;
         return String.format("%d-%d", copyrightStartYear, currentYear);
     }
 
@@ -196,7 +189,7 @@ public final class IntermediateModel {
     }
 
     private String getResponseMetadataClassName() {
-        return SdkResponseMetadata.class.getName();
+        return AwsResponseMetadata.class.getName();
     }
 
     @JsonIgnore
@@ -221,5 +214,12 @@ public final class IntermediateModel {
                           .filter(ShapeModel::isRequestSignerAware)
                           .findAny()
                           .isPresent();
+    }
+
+    public boolean containsRequestEventStreams() {
+        return getOperations().values().stream()
+                              .filter(opModel -> opModel.hasEventStreamInput())
+                              .findAny()
+                              .isPresent();
     }
 }

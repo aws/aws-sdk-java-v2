@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -34,6 +33,8 @@ public interface HttpResponseHandler<T> {
 
     String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
 
+    String X_AMZ_ID_2_HEADER = "x-amz-id-2";
+
     /**
      * Accepts an HTTP response object, and returns an object of type T.
      * Individual implementations may choose to handle the response however they
@@ -46,8 +47,6 @@ public interface HttpResponseHandler<T> {
      * @throws Exception
      *             If any problems are encountered handling the response.
      */
-    @ReviewBeforeRelease("This should not use the legacy HTTP response representation. "
-                         + "Also, can it throw something more specific?")
     T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception;
 
     /**

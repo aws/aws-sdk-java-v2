@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @Immutable
 @SdkPublicApi
-public abstract class SdkRequest {
+public abstract class SdkRequest implements SdkPojo {
     /**
     * @return The optional client configuration overrides for this request.
     */

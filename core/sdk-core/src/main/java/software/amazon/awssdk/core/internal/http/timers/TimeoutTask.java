@@ -24,17 +24,11 @@ public interface TimeoutTask extends Runnable {
     /**
      * @param abortable the abortable request
      */
-    void abortable(Abortable abortable);
+    default void abortable(Abortable abortable) {
+    }
 
     /**
-     * @return True if abortable request has been aborted by the timer task. False otherwise
+     * @return True if timeout task has executed. False otherwise
      */
     boolean hasExecuted();
-
-    /**
-     * @return True if the timer task has been scheduled. False if client execution timeout is
-     *         disabled for this request
-     */
-    boolean isEnabled();
-
 }

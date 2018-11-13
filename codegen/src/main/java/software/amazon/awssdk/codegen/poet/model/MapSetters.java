@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
@@ -80,12 +78,6 @@ class MapSetters extends AbstractMemberSetters {
     public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
                 .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
-
-        if (annotateJsonProperty()) {
-            builder.addAnnotation(
-                    AnnotationSpec.builder(JsonProperty.class)
-                            .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
-        }
 
         return builder.build();
     }

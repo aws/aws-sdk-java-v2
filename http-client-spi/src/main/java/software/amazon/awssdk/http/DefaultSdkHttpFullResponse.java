@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import static software.amazon.awssdk.utils.CollectionUtils.deepUnmodifiableMap;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,14 +35,17 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 @Immutable
-class DefaultSdkHttpFullResponse implements SdkHttpFullResponse {
+class DefaultSdkHttpFullResponse implements SdkHttpFullResponse, Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private final String statusText;
     private final int statusCode;
     private final Map<String, List<String>> headers;
-    private final AbortableInputStream content;
+    private final transient AbortableInputStream content;
 
     private DefaultSdkHttpFullResponse(Builder builder) {
-        this.statusCode = Validate.isPositive(builder.statusCode, "Status code must be positive.");
+        this.statusCode = Validate.isNotNegative(builder.statusCode, "Status code must not be negative.");
         this.statusText = builder.statusText;
         this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.content = builder.content;
@@ -129,6 +133,14 @@ class DefaultSdkHttpFullResponse implements SdkHttpFullResponse {
             Validate.paramNotNull(headerName, "headerName");
             Validate.paramNotNull(headerValues, "headerValues");
             this.headers.put(headerName, new ArrayList<>(headerValues));
+            return this;
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder appendHeader(String headerName, String headerValue) {
+            Validate.paramNotNull(headerName, "headerName");
+            Validate.paramNotNull(headerValue, "headerValue");
+            this.headers.computeIfAbsent(headerName, k -> new ArrayList<>()).add(headerValue);
             return this;
         }
 

@@ -4,10 +4,12 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -15,9 +17,15 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.adapter.StandardMemberCopier;
-import software.amazon.awssdk.core.adapter.StringToSdkBytesAdapter;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.runtime.TypeConverter;
+import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -28,6 +36,276 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                                                                     ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+    private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(AllTypesRequest::stringMember)).setter(setter(Builder::stringMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
+
+    private static final SdkField<Integer> INTEGER_MEMBER_FIELD = SdkField.<Integer> builder(MarshallingType.INTEGER)
+        .getter(getter(AllTypesRequest::integerMember)).setter(setter(Builder::integerMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
+
+    private static final SdkField<Boolean> BOOLEAN_MEMBER_FIELD = SdkField.<Boolean> builder(MarshallingType.BOOLEAN)
+        .getter(getter(AllTypesRequest::booleanMember)).setter(setter(Builder::booleanMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
+
+    private static final SdkField<Float> FLOAT_MEMBER_FIELD = SdkField.<Float> builder(MarshallingType.FLOAT)
+        .getter(getter(AllTypesRequest::floatMember)).setter(setter(Builder::floatMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
+
+    private static final SdkField<Double> DOUBLE_MEMBER_FIELD = SdkField.<Double> builder(MarshallingType.DOUBLE)
+        .getter(getter(AllTypesRequest::doubleMember)).setter(setter(Builder::doubleMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
+
+    private static final SdkField<Long> LONG_MEMBER_FIELD = SdkField.<Long> builder(MarshallingType.LONG)
+        .getter(getter(AllTypesRequest::longMember)).setter(setter(Builder::longMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
+
+    private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
+        .<List<String>> builder(MarshallingType.LIST)
+        .getter(getter(AllTypesRequest::simpleList))
+        .setter(setter(Builder::simpleList))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<String> builder(MarshallingType.STRING)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build()).build()).build()).build();
+
+    private static final SdkField<List<String>> LIST_OF_ENUMS_FIELD = SdkField
+        .<List<String>> builder(MarshallingType.LIST)
+        .getter(getter(AllTypesRequest::listOfEnumsAsStrings))
+        .setter(setter(Builder::listOfEnumsWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<String> builder(MarshallingType.STRING)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build()).build()).build()).build();
+
+    private static final SdkField<List<Map<String, String>>> LIST_OF_MAPS_FIELD = SdkField
+        .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .getter(getter(AllTypesRequest::listOfMaps))
+        .setter(setter(Builder::listOfMaps))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build(),
+                                    MapTrait.builder()
+                                            .keyLocationName("key")
+                                            .valueLocationName("value")
+                                            .valueFieldInfo(
+                                                SdkField.<String> builder(MarshallingType.STRING)
+                                                    .traits(LocationTrait.builder()
+                                                                         .location(MarshallLocation.PAYLOAD)
+                                                                         .locationName("value").build()).build())
+                                            .build()).build()).build()).build();
+
+    private static final SdkField<List<SimpleStruct>> LIST_OF_STRUCTS_FIELD = SdkField
+        .<List<SimpleStruct>> builder(MarshallingType.LIST)
+        .getter(getter(AllTypesRequest::listOfStructs))
+        .setter(setter(Builder::listOfStructs))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                            .constructor(SimpleStruct::builder)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build()).build()).build()).build();
+
+    private static final SdkField<Map<String, List<Integer>>> MAP_OF_STRING_TO_INTEGER_LIST_FIELD = SdkField
+        .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfStringToIntegerList))
+        .setter(setter(Builder::mapOfStringToIntegerList))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<List<Integer>> builder(MarshallingType.LIST)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build(),
+                                        ListTrait
+                                            .builder()
+                                            .memberLocationName(null)
+                                            .memberFieldInfo(
+                                                SdkField.<Integer> builder(MarshallingType.INTEGER)
+                                                    .traits(LocationTrait.builder()
+                                                                         .location(MarshallLocation.PAYLOAD)
+                                                                         .locationName("member").build()).build())
+                                            .build()).build()).build()).build();
+
+    private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_STRING_FIELD = SdkField
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfStringToString))
+        .setter(setter(Builder::mapOfStringToString))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<Map<String, SimpleStruct>> MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD = SdkField
+        .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfStringToSimpleStruct))
+        .setter(setter(Builder::mapOfStringToSimpleStruct))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                .constructor(SimpleStruct::builder)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_ENUM_FIELD = SdkField
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfEnumToEnumAsStrings))
+        .setter(setter(Builder::mapOfEnumToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_STRING_FIELD = SdkField
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfEnumToStringAsStrings))
+        .setter(setter(Builder::mapOfEnumToStringWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_ENUM_FIELD = SdkField
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfStringToEnumAsStrings))
+        .setter(setter(Builder::mapOfStringToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<Map<String, SimpleStruct>> MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD = SdkField
+        .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::mapOfEnumToSimpleStructAsStrings))
+        .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                .constructor(SimpleStruct::builder)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<Instant> TIMESTAMP_MEMBER_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
+        .getter(getter(AllTypesRequest::timestampMember)).setter(setter(Builder::timestampMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
+
+    private static final SdkField<StructWithTimestamp> STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD = SdkField
+        .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
+        .getter(getter(AllTypesRequest::structWithNestedTimestampMember))
+        .setter(setter(Builder::structWithNestedTimestampMember))
+        .constructor(StructWithTimestamp::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedTimestampMember")
+                             .build()).build();
+
+    private static final SdkField<SdkBytes> BLOB_ARG_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+        .getter(getter(AllTypesRequest::blobArg)).setter(setter(Builder::blobArg))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
+
+    private static final SdkField<StructWithNestedBlobType> STRUCT_WITH_NESTED_BLOB_FIELD = SdkField
+        .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).getter(getter(AllTypesRequest::structWithNestedBlob))
+                                                                     .setter(setter(Builder::structWithNestedBlob)).constructor(StructWithNestedBlobType::builder)
+                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
+                                                                     .build();
+
+    private static final SdkField<Map<String, SdkBytes>> BLOB_MAP_FIELD = SdkField
+        .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
+        .getter(getter(AllTypesRequest::blobMap))
+        .setter(setter(Builder::blobMap))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("value").build()).build()).build()).build();
+
+    private static final SdkField<List<SdkBytes>> LIST_OF_BLOBS_FIELD = SdkField
+        .<List<SdkBytes>> builder(MarshallingType.LIST)
+        .getter(getter(AllTypesRequest::listOfBlobs))
+        .setter(setter(Builder::listOfBlobs))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                 .locationName("member").build()).build()).build()).build();
+
+    private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
+        .<RecursiveStructType> builder(MarshallingType.SDK_POJO).getter(getter(AllTypesRequest::recursiveStruct))
+                                                                .setter(setter(Builder::recursiveStruct)).constructor(RecursiveStructType::builder)
+                                                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
+
+    private static final SdkField<BaseType> POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD = SdkField
+        .<BaseType> builder(MarshallingType.SDK_POJO)
+        .getter(getter(AllTypesRequest::polymorphicTypeWithSubTypes))
+        .setter(setter(Builder::polymorphicTypeWithSubTypes))
+        .constructor(BaseType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithSubTypes")
+                             .build()).build();
+
+    private static final SdkField<SubTypeOne> POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD = SdkField
+        .<SubTypeOne> builder(MarshallingType.SDK_POJO)
+        .getter(getter(AllTypesRequest::polymorphicTypeWithoutSubTypes))
+        .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
+        .constructor(SubTypeOne::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithoutSubTypes")
+                             .build()).build();
+
+    private static final SdkField<String> ENUM_TYPE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+        .getter(getter(AllTypesRequest::enumTypeAsString)).setter(setter(Builder::enumType))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
+
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
+                                                                                                   INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
+                                                                                                   SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
+                                                                                                   MAP_OF_STRING_TO_INTEGER_LIST_FIELD, MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_ENUM_FIELD, MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD, TIMESTAMP_MEMBER_FIELD, STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD,
+                                                                                                   BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD, LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD,
+                                                                                                   POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD, POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD));
+
     private final String stringMember;
 
     private final Integer integerMember;
@@ -639,7 +917,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
     }
 
-    public interface Builder extends JsonProtocolTestsRequest.Builder, CopyableBuilder<Builder, AllTypesRequest> {
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    private static <T> Function<Object, T> getter(Function<AllTypesRequest, T> g) {
+        return obj -> g.apply((AllTypesRequest) obj);
+    }
+
+    private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
+        return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo, CopyableBuilder<Builder, AllTypesRequest> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -755,7 +1046,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          *        The new value for the ListOfMaps property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder listOfMaps(Collection<Map<String, String>> listOfMaps);
+        Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps);
 
         /**
          * Sets the value of the ListOfMaps property for this object.
@@ -944,8 +1235,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder blobArg(SdkBytes blobArg);
-
-        Builder blobArg(String blobArg);
 
         /**
          * Sets the value of the StructWithNestedBlob property for this object.
@@ -1339,12 +1628,12 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
         }
 
-        public final Collection<Map<String, String>> getListOfMaps() {
+        public final Collection<? extends Map<String, String>> getListOfMaps() {
             return listOfMaps;
         }
 
         @Override
-        public final Builder listOfMaps(Collection<Map<String, String>> listOfMaps) {
+        public final Builder listOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
             return this;
         }
@@ -1356,7 +1645,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             return this;
         }
 
-        public final void setListOfMaps(Collection<Map<String, String>> listOfMaps) {
+        public final void setListOfMaps(Collection<? extends Map<String, String>> listOfMaps) {
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
         }
 
@@ -1557,15 +1846,6 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             blobArg(blobArg == null ? null : SdkBytes.fromByteBuffer(blobArg));
         }
 
-        public Builder blobArg(String blobArg) {
-            blobArg(new StringToSdkBytesAdapter().adapt(blobArg));
-            return this;
-        }
-
-        public void setBlobArg(String blobArg) {
-            this.blobArg = new StringToSdkBytesAdapter().adapt(blobArg);
-        }
-
         public final StructWithNestedBlobType.Builder getStructWithNestedBlob() {
             return structWithNestedBlob != null ? structWithNestedBlob.toBuilder() : null;
         }
@@ -1697,5 +1977,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         public AllTypesRequest build() {
             return new AllTypesRequest(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

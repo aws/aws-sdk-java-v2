@@ -22,14 +22,13 @@ import static software.amazon.awssdk.codegen.internal.DocumentationUtils.default
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultSetter;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultSetterParam;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
-import static software.amazon.awssdk.utils.StringUtils.upperCase;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.runtime.transform.PathMarshaller;
+import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class MemberModel extends DocumentationModel {
@@ -73,6 +72,14 @@ public class MemberModel extends DocumentationModel {
     private String beanStyleGetterName;
 
     private String beanStyleSetterName;
+
+    private boolean isJsonValue;
+
+    private String timestampFormat;
+
+    private boolean eventPayload;
+
+    private boolean eventHeader;
 
     public String getName() {
         return name;
@@ -274,6 +281,22 @@ public class MemberModel extends DocumentationModel {
         this.deprecated = deprecated;
     }
 
+    public boolean isEventPayload() {
+        return eventPayload;
+    }
+
+    public void setEventPayload(boolean eventPayload) {
+        this.eventPayload = eventPayload;
+    }
+
+    public boolean isEventHeader() {
+        return eventHeader;
+    }
+
+    public void setEventHeader(boolean eventHeader) {
+        this.eventHeader = eventHeader;
+    }
+
     public ListModel getListModel() {
         return listModel;
     }
@@ -448,20 +471,22 @@ public class MemberModel extends DocumentationModel {
     }
 
     public boolean getIsBinary() {
-        return http.getIsStreaming() || (http.getIsPayload() && isSdkBytesType());
+        return http.getIsStreaming() ||
+               (isSdkBytesType() && (http.getIsPayload() || isEventPayload()));
     }
 
     /**
      * @return Implementation of {@link PathMarshaller} to use if this member is bound the the URI.
      * @throws IllegalStateException If this member is not bound to the URI. Templates should first check
-     *     {@link ParameterHttpMapping#isUri()} first.
+     * {@link ParameterHttpMapping#isUri()} first.
      */
+    // TODO remove when rest XML marshaller refactor is merged
     @JsonIgnore
     public String getPathMarshaller() {
         if (!http.isUri()) {
             throw new IllegalStateException("Only members bound to the URI have a path marshaller");
         }
-        final String prefix = PathMarshaller.class.getName();
+        String prefix = PathMarshaller.class.getName();
         if (http.isGreedy()) {
             return prefix + ".GREEDY";
         } else if (isIdempotencyToken()) {
@@ -471,13 +496,30 @@ public class MemberModel extends DocumentationModel {
         }
     }
 
-    /**
-     * Used for JSON services. Name of the field containing the {@link software.amazon.awssdk.core.protocol.MarshallingInfo} for
-     * this member.
-     */
-    @JsonIgnore
-    public String getMarshallerBindingFieldName() {
-        return upperCase(this.name) + "_BINDING";
+    public boolean isJsonValue() {
+        return isJsonValue;
+    }
+
+    public void setJsonValue(boolean jsonValue) {
+        isJsonValue = jsonValue;
+    }
+
+    public MemberModel withJsonValue(boolean jsonValue) {
+        setJsonValue(jsonValue);
+        return this;
+    }
+
+    public String getTimestampFormat() {
+        return timestampFormat;
+    }
+
+    public void setTimestampFormat(String timestampFormat) {
+        this.timestampFormat = timestampFormat;
+    }
+
+    public MemberModel withTimestampFormat(String timestampFormat) {
+        setTimestampFormat(timestampFormat);
+        return this;
     }
 
     @JsonIgnore
@@ -497,9 +539,7 @@ public class MemberModel extends DocumentationModel {
     }
 
     /**
-     * Currently used only for JSON services.
-     *
-     * @return Marshalling type to use when creating a {@link software.amazon.awssdk.core.protocol.MarshallingInfo}. Must be a
+     * @return Marshalling type to use when creating a {@link SdkField}. Must be a
      * field of {@link software.amazon.awssdk.core.protocol.MarshallingType}.
      */
     public String getMarshallingType() {
@@ -508,26 +548,9 @@ public class MemberModel extends DocumentationModel {
         } else if (isMap()) {
             return "MAP";
         } else if (!isSimple()) {
-            return "STRUCTURED";
+            return "SDK_POJO";
         } else {
             return TypeUtils.getMarshallingType(variable.getSimpleType());
-        }
-    }
-
-    /**
-     * Currently used only for JSON services.
-     *
-     * @return The target class a marshalling type is bound to.
-     */
-    public String getMarshallingTargetClass() {
-        if (isList()) {
-            return "List";
-        } else if (isMap()) {
-            return "Map";
-        } else if (!isSimple()) {
-            return "StructuredPojo";
-        } else {
-            return variable.getVariableType();
         }
     }
 

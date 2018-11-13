@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.awscore.exception;
 
+import java.io.Serializable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 @SdkPublicApi
-public class AwsErrorDetails {
+public class AwsErrorDetails implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String errorMessage;
 

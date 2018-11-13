@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
 import java.util.Calendar;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
+import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
@@ -156,13 +158,12 @@ public class Aws4SignerTest {
 
     private SdkHttpFullRequest.Builder generateBasicRequest() {
         return SdkHttpFullRequest.builder()
-                                 .content(new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                                 .contentStreamProvider(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
                                  .method(SdkHttpMethod.POST)
                                  .putHeader("Host", "demo.us-east-1.amazonaws.com")
                                  .putHeader("x-amz-archive-description", "test  test")
                                  .encodedPath("/")
-                                 .protocol("http")
-                                 .host("demo.us-east-1.amazonaws.com");
+                                 .uri(URI.create("http://demo.us-east-1.amazonaws.com"));
     }
 
     private void mockClock() {

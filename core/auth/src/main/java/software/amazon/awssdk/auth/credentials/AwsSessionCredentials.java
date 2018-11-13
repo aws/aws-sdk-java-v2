@@ -94,7 +94,7 @@ public final class AwsSessionCredentials implements AwsCredentials {
         if (!super.equals(o)) {
             return false;
         }
-        final AwsSessionCredentials that = (AwsSessionCredentials) o;
+        AwsSessionCredentials that = (AwsSessionCredentials) o;
         return Objects.equals(accessKeyId, that.accessKeyId) &&
                Objects.equals(secretAccessKey, that.secretAccessKey) &&
                Objects.equals(sessionToken, that.sessionToken);

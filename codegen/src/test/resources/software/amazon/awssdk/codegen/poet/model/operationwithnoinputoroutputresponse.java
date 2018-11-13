@@ -1,14 +1,21 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public final class OperationWithNoInputOrOutputResponse extends JsonProtocolTestsResponse implements
-                                                                                    ToCopyableBuilder<OperationWithNoInputOrOutputResponse.Builder, OperationWithNoInputOrOutputResponse> {
+                                                                                          ToCopyableBuilder<OperationWithNoInputOrOutputResponse.Builder, OperationWithNoInputOrOutputResponse> {
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
+
     private OperationWithNoInputOrOutputResponse(BuilderImpl builder) {
         super(builder);
     }
@@ -55,7 +62,12 @@ public final class OperationWithNoInputOrOutputResponse extends JsonProtocolTest
         return Optional.empty();
     }
 
-    public interface Builder extends JsonProtocolTestsResponse.Builder,
+    @Override
+    public List<SdkField<?>> sdkFields() {
+        return SDK_FIELDS;
+    }
+
+    public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
                                      CopyableBuilder<Builder, OperationWithNoInputOrOutputResponse> {
     }
 
@@ -71,5 +83,11 @@ public final class OperationWithNoInputOrOutputResponse extends JsonProtocolTest
         public OperationWithNoInputOrOutputResponse build() {
             return new OperationWithNoInputOrOutputResponse(this);
         }
+
+        @Override
+        public List<SdkField<?>> sdkFields() {
+            return SDK_FIELDS;
+        }
     }
 }
+

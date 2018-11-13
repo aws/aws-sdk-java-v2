@@ -109,7 +109,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        final Profile profile = (Profile) o;
+        Profile profile = (Profile) o;
         return Objects.equals(name, profile.name) &&
                Objects.equals(properties, profile.properties);
     }

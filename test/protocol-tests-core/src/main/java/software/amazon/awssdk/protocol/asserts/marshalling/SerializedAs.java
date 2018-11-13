@@ -16,8 +16,8 @@
 package software.amazon.awssdk.protocol.asserts.marshalling;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.protocol.model.HttpMethodNameDeserializer;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.protocol.model.SdkHttpMethodDeserializer;
 
 /**
  * Main composite for marshalling assertions. Contains sub assertions for each component of an HTTP
@@ -37,8 +37,8 @@ public class SerializedAs extends CompositeMarshallingAssertion {
         addAssertion(new UriAssertion(uri));
     }
 
-    @JsonDeserialize(using = HttpMethodNameDeserializer.class)
-    public void setMethod(HttpMethodName method) {
+    @JsonDeserialize(using = SdkHttpMethodDeserializer.class)
+    public void setMethod(SdkHttpMethod method) {
         addAssertion(new HttpMethodAssertion(method));
     }
 

@@ -27,17 +27,16 @@ import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -64,14 +63,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext requestContext) {
-        final HttpURLConnection connection = createAndConfigureConnection(request);
-        return new RequestCallable(connection, request);
-    }
-
-    @Override
-    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(options.get(key));
+    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+        HttpURLConnection connection = createAndConfigureConnection(request.httpRequest());
+        return new RequestCallable(connection, request.httpRequest());
     }
 
     @Override
@@ -83,7 +77,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) request.getUri().toURL().openConnection());
         request.headers().forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
         invokeSafely(() -> connection.setRequestMethod(request.method().name()));
-        if (request.content().isPresent()) {
+        if (request.contentStreamProvider().isPresent()) {
             connection.setDoOutput(true);
         }
 
@@ -107,7 +101,8 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         public SdkHttpFullResponse call() throws Exception {
             connection.connect();
 
-            request.content().ifPresent(content -> invokeSafely(() -> IoUtils.copy(content, connection.getOutputStream())));
+            request.contentStreamProvider().ifPresent(provider ->
+                    invokeSafely(() -> IoUtils.copy(provider.newStream(), connection.getOutputStream())));
 
             int responseCode = connection.getResponseCode();
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);

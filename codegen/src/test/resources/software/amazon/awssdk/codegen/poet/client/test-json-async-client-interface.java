@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -13,8 +14,12 @@ import software.amazon.awssdk.services.json.model.APostOperationWithOutputReques
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputRequest;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
+import software.amazon.awssdk.services.json.model.InputEventStream;
+import software.amazon.awssdk.services.json.model.InputEventStreamTwo;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -198,7 +203,7 @@ public interface JsonAsyncClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
-                                                         EventStreamOperationResponseHandler asyncResponseHandler) {
+                                                         Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
         throw new UnsupportedOperationException();
     }
 
@@ -228,10 +233,70 @@ public interface JsonAsyncClient extends SdkClient {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<Void> eventStreamOperation(
-        Consumer<EventStreamOperationRequest.Builder> eventStreamOperationRequest,
+        Consumer<EventStreamOperationRequest.Builder> eventStreamOperationRequest, Publisher<InputEventStream> requestStream,
         EventStreamOperationResponseHandler asyncResponseHandler) {
         return eventStreamOperation(EventStreamOperationRequest.builder().applyMutation(eventStreamOperationRequest).build(),
-                                    asyncResponseHandler);
+                                    requestStream, asyncResponseHandler);
+    }
+
+    /**
+     * Invokes the EventStreamOperationWithOnlyInput operation asynchronously.
+     *
+     * @param eventStreamOperationWithOnlyInputRequest
+     * @return A Java Future containing the result of the EventStreamOperationWithOnlyInput operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.EventStreamOperationWithOnlyInput
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
+        EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
+        Publisher<InputEventStreamTwo> requestStream) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the EventStreamOperationWithOnlyInput operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link EventStreamOperationWithOnlyInputRequest.Builder}
+     * avoiding the need to create one manually via {@link EventStreamOperationWithOnlyInputRequest#builder()}
+     * </p>
+     *
+     * @param eventStreamOperationWithOnlyInputRequest
+     *        A {@link Consumer} that will call methods on {@link EventStreamOperationWithOnlyInputRequest.Builder} to
+     *        create a request.
+     * @return A Java Future containing the result of the EventStreamOperationWithOnlyInput operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.EventStreamOperationWithOnlyInput
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyInput"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
+        Consumer<EventStreamOperationWithOnlyInputRequest.Builder> eventStreamOperationWithOnlyInputRequest,
+        Publisher<InputEventStreamTwo> requestStream) {
+        return eventStreamOperationWithOnlyInput(
+            EventStreamOperationWithOnlyInputRequest.builder().applyMutation(eventStreamOperationWithOnlyInputRequest)
+                                                    .build(), requestStream);
     }
 
     /**

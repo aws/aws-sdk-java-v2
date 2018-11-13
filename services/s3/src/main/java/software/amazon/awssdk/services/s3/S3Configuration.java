@@ -43,9 +43,17 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     private static final boolean DEFAULT_DUALSTACK_ENABLED = false;
 
-    private final Boolean pathStyleAccessEnabled;
-    private final Boolean accelerateModeEnabled;
-    private final Boolean dualstackEnabled;
+    /**
+     * S3 The default value for enabling chunked encoding for {@link
+     * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
+     * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+     */
+    private static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
+
+    private final boolean pathStyleAccessEnabled;
+    private final boolean accelerateModeEnabled;
+    private final boolean dualstackEnabled;
+    private final boolean chunkedEncodingEnabled;
 
     private S3Configuration(DefaultS3ServiceConfigurationBuilder builder) {
         this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
@@ -54,6 +62,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         if (accelerateModeEnabled && pathStyleAccessEnabled) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
+        this.chunkedEncodingEnabled = resolveBoolean(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
     }
 
     /**
@@ -119,6 +128,20 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         return dualstackEnabled;
     }
 
+    /**
+     * Returns whether the client should use chunked encoding when signing the
+     * payload body.
+     * <p>
+     * This option only currently applies to {@link
+     * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
+     * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+     *
+     * @return True if chunked encoding should be used.
+     */
+    public boolean chunkedEncodingEnabled() {
+        return chunkedEncodingEnabled;
+    }
+
     private boolean resolveBoolean(Boolean customerSuppliedValue, boolean defaultValue) {
         return customerSuppliedValue == null ? defaultValue : customerSuppliedValue;
     }
@@ -171,6 +194,16 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * @see S3Configuration#pathStyleAccessEnabled().
          */
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
+
+        /**
+         * Option to enable using chunked encoding when signing the request
+         * payload for {@link
+         * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
+         * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+         *
+         * @see S3Configuration#accelerateModeEnabled()
+         */
+        Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
     }
 
     private static final class DefaultS3ServiceConfigurationBuilder implements Builder {
@@ -178,6 +211,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean dualstackEnabled;
         private Boolean accelerateModeEnabled;
         private Boolean pathStyleAccessEnabled;
+        private Boolean chunkedEncodingEnabled;
 
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
@@ -204,6 +238,15 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         public void setPathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
             pathStyleAccessEnabled(pathStyleAccessEnabled);
+        }
+
+        public Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
+            this.chunkedEncodingEnabled = chunkedEncodingEnabled;
+            return this;
+        }
+
+        public void setChunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
+            chunkedEncodingEnabled(chunkedEncodingEnabled);
         }
 
         public S3Configuration build() {

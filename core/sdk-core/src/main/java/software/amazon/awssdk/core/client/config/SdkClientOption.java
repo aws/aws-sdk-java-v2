@@ -20,12 +20,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -66,7 +64,6 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * Whether to calculate the CRC 32 checksum of a message based on the uncompressed data. By default, this is false.
      */
-    @ReviewBeforeRelease("Move this to aws-core module once HttpResponseAdaptingStage is removed")
     public static final SdkClientOption<Boolean> CRC32_FROM_COMPRESSED_DATA_ENABLED =
         new SdkClientOption<>(Boolean.class);
 
@@ -98,6 +95,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * @see ClientOverrideConfiguration#apiCallTimeout()
      */
     public static final SdkClientOption<Duration> API_CALL_TIMEOUT = new SdkClientOption<>(Duration.class);
+
+    /**
+     * Descriptive name for the service. Used primarily for metrics and also in metadata like AwsErrorDetails.
+     */
+    public static final SdkClientOption<String> SERVICE_NAME = new SdkClientOption<>(String.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

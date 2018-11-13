@@ -22,7 +22,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
-import utils.S3TestUtils;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 
 /**
  * Base class for S3 integration tests. Loads AWS credentials from a properties

@@ -27,14 +27,15 @@ import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.utils.Logger;
@@ -83,7 +84,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
                                 .findFirst()
                                 .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the c2j model."));
 
-        baseName = pascalCase(splitOnWordBoundaries(baseName));
+        baseName = pascalCase(baseName);
 
         // Special cases
         baseName = Utils.removeLeading(baseName, "Amazon");
@@ -153,12 +154,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return serviceName;
     }
 
-    private String pascalCase(String word) {
-        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+    private String screamCase(String word) {
+        return Stream.of(splitOnWordBoundaries(word)).map(s -> s.toUpperCase(Locale.US)).collect(joining("_"));
     }
 
-    private String pascalCase(String... words) {
-        return Stream.of(words).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+    private String pascalCase(String word) {
+        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
     }
 
     private String getCustomizedPackageName(String serviceName, String defaultPattern) {
@@ -219,7 +220,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getJavaClassName(String shapeName) {
-        return Arrays.stream(shapeName.split("[._-]|\\W")).map(Utils::capitalize).collect(Collectors.joining());
+        return Arrays.stream(shapeName.split("[._-]|\\W"))
+                     .filter(s -> !StringUtils.isEmpty(s))
+                     .map(Utils::capitalize)
+                     .collect(joining());
     }
 
     @Override
@@ -292,6 +296,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return Utils.unCapitalize(memberName);
     }
 
+    @Override
+    public String getSdkFieldFieldName(MemberModel memberModel) {
+        return screamCase(memberModel.getName()) + "_FIELD";
+    }
+
     private String[] splitOnWordBoundaries(String toSplit) {
         String result = toSplit;
 
@@ -317,4 +326,5 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
         return result.split(" ");
     }
+
 }
