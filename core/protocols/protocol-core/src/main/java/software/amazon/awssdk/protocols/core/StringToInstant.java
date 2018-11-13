@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocols.core;
 
 import java.time.Instant;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.DateUtils;
  * Implementation of {@link StringToValueConverter.StringToValue} that converts a string to an {@link Instant} type.
  * Respects the {@link TimestampFormatTrait} if present.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class StringToInstant implements StringToValueConverter.StringToValue<Instant> {
 
     /**

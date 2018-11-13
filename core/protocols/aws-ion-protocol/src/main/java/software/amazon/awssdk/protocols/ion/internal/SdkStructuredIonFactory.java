@@ -17,13 +17,13 @@ package software.amazon.awssdk.protocols.ion.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.function.BiFunction;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonSystemBuilder;
 import software.amazon.ion.system.IonWriterBuilder;
 
-@SdkProtectedApi
+@SdkInternalApi
 abstract class SdkStructuredIonFactory {
 
     protected static final IonSystem ION_SYSTEM = IonSystemBuilder.standard().build();

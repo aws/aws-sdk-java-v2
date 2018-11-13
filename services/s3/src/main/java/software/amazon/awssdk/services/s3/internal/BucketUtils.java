@@ -16,13 +16,13 @@
 package software.amazon.awssdk.services.s3.internal;
 
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Utilities for working with Amazon S3 bucket names, such as validation and
  * checked to see if they are compatible with DNS addressing.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class BucketUtils {
 
     private static final int MIN_BUCKET_NAME_LENGTH = 3;

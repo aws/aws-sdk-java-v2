@@ -18,10 +18,9 @@ package software.amazon.awssdk.auth.signer.internal;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 
 /**
@@ -31,7 +30,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * <dd>The trailing empty frame is sent only if there is demand from the downstream subscriber</dd>
  * </dl>
  */
-@SdkProtectedApi
+@SdkInternalApi
 final class AsyncSigV4SubscriberAdapter implements Subscriber<ByteBuffer> {
     private final AtomicBoolean upstreamDone = new AtomicBoolean(false);
     private final AtomicLong downstreamDemand = new AtomicLong();

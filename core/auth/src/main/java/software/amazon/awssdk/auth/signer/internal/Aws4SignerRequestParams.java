@@ -16,14 +16,14 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import java.time.Clock;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.regions.Region;
 
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class Aws4SignerRequestParams {
 
     /**

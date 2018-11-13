@@ -19,10 +19,11 @@ import io.netty.channel.ChannelOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkProtectedApi
-public class SdkChannelOptions {
+@SdkInternalApi
+public final class SdkChannelOptions {
 
     private Map<ChannelOption, Object> options;
 
