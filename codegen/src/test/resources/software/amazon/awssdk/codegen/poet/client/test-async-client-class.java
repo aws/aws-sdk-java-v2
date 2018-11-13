@@ -20,7 +20,7 @@ import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMars
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUtils;
+import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;

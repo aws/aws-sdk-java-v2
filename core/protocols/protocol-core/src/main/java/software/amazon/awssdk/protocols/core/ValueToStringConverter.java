@@ -16,7 +16,7 @@
 package software.amazon.awssdk.protocols.core;
 
 import java.math.BigDecimal;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 /**
  * Converts various types to Strings. Used for Query Param/Header/Path marshalling.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class ValueToStringConverter {
 
     /**

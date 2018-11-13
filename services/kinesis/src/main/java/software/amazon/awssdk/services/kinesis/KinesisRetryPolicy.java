@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
  * Default retry policy for the Kinesis Client.
  */
 @SdkInternalApi
-public class KinesisRetryPolicy {
+final class KinesisRetryPolicy {
 
     /**
      * Default retry policy for Kinesis. Turns off retries for SubscribeToShard

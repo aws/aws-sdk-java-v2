@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
-import software.amazon.awssdk.core.internal.http.Crc32Validation;
+import software.amazon.awssdk.core.http.Crc32Validation;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;

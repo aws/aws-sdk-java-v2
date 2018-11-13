@@ -38,7 +38,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlGenerator;
 import software.amazon.awssdk.protocols.xml.internal.marshall.XmlProtocolMarshaller;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseHandler;
-import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlOperationMetadata;
 import software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlProtocolUnmarshaller;
 
 /**

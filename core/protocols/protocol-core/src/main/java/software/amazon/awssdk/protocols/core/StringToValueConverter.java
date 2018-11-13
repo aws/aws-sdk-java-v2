@@ -16,7 +16,7 @@
 package software.amazon.awssdk.protocols.core;
 
 import java.math.BigDecimal;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 /**
  * Converter implementations that transform a String to a specified type.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class StringToValueConverter {
 
     /**

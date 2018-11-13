@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 /**
  * Base class for marshaller/unmarshaller registry implementations.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class AbstractMarshallingRegistry {
 
     private final Map<MarshallLocation, Map<MarshallingType, Object>> registry;

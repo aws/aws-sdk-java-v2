@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 @SdkProtectedApi
 public final class XmlDomParser {
 
-    private static final ThreadLocal<XMLInputFactory> FACTORY = ThreadLocal.withInitial(XMLInputFactory::newInstance);
+    private static final ThreadLocal<XMLInputFactory> FACTORY = ThreadLocal.withInitial(XmlDomParser::createXmlInputFactory);
 
     private XmlDomParser() {
     }
@@ -89,6 +89,18 @@ public final class XmlDomParser {
                 return sb.toString();
             }
         }
+    }
+
+    /**
+     * Disables certain dangerous features that attempt to automatically fetch DTDs
+     *
+     * See <a href="https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet">OWASP XXE Cheat Sheet</a>
+     */
+    private static XMLInputFactory createXmlInputFactory() {
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        return factory;
     }
 
 }
