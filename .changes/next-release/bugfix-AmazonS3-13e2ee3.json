@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "Update S3 `EndpointAddressInterceptor` to honor request protocol."
-}

@@ -1,3 +1,39 @@
+# __2.0.0-preview-13__ __2018-11-13__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `Automatic-Module-Name` manifest entry.
+    - Add `AwsResponseMetadata` support to allow users to retrieve metadata information such as `requestId`, `extendedRequestId` from the response. see [#670](https://github.com/aws/aws-sdk-java-v2/issues/670)
+    - Add apiCallTimeout and apiCallAttemptTimeout feature for synchronous calls.
+    - Guava 23.0 -> 26.0
+    - upgrade maven-bundle-plugin -> 4.0.0
+
+  - ### Bugfixes
+    - Attach `SdkHttpResponse` to the responses of event streaming operations.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Added supplier functionality to StsAssumeRoleWithSamlCredentialProvider.  This allows for the saml assertion to be refreshed before getting new credentials from STS.
+
+## __AWS Step Function__
+  - ### Removals
+    - Remove AWS Step Function high level library for now. We will add them in the future.
+
+## __Amazon S3__
+  - ### Features
+    - Add support for automatically decoding URL-encoded parts of the ListObjects and ListObjectsV2 responses. See https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html and https://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html.
+
+  - ### Bugfixes
+    - Update S3 `EndpointAddressInterceptor` to honor request protocol.
+
+## __Apache HTTP Client__
+  - ### Features
+    - Add support for idle connection reaping.
+
+## __core__
+  - ### Features
+    - Apache HttpClient 4.5.5 -> 4.5.6
+    - Netty 4.1.28 -> 4.1.30
+
 # __2.0.0-preview-12__ __2018-09-18__
 ## __AWS SDK for Java v2__
   - ### Features
