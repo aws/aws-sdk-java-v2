@@ -36,8 +36,10 @@ public final class JsonDomParser {
     }
 
     public SdkJsonNode parse(InputStream content) throws IOException {
-        JsonParser parser = jsonFactory.createParser(content);
-        return parseToken(parser, parser.nextToken());
+        try (JsonParser parser = jsonFactory.createParser(content)
+                                            .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)) {
+            return parseToken(parser, parser.nextToken());
+        }
     }
 
     private SdkJsonNode parseToken(JsonParser parser, JsonToken token) throws IOException {
