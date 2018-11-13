@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "feature", 
-    "description": "Add support for automatically decoding URL-encoded parts of the ListObjects and ListObjectsV2 responses. See https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html and https://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html."
-}

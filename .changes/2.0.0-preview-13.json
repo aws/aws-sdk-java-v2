@@ -1,0 +1,71 @@
+{
+    "date": "2018-11-13",
+    "version": "2.0.0-preview-13",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add apiCallTimeout and apiCallAttemptTimeout feature for synchronous calls."
+        },
+        {
+            "category": "core",
+            "type": "feature",
+            "description": "Apache HttpClient 4.5.5 -> 4.5.6"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "upgrade maven-bundle-plugin -> 4.0.0"
+        },
+        {
+            "category": "AWS Security Token Service",
+            "type": "feature",
+            "description": "Added supplier functionality to StsAssumeRoleWithSamlCredentialProvider.  This allows for the saml assertion to be refreshed before getting new credentials from STS."
+        },
+        {
+            "category": "Apache HTTP Client",
+            "type": "feature",
+            "description": "Add support for idle connection reaping."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "feature",
+            "description": "Add support for automatically decoding URL-encoded parts of the ListObjects and ListObjectsV2 responses. See https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html and https://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGET.html."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Update S3 `EndpointAddressInterceptor` to honor request protocol."
+        },
+        {
+            "category": "AWS Step Function",
+            "type": "removal",
+            "description": "Remove AWS Step Function high level library for now. We will add them in the future."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add `Automatic-Module-Name` manifest entry."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Guava 23.0 -> 26.0"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add `AwsResponseMetadata` support to allow users to retrieve metadata information such as `requestId`, `extendedRequestId` from the response. see [#670](https://github.com/aws/aws-sdk-java-v2/issues/670)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Attach `SdkHttpResponse` to the responses of event streaming operations."
+        },
+        {
+            "category": "core",
+            "type": "feature",
+            "description": "Netty 4.1.28 -> 4.1.30"
+        }
+    ]
+}
