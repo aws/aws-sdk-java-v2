@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.rds;
+package software.amazon.awssdk.services.rds.internal;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import java.time.Clock;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
@@ -44,7 +44,7 @@ import software.amazon.awssdk.services.rds.model.RdsRequest;
  *
  * @param <T> The request type.
  */
-@SdkPublicApi
+@SdkInternalApi
 public abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
 
     protected static final AwsQueryProtocolFactory PROTOCOL_FACTORY = AwsQueryProtocolFactory

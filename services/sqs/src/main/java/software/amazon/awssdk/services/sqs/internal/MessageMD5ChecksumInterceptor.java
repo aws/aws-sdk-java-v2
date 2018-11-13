@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs;
+package software.amazon.awssdk.services.sqs.internal;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.utils.Md5Utils;
  * This custom request handler will verify that the message is correctly received by SQS, by
  * comparing the returned MD5 with the calculation according to the original request.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
 
     private static final int INTEGER_SIZE_IN_BYTES = 4;

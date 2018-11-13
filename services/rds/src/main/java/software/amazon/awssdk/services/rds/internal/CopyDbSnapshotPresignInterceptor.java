@@ -13,29 +13,34 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.rds;
+package software.amazon.awssdk.services.rds.internal;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import java.time.Clock;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.services.rds.model.CreateDbInstanceReadReplicaRequest;
-import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplicaRequestMarshaller;
+import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
+import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
 
 /**
- * Handler for pre-signing {@link CreateDbInstanceReadReplicaRequest}.
+ * Handler for pre-signing {@link CopyDbSnapshotRequest}.
  */
-@SdkProtectedApi
-public final class CreateDbInstanceReadReplicaPresignInterceptor extends
-                                                                 RdsPresignInterceptor<CreateDbInstanceReadReplicaRequest> {
+@SdkInternalApi
+public final class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
 
-    public static final CreateDbInstanceReadReplicaRequestMarshaller MARSHALLER =
-        new CreateDbInstanceReadReplicaRequestMarshaller(PROTOCOL_FACTORY);
+    public static final CopyDbSnapshotRequestMarshaller MARSHALLER = new CopyDbSnapshotRequestMarshaller(PROTOCOL_FACTORY);
 
-    public CreateDbInstanceReadReplicaPresignInterceptor() {
-        super(CreateDbInstanceReadReplicaRequest.class);
+    public CopyDbSnapshotPresignInterceptor() {
+        super(CopyDbSnapshotRequest.class);
+    }
+
+    @SdkTestInternalApi
+    CopyDbSnapshotPresignInterceptor(Clock signingDateOverride) {
+        super(CopyDbSnapshotRequest.class, signingDateOverride);
     }
 
     @Override
-    protected PresignableRequest adaptRequest(final CreateDbInstanceReadReplicaRequest originalRequest) {
+    protected PresignableRequest adaptRequest(final CopyDbSnapshotRequest originalRequest) {
         return new PresignableRequest() {
             @Override
             public String getSourceRegion() {
