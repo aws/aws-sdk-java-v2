@@ -8,6 +8,7 @@ phases:
 
   build:
     commands:
+    - git checkout master
     - CURRENT_SNAPSHOT=$(cat pom.xml | grep "<version>" | head -1 | cut -d\> -f 2 | cut -d\< -f 1)
     - echo $CURRENT_SNAPSHOT
     - VERSION=`echo "$CURRENT_SNAPSHOT" | cut -d "-" -f1`

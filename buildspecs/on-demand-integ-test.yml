@@ -4,10 +4,10 @@ phases:
   build:
     commands:
       - mvn clean verify -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -pl !:dynamodbmapper-v1 -Dfailsafe.rerunFailingTestsCount=1 -Dmaven.wagon.httpconnectionManager.maxPerRoute=2 --fail-at-end
-      - JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d\" -f 2)
+      - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
       - |
-        if [ "$JAVA_VERSION" \> "9" ]; then
+        if [ "$JAVA_VERSION" -ge "9" ]; then
           cd test/module-path-tests
           mvn package
           mvn exec:exec -P integ-tests
