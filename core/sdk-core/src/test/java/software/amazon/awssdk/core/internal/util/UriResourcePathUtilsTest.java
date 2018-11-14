@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.util;
+package software.amazon.awssdk.core.internal.util;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static software.amazon.awssdk.core.util.UriResourcePathUtils.updateUriHost;
+import static software.amazon.awssdk.core.internal.util.UriResourcePathUtils.updateUriHost;
 
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -101,12 +101,21 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
+<<<<<<< 9794a317c00310db05768dd9b8fa7599ef3c55db
             AwsServiceException, SdkClientException, JsonException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                        .isPayloadJson(true).build();
         String hostPrefix = "{StringMember}-foo.";
         Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
         String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
+=======
+                                                                                                     AwsServiceException, SdkClientException, JsonException {
+        String hostPrefix = "{StringMember}-foo.";
+        Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
+        String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
+        JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                       .isPayloadJson(true).build();
+>>>>>>> Address pr comments
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                 APostOperationResponse::builder);

@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.util;
+package software.amazon.awssdk.core.internal.util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-@SdkProtectedApi
+@SdkInternalApi
 public final class UriResourcePathUtils {
 
     private UriResourcePathUtils() {

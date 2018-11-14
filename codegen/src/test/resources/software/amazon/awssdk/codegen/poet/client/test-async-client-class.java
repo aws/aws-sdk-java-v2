@@ -146,14 +146,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
         try {
-<<<<<<< 69e57a64e16ab9b10a1294d60262502f8d3ac6d8
-            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
-=======
             String hostPrefix = "{StringMember}-foo.";
             Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
->>>>>>> Add support for endpoint trait
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                           .isPayloadJson(true).build();
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, APostOperationResponse::builder);
