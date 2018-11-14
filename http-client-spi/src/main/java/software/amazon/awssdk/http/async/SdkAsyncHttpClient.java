@@ -16,9 +16,8 @@
 package software.amazon.awssdk.http.async;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -29,12 +28,10 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 * HTTP response.
 *
 * <p>Implementations MUST be thread safe.</p>
-*
-* <p><b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b></p>
 */
 @Immutable
 @ThreadSafe
-@SdkProtectedApi
+@SdkPublicApi
 public interface SdkAsyncHttpClient extends SdkAutoCloseable {
 
     /**

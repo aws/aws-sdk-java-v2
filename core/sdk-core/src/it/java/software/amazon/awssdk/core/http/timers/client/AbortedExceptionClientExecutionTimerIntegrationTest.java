@@ -29,7 +29,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
@@ -43,7 +43,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest  {
     private SdkHttpClient sdkHttpClient;
 
     @Mock
-    private AbortableCallable<SdkHttpFullResponse> abortableCallable;
+    private InvokeableHttpRequest abortableCallable;
 
     @Before
     public void setup() throws Exception {

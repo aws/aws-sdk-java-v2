@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -26,20 +26,18 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * Interface to take a representation of an HTTP request, make an HTTP call, and return a representation of an HTTP response.
  *
  * <p>Implementations MUST be thread safe.</p>
- *
- * <p><b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b></p>
  */
 @Immutable
 @ThreadSafe
-@SdkProtectedApi
+@SdkPublicApi
 public interface SdkHttpClient extends SdkAutoCloseable {
     /**
-     * Create a {@link AbortableCallable} that can be used to execute the HTTP request.
+     * Create a {@link InvokeableHttpRequest} that can be used to execute the HTTP request.
      *
      * @param request        Representation of an HTTP request.
      * @return Task that can execute an HTTP request and can be aborted.
      */
-    AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request);
+    InvokeableHttpRequest prepareRequest(ExecuteRequest request);
 
     /**
      * Interface for creating an {@link SdkHttpClient} with service specific defaults applied.

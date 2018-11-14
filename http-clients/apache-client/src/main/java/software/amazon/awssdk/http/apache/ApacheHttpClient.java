@@ -61,9 +61,9 @@ import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -179,11 +179,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+    public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
         HttpRequestBase apacheRequest = toApacheRequest(request);
-        return new AbortableCallable<SdkHttpFullResponse>() {
+        return new InvokeableHttpRequest() {
             @Override
-            public SdkHttpFullResponse call() throws Exception {
+            public SdkHttpFullResponse call() throws IOException {
                 return execute(apacheRequest);
             }
 

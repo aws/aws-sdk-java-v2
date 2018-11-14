@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.async;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
@@ -23,7 +23,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  *
  * @see SdkAsyncHttpClient
  */
-@SdkProtectedApi
+@SdkPublicApi
 public final class AsyncExecuteRequest {
     private final SdkHttpRequest request;
     private final SdkHttpContentPublisher requestContentPublisher;
