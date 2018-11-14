@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.services.autoscaling;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
@@ -246,8 +246,8 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
         assertEquals("default", launchConfiguration.securityGroups().get(0));
         assertEquals(encodedUserData, launchConfiguration.userData());
         assertEquals(false, launchConfiguration.associatePublicIpAddress());
-        assertThat(result.launchConfigurations().get(0).blockDeviceMappings(),
-                   containsInAnyOrder(blockDeviceMapping1, blockDeviceMapping2));
+        assertThat(result.launchConfigurations().get(0).blockDeviceMappings()).contains(
+                   blockDeviceMapping1, blockDeviceMapping2);
 
         // Delete it
         autoscaling.deleteLaunchConfiguration(DeleteLaunchConfigurationRequest.builder()
@@ -599,8 +599,8 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
     public void testDescribeTerminationPolicyTypes() {
         DescribeTerminationPolicyTypesResponse describeAdjustmentTypesResult = autoscaling
                 .describeTerminationPolicyTypes(DescribeTerminationPolicyTypesRequest.builder().build());
-        assertEquals(TERMINATION_POLICIES.toArray(), describeAdjustmentTypesResult.terminationPolicyTypes()
-                                                                                  .toArray());
+
+        assertThat(describeAdjustmentTypesResult.terminationPolicyTypes()).containsAll(TERMINATION_POLICIES);
     }
 
     private Collection<Tag> convertTagList(Map<String, String> tags, String groupName) {
