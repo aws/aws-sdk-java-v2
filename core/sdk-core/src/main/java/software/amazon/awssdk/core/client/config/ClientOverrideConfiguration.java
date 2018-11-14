@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -245,12 +244,8 @@ public final class ClientOverrideConfiguration
          * <p>
          * This overrides any values currently configured in the builder.
          *
-         * <p>
-         * <b><i>This is currently an INTERNAL api, which means it is subject to change and should not be used.</i></b>
-         *
          * @see ClientOverrideConfiguration#executionInterceptors()
          */
-        @SdkInternalApi
         Builder executionInterceptors(List<ExecutionInterceptor> executionInterceptors);
 
         /**
@@ -262,12 +257,8 @@ public final class ClientOverrideConfiguration
          * than the ones automatically added by the SDK. See {@link ExecutionInterceptor} for a more detailed explanation of
          * interceptor order.
          *
-         * <p>
-         * <b><i>This is currently an INTERNAL api, which means it is subject to change and should not be used.</i></b>
-         *
          * @see ClientOverrideConfiguration#executionInterceptors()
          */
-        @SdkInternalApi
         Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptor);
 
         List<ExecutionInterceptor> executionInterceptors();

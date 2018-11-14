@@ -13,15 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.async;
+package software.amazon.awssdk.http;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.Abortable;
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Runnable that can be aborted.
+ * An HTTP request that can be invoked by {@link #call()}. Once invoked, the HTTP call can be cancelled via {@link #abort()},
+ * which should release the thread that has invoked {@link #call()} as soon as possible.
  */
-@SdkProtectedApi
-public interface AbortableRunnable extends Runnable, Abortable {
-
+@SdkPublicApi
+public interface InvokeableHttpRequest extends Callable<SdkHttpFullResponse>, Abortable {
+    @Override
+    SdkHttpFullResponse call() throws IOException;
 }

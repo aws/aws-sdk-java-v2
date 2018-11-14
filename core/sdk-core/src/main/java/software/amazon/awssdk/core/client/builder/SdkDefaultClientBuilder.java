@@ -55,10 +55,9 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClien
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -366,7 +365,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         @Override
-        public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+        public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
             return delegate.prepareRequest(request);
         }
 
