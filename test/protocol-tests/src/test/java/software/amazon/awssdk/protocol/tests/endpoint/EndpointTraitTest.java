@@ -33,10 +33,9 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonendpointtrait.ProtocolJsonEndpointTraitClient;
@@ -51,7 +50,7 @@ public class EndpointTraitTest {
     private SdkHttpClient mockHttpClient;
 
     @Mock
-    private AbortableCallable<SdkHttpFullResponse> abortableCallable;
+    private InvokeableHttpRequest abortableCallable;
 
     private ProtocolJsonEndpointTraitClient client;
 

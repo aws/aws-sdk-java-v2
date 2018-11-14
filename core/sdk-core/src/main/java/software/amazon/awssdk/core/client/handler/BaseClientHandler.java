@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.client.handler;
 
-import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -28,7 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.util.UriResourcePathUtils;
+import software.amazon.awssdk.core.internal.util.UriResourcePathUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -52,6 +51,7 @@ public abstract class BaseClientHandler {
 
         runBeforeMarshallingInterceptors(executionContext);
         SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
+        request = modifyEndpointIfNeeded(request, clientConfiguration, executionParams.hostPrefixExpression());
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
@@ -77,19 +77,20 @@ public abstract class BaseClientHandler {
     }
 
     /**
-     * Returns a new URI to be used for making the API call using the original URI and
-     * the hostPrefixExpression from the endpoint trait.
+     * Modifies the given {@link SdkHttpFullRequest} with new endpoint if host prefix is enabled and set.
      */
-    private static URI resolveEndpoint(SdkClientConfiguration clientConfiguration, String hostPrefix) {
-        URI originalEndpoint = clientConfiguration.option(SdkClientOption.ENDPOINT);
-
+    private static SdkHttpFullRequest modifyEndpointIfNeeded(SdkHttpFullRequest originalRequest,
+                                                             SdkClientConfiguration clientConfiguration,
+                                                             String hostPrefix) {
         Boolean disableHostPrefixInjection = clientConfiguration.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION);
         if ((disableHostPrefixInjection != null && disableHostPrefixInjection.equals(Boolean.TRUE)) ||
             StringUtils.isEmpty(hostPrefix)) {
-            return originalEndpoint;
+            return originalRequest;
         }
 
-        return UriResourcePathUtils.updateUriHost(originalEndpoint, hostPrefix);
+        return originalRequest.toBuilder()
+                              .uri(UriResourcePathUtils.updateUriHost(originalRequest.getUri(), hostPrefix))
+                              .build();
     }
 
     private static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
