@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
  *     <li>{@link UploadPartRequest}</li>
  * </ul>
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class EnableChunkedEncodingInterceptor implements ExecutionInterceptor {
 
     @Override

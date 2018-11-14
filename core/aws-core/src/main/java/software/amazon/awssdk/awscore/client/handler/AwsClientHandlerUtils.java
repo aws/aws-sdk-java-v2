@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.internal.client.handler;
+package software.amazon.awssdk.awscore.client.handler;
 
 import static software.amazon.awssdk.utils.CollectionUtils.firstIfPresent;
 
@@ -22,7 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class AwsClientHandlerUtils {
 
     private AwsClientHandlerUtils() {

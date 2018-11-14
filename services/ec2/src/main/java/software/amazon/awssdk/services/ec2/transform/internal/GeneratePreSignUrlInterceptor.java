@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.ec2.transform;
+package software.amazon.awssdk.services.ec2.transform.internal;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
@@ -35,12 +35,13 @@ import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
+import software.amazon.awssdk.services.ec2.transform.CopySnapshotRequestMarshaller;
 
 /**
  * ExecutionInterceptor that generates a pre-signed URL for copying encrypted snapshots
  * TODO: Is this actually right? What if a different interceptor modifies the message? Should this be treated as a signer?
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
 
     private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory

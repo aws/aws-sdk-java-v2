@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http;
+package software.amazon.awssdk.core.http;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -27,7 +27,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 /**
  * Validate and decompress input data if necessary.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class Crc32Validation {
 
     private Crc32Validation() {

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * An implementation of {@link ChildProfileCredentialsProviderFactory} that uses configuration in a profile to create a
  * {@link StsAssumeRoleCredentialsProvider}.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class StsProfileCredentialsProviderFactory implements ChildProfileCredentialsProviderFactory {
     private static final String MISSING_PROPERTY_ERROR_FORMAT = "'%s' must be set to use role-based credential loading in the "
                                                                 + "'%s' profile.";

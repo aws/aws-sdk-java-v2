@@ -18,9 +18,9 @@ package software.amazon.awssdk.utils.async;
 import java.util.ArrayList;
 import java.util.List;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public class BufferingSubscriber<T> extends DelegatingSubscriber<T, List<T>> {
     private final int bufferSize;
     private List<T> currentBuffer;

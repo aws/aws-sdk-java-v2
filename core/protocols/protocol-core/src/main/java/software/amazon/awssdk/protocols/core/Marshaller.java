@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.protocols.core;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Marker interface for marshallers.
  *
  * @param <T> Type being marshalled.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public interface Marshaller<T> {
 }

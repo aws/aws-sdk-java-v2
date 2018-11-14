@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -48,8 +47,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                !CollectionUtils.isNullOrEmpty(input.rawQueryParameters());
     }
 
-    @SdkProtectedApi
-    public static SdkHttpFullRequest.Builder changeQueryParametersToFormData(SdkHttpFullRequest.Builder input) {
+    private static SdkHttpFullRequest.Builder changeQueryParametersToFormData(SdkHttpFullRequest.Builder input) {
         byte[] params = SdkHttpUtils.encodeAndFlattenFormData(input.rawQueryParameters()).orElse("")
                                     .getBytes(StandardCharsets.UTF_8);
 

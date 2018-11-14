@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.xml.internal.unmarshall;
+package software.amazon.awssdk.protocols.xml;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlResponseHandler;
 
 /**
  * Contains information needed to create a {@link AwsXmlResponseHandler} for the client.

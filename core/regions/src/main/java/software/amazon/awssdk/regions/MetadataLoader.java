@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * metadata from. Currently only generated region metadata is supported.
  */
 @SdkInternalApi
-public class MetadataLoader {
+final class MetadataLoader {
 
     private static final RegionMetadataProvider REGION_METADATA_PROVIDER = new GeneratedRegionMetadataProvider();
 
@@ -32,15 +32,15 @@ public class MetadataLoader {
 
     private MetadataLoader() {}
 
-    public static PartitionMetadata partitionMetadata(Region region) {
+    static PartitionMetadata partitionMetadata(Region region) {
         return PARTITION_METADATA_PROVIDER.partitionMetadata(region);
     }
 
-    public static PartitionMetadata partitionMetadata(String partition) {
+    static PartitionMetadata partitionMetadata(String partition) {
         return PARTITION_METADATA_PROVIDER.partitionMetadata(partition);
     }
 
-    public static RegionMetadata regionMetadata(Region region) {
+    static RegionMetadata regionMetadata(Region region) {
         return REGION_METADATA_PROVIDER.regionMetadata(region);
     }
 
