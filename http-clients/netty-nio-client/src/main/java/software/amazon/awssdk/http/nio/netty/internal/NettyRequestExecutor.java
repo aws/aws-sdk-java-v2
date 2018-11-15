@@ -191,7 +191,7 @@ public final class NettyRequestExecutor {
     }
 
     private void handleFailure(Supplier<String> msg, Throwable cause) {
-        log.error(msg.get(), cause);
+        log.debug(msg.get(), cause);
         cause = decorateException(cause);
         context.handler().onError(cause);
         executeFuture.completeExceptionally(cause);
