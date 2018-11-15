@@ -9,19 +9,17 @@ phases:
   build:
     commands:
     - git checkout master
-    - CURRENT_SNAPSHOT=$(cat pom.xml | grep "<version>" | head -1 | cut -d\> -f 2 | cut -d\< -f 1)
-    - echo $CURRENT_SNAPSHOT
-    - VERSION=`echo "$CURRENT_SNAPSHOT" | cut -d "-" -f1`
-    - echo $VERSION
-    - BUILD=`echo "$CURRENT_SNAPSHOT" | cut -d "-" -f3`
-    - NEXT_BUILD=$(( BUILD + 1))
-    - RELEASE_VERSION=$VERSION-preview-$BUILD
-    - NEXT_SNAPSHOT=$VERSION-preview-${NEXT_BUILD}-SNAPSHOT
-    - echo Next snapshot version - $NEXT_SNAPSHOT
-    - chmod +x scripts/finalize-release-changes
-    - scripts/finalize-release-changes --release-version $RELEASE_VERSION --release-date $(date +%Y-%m-%d) --generate-changelog
-    - mvn versions:set -DnewVersion=$NEXT_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
+    - git merge origin/release --no-ff --no-edit
+    - CURRENT_VERSION=$(cat pom.xml | grep "<version>" | head -1 | cut -d\> -f 2 | cut -d\< -f 1)
+    - echo "Current version is $CURRENT_VERSION"
+    - RELEASE_VERSION=`echo "$CURRENT_VERSION" | cut -d "-" -f1`
+    - MAJOR=$(echo $RELEASE_VERSION | cut -d'.' -f1)
+    - MINOR=$(echo $RELEASE_VERSION | cut -d'.' -f2)
+    - POINT=$(echo $RELEASE_VERSION | cut -d'.' -f3)
+    - NEXT_VERSION_SNAPSHOT="$MAJOR.$MINOR.$((POINT + 1))-SNAPSHOT"
+    - echo Next snapshot version - $NEXT_VERSION_SNAPSHOT
+    - mvn versions:set -DnewVersion=$NEXT_VERSION_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
     - sed -i -E "s/(<version>).+(<\/version>)/\1$RELEASE_VERSION\2/" README.md
-    - git commit -am "Update to next snapshot version $NEXT_SNAPSHOT"
+    - git commit -am "Update to next snapshot version $NEXT_VERSION_SNAPSHOT"
     - git status
     - git push https://$GIT_ACCESS_TOKEN@github.com/aws/aws-sdk-java-v2.git master
