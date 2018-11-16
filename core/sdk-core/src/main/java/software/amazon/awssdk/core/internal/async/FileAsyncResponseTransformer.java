@@ -80,7 +80,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         try {
             invokeSafely(fileChannel::close);
         } finally {
-            invokeSafely(() -> Files.delete(path));
+            invokeSafely(() -> Files.deleteIfExists(path));
         }
         cf.completeExceptionally(throwable);
     }
