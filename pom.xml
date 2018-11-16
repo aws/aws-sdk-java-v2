@@ -51,7 +51,6 @@
 
     <!-- The module section in pom.xml is auto generated. No manual changes are allowed -->
     <modules>
-        <module>flow</module>
         <module>core</module>
         <module>services</module>
         <module>aws-sdk-java</module>

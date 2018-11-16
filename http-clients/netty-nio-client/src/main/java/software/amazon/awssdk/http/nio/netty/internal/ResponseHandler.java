@@ -34,6 +34,8 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -115,9 +117,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        log.error("Exception processing request: {}", requestContext.executeRequest().request(), cause);
-        requestContext.handler().onError(cause);
-        executeFuture(ctx).completeExceptionally(cause);
+        log.debug("Exception processing request: {}", requestContext.executeRequest().request(), cause);
+        Throwable throwable = wrapException(cause);
+        requestContext.handler().onError(throwable);
+        executeFuture(ctx).completeExceptionally(throwable);
         runAndLogError("Could not release channel back to the pool", () -> closeAndRelease(ctx));
     }
 
@@ -354,5 +357,15 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             // ignoring the very first message
             ctx.pipeline().remove(this);
         }
+    }
+
+    private Throwable wrapException(Throwable originalCause) {
+        if (originalCause instanceof ReadTimeoutException) {
+            return new IOException("Read timed out", originalCause);
+        } else if (originalCause instanceof WriteTimeoutException) {
+            return new IOException("Write timed out", originalCause);
+        }
+
+        return originalCause;
     }
 }
