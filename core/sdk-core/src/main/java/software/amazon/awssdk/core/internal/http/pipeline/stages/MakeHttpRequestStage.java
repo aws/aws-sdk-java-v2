@@ -21,8 +21,8 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -52,7 +52,7 @@ public class MakeHttpRequestStage
     }
 
     private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
+        InvokeableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(ExecuteRequest.builder().request(request).build());
 
         context.apiCallTimeoutTracker().abortable(requestCallable);

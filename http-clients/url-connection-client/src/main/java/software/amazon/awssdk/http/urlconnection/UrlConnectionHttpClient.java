@@ -22,6 +22,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOU
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.time.Duration;
@@ -29,10 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecuteRequest;
 import software.amazon.awssdk.http.HttpStatusFamily;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -63,7 +64,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+    public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
         HttpURLConnection connection = createAndConfigureConnection(request.httpRequest());
         return new RequestCallable(connection, request.httpRequest());
     }
@@ -87,7 +88,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         return connection;
     }
 
-    private static class RequestCallable implements AbortableCallable<SdkHttpFullResponse> {
+    private static class RequestCallable implements InvokeableHttpRequest {
 
         private final HttpURLConnection connection;
         private final SdkHttpFullRequest request;
@@ -98,7 +99,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         }
 
         @Override
-        public SdkHttpFullResponse call() throws Exception {
+        public SdkHttpFullResponse call() throws IOException {
             connection.connect();
 
             request.contentStreamProvider().ifPresent(provider ->

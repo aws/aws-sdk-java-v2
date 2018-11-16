@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -81,12 +82,14 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
         private final RetryHandler retryHandler;
+        private final AsyncRequestBody originalRequestBody;
 
         private int requestCount = 0;
 
         private RetryExecutor(SdkHttpFullRequest request, RequestExecutionContext context) {
             this.request = request;
             this.context = context;
+            this.originalRequestBody = context.requestProvider();
             this.retryHandler = new RetryHandler(retryPolicy, retryCapacity);
         }
 
@@ -189,6 +192,8 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") +
                                                          "Request: " + request);
 
+            // Before each attempt, Modify the context to use original request body provider
+            context.requestProvider(originalRequestBody);
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
     }

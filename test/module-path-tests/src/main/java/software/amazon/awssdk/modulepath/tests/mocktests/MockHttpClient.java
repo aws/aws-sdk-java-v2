@@ -17,8 +17,8 @@ package software.amazon.awssdk.modulepath.tests.mocktests;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -32,11 +32,11 @@ public final class MockHttpClient implements SdkHttpClient {
     private SdkHttpFullResponse nextResponse;
 
     @Override
-    public AbortableCallable<SdkHttpFullResponse> prepareRequest(ExecuteRequest request) {
+    public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
         capturedRequests.add(request.httpRequest());
-        return new AbortableCallable<>() {
+        return new InvokeableHttpRequest() {
             @Override
-            public SdkHttpFullResponse call() throws Exception {
+            public SdkHttpFullResponse call() {
                 return nextResponse;
             }
 

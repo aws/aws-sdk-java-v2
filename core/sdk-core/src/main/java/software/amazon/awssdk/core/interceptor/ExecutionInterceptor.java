@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 // Disable CS to avoid "Unused Import" error. If we use the FQCN in the Javadoc, we'll run into line length issues instead.
@@ -25,6 +25,8 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+
+
 
 /**
  * An interceptor that is invoked during the execution lifecycle of a request/response (execution). This can be used to publish
@@ -111,11 +113,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * collection of attributes is created when a call to a service client is made and can be mutated throughout the course of the
  * client call. These attributes are made available to every interceptor hook and is available for storing data between method
  * calls. The SDK provides some attributes automatically, available via {@link SdkExecutionAttribute}.
- *
- * <p>
- * <b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b>
  */
-@SdkProtectedApi
+@SdkPublicApi
 public interface ExecutionInterceptor {
     /**
      * Read a request that has been given to a service client before it is modified by other interceptors.

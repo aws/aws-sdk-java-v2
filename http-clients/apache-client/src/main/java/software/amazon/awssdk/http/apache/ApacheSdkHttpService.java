@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.http.apache;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpService;
 
 /**
  * Service binding for the Apache implementation.
  */
-@SdkProtectedApi
+@SdkPublicApi
 public class ApacheSdkHttpService implements SdkHttpService {
     @Override
     public SdkHttpClient.Builder createHttpClientBuilder() {

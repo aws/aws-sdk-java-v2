@@ -45,8 +45,8 @@ import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -69,7 +69,7 @@ public class SyncClientHandlerTest {
     private SdkHttpClient httpClient;
 
     @Mock
-    private AbortableCallable<SdkHttpFullResponse> httpClientCall;
+    private InvokeableHttpRequest httpClientCall;
 
     @Mock
     private HttpResponseHandler<SdkResponse> responseHandler;

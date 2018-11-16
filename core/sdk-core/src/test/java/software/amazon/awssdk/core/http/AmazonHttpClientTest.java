@@ -37,8 +37,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
@@ -51,7 +51,7 @@ public class AmazonHttpClientTest {
     private SdkHttpClient sdkHttpClient;
 
     @Mock
-    private AbortableCallable<SdkHttpFullResponse> abortableCallable;
+    private InvokeableHttpRequest abortableCallable;
 
     private AmazonSyncHttpClient client;
 
