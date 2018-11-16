@@ -92,7 +92,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
     }
 
     private static URI dualstackEndpoint(RegionMetadata metadata, String protocol) {
-        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.name(), metadata.domain());
+        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.id(), metadata.domain());
         return toUri(protocol, serviceEndpoint);
     }
 

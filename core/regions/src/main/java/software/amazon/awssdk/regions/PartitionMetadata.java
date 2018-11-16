@@ -52,7 +52,7 @@ public interface PartitionMetadata {
      *
      * @return The name of this partition
      */
-    String partitionName();
+    String name();
 
     /**
      * Returns the region regex used for pattern matching for this partition.

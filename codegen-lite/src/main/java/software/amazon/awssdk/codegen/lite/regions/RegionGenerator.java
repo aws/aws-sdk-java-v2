@@ -80,8 +80,9 @@ public class RegionGenerator implements PoetClass {
                                   .build())
                .addMethod(regionOf())
                .addMethod(regionOfGlobal())
-               .addMethod(id())
                .addMethod(regionsGetter())
+               .addMethod(id())
+               .addMethod(metadata())
                .addMethod(isGlobalRegion())
                .addMethod(regionToString());
 
@@ -162,6 +163,15 @@ public class RegionGenerator implements PoetClass {
                          .addModifiers(PUBLIC)
                          .returns(String.class)
                          .addStatement("return this.id")
+                         .build();
+    }
+
+    private MethodSpec metadata() {
+        ClassName regionMetadataClass = ClassName.get("software.amazon.awssdk.regions", "RegionMetadata");
+        return MethodSpec.methodBuilder("metadata")
+                         .addModifiers(PUBLIC)
+                         .returns(regionMetadataClass)
+                         .addStatement("return $T.of(this)", regionMetadataClass)
                          .build();
     }
 
