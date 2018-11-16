@@ -27,7 +27,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.util.UriResourcePathUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -51,7 +50,7 @@ public abstract class BaseClientHandler {
 
         runBeforeMarshallingInterceptors(executionContext);
         SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
-        request = modifyEndpointIfNeeded(request, clientConfiguration, executionParams.hostPrefixExpression());
+        request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams.hostPrefixExpression());
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
@@ -77,11 +76,11 @@ public abstract class BaseClientHandler {
     }
 
     /**
-     * Modifies the given {@link SdkHttpFullRequest} with new endpoint if host prefix is enabled and set.
+     * Modifies the given {@link SdkHttpFullRequest} with new host if host prefix is enabled and set.
      */
-    private static SdkHttpFullRequest modifyEndpointIfNeeded(SdkHttpFullRequest originalRequest,
-                                                             SdkClientConfiguration clientConfiguration,
-                                                             String hostPrefix) {
+    private static SdkHttpFullRequest modifyEndpointHostIfNeeded(SdkHttpFullRequest originalRequest,
+                                                                 SdkClientConfiguration clientConfiguration,
+                                                                 String hostPrefix) {
         Boolean disableHostPrefixInjection = clientConfiguration.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION);
         if ((disableHostPrefixInjection != null && disableHostPrefixInjection.equals(Boolean.TRUE)) ||
             StringUtils.isEmpty(hostPrefix)) {
@@ -89,7 +88,7 @@ public abstract class BaseClientHandler {
         }
 
         return originalRequest.toBuilder()
-                              .uri(UriResourcePathUtils.updateUriHost(originalRequest.getUri(), hostPrefix))
+                              .host(hostPrefix + originalRequest.host())
                               .build();
     }
 

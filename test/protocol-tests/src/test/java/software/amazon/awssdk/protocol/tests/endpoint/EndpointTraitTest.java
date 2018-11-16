@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +34,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.ExecuteRequest;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -50,7 +51,7 @@ public class EndpointTraitTest {
     private SdkHttpClient mockHttpClient;
 
     @Mock
-    private InvokeableHttpRequest abortableCallable;
+    private ExecutableHttpRequest abortableCallable;
 
     private ProtocolJsonEndpointTraitClient client;
 
@@ -71,32 +72,39 @@ public class EndpointTraitTest {
     }
 
     @Test
-    public void hostExpression_withoutInputMemberLabel() {
+    public void hostExpression_withoutInputMemberLabel() throws URISyntaxException {
         try {
             client.endpointTraitOne(EndpointTraitOneRequest.builder().build());
             Assert.fail("Expected an exception");
         } catch (SdkClientException exception) {
-            ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+            ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
             verify(mockHttpClient).prepareRequest(httpRequestCaptor.capture());
 
             SdkHttpRequest request = httpRequestCaptor.getAllValues().get(0).httpRequest();
             assertThat(request.host()).isEqualTo("data.localhost.com");
+            assertThat(request.port()).isEqualTo(443);
+            assertThat(request.encodedPath()).isEqualTo("/");
+            assertThat(request.getUri()).isEqualTo(new URI("http://data.localhost.com:443/"));
         }
     }
 
     @Test
-    public void hostExpression_withInputMemberLabel() {
+    public void hostExpression_withInputMemberLabel() throws URISyntaxException {
         try {
             client.endpointTraitTwo(EndpointTraitTwoRequest.builder()
                                                            .stringMember("123456")
+                                                           .pathIdempotentToken("dummypath")
                                                            .build());
             Assert.fail("Expected an exception");
         } catch (SdkClientException exception) {
-            ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+            ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
             verify(mockHttpClient).prepareRequest(httpRequestCaptor.capture());
 
             SdkHttpRequest request = httpRequestCaptor.getAllValues().get(0).httpRequest();
             assertThat(request.host()).isEqualTo("123456-localhost.com");
+            assertThat(request.port()).isEqualTo(443);
+            assertThat(request.encodedPath()).isEqualTo("/dummypath");
+            assertThat(request.getUri()).isEqualTo(new URI("http://123456-localhost.com:443/dummypath"));
         }
     }
 
@@ -116,7 +124,7 @@ public class EndpointTraitTest {
             clientWithDisabledHostPrefix.endpointTraitOne(EndpointTraitOneRequest.builder().build());
             Assert.fail("Expected an exception");
         } catch (SdkClientException exception) {
-            ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+            ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
             verify(mockHttpClient).prepareRequest(httpRequestCaptor.capture());
 
             SdkHttpRequest request = httpRequestCaptor.getAllValues().get(0).httpRequest();
@@ -132,7 +140,7 @@ public class EndpointTraitTest {
                                                                                  .build());
             Assert.fail("Expected an exception");
         } catch (SdkClientException exception) {
-            ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+            ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
             verify(mockHttpClient).prepareRequest(httpRequestCaptor.capture());
 
             SdkHttpRequest request = httpRequestCaptor.getAllValues().get(0).httpRequest();
@@ -145,7 +153,7 @@ public class EndpointTraitTest {
     }
 
     private String getEndpoint() {
-        return "http://localhost.com";
+        return "http://localhost.com:443";
     }
 
     private ProtocolJsonEndpointTraitClientBuilder clientBuilder() {

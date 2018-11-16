@@ -29,7 +29,7 @@
       "name":"EndpointTraitTwo",
       "http":{
         "method":"POST",
-        "requestUri":"/"
+        "requestUri":"/{PathParam}"
       },
       "endpoint": {
         "hostPrefix": "{StringMember}-"
@@ -52,6 +52,13 @@
       "members":{
         "StringMember":{
           "shape":"String",
+          "hostLabel": true
+        },
+        "PathIdempotentToken":{
+          "shape":"String",
+          "idempotencyToken":true,
+          "location":"uri",
+          "locationName":"PathParam",
           "hostLabel": true
         }
       }
