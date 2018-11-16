@@ -139,7 +139,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
     @Override
     public SdkHttpFullRequest.Builder toBuilder() {
-        return (SdkHttpFullRequest.Builder) new Builder()
+        return new Builder()
                 .contentStreamProvider(contentStreamProvider)
                 .protocol(protocol)
                 .host(host)
