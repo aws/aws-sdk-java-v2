@@ -13,7 +13,7 @@ public final class AwsPartitionMetadata implements PartitionMetadata {
 
     private static final String ID = "aws";
 
-    private static final String PARTITION_NAME = "AWS Standard";
+    private static final String NAME = "AWS Standard";
 
     private static final String REGION_REGEX = "^(us|eu|ap|sa|ca)\\-\\w+\\-\\d+$";
 
@@ -33,8 +33,8 @@ public final class AwsPartitionMetadata implements PartitionMetadata {
     }
 
     @Override
-    public String partitionName() {
-        return PARTITION_NAME;
+    public String name() {
+        return NAME;
     }
 
     @Override

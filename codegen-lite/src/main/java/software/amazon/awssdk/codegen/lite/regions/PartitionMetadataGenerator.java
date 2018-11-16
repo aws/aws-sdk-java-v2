@@ -71,7 +71,7 @@ public class PartitionMetadataGenerator implements PoetClass {
                                           .addModifiers(PRIVATE, FINAL, STATIC)
                                           .initializer("$S", partition.getPartition())
                                           .build())
-                       .addField(FieldSpec.builder(String.class, "PARTITION_NAME")
+                       .addField(FieldSpec.builder(String.class, "NAME")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
                                           .initializer("$S", partition.getPartitionName())
                                           .build())
@@ -82,7 +82,7 @@ public class PartitionMetadataGenerator implements PoetClass {
                        .addMethod(getter("dnsSuffix", "DNS_SUFFIX"))
                        .addMethod(getter("hostname", "HOSTNAME"))
                        .addMethod(getter("id", "ID"))
-                       .addMethod(getter("partitionName", "PARTITION_NAME"))
+                       .addMethod(getter("name", "NAME"))
                        .addMethod(getter("regionRegex", "REGION_REGEX"))
                        .build();
     }

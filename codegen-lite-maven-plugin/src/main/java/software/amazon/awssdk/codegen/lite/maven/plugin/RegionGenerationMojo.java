@@ -77,7 +77,7 @@ public class RegionGenerationMojo extends AbstractMojo {
 
     public void generatePartitionMetadataClass(Path baseSourcesDirectory, Partitions partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(PARTITION_METADATA_BASE.replace(".", "/"));
-        partitions.getPartitions().stream()
+        partitions.getPartitions()
                   .forEach(p -> new CodeGenerator(sourcesDirectory.toString(),
                                                   new PartitionMetadataGenerator(p,
                                                                                  PARTITION_METADATA_BASE,
@@ -104,7 +104,6 @@ public class RegionGenerationMojo extends AbstractMojo {
     public void generateRegions(Path baseSourcesDirectory, Partitions partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_METADATA_BASE.replace(".", "/"));
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> p.getRegions().forEach((k, v) ->
                                                            new CodeGenerator(sourcesDirectory.toString(),
                                                                              new RegionMetadataGenerator(p,
