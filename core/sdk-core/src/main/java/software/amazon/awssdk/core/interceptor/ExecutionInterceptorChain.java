@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -165,6 +166,18 @@ public class ExecutionInterceptorChain {
 
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
         reverseForEach(i -> i.afterExecution(context, executionAttributes));
+    }
+
+    public DefaultFailedExecutionContext modifyException(DefaultFailedExecutionContext context,
+                                                         ExecutionAttributes executionAttributes) {
+        DefaultFailedExecutionContext result = context;
+        for (int i = interceptors.size() - 1; i >= 0; i--) {
+            Throwable interceptorResult = interceptors.get(i).modifyException(result, executionAttributes);
+            validateInterceptorResult(result.exception(), interceptorResult, interceptors.get(i), "modifyException");
+            result = result.copy(b -> b.exception(interceptorResult));
+        }
+
+        return result;
     }
 
     public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {

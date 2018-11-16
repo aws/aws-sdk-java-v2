@@ -331,6 +331,23 @@ public interface ExecutionInterceptor {
     }
 
     /**
+     * Modify the exception before it is thrown.
+     *
+     * <p>This will only be invoked if the entire execution fails. If a retriable error happens (according to the
+     * {@link RetryPolicy}) and a subsequent retry succeeds, this method will not be invoked.
+     *
+     * @param context The context associated with the execution that failed. An SDK request will always be available, but
+     * depending on the time at which the failure happened, the HTTP request, HTTP response and SDK response may
+     * not be available. This also includes the exception that triggered the failure.
+     * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
+     * give data to future lifecycle methods.
+     * @return the modified Exception
+     */
+    default Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+        return context.exception();
+    }
+
+    /**
      * Invoked when any error happens during an execution that prevents the request from succeeding. This could be due to an
      * error returned by a service call, a request timeout or even another interceptor raising an exception. The provided
      * exception will be thrown by the service client.

@@ -17,10 +17,8 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.fail;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -112,28 +110,44 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
     @Test
     public void headObjectNoSuchKey() {
         assertThatThrownBy(() -> s3.headObject(b -> b.bucket(BUCKET).key(KEY)))
-            .isInstanceOf(S3Exception.class)
-            .satisfies(e -> assertMetadata((S3Exception) e, null))
-            .satisfies(e -> assertThat(((S3Exception) e).statusCode()).isEqualTo(404));
+            .isInstanceOf(NoSuchKeyException.class)
+            .satisfies(e -> assertMetadata((NoSuchKeyException) e, "NoSuchKey"))
+            .satisfies(e -> assertThat(((NoSuchKeyException) e).statusCode()).isEqualTo(404));
+    }
+
+    @Test
+    public void asyncHeadObjectNoSuchKey() {
+        assertThatThrownBy(() -> s3Async.headObject(b -> b.bucket(BUCKET).key(KEY)).join())
+            .hasCauseInstanceOf(NoSuchKeyException.class)
+            .satisfies(e -> assertMetadata(((NoSuchKeyException) (e.getCause())), "NoSuchKey"))
+            .satisfies(e -> assertThat(((NoSuchKeyException) (e.getCause())).statusCode()).isEqualTo(404));
     }
 
     @Test
     public void headBucketNoSuchBucket() {
         assertThatThrownBy(() -> s3.headBucket(b -> b.bucket(KEY)))
-            .isInstanceOf(S3Exception.class)
-            .satisfies(e -> assertMetadata((S3Exception) e, null))
-            .satisfies(e -> assertThat(((S3Exception) e).statusCode()).isEqualTo(404));
+            .isInstanceOf(NoSuchBucketException.class)
+            .satisfies(e -> assertMetadata((NoSuchBucketException) e, "NoSuchBucket"))
+            .satisfies(e -> assertThat(((NoSuchBucketException) e).statusCode()).isEqualTo(404));
+    }
+
+    @Test
+    public void asyncHeadBucketNoSuchBucket() {
+        assertThatThrownBy(() -> s3Async.headBucket(b -> b.bucket(KEY)).join())
+            .hasCauseInstanceOf(NoSuchBucketException.class)
+            .satisfies(e -> assertMetadata(((NoSuchBucketException) (e.getCause())), "NoSuchBucket"))
+            .satisfies(e -> assertThat(((NoSuchBucketException) (e.getCause())).statusCode()).isEqualTo(404));
     }
 
     private void assertMetadata(S3Exception e, String expectedErrorCode) {
         assertThat(e.awsErrorDetails()).satisfies(
             errorDetails -> {
                 assertThat(errorDetails.errorCode()).isEqualTo(expectedErrorCode);
-                assertThat(errorDetails.errorMessage()).isNotBlank();
+                assertThat(errorDetails.errorMessage()).isNotEmpty();
                 assertThat(errorDetails.sdkHttpResponse()).isNotNull();
                 assertThat(errorDetails.serviceName()).isEqualTo("S3");
             }
         );
-        assertThat(e.requestId()).isNotBlank();
+        assertThat(e.requestId()).isNotEmpty();
     }
 }

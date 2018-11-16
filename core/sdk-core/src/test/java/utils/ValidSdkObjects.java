@@ -16,6 +16,11 @@
 package utils;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Optional;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -26,6 +31,25 @@ import software.amazon.awssdk.http.SdkHttpMethod;
  */
 public final class ValidSdkObjects {
     private ValidSdkObjects() {}
+
+    public static SdkRequest sdkRequest() {
+        return new SdkRequest() {
+            @Override
+            public Optional<? extends RequestOverrideConfiguration> overrideConfiguration() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Builder toBuilder() {
+                return null;
+            }
+
+            @Override
+            public List<SdkField<?>> sdkFields() {
+                return null;
+            }
+        };
+    }
 
     public static SdkHttpFullRequest.Builder sdkHttpFullRequest() {
         return sdkHttpFullRequest(80);

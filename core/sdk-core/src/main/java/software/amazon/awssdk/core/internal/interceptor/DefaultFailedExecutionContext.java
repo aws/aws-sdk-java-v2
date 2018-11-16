@@ -25,18 +25,22 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An SDK-internal implementation of {@link Context.FailedExecution}.
  */
 @SdkInternalApi
-public class DefaultFailedExecutionContext implements Context.FailedExecution {
+public class DefaultFailedExecutionContext implements Context.FailedExecution,
+                                                      ToCopyableBuilder<DefaultFailedExecutionContext.Builder,
+                                                          DefaultFailedExecutionContext> {
     private final InterceptorContext interceptorContext;
     private final Throwable exception;
 
-    public DefaultFailedExecutionContext(InterceptorContext interceptorContext, Throwable exception) {
-        this.interceptorContext = Validate.paramNotNull(interceptorContext, "interceptorContext");
-        this.exception = unwrap(Validate.paramNotNull(exception, "exception"));
+    private DefaultFailedExecutionContext(Builder builder) {
+        this.exception = unwrap(Validate.paramNotNull(builder.exception, "exception"));
+        this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
     }
 
     private Throwable unwrap(Throwable exception) {
@@ -69,5 +73,42 @@ public class DefaultFailedExecutionContext implements Context.FailedExecution {
     @Override
     public Throwable exception() {
         return exception;
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder implements CopyableBuilder<Builder, DefaultFailedExecutionContext> {
+        private InterceptorContext interceptorContext;
+        private Throwable exception;
+
+        private Builder() {
+        }
+
+        public Builder(DefaultFailedExecutionContext defaultFailedExecutionContext) {
+            this.exception = defaultFailedExecutionContext.exception;
+            this.interceptorContext = defaultFailedExecutionContext.interceptorContext;
+        }
+
+        public Builder exception(Throwable exception) {
+            this.exception = exception;
+            return this;
+        }
+
+        public Builder interceptorContext(InterceptorContext interceptorContext) {
+            this.interceptorContext = interceptorContext;
+            return this;
+        }
+
+        @Override
+        public DefaultFailedExecutionContext build() {
+            return new DefaultFailedExecutionContext(this);
+        }
     }
 }
