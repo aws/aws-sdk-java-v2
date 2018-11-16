@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "bugfix", 
+    "description": "Update S3 headObject/headBucket operations to throw NoSuchKey/NoSuchException when S3 is returning 404. See [#123](https://github.com/aws/aws-sdk-java-v2/issues/123), [#544](https://github.com/aws/aws-sdk-java-v2/issues/544)"
+}

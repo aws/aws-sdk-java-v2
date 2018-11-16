@@ -15,16 +15,16 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToInterceptors;
+import static software.amazon.awssdk.core.internal.util.ThrowableUtils.failure;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkInternalApi
-public class ExecutionFailureExceptionReportingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, OutputT> {
-
+public final class ExecutionFailureExceptionReportingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, OutputT> {
     private final RequestPipeline<SdkHttpFullRequest, OutputT> wrapped;
 
     public ExecutionFailureExceptionReportingStage(RequestPipeline<SdkHttpFullRequest, OutputT> wrapped) {
@@ -36,10 +36,8 @@ public class ExecutionFailureExceptionReportingStage<OutputT> implements Request
         try {
             return wrapped.execute(input, context);
         } catch (Exception e) {
-            Context.FailedExecution failedContext =
-                    new DefaultFailedExecutionContext(context.executionContext().interceptorContext(), e);
-            context.interceptorChain().onExecutionFailure(failedContext, context.executionAttributes());
-            throw e;
+            Throwable throwable = reportFailureToInterceptors(context, e);
+            throw failure(throwable);
         }
     }
 }
