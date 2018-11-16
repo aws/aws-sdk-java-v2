@@ -152,6 +152,7 @@
         <module>serverlessapplicationrepository</module>
         <module>servicediscovery</module>
         <module>translate</module>
+        <module>transcribestreaming</module>
         <module>workmail</module>
         <module>secretsmanager</module>
         <module>chime</module>

@@ -882,6 +882,10 @@
                                     <packages>software.amazon.awssdk.services.support*</packages>
                                 </group>
                                 <group>
+                                    <title>Transcribe Streaming</title>
+                                    <packages>software.amazon.awssdk.services.transcribestreaming*</packages>
+                                </group>
+                                <group>
                                     <title>CloudTrail</title>
                                     <packages>software.amazon.awssdk.services.cloudtrail*</packages>
                                 </group>
