@@ -876,10 +876,6 @@
                                     <packages>software.amazon.awssdk.services.iam*</packages>
                                 </group>
                                 <group>
-                                    <title>ImportExport</title>
-                                    <packages>software.amazon.awssdk.services.importexport*</packages>
-                                </group>
-                                <group>
                                     <title>Security Token Service</title>
                                     <packages>software.amazon.awssdk.services.sts*</packages>
                                 </group>
