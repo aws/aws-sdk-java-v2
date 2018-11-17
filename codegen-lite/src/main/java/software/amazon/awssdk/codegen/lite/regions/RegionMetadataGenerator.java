@@ -64,27 +64,25 @@ public class RegionMetadataGenerator implements PoetClass {
                        .addAnnotation(SdkPublicApi.class)
                        .addModifiers(FINAL)
                        .addSuperinterface(ClassName.get(regionBasePackage, "RegionMetadata"))
-                       .addField(FieldSpec.builder(String.class, "NAME")
-                                          .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", region)
-                                          .build())
-                       .addField(FieldSpec.builder(String.class, "DOMAIN")
-                                          .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getDnsSuffix())
-                                          .build())
-                       .addField(FieldSpec.builder(String.class, "DESCRIPTION")
-                                          .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", regionDescription)
-                                          .build())
-                       .addField(FieldSpec.builder(String.class, "PARTITION")
-                                          .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", partition.getPartition())
-                                          .build())
-                       .addMethod(getter("name"))
-                       .addMethod(getter("domain"))
-                       .addMethod(getter("description"))
-                       .addMethod(getter("partition"))
+                       .addField(staticFinalField("ID", region))
+                       .addField(staticFinalField("DOMAIN", partition.getDnsSuffix()))
+                       .addField(staticFinalField("DESCRIPTION", regionDescription))
+                       .addField(staticFinalField("PARTITION_ID", partition.getPartition()))
+                       .addMethod(getter("id", "ID"))
+                       .addMethod(getter("domain", "DOMAIN"))
+                       .addMethod(getter("description", "DESCRIPTION"))
+                       .addMethod(partition())
                        .build();
+    }
+
+    private MethodSpec partition() {
+        ClassName regionMetadataClass = ClassName.get("software.amazon.awssdk.regions", "PartitionMetadata");
+        return MethodSpec.methodBuilder("partition")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(regionMetadataClass)
+                         .addStatement("return $T.of(PARTITION_ID)", regionMetadataClass)
+                         .build();
     }
 
     @Override
@@ -92,12 +90,19 @@ public class RegionMetadataGenerator implements PoetClass {
         return ClassName.get(basePackage, Stream.of(region.split("-")).map(Utils::capitalize).collect(Collectors.joining()));
     }
 
-    private MethodSpec getter(String field) {
-        return MethodSpec.methodBuilder(field)
+    private FieldSpec staticFinalField(String fieldName, String fieldValue) {
+        return FieldSpec.builder(String.class, fieldName)
+                        .addModifiers(PRIVATE, FINAL, STATIC)
+                        .initializer("$S", fieldValue)
+                        .build();
+    }
+
+    private MethodSpec getter(String getterName, String fieldName) {
+        return MethodSpec.methodBuilder(getterName)
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
                          .returns(String.class)
-                         .addStatement("return $L", field.toUpperCase(Locale.US))
+                         .addStatement("return $L", fieldName.toUpperCase(Locale.US))
                          .build();
     }
 }

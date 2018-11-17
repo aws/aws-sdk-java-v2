@@ -28,7 +28,7 @@ public interface RegionMetadata {
      *
      * @return The unique system ID for this region.
      */
-    String name();
+    String id();
 
     /**
      * Returns the domain for this region; ex: &quot;amazonaws.com&quot;.
@@ -38,11 +38,9 @@ public interface RegionMetadata {
     String domain();
 
     /**
-     * Returns the partition this region is in. I.E. 'aws' or 'aws-cn'
-     *
-     * @return The partition this region is in.
+     * Returns the metadata for this region's partition.
      */
-    String partition();
+    PartitionMetadata partition();
 
     /**
      * Returns the description of this region; ex: &quot;US East (N. Virginia)&quot;.

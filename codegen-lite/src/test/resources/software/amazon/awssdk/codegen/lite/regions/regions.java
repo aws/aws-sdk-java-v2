@@ -100,12 +100,16 @@ public final class Region {
         return RegionCache.put(value, isGlobalRegion);
     }
 
+    public static List<Region> regions() {
+        return REGIONS;
+    }
+
     public String id() {
         return this.id;
     }
 
-    public static List<Region> regions() {
-        return REGIONS;
+    public RegionMetadata metadata() {
+        return RegionMetadata.of(this);
     }
 
     public boolean isGlobalRegion() {
