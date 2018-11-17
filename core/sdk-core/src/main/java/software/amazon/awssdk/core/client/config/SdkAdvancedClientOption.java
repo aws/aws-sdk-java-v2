@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.client.config;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
 
@@ -34,13 +33,11 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
     /**
      * Set the prefix of the user agent that is sent with each request to AWS.
      */
-    @ReviewBeforeRelease("This should either be changed when we refactor metrics, or the comment should be expanded upon.")
     public static final SdkAdvancedClientOption<String> USER_AGENT_PREFIX = new SdkAdvancedClientOption<>(String.class);
 
     /**
      * Set the suffix of the user agent that is sent with each request to AWS.
      */
-    @ReviewBeforeRelease("This should either be changed when we refactor metrics, or the comment should be expanded upon.")
     public static final SdkAdvancedClientOption<String> USER_AGENT_SUFFIX = new SdkAdvancedClientOption<>(String.class);
 
     /**

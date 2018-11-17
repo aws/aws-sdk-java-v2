@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.route53;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -35,7 +34,7 @@ import software.amazon.awssdk.services.route53.model.ListReusableDelegationSetsR
 /**
  * Unit test for request handler customization of delegation set id's
  */
-@ReviewBeforeRelease("This test appears to be wrong, see comment on line 80")
+//TODO: fix test, see comment on line 80")
 public class Route53InterceptorTest {
 
     private static final String delegationPrefix = "delegationset";

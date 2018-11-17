@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.client.handler;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
  */
 @SdkProtectedApi
 @NotThreadSafe
-@ReviewBeforeRelease("Using old style withers/getters")
 public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     private InputT input;

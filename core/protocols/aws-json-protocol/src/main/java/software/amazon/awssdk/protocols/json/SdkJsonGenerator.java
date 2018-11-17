@@ -23,7 +23,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -198,7 +197,7 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
     }
 
     @Override
-    @ReviewBeforeRelease("This date formatting is coupled to AWS's format. Should we generalize it?")
+    //TODO: This date formatting is coupled to AWS's format. Should generalize it
     public StructuredJsonGenerator writeValue(Instant instant) {
         try {
             generator.writeNumber(DateUtils.formatUnixTimestampInstant(instant));

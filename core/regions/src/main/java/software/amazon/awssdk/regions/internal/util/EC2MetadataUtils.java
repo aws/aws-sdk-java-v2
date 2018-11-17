@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -61,7 +60,7 @@ import software.amazon.awssdk.regions.util.HttpResourcesUtils;
  * href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">Amazon
  * EC2 User Guide: Instance Metadata</a>
  */
-@ReviewBeforeRelease("Cleanup")
+//TODO: cleanup
 @SdkInternalApi
 public final class EC2MetadataUtils {
 

@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,7 +37,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -165,17 +163,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      * received exception details.
      */
     private String extendedRequestId = null;
-
-    @Deprecated
-    @ReviewBeforeRelease("Remove this on full GA of 2.0.0")
-    public EventStreamAsyncResponseTransformer(
-        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler,
-        HttpResponseHandler<? extends ResponseT> initialResponseHandler,
-        HttpResponseHandler<? extends EventT> eventResponseHandler,
-        HttpResponseHandler<? extends Throwable> exceptionResponseHandler) {
-        this(eventStreamResponseHandler, initialResponseHandler, eventResponseHandler, exceptionResponseHandler,
-             Executors.newSingleThreadScheduledExecutor(), new CompletableFuture<>(), "");
-    }
 
     private EventStreamAsyncResponseTransformer(
         EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseHandler,

@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.http.loader;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.ServiceLoader;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -46,7 +45,6 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
     }
 
     @Override
-    @ReviewBeforeRelease("Add some links to doc topics on configuring HTTP impl")
     public Optional<T> loadService() {
         Iterator<T> httpServices = serviceLoader.loadServices(serviceClass);
         if (!httpServices.hasNext()) {

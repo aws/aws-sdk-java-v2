@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -71,8 +70,6 @@ public final class RequestExecutionContext {
         return executionContext.executionAttributes();
     }
 
-    @ReviewBeforeRelease("We should combine RequestExecutionContext and ExecutionContext. There's no benefit to both of "
-                         + "these. Once that's done, this won't be needed.")
     public ExecutionContext executionContext() {
         return executionContext;
     }

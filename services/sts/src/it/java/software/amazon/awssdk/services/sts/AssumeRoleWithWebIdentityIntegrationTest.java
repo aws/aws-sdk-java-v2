@@ -25,12 +25,11 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
 import software.amazon.awssdk.services.sts.model.InvalidIdentityTokenException;
 
-@ReviewBeforeRelease("This could be useful to cleanup and present as a customer sample")
+//TODO This could be useful to cleanup and present as a customer sample
 @Ignore
 public class AssumeRoleWithWebIdentityIntegrationTest extends IntegrationTestBase {
 

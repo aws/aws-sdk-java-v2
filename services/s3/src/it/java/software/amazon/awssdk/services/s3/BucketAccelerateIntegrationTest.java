@@ -24,7 +24,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
@@ -50,9 +49,9 @@ import software.amazon.awssdk.testutils.retry.RetryableParams;
 /**
  * Integration tests for S3 bucket accelerate configuration.
  */
-@ReviewBeforeRelease("These tests are a bit flaky. Looks like S3 returns 307 Temporary Redirect occasionally " +
-                     "for a newly accelerated bucket. Not sure what the right fix is without following redirects " +
-                     "which we don't want to do for other reasons.")
+// TODO: "These tests are a bit flaky. Looks like S3 returns 307 Temporary Redirect occasionally
+// for a newly accelerated bucket. Not sure what the right fix is without following redirects
+// which we don't want to do for other reasons.
 @Ignore
 public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
@@ -69,8 +68,8 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                                    .region(Region.US_WEST_2)
                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                    .serviceConfiguration(S3Configuration.builder()
-                                                                         .accelerateModeEnabled(true)
-                                                                         .build())
+                                                                        .accelerateModeEnabled(true)
+                                                                        .build())
                                    .build();
 
         setUpBuckets();
@@ -100,9 +99,9 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         accelerateClient.putBucketVersioning(PutBucketVersioningRequest.builder()
                                                                        .bucket(US_BUCKET_NAME)
                                                                        .versioningConfiguration(
-                                                                               VersioningConfiguration.builder()
-                                                                                                      .status("Enabled")
-                                                                                                      .build())
+                                                                           VersioningConfiguration.builder()
+                                                                                                  .status("Enabled")
+                                                                                                  .build())
                                                                        .build());
 
         // Retry a couple of times due to eventual consistency
@@ -110,7 +109,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
             @Override
             public void doAssert() {
                 List<Tag> taggingConfiguration = accelerateClient
-                        .getBucketTagging(GetBucketTaggingRequest.builder().bucket(US_BUCKET_NAME).build()).tagSet();
+                    .getBucketTagging(GetBucketTaggingRequest.builder().bucket(US_BUCKET_NAME).build()).tagSet();
 
                 assertEquals("foo", taggingConfiguration.get(0).key());
                 assertEquals("bar", taggingConfiguration.get(0).value());
@@ -139,11 +138,11 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         }
 
         assertEquals(
-                BucketAccelerateStatus.ENABLED,
-                s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
-                                                                                           .bucket(US_BUCKET_NAME)
-                                                                                           .build())
-                  .status());
+            BucketAccelerateStatus.ENABLED,
+            s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
+                                                                                       .bucket(US_BUCKET_NAME)
+                                                                                       .build())
+              .status());
 
         disableAccelerateOnBucket();
         assertEquals(BucketAccelerateStatus.SUSPENDED,
@@ -176,24 +175,24 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
     private void enableAccelerateOnBucket() throws InterruptedException {
         s3.putBucketAccelerateConfiguration(
-                PutBucketAccelerateConfigurationRequest.builder()
-                                                       .bucket(US_BUCKET_NAME)
-                                                       .accelerateConfiguration(AccelerateConfiguration.builder()
-                                                                                                       .status(BucketAccelerateStatus.ENABLED)
-                                                                                                       .build())
-                                                       .build());
+            PutBucketAccelerateConfigurationRequest.builder()
+                                                   .bucket(US_BUCKET_NAME)
+                                                   .accelerateConfiguration(AccelerateConfiguration.builder()
+                                                                                                   .status(BucketAccelerateStatus.ENABLED)
+                                                                                                   .build())
+                                                   .build());
         // Wait a bit for accelerate to kick in
         Thread.sleep(1000);
     }
 
     private void disableAccelerateOnBucket() {
         s3.putBucketAccelerateConfiguration(
-                PutBucketAccelerateConfigurationRequest.builder()
-                                                       .bucket(US_BUCKET_NAME)
-                                                       .accelerateConfiguration(AccelerateConfiguration.builder()
-                                                                                                       .status(BucketAccelerateStatus.SUSPENDED)
-                                                                                                       .build())
-                                                       .build());
+            PutBucketAccelerateConfigurationRequest.builder()
+                                                   .bucket(US_BUCKET_NAME)
+                                                   .accelerateConfiguration(AccelerateConfiguration.builder()
+                                                                                                   .status(BucketAccelerateStatus.SUSPENDED)
+                                                                                                   .build())
+                                                   .build());
     }
 
     @Test
