@@ -1081,20 +1081,6 @@
         "isRegionalized" : false,
         "partitionEndpoint" : "aws-global"
       },
-      "importexport" : {
-        "endpoints" : {
-          "aws-global" : {
-            "credentialScope" : {
-              "region" : "us-east-1",
-              "service" : "IngestionService"
-            },
-            "hostname" : "importexport.amazonaws.com",
-            "signatureVersions" : [ "v2", "v4" ]
-          }
-        },
-        "isRegionalized" : false,
-        "partitionEndpoint" : "aws-global"
-      },
       "inspector" : {
         "endpoints" : {
           "ap-northeast-1" : { },

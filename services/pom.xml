@@ -83,7 +83,6 @@
         <module>greengrass</module>
         <module>health</module>
         <module>iam</module>
-        <module>importexport</module>
         <module>inspector</module>
         <module>iot</module>
         <module>iotdataplane</module>
