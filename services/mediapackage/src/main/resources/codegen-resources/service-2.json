@@ -302,7 +302,9 @@
       }
     }, 
     "RotateChannelCredentials": {
-      "documentation": "Changes the Channel ingest username and password.", 
+      "deprecated": true, 
+      "deprecatedMessage": "This API is deprecated. Please use RotateIngestEndpointCredentials instead", 
+      "documentation": "Changes the Channel's first IngestEndpoint's username and password. WARNING - This API is deprecated. Please use RotateIngestEndpointCredentials instead", 
       "errors": [
         {
           "shape": "UnprocessableEntityException"
@@ -335,6 +337,42 @@
       "output": {
         "documentation": "The updated Channel record.", 
         "shape": "RotateChannelCredentialsResponse"
+      }
+    }, 
+    "RotateIngestEndpointCredentials": {
+      "documentation": "Rotate the IngestEndpoint's username and password, as specified by the IngestEndpoint's id.", 
+      "errors": [
+        {
+          "shape": "UnprocessableEntityException"
+        }, 
+        {
+          "shape": "InternalServerErrorException"
+        }, 
+        {
+          "shape": "ForbiddenException"
+        }, 
+        {
+          "shape": "NotFoundException"
+        }, 
+        {
+          "shape": "ServiceUnavailableException"
+        }, 
+        {
+          "shape": "TooManyRequestsException"
+        }
+      ], 
+      "http": {
+        "method": "PUT", 
+        "requestUri": "/channels/{id}/ingest_endpoints/{ingest_endpoint_id}/credentials", 
+        "responseCode": 200
+      }, 
+      "input": {
+        "shape": "RotateIngestEndpointCredentialsRequest"
+      }, 
+      "name": "RotateIngestEndpointCredentials", 
+      "output": {
+        "documentation": "The updated Channel record.", 
+        "shape": "RotateIngestEndpointCredentialsResponse"
       }
     }, 
     "UpdateChannel": {
@@ -458,6 +496,9 @@
           "shape": "__string"
         }
       }, 
+      "required": [
+        "Id"
+      ], 
       "type": "structure"
     }, 
     "ChannelList": {
@@ -466,7 +507,7 @@
         "Channels": {
           "documentation": "A list of Channel records.", 
           "locationName": "channels", 
-          "shape": "ListOfChannel"
+          "shape": "__listOfChannel"
         }, 
         "NextToken": {
           "documentation": "A token that can be used to resume pagination from the end of the collection.", 
@@ -483,6 +524,82 @@
           "documentation": "A short text description of the Channel.", 
           "locationName": "description", 
           "shape": "__string"
+        }
+      }, 
+      "type": "structure"
+    }, 
+    "CmafEncryption": {
+      "documentation": "A Common Media Application Format (CMAF) encryption configuration.", 
+      "members": {
+        "KeyRotationIntervalSeconds": {
+          "documentation": "Time (in seconds) between each encryption key rotation.", 
+          "locationName": "keyRotationIntervalSeconds", 
+          "shape": "__integer"
+        }, 
+        "SpekeKeyProvider": {
+          "locationName": "spekeKeyProvider", 
+          "shape": "SpekeKeyProvider"
+        }
+      }, 
+      "required": [
+        "SpekeKeyProvider"
+      ], 
+      "type": "structure"
+    }, 
+    "CmafPackage": {
+      "documentation": "A Common Media Application Format (CMAF) packaging configuration.", 
+      "members": {
+        "Encryption": {
+          "locationName": "encryption", 
+          "shape": "CmafEncryption"
+        }, 
+        "HlsManifests": {
+          "documentation": "A list of HLS manifest configurations", 
+          "locationName": "hlsManifests", 
+          "shape": "__listOfHlsManifest"
+        }, 
+        "SegmentDurationSeconds": {
+          "documentation": "Duration (in seconds) of each segment. Actual segments will be\nrounded to the nearest multiple of the source segment duration.\n", 
+          "locationName": "segmentDurationSeconds", 
+          "shape": "__integer"
+        }, 
+        "SegmentPrefix": {
+          "documentation": "An optional custom string that is prepended to the name of each segment. If not specified, it defaults to the ChannelId.", 
+          "locationName": "segmentPrefix", 
+          "shape": "__string"
+        }, 
+        "StreamSelection": {
+          "locationName": "streamSelection", 
+          "shape": "StreamSelection"
+        }
+      }, 
+      "type": "structure"
+    }, 
+    "CmafPackageCreateOrUpdateParameters": {
+      "documentation": "A Common Media Application Format (CMAF) packaging configuration.", 
+      "members": {
+        "Encryption": {
+          "locationName": "encryption", 
+          "shape": "CmafEncryption"
+        }, 
+        "HlsManifests": {
+          "documentation": "A list of HLS manifest configurations", 
+          "locationName": "hlsManifests", 
+          "shape": "__listOfHlsManifestCreateOrUpdateParameters"
+        }, 
+        "SegmentDurationSeconds": {
+          "documentation": "Duration (in seconds) of each segment. Actual segments will be\nrounded to the nearest multiple of the source segment duration.\n", 
+          "locationName": "segmentDurationSeconds", 
+          "shape": "__integer"
+        }, 
+        "SegmentPrefix": {
+          "documentation": "An optional custom string that is prepended to the name of each segment. If not specified, it defaults to the ChannelId.", 
+          "locationName": "segmentPrefix", 
+          "shape": "__string"
+        }, 
+        "StreamSelection": {
+          "locationName": "streamSelection", 
+          "shape": "StreamSelection"
         }
       }, 
       "type": "structure"
@@ -538,6 +655,10 @@
           "locationName": "channelId", 
           "shape": "__string"
         }, 
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackageCreateOrUpdateParameters"
+        }, 
         "DashPackage": {
           "locationName": "dashPackage", 
           "shape": "DashPackage"
@@ -578,7 +699,7 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "required": [
@@ -598,6 +719,10 @@
           "documentation": "The ID of the Channel the OriginEndpoint is associated with.", 
           "locationName": "channelId", 
           "shape": "__string"
+        }, 
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackage"
         }, 
         "DashPackage": {
           "locationName": "dashPackage", 
@@ -644,7 +769,7 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "type": "structure"
@@ -688,6 +813,11 @@
           "documentation": "Minimum duration (in seconds) between potential changes to the Dynamic Adaptive Streaming over HTTP (DASH) Media Presentation Description (MPD).", 
           "locationName": "minUpdatePeriodSeconds", 
           "shape": "__integer"
+        }, 
+        "PeriodTriggers": {
+          "documentation": "A list of triggers that controls when the outgoing Dynamic Adaptive Streaming over HTTP (DASH)\nMedia Presentation Description (MPD) will be partitioned into multiple periods. If empty, the content will not\nbe partitioned into more than one period. If the list contains \"ADS\", new periods will be created where\nthe Channel source contains SCTE-35 ad markers.\n", 
+          "locationName": "periodTriggers", 
+          "shape": "__listOf__PeriodTriggersElement"
         }, 
         "Profile": {
           "documentation": "The Dynamic Adaptive Streaming over HTTP (DASH) profile type.  When set to \"HBBTV_1_5\", HbbTV 1.5 compliant output is enabled.", 
@@ -811,6 +941,10 @@
           "locationName": "channelId", 
           "shape": "__string"
         }, 
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackage"
+        }, 
         "DashPackage": {
           "locationName": "dashPackage", 
           "shape": "DashPackage"
@@ -856,7 +990,7 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "type": "structure"
@@ -921,9 +1055,102 @@
         "IngestEndpoints": {
           "documentation": "A list of endpoints to which the source stream should be sent.", 
           "locationName": "ingestEndpoints", 
-          "shape": "ListOfIngestEndpoint"
+          "shape": "__listOfIngestEndpoint"
         }
       }, 
+      "type": "structure"
+    }, 
+    "HlsManifest": {
+      "documentation": "A HTTP Live Streaming (HLS) manifest configuration.", 
+      "members": {
+        "AdMarkers": {
+          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n", 
+          "locationName": "adMarkers", 
+          "shape": "AdMarkers"
+        }, 
+        "Id": {
+          "documentation": "The ID of the manifest. The ID must be unique within the OriginEndpoint and it cannot be changed after it is created.", 
+          "locationName": "id", 
+          "shape": "__string"
+        }, 
+        "IncludeIframeOnlyStream": {
+          "documentation": "When enabled, an I-Frame only stream will be included in the output.", 
+          "locationName": "includeIframeOnlyStream", 
+          "shape": "__boolean"
+        }, 
+        "ManifestName": {
+          "documentation": "An optional short string appended to the end of the OriginEndpoint URL. If not specified, defaults to the manifestName for the OriginEndpoint.", 
+          "locationName": "manifestName", 
+          "shape": "__string"
+        }, 
+        "PlaylistType": {
+          "documentation": "The HTTP Live Streaming (HLS) playlist type.\nWhen either \"EVENT\" or \"VOD\" is specified, a corresponding EXT-X-PLAYLIST-TYPE\nentry will be included in the media playlist.\n", 
+          "locationName": "playlistType", 
+          "shape": "PlaylistType"
+        }, 
+        "PlaylistWindowSeconds": {
+          "documentation": "Time window (in seconds) contained in each parent manifest.", 
+          "locationName": "playlistWindowSeconds", 
+          "shape": "__integer"
+        }, 
+        "ProgramDateTimeIntervalSeconds": {
+          "documentation": "The interval (in seconds) between each EXT-X-PROGRAM-DATE-TIME tag\ninserted into manifests. Additionally, when an interval is specified\nID3Timed Metadata messages will be generated every 5 seconds using the\ningest time of the content.\nIf the interval is not specified, or set to 0, then\nno EXT-X-PROGRAM-DATE-TIME tags will be inserted into manifests and no\nID3Timed Metadata messages will be generated. Note that irrespective\nof this parameter, if any ID3 Timed Metadata is found in HTTP Live Streaming (HLS) input,\nit will be passed through to HLS output.\n", 
+          "locationName": "programDateTimeIntervalSeconds", 
+          "shape": "__integer"
+        }, 
+        "Url": {
+          "documentation": "The URL of the packaged OriginEndpoint for consumption.", 
+          "locationName": "url", 
+          "shape": "__string"
+        }
+      }, 
+      "required": [
+        "Id"
+      ], 
+      "type": "structure"
+    }, 
+    "HlsManifestCreateOrUpdateParameters": {
+      "documentation": "A HTTP Live Streaming (HLS) manifest configuration.", 
+      "members": {
+        "AdMarkers": {
+          "documentation": "This setting controls how ad markers are included in the packaged OriginEndpoint.\n\"NONE\" will omit all SCTE-35 ad markers from the output.\n\"PASSTHROUGH\" causes the manifest to contain a copy of the SCTE-35 ad\nmarkers (comments) taken directly from the input HTTP Live Streaming (HLS) manifest.\n\"SCTE35_ENHANCED\" generates ad markers and blackout tags based on SCTE-35\nmessages in the input source.\n", 
+          "locationName": "adMarkers", 
+          "shape": "AdMarkers"
+        }, 
+        "Id": {
+          "documentation": "The ID of the manifest. The ID must be unique within the OriginEndpoint and it cannot be changed after it is created.", 
+          "locationName": "id", 
+          "shape": "__string"
+        }, 
+        "IncludeIframeOnlyStream": {
+          "documentation": "When enabled, an I-Frame only stream will be included in the output.", 
+          "locationName": "includeIframeOnlyStream", 
+          "shape": "__boolean"
+        }, 
+        "ManifestName": {
+          "documentation": "An optional short string appended to the end of the OriginEndpoint URL. If not specified, defaults to the manifestName for the OriginEndpoint.", 
+          "locationName": "manifestName", 
+          "shape": "__string"
+        }, 
+        "PlaylistType": {
+          "documentation": "The HTTP Live Streaming (HLS) playlist type.\nWhen either \"EVENT\" or \"VOD\" is specified, a corresponding EXT-X-PLAYLIST-TYPE\nentry will be included in the media playlist.\n", 
+          "locationName": "playlistType", 
+          "shape": "PlaylistType"
+        }, 
+        "PlaylistWindowSeconds": {
+          "documentation": "Time window (in seconds) contained in each parent manifest.", 
+          "locationName": "playlistWindowSeconds", 
+          "shape": "__integer"
+        }, 
+        "ProgramDateTimeIntervalSeconds": {
+          "documentation": "The interval (in seconds) between each EXT-X-PROGRAM-DATE-TIME tag\ninserted into manifests. Additionally, when an interval is specified\nID3Timed Metadata messages will be generated every 5 seconds using the\ningest time of the content.\nIf the interval is not specified, or set to 0, then\nno EXT-X-PROGRAM-DATE-TIME tags will be inserted into manifests and no\nID3Timed Metadata messages will be generated. Note that irrespective\nof this parameter, if any ID3 Timed Metadata is found in HTTP Live Streaming (HLS) input,\nit will be passed through to HLS output.\n", 
+          "locationName": "programDateTimeIntervalSeconds", 
+          "shape": "__integer"
+        }
+      }, 
+      "required": [
+        "Id"
+      ], 
       "type": "structure"
     }, 
     "HlsPackage": {
@@ -954,7 +1181,7 @@
           "shape": "__integer"
         }, 
         "ProgramDateTimeIntervalSeconds": {
-          "documentation": "The interval (in seconds) between each EXT-X-PROGRAM-DATE-TIME tag\ninserted into manifests. Additionally, when an interval is specified\nID3Timed Metadata messages will be generated every 5 seconds using the \ningest time of the content.\nIf the interval is not specified, or set to 0, then\nno EXT-X-PROGRAM-DATE-TIME tags will be inserted into manifests and no\nID3Timed Metadata messages will be generated. Note that irrespective\nof this parameter, if any ID3 Timed Metadata is found in HTTP Live Streaming (HLS) input,\nit will be passed through to HLS output.\n", 
+          "documentation": "The interval (in seconds) between each EXT-X-PROGRAM-DATE-TIME tag\ninserted into manifests. Additionally, when an interval is specified\nID3Timed Metadata messages will be generated every 5 seconds using the\ningest time of the content.\nIf the interval is not specified, or set to 0, then\nno EXT-X-PROGRAM-DATE-TIME tags will be inserted into manifests and no\nID3Timed Metadata messages will be generated. Note that irrespective\nof this parameter, if any ID3 Timed Metadata is found in HTTP Live Streaming (HLS) input,\nit will be passed through to HLS output.\n", 
           "locationName": "programDateTimeIntervalSeconds", 
           "shape": "__integer"
         }, 
@@ -978,6 +1205,11 @@
     "IngestEndpoint": {
       "documentation": "An endpoint for ingesting source content for a Channel.", 
       "members": {
+        "Id": {
+          "documentation": "The system generated unique identifier for the IngestEndpoint", 
+          "locationName": "id", 
+          "shape": "__string"
+        }, 
         "Password": {
           "documentation": "The system generated password for ingest authentication.", 
           "locationName": "password", 
@@ -1032,7 +1264,7 @@
         "Channels": {
           "documentation": "A list of Channel records.", 
           "locationName": "channels", 
-          "shape": "ListOfChannel"
+          "shape": "__listOfChannel"
         }, 
         "NextToken": {
           "documentation": "A token that can be used to resume pagination from the end of the collection.", 
@@ -1041,30 +1273,6 @@
         }
       }, 
       "type": "structure"
-    }, 
-    "ListOfChannel": {
-      "member": {
-        "shape": "Channel"
-      }, 
-      "type": "list"
-    }, 
-    "ListOfIngestEndpoint": {
-      "member": {
-        "shape": "IngestEndpoint"
-      }, 
-      "type": "list"
-    }, 
-    "ListOfOriginEndpoint": {
-      "member": {
-        "shape": "OriginEndpoint"
-      }, 
-      "type": "list"
-    }, 
-    "ListOf__string": {
-      "member": {
-        "shape": "__string"
-      }, 
-      "type": "list"
     }, 
     "ListOriginEndpointsRequest": {
       "members": {
@@ -1099,7 +1307,7 @@
         "OriginEndpoints": {
           "documentation": "A list of OriginEndpoint records.", 
           "locationName": "originEndpoints", 
-          "shape": "ListOfOriginEndpoint"
+          "shape": "__listOfOriginEndpoint"
         }
       }, 
       "type": "structure"
@@ -1173,6 +1381,10 @@
           "locationName": "channelId", 
           "shape": "__string"
         }, 
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackage"
+        }, 
         "DashPackage": {
           "locationName": "dashPackage", 
           "shape": "DashPackage"
@@ -1218,7 +1430,7 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "type": "structure"
@@ -1230,6 +1442,10 @@
           "documentation": "The ID of the Channel that the OriginEndpoint will be associated with.\nThis cannot be changed after the OriginEndpoint is created.\n", 
           "locationName": "channelId", 
           "shape": "__string"
+        }, 
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackageCreateOrUpdateParameters"
         }, 
         "DashPackage": {
           "locationName": "dashPackage", 
@@ -1271,9 +1487,13 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
+      "required": [
+        "Id", 
+        "ChannelId"
+      ], 
       "type": "structure"
     }, 
     "OriginEndpointList": {
@@ -1287,7 +1507,7 @@
         "OriginEndpoints": {
           "documentation": "A list of OriginEndpoint records.", 
           "locationName": "originEndpoints", 
-          "shape": "ListOfOriginEndpoint"
+          "shape": "__listOfOriginEndpoint"
         }
       }, 
       "type": "structure"
@@ -1295,6 +1515,10 @@
     "OriginEndpointUpdateParameters": {
       "documentation": "Configuration parameters for updating an existing OriginEndpoint.", 
       "members": {
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackageCreateOrUpdateParameters"
+        }, 
         "DashPackage": {
           "locationName": "dashPackage", 
           "shape": "DashPackage"
@@ -1330,7 +1554,7 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "type": "structure"
@@ -1351,6 +1575,7 @@
       "type": "string"
     }, 
     "RotateChannelCredentialsRequest": {
+      "deprecated": true, 
       "members": {
         "Id": {
           "documentation": "The ID of the channel to update.", 
@@ -1365,6 +1590,52 @@
       "type": "structure"
     }, 
     "RotateChannelCredentialsResponse": {
+      "deprecated": true, 
+      "members": {
+        "Arn": {
+          "documentation": "The Amazon Resource Name (ARN) assigned to the Channel.", 
+          "locationName": "arn", 
+          "shape": "__string"
+        }, 
+        "Description": {
+          "documentation": "A short text description of the Channel.", 
+          "locationName": "description", 
+          "shape": "__string"
+        }, 
+        "HlsIngest": {
+          "locationName": "hlsIngest", 
+          "shape": "HlsIngest"
+        }, 
+        "Id": {
+          "documentation": "The ID of the Channel.", 
+          "locationName": "id", 
+          "shape": "__string"
+        }
+      }, 
+      "type": "structure"
+    }, 
+    "RotateIngestEndpointCredentialsRequest": {
+      "members": {
+        "Id": {
+          "documentation": "The ID of the channel the IngestEndpoint is on.", 
+          "location": "uri", 
+          "locationName": "id", 
+          "shape": "__string"
+        }, 
+        "IngestEndpointId": {
+          "documentation": "The id of the IngestEndpoint whose credentials should be rotated", 
+          "location": "uri", 
+          "locationName": "ingest_endpoint_id", 
+          "shape": "__string"
+        }
+      }, 
+      "required": [
+        "IngestEndpointId", 
+        "Id"
+      ], 
+      "type": "structure"
+    }, 
+    "RotateIngestEndpointCredentialsResponse": {
       "members": {
         "Arn": {
           "documentation": "The Amazon Resource Name (ARN) assigned to the Channel.", 
@@ -1405,6 +1676,11 @@
     "SpekeKeyProvider": {
       "documentation": "A configuration for accessing an external Secure Packager and Encoder Key Exchange (SPEKE) service that will provide encryption keys.", 
       "members": {
+        "CertificateArn": {
+          "documentation": "An Amazon Resource Name (ARN) of a Certificate Manager certificate\nthat MediaPackage will use for enforcing secure end-to-end data\ntransfer with the key provider service.\n", 
+          "locationName": "certificateArn", 
+          "shape": "__string"
+        }, 
         "ResourceId": {
           "documentation": "The resource ID to include in key requests.", 
           "locationName": "resourceId", 
@@ -1418,7 +1694,7 @@
         "SystemIds": {
           "documentation": "The system IDs to include in key requests.", 
           "locationName": "systemIds", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }, 
         "Url": {
           "documentation": "The URL of the external key provider service.", 
@@ -1538,6 +1814,10 @@
     "UpdateOriginEndpointRequest": {
       "documentation": "Configuration parameters used to update an existing OriginEndpoint.", 
       "members": {
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackageCreateOrUpdateParameters"
+        }, 
         "DashPackage": {
           "locationName": "dashPackage", 
           "shape": "DashPackage"
@@ -1579,7 +1859,7 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "required": [
@@ -1598,6 +1878,10 @@
           "documentation": "The ID of the Channel the OriginEndpoint is associated with.", 
           "locationName": "channelId", 
           "shape": "__string"
+        }, 
+        "CmafPackage": {
+          "locationName": "cmafPackage", 
+          "shape": "CmafPackage"
         }, 
         "DashPackage": {
           "locationName": "dashPackage", 
@@ -1644,10 +1928,16 @@
         "Whitelist": {
           "documentation": "A list of source IP CIDR blocks that will be allowed to access the OriginEndpoint.", 
           "locationName": "whitelist", 
-          "shape": "ListOf__string"
+          "shape": "__listOf__string"
         }
       }, 
       "type": "structure"
+    }, 
+    "__PeriodTriggersElement": {
+      "enum": [
+        "ADS"
+      ], 
+      "type": "string"
     }, 
     "__boolean": {
       "type": "boolean"
@@ -1658,11 +1948,53 @@
     "__integer": {
       "type": "integer"
     }, 
+    "__listOfChannel": {
+      "member": {
+        "shape": "Channel"
+      }, 
+      "type": "list"
+    }, 
+    "__listOfHlsManifest": {
+      "member": {
+        "shape": "HlsManifest"
+      }, 
+      "type": "list"
+    }, 
+    "__listOfHlsManifestCreateOrUpdateParameters": {
+      "member": {
+        "shape": "HlsManifestCreateOrUpdateParameters"
+      }, 
+      "type": "list"
+    }, 
+    "__listOfIngestEndpoint": {
+      "member": {
+        "shape": "IngestEndpoint"
+      }, 
+      "type": "list"
+    }, 
+    "__listOfOriginEndpoint": {
+      "member": {
+        "shape": "OriginEndpoint"
+      }, 
+      "type": "list"
+    }, 
+    "__listOf__PeriodTriggersElement": {
+      "member": {
+        "shape": "__PeriodTriggersElement"
+      }, 
+      "type": "list"
+    }, 
+    "__listOf__string": {
+      "member": {
+        "shape": "__string"
+      }, 
+      "type": "list"
+    }, 
+    "__long": {
+      "type": "long"
+    }, 
     "__string": {
       "type": "string"
-    }, 
-    "__timestamp": {
-      "type": "timestamp"
     }
   }
 }
