@@ -19,6 +19,7 @@ import static software.amazon.awssdk.http.Protocol.HTTP1_1;
 import static software.amazon.awssdk.http.Protocol.HTTP2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
@@ -106,7 +107,9 @@ public final class NettyRequestExecutor {
 
                 Channel ch = f.getNow();
                 ch.eventLoop().submit(() -> {
-                    ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                    if (ch.attr(IN_USE).get()) {
+                        ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                    }
                 });
             });
         });
@@ -130,6 +133,7 @@ public final class NettyRequestExecutor {
         channel.attr(EXECUTE_FUTURE_KEY).set(executeFuture);
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
+        channel.attr(IN_USE).set(true);
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
