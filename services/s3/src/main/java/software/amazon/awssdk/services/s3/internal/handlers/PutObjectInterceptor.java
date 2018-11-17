@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
@@ -30,7 +30,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @ReviewBeforeRelease("This should be generalized for all streaming requests when we refactor the marshallers.")
 public final class PutObjectInterceptor implements ExecutionInterceptor {
     @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                            ExecutionAttributes executionAttributes) {
         if (context.request() instanceof PutObjectRequest) {
             return context.httpRequest().toBuilder().putHeader("Expect", "100-continue").build();
         }

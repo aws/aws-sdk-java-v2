@@ -66,7 +66,7 @@ public class SdkHttpRequestResponseTest {
                 .isEqualTo("http://localhost/foo/?foo=bar");
     }
 
-    private String normalizedUri(Consumer<SdkHttpFullRequest.Builder> builderMutator) {
+    private String normalizedUri(Consumer<SdkHttpRequest.Builder> builderMutator) {
         return validRequestBuilder().applyMutation(builderMutator).build().getUri().toString();
     }
 
@@ -146,7 +146,7 @@ public class SdkHttpRequestResponseTest {
     @Test
     public void requestQueryParamNormalizationIsCorrect() {
         headerOrQueryStringNormalizationIsCorrect(() -> new BuilderProxy() {
-            private final SdkHttpFullRequest.Builder builder = validRequestBuilder();
+            private final SdkHttpRequest.Builder builder = validRequestBuilder();
 
             @Override
             public BuilderProxy setValue(String key, String value) {
@@ -194,7 +194,7 @@ public class SdkHttpRequestResponseTest {
     @Test
     public void requestHeaderNormalizationIsCorrect() {
         headerOrQueryStringNormalizationIsCorrect(() -> new BuilderProxy() {
-            private final SdkHttpFullRequest.Builder builder = validRequestBuilder();
+            private final SdkHttpRequest.Builder builder = validRequestBuilder();
 
             @Override
             public BuilderProxy setValue(String key, String value) {

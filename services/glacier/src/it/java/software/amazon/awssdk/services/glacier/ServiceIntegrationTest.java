@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.glacier.model.ListVaultsRequest;
 import software.amazon.awssdk.services.glacier.model.ResourceNotFoundException;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -72,7 +72,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     public static class CapturingExecutionInterceptor implements ExecutionInterceptor {
 
-        private SdkHttpFullRequest beforeTransmission;
+        private SdkHttpRequest beforeTransmission;
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {

@@ -17,12 +17,13 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.InputStream;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -34,18 +35,18 @@ import software.amazon.awssdk.utils.StringInputStream;
 public final class GetBucketPolicyInterceptor implements ExecutionInterceptor {
 
     @Override
-    public SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context, ExecutionAttributes executionAttributes) {
+    public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
+                                                           ExecutionAttributes executionAttributes) {
         if (context.request() instanceof GetBucketPolicyRequest) {
-            String policy = context.httpResponse().content()
-                                   .map(c -> invokeSafely(() -> IoUtils.toUtf8String(c)))
-                                   .orElse(null);
+
+            String policy = context.responseBody() == null ? null : invokeSafely(
+                () -> IoUtils.toUtf8String(context.responseBody().get()));
             // Wrap in CDATA to deal with any escaping issues
             String xml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                                        + "<Policy><![CDATA[%s]]></Policy>", policy);
-            return context.httpResponse().toBuilder()
-                          .content(AbortableInputStream.create(new StringInputStream(xml)))
-                          .build();
+            return Optional.of(AbortableInputStream.create(new StringInputStream(xml)));
         }
-        return context.httpResponse();
+
+        return context.responseBody();
     }
 }

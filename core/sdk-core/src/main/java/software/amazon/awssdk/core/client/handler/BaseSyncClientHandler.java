@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -100,10 +101,22 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ExecutionContext executionContext,
         HttpResponseHandler<ReturnT> responseHandler) {
 
-        InputT inputT = finalizeSdkRequest(executionContext);
+        InputT inputT = (InputT) finalizeSdkRequest(executionContext).request();
 
-        SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
-                                                                   clientConfiguration);
+        InterceptorContext sdkHttpFullRequestContext = finalizeSdkHttpFullRequest(executionParams,
+                                                                                  executionContext,
+                                                                                  inputT,
+                                                                                  clientConfiguration);
+
+        SdkHttpFullRequest marshalled = (SdkHttpFullRequest) sdkHttpFullRequestContext.httpRequest();
+
+        // TODO Pass requestBody as separate arg to invoke
+        if (sdkHttpFullRequestContext.requestBody().isPresent()) {
+            marshalled = marshalled.toBuilder()
+                                   .contentStreamProvider(sdkHttpFullRequestContext.requestBody().get().contentStreamProvider())
+                                   .build();
+        }
+
         return invoke(marshalled,
                       inputT,
                       executionContext,

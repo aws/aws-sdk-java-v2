@@ -22,8 +22,8 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -52,12 +52,12 @@ public class DefaultFailedExecutionContext implements Context.FailedExecution {
     }
 
     @Override
-    public Optional<SdkHttpFullRequest> httpRequest() {
+    public Optional<SdkHttpRequest> httpRequest() {
         return Optional.ofNullable(interceptorContext.httpRequest());
     }
 
     @Override
-    public Optional<SdkHttpFullResponse> httpResponse() {
+    public Optional<SdkHttpResponse> httpResponse() {
         return Optional.ofNullable(interceptorContext.httpResponse());
     }
 

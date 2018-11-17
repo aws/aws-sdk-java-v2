@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.sync.RequestBody;
 
 /**
  * Encapsulates parameters needed for a particular API call. Captures input and output pojo types.
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.runtime.transform.Marshaller;
 public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     private InputT input;
+    private RequestBody requestBody;
     private AsyncRequestBody asyncRequestBody;
     private Marshaller<InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
@@ -77,6 +79,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     public ClientExecutionParams<InputT, OutputT> withErrorResponseHandler(
             HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         this.errorResponseHandler = errorResponseHandler;
+        return this;
+    }
+
+    public RequestBody getRequestBody() {
+        return requestBody;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withRequestBody(RequestBody requestBody) {
+        this.requestBody = requestBody;
         return this;
     }
 

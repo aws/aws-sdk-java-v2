@@ -20,12 +20,16 @@ import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENAB
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
 
 import java.net.URI;
+import java.util.Optional;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -36,110 +40,54 @@ public class EnableChunkedEncodingInterceptorTest {
 
     @Test
     public void modifyRequest_EnablesChunckedEncoding_ForPutObectRequest() {
-        Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public SdkRequest request() {
-                return PutObjectRequest.builder().build();
-            }
-        };
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isNull();
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(PutObjectRequest.builder().build()), executionAttributes);
 
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isEqualTo(true);
     }
 
     @Test
     public void modifyRequest_EnablesChunckedEncoding_ForUploadPartRequest() {
-        Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public SdkRequest request() {
-                return UploadPartRequest.builder().build();
-            }
-        };
-
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isNull();
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(UploadPartRequest.builder().build()), executionAttributes);
 
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isEqualTo(true);
     }
 
     @Test
     public void modifyRequest_DoesNotEnableChunckedEncoding_ForGetObjectRequest() {
-        Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public SdkRequest request() {
-                return GetObjectRequest.builder().build();
-            }
-        };
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isNull();
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(GetObjectRequest.builder().build()), executionAttributes);
 
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isNull();
     }
 
     @Test
     public void modifyRequest_DoesNotOverwriteExistingAttributeValue() {
-        Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public SdkRequest request() {
-                return PutObjectRequest.builder().build();
-            }
-        };
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(PutObjectRequest.builder().build()), executionAttributes);
 
         boolean newValue = !executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING);
 
         executionAttributes.putAttribute(ENABLE_CHUNKED_ENCODING, newValue);
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(PutObjectRequest.builder().build()), executionAttributes);
 
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isEqualTo(newValue);
     }
 
     @Test
     public void modifyRequest_valueOnServiceConfig_TakesPrecedenceOverDefaultEnabled() {
-        Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public SdkRequest request() {
-                return PutObjectRequest.builder().build();
-            }
-        };
 
         S3Configuration config = S3Configuration.builder()
                 .chunkedEncodingEnabled(false)
@@ -148,24 +96,13 @@ public class EnableChunkedEncodingInterceptorTest {
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
                 .putAttribute(SERVICE_CONFIG, config);
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(PutObjectRequest.builder().build()), executionAttributes);
 
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isEqualTo(false);
     }
 
     @Test
     public void modifyRequest_existingValueInExecutionAttributes_TakesPrecedenceOverClientConfig() {
-        Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public SdkRequest request() {
-                return PutObjectRequest.builder().build();
-            }
-        };
 
         boolean configValue = false;
         S3Configuration config = S3Configuration.builder()
@@ -176,9 +113,33 @@ public class EnableChunkedEncodingInterceptorTest {
                 .putAttribute(SERVICE_CONFIG, config)
                 .putAttribute(ENABLE_CHUNKED_ENCODING, !configValue);
 
-        interceptor.modifyRequest(ctx, executionAttributes);
+        interceptor.modifyRequest(context(PutObjectRequest.builder().build()), executionAttributes);
 
         assertThat(executionAttributes.getAttribute(ENABLE_CHUNKED_ENCODING)).isEqualTo(!configValue);
+    }
+
+    private Context.ModifyHttpRequest context(SdkRequest request) {
+        return new Context.ModifyHttpRequest() {
+            @Override
+            public SdkHttpRequest httpRequest() {
+                return null;
+            }
+
+            @Override
+            public Optional<RequestBody> requestBody() {
+                return null;
+            }
+
+            @Override
+            public Optional<AsyncRequestBody> asyncRequestBody() {
+                return null;
+            }
+
+            @Override
+            public SdkRequest request() {
+                return request;
+            }
+        };
     }
 
     private SdkHttpFullRequest sdkHttpFullRequest() {

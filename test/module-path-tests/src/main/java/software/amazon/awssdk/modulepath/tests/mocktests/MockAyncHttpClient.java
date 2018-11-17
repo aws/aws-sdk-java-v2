@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -37,16 +37,16 @@ import software.amazon.awssdk.utils.IoUtils;
 public final class MockAyncHttpClient implements SdkAsyncHttpClient {
 
     private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
-    private SdkHttpFullResponse nextResponse;
+    private HttpExecuteResponse nextResponse;
 
 
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
         capturedRequests.add(request.request());
 
-        request.responseHandler().onHeaders(nextResponse);
+        request.responseHandler().onHeaders(nextResponse.httpResponse());
         request.responseHandler().onStream(new SdkHttpContentPublisher() {
-            byte[] content = nextResponse.content().map(p -> invokeSafely(() -> IoUtils.toByteArray(p)))
+            byte[] content = nextResponse.responseBody().map(p -> invokeSafely(() -> IoUtils.toByteArray(p)))
                                          .orElseGet(() -> new byte[0]);
 
             @Override
@@ -93,7 +93,7 @@ public final class MockAyncHttpClient implements SdkAsyncHttpClient {
         this.nextResponse = null;
     }
 
-    public void stubNextResponse(SdkHttpFullResponse nextResponse) {
+    public void stubNextResponse(HttpExecuteResponse nextResponse) {
         this.nextResponse = nextResponse;
     }
 

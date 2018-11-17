@@ -106,7 +106,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                  "errorResponseHandler",
                  opModel.getInput().getVariableName());
         if (opModel.hasStreamingInput()) {
-            return codeBlock.add(".withMarshaller(new $T(new $T(protocolFactory), requestBody)));",
+            return codeBlock.add(".withRequestBody(requestBody)")
+                            .add(".withMarshaller(new $T(new $T(protocolFactory), requestBody)));",
                                  ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
                                  marshaller)
                             .build();

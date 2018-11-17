@@ -21,10 +21,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -36,13 +35,16 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkPublicApi
 @Immutable
 public interface SdkHttpFullRequest
-        extends SdkHttpRequest, ToCopyableBuilder<SdkHttpFullRequest.Builder, SdkHttpFullRequest> {
+    extends SdkHttpRequest {
     /**
      * @return Builder instance to construct a {@link DefaultSdkHttpFullRequest}.
      */
-    static Builder builder() {
+    static SdkHttpFullRequest.Builder builder() {
         return new DefaultSdkHttpFullRequest.Builder();
     }
+
+    @Override
+    SdkHttpFullRequest.Builder toBuilder();
 
     /**
      * @return The optional {@link ContentStreamProvider} for this request.
@@ -53,8 +55,7 @@ public interface SdkHttpFullRequest
      * A mutable builder for {@link SdkHttpFullRequest}. An instance of this can be created using
      * {@link SdkHttpFullRequest#builder()}.
      */
-    interface Builder extends CopyableBuilder<Builder, SdkHttpFullRequest> {
-
+    interface Builder extends SdkHttpRequest.Builder {
         /**
          * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()}, and
          * {@link #encodedPath()} from a {@link URI} object.
@@ -62,6 +63,7 @@ public interface SdkHttpFullRequest
          * @param uri URI containing protocol, host, port and path.
          * @return This builder for method chaining.
          */
+        @Override
         default Builder uri(URI uri) {
             return this.protocol(uri.getScheme())
                        .host(uri.getHost())
@@ -72,23 +74,27 @@ public interface SdkHttpFullRequest
         /**
          * The protocol, exactly as it was configured with {@link #protocol(String)}.
          */
+        @Override
         String protocol();
 
         /**
          * Configure a {@link SdkHttpRequest#protocol()} to be used in the created HTTP request. This is not validated until the
          * http request is created.
          */
+        @Override
         Builder protocol(String protocol);
 
         /**
          * The host, exactly as it was configured with {@link #host(String)}.
          */
+        @Override
         String host();
 
         /**
          * Configure a {@link SdkHttpRequest#host()} to be used in the created HTTP request. This is not validated until the
          * http request is created.
          */
+        @Override
         Builder host(String host);
 
         /**
@@ -101,11 +107,13 @@ public interface SdkHttpFullRequest
          * http request is created. In order to simplify mapping from a {@link URI}, "-1" will be treated as "null" when the http
          * request is created.
          */
+        @Override
         Builder port(Integer port);
 
         /**
          * The path, exactly as it was configured with {@link #encodedPath(String)}.
          */
+        @Override
         String encodedPath();
 
         /**
@@ -116,12 +124,14 @@ public interface SdkHttpFullRequest
          * implementation to distinguish a "/" that is part of a resource name that should be encoded as "%2F" from a "/" that is
          * part of the actual path.</p>
          */
+        @Override
         Builder encodedPath(String path);
 
         /**
          * The query parameters, exactly as they were configured with {@link #rawQueryParameters(Map)},
          * {@link #putRawQueryParameter(String, String)} and {@link #putRawQueryParameter(String, List)}.
          */
+        @Override
         Map<String, List<String>> rawQueryParameters();
 
         /**
@@ -132,6 +142,7 @@ public interface SdkHttpFullRequest
          * @param paramName The name of the query parameter to add
          * @param paramValue The un-encoded value for the query parameter.
          */
+        @Override
         default Builder putRawQueryParameter(String paramName, String paramValue) {
             return putRawQueryParameter(paramName, singletonList(paramValue));
         }
@@ -145,6 +156,7 @@ public interface SdkHttpFullRequest
          * @param paramName The name of the query parameter to add
          * @param paramValue The un-encoded value for the query parameter.
          */
+        @Override
         Builder appendRawQueryParameter(String paramName, String paramValue);
 
         /**
@@ -155,6 +167,7 @@ public interface SdkHttpFullRequest
          * @param paramName The name of the query parameter to add
          * @param paramValues The un-encoded values for the query parameter.
          */
+        @Override
         Builder putRawQueryParameter(String paramName, List<String> paramValues);
 
         /**
@@ -165,27 +178,32 @@ public interface SdkHttpFullRequest
          * <p>Justification of requirements: The query parameters must not be encoded when they are configured because some HTTP
          * implementations perform this encoding automatically.</p>
          */
+        @Override
         Builder rawQueryParameters(Map<String, List<String>> queryParameters);
 
         /**
          * Remove all values for the requested query parameter from this builder.
          */
+        @Override
         Builder removeQueryParameter(String paramName);
 
         /**
          * Removes all query parameters from this builder.
          */
+        @Override
         Builder clearQueryParameters();
 
         /**
          * The path, exactly as it was configured with {@link #method(SdkHttpMethod)}.
          */
+        @Override
         SdkHttpMethod method();
 
         /**
          * Configure an {@link SdkHttpRequest#method()} to be used in the created HTTP request. This is not validated
          * until the http request is created.
          */
+        @Override
         Builder method(SdkHttpMethod httpMethod);
 
         /**
@@ -200,6 +218,7 @@ public interface SdkHttpFullRequest
          * @param header The header to search for (case insensitively).
          * @return The first header that matched the requested one, or empty if one was not found.
          */
+        @Override
         default Optional<String> firstMatchingHeader(String header) {
             return SdkHttpUtils.firstMatchingHeader(headers(), header);
         }
@@ -208,6 +227,7 @@ public interface SdkHttpFullRequest
          * The query parameters, exactly as they were configured with {@link #headers(Map)},
          * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
          */
+        @Override
         Map<String, List<String>> headers();
 
         /**
@@ -218,6 +238,7 @@ public interface SdkHttpFullRequest
          * @param headerName The name of the header to add (eg. "Host")
          * @param headerValue The value for the header
          */
+        @Override
         default Builder putHeader(String headerName, String headerValue) {
             return putHeader(headerName, singletonList(headerValue));
         }
@@ -230,6 +251,7 @@ public interface SdkHttpFullRequest
          * @param headerName The name of the header to add
          * @param headerValues The values for the header
          */
+        @Override
         Builder putHeader(String headerName, List<String> headerValues);
 
         /**
@@ -241,22 +263,26 @@ public interface SdkHttpFullRequest
          * @param headerName The name of the header to add
          * @param headerValue The value for the header
          */
+        @Override
         Builder appendHeader(String headerName, String headerValue);
 
         /**
          * Configure an {@link SdkHttpRequest#headers()} to be used in the created HTTP request. This is not validated
          * until the http request is created. This overrides any values currently configured in the builder.
          */
+        @Override
         Builder headers(Map<String, List<String>> headers);
 
         /**
          * Remove all values for the requested header from this builder.
          */
+        @Override
         Builder removeHeader(String headerName);
 
         /**
          * Removes all headers from this builder.
          */
+        @Override
         Builder clearHeaders();
 
         /**
@@ -271,6 +297,15 @@ public interface SdkHttpFullRequest
          * @return The {@link ContentStreamProvider} for this request.
          */
         ContentStreamProvider contentStreamProvider();
+
+        @Override
+        SdkHttpFullRequest.Builder copy();
+
+        @Override
+        SdkHttpFullRequest.Builder applyMutation(Consumer<SdkHttpRequest.Builder> mutator);
+
+        @Override
+        SdkHttpFullRequest build();
     }
 
 }

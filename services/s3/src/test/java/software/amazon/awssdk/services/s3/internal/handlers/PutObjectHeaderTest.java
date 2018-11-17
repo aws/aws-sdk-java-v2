@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -57,6 +58,7 @@ public class PutObjectHeaderTest {
         s3Client = S3Client.builder()
                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                            .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
+                           .serviceConfiguration(S3Configuration.builder().checksumValidationEnabled(false).build())
                            .build();
         putObjectRequest = PutObjectRequest.builder().bucket("test").key("test").build();
     }

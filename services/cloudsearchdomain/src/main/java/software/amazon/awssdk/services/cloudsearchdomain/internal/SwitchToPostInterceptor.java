@@ -20,12 +20,14 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -34,28 +36,33 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class SwitchToPostInterceptor implements ExecutionInterceptor {
-    @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        SdkHttpFullRequest request = context.httpRequest();
-        Object originalRequest = context.request();
-        if (originalRequest instanceof SearchRequest && request.method() == SdkHttpMethod.GET) {
-            return request.toBuilder()
-                          .method(SdkHttpMethod.POST)
-                          .applyMutation(SwitchToPostInterceptor::changeQueryParametersToFormData)
-                          .build();
-        }
-        return request;
-    }
 
-    // Copied from MoveParametersToBodyStage to avoid importing internal class
-    private static SdkHttpFullRequest.Builder changeQueryParametersToFormData(SdkHttpFullRequest.Builder input) {
-        byte[] params = SdkHttpUtils.encodeAndFlattenFormData(input.rawQueryParameters()).orElse("")
+    @Override
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+        byte[] params = SdkHttpUtils.encodeAndFlattenFormData(context.httpRequest().rawQueryParameters()).orElse("")
                 .getBytes(StandardCharsets.UTF_8);
 
-        return input.clearQueryParameters()
-                .contentStreamProvider(() -> new ByteArrayInputStream(params))
-                .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
-                .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
-                        lowerCase(StandardCharsets.UTF_8.toString())));
+        return context.httpRequest()
+                      .toBuilder()
+                      .method(SdkHttpMethod.POST)
+                      .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
+                      .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
+                                                               lowerCase(StandardCharsets.UTF_8.toString()))).build();
+    }
+
+    @Override
+    public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+        SdkHttpRequest request = context.httpRequest();
+        Object originalRequest = context.request();
+        if (originalRequest instanceof SearchRequest && request.method() == SdkHttpMethod.GET) {
+            byte[] params = SdkHttpUtils.encodeAndFlattenFormData(request.rawQueryParameters()).orElse("")
+                .getBytes(StandardCharsets.UTF_8);
+            return Optional.of(RequestBody.fromContentProvider(() -> new ByteArrayInputStream(params),
+                                                   params.length,
+                                                   "application/x-www-form-urlencoded; charset=" +
+                                                                 lowerCase(StandardCharsets.UTF_8.toString())));
+        }
+
+        return context.requestBody();
     }
 }

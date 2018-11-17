@@ -92,7 +92,7 @@ public abstract class SdkHttpClientTestSuite {
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
 
-        assertThatThrownBy(client.prepareRequest(ExecuteRequest.builder().request(request).build())::call)
+        assertThatThrownBy(client.prepareRequest(HttpExecuteRequest.builder().request(request).build())::call)
                 .isInstanceOf(SSLHandshakeException.class);
     }
 
@@ -102,7 +102,13 @@ public abstract class SdkHttpClientTestSuite {
         stubForMockRequest(returnCode);
 
         SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port());
-        SdkHttpFullResponse response = client.prepareRequest(ExecuteRequest.builder().request(request).build()).call();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(request)
+                                                                               .contentStreamProvider(
+                                                                                   request.contentStreamProvider()
+                                                                                          .get())
+                                                                               .build())
+                                             .call();
 
         validateResponse(response, returnCode);
     }
@@ -111,7 +117,13 @@ public abstract class SdkHttpClientTestSuite {
         stubForMockRequest(returnCode);
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
-        SdkHttpFullResponse response = client.prepareRequest(ExecuteRequest.builder().request(request).build()).call();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(request)
+                                                                               .contentStreamProvider(
+                                                                                   request.contentStreamProvider()
+                                                                                          .get())
+                                                                               .build())
+                                             .call();
 
         validateResponse(response, returnCode);
     }
@@ -121,15 +133,15 @@ public abstract class SdkHttpClientTestSuite {
                 aResponse().withStatus(returnCode).withHeader("Some-Header", "With Value").withBody("hello")));
     }
 
-    private void validateResponse(SdkHttpFullResponse response, int returnCode) throws IOException {
+    private void validateResponse(HttpExecuteResponse response, int returnCode) throws IOException {
         verify(1, postRequestedFor(urlMatching("/"))
                 .withHeader("Host", containing("localhost"))
                 .withHeader("User-Agent", equalTo("hello-world!"))
                 .withRequestBody(equalTo("Body")));
 
-        assertThat(IoUtils.toUtf8String(response.content().orElse(null))).isEqualTo("hello");
-        assertThat(response.firstMatchingHeader("Some-Header")).contains("With Value");
-        assertThat(response.statusCode()).isEqualTo(returnCode);
+        assertThat(IoUtils.toUtf8String(response.responseBody().orElse(null))).isEqualTo("hello");
+        assertThat(response.httpResponse().firstMatchingHeader("Some-Header")).contains("With Value");
+        assertThat(response.httpResponse().statusCode()).isEqualTo(returnCode);
         mockServer.resetMappings();
     }
 

@@ -34,7 +34,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
@@ -52,17 +52,17 @@ public class ApacheHttpRequestFactory {
 
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST);
 
-    public HttpRequestBase create(final SdkHttpFullRequest request, final ApacheHttpRequestConfig requestConfig) {
-        URI uri = request.getUri();
+    public HttpRequestBase create(final HttpExecuteRequest request, final ApacheHttpRequestConfig requestConfig) {
+        URI uri = request.httpRequest().getUri();
         HttpRequestBase base = createApacheRequest(request, uri.toString());
-        addHeadersToRequest(base, request);
-        addRequestConfig(base, request, requestConfig);
+        addHeadersToRequest(base, request.httpRequest());
+        addRequestConfig(base, request.httpRequest(), requestConfig);
 
         return base;
     }
 
     private void addRequestConfig(final HttpRequestBase base,
-                                  final SdkHttpFullRequest request,
+                                  final SdkHttpRequest request,
                                   final ApacheHttpRequestConfig requestConfig) {
         int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
         int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
@@ -88,8 +88,8 @@ public class ApacheHttpRequestFactory {
     }
 
 
-    private HttpRequestBase createApacheRequest(SdkHttpFullRequest request, String uri) {
-        switch (request.method()) {
+    private HttpRequestBase createApacheRequest(HttpExecuteRequest request, String uri) {
+        switch (request.httpRequest().method()) {
             case HEAD:
                 return new HttpHead(uri);
             case GET:
@@ -105,11 +105,11 @@ public class ApacheHttpRequestFactory {
             case PUT:
                 return wrapEntity(request, new HttpPut(uri));
             default:
-                throw new RuntimeException("Unknown HTTP method name: " + request.method());
+                throw new RuntimeException("Unknown HTTP method name: " + request.httpRequest().method());
         }
     }
 
-    private HttpRequestBase wrapEntity(SdkHttpFullRequest request,
+    private HttpRequestBase wrapEntity(HttpExecuteRequest request,
                                        HttpEntityEnclosingRequestBase entityEnclosingRequest) {
 
         /*
@@ -124,7 +124,7 @@ public class ApacheHttpRequestFactory {
          */
         if (request.contentStreamProvider().isPresent()) {
             HttpEntity entity = new RepeatableInputStreamRequestEntity(request);
-            if (request.headers().get(HttpHeaders.CONTENT_LENGTH) == null) {
+            if (request.httpRequest().headers().get(HttpHeaders.CONTENT_LENGTH) == null) {
                 entity = ApacheUtils.newBufferedHttpEntity(entity);
             }
             entityEnclosingRequest.setEntity(entity);
@@ -136,7 +136,7 @@ public class ApacheHttpRequestFactory {
     /**
      * Configures the headers in the specified Apache HTTP request.
      */
-    private void addHeadersToRequest(HttpRequestBase httpRequest, SdkHttpFullRequest request) {
+    private void addHeadersToRequest(HttpRequestBase httpRequest, SdkHttpRequest request) {
 
         httpRequest.addHeader(HttpHeaders.HOST, getHostHeaderValue(request));
 

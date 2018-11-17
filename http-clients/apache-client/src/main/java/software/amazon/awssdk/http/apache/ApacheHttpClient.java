@@ -62,11 +62,12 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.ExecuteRequest;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
@@ -179,11 +180,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
+    public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
         HttpRequestBase apacheRequest = toApacheRequest(request);
-        return new InvokeableHttpRequest() {
+        return new ExecutableHttpRequest() {
             @Override
-            public SdkHttpFullResponse call() throws IOException {
+            public HttpExecuteResponse call() throws IOException {
                 return execute(apacheRequest);
             }
 
@@ -201,14 +202,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
         cm.shutdown();
     }
 
-    private SdkHttpFullResponse execute(HttpRequestBase apacheRequest) throws IOException {
+    private HttpExecuteResponse execute(HttpRequestBase apacheRequest) throws IOException {
         HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
         HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
         return createResponse(httpResponse, apacheRequest);
     }
 
-    private HttpRequestBase toApacheRequest(ExecuteRequest request) {
-        return apacheHttpRequestFactory.create(request.httpRequest(), requestConfig);
+    private HttpRequestBase toApacheRequest(HttpExecuteRequest request) {
+        return apacheHttpRequestFactory.create(request, requestConfig);
     }
 
     /**
@@ -219,15 +220,17 @@ public final class ApacheHttpClient implements SdkHttpClient {
      * @throws IOException If there were any problems getting any response information from the
      *                     HttpClient method object.
      */
-    private SdkHttpFullResponse createResponse(org.apache.http.HttpResponse apacheHttpResponse,
+    private HttpExecuteResponse createResponse(org.apache.http.HttpResponse apacheHttpResponse,
                                                HttpRequestBase apacheRequest) throws IOException {
-        return SdkHttpFullResponse.builder()
-                                  .statusCode(apacheHttpResponse.getStatusLine().getStatusCode())
-                                  .statusText(apacheHttpResponse.getStatusLine().getReasonPhrase())
-                                  .content(apacheHttpResponse.getEntity() != null ?
-                                                   toAbortableInputStream(apacheHttpResponse, apacheRequest) : null)
-                                  .headers(transformHeaders(apacheHttpResponse))
-                                  .build();
+        SdkHttpResponse response = SdkHttpResponse.builder()
+                                                  .statusCode(apacheHttpResponse.getStatusLine().getStatusCode())
+                                                  .statusText(apacheHttpResponse.getStatusLine().getReasonPhrase())
+                                                  .headers(transformHeaders(apacheHttpResponse))
+                                                  .build();
+        AbortableInputStream responseBody = apacheHttpResponse.getEntity() != null ?
+                                   toAbortableInputStream(apacheHttpResponse, apacheRequest) : null;
+
+        return HttpExecuteResponse.builder().response(response).responseBody(responseBody).build();
 
     }
 

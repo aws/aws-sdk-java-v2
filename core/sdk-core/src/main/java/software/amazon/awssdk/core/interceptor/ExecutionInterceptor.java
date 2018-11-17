@@ -15,18 +15,23 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 // Disable CS to avoid "Unused Import" error. If we use the FQCN in the Javadoc, we'll run into line length issues instead.
 // CHECKSTYLE:OFF
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 // CHECKSTYLE:ON
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
-
-
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * An interceptor that is invoked during the execution lifecycle of a request/response (execution). This can be used to publish
@@ -38,24 +43,24 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * Methods for a given interceptor are executed in a predictable order, each receiving the information that is known about the
  * message so far as well as a {@link ExecutionAttributes} object for storing data that is specific to a particular execution.
  * <ol>
- *     <li>{@link #beforeExecution} - Read the request before it is modified by other interceptors.</li>
- *     <li>{@link #modifyRequest} - Modify the request object before it is marshalled into an HTTP request.</li>
- *     <li>{@link #beforeMarshalling} - Read the request that has potentially been modified by other request interceptors before
- *     it is marshalled into an HTTP request.</li>
- *     <li>{@link #afterMarshalling} - Read the HTTP request after it is created and before it can be modified by other
- *     interceptors.</li>
- *     <li>{@link #modifyHttpRequest} - Modify the HTTP request object before it is transmitted.</li>
- *     <li>{@link #beforeTransmission} - Read the HTTP request that has potentially been modified by other request interceptors
- *     before it is sent to the service.</li>
- *     <li>{@link #afterTransmission} - Read the HTTP response after it is received and before it can be modified by other
- *     interceptors.</li>
- *     <li>{@link #modifyHttpResponse} - Modify the HTTP response object before it is unmarshalled.</li>
- *     <li>{@link #beforeUnmarshalling} - Read the HTTP response that has potentially been modified by other request interceptors
- *     before it is unmarshalled.</li>
- *     <li>{@link #afterUnmarshalling} - Read the response after it is created and before it can be modified by other
- *     interceptors.</li>
- *     <li>{@link #modifyResponse} - Modify the response object before before it is returned to the client.</li>
- *     <li>{@link #afterExecution} - Read the response that has potentially been modified by other request interceptors.</li>
+ * <li>{@link #beforeExecution} - Read the request before it is modified by other interceptors.</li>
+ * <li>{@link #modifyRequest} - Modify the request object before it is marshalled into an HTTP request.</li>
+ * <li>{@link #beforeMarshalling} - Read the request that has potentially been modified by other request interceptors before
+ * it is marshalled into an HTTP request.</li>
+ * <li>{@link #afterMarshalling} - Read the HTTP request after it is created and before it can be modified by other
+ * interceptors.</li>
+ * <li>{@link #modifyHttpRequest} - Modify the HTTP request object before it is transmitted.</li>
+ * <li>{@link #beforeTransmission} - Read the HTTP request that has potentially been modified by other request interceptors
+ * before it is sent to the service.</li>
+ * <li>{@link #afterTransmission} - Read the HTTP response after it is received and before it can be modified by other
+ * interceptors.</li>
+ * <li>{@link #modifyHttpResponse} - Modify the HTTP response object before it is unmarshalled.</li>
+ * <li>{@link #beforeUnmarshalling} - Read the HTTP response that has potentially been modified by other request interceptors
+ * before it is unmarshalled.</li>
+ * <li>{@link #afterUnmarshalling} - Read the response after it is created and before it can be modified by other
+ * interceptors.</li>
+ * <li>{@link #modifyResponse} - Modify the response object before before it is returned to the client.</li>
+ * <li>{@link #afterExecution} - Read the response that has potentially been modified by other request interceptors.</li>
  * </ol>
  * An additional {@link #onExecutionFailure} method is provided that is invoked if an execution fails at any point during the
  * lifecycle of a request, including exceptions being thrown from this or other interceptors.
@@ -65,21 +70,21 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * <b>Interceptor Registration</b>
  * Interceptors can be registered in one of many ways.
  * <ol>
- *     <li><i>Override Configuration Interceptors</i> are the most common method for SDK users to register an interceptor. These
- *     interceptors are explicitly added to the client builder's override configuration when a client is created using the {@link
- *     ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
- *     method.</li>
+ * <li><i>Override Configuration Interceptors</i> are the most common method for SDK users to register an interceptor. These
+ * interceptors are explicitly added to the client builder's override configuration when a client is created using the {@link
+ * ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
+ * method.</li>
  *
- *     <li><i>Global Interceptors</i> are interceptors loaded from the classpath for all clients. When any service client is
- *     created by a client builder, all jars on the classpath (from the perspective of the current thread's classloader) are
- *     checked for a file named '/software/amazon/awssdk/global/handlers/execution.interceptors'. Any interceptors listed in these
- *     files (new line separated) are instantiated using their default constructor and loaded into the client.</li>
+ * <li><i>Global Interceptors</i> are interceptors loaded from the classpath for all clients. When any service client is
+ * created by a client builder, all jars on the classpath (from the perspective of the current thread's classloader) are
+ * checked for a file named '/software/amazon/awssdk/global/handlers/execution.interceptors'. Any interceptors listed in these
+ * files (new line separated) are instantiated using their default constructor and loaded into the client.</li>
  *
- *     <li><i>Service Interceptors</i> are interceptors loaded from the classpath for a particular service's clients. When a
- *     service client is created by a client builder, all jars on the classpath (from the perspective of the current thread's
- *     classloader) are checked for a file named '/software/amazon/awssdk/services/{service}/execution.interceptors', where
- *     {service} is the package name of the service client. Any interceptors listed in these files (new line separated) are
- *     instantiated using their default constructor and loaded into the client.</li>
+ * <li><i>Service Interceptors</i> are interceptors loaded from the classpath for a particular service's clients. When a
+ * service client is created by a client builder, all jars on the classpath (from the perspective of the current thread's
+ * classloader) are checked for a file named '/software/amazon/awssdk/services/{service}/execution.interceptors', where
+ * {service} is the package name of the service client. Any interceptors listed in these files (new line separated) are
+ * instantiated using their default constructor and loaded into the client.</li>
  * </ol>
  * <p>
  *
@@ -89,17 +94,17 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * interceptor that adds a field to a message should be executed before an interceptor that reads and modifies that field.
  * Interceptor's order is determined by their method of registration. The following order is used:
  * <ol>
- *     <li><i>Global Interceptors</i>. Interceptors earlier in the classpath will be placed earlier in the interceptor order than
- *     interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
- *     the order than interceptors later in the file.</li>
+ * <li><i>Global Interceptors</i>. Interceptors earlier in the classpath will be placed earlier in the interceptor order than
+ * interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
+ * the order than interceptors later in the file.</li>
  *
- *     <li><i>Service Interceptors</i>. Interceptors earlier in the classpath will be placed earlier in the interceptor order than
- *     interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
- *     the order than interceptors later in the file.</li>
+ * <li><i>Service Interceptors</i>. Interceptors earlier in the classpath will be placed earlier in the interceptor order than
+ * interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
+ * the order than interceptors later in the file.</li>
  *
- *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using
- *     {@link ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
- *     in the order they were added.</li>
+ * <li><i>Override Configuration Interceptors</i>. Any interceptors registered using
+ * {@link ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
+ * in the order they were added.</li>
  * </ol>
  * When a request is being processed (up to and including {@link #beforeTransmission}, interceptors are applied in forward-order,
  * according to the order described above. When a response is being processed (after and including {@link #afterTransmission},
@@ -137,7 +142,7 @@ public interface ExecutionInterceptor {
      *
      * @param context The current state of the execution, including the current SDK request from the service client call.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      * @return The potentially-modified request that should be used for the rest of the execution. Must not be null.
      */
     default SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
@@ -148,7 +153,7 @@ public interface ExecutionInterceptor {
      * Read the finalized request as it will be given to the marshaller to be converted into an {@link SdkHttpFullRequest}.
      *
      * @param context The current state of the execution, including the SDK request (potentially modified by other interceptors)
-     *                from the service client call.
+     * from the service client call.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      */
     default void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
@@ -170,11 +175,22 @@ public interface ExecutionInterceptor {
      *
      * @param context The current state of the execution, including the SDK and current HTTP request.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      * @return The potentially-modified HTTP request that should be sent to the service. Must not be null.
      */
-    default SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+    default SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                             ExecutionAttributes executionAttributes) {
         return context.httpRequest();
+    }
+
+    default Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
+                                          ExecutionAttributes executionAttributes) {
+        return context.requestBody();
+    }
+
+    default Optional<AsyncRequestBody> modifyAsyncHttpContent(Context.ModifyHttpRequest context,
+                                                    ExecutionAttributes executionAttributes) {
+        return context.asyncRequestBody();
     }
 
     /**
@@ -186,7 +202,7 @@ public interface ExecutionInterceptor {
      * a request failure is retriable, this will be invoked for each retry attempt.
      *
      * @param context The current state of the execution, including the SDK and HTTP request (potentially modified by other
-     *                interceptors) to be sent to the downstream service.
+     * interceptors) to be sent to the downstream service.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      */
     default void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
@@ -219,12 +235,46 @@ public interface ExecutionInterceptor {
      *
      * @param context The current state of the execution, including the SDK and HTTP requests and the current HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      * @return The potentially-modified HTTP response that should be given to the unmarshaller. Must not be null.
      */
-    default SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context,
-                                                   ExecutionAttributes executionAttributes) {
+    default SdkHttpResponse modifyHttpResponse(Context.ModifyHttpResponse context,
+                                               ExecutionAttributes executionAttributes) {
         return context.httpResponse();
+    }
+
+    /**
+     * Modify the {@link SdkHttpFullRequest} before it is unmarshalled into an {@link SdkResponse}.
+     *
+     * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
+     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
+     *
+     * @param context The current state of the execution, including the SDK and HTTP requests and the current HTTP response.
+     * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
+     * give data to future lifecycle methods.
+     * @return The potentially-modified HTTP response that should be given to the unmarshaller. Must not be null.
+     */
+    default Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(Context.ModifyHttpResponse context,
+                                                                           ExecutionAttributes executionAttributes) {
+
+        // get headers here
+        return context.responsePublisher();
+    }
+
+    /**
+     * Modify the {@link SdkHttpFullRequest} before it is unmarshalled into an {@link SdkResponse}.
+     *
+     * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
+     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
+     *
+     * @param context The current state of the execution, including the SDK and HTTP requests and the current HTTP response.
+     * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
+     * give data to future lifecycle methods.
+     * @return The potentially-modified HTTP response that should be given to the unmarshaller. Must not be null.
+     */
+    default Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
+                                                            ExecutionAttributes executionAttributes) {
+        return context.responseBody();
     }
 
     /**
@@ -234,9 +284,9 @@ public interface ExecutionInterceptor {
      * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
      *
      * @param context The current state of the execution, including the SDK and HTTP requests as well as the (potentially
-     *                modified by other interceptors) HTTP response.
+     * modified by other interceptors) HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      */
     default void beforeUnmarshalling(Context.BeforeUnmarshalling context, ExecutionAttributes executionAttributes) {
 
@@ -249,7 +299,7 @@ public interface ExecutionInterceptor {
      *
      * @param context The current state of the execution, including the SDK and HTTP requests and the HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      */
     default void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
 
@@ -259,9 +309,9 @@ public interface ExecutionInterceptor {
      * Modify the {@link SdkResponse} before it is returned by the client.
      *
      * @param context The current state of the execution, including the SDK and HTTP requests as well as the SDK and HTTP
-     *                response.
+     * response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      * @return The potentially-modified SDK response that should be returned by the client. Must not be null.
      */
     default SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
@@ -272,9 +322,9 @@ public interface ExecutionInterceptor {
      * Read the finalized {@link SdkResponse} as it will be returned by the client invocation.
      *
      * @param context The current state of the execution, including the SDK and HTTP requests as well as the SDK and HTTP
-     *                response.
+     * response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      */
     default void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
 
@@ -289,10 +339,10 @@ public interface ExecutionInterceptor {
      * {@link RetryPolicy}) and a subsequent retry succeeds, this method will not be invoked.
      *
      * @param context The context associated with the execution that failed. An SDK request will always be available, but
-     *                depending on the time at which the failure happened, the HTTP request, HTTP response and SDK response may
-     *                not be available. This also includes the exception that triggered the failure.
+     * depending on the time at which the failure happened, the HTTP request, HTTP response and SDK response may
+     * not be available. This also includes the exception that triggered the failure.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
-     *                            give data to future lifecycle methods.
+     * give data to future lifecycle methods.
      */
     default void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
 

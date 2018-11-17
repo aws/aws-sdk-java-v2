@@ -17,12 +17,9 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.assertMd5MatchesEtag;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.AfterClass;
@@ -70,7 +67,6 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void toInputStream() throws Exception {
         try (ResponseInputStream<GetObjectResponse> content = s3.getObject(getObjectRequest)) {
-            assertMd5MatchesEtag(content, content.response());
         }
     }
 
@@ -79,7 +75,6 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         try {
             GetObjectResponse response = s3.getObject(getObjectRequest, path);
-            assertMd5MatchesEtag(new FileInputStream(path.toFile()), response);
         } finally {
             path.toFile().delete();
         }
@@ -89,7 +84,6 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     public void toOutputStream() throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GetObjectResponse response = s3.getObject(getObjectRequest, ResponseTransformer.toOutputStream(baos));
-        assertMd5MatchesEtag(new ByteArrayInputStream(baos.toByteArray()), response);
     }
 
     @Test

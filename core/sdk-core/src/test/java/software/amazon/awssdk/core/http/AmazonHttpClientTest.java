@@ -37,10 +37,11 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.http.ExecuteRequest;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -51,7 +52,7 @@ public class AmazonHttpClientTest {
     private SdkHttpClient sdkHttpClient;
 
     @Mock
-    private InvokeableHttpRequest abortableCallable;
+    private ExecutableHttpRequest abortableCallable;
 
     private AmazonSyncHttpClient client;
 
@@ -135,7 +136,7 @@ public class AmazonHttpClientTest {
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
               .execute(handler);
 
-        ArgumentCaptor<ExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(ExecuteRequest.class);
+        ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
 
         final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
@@ -146,8 +147,9 @@ public class AmazonHttpClientTest {
     }
 
     private void stubSuccessfulResponse() throws Exception {
-        when(abortableCallable.call()).thenReturn(SdkHttpFullResponse.builder()
-                                                                     .statusCode(200)
+        when(abortableCallable.call()).thenReturn(HttpExecuteResponse.builder().response(SdkHttpResponse.builder()
+                                                                                                        .statusCode(200)
+                                                                                                        .build())
                                                                      .build());
     }
 }

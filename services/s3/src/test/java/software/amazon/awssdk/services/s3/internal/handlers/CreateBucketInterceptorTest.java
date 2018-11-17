@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
@@ -26,7 +28,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 public class CreateBucketInterceptorTest {
-    
+
     @Test
     public void modifyRequest_DoesNotOverrideExistingLocationConstraint() {
         CreateBucketRequest request = CreateBucketRequest.builder()
@@ -38,6 +40,7 @@ public class CreateBucketInterceptorTest {
                                                          .build();
 
         Context.ModifyRequest context = () -> request;
+
         ExecutionAttributes attributes = new ExecutionAttributes()
                 .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
 
@@ -54,6 +57,7 @@ public class CreateBucketInterceptorTest {
                                                          .build();
 
         Context.ModifyRequest context = () -> request;
+
         ExecutionAttributes attributes = new ExecutionAttributes()
                 .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_2);
 
@@ -72,6 +76,7 @@ public class CreateBucketInterceptorTest {
                                                          .build();
 
         Context.ModifyRequest context = () -> request;
+
         ExecutionAttributes attributes = new ExecutionAttributes()
                 .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_WEST_2);
 
@@ -93,6 +98,7 @@ public class CreateBucketInterceptorTest {
                                                          .build();
 
         Context.ModifyRequest context = () -> request;
+
         ExecutionAttributes attributes = new ExecutionAttributes()
                 .putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
 

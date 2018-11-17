@@ -7,3 +7,5 @@ software.amazon.awssdk.services.s3.internal.handlers.DisableDoubleUrlEncodingInt
 software.amazon.awssdk.services.s3.internal.handlers.DecodeUrlEncodedResponseInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.AddContentMd5HeaderInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.GetBucketPolicyInterceptor
+software.amazon.awssdk.services.s3.handlers.AsyncChecksumValidationInterceptor
+software.amazon.awssdk.services.s3.handlers.SyncChecksumValidationInterceptor

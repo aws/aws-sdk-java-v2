@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -294,7 +295,7 @@ public class S3EndpointResolutionTest {
      * @param capturedRequest Request captured by mock HTTP client.
      * @param endpoint        Expected endpoint.
      */
-    private void assertEndpointMatches(SdkHttpFullRequest capturedRequest, String endpoint) {
+    private void assertEndpointMatches(SdkHttpRequest capturedRequest, String endpoint) {
         assertThat(capturedRequest.getUri()).isEqualTo(URI.create(endpoint));
     }
 

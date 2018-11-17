@@ -17,26 +17,27 @@ package software.amazon.awssdk.testutils.service.http;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.http.ExecuteRequest;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
  * Mockable implementation of {@link SdkHttpClient}.
  */
 public final class MockHttpClient implements SdkHttpClient {
 
-    private final List<SdkHttpFullRequest> capturedRequests = new ArrayList<>();
-    private SdkHttpFullResponse nextResponse;
+    private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
+    private HttpExecuteResponse nextResponse;
 
     @Override
-    public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
+    public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
         capturedRequests.add(request.httpRequest());
-        return new InvokeableHttpRequest() {
+        return new ExecutableHttpRequest() {
             @Override
-            public SdkHttpFullResponse call() {
+            public HttpExecuteResponse call() {
                 return nextResponse;
             }
 
@@ -63,9 +64,9 @@ public final class MockHttpClient implements SdkHttpClient {
      * Sets up the next HTTP response that will be returned by the mock.
      *
      * @param nextResponse Next {@link SdkHttpFullResponse} to return from
-     *                     {@link #prepareRequest(ExecuteRequest)}
+     *                     {@link #prepareRequest(HttpExecuteRequest)}
      */
-    public void stubNextResponse(SdkHttpFullResponse nextResponse) {
+    public void stubNextResponse(HttpExecuteResponse nextResponse) {
         this.nextResponse = nextResponse;
     }
 
@@ -73,7 +74,7 @@ public final class MockHttpClient implements SdkHttpClient {
      * @return The last executed request that went through this mock client.
      * @throws IllegalStateException If no requests have been captured.
      */
-    public SdkHttpFullRequest getLastRequest() {
+    public SdkHttpRequest getLastRequest() {
         if (capturedRequests.isEmpty()) {
             throw new IllegalStateException("No requests were captured by the mock");
         }

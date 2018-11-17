@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.handler;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
@@ -81,16 +82,21 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                                                            executionParams.getResponseHandler()));
     }
 
-    private <InputT extends SdkRequest, OutputT, ReturnT> CompletableFuture<ReturnT> execute(
+    private <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
         TransformingAsyncResponseHandler<ReturnT> sdkHttpResponseHandler) {
 
         try {
-            InputT inputT = finalizeSdkRequest(executionContext);
+            InterceptorContext finalizeSdkRequestContext = finalizeSdkRequest(executionContext);
+            InputT inputT = (InputT) finalizeSdkRequestContext.request();
 
-            SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
-                    clientConfiguration);
+            InterceptorContext finalizeSdkHttpRequestContext = finalizeSdkHttpFullRequest(executionParams,
+                                                                                          executionContext,
+                                                                                          inputT,
+                                                                                          clientConfiguration);
+
+            SdkHttpFullRequest marshalled = (SdkHttpFullRequest) finalizeSdkHttpRequestContext.httpRequest();
 
             TransformingAsyncResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
                 sdkHttpResponseHandler, executionContext);
@@ -98,7 +104,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
                     resolveErrorResponseHandler(executionParams, executionContext, crc32Validator);
 
-            return invoke(marshalled, executionParams.getAsyncRequestBody(), inputT,
+            return invoke(marshalled, finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null), inputT,
                     executionContext, successResponseHandler, errorHandler)
                     .handle((resp, err) -> {
                         if (err != null) {
@@ -161,7 +167,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             this.context = context;
         }
 
-        private SdkHttpFullResponse beforeUnmarshalling(SdkHttpFullResponse response, ExecutionContext context) {
+        private SdkHttpResponse beforeUnmarshalling(SdkHttpFullResponse response, ExecutionContext context) {
             // Update interceptor context to include response
             InterceptorContext interceptorContext =
                 context.interceptorContext().copy(b -> b.httpResponse(response));
@@ -193,7 +199,19 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         @Override
         public void onStream(Publisher<ByteBuffer> publisher) {
-            delegate.onStream(publisher);
+            Optional<Publisher<ByteBuffer>> newPublisher = context.interceptorChain()
+                                                                  .modifyAsyncHttpResponse(context.interceptorContext()
+                                                                                                  .toBuilder()
+                                                                                                  .responsePublisher(publisher)
+                                                                                                  .build(),
+                                                                                 context.executionAttributes())
+                                                                  .responsePublisher();
+
+            if (newPublisher.isPresent()) {
+                delegate.onStream(newPublisher.get());
+            } else {
+                delegate.onStream(publisher);
+            }
         }
 
         @Override

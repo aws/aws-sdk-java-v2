@@ -31,13 +31,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -64,9 +64,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
-        HttpURLConnection connection = createAndConfigureConnection(request.httpRequest());
-        return new RequestCallable(connection, request.httpRequest());
+    public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
+        HttpURLConnection connection = createAndConfigureConnection(request);
+        return new RequestCallable(connection, request);
     }
 
     @Override
@@ -74,10 +74,13 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     }
 
-    private HttpURLConnection createAndConfigureConnection(SdkHttpFullRequest request) {
-        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) request.getUri().toURL().openConnection());
-        request.headers().forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
-        invokeSafely(() -> connection.setRequestMethod(request.method().name()));
+    private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
+        HttpURLConnection connection =
+            invokeSafely(() -> (HttpURLConnection) request.httpRequest().getUri().toURL().openConnection());
+        request.httpRequest()
+               .headers()
+               .forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
+        invokeSafely(() -> connection.setRequestMethod(request.httpRequest().method().name()));
         if (request.contentStreamProvider().isPresent()) {
             connection.setDoOutput(true);
         }
@@ -88,18 +91,18 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         return connection;
     }
 
-    private static class RequestCallable implements InvokeableHttpRequest {
+    private static class RequestCallable implements ExecutableHttpRequest {
 
         private final HttpURLConnection connection;
-        private final SdkHttpFullRequest request;
+        private final HttpExecuteRequest request;
 
-        private RequestCallable(HttpURLConnection connection, SdkHttpFullRequest request) {
+        private RequestCallable(HttpURLConnection connection, HttpExecuteRequest request) {
             this.connection = connection;
             this.request = request;
         }
 
         @Override
-        public SdkHttpFullResponse call() throws IOException {
+        public HttpExecuteResponse call() throws IOException {
             connection.connect();
 
             request.contentStreamProvider().ifPresent(provider ->
@@ -109,12 +112,14 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
             InputStream content = !isErrorResponse ? connection.getInputStream() : connection.getErrorStream();
 
-            return SdkHttpFullResponse.builder()
-                                      .statusCode(responseCode)
-                                      .statusText(connection.getResponseMessage())
-                                      // TODO: Don't ignore abort?
-                                      .content(AbortableInputStream.create(content))
-                                      .headers(extractHeaders(connection))
+            return HttpExecuteResponse.builder()
+                                      .response(SdkHttpResponse.builder()
+                                                           .statusCode(responseCode)
+                                                           .statusText(connection.getResponseMessage())
+                                                           // TODO: Don't ignore abort?
+                                                           .headers(extractHeaders(connection))
+                                                           .build())
+                                      .responseBody(AbortableInputStream.create(content))
                                       .build();
         }
 
