@@ -15,14 +15,21 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Optional;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * A wrapper for the immutable context objects that are visible to the {@link ExecutionInterceptor}s.
@@ -66,10 +73,20 @@ public final class Context {
     @SdkPublicApi
     public interface AfterMarshalling extends BeforeMarshalling {
         /**
-         * The {@link SdkHttpFullRequest} that was created as a result of marshalling the {@link #request()}. This is the HTTP
+         * The {@link SdkHttpRequest} that was created as a result of marshalling the {@link #request()}. This is the HTTP
          * request that will be sent to the downstream service.
          */
-        SdkHttpFullRequest httpRequest();
+        SdkHttpRequest httpRequest();
+
+        /**
+         * The {@link RequestBody} that represents the body of an HTTP request.
+         */
+        Optional<RequestBody> requestBody();
+
+        /**
+         * The {@link AsyncRequestBody} that allows non-blocking streaming of request content.
+         */
+        Optional<AsyncRequestBody> asyncRequestBody();
     }
 
     /**
@@ -97,7 +114,17 @@ public final class Context {
         /**
          * The HTTP response returned by the service with which the SDK is communicating.
          */
-        SdkHttpFullResponse httpResponse();
+        SdkHttpResponse httpResponse();
+
+        /**
+         * The {@link Publisher} that provides {@link ByteBuffer} events upon request.
+         */
+        Optional<Publisher<ByteBuffer>> responsePublisher();
+
+        /**
+         * The {@link InputStream} that provides streaming content returned from the service.
+         */
+        Optional<InputStream> responseBody();
     }
 
     /**
@@ -167,13 +194,13 @@ public final class Context {
          * The latest version of the {@link SdkHttpFullRequest} available when the execution failed. If the execution failed
          * before or during request marshalling, this will return {@link Optional#empty()}.
          */
-        Optional<SdkHttpFullRequest> httpRequest();
+        Optional<SdkHttpRequest> httpRequest();
 
         /**
          * The latest version of the {@link SdkHttpFullResponse} available when the execution failed. If the execution failed
          * before or during transmission, this will return {@link Optional#empty()}.
          */
-        Optional<SdkHttpFullResponse> httpResponse();
+        Optional<SdkHttpResponse> httpResponse();
 
         /**
          * The latest version of the {@link SdkResponse} available when the execution failed. If the execution failed before or

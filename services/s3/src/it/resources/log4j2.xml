@@ -10,7 +10,7 @@
             <AppenderRef ref="Console"/>
         </Root>
 
-        <logger name="org.apache.http" level="debug"/>
-        <logger name="org.apache.http.wire" level="debug"/>
+        <logger name="org.apache.http" level="warn"/>
+        <logger name="org.apache.http.wire" level="warn"/>
     </Loggers>
 </Configuration>

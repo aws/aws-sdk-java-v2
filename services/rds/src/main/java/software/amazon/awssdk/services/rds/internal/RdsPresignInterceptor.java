@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
@@ -81,9 +82,9 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
     }
 
     @Override
-    public final SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+    public final SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                                       ExecutionAttributes executionAttributes) {
-        SdkHttpFullRequest request = context.httpRequest();
+        SdkHttpRequest request = context.httpRequest();
         SdkRequest originalRequest = context.request();
         if (!requestClassToPreSign.isInstance(originalRequest)) {
             return request;

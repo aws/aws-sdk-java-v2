@@ -16,23 +16,33 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import java.io.ByteArrayInputStream;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 
 @SdkInternalApi
 public class CreateMultipartUploadRequestInterceptor implements ExecutionInterceptor {
 
     @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+    public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
+                                                   ExecutionAttributes executionAttributes) {
         if (context.request() instanceof CreateMultipartUploadRequest) {
-            SdkHttpFullRequest.Builder mutableRequest = context.httpRequest().toBuilder();
-            mutableRequest.contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
-            mutableRequest.putHeader("Content-Length", String.valueOf(0));
-            return mutableRequest.build();
+            return Optional.ofNullable(RequestBody.fromInputStream(new ByteArrayInputStream(new byte[0]), 0));
+        }
+
+        return context.requestBody();
+    }
+
+    @Override
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                            ExecutionAttributes executionAttributes) {
+        if (context.request() instanceof CreateMultipartUploadRequest) {
+            return context.httpRequest().toBuilder().putHeader("Content-Length", String.valueOf(0)).build();
         }
 
         return context.httpRequest();

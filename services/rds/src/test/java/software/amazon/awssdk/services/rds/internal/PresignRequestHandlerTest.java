@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.internal.CopyDbSnapshotPresignInterceptor;
 import software.amazon.awssdk.services.rds.internal.RdsPresignInterceptor;
@@ -59,7 +60,7 @@ public class PresignRequestHandlerTest {
     @Test
     public void testSetsPresignedUrl() {
         CopyDbSnapshotRequest request = makeTestRequest();
-        SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
+        SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
         assertNotNull(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
@@ -88,7 +89,7 @@ public class PresignRequestHandlerTest {
 
         RdsPresignInterceptor<CopyDbSnapshotRequest> interceptor = new CopyDbSnapshotPresignInterceptor(signingDateOverride);
 
-        SdkHttpFullRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
+        SdkHttpRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
 
         final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com?" +
                 "Action=CopyDBSnapshot" +
@@ -115,7 +116,7 @@ public class PresignRequestHandlerTest {
                 .build();
 
 
-        SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
+        SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
         assertEquals("PRESIGNED", presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
@@ -124,7 +125,7 @@ public class PresignRequestHandlerTest {
     public void testSkipsPresigningIfSourceRegionNotSet() {
         CopyDbSnapshotRequest request = CopyDbSnapshotRequest.builder().build();
 
-        SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
+        SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
         assertNull(presignedRequest.rawQueryParameters().get("PreSignedUrl"));
     }
@@ -137,7 +138,7 @@ public class PresignRequestHandlerTest {
         Region destination = Region.of("us-west-2");
         SdkHttpFullRequest marshalled = marshallRequest(request);
 
-        final SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
+        final SdkHttpRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
         assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
@@ -147,7 +148,7 @@ public class PresignRequestHandlerTest {
     public void testSourceRegionRemovedFromOriginalRequest() {
         CopyDbSnapshotRequest request = makeTestRequest();
         SdkHttpFullRequest marshalled = marshallRequest(request);
-        SdkHttpFullRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
+        SdkHttpRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
     }
@@ -174,9 +175,9 @@ public class PresignRequestHandlerTest {
                 .build();
     }
 
-    private SdkHttpFullRequest modifyHttpRequest(ExecutionInterceptor interceptor,
-                                                 RdsRequest request,
-                                                 SdkHttpFullRequest httpRequest) {
+    private SdkHttpRequest modifyHttpRequest(ExecutionInterceptor interceptor,
+                                             RdsRequest request,
+                                             SdkHttpFullRequest httpRequest) {
         InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
         return interceptor.modifyHttpRequest(context, executionAttributes());
     }

@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -36,13 +34,16 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkProtectedApi
 @Immutable
 public interface SdkHttpFullResponse
-        extends SdkHttpResponse, ToCopyableBuilder<SdkHttpFullResponse.Builder, SdkHttpFullResponse> {
+        extends SdkHttpResponse {
     /**
      * @return Builder instance to construct a {@link DefaultSdkHttpFullResponse}.
      */
     static Builder builder() {
         return new DefaultSdkHttpFullResponse.Builder();
     }
+
+    @Override
+    Builder toBuilder();
 
     /**
      * Returns the optional stream containing the payload data returned by the service. Note: an {@link AbortableInputStream}
@@ -58,7 +59,7 @@ public interface SdkHttpFullResponse
     /**
      * Builder for a {@link DefaultSdkHttpFullResponse}.
      */
-    interface Builder extends CopyableBuilder<Builder, SdkHttpFullResponse> {
+    interface Builder extends SdkHttpResponse.Builder {
         /**
          * The status text, exactly as it was configured with {@link #statusText(String)}.
          */
@@ -166,5 +167,8 @@ public interface SdkHttpFullResponse
          * This is usually done by closing the service connection.</p>
          */
         Builder content(AbortableInputStream content);
+
+        @Override
+        SdkHttpFullResponse build();
     }
 }

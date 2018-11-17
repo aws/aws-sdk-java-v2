@@ -132,8 +132,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             IOException err = new IOException("Server failed to send complete response");
             requestCtx.handler().onError(err);
             executeFuture(handlerCtx).completeExceptionally(err);
-            runAndLogError("Could not release channel",
-                () -> requestCtx.channelPool().release(handlerCtx.channel()));
+            runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));
         }
     }
 

@@ -51,7 +51,7 @@ public class Ec2ProtocolSpec extends QueryProtocolSpec {
                         StaxResponseHandler.class,
                         dryRunResult,
                         VoidStaxUnmarshaller.class)
-                .addStatement("\nclientHandler.execute(new $T<$T, $T>().withMarshaller($L).withResponseHandler($N)" +
+                .addStatement("\nclientHandler.execute(new $T<$T, $T>().marshaller($L).withResponseHandler($N)" +
                                 ".withInput($L))",
                         ClientExecutionParams.class,
                         Request.class,

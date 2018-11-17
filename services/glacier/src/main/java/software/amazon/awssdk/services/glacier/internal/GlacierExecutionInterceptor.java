@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.glacier.model.DescribeJobRequest;
 import software.amazon.awssdk.services.glacier.model.GetJobOutputRequest;
 import software.amazon.awssdk.services.glacier.model.UploadMultipartPartRequest;
@@ -28,15 +28,15 @@ import software.amazon.awssdk.services.glacier.model.UploadMultipartPartRequest;
 public final class GlacierExecutionInterceptor implements ExecutionInterceptor {
 
     @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        SdkHttpFullRequest request = context.httpRequest();
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+        SdkHttpRequest request = context.httpRequest();
         Object originalRequest = context.request();
         return request.toBuilder()
                       .applyMutation(b -> beforeRequest(originalRequest, b))
                       .build();
     }
 
-    private SdkHttpFullRequest.Builder beforeRequest(Object originalRequest, SdkHttpFullRequest.Builder mutableRequest) {
+    private SdkHttpRequest.Builder beforeRequest(Object originalRequest, SdkHttpRequest.Builder mutableRequest) {
         mutableRequest.putHeader("x-amz-glacier-version", "2012-06-01");
 
         //  "x-amz-content-sha256" header is required for sig v4 for some streaming operations

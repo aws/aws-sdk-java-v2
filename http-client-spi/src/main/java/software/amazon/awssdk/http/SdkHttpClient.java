@@ -32,12 +32,12 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 public interface SdkHttpClient extends SdkAutoCloseable {
     /**
-     * Create a {@link InvokeableHttpRequest} that can be used to execute the HTTP request.
+     * Create a {@link ExecutableHttpRequest} that can be used to execute the HTTP request.
      *
      * @param request        Representation of an HTTP request.
      * @return Task that can execute an HTTP request and can be aborted.
      */
-    InvokeableHttpRequest prepareRequest(ExecuteRequest request);
+    ExecutableHttpRequest prepareRequest(HttpExecuteRequest request);
 
     /**
      * Interface for creating an {@link SdkHttpClient} with service specific defaults applied.

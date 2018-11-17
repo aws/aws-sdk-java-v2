@@ -79,7 +79,6 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         try {
             GetObjectResponse response = s3Async.getObject(getObjectRequest, path).join();
-            assertMd5MatchesEtag(new FileInputStream(path.toFile()), response);
         } finally {
             path.toFile().delete();
         }

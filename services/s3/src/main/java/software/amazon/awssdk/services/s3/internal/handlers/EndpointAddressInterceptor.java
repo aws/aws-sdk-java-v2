@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -44,13 +44,15 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
             ListBucketsRequest.class, CreateBucketRequest.class, DeleteBucketRequest.class);
 
     @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        SdkHttpFullRequest request = context.httpRequest();
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                            ExecutionAttributes executionAttributes) {
+
+        SdkHttpRequest request = context.httpRequest();
         SdkRequest sdkRequest = context.request();
 
         S3Configuration serviceConfiguration =
                 (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
-        SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
+        SdkHttpRequest.Builder mutableRequest = request.toBuilder();
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
                                        executionAttributes, serviceConfiguration);
@@ -72,7 +74,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
      * S3 endpoint (i.e. s3.us-east-1.amazonaws.com), the global S3 accelerate endpoint (i.e. s3-accelerate.amazonaws.com) or
      * a regional dualstack endpoint for IPV6 (i.e. s3.dualstack.us-east-1.amazonaws.com).
      */
-    private URI resolveEndpoint(SdkHttpFullRequest request,
+    private URI resolveEndpoint(SdkHttpRequest request,
                                 SdkRequest originalRequest,
                                 ExecutionAttributes executionAttributes,
                                 S3Configuration serviceConfiguration) {
@@ -137,7 +139,7 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
      * @param mutableRequest Marshalled HTTP request we are modifying.
      * @param bucketName     Bucket name for this particular operation.
      */
-    private void changeToDnsEndpoint(SdkHttpFullRequest.Builder mutableRequest, String bucketName) {
+    private void changeToDnsEndpoint(SdkHttpRequest.Builder mutableRequest, String bucketName) {
         if (mutableRequest.host().startsWith("s3")) {
             String newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
             String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");

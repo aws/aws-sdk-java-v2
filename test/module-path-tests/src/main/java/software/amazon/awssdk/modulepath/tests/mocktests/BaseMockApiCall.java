@@ -21,7 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * Base classes to mock sync and async api calls.
@@ -88,17 +89,21 @@ public abstract class BaseMockApiCall {
 
     abstract Runnable asyncRunnable();
 
-    private SdkHttpFullResponse successResponse(String protocol) {
-        return SdkHttpFullResponse.builder()
-                                  .statusCode(200)
-                                  .content(generateContent(protocol))
+    private HttpExecuteResponse successResponse(String protocol) {
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder()
+                                                           .statusCode(200)
+                                                           .build())
+                                  .responseBody(generateContent(protocol))
                                   .build();
     }
 
-    private SdkHttpFullResponse errorResponse(String protocol) {
-        return SdkHttpFullResponse.builder()
-                                  .statusCode(500)
-                                  .content(generateContent(protocol))
+    private HttpExecuteResponse errorResponse(String protocol) {
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder()
+                                                           .statusCode(500)
+                                                           .build())
+                                  .responseBody(generateContent(protocol))
                                   .build();
     }
 

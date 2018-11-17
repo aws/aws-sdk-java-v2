@@ -32,20 +32,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
@@ -120,12 +119,12 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        SdkHttpFullResponse response = httpClient.prepareRequest(ExecuteRequest.builder().request(signedRequest).build())
+        HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
 
-        assertEquals("Non success http status code", 200, response.statusCode());
+        assertEquals("Non success http status code", 200, response.httpResponse().statusCode());
 
-        String actualResult = IoUtils.toUtf8String(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.responseBody().get());
         assertEquals(CONTENT, actualResult);
     }
 
@@ -139,12 +138,12 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        SdkHttpFullResponse response = httpClient.prepareRequest(ExecuteRequest.builder().request(signedRequest).build())
+        HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
 
-        assertEquals("Non success http status code", 200, response.statusCode());
+        assertEquals("Non success http status code", 200, response.httpResponse().statusCode());
 
-        String actualResult = IoUtils.toUtf8String(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.responseBody().get());
         assertEquals(CONTENT, actualResult);
     }
 

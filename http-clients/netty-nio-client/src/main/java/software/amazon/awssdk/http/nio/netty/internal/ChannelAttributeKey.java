@@ -33,33 +33,43 @@ public final class ChannelAttributeKey {
     /**
      * Future that when a protocol (http/1.1 or h2) has been selected.
      */
-    public static final AttributeKey<CompletableFuture<Protocol>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
+    public static final AttributeKey<CompletableFuture<Protocol>> PROTOCOL_FUTURE = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.protocolFuture");
 
     /**
      * Reference to {@link MultiplexedChannelRecord} which stores information about leased streams for a multiplexed connection.
      */
-    public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD =
-        AttributeKey.newInstance("channelPoolRecord");
+    public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.channelPoolRecord");
 
     /**
      * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.
      */
-    public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance("maxConcurrentStreams");
+    public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.maxConcurrentStreams");
 
     /**
      * Attribute key for {@link RequestContext}.
      */
-    static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
+    static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.requestContext");
 
-    static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
+    static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.subscriber");
 
-    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
+    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.responseComplete");
 
     static final AttributeKey<CompletableFuture<Void>> EXECUTE_FUTURE_KEY = AttributeKey.newInstance(
             "aws.http.nio.netty.async.executeFuture");
 
     static final AttributeKey<Long> EXECUTION_ID_KEY = AttributeKey.newInstance(
             "aws.http.nio.netty.async.executionId");
+
+    /**
+     * Whether the channel is still in use
+     */
+    static final AttributeKey<Boolean> IN_USE = AttributeKey.newInstance("aws.http.nio.netty.async.inUse");
 
     private ChannelAttributeKey() {
     }

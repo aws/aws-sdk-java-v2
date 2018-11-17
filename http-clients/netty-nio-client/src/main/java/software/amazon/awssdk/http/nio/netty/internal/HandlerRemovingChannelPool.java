@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.removeIfExists;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
@@ -68,6 +69,7 @@ public class HandlerRemovingChannelPool implements ChannelPool {
     }
 
     private void removePerRequestHandlers(Channel channel) {
+        channel.attr(IN_USE).set(false);
         removeIfExists(channel.pipeline(),
                        HttpStreamsClientHandler.class,
                        ResponseHandler.class,

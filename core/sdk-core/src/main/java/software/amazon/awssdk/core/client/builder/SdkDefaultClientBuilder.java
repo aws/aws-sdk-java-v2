@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.client.builder;
 
+import static software.amazon.awssdk.core.ClientType.ASYNC;
+import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
@@ -55,8 +57,8 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClien
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.ExecuteRequest;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -84,6 +86,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkProtectedApi
 public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, C> implements SdkClientBuilder<B, C> {
+
     private static final SdkHttpClient.Builder DEFAULT_HTTP_CLIENT_BUILDER = new DefaultSdkHttpClientBuilder();
     private static final SdkAsyncHttpClient.Builder DEFAULT_ASYNC_HTTP_CLIENT_BUILDER = new DefaultSdkAsyncHttpClientBuilder();
 
@@ -204,6 +207,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeSyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .option(SdkClientOption.SYNC_HTTP_CLIENT, resolveSyncHttpClient(config))
+                     .option(SdkClientOption.CLIENT_TYPE, SYNC)
                      .build();
     }
 
@@ -214,6 +218,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return config.toBuilder()
                      .option(FUTURE_COMPLETION_EXECUTOR, resolveAsyncFutureCompletionExecutor(config))
                      .option(ASYNC_HTTP_CLIENT, resolveAsyncHttpClient(config))
+                     .option(SdkClientOption.CLIENT_TYPE, ASYNC)
                      .build();
     }
 
@@ -365,7 +370,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         @Override
-        public InvokeableHttpRequest prepareRequest(ExecuteRequest request) {
+        public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
             return delegate.prepareRequest(request);
         }
 

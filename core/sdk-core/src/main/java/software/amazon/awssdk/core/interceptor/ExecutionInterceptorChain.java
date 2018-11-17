@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,8 +23,11 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -76,10 +80,27 @@ public class ExecutionInterceptorChain {
                                                 ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
         for (ExecutionInterceptor interceptor : interceptors) {
-            SdkHttpFullRequest interceptorResult = interceptor.modifyHttpRequest(result, executionAttributes);
+
+            AsyncRequestBody asyncRequestBody = interceptor.modifyAsyncHttpContent(result, executionAttributes).orElse(null);
+
+            SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
+            if (!result.requestBody().isPresent() && sdkHttpFullRequest.contentStreamProvider().isPresent()) {
+                int contentLength = Integer.parseInt(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
+                String contentType = sdkHttpFullRequest.firstMatchingHeader("Content-Type").orElse("");
+                RequestBody requestBody = RequestBody.fromContentProvider(sdkHttpFullRequest.contentStreamProvider().get(),
+                                                                      contentLength,
+                                                                      contentType);
+                result = result.toBuilder().requestBody(requestBody).build();
+            }
+
+            RequestBody requestBody = interceptor.modifyHttpContent(result, executionAttributes).orElse(null);
+
+            SdkHttpRequest interceptorResult = interceptor.modifyHttpRequest(result, executionAttributes);
             validateInterceptorResult(result.httpRequest(), interceptorResult, interceptor, "modifyHttpRequest");
 
-            result = result.copy(b -> b.httpRequest(interceptorResult));
+            result = result.copy(b -> b.httpRequest(interceptorResult)
+                                       .asyncRequestBody(asyncRequestBody)
+                                       .requestBody(requestBody));
         }
         return result;
     }
@@ -95,12 +116,30 @@ public class ExecutionInterceptorChain {
     public InterceptorContext modifyHttpResponse(InterceptorContext context,
                                                  ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
+
         for (int i = interceptors.size() - 1; i >= 0; i--) {
-            SdkHttpFullResponse interceptorResult = interceptors.get(i).modifyHttpResponse(result, executionAttributes);
+            SdkHttpResponse interceptorResult =
+                interceptors.get(i).modifyHttpResponse(result, executionAttributes);
             validateInterceptorResult(result.httpResponse(), interceptorResult, interceptors.get(i), "modifyHttpResponse");
 
-            result = result.copy(b -> b.httpResponse(interceptorResult));
+            InputStream response = interceptors.get(i).modifyHttpResponseContent(result, executionAttributes).orElse(null);
+
+            result = result.toBuilder().httpResponse(interceptorResult).responseBody(response).build();
         }
+
+        return result;
+    }
+
+    public InterceptorContext modifyAsyncHttpResponse(InterceptorContext context,
+                                                      ExecutionAttributes executionAttributes) {
+        InterceptorContext result = context;
+        for (int i = interceptors.size() - 1; i >= 0; i--) {
+            result = result.toBuilder()
+                           .responsePublisher(interceptors.get(i).modifyAsyncHttpResponseContent(result, executionAttributes)
+                                                          .orElse(null))
+                           .build();
+        }
+
         return result;
     }
 
@@ -120,6 +159,7 @@ public class ExecutionInterceptorChain {
 
             result = result.copy(b -> b.response(interceptorResult));
         }
+
         return result;
     }
 
