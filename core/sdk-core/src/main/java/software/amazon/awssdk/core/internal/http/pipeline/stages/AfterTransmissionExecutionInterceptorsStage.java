@@ -20,6 +20,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.Pair;
@@ -33,7 +34,10 @@ public class AfterTransmissionExecutionInterceptorsStage
         InterruptMonitor.checkInterrupted();
         // Update interceptor context
         InterceptorContext interceptorContext =
-                context.executionContext().interceptorContext().copy(b -> b.httpResponse(input.right()));
+                context.executionContext().interceptorContext().copy(b -> b.httpResponse(input.right())
+                                                                           .responseBody(input.right()
+                                                                                              .content()
+                                                                                              .orElse(null)));
 
         // interceptors.afterTransmission
         context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
@@ -44,8 +48,14 @@ public class AfterTransmissionExecutionInterceptorsStage
         // Store updated context
         context.executionContext().interceptorContext(interceptorContext);
 
-        InterruptMonitor.checkInterrupted(interceptorContext.httpResponse());
+        InterruptMonitor.checkInterrupted((SdkHttpFullResponse) interceptorContext.httpResponse());
 
-        return Pair.of(input.left(), interceptorContext.httpResponse());
+        SdkHttpFullResponse response = (SdkHttpFullResponse) interceptorContext.httpResponse();
+
+        if (interceptorContext.responseBody().isPresent()) {
+            response = response.toBuilder().content(AbortableInputStream.create(interceptorContext.responseBody().get())).build();
+        }
+
+        return Pair.of(input.left(), response);
     }
 }

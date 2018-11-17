@@ -20,12 +20,16 @@ import static software.amazon.awssdk.awscore.AwsExecutionAttribute.AWS_REGION;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
 
 import java.net.URI;
+import java.util.Optional;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -114,21 +118,20 @@ public class EndpointAddressInterceptorTest {
         URI expectedUri = URI.create(String.format("%s://%s.s3.dualstack.us-east-1.amazonaws.com", protocol, bucketName));
 
 
-        Context.ModifyHttpRequest ctx = context(ListObjectsV2Request.builder()
-                                                                    .bucket(bucketName).build(),
-                                                customUri);
+        Context.ModifyHttpRequest ctx = context(ListObjectsV2Request.builder().bucket(bucketName).build(),
+                                                sdkHttpRequest(customUri));
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         S3Configuration s3Configuration = S3Configuration.builder().dualstackEnabled(true).build();
 
         executionAttributes.putAttribute(SERVICE_CONFIG, s3Configuration);
         executionAttributes.putAttribute(AWS_REGION, Region.US_EAST_1);
 
-        SdkHttpFullRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
+        SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
 
         assertThat(sdkHttpFullRequest.getUri()).isEqualTo(expectedUri);
     }
 
-    private SdkHttpFullRequest sdkHttpFullRequest(URI customUri) {
+    private SdkHttpRequest sdkHttpRequest(URI customUri) {
         return SdkHttpFullRequest.builder()
                                  .protocol(customUri.getScheme())
                                  .host(customUri.getHost())
@@ -137,44 +140,16 @@ public class EndpointAddressInterceptorTest {
                                  .build();
     }
 
-    private Context.ModifyHttpRequest context(URI customUri) {
-        return new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest(customUri);
-            }
-
-            @Override
-            public SdkRequest request() {
-                return PutObjectRequest.builder().build();
-            }
-        };
-    }
-
-    private Context.ModifyHttpRequest context(SdkRequest request, URI customUri) {
-        return new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpFullRequest httpRequest() {
-                return sdkHttpFullRequest(customUri);
-            }
-
-            @Override
-            public SdkRequest request() {
-                return request;
-            }
-        };
-    }
-
     private void verifyAccelerateDisabledOperationsEndpointNotConverted(SdkRequest request) {
         URI customUri = URI.create("http://s3-test.com");
-        Context.ModifyHttpRequest ctx = context(request, customUri);
+        Context.ModifyHttpRequest ctx = context(request, sdkHttpRequest(customUri));
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         S3Configuration s3Configuration = S3Configuration.builder().accelerateModeEnabled(true).build();
 
         executionAttributes.putAttribute(SERVICE_CONFIG, s3Configuration);
         executionAttributes.putAttribute(AWS_REGION, Region.US_EAST_1);
 
-        SdkHttpFullRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
+        SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
 
         assertThat(sdkHttpFullRequest.getUri()).isEqualTo(customUri);
     }
@@ -183,15 +158,39 @@ public class EndpointAddressInterceptorTest {
                                 S3Configuration.Builder builder) {
         URI customUri = URI.create(String.format("%s://s3-test.com", protocol));
         URI expectedUri = URI.create(expectedEndpoint);
-        Context.ModifyHttpRequest ctx = context(customUri);
+        Context.ModifyHttpRequest ctx = context(PutObjectRequest.builder().build(), sdkHttpRequest(customUri));
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         S3Configuration s3Configuration = builder.build();
 
         executionAttributes.putAttribute(SERVICE_CONFIG, s3Configuration);
         executionAttributes.putAttribute(AWS_REGION, Region.US_EAST_1);
 
-        SdkHttpFullRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
+        SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
 
         assertThat(sdkHttpFullRequest.getUri()).isEqualTo(expectedUri);
+    }
+
+    private Context.ModifyHttpRequest context(SdkRequest request, SdkHttpRequest sdkHttpRequest) {
+        return new Context.ModifyHttpRequest() {
+            @Override
+            public SdkHttpRequest httpRequest() {
+                return sdkHttpRequest;
+            }
+
+            @Override
+            public Optional<RequestBody> requestBody() {
+                return null;
+            }
+
+            @Override
+            public Optional<AsyncRequestBody> asyncRequestBody() {
+                return null;
+            }
+
+            @Override
+            public SdkRequest request() {
+                return request;
+            }
+        };
     }
 }

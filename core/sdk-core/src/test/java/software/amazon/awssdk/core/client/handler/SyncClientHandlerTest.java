@@ -46,10 +46,11 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -69,7 +70,7 @@ public class SyncClientHandlerTest {
     private SdkHttpClient httpClient;
 
     @Mock
-    private InvokeableHttpRequest httpClientCall;
+    private ExecutableHttpRequest httpClientCall;
 
     @Mock
     private HttpResponseHandler<SdkResponse> responseHandler;
@@ -95,8 +96,12 @@ public class SyncClientHandlerTest {
 
         // Given
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(200)
-                                                                  .headers(headers).build()); // Successful HTTP call
+        when(httpClientCall.call()).thenReturn(HttpExecuteResponse.builder()
+                                                                  .response(SdkHttpResponse.builder()
+                                                                                       .statusCode(200)
+                                                                                       .headers(headers)
+                                                                                       .build())
+                                                                  .build()); // Successful HTTP call
         when(responseHandler.handle(any(), any())).thenReturn(expected); // Response handler call
 
         // When
@@ -117,7 +122,12 @@ public class SyncClientHandlerTest {
 
         // Given
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(500).headers(headers).build()); // Failed HTTP call
+        when(httpClientCall.call()).thenReturn(HttpExecuteResponse.builder()
+                                                                  .response(SdkHttpResponse.builder()
+                                                                                       .statusCode(500)
+                                                                                       .headers(headers)
+                                                                                       .build())
+                                                                  .build()); // Failed HTTP call
         when(errorResponseHandler.handle(any(), any())).thenReturn(exception); // Error response handler call
 
         // When
@@ -172,9 +182,10 @@ public class SyncClientHandlerTest {
 
     private void mockSuccessfulApiCall() throws Exception {
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder()
-                                                                  .content(AbortableInputStream.create(new ByteArrayInputStream("TEST".getBytes())))
-                                                                  .statusCode(200).build());
+        when(httpClientCall.call()).thenReturn(HttpExecuteResponse.builder()
+                                                                  .responseBody(AbortableInputStream.create(new ByteArrayInputStream("TEST".getBytes())))
+                                                                  .response(SdkHttpResponse.builder().statusCode(200).build())
+                                                                  .build());
         when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
     }
 

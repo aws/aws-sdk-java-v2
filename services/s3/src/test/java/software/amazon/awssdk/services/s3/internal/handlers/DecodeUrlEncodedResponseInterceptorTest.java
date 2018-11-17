@@ -17,16 +17,23 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.junit.Test;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -134,17 +141,37 @@ public class DecodeUrlEncodedResponseInterceptorTest {
     private static Context.ModifyResponse newContext(SdkResponse response) {
         return new Context.ModifyResponse() {
             @Override
+            public Optional<Publisher<ByteBuffer>> responsePublisher() {
+                return null;
+            }
+
+            @Override
+            public Optional<InputStream> responseBody() {
+                return null;
+            }
+
+            @Override
+            public SdkHttpRequest httpRequest() {
+                return null;
+            }
+
+            @Override
+            public Optional<RequestBody> requestBody() {
+                return null;
+            }
+
+            @Override
+            public Optional<AsyncRequestBody> asyncRequestBody() {
+                return null;
+            }
+
+            @Override
             public SdkResponse response() {
                 return response;
             }
 
             @Override
             public SdkHttpFullResponse httpResponse() {
-                return null;
-            }
-
-            @Override
-            public SdkHttpFullRequest httpRequest() {
                 return null;
             }
 

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -138,7 +139,8 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
     @Override
     public SdkHttpFullRequest.Builder toBuilder() {
-        return new Builder()
+        return (SdkHttpFullRequest.Builder) new Builder()
+                .contentStreamProvider(contentStreamProvider)
                 .protocol(protocol)
                 .host(host)
                 .port(port)
@@ -146,7 +148,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
                 .rawQueryParameters(queryParameters)
                 .method(httpMethod)
                 .headers(headers)
-                .contentStreamProvider(contentStreamProvider);
+            ;
     }
 
     @Override
@@ -311,6 +313,17 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
 
         public ContentStreamProvider contentStreamProvider() {
             return contentStreamProvider;
+        }
+
+        @Override
+        public SdkHttpFullRequest.Builder copy() {
+            return build().toBuilder();
+        }
+
+        @Override
+        public SdkHttpFullRequest.Builder applyMutation(Consumer<SdkHttpRequest.Builder> mutator) {
+            mutator.accept(this);
+            return this;
         }
 
         @Override

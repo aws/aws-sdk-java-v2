@@ -44,6 +44,11 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     private static final boolean DEFAULT_DUALSTACK_ENABLED = false;
 
     /**
+     * S3 payload checksum validation is by default enabled;
+     */
+    private static final boolean DEFAULT_CHECKSUM_VALIDATION_ENABLED = true;
+
+    /**
      * S3 The default value for enabling chunked encoding for {@link
      * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
      * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
@@ -53,12 +58,14 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     private final boolean pathStyleAccessEnabled;
     private final boolean accelerateModeEnabled;
     private final boolean dualstackEnabled;
+    private final boolean checksumValidationEnabled;
     private final boolean chunkedEncodingEnabled;
 
     private S3Configuration(DefaultS3ServiceConfigurationBuilder builder) {
         this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
         this.accelerateModeEnabled = resolveBoolean(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
         this.pathStyleAccessEnabled = resolveBoolean(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
+        this.checksumValidationEnabled = resolveBoolean(builder.checksumValidationEnabled, DEFAULT_CHECKSUM_VALIDATION_ENABLED);
         if (accelerateModeEnabled && pathStyleAccessEnabled) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
@@ -126,6 +133,10 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     public boolean dualstackEnabled() {
         return dualstackEnabled;
+    }
+
+    public boolean checksumValidationEnabled() {
+        return checksumValidationEnabled;
     }
 
     /**
@@ -196,6 +207,17 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
 
         /**
+         * Option to disable doing a validation of the checksum of an object stored in S3.
+         *
+         * <p>
+         * Checksum validation is enabled by default.
+         * </p>
+         *
+         * @see S3Configuration#checksumValidationEnabled().
+         */
+        Builder checksumValidationEnabled(Boolean checksumValidationEnabled);
+
+        /**
          * Option to enable using chunked encoding when signing the request
          * payload for {@link
          * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
@@ -211,6 +233,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean dualstackEnabled;
         private Boolean accelerateModeEnabled;
         private Boolean pathStyleAccessEnabled;
+        private Boolean checksumValidationEnabled;
         private Boolean chunkedEncodingEnabled;
 
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
@@ -238,6 +261,15 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         public void setPathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
             pathStyleAccessEnabled(pathStyleAccessEnabled);
+        }
+
+        public Builder checksumValidationEnabled(Boolean checksumValidationEnabled) {
+            this.checksumValidationEnabled = checksumValidationEnabled;
+            return this;
+        }
+
+        public void setChecksumValidationEnabled(Boolean checksumValidationEnabled) {
+            checksumValidationEnabled(checksumValidationEnabled);
         }
 
         public Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {

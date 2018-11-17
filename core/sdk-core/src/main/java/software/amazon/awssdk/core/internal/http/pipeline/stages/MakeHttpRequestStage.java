@@ -21,8 +21,9 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.ExecuteRequest;
-import software.amazon.awssdk.http.InvokeableHttpRequest;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -47,13 +48,18 @@ public class MakeHttpRequestStage
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(SdkHttpFullRequest request,
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        SdkHttpFullResponse httpResponse = executeHttpRequest(request, context);
-        return Pair.of(request, httpResponse);
+        HttpExecuteResponse executeResponse = executeHttpRequest(request, context);
+        // TODO: Plumb through ExecuteResponse instead
+        SdkHttpFullResponse httpResponse = (SdkHttpFullResponse) executeResponse.httpResponse();
+        return Pair.of(request, httpResponse.toBuilder().content(executeResponse.responseBody().orElse(null)).build());
     }
 
-    private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        InvokeableHttpRequest requestCallable = sdkHttpClient
-            .prepareRequest(ExecuteRequest.builder().request(request).build());
+    private HttpExecuteResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+        ExecutableHttpRequest requestCallable = sdkHttpClient
+            .prepareRequest(HttpExecuteRequest.builder()
+                                              .request(request)
+                                              .contentStreamProvider(request.contentStreamProvider().orElse(null))
+                                              .build());
 
         context.apiCallTimeoutTracker().abortable(requestCallable);
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);

@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -55,7 +56,8 @@ public final class AwsClientHandlerUtils {
     }
 
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
-        ClientExecutionParams<InputT, OutputT> executionParams, SdkClientConfiguration clientConfig) {
+        ClientExecutionParams<InputT, OutputT> executionParams,
+        SdkClientConfiguration clientConfig) {
 
         SdkRequest originalRequest = executionParams.getInput();
         AwsCredentialsProvider clientCredentials = clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER);
@@ -76,7 +78,8 @@ public final class AwsClientHandlerUtils {
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
             .putAttribute(AwsExecutionAttribute.AWS_REGION, clientConfig.option(AwsClientOption.AWS_REGION))
             .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION))
-            .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, executionParams.isFullDuplex());
+            .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, executionParams.isFullDuplex())
+            .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -84,6 +87,8 @@ public final class AwsClientHandlerUtils {
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(InterceptorContext.builder()
                                                                      .request(originalRequest)
+                                                                     .asyncRequestBody(executionParams.getAsyncRequestBody())
+                                                                     .requestBody(executionParams.getRequestBody())
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signer(computeSigner(originalRequest, clientConfig))

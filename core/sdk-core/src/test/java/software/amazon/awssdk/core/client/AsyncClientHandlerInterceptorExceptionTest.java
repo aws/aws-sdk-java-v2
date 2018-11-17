@@ -51,8 +51,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -200,7 +200,8 @@ public class AsyncClientHandlerInterceptorExceptionTest {
 
         MODIFY_HTTP_REQUEST(new ExecutionInterceptor() {
             @Override
-            public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+            public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                                    ExecutionAttributes executionAttributes) {
                 throw new RuntimeException(MODIFY_HTTP_REQUEST.name());
             }
         }),
@@ -221,7 +222,8 @@ public class AsyncClientHandlerInterceptorExceptionTest {
 
         MODIFY_HTTP_RESPONSE(new ExecutionInterceptor() {
             @Override
-            public SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context, ExecutionAttributes executionAttributes) {
+            public SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context,
+                                                          ExecutionAttributes executionAttributes) {
                 throw new RuntimeException(MODIFY_HTTP_RESPONSE.name());
             }
         }),

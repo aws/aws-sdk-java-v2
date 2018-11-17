@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -85,6 +86,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<SdkHttpClient> SYNC_HTTP_CLIENT =
             new SdkClientOption<>(SdkHttpClient.class);
+
+    /**
+     * The type of client used to make requests.
+     */
+    public static final SdkClientOption<ClientType> CLIENT_TYPE = new SdkClientOption<ClientType>(ClientType.class);
 
     /**
      * @see ClientOverrideConfiguration#apiCallAttemptTimeout()

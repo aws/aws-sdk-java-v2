@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
 
@@ -41,6 +42,8 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>("TimeOffset");
 
+    public static final ExecutionAttribute<ClientType> CLIENT_TYPE = new ExecutionAttribute<>("ClientType");
+    
     protected SdkExecutionAttribute() {
     }
 }

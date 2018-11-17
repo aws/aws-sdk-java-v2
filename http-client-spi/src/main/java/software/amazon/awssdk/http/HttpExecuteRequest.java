@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -23,19 +24,28 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @see SdkHttpClient
  */
 @SdkPublicApi
-public final class ExecuteRequest {
+public final class HttpExecuteRequest {
 
-    private final SdkHttpFullRequest request;
+    private final SdkHttpRequest request;
+    private final Optional<ContentStreamProvider> contentStreamProvider;
 
-    private ExecuteRequest(BuilderImpl builder) {
+    private HttpExecuteRequest(BuilderImpl builder) {
         this.request = builder.request;
+        this.contentStreamProvider = builder.contentStreamProvider;
     }
 
     /**
      * @return The HTTP request.
      */
-    public SdkHttpFullRequest httpRequest() {
+    public SdkHttpRequest httpRequest() {
         return request;
+    }
+
+    /**
+     * @return The {@link ContentStreamProvider}.
+     */
+    public Optional<ContentStreamProvider> contentStreamProvider() {
+        return contentStreamProvider;
     }
 
     public static Builder builder() {
@@ -49,23 +59,37 @@ public final class ExecuteRequest {
          * @param request The request.
          * @return This builder for method chaining.
          */
-        Builder request(SdkHttpFullRequest request);
+        Builder request(SdkHttpRequest request);
 
-        ExecuteRequest build();
+        /**
+         * Set the {@link ContentStreamProvider} to be executed by the client.
+         * @param contentStreamProvider The content stream provider
+         * @return This builder for method chaining
+         */
+        Builder contentStreamProvider(ContentStreamProvider contentStreamProvider);
+
+        HttpExecuteRequest build();
     }
 
     private static class BuilderImpl implements Builder {
-        private SdkHttpFullRequest request;
+        private SdkHttpRequest request;
+        private Optional<ContentStreamProvider> contentStreamProvider = Optional.empty();
 
         @Override
-        public Builder request(SdkHttpFullRequest request) {
+        public Builder request(SdkHttpRequest request) {
             this.request = request;
             return this;
         }
 
         @Override
-        public ExecuteRequest build() {
-            return new ExecuteRequest(this);
+        public Builder contentStreamProvider(ContentStreamProvider contentStreamProvider) {
+            this.contentStreamProvider = Optional.ofNullable(contentStreamProvider);
+            return this;
+        }
+
+        @Override
+        public HttpExecuteRequest build() {
+            return new HttpExecuteRequest(this);
         }
     }
 }

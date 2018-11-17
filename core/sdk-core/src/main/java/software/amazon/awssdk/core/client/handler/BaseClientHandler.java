@@ -37,12 +37,12 @@ public abstract class BaseClientHandler {
         this.clientConfiguration = clientConfiguration;
     }
 
-    static <InputT extends SdkRequest> InputT finalizeSdkRequest(ExecutionContext executionContext) {
+    static InterceptorContext finalizeSdkRequest(ExecutionContext executionContext) {
         runBeforeExecutionInterceptors(executionContext);
         return runModifyRequestInterceptors(executionContext);
     }
 
-    static <InputT extends SdkRequest, OutputT> SdkHttpFullRequest finalizeSdkHttpFullRequest(
+    static <InputT extends SdkRequest, OutputT> InterceptorContext finalizeSdkHttpFullRequest(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext, InputT inputT,
         SdkClientConfiguration clientConfiguration) {
@@ -55,7 +55,7 @@ public abstract class BaseClientHandler {
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
-        return runModifyHttpRequestInterceptors(executionContext);
+        return runModifyHttpRequestInterceptors(request, executionContext);
     }
 
     private static void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
@@ -63,12 +63,12 @@ public abstract class BaseClientHandler {
                                                             executionContext.executionAttributes());
     }
 
-    private static <T> T runModifyRequestInterceptors(ExecutionContext executionContext) {
+    private static InterceptorContext runModifyRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
             executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
                                                               executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
-        return (T) interceptorContext.request();
+        return interceptorContext;
     }
 
     private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
@@ -86,12 +86,13 @@ public abstract class BaseClientHandler {
                                                              executionContext.executionAttributes());
     }
 
-    private static SdkHttpFullRequest runModifyHttpRequestInterceptors(ExecutionContext executionContext) {
+    private static InterceptorContext runModifyHttpRequestInterceptors(SdkHttpFullRequest sdkHttpFullRequest,
+                                                                       ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
             executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
                                                                   executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
-        return interceptorContext.httpRequest();
+        return interceptorContext;
     }
 
     private static <OutputT extends SdkResponse> OutputT runAfterUnmarshallingInterceptors(OutputT response,

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,12 +32,11 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.http.ExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -127,12 +125,12 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        SdkHttpFullResponse response = httpClient.prepareRequest(ExecuteRequest.builder().request(signedRequest).build())
+        HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
 
-        assertEquals("Non success http status code", 200, response.statusCode());
+        assertEquals("Non success http status code", 200, response.httpResponse().statusCode());
 
-        String actualResult = IoUtils.toUtf8String(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.responseBody().get());
         assertEquals(getExpectedResult(), actualResult);
     }
 
@@ -146,12 +144,12 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        SdkHttpFullResponse response = httpClient.prepareRequest(ExecuteRequest.builder().request(signedRequest).build())
+        HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
                                                  .call();
 
-        assertEquals("Non success http status code", 200, response.statusCode());
+        assertEquals("Non success http status code", 200, response.httpResponse().statusCode());
 
-        String actualResult = IoUtils.toUtf8String(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.responseBody().get());
         assertEquals(getExpectedResult(), actualResult);
     }
 

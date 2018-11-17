@@ -22,11 +22,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -35,28 +38,41 @@ import software.amazon.awssdk.utils.Md5Utils;
 @SdkInternalApi
 public class AddContentMd5HeaderInterceptor implements ExecutionInterceptor {
 
+    private static final ExecutionAttribute<String> CONTENT_MD5_ATTRIBUTE = new ExecutionAttribute<>("contentMd5");
+
     // List of operations that should be ignored by this interceptor.
     // These are costly operations, so adding the md5 header will take a performance hit
     private static final List<Class> BLACKLIST_METHODS = Arrays.asList(PutObjectRequest.class, UploadPartRequest.class);
 
     @Override
-    public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        SdkHttpFullRequest request = context.httpRequest();
+    public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
+                                                   ExecutionAttributes executionAttributes) {
 
-        if (!BLACKLIST_METHODS.contains(context.request().getClass()) && request.contentStreamProvider().isPresent()
-            && !request.firstMatchingHeader(CONTENT_MD5).isPresent()) {
+        if (!BLACKLIST_METHODS.contains(context.request().getClass()) && context.requestBody().isPresent()
+            && !context.httpRequest().firstMatchingHeader(CONTENT_MD5).isPresent()) {
 
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                IoUtils.copy(request.contentStreamProvider().get().newStream(), baos);
-                return request.toBuilder()
-                              .putHeader(CONTENT_MD5, Md5Utils.md5AsBase64(baos.toByteArray()))
-                              .build();
+                IoUtils.copy(context.requestBody().get().contentStreamProvider().newStream(), baos);
+                executionAttributes.putAttribute(CONTENT_MD5_ATTRIBUTE, Md5Utils.md5AsBase64(baos.toByteArray()));
+                return context.requestBody();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
 
-        return request;
+        return context.requestBody();
+    }
+
+    @Override
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
+                                            ExecutionAttributes executionAttributes) {
+        String contentMd5 = executionAttributes.getAttribute(CONTENT_MD5_ATTRIBUTE);
+
+        if (contentMd5 != null) {
+            return context.httpRequest().toBuilder().putHeader(CONTENT_MD5, contentMd5).build();
+        }
+
+        return context.httpRequest();
     }
 }

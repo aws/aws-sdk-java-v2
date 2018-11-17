@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * which should release the thread that has invoked {@link #call()} as soon as possible.
  */
 @SdkPublicApi
-public interface InvokeableHttpRequest extends Callable<SdkHttpFullResponse>, Abortable {
+public interface ExecutableHttpRequest extends Callable<HttpExecuteResponse>, Abortable {
     @Override
-    SdkHttpFullResponse call() throws IOException;
+    HttpExecuteResponse call() throws IOException;
 }
