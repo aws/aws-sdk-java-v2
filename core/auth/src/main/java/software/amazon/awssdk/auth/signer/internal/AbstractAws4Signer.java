@@ -57,7 +57,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private static final FifoCache<SignerKey> SIGNER_CACHE =
         new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
     private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE =
-        Arrays.asList("connection", "x-amzn-trace-id", "user-agent");
+        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
 
     protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
                                                 Aws4SignerRequestParams requestParams,
