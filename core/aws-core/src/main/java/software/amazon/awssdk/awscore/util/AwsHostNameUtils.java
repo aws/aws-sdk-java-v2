@@ -18,12 +18,11 @@ package software.amazon.awssdk.awscore.util;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi
-@ReviewBeforeRelease("This isn't used for as many services as it supports. Can we simplify or remove it?")
+//TODO This isn't used for as many services as it supports. Can we simplify or remove it?
 public final class AwsHostNameUtils {
 
     private static final Pattern S3_ENDPOINT_PATTERN =

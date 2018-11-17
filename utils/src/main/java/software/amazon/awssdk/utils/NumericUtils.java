@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
@@ -32,7 +31,6 @@ public final class NumericUtils {
      * {@link Integer#MAX_VALUE} if it is too large, or {@link Integer#MIN_VALUE} if it is too
      * small
      */
-    @ReviewBeforeRelease("Copied from Guava, confirm this is okay and copy tests too")
     public static int saturatedCast(long value) {
         if (value > Integer.MAX_VALUE) {
             return Integer.MAX_VALUE;

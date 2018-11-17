@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.util.Locale;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -107,7 +106,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * <p>#ThreadSafe#</p>
  * @see java.lang.String
  */
-@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.core.util.StringUtils).")
 @SdkProtectedApi
 public final class StringUtils {
     // Performance testing notes (JDK 1.4, Jul03, scolebourne)

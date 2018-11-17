@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -142,7 +141,6 @@ public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
     }
 
-    @ReviewBeforeRelease("Should this throw a different exception, like AbortedException, from the core?")
     private void handleInterruptedException(String message, InterruptedException cause) {
         Thread.currentThread().interrupt();
         throw new IllegalStateException(message, cause);

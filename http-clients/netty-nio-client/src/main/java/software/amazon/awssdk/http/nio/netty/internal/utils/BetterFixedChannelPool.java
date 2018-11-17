@@ -30,13 +30,12 @@ import java.util.Queue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * {@link ChannelPool} implementation that takes another {@link ChannelPool} implementation and enforce a maximum
  * number of concurrent connections.
  */
-@ReviewBeforeRelease("Contribute me back to Netty")
+//TODO: Contribute me back to Netty
 public class BetterFixedChannelPool implements ChannelPool {
     private static final IllegalStateException FULL_EXCEPTION = ThrowableUtil.unknownStackTrace(
         new IllegalStateException("Too many outstanding acquire operations"),

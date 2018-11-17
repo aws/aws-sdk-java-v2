@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
@@ -54,8 +53,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkInternalApi
-@ReviewBeforeRelease("come up with better name, Also this can be moved to an internal package if we "
-                     + "deal with HttpTestUtils.")
+// TODO come up with better name
 public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     private final HttpClientDependencies httpClientDependencies;
 
@@ -174,7 +172,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         private ExecutionContext executionContext;
 
         @Override
-        @ReviewBeforeRelease("This is duplicating information in the interceptor context. Can they be consolidated?")
+        // This is duplicating information in the interceptor context. Can they be consolidated?
         public RequestExecutionBuilder request(SdkHttpFullRequest request) {
             this.request = request;
             return this;

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -30,8 +29,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
-@ReviewBeforeRelease("Might only need to do this for certain protocols - ie query?")
-// TODO how is this going to work with streaming input posts in asyncland
+//TODO Might only need to do this for certain protocols - ie query?
 public final class MoveParametersToBodyStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {

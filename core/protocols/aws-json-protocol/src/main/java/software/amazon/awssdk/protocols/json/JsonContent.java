@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser;
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * Simple struct like class to hold both the raw json string content and it's parsed JsonNode
  */
 @SdkProtectedApi
-@ReviewBeforeRelease("Do we need this? It isn't well encapsulated because of storing non-copied arrays.")
+//TODO Do we need this? It isn't well encapsulated because of storing non-copied arrays.
 public class JsonContent {
 
     private static final Logger LOG = LoggerFactory.getLogger(JsonContent.class);

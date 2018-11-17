@@ -17,7 +17,6 @@ package software.amazon.awssdk.protocols.ion.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -28,7 +27,7 @@ import software.amazon.ion.IonReader;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonType;
 
-@ReviewBeforeRelease("Clean up ION parser")
+//TODO Clean up ION parser
 @SdkInternalApi
 class IonErrorCodeParser implements ErrorCodeParser {
     private static final Logger log = LoggerFactory.getLogger(IonErrorCodeParser.class);

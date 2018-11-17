@@ -18,7 +18,6 @@ package software.amazon.awssdk.awscore.endpoint;
 import java.net.URI;
 import java.net.URISyntaxException;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -29,8 +28,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @NotThreadSafe
 @SdkProtectedApi
-@ReviewBeforeRelease("We may not need this anymore, we should default to AWS partition when resolving"
-                     + "a region we don't know about yet.")
+// TODO We may not need this anymore, we should default to AWS partition when resolving
+// a region we don't know about yet.
 public final class DefaultServiceEndpointBuilder {
 
     private final String serviceName;

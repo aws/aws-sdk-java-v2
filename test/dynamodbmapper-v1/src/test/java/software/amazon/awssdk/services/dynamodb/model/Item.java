@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -34,7 +33,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  *
  * For example to pass to a {@link PutItemRequest.Builder#item(Map)}.
  */
-@ReviewBeforeRelease("May want to do this a different way")
+//TODO : May want to do this a different way
 public final class Item extends HashMap<String, AttributeValue> {
 
     private Item(Builder builder) {

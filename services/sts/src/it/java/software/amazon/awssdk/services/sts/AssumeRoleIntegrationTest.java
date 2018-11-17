@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -53,7 +52,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-@ReviewBeforeRelease("This could be useful to cleanup and present as a customer sample")
+//TODO This could be useful to cleanup and present as a customer sample
 public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     private static final int SESSION_DURATION = 60 * 60;

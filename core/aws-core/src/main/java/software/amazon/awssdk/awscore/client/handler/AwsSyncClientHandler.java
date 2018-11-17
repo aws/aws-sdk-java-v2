@@ -16,7 +16,6 @@
 package software.amazon.awssdk.awscore.client.handler;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionValidation;
@@ -38,7 +37,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  */
 @ThreadSafe
 @Immutable
-@ReviewBeforeRelease("This looks identical to the Sdk version, revisit when we add APIG back")
 @SdkProtectedApi
 public final class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
 

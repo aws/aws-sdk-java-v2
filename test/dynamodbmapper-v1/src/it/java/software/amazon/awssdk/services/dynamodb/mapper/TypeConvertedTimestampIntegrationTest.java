@@ -20,7 +20,6 @@ import java.util.Calendar;
 import java.util.Date;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMappingException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTypeConvertedTimestamp;
@@ -132,8 +131,8 @@ public class TypeConvertedTimestampIntegrationTest extends AbstractKeyAndValInte
      * Test timestamp formatting.
      */
     @Test(expected = DynamoDbMappingException.class)
-    @Ignore
-    @ReviewBeforeRelease("This behavior is different with the java.time classes because you can construct a formatter using an empty string as a pattern.")
+    @Ignore("This behavior is different with the java.time classes because you can construct a formatter using an empty "
+            + "string as a pattern.")
     public void testEmptyPattern() throws Exception {
         final KeyAndEmptyPattern object = new KeyAndEmptyPattern();
         object.setVal(Calendar.getInstance().getTime());
