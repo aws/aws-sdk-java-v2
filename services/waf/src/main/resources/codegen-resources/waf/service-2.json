@@ -1256,6 +1256,28 @@
       "type":"list",
       "member":{"shape":"ActivatedRule"}
     },
+    "AssociateWebACLRequest":{
+      "type":"structure",
+      "required":[
+        "WebACLId",
+        "ResourceArn"
+      ],
+      "members":{
+        "WebACLId":{
+          "shape":"ResourceId",
+          "documentation":"<p>A unique identifier (ID) for the web ACL.</p>"
+        },
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the resource to be protected.</p>"
+        }
+      }
+    },
+    "AssociateWebACLResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "ByteMatchSet":{
       "type":"structure",
       "required":[
@@ -2132,6 +2154,21 @@
       },
       "documentation":"<p>The response to a request to delete an <a>XssMatchSet</a> from AWS WAF.</p>"
     },
+    "DisassociateWebACLRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the resource from which the web ACL is being removed.</p>"
+        }
+      }
+    },
+    "DisassociateWebACLResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "FieldToMatch":{
       "type":"structure",
       "required":["Type"],
@@ -2833,6 +2870,25 @@
       },
       "documentation":"<p>The response to a <a>GetSqlInjectionMatchSet</a> request.</p>"
     },
+    "GetWebACLForResourceRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The ARN (Amazon Resource Name) of the resource for which to get the web ACL.</p>"
+        }
+      }
+    },
+    "GetWebACLForResourceResponse":{
+      "type":"structure",
+      "members":{
+        "WebACLSummary":{
+          "shape":"WebACLSummary",
+          "documentation":"<p>Information about the web ACL that you specified in the <code>GetWebACLForResource</code> request. If there is no associated resource, a null WebACLSummary is returned.</p>"
+        }
+      }
+    },
     "GetWebACLRequest":{
       "type":"structure",
       "required":["WebACLId"],
@@ -3235,6 +3291,29 @@
         }
       }
     },
+    "ListResourcesForWebACLRequest":{
+      "type":"structure",
+      "required":["WebACLId"],
+      "members":{
+        "WebACLId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The unique identifier (ID) of the web ACL for which to list the associated resources.</p>"
+        },
+        "ResourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>The type of resource to list, either and application load balancer or Amazon API Gateway.</p>"
+        }
+      }
+    },
+    "ListResourcesForWebACLResponse":{
+      "type":"structure",
+      "members":{
+        "ResourceArns":{
+          "shape":"ResourceArns",
+          "documentation":"<p>An array of ARNs (Amazon Resource Names) of the resources associated with the specified web ACL. An array with zero elements is returned if there are no resources associated with the web ACL.</p>"
+        }
+      }
+    },
     "ListRuleGroupsRequest":{
       "type":"structure",
       "members":{
@@ -3440,14 +3519,14 @@
         },
         "LogDestinationConfigs":{
           "shape":"LogDestinationConfigs",
-          "documentation":"<p>An array of Amazon Kinesis Data Firehose delivery stream ARNs.</p>"
+          "documentation":"<p>An array of Amazon Kinesis Data Firehose ARNs.</p>"
         },
         "RedactedFields":{
           "shape":"RedactedFields",
-          "documentation":"<p>The parts of the request that you want redacted from the logs. For example, if you redact the cookie field, the cookie field in the delivery stream will be <code>xxx</code>. </p>"
+          "documentation":"<p>The parts of the request that you want redacted from the logs. For example, if you redact the cookie field, the cookie field in the firehose will be <code>xxx</code>. </p>"
         }
       },
-      "documentation":"<p>The Amazon Kinesis Data Firehose delivery streams, <code>RedactedFields</code> information, and the web ACL Amazon Resource Name (ARN).</p>"
+      "documentation":"<p>The Amazon Kinesis Data Firehose, <code>RedactedFields</code> information, and the web ACL Amazon Resource Name (ARN).</p>"
     },
     "LoggingConfigurations":{
       "type":"list",
@@ -3573,7 +3652,7 @@
       "members":{
         "LoggingConfiguration":{
           "shape":"LoggingConfiguration",
-          "documentation":"<p>The Amazon Kinesis Data Firehose delivery streams that contains the inspected traffic information, the redacted fields details, and the Amazon Resource Name (ARN) of the web ACL to monitor.</p>"
+          "documentation":"<p>The Amazon Kinesis Data Firehose that contains the inspected traffic information, the redacted fields details, and the Amazon Resource Name (ARN) of the web ACL to monitor.</p>"
         }
       }
     },
@@ -3828,6 +3907,10 @@
       "max":1224,
       "min":1
     },
+    "ResourceArns":{
+      "type":"list",
+      "member":{"shape":"ResourceArn"}
+    },
     "ResourceId":{
       "type":"string",
       "max":128,
@@ -3837,6 +3920,13 @@
       "type":"string",
       "max":128,
       "min":1
+    },
+    "ResourceType":{
+      "type":"string",
+      "enum":[
+        "APPLICATION_LOAD_BALANCER",
+        "API_GATEWAY"
+      ]
     },
     "Rule":{
       "type":"structure",
@@ -4744,6 +4834,14 @@
       "documentation":"<p>The operation failed because you tried to delete an object that is still in use. For example:</p> <ul> <li> <p>You tried to delete a <code>ByteMatchSet</code> that is still referenced by a <code>Rule</code>.</p> </li> <li> <p>You tried to delete a <code>Rule</code> that is still referenced by a <code>WebACL</code>.</p> </li> </ul>",
       "exception":true
     },
+    "WAFServiceLinkedRoleErrorException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"errorMessage"}
+      },
+      "documentation":"<p>AWS WAF is not able to access the service linked role. This can be caused by a previous <code>PutLoggingConfiguration</code> request, which can lock the service linked role for about 20 seconds. Please try your request again. The service linked role can also be locked by a previous <code>DeleteServiceLinkedRole</code> request, which can lock the role for 15 minutes or more. If you recently made a <code>DeleteServiceLinkedRole</code>, wait at least 15 minutes and try the request again. If you receive this same exception again, you will have to wait additional time until the role is unlocked.</p>",
+      "exception":true
+    },
     "WAFStaleDataException":{
       "type":"structure",
       "members":{
@@ -4758,6 +4856,14 @@
         "message":{"shape":"errorMessage"}
       },
       "documentation":"<p>The specified subscription does not exist.</p>",
+      "exception":true
+    },
+    "WAFUnavailableEntityException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"errorMessage"}
+      },
+      "documentation":"<p>The operation failed because the entity referenced is temporarily unavailable. Retry your request.</p>",
       "exception":true
     },
     "WafAction":{
@@ -4832,6 +4938,10 @@
         "Rules":{
           "shape":"ActivatedRules",
           "documentation":"<p>An array that contains the action for each <code>Rule</code> in a <code>WebACL</code>, the priority of the <code>Rule</code>, and the ID of the <code>Rule</code>.</p>"
+        },
+        "WebACLArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>Tha Amazon Resource Name (ARN) of the web ACL.</p>"
         }
       },
       "documentation":"<p>Contains the <code>Rules</code> that identify the requests that you want to allow, block, or count. In a <code>WebACL</code>, you also specify a default action (<code>ALLOW</code> or <code>BLOCK</code>), and the action for each <code>Rule</code> that you add to a <code>WebACL</code>, for example, block requests from specified IP addresses or block requests from specified referrers. You also associate the <code>WebACL</code> with a CloudFront distribution to identify the requests that you want AWS WAF to filter. If you add more than one <code>Rule</code> to a <code>WebACL</code>, a request needs to match only one of the specifications to be allowed, blocked, or counted. For more information, see <a>UpdateWebACL</a>.</p>"
@@ -4971,5 +5081,5 @@
     },
     "errorMessage":{"type":"string"}
   },
-  "documentation":"<p>This is the <i>AWS WAF API Reference</i> for using AWS WAF with Amazon CloudFront. The AWS WAF actions and data types listed in the reference are available for protecting Amazon CloudFront distributions. You can use these actions and data types via the endpoint <i>waf.amazonaws.com</i>. This guide is for developers who need detailed information about the AWS WAF API actions, data types, and errors. For detailed information about AWS WAF features and an overview of how to use the AWS WAF API, see the <a href=\"http://docs.aws.amazon.com/waf/latest/developerguide/\">AWS WAF Developer Guide</a>.</p>"
+  "documentation":"<p>This is the <i>AWS WAF Regional API Reference</i> for using AWS WAF with Elastic Load Balancing (ELB) Application Load Balancers. The AWS WAF actions and data types listed in the reference are available for protecting Application Load Balancers. You can use these actions and data types by means of the endpoints listed in <a href=\"http://docs.aws.amazon.com/general/latest/gr/rande.html#waf_region\">AWS Regions and Endpoints</a>. This guide is for developers who need detailed information about the AWS WAF API actions, data types, and errors. For detailed information about AWS WAF features and an overview of how to use the AWS WAF API, see the <a href=\"http://docs.aws.amazon.com/waf/latest/developerguide/\">AWS WAF Developer Guide</a>.</p>"
 }
