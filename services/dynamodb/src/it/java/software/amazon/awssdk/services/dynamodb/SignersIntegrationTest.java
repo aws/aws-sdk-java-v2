@@ -125,7 +125,12 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(signedRequest)
+                                                       .contentStreamProvider(signedRequest.contentStreamProvider().orElse(null))
+                                                       .build();
+
+        HttpExecuteResponse response = httpClient.prepareRequest(request)
                                                  .call();
 
         assertEquals("Non success http status code", 200, response.httpResponse().statusCode());
@@ -144,7 +149,11 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
-        HttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(signedRequest).build())
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(signedRequest)
+                                                       .contentStreamProvider(signedRequest.contentStreamProvider().orElse(null))
+                                                       .build();
+        HttpExecuteResponse response = httpClient.prepareRequest(request)
                                                  .call();
 
         assertEquals("Non success http status code", 200, response.httpResponse().statusCode());
