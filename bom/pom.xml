@@ -99,11 +99,6 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>importexport</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
                 <artifactId>sts</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>

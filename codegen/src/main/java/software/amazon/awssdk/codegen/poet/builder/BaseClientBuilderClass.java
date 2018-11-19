@@ -24,7 +24,6 @@ import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.QueryStringSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -232,8 +231,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         switch (authType) {
             case V4:
                 return v4SignerDefinitionMethodBody();
-            case V2:
-                return v2SignerDefinitionMethodBody();
             case S3:
                 return s3SignerDefinitionMethodBody();
             default:
@@ -243,10 +240,6 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private CodeBlock v4SignerDefinitionMethodBody() {
         return CodeBlock.of("return $T.create();", Aws4Signer.class);
-    }
-
-    private CodeBlock v2SignerDefinitionMethodBody() {
-        return CodeBlock.of("return $T.create();", QueryStringSigner.class);
     }
 
     private CodeBlock s3SignerDefinitionMethodBody() {
