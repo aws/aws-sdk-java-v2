@@ -902,10 +902,6 @@
                                     <packages>software.amazon.awssdk.services.kms*</packages>
                                 </group>
                                 <group>
-                                    <title>CodeDeploy</title>
-                                    <packages>software.amazon.awssdk.services.codedeploy*</packages>
-                                </group>
-                                <group>
                                     <title>Lambda</title>
                                     <packages>software.amazon.awssdk.services.lambda*</packages>
                                 </group>
