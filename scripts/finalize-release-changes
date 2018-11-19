@@ -10,7 +10,7 @@ import shutil
 from changelog.git import stage_file
 from changelog.util import load_unreleased_changes, marshall_release_changes, parse_version_string
 
-VERSION_REGEX = re.compile('^[0-9]+\.[0-9]+\.[0-9]+?(-.+)$')
+VERSION_REGEX = re.compile('^[0-9]+\.[0-9]+\.[0-9]$')
 DATE_REGEX = re.compile('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
 
 def validate_args(args):

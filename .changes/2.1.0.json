@@ -1,0 +1,21 @@
+{
+    "date": "2018-11-19",
+    "version": "2.1.0",
+    "entries": [
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Not invoke fireExceptionCaught if the channel is not active. see [#452](https://github.com/aws/aws-sdk-java-v2/issues/452)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Temporarily removed OSGi support because the Netty HTTP client does not yet support it. See [#726](https://github.com/aws/aws-sdk-java-v2/issues/726)"
+        },
+        {
+            "category": "core",
+            "type": "feature",
+            "description": "Netty 4.1.31.Final"
+        }
+    ]
+}

@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-14-SNAPSHOT</version>
+        <version>2.1.0</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -50,7 +50,6 @@
         <module>cloudwatch</module>
         <module>codebuild</module>
         <module>codecommit</module>
-        <module>codedeploy</module>
         <module>codepipeline</module>
         <module>codestar</module>
         <module>cognitoidentity</module>
@@ -152,6 +151,7 @@
         <module>serverlessapplicationrepository</module>
         <module>servicediscovery</module>
         <module>translate</module>
+        <module>transcribestreaming</module>
         <module>workmail</module>
         <module>secretsmanager</module>
         <module>chime</module>

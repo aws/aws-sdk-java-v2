@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-14-SNAPSHOT</version>
+        <version>2.1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -55,6 +55,11 @@
             </dependency>
             <dependency>
                 <artifactId>support</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>transcribestreaming</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -275,11 +280,6 @@
             </dependency>
             <dependency>
                 <artifactId>cloudsearchdomain</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>codedeploy</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>

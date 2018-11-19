@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.0.0-preview-14-SNAPSHOT</version>
+    <version>2.1.0</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -882,6 +882,10 @@
                                     <packages>software.amazon.awssdk.services.support*</packages>
                                 </group>
                                 <group>
+                                    <title>Transcribe Streaming</title>
+                                    <packages>software.amazon.awssdk.services.transcribestreaming*</packages>
+                                </group>
+                                <group>
                                     <title>CloudTrail</title>
                                     <packages>software.amazon.awssdk.services.cloudtrail*</packages>
                                 </group>
@@ -896,10 +900,6 @@
                                 <group>
                                     <title>Key Management</title>
                                     <packages>software.amazon.awssdk.services.kms*</packages>
-                                </group>
-                                <group>
-                                    <title>CodeDeploy</title>
-                                    <packages>software.amazon.awssdk.services.codedeploy*</packages>
                                 </group>
                                 <group>
                                     <title>Lambda</title>
