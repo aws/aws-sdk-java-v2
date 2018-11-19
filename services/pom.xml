@@ -83,7 +83,6 @@
         <module>greengrass</module>
         <module>health</module>
         <module>iam</module>
-        <module>importexport</module>
         <module>inspector</module>
         <module>iot</module>
         <module>iotdataplane</module>
@@ -155,6 +154,29 @@
         <module>translate</module>
         <module>workmail</module>
         <module>secretsmanager</module>
+        <module>chime</module>
+        <module>acmpca</module>
+        <module>autoscalingplans</module>
+        <module>connect</module>
+        <module>dlm</module>
+        <module>eks</module>
+        <module>iotjobsdataplane</module>
+        <module>iot1clickdevices</module>
+        <module>iot1clickprojects</module>
+        <module>iotanalytics</module>
+        <module>kinesisvideoarchivedmedia</module>
+        <module>kinesisvideomedia</module>
+        <module>macie</module>
+        <module>mediatailor</module>
+        <module>pi</module>
+        <module>pinpointemail</module>
+        <module>ram</module>
+        <module>sagemakerruntime</module>
+        <module>signer</module>
+        <module>pinpointsmsvoice</module>
+        <module>transcribe</module>
+        <module>route53resolver</module>        
+        <module>fms</module>    
     </modules>
 
     <description>The AWS Java SDK services</description>

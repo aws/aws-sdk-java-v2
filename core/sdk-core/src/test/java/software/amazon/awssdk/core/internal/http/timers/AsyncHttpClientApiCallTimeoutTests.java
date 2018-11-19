@@ -139,11 +139,11 @@ public class AsyncHttpClientApiCallTimeoutTests {
     public void slowApiAttempt_ThrowsApiCallAttemptTimeoutException() {
         httpClient = testAsyncClientBuilder()
             .apiCallTimeout(API_CALL_TIMEOUT)
-            .apiCallAttemptTimeout(Duration.ofMillis(100))
+            .apiCallAttemptTimeout(Duration.ofMillis(1))
             .build();
 
         stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(200)));
+                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(1_000)));
         CompletableFuture future = requestBuilder().execute(noOpResponseHandler());
         assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallAttemptTimeoutException.class);
     }
