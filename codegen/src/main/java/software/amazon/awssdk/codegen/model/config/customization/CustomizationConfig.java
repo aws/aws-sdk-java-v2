@@ -104,6 +104,10 @@ public class CustomizationConfig {
      */
     private List<String> verifiedSimpleMethods = new ArrayList<>();
 
+    private List<String> deprecatedOperations = new ArrayList<>();
+
+    private List<String> deprecatedShapes = new ArrayList<>();
+
     private String sdkRequestBaseClassName;
 
     private String sdkResponseBaseClassName;
@@ -264,6 +268,22 @@ public class CustomizationConfig {
 
     public void setVerifiedSimpleMethods(List<String> verifiedSimpleMethods) {
         this.verifiedSimpleMethods = verifiedSimpleMethods;
+    }
+
+    public List<String> getDeprecatedOperations() {
+        return deprecatedOperations;
+    }
+
+    public void setDeprecatedOperations(List<String> deprecatedOperations) {
+        this.deprecatedOperations = deprecatedOperations;
+    }
+
+    public List<String> getDeprecatedShapes() {
+        return deprecatedShapes;
+    }
+
+    public void setDeprecatedShapes(List<String> deprecatedShapes) {
+        this.deprecatedShapes = deprecatedShapes;
     }
 
     public String getSdkRequestBaseClassName() {
