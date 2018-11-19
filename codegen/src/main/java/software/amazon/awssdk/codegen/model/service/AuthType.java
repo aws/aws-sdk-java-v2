@@ -24,9 +24,6 @@ public enum AuthType {
     NONE("none"),
     CUSTOM("custom"),
     IAM("iam"),
-    V2("v2"),
-    V3("v3"),
-    V3_HTTPS("v3https"),
     V4("v4"),
     V4_UNSIGNED_BODY("v4-unsigned-body"),
     S3("s3")

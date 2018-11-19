@@ -42,7 +42,7 @@ public final class DocumentationUtils {
     //TODO probably should move this to a custom config in each service
     private static final Set<String> SERVICES_EXCLUDED_FROM_CROSS_LINKING = new HashSet<>(Arrays.asList(
             "apigateway", "budgets", "cloudsearch", "cloudsearchdomain",
-            "discovery", "elastictranscoder", "es", "glacier", "importexport",
+            "discovery", "elastictranscoder", "es", "glacier",
             "iot", "data.iot", "machinelearning", "rekognition", "s3", "sdb", "swf"
                                                                                                        ));
 

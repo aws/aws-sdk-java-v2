@@ -1,22 +1,22 @@
 {
   "version":"2.0",
   "metadata":{
-    "apiVersion":"2017-03-25",
+    "apiVersion":"2018-06-18",
     "endpointPrefix":"cloudfront",
     "globalEndpoint":"cloudfront.amazonaws.com",
     "protocol":"rest-xml",
     "serviceAbbreviation":"CloudFront",
     "serviceFullName":"Amazon CloudFront",
-    "serviceId": "CloudFront",
+    "serviceId":"CloudFront",
     "signatureVersion":"v4",
-    "uid":"cloudfront-2017-03-25"
+    "uid":"cloudfront-2018-06-18"
   },
   "operations":{
     "CreateCloudFrontOriginAccessIdentity":{
-      "name":"CreateCloudFrontOriginAccessIdentity2017_03_25",
+      "name":"CreateCloudFrontOriginAccessIdentity2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/origin-access-identity/cloudfront",
+        "requestUri":"/2018-06-18/origin-access-identity/cloudfront",
         "responseCode":201
       },
       "input":{"shape":"CreateCloudFrontOriginAccessIdentityRequest"},
@@ -31,10 +31,10 @@
       "documentation":"<p>Creates a new origin access identity. If you're using Amazon S3 for your origin, you can use an origin access identity to require users to access your content using a CloudFront URL instead of the Amazon S3 URL. For more information about how to use origin access identities, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html\">Serving Private Content through CloudFront</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
     "CreateDistribution":{
-      "name":"CreateDistribution2017_03_25",
+      "name":"CreateDistribution2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/distribution",
+        "requestUri":"/2018-06-18/distribution",
         "responseCode":201
       },
       "input":{"shape":"CreateDistributionRequest"},
@@ -79,15 +79,18 @@
         {"shape":"TooManyLambdaFunctionAssociations"},
         {"shape":"InvalidLambdaFunctionAssociation"},
         {"shape":"InvalidOriginReadTimeout"},
-        {"shape":"InvalidOriginKeepaliveTimeout"}
+        {"shape":"InvalidOriginKeepaliveTimeout"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"},
+        {"shape":"IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior"},
+        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"}
       ],
-      "documentation":"<p>Creates a new web distribution. Send a <code>POST</code> request to the <code>/<i>CloudFront API version</i>/distribution</code>/<code>distribution ID</code> resource.</p>"
+      "documentation":"<p>Creates a new web distribution. You create a CloudFront distribution to tell CloudFront where you want content to be delivered from, and the details about how to track and manage content delivery. Send a <code>POST</code> request to the <code>/<i>CloudFront API version</i>/distribution</code>/<code>distribution ID</code> resource.</p> <important> <p>When you update a distribution, there are more required fields than when you create a distribution. When you update your distribution by using <a>UpdateDistribution</a>, follow the steps included in the documentation to get the current configuration and then make your updates. This helps to make sure that you include all of the required fields. To view a summary, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview-required-fields.html\">Required Fields for Create Distribution and Update Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </important> <p>If you are using Adobe Flash Media Server's RTMP protocol, you set up a different kind of CloudFront distribution. For more information, see <a>CreateStreamingDistribution</a>.</p>"
     },
     "CreateDistributionWithTags":{
-      "name":"CreateDistributionWithTags2017_03_25",
+      "name":"CreateDistributionWithTags2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/distribution?WithTags",
+        "requestUri":"/2018-06-18/distribution?WithTags",
         "responseCode":201
       },
       "input":{"shape":"CreateDistributionWithTagsRequest"},
@@ -133,15 +136,60 @@
         {"shape":"TooManyLambdaFunctionAssociations"},
         {"shape":"InvalidLambdaFunctionAssociation"},
         {"shape":"InvalidOriginReadTimeout"},
-        {"shape":"InvalidOriginKeepaliveTimeout"}
+        {"shape":"InvalidOriginKeepaliveTimeout"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"},
+        {"shape":"IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior"},
+        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"}
       ],
       "documentation":"<p>Create a new distribution with tags.</p>"
     },
-    "CreateInvalidation":{
-      "name":"CreateInvalidation2017_03_25",
+    "CreateFieldLevelEncryptionConfig":{
+      "name":"CreateFieldLevelEncryptionConfig2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/distribution/{DistributionId}/invalidation",
+        "requestUri":"/2018-06-18/field-level-encryption",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateFieldLevelEncryptionConfigRequest"},
+      "output":{"shape":"CreateFieldLevelEncryptionConfigResult"},
+      "errors":[
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"NoSuchFieldLevelEncryptionProfile"},
+        {"shape":"FieldLevelEncryptionConfigAlreadyExists"},
+        {"shape":"TooManyFieldLevelEncryptionConfigs"},
+        {"shape":"TooManyFieldLevelEncryptionQueryArgProfiles"},
+        {"shape":"TooManyFieldLevelEncryptionContentTypeProfiles"},
+        {"shape":"QueryArgProfileEmpty"}
+      ],
+      "documentation":"<p>Create a new field-level encryption configuration.</p>"
+    },
+    "CreateFieldLevelEncryptionProfile":{
+      "name":"CreateFieldLevelEncryptionProfile2018_06_18",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2018-06-18/field-level-encryption-profile",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateFieldLevelEncryptionProfileRequest"},
+      "output":{"shape":"CreateFieldLevelEncryptionProfileResult"},
+      "errors":[
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"NoSuchPublicKey"},
+        {"shape":"FieldLevelEncryptionProfileAlreadyExists"},
+        {"shape":"FieldLevelEncryptionProfileSizeExceeded"},
+        {"shape":"TooManyFieldLevelEncryptionProfiles"},
+        {"shape":"TooManyFieldLevelEncryptionEncryptionEntities"},
+        {"shape":"TooManyFieldLevelEncryptionFieldPatterns"}
+      ],
+      "documentation":"<p>Create a field-level encryption profile.</p>"
+    },
+    "CreateInvalidation":{
+      "name":"CreateInvalidation2018_06_18",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2018-06-18/distribution/{DistributionId}/invalidation",
         "responseCode":201
       },
       "input":{"shape":"CreateInvalidationRequest"},
@@ -157,11 +205,27 @@
       ],
       "documentation":"<p>Create a new invalidation. </p>"
     },
-    "CreateStreamingDistribution":{
-      "name":"CreateStreamingDistribution2017_03_25",
+    "CreatePublicKey":{
+      "name":"CreatePublicKey2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/streaming-distribution",
+        "requestUri":"/2018-06-18/public-key",
+        "responseCode":201
+      },
+      "input":{"shape":"CreatePublicKeyRequest"},
+      "output":{"shape":"CreatePublicKeyResult"},
+      "errors":[
+        {"shape":"PublicKeyAlreadyExists"},
+        {"shape":"InvalidArgument"},
+        {"shape":"TooManyPublicKeys"}
+      ],
+      "documentation":"<p>Add a new public key to CloudFront to use, for example, for field-level encryption. You can add a maximum of 10 public keys with one AWS account.</p>"
+    },
+    "CreateStreamingDistribution":{
+      "name":"CreateStreamingDistribution2018_06_18",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2018-06-18/streaming-distribution",
         "responseCode":201
       },
       "input":{"shape":"CreateStreamingDistributionRequest"},
@@ -183,10 +247,10 @@
       "documentation":"<p>Creates a new RMTP distribution. An RTMP distribution is similar to a web distribution, but an RTMP distribution streams media files using the Adobe Real-Time Messaging Protocol (RTMP) instead of serving files using HTTP. </p> <p>To create a new web distribution, submit a <code>POST</code> request to the <i>CloudFront API version</i>/distribution resource. The request body must include a document with a <i>StreamingDistributionConfig</i> element. The response echoes the <code>StreamingDistributionConfig</code> element and returns other information about the RTMP distribution.</p> <p>To get the status of your request, use the <i>GET StreamingDistribution</i> API action. When the value of <code>Enabled</code> is <code>true</code> and the value of <code>Status</code> is <code>Deployed</code>, your distribution is ready. A distribution usually deploys in less than 15 minutes.</p> <p>For more information about web distributions, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-rtmp.html\">Working with RTMP Distributions</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <important> <p>Beginning with the 2012-05-05 version of the CloudFront API, we made substantial changes to the format of the XML document that you include in the request body when you create or update a web distribution or an RTMP distribution, and when you invalidate objects. With previous versions of the API, we discovered that it was too easy to accidentally delete one or more values for an element that accepts multiple values, for example, CNAMEs and trusted signers. Our changes for the 2012-05-05 release are intended to prevent these accidental deletions and to notify you when there's a mismatch between the number of values you say you're specifying in the <code>Quantity</code> element and the number of values specified.</p> </important>"
     },
     "CreateStreamingDistributionWithTags":{
-      "name":"CreateStreamingDistributionWithTags2017_03_25",
+      "name":"CreateStreamingDistributionWithTags2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/streaming-distribution?WithTags",
+        "requestUri":"/2018-06-18/streaming-distribution?WithTags",
         "responseCode":201
       },
       "input":{"shape":"CreateStreamingDistributionWithTagsRequest"},
@@ -209,10 +273,10 @@
       "documentation":"<p>Create a new streaming distribution with tags.</p>"
     },
     "DeleteCloudFrontOriginAccessIdentity":{
-      "name":"DeleteCloudFrontOriginAccessIdentity2017_03_25",
+      "name":"DeleteCloudFrontOriginAccessIdentity2018_06_18",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2017-03-25/origin-access-identity/cloudfront/{Id}",
+        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteCloudFrontOriginAccessIdentityRequest"},
@@ -226,10 +290,10 @@
       "documentation":"<p>Delete an origin access identity. </p>"
     },
     "DeleteDistribution":{
-      "name":"DeleteDistribution2017_03_25",
+      "name":"DeleteDistribution2018_06_18",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2017-03-25/distribution/{Id}",
+        "requestUri":"/2018-06-18/distribution/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteDistributionRequest"},
@@ -242,26 +306,62 @@
       ],
       "documentation":"<p>Delete a distribution. </p>"
     },
-    "DeleteServiceLinkedRole":{
-      "name":"DeleteServiceLinkedRole2017_03_25",
+    "DeleteFieldLevelEncryptionConfig":{
+      "name":"DeleteFieldLevelEncryptionConfig2018_06_18",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2017-03-25/service-linked-role/{RoleName}",
+        "requestUri":"/2018-06-18/field-level-encryption/{Id}",
         "responseCode":204
       },
-      "input":{"shape":"DeleteServiceLinkedRoleRequest"},
+      "input":{"shape":"DeleteFieldLevelEncryptionConfigRequest"},
       "errors":[
-        {"shape":"InvalidArgument"},
         {"shape":"AccessDenied"},
-        {"shape":"ResourceInUse"},
-        {"shape":"NoSuchResource"}
-      ]
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"FieldLevelEncryptionConfigInUse"}
+      ],
+      "documentation":"<p>Remove a field-level encryption configuration.</p>"
     },
-    "DeleteStreamingDistribution":{
-      "name":"DeleteStreamingDistribution2017_03_25",
+    "DeleteFieldLevelEncryptionProfile":{
+      "name":"DeleteFieldLevelEncryptionProfile2018_06_18",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2017-03-25/streaming-distribution/{Id}",
+        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteFieldLevelEncryptionProfileRequest"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchFieldLevelEncryptionProfile"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"FieldLevelEncryptionProfileInUse"}
+      ],
+      "documentation":"<p>Remove a field-level encryption profile.</p>"
+    },
+    "DeletePublicKey":{
+      "name":"DeletePublicKey2018_06_18",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2018-06-18/public-key/{Id}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeletePublicKeyRequest"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"PublicKeyInUse"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchPublicKey"},
+        {"shape":"PreconditionFailed"}
+      ],
+      "documentation":"<p>Remove a public key you previously added to CloudFront.</p>"
+    },
+    "DeleteStreamingDistribution":{
+      "name":"DeleteStreamingDistribution2018_06_18",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2018-06-18/streaming-distribution/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteStreamingDistributionRequest"},
@@ -275,10 +375,10 @@
       "documentation":"<p>Delete a streaming distribution. To delete an RTMP distribution using the CloudFront API, perform the following steps.</p> <p> <b>To delete an RTMP distribution using the CloudFront API</b>:</p> <ol> <li> <p>Disable the RTMP distribution.</p> </li> <li> <p>Submit a <code>GET Streaming Distribution Config</code> request to get the current configuration and the <code>Etag</code> header for the distribution. </p> </li> <li> <p>Update the XML document that was returned in the response to your <code>GET Streaming Distribution Config</code> request to change the value of <code>Enabled</code> to <code>false</code>.</p> </li> <li> <p>Submit a <code>PUT Streaming Distribution Config</code> request to update the configuration for your distribution. In the request body, include the XML document that you updated in Step 3. Then set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Streaming Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to the <code>PUT Streaming Distribution Config</code> request to confirm that the distribution was successfully disabled.</p> </li> <li> <p>Submit a <code>GET Streaming Distribution Config</code> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> <li> <p>Submit a <code>DELETE Streaming Distribution</code> request. Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Streaming Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to your <code>DELETE Streaming Distribution</code> request to confirm that the distribution was successfully deleted.</p> </li> </ol> <p>For information about deleting a distribution using the CloudFront console, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowToDeleteDistribution.html\">Deleting a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
     "GetCloudFrontOriginAccessIdentity":{
-      "name":"GetCloudFrontOriginAccessIdentity2017_03_25",
+      "name":"GetCloudFrontOriginAccessIdentity2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/origin-access-identity/cloudfront/{Id}"
+        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}"
       },
       "input":{"shape":"GetCloudFrontOriginAccessIdentityRequest"},
       "output":{"shape":"GetCloudFrontOriginAccessIdentityResult"},
@@ -289,10 +389,10 @@
       "documentation":"<p>Get the information about an origin access identity. </p>"
     },
     "GetCloudFrontOriginAccessIdentityConfig":{
-      "name":"GetCloudFrontOriginAccessIdentityConfig2017_03_25",
+      "name":"GetCloudFrontOriginAccessIdentityConfig2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/origin-access-identity/cloudfront/{Id}/config"
+        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}/config"
       },
       "input":{"shape":"GetCloudFrontOriginAccessIdentityConfigRequest"},
       "output":{"shape":"GetCloudFrontOriginAccessIdentityConfigResult"},
@@ -303,10 +403,10 @@
       "documentation":"<p>Get the configuration information about an origin access identity. </p>"
     },
     "GetDistribution":{
-      "name":"GetDistribution2017_03_25",
+      "name":"GetDistribution2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/distribution/{Id}"
+        "requestUri":"/2018-06-18/distribution/{Id}"
       },
       "input":{"shape":"GetDistributionRequest"},
       "output":{"shape":"GetDistributionResult"},
@@ -317,10 +417,10 @@
       "documentation":"<p>Get the information about a distribution. </p>"
     },
     "GetDistributionConfig":{
-      "name":"GetDistributionConfig2017_03_25",
+      "name":"GetDistributionConfig2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/distribution/{Id}/config"
+        "requestUri":"/2018-06-18/distribution/{Id}/config"
       },
       "input":{"shape":"GetDistributionConfigRequest"},
       "output":{"shape":"GetDistributionConfigResult"},
@@ -330,11 +430,67 @@
       ],
       "documentation":"<p>Get the configuration information about a distribution. </p>"
     },
-    "GetInvalidation":{
-      "name":"GetInvalidation2017_03_25",
+    "GetFieldLevelEncryption":{
+      "name":"GetFieldLevelEncryption2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/distribution/{DistributionId}/invalidation/{Id}"
+        "requestUri":"/2018-06-18/field-level-encryption/{Id}"
+      },
+      "input":{"shape":"GetFieldLevelEncryptionRequest"},
+      "output":{"shape":"GetFieldLevelEncryptionResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"}
+      ],
+      "documentation":"<p>Get the field-level encryption configuration information.</p>"
+    },
+    "GetFieldLevelEncryptionConfig":{
+      "name":"GetFieldLevelEncryptionConfig2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/field-level-encryption/{Id}/config"
+      },
+      "input":{"shape":"GetFieldLevelEncryptionConfigRequest"},
+      "output":{"shape":"GetFieldLevelEncryptionConfigResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"}
+      ],
+      "documentation":"<p>Get the field-level encryption configuration information.</p>"
+    },
+    "GetFieldLevelEncryptionProfile":{
+      "name":"GetFieldLevelEncryptionProfile2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}"
+      },
+      "input":{"shape":"GetFieldLevelEncryptionProfileRequest"},
+      "output":{"shape":"GetFieldLevelEncryptionProfileResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchFieldLevelEncryptionProfile"}
+      ],
+      "documentation":"<p>Get the field-level encryption profile information.</p>"
+    },
+    "GetFieldLevelEncryptionProfileConfig":{
+      "name":"GetFieldLevelEncryptionProfileConfig2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}/config"
+      },
+      "input":{"shape":"GetFieldLevelEncryptionProfileConfigRequest"},
+      "output":{"shape":"GetFieldLevelEncryptionProfileConfigResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchFieldLevelEncryptionProfile"}
+      ],
+      "documentation":"<p>Get the field-level encryption profile configuration information.</p>"
+    },
+    "GetInvalidation":{
+      "name":"GetInvalidation2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/distribution/{DistributionId}/invalidation/{Id}"
       },
       "input":{"shape":"GetInvalidationRequest"},
       "output":{"shape":"GetInvalidationResult"},
@@ -345,11 +501,39 @@
       ],
       "documentation":"<p>Get the information about an invalidation. </p>"
     },
-    "GetStreamingDistribution":{
-      "name":"GetStreamingDistribution2017_03_25",
+    "GetPublicKey":{
+      "name":"GetPublicKey2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/streaming-distribution/{Id}"
+        "requestUri":"/2018-06-18/public-key/{Id}"
+      },
+      "input":{"shape":"GetPublicKeyRequest"},
+      "output":{"shape":"GetPublicKeyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchPublicKey"}
+      ],
+      "documentation":"<p>Get the public key information.</p>"
+    },
+    "GetPublicKeyConfig":{
+      "name":"GetPublicKeyConfig2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/public-key/{Id}/config"
+      },
+      "input":{"shape":"GetPublicKeyConfigRequest"},
+      "output":{"shape":"GetPublicKeyConfigResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"NoSuchPublicKey"}
+      ],
+      "documentation":"<p>Return public key configuration informaation</p>"
+    },
+    "GetStreamingDistribution":{
+      "name":"GetStreamingDistribution2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/streaming-distribution/{Id}"
       },
       "input":{"shape":"GetStreamingDistributionRequest"},
       "output":{"shape":"GetStreamingDistributionResult"},
@@ -360,10 +544,10 @@
       "documentation":"<p>Gets information about a specified RTMP distribution, including the distribution configuration.</p>"
     },
     "GetStreamingDistributionConfig":{
-      "name":"GetStreamingDistributionConfig2017_03_25",
+      "name":"GetStreamingDistributionConfig2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/streaming-distribution/{Id}/config"
+        "requestUri":"/2018-06-18/streaming-distribution/{Id}/config"
       },
       "input":{"shape":"GetStreamingDistributionConfigRequest"},
       "output":{"shape":"GetStreamingDistributionConfigResult"},
@@ -374,10 +558,10 @@
       "documentation":"<p>Get the configuration information about a streaming distribution. </p>"
     },
     "ListCloudFrontOriginAccessIdentities":{
-      "name":"ListCloudFrontOriginAccessIdentities2017_03_25",
+      "name":"ListCloudFrontOriginAccessIdentities2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/origin-access-identity/cloudfront"
+        "requestUri":"/2018-06-18/origin-access-identity/cloudfront"
       },
       "input":{"shape":"ListCloudFrontOriginAccessIdentitiesRequest"},
       "output":{"shape":"ListCloudFrontOriginAccessIdentitiesResult"},
@@ -387,10 +571,10 @@
       "documentation":"<p>Lists origin access identities.</p>"
     },
     "ListDistributions":{
-      "name":"ListDistributions2017_03_25",
+      "name":"ListDistributions2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/distribution"
+        "requestUri":"/2018-06-18/distribution"
       },
       "input":{"shape":"ListDistributionsRequest"},
       "output":{"shape":"ListDistributionsResult"},
@@ -400,10 +584,10 @@
       "documentation":"<p>List distributions. </p>"
     },
     "ListDistributionsByWebACLId":{
-      "name":"ListDistributionsByWebACLId2017_03_25",
+      "name":"ListDistributionsByWebACLId2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/distributionsByWebACLId/{WebACLId}"
+        "requestUri":"/2018-06-18/distributionsByWebACLId/{WebACLId}"
       },
       "input":{"shape":"ListDistributionsByWebACLIdRequest"},
       "output":{"shape":"ListDistributionsByWebACLIdResult"},
@@ -413,11 +597,37 @@
       ],
       "documentation":"<p>List the distributions that are associated with a specified AWS WAF web ACL. </p>"
     },
-    "ListInvalidations":{
-      "name":"ListInvalidations2017_03_25",
+    "ListFieldLevelEncryptionConfigs":{
+      "name":"ListFieldLevelEncryptionConfigs2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/distribution/{DistributionId}/invalidation"
+        "requestUri":"/2018-06-18/field-level-encryption"
+      },
+      "input":{"shape":"ListFieldLevelEncryptionConfigsRequest"},
+      "output":{"shape":"ListFieldLevelEncryptionConfigsResult"},
+      "errors":[
+        {"shape":"InvalidArgument"}
+      ],
+      "documentation":"<p>List all field-level encryption configurations that have been created in CloudFront for this account.</p>"
+    },
+    "ListFieldLevelEncryptionProfiles":{
+      "name":"ListFieldLevelEncryptionProfiles2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/field-level-encryption-profile"
+      },
+      "input":{"shape":"ListFieldLevelEncryptionProfilesRequest"},
+      "output":{"shape":"ListFieldLevelEncryptionProfilesResult"},
+      "errors":[
+        {"shape":"InvalidArgument"}
+      ],
+      "documentation":"<p>Request a list of field-level encryption profiles that have been created in CloudFront for this account.</p>"
+    },
+    "ListInvalidations":{
+      "name":"ListInvalidations2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/distribution/{DistributionId}/invalidation"
       },
       "input":{"shape":"ListInvalidationsRequest"},
       "output":{"shape":"ListInvalidationsResult"},
@@ -428,11 +638,24 @@
       ],
       "documentation":"<p>Lists invalidation batches. </p>"
     },
-    "ListStreamingDistributions":{
-      "name":"ListStreamingDistributions2017_03_25",
+    "ListPublicKeys":{
+      "name":"ListPublicKeys2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/streaming-distribution"
+        "requestUri":"/2018-06-18/public-key"
+      },
+      "input":{"shape":"ListPublicKeysRequest"},
+      "output":{"shape":"ListPublicKeysResult"},
+      "errors":[
+        {"shape":"InvalidArgument"}
+      ],
+      "documentation":"<p>List all public keys that have been added to CloudFront for this account.</p>"
+    },
+    "ListStreamingDistributions":{
+      "name":"ListStreamingDistributions2018_06_18",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2018-06-18/streaming-distribution"
       },
       "input":{"shape":"ListStreamingDistributionsRequest"},
       "output":{"shape":"ListStreamingDistributionsResult"},
@@ -442,10 +665,10 @@
       "documentation":"<p>List streaming distributions. </p>"
     },
     "ListTagsForResource":{
-      "name":"ListTagsForResource2017_03_25",
+      "name":"ListTagsForResource2018_06_18",
       "http":{
         "method":"GET",
-        "requestUri":"/2017-03-25/tagging"
+        "requestUri":"/2018-06-18/tagging"
       },
       "input":{"shape":"ListTagsForResourceRequest"},
       "output":{"shape":"ListTagsForResourceResult"},
@@ -458,10 +681,10 @@
       "documentation":"<p>List tags for a CloudFront resource.</p>"
     },
     "TagResource":{
-      "name":"TagResource2017_03_25",
+      "name":"TagResource2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/tagging?Operation=Tag",
+        "requestUri":"/2018-06-18/tagging?Operation=Tag",
         "responseCode":204
       },
       "input":{"shape":"TagResourceRequest"},
@@ -474,10 +697,10 @@
       "documentation":"<p>Add tags to a CloudFront resource.</p>"
     },
     "UntagResource":{
-      "name":"UntagResource2017_03_25",
+      "name":"UntagResource2018_06_18",
       "http":{
         "method":"POST",
-        "requestUri":"/2017-03-25/tagging?Operation=Untag",
+        "requestUri":"/2018-06-18/tagging?Operation=Untag",
         "responseCode":204
       },
       "input":{"shape":"UntagResourceRequest"},
@@ -490,10 +713,10 @@
       "documentation":"<p>Remove tags from a CloudFront resource.</p>"
     },
     "UpdateCloudFrontOriginAccessIdentity":{
-      "name":"UpdateCloudFrontOriginAccessIdentity2017_03_25",
+      "name":"UpdateCloudFrontOriginAccessIdentity2018_06_18",
       "http":{
         "method":"PUT",
-        "requestUri":"/2017-03-25/origin-access-identity/cloudfront/{Id}/config"
+        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}/config"
       },
       "input":{"shape":"UpdateCloudFrontOriginAccessIdentityRequest"},
       "output":{"shape":"UpdateCloudFrontOriginAccessIdentityResult"},
@@ -510,10 +733,10 @@
       "documentation":"<p>Update an origin access identity. </p>"
     },
     "UpdateDistribution":{
-      "name":"UpdateDistribution2017_03_25",
+      "name":"UpdateDistribution2018_06_18",
       "http":{
         "method":"PUT",
-        "requestUri":"/2017-03-25/distribution/{Id}/config"
+        "requestUri":"/2018-06-18/distribution/{Id}/config"
       },
       "input":{"shape":"UpdateDistributionRequest"},
       "output":{"shape":"UpdateDistributionResult"},
@@ -557,15 +780,84 @@
         {"shape":"TooManyLambdaFunctionAssociations"},
         {"shape":"InvalidLambdaFunctionAssociation"},
         {"shape":"InvalidOriginReadTimeout"},
-        {"shape":"InvalidOriginKeepaliveTimeout"}
+        {"shape":"InvalidOriginKeepaliveTimeout"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"},
+        {"shape":"IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior"},
+        {"shape":"TooManyDistributionsAssociatedToFieldLevelEncryptionConfig"}
       ],
-      "documentation":"<p>Updates the configuration for a web distribution. Perform the following steps.</p> <p>For information about updating a distribution using the CloudFront console, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-creating-console.html\">Creating or Updating a Web Distribution Using the CloudFront Console </a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p> <b>To update a web distribution using the CloudFront API</b> </p> <ol> <li> <p>Submit a <a>GetDistributionConfig</a> request to get the current configuration and an <code>Etag</code> header for the distribution.</p> <note> <p>If you update the distribution again, you need to get a new <code>Etag</code> header.</p> </note> </li> <li> <p>Update the XML document that was returned in the response to your <code>GetDistributionConfig</code> request to include the desired changes. You can't change the value of <code>CallerReference</code>. If you try to change this value, CloudFront returns an <code>IllegalUpdate</code> error.</p> <important> <p>The new configuration replaces the existing configuration; the values that you specify in an <code>UpdateDistribution</code> request are not merged into the existing configuration. When you add, delete, or replace values in an element that allows multiple values (for example, <code>CNAME</code>), you must specify all of the values that you want to appear in the updated distribution. In addition, you must update the corresponding <code>Quantity</code> element.</p> </important> </li> <li> <p>Submit an <code>UpdateDistribution</code> request to update the configuration for your distribution:</p> <ul> <li> <p>In the request body, include the XML document that you updated in Step 2. The request body must include an XML document with a <code>DistributionConfig</code> element.</p> </li> <li> <p>Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GetDistributionConfig</code> request in Step 1.</p> </li> </ul> </li> <li> <p>Review the response to the <code>UpdateDistribution</code> request to confirm that the configuration was successfully updated.</p> </li> <li> <p>Optional: Submit a <a>GetDistribution</a> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> <important> <p>Beginning with the 2012-05-05 version of the CloudFront API, we made substantial changes to the format of the XML document that you include in the request body when you create or update a distribution. With previous versions of the API, we discovered that it was too easy to accidentally delete one or more values for an element that accepts multiple values, for example, CNAMEs and trusted signers. Our changes for the 2012-05-05 release are intended to prevent these accidental deletions and to notify you when there's a mismatch between the number of values you say you're specifying in the <code>Quantity</code> element and the number of values you're actually specifying.</p> </important> </li> </ol>"
+      "documentation":"<p>Updates the configuration for a web distribution. </p> <important> <p>When you update a distribution, there are more required fields than when you create a distribution. When you update your distribution by using this API action, follow the steps here to get the current configuration and then make your updates, to make sure that you include all of the required fields. To view a summary, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview-required-fields.html\">Required Fields for Create Distribution and Update Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </important> <p>The update process includes getting the current distribution configuration, updating the XML document that is returned to make your changes, and then submitting an <code>UpdateDistribution</code> request to make the updates.</p> <p>For information about updating a distribution using the CloudFront console instead, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-creating-console.html\">Creating a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p> <b>To update a web distribution using the CloudFront API</b> </p> <ol> <li> <p>Submit a <a>GetDistributionConfig</a> request to get the current configuration and an <code>Etag</code> header for the distribution.</p> <note> <p>If you update the distribution again, you must get a new <code>Etag</code> header.</p> </note> </li> <li> <p>Update the XML document that was returned in the response to your <code>GetDistributionConfig</code> request to include your changes. </p> <important> <p>When you edit the XML file, be aware of the following:</p> <ul> <li> <p>You must strip out the ETag parameter that is returned.</p> </li> <li> <p>Additional fields are required when you update a distribution. There may be fields included in the XML file for features that you haven't configured for your distribution. This is expected and required to successfully update the distribution.</p> </li> <li> <p>You can't change the value of <code>CallerReference</code>. If you try to change this value, CloudFront returns an <code>IllegalUpdate</code> error. </p> </li> <li> <p>The new configuration replaces the existing configuration; the values that you specify in an <code>UpdateDistribution</code> request are not merged into your existing configuration. When you add, delete, or replace values in an element that allows multiple values (for example, <code>CNAME</code>), you must specify all of the values that you want to appear in the updated distribution. In addition, you must update the corresponding <code>Quantity</code> element.</p> </li> </ul> </important> </li> <li> <p>Submit an <code>UpdateDistribution</code> request to update the configuration for your distribution:</p> <ul> <li> <p>In the request body, include the XML document that you updated in Step 2. The request body must include an XML document with a <code>DistributionConfig</code> element.</p> </li> <li> <p>Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GetDistributionConfig</code> request in Step 1.</p> </li> </ul> </li> <li> <p>Review the response to the <code>UpdateDistribution</code> request to confirm that the configuration was successfully updated.</p> </li> <li> <p>Optional: Submit a <a>GetDistribution</a> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> </ol>"
     },
-    "UpdateStreamingDistribution":{
-      "name":"UpdateStreamingDistribution2017_03_25",
+    "UpdateFieldLevelEncryptionConfig":{
+      "name":"UpdateFieldLevelEncryptionConfig2018_06_18",
       "http":{
         "method":"PUT",
-        "requestUri":"/2017-03-25/streaming-distribution/{Id}/config"
+        "requestUri":"/2018-06-18/field-level-encryption/{Id}/config"
+      },
+      "input":{"shape":"UpdateFieldLevelEncryptionConfigRequest"},
+      "output":{"shape":"UpdateFieldLevelEncryptionConfigResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"IllegalUpdate"},
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchFieldLevelEncryptionProfile"},
+        {"shape":"NoSuchFieldLevelEncryptionConfig"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"TooManyFieldLevelEncryptionQueryArgProfiles"},
+        {"shape":"TooManyFieldLevelEncryptionContentTypeProfiles"},
+        {"shape":"QueryArgProfileEmpty"}
+      ],
+      "documentation":"<p>Update a field-level encryption configuration. </p>"
+    },
+    "UpdateFieldLevelEncryptionProfile":{
+      "name":"UpdateFieldLevelEncryptionProfile2018_06_18",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}/config"
+      },
+      "input":{"shape":"UpdateFieldLevelEncryptionProfileRequest"},
+      "output":{"shape":"UpdateFieldLevelEncryptionProfileResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"FieldLevelEncryptionProfileAlreadyExists"},
+        {"shape":"IllegalUpdate"},
+        {"shape":"InconsistentQuantities"},
+        {"shape":"InvalidArgument"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"NoSuchPublicKey"},
+        {"shape":"NoSuchFieldLevelEncryptionProfile"},
+        {"shape":"PreconditionFailed"},
+        {"shape":"FieldLevelEncryptionProfileSizeExceeded"},
+        {"shape":"TooManyFieldLevelEncryptionEncryptionEntities"},
+        {"shape":"TooManyFieldLevelEncryptionFieldPatterns"}
+      ],
+      "documentation":"<p>Update a field-level encryption profile. </p>"
+    },
+    "UpdatePublicKey":{
+      "name":"UpdatePublicKey2018_06_18",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2018-06-18/public-key/{Id}/config"
+      },
+      "input":{"shape":"UpdatePublicKeyRequest"},
+      "output":{"shape":"UpdatePublicKeyResult"},
+      "errors":[
+        {"shape":"AccessDenied"},
+        {"shape":"CannotChangeImmutablePublicKeyFields"},
+        {"shape":"InvalidArgument"},
+        {"shape":"InvalidIfMatchVersion"},
+        {"shape":"IllegalUpdate"},
+        {"shape":"NoSuchPublicKey"},
+        {"shape":"PreconditionFailed"}
+      ],
+      "documentation":"<p>Update public key information. Note that the only value you can change is the comment.</p>"
+    },
+    "UpdateStreamingDistribution":{
+      "name":"UpdateStreamingDistribution2018_06_18",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2018-06-18/streaming-distribution/{Id}/config"
       },
       "input":{"shape":"UpdateStreamingDistributionRequest"},
       "output":{"shape":"UpdateStreamingDistributionResult"},
@@ -700,7 +992,7 @@
         },
         "TargetOriginId":{
           "shape":"string",
-          "documentation":"<p>The value of <code>ID</code> for the origin that you want CloudFront to route requests to when a request matches the path pattern either for a cache behavior or for the default cache behavior.</p>"
+          "documentation":"<p>The value of <code>ID</code> for the origin that you want CloudFront to route requests to when a request matches the path pattern either for a cache behavior or for the default cache behavior in your distribution.</p>"
         },
         "ForwardedValues":{
           "shape":"ForwardedValues",
@@ -738,6 +1030,10 @@
         "LambdaFunctionAssociations":{
           "shape":"LambdaFunctionAssociations",
           "documentation":"<p>A complex type that contains zero or more Lambda function associations for a cache behavior.</p>"
+        },
+        "FieldLevelEncryptionId":{
+          "shape":"string",
+          "documentation":"<p>The value of <code>ID</code> for the field-level encryption configuration that you want CloudFront to use for encrypting specific fields of data for a cache behavior or for the default cache behavior in your distribution.</p>"
         }
       },
       "documentation":"<p>A complex type that describes how CloudFront processes requests.</p> <p>You must create at least as many cache behaviors (including the default cache behavior) as you have origins if you want CloudFront to distribute objects from all of the origins. Each cache behavior specifies the one origin from which you want CloudFront to get objects. If you have two origins and only the default cache behavior, the default cache behavior will cause CloudFront to get objects from one of the origins, but the other origin is never used.</p> <p>For the current limit on the number of cache behaviors that you can add to a distribution, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html#limits_cloudfront\">Amazon CloudFront Limits</a> in the <i>AWS General Reference</i>.</p> <p>If you don't want to specify any cache behaviors, include only an empty <code>CacheBehaviors</code> element. Don't include an empty <code>CacheBehavior</code> element, or CloudFront returns a <code>MalformedXML</code> error.</p> <p>To delete all cache behaviors in an existing distribution, update the distribution configuration and include only an empty <code>CacheBehaviors</code> element.</p> <p>To add, change, or remove one or more cache behaviors, update the distribution configuration and specify all of the cache behaviors that you want to include in the updated distribution.</p> <p>For more information about cache behaviors, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesCacheBehavior\">Cache Behaviors</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
@@ -781,6 +1077,15 @@
         }
       },
       "documentation":"<p>A complex type that controls whether CloudFront caches the response to requests using the specified HTTP methods. There are two choices:</p> <ul> <li> <p>CloudFront caches responses to <code>GET</code> and <code>HEAD</code> requests.</p> </li> <li> <p>CloudFront caches responses to <code>GET</code>, <code>HEAD</code>, and <code>OPTIONS</code> requests.</p> </li> </ul> <p>If you pick the second choice for your Amazon S3 Origin, you may need to forward Access-Control-Request-Method, Access-Control-Request-Headers, and Origin headers for the responses to be cached correctly. </p>"
+    },
+    "CannotChangeImmutablePublicKeyFields":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>You can't change the value of a public key.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
     },
     "CertificateSource":{
       "type":"string",
@@ -913,6 +1218,65 @@
         "locationName":"CloudFrontOriginAccessIdentitySummary"
       }
     },
+    "ContentTypeProfile":{
+      "type":"structure",
+      "required":[
+        "Format",
+        "ContentType"
+      ],
+      "members":{
+        "Format":{
+          "shape":"Format",
+          "documentation":"<p>The format for a field-level encryption content type-profile mapping. </p>"
+        },
+        "ProfileId":{
+          "shape":"string",
+          "documentation":"<p>The profile ID for a field-level encryption content type-profile mapping. </p>"
+        },
+        "ContentType":{
+          "shape":"string",
+          "documentation":"<p>The content type for a field-level encryption content type-profile mapping. </p>"
+        }
+      },
+      "documentation":"<p>A field-level encryption content type profile. </p>"
+    },
+    "ContentTypeProfileConfig":{
+      "type":"structure",
+      "required":["ForwardWhenContentTypeIsUnknown"],
+      "members":{
+        "ForwardWhenContentTypeIsUnknown":{
+          "shape":"boolean",
+          "documentation":"<p>The setting in a field-level encryption content type-profile mapping that specifies what to do when an unknown content type is provided for the profile. If true, content is forwarded without being encrypted when the content type is unknown. If false (the default), an error is returned when the content type is unknown. </p>"
+        },
+        "ContentTypeProfiles":{
+          "shape":"ContentTypeProfiles",
+          "documentation":"<p>The configuration for a field-level encryption content type-profile. </p>"
+        }
+      },
+      "documentation":"<p>The configuration for a field-level encryption content type-profile mapping. </p>"
+    },
+    "ContentTypeProfileList":{
+      "type":"list",
+      "member":{
+        "shape":"ContentTypeProfile",
+        "locationName":"ContentTypeProfile"
+      }
+    },
+    "ContentTypeProfiles":{
+      "type":"structure",
+      "required":["Quantity"],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of field-level encryption content type-profile mappings. </p>"
+        },
+        "Items":{
+          "shape":"ContentTypeProfileList",
+          "documentation":"<p>Items in a field-level encryption content type-profile mapping. </p>"
+        }
+      },
+      "documentation":"<p>Field-level encryption content type-profile. </p>"
+    },
     "CookieNameList":{
       "type":"list",
       "member":{
@@ -958,7 +1322,7 @@
           "shape":"CloudFrontOriginAccessIdentityConfig",
           "documentation":"<p>The current configuration information for the identity.</p>",
           "locationName":"CloudFrontOriginAccessIdentityConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p>The request to create a new origin access identity.</p>",
@@ -995,7 +1359,7 @@
           "shape":"DistributionConfig",
           "documentation":"<p>The distribution's configuration information.</p>",
           "locationName":"DistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p>The request to create a new distribution.</p>",
@@ -1032,7 +1396,7 @@
           "shape":"DistributionConfigWithTags",
           "documentation":"<p>The distribution's configuration information. </p>",
           "locationName":"DistributionConfigWithTags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p>The request to create a new distribution with tags. </p>",
@@ -1061,6 +1425,76 @@
       "documentation":"<p>The returned result of the corresponding request. </p>",
       "payload":"Distribution"
     },
+    "CreateFieldLevelEncryptionConfigRequest":{
+      "type":"structure",
+      "required":["FieldLevelEncryptionConfig"],
+      "members":{
+        "FieldLevelEncryptionConfig":{
+          "shape":"FieldLevelEncryptionConfig",
+          "documentation":"<p>The request to create a new field-level encryption configuration.</p>",
+          "locationName":"FieldLevelEncryptionConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+        }
+      },
+      "payload":"FieldLevelEncryptionConfig"
+    },
+    "CreateFieldLevelEncryptionConfigResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryption":{
+          "shape":"FieldLevelEncryption",
+          "documentation":"<p>Returned when you create a new field-level encryption configuration.</p>"
+        },
+        "Location":{
+          "shape":"string",
+          "documentation":"<p>The fully qualified URI of the new configuration resource just created. For example: <code>https://cloudfront.amazonaws.com/2010-11-01/field-level-encryption-config/EDFDVBD632BHDS5</code>.</p>",
+          "location":"header",
+          "locationName":"Location"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the field level encryption configuration. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryption"
+    },
+    "CreateFieldLevelEncryptionProfileRequest":{
+      "type":"structure",
+      "required":["FieldLevelEncryptionProfileConfig"],
+      "members":{
+        "FieldLevelEncryptionProfileConfig":{
+          "shape":"FieldLevelEncryptionProfileConfig",
+          "documentation":"<p>The request to create a field-level encryption profile.</p>",
+          "locationName":"FieldLevelEncryptionProfileConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+        }
+      },
+      "payload":"FieldLevelEncryptionProfileConfig"
+    },
+    "CreateFieldLevelEncryptionProfileResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionProfile":{
+          "shape":"FieldLevelEncryptionProfile",
+          "documentation":"<p>Returned when you create a new field-level encryption profile.</p>"
+        },
+        "Location":{
+          "shape":"string",
+          "documentation":"<p>The fully qualified URI of the new profile resource just created. For example: <code>https://cloudfront.amazonaws.com/2010-11-01/field-level-encryption-profile/EDFDVBD632BHDS5</code>.</p>",
+          "location":"header",
+          "locationName":"Location"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the field level encryption profile. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryptionProfile"
+    },
     "CreateInvalidationRequest":{
       "type":"structure",
       "required":[
@@ -1078,7 +1512,7 @@
           "shape":"InvalidationBatch",
           "documentation":"<p>The batch information for the invalidation.</p>",
           "locationName":"InvalidationBatch",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p>The request to create an invalidation.</p>",
@@ -1101,6 +1535,41 @@
       "documentation":"<p>The returned result of the corresponding request.</p>",
       "payload":"Invalidation"
     },
+    "CreatePublicKeyRequest":{
+      "type":"structure",
+      "required":["PublicKeyConfig"],
+      "members":{
+        "PublicKeyConfig":{
+          "shape":"PublicKeyConfig",
+          "documentation":"<p>The request to add a public key to CloudFront.</p>",
+          "locationName":"PublicKeyConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+        }
+      },
+      "payload":"PublicKeyConfig"
+    },
+    "CreatePublicKeyResult":{
+      "type":"structure",
+      "members":{
+        "PublicKey":{
+          "shape":"PublicKey",
+          "documentation":"<p>Returned when you add a public key.</p>"
+        },
+        "Location":{
+          "shape":"string",
+          "documentation":"<p>The fully qualified URI of the new public key resource just created. For example: <code>https://cloudfront.amazonaws.com/2010-11-01/cloudfront-public-key/EDFDVBD632BHDS5</code>.</p>",
+          "location":"header",
+          "locationName":"Location"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the public key. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"PublicKey"
+    },
     "CreateStreamingDistributionRequest":{
       "type":"structure",
       "required":["StreamingDistributionConfig"],
@@ -1109,7 +1578,7 @@
           "shape":"StreamingDistributionConfig",
           "documentation":"<p>The streaming distribution's configuration information.</p>",
           "locationName":"StreamingDistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p>The request to create a new streaming distribution.</p>",
@@ -1146,7 +1615,7 @@
           "shape":"StreamingDistributionConfigWithTags",
           "documentation":"<p> The streaming distribution's configuration information. </p>",
           "locationName":"StreamingDistributionConfigWithTags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p>The request to create a new streaming distribution with tags.</p>",
@@ -1267,7 +1736,7 @@
           "documentation":"<p>You can create a custom keep-alive timeout. All timeout units are in seconds. The default keep-alive timeout is 5 seconds, but you can configure custom timeout lengths using the CloudFront API. The minimum timeout length is 1 second; the maximum is 60 seconds.</p> <p>If you need to increase the maximum time limit, contact the <a href=\"https://console.aws.amazon.com/support/home#/\">AWS Support Center</a>.</p>"
         }
       },
-      "documentation":"<p>A customer origin.</p>"
+      "documentation":"<p>A customer origin or an Amazon S3 bucket configured as a website endpoint.</p>"
     },
     "DefaultCacheBehavior":{
       "type":"structure",
@@ -1281,7 +1750,7 @@
       "members":{
         "TargetOriginId":{
           "shape":"string",
-          "documentation":"<p>The value of <code>ID</code> for the origin that you want CloudFront to route requests to when a request matches the path pattern either for a cache behavior or for the default cache behavior.</p>"
+          "documentation":"<p>The value of <code>ID</code> for the origin that you want CloudFront to route requests to when a request matches the path pattern either for a cache behavior or for the default cache behavior in your distribution.</p>"
         },
         "ForwardedValues":{
           "shape":"ForwardedValues",
@@ -1316,6 +1785,10 @@
         "LambdaFunctionAssociations":{
           "shape":"LambdaFunctionAssociations",
           "documentation":"<p>A complex type that contains zero or more Lambda function associations for a cache behavior.</p>"
+        },
+        "FieldLevelEncryptionId":{
+          "shape":"string",
+          "documentation":"<p>The value of <code>ID</code> for the field-level encryption configuration that you want CloudFront to use for encrypting specific fields of data for a cache behavior or for the default cache behavior in your distribution.</p>"
         }
       },
       "documentation":"<p>A complex type that describes the default cache behavior if you don't specify a <code>CacheBehavior</code> element or if files don't match any of the values of <code>PathPattern</code> in <code>CacheBehavior</code> elements. You must create exactly one default cache behavior.</p>"
@@ -1358,14 +1831,57 @@
       },
       "documentation":"<p>This action deletes a web distribution. To delete a web distribution using the CloudFront API, perform the following steps.</p> <p> <b>To delete a web distribution using the CloudFront API:</b> </p> <ol> <li> <p>Disable the web distribution </p> </li> <li> <p>Submit a <code>GET Distribution Config</code> request to get the current configuration and the <code>Etag</code> header for the distribution.</p> </li> <li> <p>Update the XML document that was returned in the response to your <code>GET Distribution Config</code> request to change the value of <code>Enabled</code> to <code>false</code>.</p> </li> <li> <p>Submit a <code>PUT Distribution Config</code> request to update the configuration for your distribution. In the request body, include the XML document that you updated in Step 3. Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to the <code>PUT Distribution Config</code> request to confirm that the distribution was successfully disabled.</p> </li> <li> <p>Submit a <code>GET Distribution</code> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> <li> <p>Submit a <code>DELETE Distribution</code> request. Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Distribution Config</code> request in Step 6.</p> </li> <li> <p>Review the response to your <code>DELETE Distribution</code> request to confirm that the distribution was successfully deleted.</p> </li> </ol> <p>For information about deleting a distribution using the CloudFront console, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowToDeleteDistribution.html\">Deleting a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
-    "DeleteServiceLinkedRoleRequest":{
+    "DeleteFieldLevelEncryptionConfigRequest":{
       "type":"structure",
-      "required":["RoleName"],
+      "required":["Id"],
       "members":{
-        "RoleName":{
+        "Id":{
           "shape":"string",
+          "documentation":"<p>The ID of the configuration you want to delete from CloudFront.</p>",
           "location":"uri",
-          "locationName":"RoleName"
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the configuration identity to delete. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      }
+    },
+    "DeleteFieldLevelEncryptionProfileRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Request the ID of the profile you want to delete from CloudFront.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the profile to delete. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      }
+    },
+    "DeletePublicKeyRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The ID of the public key you want to remove from CloudFront.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the public key identity to delete. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
         }
       }
     },
@@ -1493,11 +2009,11 @@
         },
         "PriceClass":{
           "shape":"PriceClass",
-          "documentation":"<p>The price class that corresponds with the maximum price that you want to pay for CloudFront service. If you specify <code>PriceClass_All</code>, CloudFront responds to requests for your objects from all CloudFront edge locations.</p> <p>If you specify a price class other than <code>PriceClass_All</code>, CloudFront serves your objects from the CloudFront edge location that has the lowest latency among the edge locations in your price class. Viewers who are in or near regions that are excluded from your specified price class may encounter slower performance.</p> <p>For more information about price classes, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html\">Choosing the Price Class for a CloudFront Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>. For information about CloudFront pricing, including how price classes map to CloudFront regions, see <a href=\"https://aws.amazon.com/cloudfront/pricing/\">Amazon CloudFront Pricing</a>.</p>"
+          "documentation":"<p>The price class that corresponds with the maximum price that you want to pay for CloudFront service. If you specify <code>PriceClass_All</code>, CloudFront responds to requests for your objects from all CloudFront edge locations.</p> <p>If you specify a price class other than <code>PriceClass_All</code>, CloudFront serves your objects from the CloudFront edge location that has the lowest latency among the edge locations in your price class. Viewers who are in or near regions that are excluded from your specified price class may encounter slower performance.</p> <p>For more information about price classes, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html\">Choosing the Price Class for a CloudFront Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>. For information about CloudFront pricing, including how price classes (such as Price Class 100) map to CloudFront regions, see <a href=\"https://aws.amazon.com/cloudfront/pricing/\">Amazon CloudFront Pricing</a>. For price class information, scroll down to see the table at the bottom of the page.</p>"
         },
         "Enabled":{
           "shape":"boolean",
-          "documentation":"<p>From this field, you can enable or disable the selected distribution.</p> <p>If you specify <code>false</code> for <code>Enabled</code> but you specify values for <code>Bucket</code> and <code>Prefix</code>, the values are automatically deleted.</p>"
+          "documentation":"<p>From this field, you can enable or disable the selected distribution.</p>"
         },
         "ViewerCertificate":{"shape":"ViewerCertificate"},
         "Restrictions":{"shape":"Restrictions"},
@@ -1674,6 +2190,51 @@
         "locationName":"DistributionSummary"
       }
     },
+    "EncryptionEntities":{
+      "type":"structure",
+      "required":["Quantity"],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>Number of field pattern items in a field-level encryption content type-profile mapping. </p>"
+        },
+        "Items":{
+          "shape":"EncryptionEntityList",
+          "documentation":"<p>An array of field patterns in a field-level encryption content type-profile mapping. </p>"
+        }
+      },
+      "documentation":"<p>Complex data type for field-level encryption profiles that includes all of the encryption entities. </p>"
+    },
+    "EncryptionEntity":{
+      "type":"structure",
+      "required":[
+        "PublicKeyId",
+        "ProviderId",
+        "FieldPatterns"
+      ],
+      "members":{
+        "PublicKeyId":{
+          "shape":"string",
+          "documentation":"<p>The public key associated with a set of field-level encryption patterns, to be used when encrypting the fields that match the patterns. </p>"
+        },
+        "ProviderId":{
+          "shape":"string",
+          "documentation":"<p>The provider associated with the public key being used for encryption. This value must also be provided with the private key for applications to be able to decrypt data.</p>"
+        },
+        "FieldPatterns":{
+          "shape":"FieldPatterns",
+          "documentation":"<p>Field patterns in a field-level encryption content type profile specify the fields that you want to be encrypted. You can provide the full field name, or any beginning characters followed by a wildcard (*). You can't overlap field patterns. For example, you can't have both ABC* and AB*. Note that field patterns are case-sensitive. </p>"
+        }
+      },
+      "documentation":"<p>Complex data type for field-level encryption profiles that includes the encryption key and field pattern specifications. </p>"
+    },
+    "EncryptionEntityList":{
+      "type":"list",
+      "member":{
+        "shape":"EncryptionEntity",
+        "locationName":"EncryptionEntity"
+      }
+    },
     "EventType":{
       "type":"string",
       "enum":[
@@ -1682,6 +2243,301 @@
         "origin-request",
         "origin-response"
       ]
+    },
+    "FieldLevelEncryption":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "LastModifiedTime",
+        "FieldLevelEncryptionConfig"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The configuration ID for a field-level encryption configuration which includes a set of profiles that specify certain selected data fields to be encrypted by specific public keys.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The last time the field-level encryption configuration was changed. </p>"
+        },
+        "FieldLevelEncryptionConfig":{
+          "shape":"FieldLevelEncryptionConfig",
+          "documentation":"<p>A complex data type that includes the profile configurations specified for field-level encryption. </p>"
+        }
+      },
+      "documentation":"<p>A complex data type that includes the profile configurations and other options specified for field-level encryption. </p>"
+    },
+    "FieldLevelEncryptionConfig":{
+      "type":"structure",
+      "required":["CallerReference"],
+      "members":{
+        "CallerReference":{
+          "shape":"string",
+          "documentation":"<p>A unique number that ensures the request can't be replayed.</p>"
+        },
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>An optional comment about the configuration.</p>"
+        },
+        "QueryArgProfileConfig":{
+          "shape":"QueryArgProfileConfig",
+          "documentation":"<p>A complex data type that specifies when to forward content if a profile isn't found and the profile that can be provided as a query argument in a request.</p>"
+        },
+        "ContentTypeProfileConfig":{
+          "shape":"ContentTypeProfileConfig",
+          "documentation":"<p>A complex data type that specifies when to forward content if a content type isn't recognized and profiles to use as by default in a request if a query argument doesn't specify a profile to use.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type that includes the profile configurations specified for field-level encryption. </p>"
+    },
+    "FieldLevelEncryptionConfigAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified configuration for field-level encryption already exists.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "FieldLevelEncryptionConfigInUse":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified configuration for field-level encryption is in use.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "FieldLevelEncryptionList":{
+      "type":"structure",
+      "required":[
+        "MaxItems",
+        "Quantity"
+      ],
+      "members":{
+        "NextMarker":{
+          "shape":"string",
+          "documentation":"<p>If there are more elements to be listed, this element is present and contains the value that you can use for the <code>Marker</code> request parameter to continue listing your configurations where you left off.</p>"
+        },
+        "MaxItems":{
+          "shape":"integer",
+          "documentation":"<p>The maximum number of elements you want in the response body. </p>"
+        },
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of field-level encryption items.</p>"
+        },
+        "Items":{
+          "shape":"FieldLevelEncryptionSummaryList",
+          "documentation":"<p>An array of field-level encryption items.</p>"
+        }
+      },
+      "documentation":"<p>List of field-level encrpytion configurations.</p>"
+    },
+    "FieldLevelEncryptionProfile":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "LastModifiedTime",
+        "FieldLevelEncryptionProfileConfig"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The ID for a field-level encryption profile configuration which includes a set of profiles that specify certain selected data fields to be encrypted by specific public keys.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The last time the field-level encryption profile was updated.</p>"
+        },
+        "FieldLevelEncryptionProfileConfig":{
+          "shape":"FieldLevelEncryptionProfileConfig",
+          "documentation":"<p>A complex data type that includes the profile name and the encryption entities for the field-level encryption profile.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type for field-level encryption profiles.</p>"
+    },
+    "FieldLevelEncryptionProfileAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified profile for field-level encryption already exists.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "FieldLevelEncryptionProfileConfig":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "CallerReference",
+        "EncryptionEntities"
+      ],
+      "members":{
+        "Name":{
+          "shape":"string",
+          "documentation":"<p>Profile name for the field-level encryption profile.</p>"
+        },
+        "CallerReference":{
+          "shape":"string",
+          "documentation":"<p>A unique number that ensures the request can't be replayed.</p>"
+        },
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>An optional comment for the field-level encryption profile.</p>"
+        },
+        "EncryptionEntities":{
+          "shape":"EncryptionEntities",
+          "documentation":"<p>A complex data type of encryption entities for the field-level encryption profile that include the public key ID, provider, and field patterns for specifying which fields to encrypt with this key.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type of profiles for the field-level encryption.</p>"
+    },
+    "FieldLevelEncryptionProfileInUse":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified profile for field-level encryption is in use.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "FieldLevelEncryptionProfileList":{
+      "type":"structure",
+      "required":[
+        "MaxItems",
+        "Quantity"
+      ],
+      "members":{
+        "NextMarker":{
+          "shape":"string",
+          "documentation":"<p>If there are more elements to be listed, this element is present and contains the value that you can use for the <code>Marker</code> request parameter to continue listing your profiles where you left off.</p>"
+        },
+        "MaxItems":{
+          "shape":"integer",
+          "documentation":"<p>The maximum number of field-level encryption profiles you want in the response body. </p>"
+        },
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of field-level encryption profiles.</p>"
+        },
+        "Items":{
+          "shape":"FieldLevelEncryptionProfileSummaryList",
+          "documentation":"<p>The field-level encryption profile items.</p>"
+        }
+      },
+      "documentation":"<p>List of field-level encryption profiles.</p>"
+    },
+    "FieldLevelEncryptionProfileSizeExceeded":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum size of a profile for field-level encryption was exceeded.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "FieldLevelEncryptionProfileSummary":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "LastModifiedTime",
+        "Name",
+        "EncryptionEntities"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>ID for the field-level encryption profile summary.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The time when the the field-level encryption profile summary was last updated.</p>"
+        },
+        "Name":{
+          "shape":"string",
+          "documentation":"<p>Name for the field-level encryption profile summary.</p>"
+        },
+        "EncryptionEntities":{
+          "shape":"EncryptionEntities",
+          "documentation":"<p>A complex data type of encryption entities for the field-level encryption profile that include the public key ID, provider, and field patterns for specifying which fields to encrypt with this key.</p>"
+        },
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>An optional comment for the field-level encryption profile summary.</p>"
+        }
+      },
+      "documentation":"<p>The field-level encryption profile summary.</p>"
+    },
+    "FieldLevelEncryptionProfileSummaryList":{
+      "type":"list",
+      "member":{
+        "shape":"FieldLevelEncryptionProfileSummary",
+        "locationName":"FieldLevelEncryptionProfileSummary"
+      }
+    },
+    "FieldLevelEncryptionSummary":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "LastModifiedTime"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The unique ID of a field-level encryption item.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The last time that the summary of field-level encryption items was modified.</p>"
+        },
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>An optional comment about the field-level encryption item.</p>"
+        },
+        "QueryArgProfileConfig":{
+          "shape":"QueryArgProfileConfig",
+          "documentation":"<p> A summary of a query argument-profile mapping. </p>"
+        },
+        "ContentTypeProfileConfig":{
+          "shape":"ContentTypeProfileConfig",
+          "documentation":"<p> A summary of a content type-profile mapping. </p>"
+        }
+      },
+      "documentation":"<p>A summary of a field-level encryption item.</p>"
+    },
+    "FieldLevelEncryptionSummaryList":{
+      "type":"list",
+      "member":{
+        "shape":"FieldLevelEncryptionSummary",
+        "locationName":"FieldLevelEncryptionSummary"
+      }
+    },
+    "FieldPatternList":{
+      "type":"list",
+      "member":{
+        "shape":"string",
+        "locationName":"FieldPattern"
+      }
+    },
+    "FieldPatterns":{
+      "type":"structure",
+      "required":["Quantity"],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of field-level encryption field patterns.</p>"
+        },
+        "Items":{
+          "shape":"FieldPatternList",
+          "documentation":"<p>An array of the field-level encryption field patterns.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type that includes the field patterns to match for field-level encryption.</p>"
+    },
+    "Format":{
+      "type":"string",
+      "enum":["URLEncoded"]
     },
     "ForwardedValues":{
       "type":"structure",
@@ -1859,6 +2715,118 @@
       "documentation":"<p>The returned result of the corresponding request.</p>",
       "payload":"Distribution"
     },
+    "GetFieldLevelEncryptionConfigRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Request the ID for the field-level encryption configuration information.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetFieldLevelEncryptionConfigResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionConfig":{
+          "shape":"FieldLevelEncryptionConfig",
+          "documentation":"<p>Return the field-level encryption configuration information.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the field level encryption configuration. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryptionConfig"
+    },
+    "GetFieldLevelEncryptionProfileConfigRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Get the ID for the field-level encryption profile configuration information.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetFieldLevelEncryptionProfileConfigResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionProfileConfig":{
+          "shape":"FieldLevelEncryptionProfileConfig",
+          "documentation":"<p>Return the field-level encryption profile configuration information.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the field-level encryption profile configuration result. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryptionProfileConfig"
+    },
+    "GetFieldLevelEncryptionProfileRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Get the ID for the field-level encryption profile information.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetFieldLevelEncryptionProfileResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionProfile":{
+          "shape":"FieldLevelEncryptionProfile",
+          "documentation":"<p>Return the field-level encryption profile information.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the field level encryption profile. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryptionProfile"
+    },
+    "GetFieldLevelEncryptionRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Request the ID for the field-level encryption configuration information.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetFieldLevelEncryptionResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryption":{
+          "shape":"FieldLevelEncryption",
+          "documentation":"<p>Return the field-level encryption configuration information.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the field level encryption configuration. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryption"
+    },
     "GetInvalidationRequest":{
       "type":"structure",
       "required":[
@@ -1891,6 +2859,62 @@
       },
       "documentation":"<p>The returned result of the corresponding request.</p>",
       "payload":"Invalidation"
+    },
+    "GetPublicKeyConfigRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Request the ID for the public key configuration.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetPublicKeyConfigResult":{
+      "type":"structure",
+      "members":{
+        "PublicKeyConfig":{
+          "shape":"PublicKeyConfig",
+          "documentation":"<p>Return the result for the public key configuration.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the public key configuration. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"PublicKeyConfig"
+    },
+    "GetPublicKeyRequest":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>Request the ID for the public key.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        }
+      }
+    },
+    "GetPublicKeyResult":{
+      "type":"structure",
+      "members":{
+        "PublicKey":{
+          "shape":"PublicKey",
+          "documentation":"<p>Return the public key.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the public key. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"PublicKey"
     },
     "GetStreamingDistributionConfigRequest":{
       "type":"structure",
@@ -1980,6 +3004,15 @@
         "http1.1",
         "http2"
       ]
+    },
+    "IllegalFieldLevelEncryptionConfigAssociationWithCacheBehavior":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified configuration for field-level encryption can't be associated with the specified cache behavior.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
     },
     "IllegalUpdate":{
       "type":"structure",
@@ -2332,16 +3365,25 @@
       },
       "documentation":"<p>A complex type that lists the active CloudFront key pairs, if any, that are associated with <code>AwsAccountNumber</code>. </p> <p>For more information, see <a>ActiveTrustedSigners</a>.</p>"
     },
+    "LambdaFunctionARN":{"type":"string"},
     "LambdaFunctionAssociation":{
       "type":"structure",
+      "required":[
+        "LambdaFunctionARN",
+        "EventType"
+      ],
       "members":{
         "LambdaFunctionARN":{
-          "shape":"string",
+          "shape":"LambdaFunctionARN",
           "documentation":"<p>The ARN of the Lambda function. You must specify the ARN of a function version; you can't specify a Lambda alias or $LATEST.</p>"
         },
         "EventType":{
           "shape":"EventType",
           "documentation":"<p>Specifies the event type that triggers a Lambda function invocation. You can specify the following values:</p> <ul> <li> <p> <code>viewer-request</code>: The function executes when CloudFront receives a request from a viewer and before it checks to see whether the requested object is in the edge cache. </p> </li> <li> <p> <code>origin-request</code>: The function executes only when CloudFront forwards a request to your origin. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>origin-response</code>: The function executes after CloudFront receives a response from the origin and before it caches the object in the response. When the requested object is in the edge cache, the function doesn't execute.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> <li> <p> <code>viewer-response</code>: The function executes before CloudFront returns the requested object to the viewer. The function executes regardless of whether the object was already in the edge cache.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> </ul>"
+        },
+        "IncludeBody":{
+          "shape":"boolean",
+          "documentation":"<p>A flag that allows a Lambda function to have read access to the body content. For more information, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-include-body-access.html\">Accessing the Request Body by Choosing the Include Body Option</a> in the Amazon CloudFront Developer Guide.</p>"
         }
       },
       "documentation":"<p>A complex type that contains a Lambda function association.</p>"
@@ -2462,6 +3504,60 @@
       "documentation":"<p>The returned result of the corresponding request. </p>",
       "payload":"DistributionList"
     },
+    "ListFieldLevelEncryptionConfigsRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this when paginating results to indicate where to begin in your list of configurations. The results include configurations in the list that occur after the marker. To get the next page of results, set the <code>Marker</code> to the value of the <code>NextMarker</code> from the current page's response (which is also the ID of the last configuration on that page). </p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of field-level encryption configurations you want in the response body. </p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListFieldLevelEncryptionConfigsResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionList":{
+          "shape":"FieldLevelEncryptionList",
+          "documentation":"<p>Returns a list of all field-level encryption configurations that have been created in CloudFront for this account.</p>"
+        }
+      },
+      "payload":"FieldLevelEncryptionList"
+    },
+    "ListFieldLevelEncryptionProfilesRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this when paginating results to indicate where to begin in your list of profiles. The results include profiles in the list that occur after the marker. To get the next page of results, set the <code>Marker</code> to the value of the <code>NextMarker</code> from the current page's response (which is also the ID of the last profile on that page). </p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of field-level encryption profiles you want in the response body. </p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListFieldLevelEncryptionProfilesResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionProfileList":{
+          "shape":"FieldLevelEncryptionProfileList",
+          "documentation":"<p>Returns a list of the field-level encryption profiles that have been created in CloudFront for this account.</p>"
+        }
+      },
+      "payload":"FieldLevelEncryptionProfileList"
+    },
     "ListInvalidationsRequest":{
       "type":"structure",
       "required":["DistributionId"],
@@ -2497,6 +3593,33 @@
       },
       "documentation":"<p>The returned result of the corresponding request. </p>",
       "payload":"InvalidationList"
+    },
+    "ListPublicKeysRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"string",
+          "documentation":"<p>Use this when paginating results to indicate where to begin in your list of public keys. The results include public keys in the list that occur after the marker. To get the next page of results, set the <code>Marker</code> to the value of the <code>NextMarker</code> from the current page's response (which is also the ID of the last public key on that page). </p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"string",
+          "documentation":"<p>The maximum number of public keys you want in the response body. </p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListPublicKeysResult":{
+      "type":"structure",
+      "members":{
+        "PublicKeyList":{
+          "shape":"PublicKeyList",
+          "documentation":"<p>Returns a list of all public keys that have been added to CloudFront for this account.</p>"
+        }
+      },
+      "payload":"PublicKeyList"
     },
     "ListStreamingDistributionsRequest":{
       "type":"structure",
@@ -2643,6 +3766,24 @@
       "error":{"httpStatusCode":404},
       "exception":true
     },
+    "NoSuchFieldLevelEncryptionConfig":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified configuration for field-level encryption doesn't exist.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "NoSuchFieldLevelEncryptionProfile":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified profile for field-level encryption doesn't exist.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
     "NoSuchInvalidation":{
       "type":"structure",
       "members":{
@@ -2658,6 +3799,15 @@
         "Message":{"shape":"string"}
       },
       "documentation":"<p>No origin exists with the specified <code>Origin Id</code>. </p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "NoSuchPublicKey":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified public key doesn't exist.</p>",
       "error":{"httpStatusCode":404},
       "exception":true
     },
@@ -2691,7 +3841,7 @@
         },
         "DomainName":{
           "shape":"string",
-          "documentation":"<p> <b>Amazon S3 origins</b>: The DNS name of the Amazon S3 bucket from which you want CloudFront to get objects for this origin, for example, <code>myawsbucket.s3.amazonaws.com</code>.</p> <p>Constraints for Amazon S3 origins: </p> <ul> <li> <p>If you configured Amazon S3 Transfer Acceleration for your bucket, don't specify the <code>s3-accelerate</code> endpoint for <code>DomainName</code>.</p> </li> <li> <p>The bucket name must be between 3 and 63 characters long (inclusive).</p> </li> <li> <p>The bucket name must contain only lowercase characters, numbers, periods, underscores, and dashes.</p> </li> <li> <p>The bucket name must not contain adjacent periods.</p> </li> </ul> <p> <b>Custom Origins</b>: The DNS domain name for the HTTP server from which you want CloudFront to get objects for this origin, for example, <code>www.example.com</code>. </p> <p>Constraints for custom origins:</p> <ul> <li> <p> <code>DomainName</code> must be a valid DNS name that contains only a-z, A-Z, 0-9, dot (.), hyphen (-), or underscore (_) characters.</p> </li> <li> <p>The name cannot exceed 128 characters.</p> </li> </ul>"
+          "documentation":"<p> <b>Amazon S3 origins</b>: The DNS name of the Amazon S3 bucket from which you want CloudFront to get objects for this origin, for example, <code>myawsbucket.s3.amazonaws.com</code>. If you set up your bucket to be configured as a website endpoint, enter the Amazon S3 static website hosting endpoint for the bucket.</p> <p>Constraints for Amazon S3 origins: </p> <ul> <li> <p>If you configured Amazon S3 Transfer Acceleration for your bucket, don't specify the <code>s3-accelerate</code> endpoint for <code>DomainName</code>.</p> </li> <li> <p>The bucket name must be between 3 and 63 characters long (inclusive).</p> </li> <li> <p>The bucket name must contain only lowercase characters, numbers, periods, underscores, and dashes.</p> </li> <li> <p>The bucket name must not contain adjacent periods.</p> </li> </ul> <p> <b>Custom Origins</b>: The DNS domain name for the HTTP server from which you want CloudFront to get objects for this origin, for example, <code>www.example.com</code>. </p> <p>Constraints for custom origins:</p> <ul> <li> <p> <code>DomainName</code> must be a valid DNS name that contains only a-z, A-Z, 0-9, dot (.), hyphen (-), or underscore (_) characters.</p> </li> <li> <p>The name cannot exceed 128 characters.</p> </li> </ul>"
         },
         "OriginPath":{
           "shape":"string",
@@ -2825,6 +3975,203 @@
         "PriceClass_All"
       ]
     },
+    "PublicKey":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "CreatedTime",
+        "PublicKeyConfig"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>A unique ID assigned to a public key you've added to CloudFront.</p>"
+        },
+        "CreatedTime":{
+          "shape":"timestamp",
+          "documentation":"<p>A time you added a public key to CloudFront.</p>"
+        },
+        "PublicKeyConfig":{
+          "shape":"PublicKeyConfig",
+          "documentation":"<p>A complex data type for a public key you add to CloudFront to use with features like field-level encryption.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type of public keys you add to CloudFront to use with features like field-level encryption.</p>"
+    },
+    "PublicKeyAlreadyExists":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified public key already exists.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "PublicKeyConfig":{
+      "type":"structure",
+      "required":[
+        "CallerReference",
+        "Name",
+        "EncodedKey"
+      ],
+      "members":{
+        "CallerReference":{
+          "shape":"string",
+          "documentation":"<p>A unique number that ensures the request can't be replayed.</p>"
+        },
+        "Name":{
+          "shape":"string",
+          "documentation":"<p>The name for a public key you add to CloudFront to use with features like field-level encryption.</p>"
+        },
+        "EncodedKey":{
+          "shape":"string",
+          "documentation":"<p>The encoded public key that you want to add to CloudFront to use with features like field-level encryption.</p>"
+        },
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p>An optional comment about a public key.</p>"
+        }
+      },
+      "documentation":"<p>Information about a public key you add to CloudFront to use with features like field-level encryption.</p>"
+    },
+    "PublicKeyInUse":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The specified public key is in use. </p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "PublicKeyList":{
+      "type":"structure",
+      "required":[
+        "MaxItems",
+        "Quantity"
+      ],
+      "members":{
+        "NextMarker":{
+          "shape":"string",
+          "documentation":"<p>If there are more elements to be listed, this element is present and contains the value that you can use for the <code>Marker</code> request parameter to continue listing your public keys where you left off.</p>"
+        },
+        "MaxItems":{
+          "shape":"integer",
+          "documentation":"<p>The maximum number of public keys you want in the response body. </p>"
+        },
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of public keys you added to CloudFront to use with features like field-level encryption.</p>"
+        },
+        "Items":{
+          "shape":"PublicKeySummaryList",
+          "documentation":"<p>An array of information about a public key you add to CloudFront to use with features like field-level encryption.</p>"
+        }
+      },
+      "documentation":"<p>A list of public keys you've added to CloudFront to use with features like field-level encryption.</p>"
+    },
+    "PublicKeySummary":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "Name",
+        "CreatedTime",
+        "EncodedKey"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p> ID for public key information summary. </p>"
+        },
+        "Name":{
+          "shape":"string",
+          "documentation":"<p> Name for public key information summary. </p>"
+        },
+        "CreatedTime":{
+          "shape":"timestamp",
+          "documentation":"<p> Creation time for public key information summary. </p>"
+        },
+        "EncodedKey":{
+          "shape":"string",
+          "documentation":"<p> Encoded key for public key information summary. </p>"
+        },
+        "Comment":{
+          "shape":"string",
+          "documentation":"<p> Comment for public key information summary. </p>"
+        }
+      },
+      "documentation":"<p> Public key information summary. </p>"
+    },
+    "PublicKeySummaryList":{
+      "type":"list",
+      "member":{
+        "shape":"PublicKeySummary",
+        "locationName":"PublicKeySummary"
+      }
+    },
+    "QueryArgProfile":{
+      "type":"structure",
+      "required":[
+        "QueryArg",
+        "ProfileId"
+      ],
+      "members":{
+        "QueryArg":{
+          "shape":"string",
+          "documentation":"<p>Query argument for field-level encryption query argument-profile mapping.</p>"
+        },
+        "ProfileId":{
+          "shape":"string",
+          "documentation":"<p>ID of profile to use for field-level encryption query argument-profile mapping</p>"
+        }
+      },
+      "documentation":"<p>Query argument-profile mapping for field-level encryption.</p>"
+    },
+    "QueryArgProfileConfig":{
+      "type":"structure",
+      "required":["ForwardWhenQueryArgProfileIsUnknown"],
+      "members":{
+        "ForwardWhenQueryArgProfileIsUnknown":{
+          "shape":"boolean",
+          "documentation":"<p>Flag to set if you want a request to be forwarded to the origin even if the profile specified by the field-level encryption query argument, fle-profile, is unknown.</p>"
+        },
+        "QueryArgProfiles":{
+          "shape":"QueryArgProfiles",
+          "documentation":"<p>Profiles specified for query argument-profile mapping for field-level encryption.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for query argument-profile mapping for field-level encryption.</p>"
+    },
+    "QueryArgProfileEmpty":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>No profile specified for the field-level encryption query argument.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "QueryArgProfileList":{
+      "type":"list",
+      "member":{
+        "shape":"QueryArgProfile",
+        "locationName":"QueryArgProfile"
+      }
+    },
+    "QueryArgProfiles":{
+      "type":"structure",
+      "required":["Quantity"],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>Number of profiles for query argument-profile mapping for field-level encryption.</p>"
+        },
+        "Items":{
+          "shape":"QueryArgProfileList",
+          "documentation":"<p>Number of items for query argument-profile mapping for field-level encryption.</p>"
+        }
+      },
+      "documentation":"<p>Query argument-profile mapping for field-level encryption.</p>"
+    },
     "QueryStringCacheKeys":{
       "type":"structure",
       "required":["Quantity"],
@@ -2849,14 +4196,6 @@
     "ResourceARN":{
       "type":"string",
       "pattern":"arn:aws:cloudfront::[0-9]+:.*"
-    },
-    "ResourceInUse":{
-      "type":"structure",
-      "members":{
-        "Message":{"shape":"string"}
-      },
-      "error":{"httpStatusCode":409},
-      "exception":true
     },
     "Restrictions":{
       "type":"structure",
@@ -3246,7 +4585,7 @@
           "shape":"Tags",
           "documentation":"<p> A complex type that contains zero or more <code>Tag</code> elements.</p>",
           "locationName":"Tags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p> The request to add tags to a CloudFront resource.</p>",
@@ -3322,12 +4661,75 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyDistributionsAssociatedToFieldLevelEncryptionConfig":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of distributions have been associated with the specified configuration for field-level encryption.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyDistributionsWithLambdaAssociations":{
       "type":"structure",
       "members":{
         "Message":{"shape":"string"}
       },
       "documentation":"<p>Processing your request would cause the maximum number of distributions with Lambda function associations per owner to be exceeded.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyFieldLevelEncryptionConfigs":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of configurations for field-level encryption have been created.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyFieldLevelEncryptionContentTypeProfiles":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of content type profiles for field-level encryption have been created.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyFieldLevelEncryptionEncryptionEntities":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of encryption entities for field-level encryption have been created.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyFieldLevelEncryptionFieldPatterns":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of field patterns for field-level encryption have been created.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyFieldLevelEncryptionProfiles":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of profiles for field-level encryption have been created.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyFieldLevelEncryptionQueryArgProfiles":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of query arg profiles for field-level encryption have been created.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -3371,6 +4773,15 @@
         "Message":{"shape":"string"}
       },
       "documentation":"<p>You cannot create more origins for the distribution.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "TooManyPublicKeys":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>The maximum number of public keys for field-level encryption have been created. To create a new public key, delete one of the existing keys.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -3456,7 +4867,7 @@
           "shape":"TagKeys",
           "documentation":"<p> A complex type that contains zero or more <code>Tag</code> key elements.</p>",
           "locationName":"TagKeys",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         }
       },
       "documentation":"<p> The request to remove tags from a CloudFront resource.</p>",
@@ -3473,7 +4884,7 @@
           "shape":"CloudFrontOriginAccessIdentityConfig",
           "documentation":"<p>The identity's configuration information.</p>",
           "locationName":"CloudFrontOriginAccessIdentityConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         },
         "Id":{
           "shape":"string",
@@ -3519,7 +4930,7 @@
           "shape":"DistributionConfig",
           "documentation":"<p>The distribution's configuration information.</p>",
           "locationName":"DistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         },
         "Id":{
           "shape":"string",
@@ -3554,6 +4965,138 @@
       "documentation":"<p>The returned result of the corresponding request.</p>",
       "payload":"Distribution"
     },
+    "UpdateFieldLevelEncryptionConfigRequest":{
+      "type":"structure",
+      "required":[
+        "FieldLevelEncryptionConfig",
+        "Id"
+      ],
+      "members":{
+        "FieldLevelEncryptionConfig":{
+          "shape":"FieldLevelEncryptionConfig",
+          "documentation":"<p>Request to update a field-level encryption configuration. </p>",
+          "locationName":"FieldLevelEncryptionConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+        },
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The ID of the configuration you want to update.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the configuration identity to update. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      },
+      "payload":"FieldLevelEncryptionConfig"
+    },
+    "UpdateFieldLevelEncryptionConfigResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryption":{
+          "shape":"FieldLevelEncryption",
+          "documentation":"<p>Return the results of updating the configuration.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when updating the configuration. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryption"
+    },
+    "UpdateFieldLevelEncryptionProfileRequest":{
+      "type":"structure",
+      "required":[
+        "FieldLevelEncryptionProfileConfig",
+        "Id"
+      ],
+      "members":{
+        "FieldLevelEncryptionProfileConfig":{
+          "shape":"FieldLevelEncryptionProfileConfig",
+          "documentation":"<p>Request to update a field-level encryption profile. </p>",
+          "locationName":"FieldLevelEncryptionProfileConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+        },
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The ID of the field-level encryption profile request. </p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the profile identity to update. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      },
+      "payload":"FieldLevelEncryptionProfileConfig"
+    },
+    "UpdateFieldLevelEncryptionProfileResult":{
+      "type":"structure",
+      "members":{
+        "FieldLevelEncryptionProfile":{
+          "shape":"FieldLevelEncryptionProfile",
+          "documentation":"<p>Return the results of updating the profile.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The result of the field-level encryption profile request. </p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"FieldLevelEncryptionProfile"
+    },
+    "UpdatePublicKeyRequest":{
+      "type":"structure",
+      "required":[
+        "PublicKeyConfig",
+        "Id"
+      ],
+      "members":{
+        "PublicKeyConfig":{
+          "shape":"PublicKeyConfig",
+          "documentation":"<p>Request to update public key information.</p>",
+          "locationName":"PublicKeyConfig",
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+        },
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>ID of the public key to be updated.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "IfMatch":{
+          "shape":"string",
+          "documentation":"<p>The value of the <code>ETag</code> header that you received when retrieving the public key to update. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"If-Match"
+        }
+      },
+      "payload":"PublicKeyConfig"
+    },
+    "UpdatePublicKeyResult":{
+      "type":"structure",
+      "members":{
+        "PublicKey":{
+          "shape":"PublicKey",
+          "documentation":"<p>Return the results of updating the public key.</p>"
+        },
+        "ETag":{
+          "shape":"string",
+          "documentation":"<p>The current version of the update public key result. For example: <code>E2QWRUHAPOMQZL</code>.</p>",
+          "location":"header",
+          "locationName":"ETag"
+        }
+      },
+      "payload":"PublicKey"
+    },
     "UpdateStreamingDistributionRequest":{
       "type":"structure",
       "required":[
@@ -3565,7 +5108,7 @@
           "shape":"StreamingDistributionConfig",
           "documentation":"<p>The streaming distribution's configuration information.</p>",
           "locationName":"StreamingDistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2017-03-25/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
         },
         "Id":{
           "shape":"string",

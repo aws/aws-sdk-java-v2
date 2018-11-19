@@ -34,9 +34,7 @@ import java.util.Date;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -233,8 +231,6 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    @Ignore
-    @ReviewBeforeRelease("Automatic decoding is not hooked up yet.")
     public void testListWithEncodingType() {
         String encodingType = "url";
         ListObjectsV2Response result = s3.listObjectsV2(ListObjectsV2Request.builder()

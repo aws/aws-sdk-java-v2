@@ -23,7 +23,7 @@ import org.junit.Test;
 public class PartitionServiceMetadataTest {
 
     private static final List<String> AWS_PARTITION_GLOBAL_SERVICES = Arrays.asList(
-            "budgets", "cloudfront", "iam", "importexport", "route53", "waf");
+            "budgets", "cloudfront", "iam", "route53", "waf");
 
     private static final List<String> AWS_PARTITION_REGIONALIZED_SERVICES = Arrays.asList(
             "acm", "apigateway", "application-autoscaling", "appstream2", "autoscaling", "batch",
