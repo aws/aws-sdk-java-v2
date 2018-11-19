@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
@@ -43,11 +44,13 @@ final class AddOperations {
     private final ServiceModel serviceModel;
     private final NamingStrategy namingStrategy;
     private final Map<String, PaginatorDefinition> paginators;
+    private final List<String> deprecatedShapes;
 
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
         this.paginators = builder.getPaginators().getPaginators();
+        this.deprecatedShapes = builder.getCustomConfig().getDeprecatedShapes();
     }
 
     private static boolean isAuthenticated(Operation op) {
@@ -191,10 +194,12 @@ final class AddOperations {
 
                     Integer httpStatusCode = getHttpStatusCode(error, c2jShapes.get(error.getShape()));
 
-                    operationModel.addException(
+                    if (!deprecatedShapes.contains(error.getShape())) {
+                        operationModel.addException(
                             new ExceptionModel(namingStrategy.getExceptionName(error.getShape()))
-                                    .withDocumentation(documentation)
-                                    .withHttpStatusCode(httpStatusCode));
+                                .withDocumentation(documentation)
+                                .withHttpStatusCode(httpStatusCode));
+                    }
                 }
             }
 
