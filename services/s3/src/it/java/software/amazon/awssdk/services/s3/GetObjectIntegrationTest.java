@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.ByteArrayOutputStream;
@@ -73,9 +74,12 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void toFile() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
+
+        GetObjectResponse response = null;
         try {
-            GetObjectResponse response = s3.getObject(getObjectRequest, path);
+            response = s3.getObject(getObjectRequest, path);
         } finally {
+            assertEquals(Long.valueOf(path.toFile().length()), response.contentLength());
             path.toFile().delete();
         }
     }
