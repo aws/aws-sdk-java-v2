@@ -219,12 +219,12 @@ DynamoDbAsyncClient client =
 | Max Connections | `clientConfig.setMaxConnections(...)`<br />`clientConfig.withMaxConnections(...)` | `httpClientBuilder.maxConnections(...)` | `httpClientBuilder.maxConcurrency(...)` |
 | Connection Timeout | `clientConfig.setConnectionTimeout(...)`<br />`clientConfig.withConnectionTimeout(...)` | `httpClientBuilder.connectionTimeout(...)` | `httpClientBuilder.connectionTimeout(...)` |
 | Socket Timeout | `clientConfig.setSocketTimeout(...)`<br />`clientConfig.withSocketTimeout(...)` | `httpClientBuilder.socketTimeout(...)` | `httpClientBuilder.writeTimeout(...)` <br /> `httpClientBuilder.readTimeout(...)` |
-| Connection TTL | `clientConfig.setConnectionTTL(...)`<br />`clientConfig.withConnectionTTL(...)` | `httpClientBuilder.connectionTimeToLive(...)` | Not Supported |
-| Connection Max Idle | `clientConfig.setConnectionMaxIdleMillis(...)`<br />`clientConfig.withConnectionMaxIdleMillis(...)` | `httpClientBuilder.connectionMaxIdleTime(...)` | Not Supported |
-| Validate After Inactivity | `clientConfig.setValidateAfterInactivityMillis(...)`<br />`clientConfig.withValidateAfterInactivityMillis(...)` | Not Supported | Not Supported |
-| Local Address | `clientConfig.setLocalAddress(...)`<br />`clientConfig.withLocalAddress(...)` | `httpClientBuilder.localAddress(...)` | Not Supported |
-| Expect-Continue Enabled | `clientConfig.setUseExpectContinue(...)`<br />`clientConfig.withUseExpectContinue(...)` | `httpClientBuilder.expectContinueEnabled(...)` | Not Supported |
-| Connection Reaper | `clientConfig.setUseReaper(...)`<br />`clientConfig.withReaper(...)` | `httpClientBuilder.useIdleConnectionReaper(...)` | Not Supported |
+| Connection TTL | `clientConfig.setConnectionTTL(...)`<br />`clientConfig.withConnectionTTL(...)` | `httpClientBuilder.connectionTimeToLive(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/856) |
+| Connection Max Idle | `clientConfig.setConnectionMaxIdleMillis(...)`<br />`clientConfig.withConnectionMaxIdleMillis(...)` | `httpClientBuilder.connectionMaxIdleTime(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/856) |
+| Validate After Inactivity | `clientConfig.setValidateAfterInactivityMillis(...)`<br />`clientConfig.withValidateAfterInactivityMillis(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| Local Address | `clientConfig.setLocalAddress(...)`<br />`clientConfig.withLocalAddress(...)` | `httpClientBuilder.localAddress(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/857) |
+| Expect-Continue Enabled | `clientConfig.setUseExpectContinue(...)`<br />`clientConfig.withUseExpectContinue(...)` | `httpClientBuilder.expectContinueEnabled(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| Connection Reaper | `clientConfig.setUseReaper(...)`<br />`clientConfig.withReaper(...)` | `httpClientBuilder.useIdleConnectionReaper(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/856) |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `DynamoDbClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` | `DynamoDbAsyncClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` |
 
 
@@ -233,16 +233,16 @@ DynamoDbAsyncClient client =
 | Setting | 1.11.x | 2.0 (Sync, Apache) | 2.0 (Async, Netty) |
 |---|---|---|---|
 | | `ClientConfiguration clientConfig =`<br />`new ClientConfiguration()` | `ProxyConfiguration.Builder proxyConfig =`<br />`ProxyConfiguration.builder()` | |
-| Proxy Host | `clientConfig.setProxyHost(...)`<br />`clientConfig.withProxyHost(...)` | `proxyConfig.endpoint(...)` | Not Supported |
-| Proxy Port | `clientConfig.setProxyPort(...)`<br />`clientConfig.withProxyPort(...)` | `proxyConfig.endpoint(...)` | Not Supported |
-| Proxy Username | `clientConfig.setProxyUsername(...)`<br />`clientConfig.withProxyUsername(...)` | `proxyConfig.username(...)` | Not Supported |
-| Proxy Password | `clientConfig.setProxyPassword(...)`<br />`clientConfig.withProxyPassword(...)` | `proxyConfig.password(...)` | Not Supported |
-| Proxy Domain | `clientConfig.setProxyDomain(...)`<br />`clientConfig.withProxyDomain(...)` | `proxyConfig.ntlmDomain(...)` | Not Supported |
-| Proxy Workstation | `clientConfig.setProxyWorkspace(...)`<br />`clientConfig.withProxyWorkstation(...)` | `proxyConfig.ntlmWorkstation(...)` | Not Supported |
-| Proxy Authentication Methods | `clientConfig.setProxyAuthenticationMethods(...)`<br />`clientConfig.withProxyAuthenticationMethods(...)` | Not Supported | Not Supported |
-| Preemptive Basic Proxy Authentication | `clientConfig.setPreemptiveBasicProxyAuth(...)`<br />`clientConfig.withPreemptiveBasicProxyAuth(...)` | `proxyConfig.preemptiveBasicAuthenticationEnabled(...)` | Not Supported |
-| Non Proxy Hosts | `clientConfig.setNonProxyHosts(...)`<br />`clientConfig.withNonProxyHosts(...)` | `proxyConfig.nonProxyHosts(...)` | Not Supported |
-| Disable Socket Proxy | `clientConfig.setDisableSocketProxy(...)`<br />`clientConfig.withDisableSocketProxy(...)` | Not Supported | Not Supported |
+| Proxy Host | `clientConfig.setProxyHost(...)`<br />`clientConfig.withProxyHost(...)` | `proxyConfig.endpoint(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Proxy Port | `clientConfig.setProxyPort(...)`<br />`clientConfig.withProxyPort(...)` | `proxyConfig.endpoint(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Proxy Username | `clientConfig.setProxyUsername(...)`<br />`clientConfig.withProxyUsername(...)` | `proxyConfig.username(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Proxy Password | `clientConfig.setProxyPassword(...)`<br />`clientConfig.withProxyPassword(...)` | `proxyConfig.password(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Proxy Domain | `clientConfig.setProxyDomain(...)`<br />`clientConfig.withProxyDomain(...)` | `proxyConfig.ntlmDomain(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Proxy Workstation | `clientConfig.setProxyWorkspace(...)`<br />`clientConfig.withProxyWorkstation(...)` | `proxyConfig.ntlmWorkstation(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Proxy Authentication Methods | `clientConfig.setProxyAuthenticationMethods(...)`<br />`clientConfig.withProxyAuthenticationMethods(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Preemptive Basic Proxy Authentication | `clientConfig.setPreemptiveBasicProxyAuth(...)`<br />`clientConfig.withPreemptiveBasicProxyAuth(...)` | `proxyConfig.preemptiveBasicAuthenticationEnabled(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Non Proxy Hosts | `clientConfig.setNonProxyHosts(...)`<br />`clientConfig.withNonProxyHosts(...)` | `proxyConfig.nonProxyHosts(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/858) |
+| Disable Socket Proxy | `clientConfig.setDisableSocketProxy(...)`<br />`clientConfig.withDisableSocketProxy(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `httpClientBuilder.proxyConfiguration(proxyConfig.build())` | |
 
 ### 1.3.3. Client Override Configuration
@@ -256,13 +256,13 @@ DynamoDbAsyncClient client =
 | Additional Headers | `clientConfig.addHeader(...)`<br />`clientConfig.withHeader(...)` | `overrideConfig.putHeader(...)` |
 | Request Timeout | `clientConfig.setRequestTimeout(...)`<br />`clientConfig.withRequestTimeout(...)` | `overrideConfig.apiCallAttemptTimeout(...)` |
 | Client Execution Timeout | `clientConfig.setClientExecutionTimeout(...)`<br />`clientConfig.withClientExecutionTimeout(...)` | `overrideConfig.apiCallTimeout(...)` |
-| Use Gzip | `clientConfig.setUseGzip(...)`<br />`clientConfig.withGzip(...)` | Not Supported |
-| Socket Buffer Size Hint | `clientConfig.setSocketBufferSizeHints(...)`<br />`clientConfig.withSocketBufferSizeHints(...)` | Not Supported |
-| Cache Response Metadata | `clientConfig.setCacheResponseMetadata(...)`<br />`clientConfig.withCacheResponseMetadata(...)` | Not Supported |
-| Response Metadata Cache Size | `clientConfig.setResponseMetadataCacheSize(...)`<br />`clientConfig.withResponseMetadataCacheSize(...)` | Not Supported |
-| DNS Resolver | `clientConfig.setDnsResolver(...)`<br />`clientConfig.withDnsResolver(...)` | Not Supported |
-| TCP Keepalive | `clientConfig.setUseTcpKeepAlive(...)`<br />`clientConfig.withTcpKeepAlive(...)` | Not Supported |
-| Secure Random | `clientConfig.setSecureRandom(...)`<br />`clientConfig.withSecureRandom(...)` | Not Supported |
+| Use Gzip | `clientConfig.setUseGzip(...)`<br />`clientConfig.withGzip(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| Socket Buffer Size Hint | `clientConfig.setSocketBufferSizeHints(...)`<br />`clientConfig.withSocketBufferSizeHints(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| Cache Response Metadata | `clientConfig.setCacheResponseMetadata(...)`<br />`clientConfig.withCacheResponseMetadata(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| Response Metadata Cache Size | `clientConfig.setResponseMetadataCacheSize(...)`<br />`clientConfig.withResponseMetadataCacheSize(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| DNS Resolver | `clientConfig.setDnsResolver(...)`<br />`clientConfig.withDnsResolver(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| TCP Keepalive | `clientConfig.setUseTcpKeepAlive(...)`<br />`clientConfig.withTcpKeepAlive(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| Secure Random | `clientConfig.setSecureRandom(...)`<br />`clientConfig.withSecureRandom(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `DynamoDbClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` |
 
 ### 1.3.4. Client Override Retry Configuration
@@ -273,8 +273,8 @@ Retry configuration has changed in 2.0 to be controlled entirely through the `Re
 |---|---|---|
 | | `ClientConfiguration clientConfig =`<br />`new ClientConfiguration()` | `RetryPolicy.Builder retryPolicy =`<br />`RetryPolicy.builder()` |
 | Max Error Retry | `clientConfig.setMaxErrorRetry(...)`<br />`clientConfig.withMaxErrorRetry(...)` | `retryPolicy.numRetries(...)` |
-| Use Throttled Retries | `clientConfig.setUseThrottleRetries(...)`<br />`clientConfig.withUseThrottleRetries(...)` | Not Supported |
-| Max Consecutive Retries Before Throttling | `clientConfig.setMaxConsecutiveRetriesBeforeThrottling(...)`<br />`clientConfig.withMaxConsecutiveRetriesBeforeThrottling(...)` | Not Supported |
+| Use Throttled Retries | `clientConfig.setUseThrottleRetries(...)`<br />`clientConfig.withUseThrottleRetries(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/645) |
+| Max Consecutive Retries Before Throttling | `clientConfig.setMaxConsecutiveRetriesBeforeThrottling(...)`<br />`clientConfig.withMaxConsecutiveRetriesBeforeThrottling(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/645) |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `overrideConfig.retryPolicy(retryPolicy.build())` | |
 
 ### 1.3.5. Async Configuration
@@ -361,7 +361,7 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `deleteBucket` | `deleteBucket` |
 | `deleteBucketAnalyticsConfiguration` | `deleteBucketAnalyticsConfiguration` |
 | `deleteBucketCrossOriginConfiguration` | `deleteBucketCors` |
-| `deleteBucketEncryption` | Not Supported |
+| `deleteBucketEncryption` | `deleteBucketEncryption` |
 | `deleteBucketInventoryConfiguration` | `deleteBucketInventoryConfiguration` |
 | `deleteBucketLifecycleConfiguration` | `deleteBucketLifecycle` |
 | `deleteBucketMetricsConfiguration` | `deleteBucketMetricsConfiguration` |
@@ -378,12 +378,12 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `doesBucketExistV2` | `headBucket` |
 | `doesObjectExist` | `headObject` |
 | `enableRequesterPays` | `putBucketRequestPayment` |
-| `generatePresignedUrl` | Not Supported |
+| `generatePresignedUrl` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/849) |
 | `getBucketAccelerateConfiguration` | `getBucketAccelerateConfiguration` |
 | `getBucketAcl` | `getBucketAcl` |
 | `getBucketAnalyticsConfiguration` | `getBucketAnalyticsConfiguration` |
 | `getBucketCrossOriginConfiguration` | `getBucketCors` |
-| `getBucketEncryption` | Not Supported |
+| `getBucketEncryption` | `getBucketEncryption` |
 | `getBucketInventoryConfiguration` | `getBucketInventoryConfiguration` |
 | `getBucketLifecycleConfiguration` | `getBucketLifecycle` or `getBucketLifecycleConfiguration` |
 | `getBucketLocation` | `getBucketLocation` |
@@ -400,9 +400,9 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `getObjectAsString` | `getObjectAsBytes().asUtf8String` |
 | `getObjectMetadata` | `headObject` |
 | `getObjectTagging` | `getObjectTagging` |
-| `getResourceUrl` | Not Supported |
+| `getResourceUrl` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/860) |
 | `getS3AccountOwner` | `listBuckets` |
-| `getUrl` | Not Supported |
+| `getUrl` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/860) |
 | `headBucket` | `headBucket` |
 | `initiateMultipartUpload` | `createMultipartUpload` |
 | `isRequesterPaysEnabled` | `getBucketRequestPayment` |
@@ -412,7 +412,7 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `listBuckets` | `listBuckets` |
 | `listMultipartUploads` | `listMultipartUploads` |
 | `listNextBatchOfObjects` | `listObjectsV2Paginator` |
-| `listNextBatchOfVersions` | Not Supported |
+| `listNextBatchOfVersions` | `listObjectVersionsPaginator` |
 | `listObjects` | `listObjects` |
 | `listObjectsV2` | `listObjectsV2` |
 | `listParts` | `listParts` |
@@ -420,12 +420,12 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `putObject` | `putObject` |
 | `restoreObject` | `restoreObject` |
 | `restoreObjectV2` | `restoreObject` |
-| `selectObjectContent` | Not Supported |
+| `selectObjectContent` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/859) |
 | `setBucketAccelerateConfiguration` | `putBucketAccelerateConfiguration` |
 | `setBucketAcl` | `putBucketAcl` |
 | `setBucketAnalyticsConfiguration` | `putBucketAnalyticsConfiguration` |
 | `setBucketCrossOriginConfiguration` | `putBucketCors` |
-| `setBucketEncryption` | Not Supported |
+| `setBucketEncryption` | `putBucketEncryption` |
 | `setBucketInventoryConfiguration` | `putBucketInventoryConfiguration` |
 | `setBucketLifecycleConfiguration` | `putBucketLifecycle` or `putBucketLifecycleConfiguration` |
 | `setBucketLoggingConfiguration` | `putBucketLogging` |
@@ -491,13 +491,13 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `AWS_CBOR_DISABLED` | `com.amazonaws.sdk.disableCbor` | `CBOR_ENABLED` | `aws.cborEnabled` |
 | `AWS_ION_BINARY_DISABLE` | `com.amazonaws.sdk.disableIonBinary` | `BINARY_ION_ENABLED` | `aws.binaryIonEnabled` |
 | `AWS_EXECUTION_ENV` | | `AWS_EXECUTION_ENV` | `aws.executionEnvironment` |
-| | `com.amazonaws.sdk.disableCertChecking` | Not Supported | Not Supported |
-| | `com.amazonaws.sdk.enableDefaultMetrics` | Not Supported | Not Supported |
-| | `com.amazonaws.sdk.enableThrottledRetry` | Not Supported | Not Supported |
-| | `com.amazonaws.regions.RegionUtils.fileOverride` | Not Supported | Not Supported |
-| | `com.amazonaws.regions.RegionUtils.disableRemote` | Not Supported | Not Supported |
-| | `com.amazonaws.services.s3.disableImplicitGlobalClients` | Not Supported | Not Supported |
-| | `com.amazonaws.sdk.enableInRegionOptimizedMode` | Not Supported | Not Supported |
+| | `com.amazonaws.sdk.disableCertChecking` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| | `com.amazonaws.sdk.enableDefaultMetrics` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/23) | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/23) |
+| | `com.amazonaws.sdk.enableThrottledRetry` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/645) | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/645) |
+| | `com.amazonaws.regions.RegionUtils.fileOverride` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| | `com.amazonaws.regions.RegionUtils.disableRemote` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| | `com.amazonaws.services.s3.disableImplicitGlobalClients` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| | `com.amazonaws.sdk.enableInRegionOptimizedMode` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 
 ## 6.2. Credential Providers
 
@@ -516,8 +516,8 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `com.amazonaws.auth.WebIdentityFederationSessionCredentialsProvider` | `software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider` |
 | `com.amazonaws.auth.EC2ContainerCredentialsProviderWrapper` | `software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider` and `software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider` |
 | `com.amazonaws.services.s3.S3CredentialsProviderChain` | `software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider` and `software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider` |
-| `com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider` | Not Supported |
-| `com.amazonaws.auth.PropertiesFileCredentialsProvider` | Not Supported |
+| `com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| `com.amazonaws.auth.PropertiesFileCredentialsProvider` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 
 ## 6.3. Client Names
 
@@ -541,14 +541,14 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.athena.AmazonAthenaClient` | `software.amazon.awssdk.services.athena.AthenaClient` |
 | `amazonaws.services.autoscaling.AmazonAutoScalingAsyncClient` | `software.amazon.awssdk.services.autoscaling.AutoScalingAsyncClient` |
 | `amazonaws.services.autoscaling.AmazonAutoScalingClient` | `software.amazon.awssdk.services.autoscaling.AutoScalingClient` |
-| `amazonaws.services.autoscalingplans.AWSAutoScalingPlansAsyncClient` | Not Supported |
-| `amazonaws.services.autoscalingplans.AWSAutoScalingPlansClient` | Not Supported |
+| `amazonaws.services.autoscalingplans.AWSAutoScalingPlansAsyncClient` | `software.amazon.awssdk.services.autoscalingplans.AutoScalingPlansAsyncClient` |
+| `amazonaws.services.autoscalingplans.AWSAutoScalingPlansClient` | `software.amazon.awssdk.services.autoscalingplans.AutoScalingPlansClient` |
 | `amazonaws.services.batch.AWSBatchAsyncClient` | `software.amazon.awssdk.services.batch.BatchAsyncClient` |
 | `amazonaws.services.batch.AWSBatchClient` | `software.amazon.awssdk.services.batch.BatchClient` |
 | `amazonaws.services.budgets.AWSBudgetsAsyncClient` | `software.amazon.awssdk.services.budgets.BudgetsAsyncClient` |
 | `amazonaws.services.budgets.AWSBudgetsClient` | `software.amazon.awssdk.services.budgets.BudgetsClient` |
-| `amazonaws.services.certificatemanager.AWSCertificateManagerAsyncClient` | Not Supported |
-| `amazonaws.services.certificatemanager.AWSCertificateManagerClient` | Not Supported |
+| `amazonaws.services.certificatemanager.AWSCertificateManagerAsyncClient` | `software.amazon.awssdk.services.acm.AcmAsyncClient` |
+| `amazonaws.services.certificatemanager.AWSCertificateManagerClient` | `software.amazon.awssdk.services.acm.AcmClient` |
 | `amazonaws.services.cloud9.AWSCloud9AsyncClient` | `software.amazon.awssdk.services.cloud9.Cloud9AsyncClient` |
 | `amazonaws.services.cloud9.AWSCloud9Client` | `software.amazon.awssdk.services.cloud9.Cloud9Client` |
 | `amazonaws.services.clouddirectory.AmazonCloudDirectoryAsyncClient` | `software.amazon.awssdk.services.clouddirectory.CloudDirectoryAsyncClient` |
@@ -591,8 +591,8 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.comprehend.AmazonComprehendClient` | `software.amazon.awssdk.services.comprehend.ComprehendClient` |
 | `amazonaws.services.config.AmazonConfigAsyncClient` | `software.amazon.awssdk.services.config.ConfigAsyncClient` |
 | `amazonaws.services.config.AmazonConfigClient` | `software.amazon.awssdk.services.config.ConfigClient` |
-| `amazonaws.services.connect.AmazonConnectAsyncClient` | Not Supported |
-| `amazonaws.services.connect.AmazonConnectClient` | Not Supported |
+| `amazonaws.services.connect.AmazonConnectAsyncClient` | `software.amazon.awssdk.services.connect.ConnectAsyncClient` |
+| `amazonaws.services.connect.AmazonConnectClient` | `software.amazon.awssdk.services.connect.ConnectClient` |
 | `amazonaws.services.costandusagereport.AWSCostAndUsageReportAsyncClient` | `software.amazon.awssdk.services.costandusagereport.CostAndUsageReportAsyncClient` |
 | `amazonaws.services.costandusagereport.AWSCostAndUsageReportClient` | `software.amazon.awssdk.services.costandusagereport.CostAndUsageReportClient` |
 | `amazonaws.services.costexplorer.AWSCostExplorerAsyncClient` | `software.amazon.awssdk.services.costexplorer.CostExplorerAsyncClient` |
@@ -609,8 +609,8 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.directconnect.AmazonDirectConnectClient` | `software.amazon.awssdk.services.directconnect.DirectConnectClient` |
 | `amazonaws.services.directory.AWSDirectoryServiceAsyncClient` | `software.amazon.awssdk.services.directory.DirectoryAsyncClient` |
 | `amazonaws.services.directory.AWSDirectoryServiceClient` | `software.amazon.awssdk.services.directory.DirectoryClient` |
-| `amazonaws.services.dlm.AmazonDLMAsyncClient` | Not Supported |
-| `amazonaws.services.dlm.AmazonDLMClient` | Not Supported |
+| `amazonaws.services.dlm.AmazonDLMAsyncClient` | `software.amazon.awssdk.services.dlm.DlmAsyncClient` |
+| `amazonaws.services.dlm.AmazonDLMClient` | `software.amazon.awssdk.services.dlm.DlmClient` |
 | `amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClient` | `software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient` |
 | `amazonaws.services.dynamodbv2.AmazonDynamoDBClient` | `software.amazon.awssdk.services.dynamodb.DynamoDbClient` |
 | `amazonaws.services.dynamodbv2.AmazonDynamoDBStreamsAsyncClient` | `software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsAsyncClient` |
@@ -621,8 +621,8 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.ecr.AmazonECRClient` | `software.amazon.awssdk.services.ecr.EcrClient` |
 | `amazonaws.services.ecs.AmazonECSAsyncClient` | `software.amazon.awssdk.services.ecs.EcsAsyncClient` |
 | `amazonaws.services.ecs.AmazonECSClient` | `software.amazon.awssdk.services.ecs.EcsClient` |
-| `amazonaws.services.eks.AmazonEKSAsyncClient` | Not Supported |
-| `amazonaws.services.eks.AmazonEKSClient` | Not Supported |
+| `amazonaws.services.eks.AmazonEKSAsyncClient` | `software.amazon.awssdk.services.eks.EksAsyncClient` |
+| `amazonaws.services.eks.AmazonEKSClient` | `software.amazon.awssdk.services.eks.EksClient` |
 | `amazonaws.services.elasticache.AmazonElastiCacheAsyncClient` | `software.amazon.awssdk.services.elasticache.ElastiCacheAsyncClient` |
 | `amazonaws.services.elasticache.AmazonElastiCacheClient` | `software.amazon.awssdk.services.elasticache.ElastiCacheClient` |
 | `amazonaws.services.elasticbeanstalk.AWSElasticBeanstalkAsyncClient` | `software.amazon.awssdk.services.elasticbeanstalk.ElasticBeanstalkAsyncClient` |
@@ -639,8 +639,8 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.elasticsearch.AWSElasticsearchClient` | `software.amazon.awssdk.services.elasticsearch.ElasticsearchClient` |
 | `amazonaws.services.elastictranscoder.AmazonElasticTranscoderAsyncClient` | `software.amazon.awssdk.services.elastictranscoder.ElasticTranscoderAsyncClient` |
 | `amazonaws.services.elastictranscoder.AmazonElasticTranscoderClient` | `software.amazon.awssdk.services.elastictranscoder.ElasticTranscoderClient` |
-| `amazonaws.services.fms.AWSFMSAsyncClient` | Not Supported |
-| `amazonaws.services.fms.AWSFMSClient` | Not Supported |
+| `amazonaws.services.fms.AWSFMSAsyncClient` | `software.amazon.awssdk.services.fms.FmsAsyncClient` |
+| `amazonaws.services.fms.AWSFMSClient` | `software.amazon.awssdk.services.fms.FmsClient` |
 | `amazonaws.services.gamelift.AmazonGameLiftAsyncClient` | `software.amazon.awssdk.services.gamelift.GameLiftAsyncClient` |
 | `amazonaws.services.gamelift.AmazonGameLiftClient` | `software.amazon.awssdk.services.gamelift.GameLiftClient` |
 | `amazonaws.services.glacier.AmazonGlacierAsyncClient` | `software.amazon.awssdk.services.glacier.GlacierAsyncClient` |
@@ -661,14 +661,14 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.inspector.AmazonInspectorClient` | `software.amazon.awssdk.services.inspector.InspectorClient` |
 | `amazonaws.services.iot.AWSIotAsyncClient` | `software.amazon.awssdk.services.iot.IotAsyncClient` |
 | `amazonaws.services.iot.AWSIotClient` | `software.amazon.awssdk.services.iot.IotClient` |
-| `amazonaws.services.iot1clickdevices.AWSIoT1ClickDevicesAsyncClient` | Not Supported |
-| `amazonaws.services.iot1clickdevices.AWSIoT1ClickDevicesClient` | Not Supported |
-| `amazonaws.services.iot1clickprojects.AWSIoT1ClickProjectsAsyncClient` | Not Supported |
-| `amazonaws.services.iot1clickprojects.AWSIoT1ClickProjectsClient` | Not Supported |
-| `amazonaws.services.iotanalytics.AWSIoTAnalyticsAsyncClient` | Not Supported |
-| `amazonaws.services.iotanalytics.AWSIoTAnalyticsClient` | Not Supported |
-| `amazonaws.services.iotdata.AWSIotDataAsyncClient` | Not Supported |
-| `amazonaws.services.iotdata.AWSIotDataClient` | Not Supported |
+| `amazonaws.services.iot1clickdevices.AWSIoT1ClickDevicesAsyncClient` | `software.amazon.awssdk.services.iot1clickdevices.Iot1ClickDevicesAsyncClient` |
+| `amazonaws.services.iot1clickdevices.AWSIoT1ClickDevicesClient` | `software.amazon.awssdk.services.iot1clickdevices.Iot1ClickDevicesClient` |
+| `amazonaws.services.iot1clickprojects.AWSIoT1ClickProjectsAsyncClient` | `software.amazon.awssdk.services.iot1clickprojects.Iot1ClickProjectsAsyncClient` |
+| `amazonaws.services.iot1clickprojects.AWSIoT1ClickProjectsClient` | `software.amazon.awssdk.services.iot1clickprojects.Iot1ClickProjectsClient` |
+| `amazonaws.services.iotanalytics.AWSIoTAnalyticsAsyncClient` | `software.amazon.awssdk.services.iotanalytics.IotAnalyticsAsyncClient` |
+| `amazonaws.services.iotanalytics.AWSIoTAnalyticsClient` | `software.amazon.awssdk.services.iotanalytics.IotAnalyticsClient` |
+| `amazonaws.services.iotdata.AWSIotDataAsyncClient` | `software.amazon.awssdk.services.iotdata.IotDataAsyncClient` |
+| `amazonaws.services.iotdata.AWSIotDataClient` | `software.amazon.awssdk.services.iotdata.IotDataClient` |
 | `amazonaws.services.iotjobsdataplane.AWSIoTJobsDataPlaneAsyncClient` | `software.amazon.awssdk.services.iotdataplane.IotDataPlaneAsyncClient` |
 | `amazonaws.services.iotjobsdataplane.AWSIoTJobsDataPlaneClient` | `software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient` |
 | `amazonaws.services.kinesis.AmazonKinesisAsyncClient` | `software.amazon.awssdk.services.kinesis.KinesisAsyncClient` |
@@ -677,29 +677,29 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.kinesisanalytics.AmazonKinesisAnalyticsClient` | `software.amazon.awssdk.services.kinesisanalytics.KinesisAnalyticsClient` |
 | `amazonaws.services.kinesisfirehose.AmazonKinesisFirehoseAsyncClient` | `software.amazon.awssdk.services.firehose.FirehoseAsyncClient` |
 | `amazonaws.services.kinesisfirehose.AmazonKinesisFirehoseClient` | `software.amazon.awssdk.services.firehose.FirehoseClient` |
-| `amazonaws.services.kinesisvideo.AmazonKinesisVideoArchivedMediaAsyncClient` | Not Supported |
-| `amazonaws.services.kinesisvideo.AmazonKinesisVideoArchivedMediaClient` | Not Supported |
+| `amazonaws.services.kinesisvideo.AmazonKinesisVideoArchivedMediaAsyncClient` | `software.amazon.awssdk.services.kinesisvideoarchivedmedia.KinesisVideoArchivedMediaAsyncClient` |
+| `amazonaws.services.kinesisvideo.AmazonKinesisVideoArchivedMediaClient` | `software.amazon.awssdk.services.kinesisvideoarchivedmedia.KinesisVideoArchivedMediaClient` |
 | `amazonaws.services.kinesisvideo.AmazonKinesisVideoAsyncClient` | `software.amazon.awssdk.services.kinesisvideo.KinesisVideoAsyncClient` |
 | `amazonaws.services.kinesisvideo.AmazonKinesisVideoClient` | `software.amazon.awssdk.services.kinesisvideo.KinesisVideoClient` |
-| `amazonaws.services.kinesisvideo.AmazonKinesisVideoMediaAsyncClient` | Not Supported |
-| `amazonaws.services.kinesisvideo.AmazonKinesisVideoMediaClient` | Not Supported |
-| `amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMediaClient` | Not Supported |
+| `amazonaws.services.kinesisvideo.AmazonKinesisVideoMediaAsyncClient` | `software.amazon.awssdk.services.kinesisvideomedia.KinesisVideoMediaAsyncClient` |
+| `amazonaws.services.kinesisvideo.AmazonKinesisVideoMediaClient` | `software.amazon.awssdk.services.kinesisvideomedia.KinesisVideoMediaClient` |
+| `amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMediaClient` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | `amazonaws.services.kms.AWSKMSAsyncClient` | `software.amazon.awssdk.services.kms.KmsAsyncClient` |
 | `amazonaws.services.kms.AWSKMSClient` | `software.amazon.awssdk.services.kms.KmsClient` |
 | `amazonaws.services.lambda.AWSLambdaAsyncClient` | `software.amazon.awssdk.services.lambda.LambdaAsyncClient` |
 | `amazonaws.services.lambda.AWSLambdaClient` | `software.amazon.awssdk.services.lambda.LambdaClient` |
 | `amazonaws.services.lexmodelbuilding.AmazonLexModelBuildingAsyncClient` | `software.amazon.awssdk.services.lexmodelbuilding.LexModelBuildingAsyncClient` |
 | `amazonaws.services.lexmodelbuilding.AmazonLexModelBuildingClient` | `software.amazon.awssdk.services.lexmodelbuilding.LexModelBuildingClient` |
-| `amazonaws.services.lexruntime.AmazonLexRuntimeAsyncClient` | Not Supported |
-| `amazonaws.services.lexruntime.AmazonLexRuntimeClient` | Not Supported |
+| `amazonaws.services.lexruntime.AmazonLexRuntimeAsyncClient` | `software.amazon.awssdk.services.lexruntime.LexRuntimeAsyncClient` |
+| `amazonaws.services.lexruntime.AmazonLexRuntimeClient` | `software.amazon.awssdk.services.lexruntime.LexRuntimeClient` |
 | `amazonaws.services.lightsail.AmazonLightsailAsyncClient` | `software.amazon.awssdk.services.lightsail.LightsailAsyncClient` |
 | `amazonaws.services.lightsail.AmazonLightsailClient` | `software.amazon.awssdk.services.lightsail.LightsailClient` |
-| `amazonaws.services.logs.AWSLogsAsyncClient` | Not Supported |
-| `amazonaws.services.logs.AWSLogsClient` | Not Supported |
+| `amazonaws.services.logs.AWSLogsAsyncClient` | `software.amazon.awssdk.services.logs.LogsAsyncClient` |
+| `amazonaws.services.logs.AWSLogsClient` | `software.amazon.awssdk.services.logs.LogsClient` |
 | `amazonaws.services.machinelearning.AmazonMachineLearningAsyncClient` | `software.amazon.awssdk.services.machinelearning.MachineLearningAsyncClient` |
 | `amazonaws.services.machinelearning.AmazonMachineLearningClient` | `software.amazon.awssdk.services.machinelearning.MachineLearningClient` |
-| `amazonaws.services.macie.AmazonMacieAsyncClient` | Not Supported |
-| `amazonaws.services.macie.AmazonMacieClient` | Not Supported |
+| `amazonaws.services.macie.AmazonMacieAsyncClient` | `software.amazon.awssdk.services.macie.MacieAsyncClient` |
+| `amazonaws.services.macie.AmazonMacieClient` | `software.amazon.awssdk.services.macie.MacieClient` |
 | `amazonaws.services.marketplacecommerceanalytics.AWSMarketplaceCommerceAnalyticsAsyncClient` | `software.amazon.awssdk.services.marketplacecommerceanalytics.MarketplaceCommerceAnalyticsAsyncClient` |
 | `amazonaws.services.marketplacecommerceanalytics.AWSMarketplaceCommerceAnalyticsClient` | `software.amazon.awssdk.services.marketplacecommerceanalytics.MarketplaceCommerceAnalyticsClient` |
 | `amazonaws.services.marketplaceentitlement.AWSMarketplaceEntitlementAsyncClient` | `software.amazon.awssdk.services.marketplaceentitlement.MarketplaceEntitlementAsyncClient` |
@@ -714,10 +714,10 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.mediapackage.AWSMediaPackageClient` | `software.amazon.awssdk.services.mediapackage.MediaPackageClient` |
 | `amazonaws.services.mediastore.AWSMediaStoreAsyncClient` | `software.amazon.awssdk.services.mediastore.MediaStoreAsyncClient` |
 | `amazonaws.services.mediastore.AWSMediaStoreClient` | `software.amazon.awssdk.services.mediastore.MediaStoreClient` |
-| `amazonaws.services.mediastoredata.AWSMediaStoreDataAsyncClient` | Not Supported |
-| `amazonaws.services.mediastoredata.AWSMediaStoreDataClient` | Not Supported |
-| `amazonaws.services.mediatailor.AWSMediaTailorAsyncClient` | Not Supported |
-| `amazonaws.services.mediatailor.AWSMediaTailorClient` | Not Supported |
+| `amazonaws.services.mediastoredata.AWSMediaStoreDataAsyncClient` | `software.amazon.awssdk.services.mediastoredata.MediaStoreDataAsyncClient` |
+| `amazonaws.services.mediastoredata.AWSMediaStoreDataClient` | `software.amazon.awssdk.services.mediastoredata.MediaStoreDataClient` |
+| `amazonaws.services.mediatailor.AWSMediaTailorAsyncClient` | `software.amazon.awssdk.services.mediatailor.MediaTailorAsyncClient` |
+| `amazonaws.services.mediatailor.AWSMediaTailorClient` | `software.amazon.awssdk.services.mediatailor.MediaTailorClient` |
 | `amazonaws.services.migrationhub.AWSMigrationHubAsyncClient` | `software.amazon.awssdk.services.migrationhub.MigrationHubAsyncClient` |
 | `amazonaws.services.migrationhub.AWSMigrationHubClient` | `software.amazon.awssdk.services.migrationhub.MigrationHubClient` |
 | `amazonaws.services.mobile.AWSMobileAsyncClient` | `software.amazon.awssdk.services.mobile.MobileAsyncClient` |
@@ -726,16 +726,16 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.mq.AmazonMQClient` | `software.amazon.awssdk.services.mq.MqClient` |
 | `amazonaws.services.mturk.AmazonMTurkAsyncClient` | `software.amazon.awssdk.services.mturk.MTurkAsyncClient` |
 | `amazonaws.services.mturk.AmazonMTurkClient` | `software.amazon.awssdk.services.mturk.MTurkClient` |
-| `amazonaws.services.neptune.AmazonNeptuneAsyncClient` | Not Supported |
-| `amazonaws.services.neptune.AmazonNeptuneClient` | Not Supported |
+| `amazonaws.services.neptune.AmazonNeptuneAsyncClient` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
+| `amazonaws.services.neptune.AmazonNeptuneClient` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | `amazonaws.services.opsworks.AWSOpsWorksAsyncClient` | `software.amazon.awssdk.services.opsworks.OpsWorksAsyncClient` |
 | `amazonaws.services.opsworks.AWSOpsWorksClient` | `software.amazon.awssdk.services.opsworks.OpsWorksClient` |
 | `amazonaws.services.opsworkscm.AWSOpsWorksCMAsyncClient` | `software.amazon.awssdk.services.opsworkscm.OpsWorksCmAsyncClient` |
 | `amazonaws.services.opsworkscm.AWSOpsWorksCMClient` | `software.amazon.awssdk.services.opsworkscm.OpsWorksCmClient` |
 | `amazonaws.services.organizations.AWSOrganizationsAsyncClient` | `software.amazon.awssdk.services.organizations.OrganizationsAsyncClient` |
 | `amazonaws.services.organizations.AWSOrganizationsClient` | `software.amazon.awssdk.services.organizations.OrganizationsClient` |
-| `amazonaws.services.pi.AWSPIAsyncClient` | Not Supported |
-| `amazonaws.services.pi.AWSPIClient` | Not Supported |
+| `amazonaws.services.pi.AWSPIAsyncClient` | `software.amazon.awssdk.services.pi.PiAsyncClient` |
+| `amazonaws.services.pi.AWSPIClient` | `software.amazon.awssdk.services.pi.PiClient` |
 | `amazonaws.services.pinpoint.AmazonPinpointAsyncClient` | `software.amazon.awssdk.services.pinpoint.PinpointAsyncClient` |
 | `amazonaws.services.pinpoint.AmazonPinpointClient` | `software.amazon.awssdk.services.pinpoint.PinpointClient` |
 | `amazonaws.services.polly.AmazonPollyAsyncClient` | `software.amazon.awssdk.services.polly.PollyAsyncClient` |
@@ -759,8 +759,8 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.s3.AmazonS3Client` | `software.amazon.awssdk.services.s3.S3Client` |
 | `amazonaws.services.sagemaker.AmazonSageMakerAsyncClient` | `software.amazon.awssdk.services.sagemaker.SageMakerAsyncClient` |
 | `amazonaws.services.sagemaker.AmazonSageMakerClient` | `software.amazon.awssdk.services.sagemaker.SageMakerClient` |
-| `amazonaws.services.sagemakerruntime.AmazonSageMakerRuntimeAsyncClient` | Not Supported |
-| `amazonaws.services.sagemakerruntime.AmazonSageMakerRuntimeClient` | Not Supported |
+| `amazonaws.services.sagemakerruntime.AmazonSageMakerRuntimeAsyncClient` | `software.amazon.awssdk.services.sagemakerruntime.SageMakerRuntimeAsyncClient` |
+| `amazonaws.services.sagemakerruntime.AmazonSageMakerRuntimeClient` | `software.amazon.awssdk.services.sagemakerruntime.SageMakerRuntimeClient` |
 | `amazonaws.services.secretsmanager.AWSSecretsManagerAsyncClient` | `software.amazon.awssdk.services.secretsmanager.SecretsManagerAsyncClient` |
 | `amazonaws.services.secretsmanager.AWSSecretsManagerClient` | `software.amazon.awssdk.services.secretsmanager.SecretsManagerClient` |
 | `amazonaws.services.securitytoken.AWSSecurityTokenServiceAsyncClient` | `software.amazon.awssdk.services.sts.StsAsyncClient` |
@@ -795,10 +795,10 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 | `amazonaws.services.storagegateway.AWSStorageGatewayClient` | `software.amazon.awssdk.services.storagegateway.StorageGatewayClient` |
 | `amazonaws.services.support.AWSSupportAsyncClient` | `software.amazon.awssdk.services.support.SupportAsyncClient` |
 | `amazonaws.services.support.AWSSupportClient` | `software.amazon.awssdk.services.support.SupportClient` |
-| `amazonaws.services.transcribe.AmazonTranscribeAsyncClient` | `software.amazon.awssdk.services.translate.TranslateAsyncClient` |
-| `amazonaws.services.transcribe.AmazonTranscribeClient` | `software.amazon.awssdk.services.translate.TranslateClient` |
-| `amazonaws.services.translate.AmazonTranslateAsyncClient` | Not Supported |
-| `amazonaws.services.translate.AmazonTranslateClient` | Not Supported |
+| `amazonaws.services.transcribe.AmazonTranscribeAsyncClient` | `software.amazon.awssdk.services.transcribe.TranscribeAsyncClient` |
+| `amazonaws.services.transcribe.AmazonTranscribeClient` | `software.amazon.awssdk.services.transcribe.TranscribeClient` |
+| `amazonaws.services.translate.AmazonTranslateAsyncClient` | `software.amazon.awssdk.services.translate.TranslateAsyncClient` |
+| `amazonaws.services.translate.AmazonTranslateClient` | `software.amazon.awssdk.services.translate.TranslateClient` |
 | `amazonaws.services.waf.AWSWAFAsyncClient` | `software.amazon.awssdk.services.waf.WafAsyncClient` |
 | `amazonaws.services.waf.AWSWAFClient` | `software.amazon.awssdk.services.waf.WafClient` |
 | `amazonaws.services.waf.AWSWAFRegionalAsyncClient` | `software.amazon.awssdk.services.waf.regional.WafRegionalAsyncClient` |
