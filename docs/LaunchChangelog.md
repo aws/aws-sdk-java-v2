@@ -224,7 +224,7 @@ DynamoDbAsyncClient client =
 | Validate After Inactivity | `clientConfig.setValidateAfterInactivityMillis(...)`<br />`clientConfig.withValidateAfterInactivityMillis(...)` | Not Supported | Not Supported |
 | Local Address | `clientConfig.setLocalAddress(...)`<br />`clientConfig.withLocalAddress(...)` | `httpClientBuilder.localAddress(...)` | Not Supported |
 | Expect-Continue Enabled | `clientConfig.setUseExpectContinue(...)`<br />`clientConfig.withUseExpectContinue(...)` | `httpClientBuilder.expectContinueEnabled(...)` | Not Supported |
-| Connection Reaper | `clientConfig.setUseReaper(...)`<br />`clientConfig.withReaper(...)` | Not Supported | Not Supported |
+| Connection Reaper | `clientConfig.setUseReaper(...)`<br />`clientConfig.withReaper(...)` | `httpClientBuilder.useIdleConnectionReaper(...)` | Not Supported |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `DynamoDbClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` | `DynamoDbAsyncClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` |
 
 
@@ -254,8 +254,8 @@ DynamoDbAsyncClient client =
 | User Agent Suffix | `clientConfig.setUserAgentSuffix(...)`<br />`clientConfig.withUserAgentSuffix(...)` | `overrideConfig.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, ...)` |
 | Signer | `clientConfig.setSignerOverride(...)`<br />`clientConfig.withSignerOverride(...)` | `overrideConfig.advancedOption(SdkAdvancedClientOption.SIGNER, ...)` |
 | Additional Headers | `clientConfig.addHeader(...)`<br />`clientConfig.withHeader(...)` | `overrideConfig.putHeader(...)` |
-| Request Timeout | `clientConfig.setRequestTimeout(...)`<br />`clientConfig.withRequestTimeout(...)` | Not Supported |
-| Client Execution Timeout | `clientConfig.setClientExecutionTimeout(...)`<br />`clientConfig.withClientExecutionTimeout(...)` | Not Supported |
+| Request Timeout | `clientConfig.setRequestTimeout(...)`<br />`clientConfig.withRequestTimeout(...)` | `overrideConfig.apiCallAttemptTimeout(...)` |
+| Client Execution Timeout | `clientConfig.setClientExecutionTimeout(...)`<br />`clientConfig.withClientExecutionTimeout(...)` | `overrideConfig.apiCallTimeout(...)` |
 | Use Gzip | `clientConfig.setUseGzip(...)`<br />`clientConfig.withGzip(...)` | Not Supported |
 | Socket Buffer Size Hint | `clientConfig.setSocketBufferSizeHints(...)`<br />`clientConfig.withSocketBufferSizeHints(...)` | Not Supported |
 | Cache Response Metadata | `clientConfig.setCacheResponseMetadata(...)`<br />`clientConfig.withCacheResponseMetadata(...)` | Not Supported |
