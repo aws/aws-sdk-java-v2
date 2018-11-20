@@ -50,9 +50,6 @@ public abstract class BaseClientHandler {
         runBeforeMarshallingInterceptors(executionContext);
         SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
 
-        executionContext.executionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME,
-                                                            clientConfiguration.option(SdkClientOption.SERVICE_NAME));
-
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
         return runModifyHttpRequestInterceptors(request, executionContext);
@@ -123,7 +120,8 @@ public abstract class BaseClientHandler {
         SdkRequest originalRequest = params.getInput();
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
-                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION));
+                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
+            .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfiguration.option(SdkClientOption.SERVICE_NAME));
 
         ExecutionInterceptorChain interceptorChain =
                 new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
