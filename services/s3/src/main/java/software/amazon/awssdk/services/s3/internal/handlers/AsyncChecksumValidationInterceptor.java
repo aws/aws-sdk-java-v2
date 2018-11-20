@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.handlers;
+package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 
@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingPublisher;
@@ -48,17 +47,6 @@ import software.amazon.awssdk.utils.internal.Base16Lower;
 public class AsyncChecksumValidationInterceptor implements ExecutionInterceptor {
 
     private static final ExecutionAttribute<SdkChecksum> CHECKSUM = new ExecutionAttribute("checksum");
-
-    @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
-                                            ExecutionAttributes executionAttributes) {
-
-        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
-            return context.httpRequest().toBuilder().putHeader("x-amz-te", "append-md5").build();
-        }
-
-        return context.httpRequest();
-    }
 
     @Override
     public Optional<AsyncRequestBody> modifyAsyncHttpContent(Context.ModifyHttpRequest context,

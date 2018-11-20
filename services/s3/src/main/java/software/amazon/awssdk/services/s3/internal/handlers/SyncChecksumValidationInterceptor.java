@@ -13,9 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.handlers;
+package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.core.ClientType.SYNC;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -32,7 +33,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
@@ -47,17 +47,6 @@ import software.amazon.awssdk.utils.internal.Base16Lower;
 public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
 
     private static final ExecutionAttribute<SdkChecksum> CHECKSUM = new ExecutionAttribute("checksum");
-
-    @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
-                                            ExecutionAttributes executionAttributes) {
-
-        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
-            return context.httpRequest().toBuilder().putHeader("x-amz-te", "append-md5").build();
-        }
-
-        return context.httpRequest();
-    }
 
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
@@ -84,13 +73,13 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
 
     @Override
     public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
-                                                 ExecutionAttributes executionAttributes) {
+                                                           ExecutionAttributes executionAttributes) {
 
         if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
             SdkHttpResponse originalResponse = context.httpResponse();
             SdkChecksum checksum = new Md5Checksum();
 
-            int contentLength = Integer.valueOf(context.httpResponse().firstMatchingHeader("Content-Length").orElse("0"));
+            int contentLength = Integer.valueOf(context.httpResponse().firstMatchingHeader(CONTENT_LENGTH_HEADER).orElse("0"));
 
             if (contentLength > 0) {
                 return Optional.of(new ChecksumValidatingInputStream(context.responseBody().get(), checksum, contentLength));

@@ -16,28 +16,26 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
-import static software.amazon.awssdk.services.s3.utils.S3TestUtils.assertMd5MatchesEtag;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -77,9 +75,11 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void toFile() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
+        GetObjectResponse response = null;
         try {
-            GetObjectResponse response = s3Async.getObject(getObjectRequest, path).join();
+            response = s3Async.getObject(getObjectRequest, path).join();
         } finally {
+            assertEquals(Long.valueOf(path.toFile().length()), response.contentLength());
             path.toFile().delete();
         }
     }
