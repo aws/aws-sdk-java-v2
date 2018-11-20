@@ -1,15 +1,15 @@
 # __2.1.0__ __2018-11-19__
 ## __AWS SDK for Java v2__
+  - ### Features
+    - AWS SDK for Java v2 is generally available now. To get started, please see this [blog post](https://aws.amazon.com/blogs/developer/aws-sdk-for-java-2-x-released/).
+    - Update Netty version to Netty 4.1.31.Final
+
   - ### Bugfixes
     - Temporarily removed OSGi support because the Netty HTTP client does not yet support it. See [#726](https://github.com/aws/aws-sdk-java-v2/issues/726)
 
 ## __Netty NIO Async HTTP Client__
   - ### Bugfixes
     - Not invoke fireExceptionCaught if the channel is not active. see [#452](https://github.com/aws/aws-sdk-java-v2/issues/452)
-
-## __core__
-  - ### Features
-    - Netty 4.1.31.Final
 
 # __2.0.0-preview-13__ __2018-11-13__
 ## __AWS SDK for Java v2__
