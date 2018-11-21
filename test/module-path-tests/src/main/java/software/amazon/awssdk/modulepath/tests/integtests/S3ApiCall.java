@@ -17,6 +17,7 @@ package software.amazon.awssdk.modulepath.tests.integtests;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -26,6 +27,7 @@ public class S3ApiCall extends BaseApiCall {
 
     private S3Client s3Client = S3Client.builder()
                                         .region(Region.US_WEST_2)
+                                        .httpClient(ApacheHttpClient.builder().build())
                                         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                         .build();
 
