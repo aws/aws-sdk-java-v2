@@ -687,6 +687,7 @@
                                 <configuration>
                                     <includes>
                                         <include>**/*IntegrationTest.java</include>
+                                        <include>**/*IntegrationTests.java</include>
                                         <include>**/*IntegTest.java</include>
                                         <include>**/RunCucumberTest.java</include>
                                     </includes>

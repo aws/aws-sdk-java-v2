@@ -38,6 +38,13 @@ public interface SdkJsonNode {
     }
 
     /**
+     * @return The embedded object value of the node. See {@link SdkEmbeddedObject}.
+     */
+    default Object embeddedObject() {
+        return null;
+    }
+
+    /**
      * @param fieldName Field to get value for.
      * @return Value of field in the JSON object if this node represents an object, otherwise returns null.
      */
