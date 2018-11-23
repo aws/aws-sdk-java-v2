@@ -37,6 +37,7 @@ public final class SdkEmbeddedObject implements SdkJsonNode {
     /**
      * @return The embedded object that was returned by the {@link JsonParser}.
      */
+    @Override
     public Object embeddedObject() {
         return embeddedObject;
     }
