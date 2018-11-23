@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
+import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SDK_BYTES;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
@@ -77,7 +79,7 @@ public final class JsonProtocolUnmarshaller {
             .payloadUnmarshaller(MarshallingType.BIG_DECIMAL, new SimpleTypeJsonUnmarshaller<>(
                 StringToValueConverter.TO_BIG_DECIMAL))
             .payloadUnmarshaller(MarshallingType.BOOLEAN, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
-            .payloadUnmarshaller(MarshallingType.SDK_BYTES, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_SDK_BYTES))
+            .payloadUnmarshaller(MarshallingType.SDK_BYTES, JsonProtocolUnmarshaller::unmarshallSdkBytes)
             .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeJsonUnmarshaller<>(INSTANT_STRING_TO_VALUE))
             .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
             .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
@@ -90,6 +92,21 @@ public final class JsonProtocolUnmarshaller {
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
         return Collections.unmodifiableMap(formats);
+    }
+
+    private static SdkBytes unmarshallSdkBytes(JsonUnmarshallerContext context,
+                                               SdkJsonNode jsonContent,
+                                               SdkField<SdkBytes> field) {
+        if (jsonContent == null || jsonContent.isNull()) {
+            return null;
+        }
+        // Binary protocols like CBOR may already have the raw bytes extracted.
+        if (jsonContent.embeddedObject() != null) {
+            return SdkBytes.fromByteArray((byte[]) jsonContent.embeddedObject());
+        } else {
+            // Otherwise decode the JSON string as Base64
+            return TO_SDK_BYTES.convert(jsonContent.asText(), field);
+        }
     }
 
     private static SdkPojo unmarshallStructured(JsonUnmarshallerContext context, SdkJsonNode jsonContent, SdkField<SdkPojo> f) {
