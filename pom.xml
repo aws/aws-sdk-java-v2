@@ -81,7 +81,7 @@
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <flow.version>1.7</flow.version>
-        <jackson.version>2.9.6</jackson.version>
+        <jackson.version>2.9.7</jackson.version>
         <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.4</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
