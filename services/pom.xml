@@ -13,10 +13,7 @@
   ~ express or implied. See the License for the specific language governing
   ~ permissions and limitations under the License.
   -->
-
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>software.amazon.awssdk</groupId>
@@ -26,11 +23,9 @@
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
     <packaging>pom</packaging>
-
     <properties>
         <root.offset>../..</root.offset>
     </properties>
-
     <modules>
         <module>acm</module>
         <module>apigateway</module>
@@ -175,13 +170,20 @@
         <module>signer</module>
         <module>pinpointsmsvoice</module>
         <module>transcribe</module>
-        <module>route53resolver</module>        
-        <module>fms</module>    
+        <module>route53resolver</module>
+        <module>fms</module>
+        <module>amplify</module>
+        <module>datasync</module>
+        <module>neptune</module>
+        <module>quicksight</module>
+        <module>rdsdata</module>
+        <module>robomaker</module>
+        <module>catalog</module>
+        <module>discovery</module>
+        <module>transfer</module>
     </modules>
-
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -278,7 +280,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <pluginManagement>
             <plugins>
@@ -286,7 +287,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
@@ -304,7 +304,6 @@
                         </execution>
                     </executions>
                 </plugin>
-
                 <!-- Disable spotbugs for service clients to speed up the build. -->
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
@@ -315,7 +314,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <!-- Build steps executed for every service -->
         <plugins>
             <plugin>
@@ -332,7 +330,6 @@
             </plugin>
         </plugins>
     </build>
-
     <profiles>
         <!-- Build steps executed for services with models -->
         <profile>
