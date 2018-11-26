@@ -54,6 +54,9 @@ public final class AbortableInputStream extends FilterInputStream implements Abo
      * @return a new instance of AbortableInputStream
      */
     public static AbortableInputStream create(InputStream delegate) {
+        if (delegate instanceof Abortable) {
+            return new AbortableInputStream(delegate, (Abortable) delegate);
+        }
         return new AbortableInputStream(delegate, () -> { });
     }
 

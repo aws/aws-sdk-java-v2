@@ -21,9 +21,10 @@ import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.http.Abortable;
 
 @SdkInternalApi
-public class ChecksumValidatingInputStream extends InputStream {
+public class ChecksumValidatingInputStream extends InputStream implements Abortable {
     private static final int CHECKSUM_SIZE = 16;
 
     private final SdkChecksum checkSum;
@@ -146,6 +147,18 @@ public class ChecksumValidatingInputStream extends InputStream {
         }
     }
 
+    @Override
+    public void abort() {
+        if (inputStream instanceof Abortable) {
+            ((Abortable) inputStream).abort();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        inputStream.close();
+    }
+
     /**
      * Gets the stream's checksum as an integer.
      *
@@ -165,4 +178,5 @@ public class ChecksumValidatingInputStream extends InputStream {
                               computedChecksumInt, streamChecksumInt)).build();
         }
     }
+
 }
