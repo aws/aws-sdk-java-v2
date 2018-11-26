@@ -1,7 +1,7 @@
 {
   "version":"2.0",
   "metadata":{
-    "apiVersion":"2018-06-18",
+    "apiVersion":"2018-11-05",
     "endpointPrefix":"cloudfront",
     "globalEndpoint":"cloudfront.amazonaws.com",
     "protocol":"rest-xml",
@@ -9,14 +9,14 @@
     "serviceFullName":"Amazon CloudFront",
     "serviceId":"CloudFront",
     "signatureVersion":"v4",
-    "uid":"cloudfront-2018-06-18"
+    "uid":"cloudfront-2018-11-05"
   },
   "operations":{
     "CreateCloudFrontOriginAccessIdentity":{
-      "name":"CreateCloudFrontOriginAccessIdentity2018_06_18",
+      "name":"CreateCloudFrontOriginAccessIdentity2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/origin-access-identity/cloudfront",
+        "requestUri":"/2018-11-05/origin-access-identity/cloudfront",
         "responseCode":201
       },
       "input":{"shape":"CreateCloudFrontOriginAccessIdentityRequest"},
@@ -31,10 +31,10 @@
       "documentation":"<p>Creates a new origin access identity. If you're using Amazon S3 for your origin, you can use an origin access identity to require users to access your content using a CloudFront URL instead of the Amazon S3 URL. For more information about how to use origin access identities, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html\">Serving Private Content through CloudFront</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
     "CreateDistribution":{
-      "name":"CreateDistribution2018_06_18",
+      "name":"CreateDistribution2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/distribution",
+        "requestUri":"/2018-11-05/distribution",
         "responseCode":201
       },
       "input":{"shape":"CreateDistributionRequest"},
@@ -60,6 +60,7 @@
         {"shape":"InvalidRequiredProtocol"},
         {"shape":"NoSuchOrigin"},
         {"shape":"TooManyOrigins"},
+        {"shape":"TooManyOriginGroupsPerDistribution"},
         {"shape":"TooManyCacheBehaviors"},
         {"shape":"TooManyCookieNamesInWhiteList"},
         {"shape":"InvalidForwardCookies"},
@@ -87,10 +88,10 @@
       "documentation":"<p>Creates a new web distribution. You create a CloudFront distribution to tell CloudFront where you want content to be delivered from, and the details about how to track and manage content delivery. Send a <code>POST</code> request to the <code>/<i>CloudFront API version</i>/distribution</code>/<code>distribution ID</code> resource.</p> <important> <p>When you update a distribution, there are more required fields than when you create a distribution. When you update your distribution by using <a>UpdateDistribution</a>, follow the steps included in the documentation to get the current configuration and then make your updates. This helps to make sure that you include all of the required fields. To view a summary, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview-required-fields.html\">Required Fields for Create Distribution and Update Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </important> <p>If you are using Adobe Flash Media Server's RTMP protocol, you set up a different kind of CloudFront distribution. For more information, see <a>CreateStreamingDistribution</a>.</p>"
     },
     "CreateDistributionWithTags":{
-      "name":"CreateDistributionWithTags2018_06_18",
+      "name":"CreateDistributionWithTags2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/distribution?WithTags",
+        "requestUri":"/2018-11-05/distribution?WithTags",
         "responseCode":201
       },
       "input":{"shape":"CreateDistributionWithTagsRequest"},
@@ -116,6 +117,7 @@
         {"shape":"InvalidRequiredProtocol"},
         {"shape":"NoSuchOrigin"},
         {"shape":"TooManyOrigins"},
+        {"shape":"TooManyOriginGroupsPerDistribution"},
         {"shape":"TooManyCacheBehaviors"},
         {"shape":"TooManyCookieNamesInWhiteList"},
         {"shape":"InvalidForwardCookies"},
@@ -144,10 +146,10 @@
       "documentation":"<p>Create a new distribution with tags.</p>"
     },
     "CreateFieldLevelEncryptionConfig":{
-      "name":"CreateFieldLevelEncryptionConfig2018_06_18",
+      "name":"CreateFieldLevelEncryptionConfig2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/field-level-encryption",
+        "requestUri":"/2018-11-05/field-level-encryption",
         "responseCode":201
       },
       "input":{"shape":"CreateFieldLevelEncryptionConfigRequest"},
@@ -165,10 +167,10 @@
       "documentation":"<p>Create a new field-level encryption configuration.</p>"
     },
     "CreateFieldLevelEncryptionProfile":{
-      "name":"CreateFieldLevelEncryptionProfile2018_06_18",
+      "name":"CreateFieldLevelEncryptionProfile2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/field-level-encryption-profile",
+        "requestUri":"/2018-11-05/field-level-encryption-profile",
         "responseCode":201
       },
       "input":{"shape":"CreateFieldLevelEncryptionProfileRequest"},
@@ -186,10 +188,10 @@
       "documentation":"<p>Create a field-level encryption profile.</p>"
     },
     "CreateInvalidation":{
-      "name":"CreateInvalidation2018_06_18",
+      "name":"CreateInvalidation2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/distribution/{DistributionId}/invalidation",
+        "requestUri":"/2018-11-05/distribution/{DistributionId}/invalidation",
         "responseCode":201
       },
       "input":{"shape":"CreateInvalidationRequest"},
@@ -206,10 +208,10 @@
       "documentation":"<p>Create a new invalidation. </p>"
     },
     "CreatePublicKey":{
-      "name":"CreatePublicKey2018_06_18",
+      "name":"CreatePublicKey2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/public-key",
+        "requestUri":"/2018-11-05/public-key",
         "responseCode":201
       },
       "input":{"shape":"CreatePublicKeyRequest"},
@@ -222,10 +224,10 @@
       "documentation":"<p>Add a new public key to CloudFront to use, for example, for field-level encryption. You can add a maximum of 10 public keys with one AWS account.</p>"
     },
     "CreateStreamingDistribution":{
-      "name":"CreateStreamingDistribution2018_06_18",
+      "name":"CreateStreamingDistribution2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/streaming-distribution",
+        "requestUri":"/2018-11-05/streaming-distribution",
         "responseCode":201
       },
       "input":{"shape":"CreateStreamingDistributionRequest"},
@@ -247,10 +249,10 @@
       "documentation":"<p>Creates a new RMTP distribution. An RTMP distribution is similar to a web distribution, but an RTMP distribution streams media files using the Adobe Real-Time Messaging Protocol (RTMP) instead of serving files using HTTP. </p> <p>To create a new web distribution, submit a <code>POST</code> request to the <i>CloudFront API version</i>/distribution resource. The request body must include a document with a <i>StreamingDistributionConfig</i> element. The response echoes the <code>StreamingDistributionConfig</code> element and returns other information about the RTMP distribution.</p> <p>To get the status of your request, use the <i>GET StreamingDistribution</i> API action. When the value of <code>Enabled</code> is <code>true</code> and the value of <code>Status</code> is <code>Deployed</code>, your distribution is ready. A distribution usually deploys in less than 15 minutes.</p> <p>For more information about web distributions, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-rtmp.html\">Working with RTMP Distributions</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <important> <p>Beginning with the 2012-05-05 version of the CloudFront API, we made substantial changes to the format of the XML document that you include in the request body when you create or update a web distribution or an RTMP distribution, and when you invalidate objects. With previous versions of the API, we discovered that it was too easy to accidentally delete one or more values for an element that accepts multiple values, for example, CNAMEs and trusted signers. Our changes for the 2012-05-05 release are intended to prevent these accidental deletions and to notify you when there's a mismatch between the number of values you say you're specifying in the <code>Quantity</code> element and the number of values specified.</p> </important>"
     },
     "CreateStreamingDistributionWithTags":{
-      "name":"CreateStreamingDistributionWithTags2018_06_18",
+      "name":"CreateStreamingDistributionWithTags2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/streaming-distribution?WithTags",
+        "requestUri":"/2018-11-05/streaming-distribution?WithTags",
         "responseCode":201
       },
       "input":{"shape":"CreateStreamingDistributionWithTagsRequest"},
@@ -273,10 +275,10 @@
       "documentation":"<p>Create a new streaming distribution with tags.</p>"
     },
     "DeleteCloudFrontOriginAccessIdentity":{
-      "name":"DeleteCloudFrontOriginAccessIdentity2018_06_18",
+      "name":"DeleteCloudFrontOriginAccessIdentity2018_11_05",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}",
+        "requestUri":"/2018-11-05/origin-access-identity/cloudfront/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteCloudFrontOriginAccessIdentityRequest"},
@@ -290,10 +292,10 @@
       "documentation":"<p>Delete an origin access identity. </p>"
     },
     "DeleteDistribution":{
-      "name":"DeleteDistribution2018_06_18",
+      "name":"DeleteDistribution2018_11_05",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2018-06-18/distribution/{Id}",
+        "requestUri":"/2018-11-05/distribution/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteDistributionRequest"},
@@ -307,10 +309,10 @@
       "documentation":"<p>Delete a distribution. </p>"
     },
     "DeleteFieldLevelEncryptionConfig":{
-      "name":"DeleteFieldLevelEncryptionConfig2018_06_18",
+      "name":"DeleteFieldLevelEncryptionConfig2018_11_05",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2018-06-18/field-level-encryption/{Id}",
+        "requestUri":"/2018-11-05/field-level-encryption/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteFieldLevelEncryptionConfigRequest"},
@@ -324,10 +326,10 @@
       "documentation":"<p>Remove a field-level encryption configuration.</p>"
     },
     "DeleteFieldLevelEncryptionProfile":{
-      "name":"DeleteFieldLevelEncryptionProfile2018_06_18",
+      "name":"DeleteFieldLevelEncryptionProfile2018_11_05",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}",
+        "requestUri":"/2018-11-05/field-level-encryption-profile/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteFieldLevelEncryptionProfileRequest"},
@@ -341,10 +343,10 @@
       "documentation":"<p>Remove a field-level encryption profile.</p>"
     },
     "DeletePublicKey":{
-      "name":"DeletePublicKey2018_06_18",
+      "name":"DeletePublicKey2018_11_05",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2018-06-18/public-key/{Id}",
+        "requestUri":"/2018-11-05/public-key/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeletePublicKeyRequest"},
@@ -358,10 +360,10 @@
       "documentation":"<p>Remove a public key you previously added to CloudFront.</p>"
     },
     "DeleteStreamingDistribution":{
-      "name":"DeleteStreamingDistribution2018_06_18",
+      "name":"DeleteStreamingDistribution2018_11_05",
       "http":{
         "method":"DELETE",
-        "requestUri":"/2018-06-18/streaming-distribution/{Id}",
+        "requestUri":"/2018-11-05/streaming-distribution/{Id}",
         "responseCode":204
       },
       "input":{"shape":"DeleteStreamingDistributionRequest"},
@@ -375,10 +377,10 @@
       "documentation":"<p>Delete a streaming distribution. To delete an RTMP distribution using the CloudFront API, perform the following steps.</p> <p> <b>To delete an RTMP distribution using the CloudFront API</b>:</p> <ol> <li> <p>Disable the RTMP distribution.</p> </li> <li> <p>Submit a <code>GET Streaming Distribution Config</code> request to get the current configuration and the <code>Etag</code> header for the distribution. </p> </li> <li> <p>Update the XML document that was returned in the response to your <code>GET Streaming Distribution Config</code> request to change the value of <code>Enabled</code> to <code>false</code>.</p> </li> <li> <p>Submit a <code>PUT Streaming Distribution Config</code> request to update the configuration for your distribution. In the request body, include the XML document that you updated in Step 3. Then set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Streaming Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to the <code>PUT Streaming Distribution Config</code> request to confirm that the distribution was successfully disabled.</p> </li> <li> <p>Submit a <code>GET Streaming Distribution Config</code> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> <li> <p>Submit a <code>DELETE Streaming Distribution</code> request. Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GET Streaming Distribution Config</code> request in Step 2.</p> </li> <li> <p>Review the response to your <code>DELETE Streaming Distribution</code> request to confirm that the distribution was successfully deleted.</p> </li> </ol> <p>For information about deleting a distribution using the CloudFront console, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/HowToDeleteDistribution.html\">Deleting a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
     },
     "GetCloudFrontOriginAccessIdentity":{
-      "name":"GetCloudFrontOriginAccessIdentity2018_06_18",
+      "name":"GetCloudFrontOriginAccessIdentity2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}"
+        "requestUri":"/2018-11-05/origin-access-identity/cloudfront/{Id}"
       },
       "input":{"shape":"GetCloudFrontOriginAccessIdentityRequest"},
       "output":{"shape":"GetCloudFrontOriginAccessIdentityResult"},
@@ -389,10 +391,10 @@
       "documentation":"<p>Get the information about an origin access identity. </p>"
     },
     "GetCloudFrontOriginAccessIdentityConfig":{
-      "name":"GetCloudFrontOriginAccessIdentityConfig2018_06_18",
+      "name":"GetCloudFrontOriginAccessIdentityConfig2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}/config"
+        "requestUri":"/2018-11-05/origin-access-identity/cloudfront/{Id}/config"
       },
       "input":{"shape":"GetCloudFrontOriginAccessIdentityConfigRequest"},
       "output":{"shape":"GetCloudFrontOriginAccessIdentityConfigResult"},
@@ -403,10 +405,10 @@
       "documentation":"<p>Get the configuration information about an origin access identity. </p>"
     },
     "GetDistribution":{
-      "name":"GetDistribution2018_06_18",
+      "name":"GetDistribution2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/distribution/{Id}"
+        "requestUri":"/2018-11-05/distribution/{Id}"
       },
       "input":{"shape":"GetDistributionRequest"},
       "output":{"shape":"GetDistributionResult"},
@@ -417,10 +419,10 @@
       "documentation":"<p>Get the information about a distribution. </p>"
     },
     "GetDistributionConfig":{
-      "name":"GetDistributionConfig2018_06_18",
+      "name":"GetDistributionConfig2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/distribution/{Id}/config"
+        "requestUri":"/2018-11-05/distribution/{Id}/config"
       },
       "input":{"shape":"GetDistributionConfigRequest"},
       "output":{"shape":"GetDistributionConfigResult"},
@@ -431,10 +433,10 @@
       "documentation":"<p>Get the configuration information about a distribution. </p>"
     },
     "GetFieldLevelEncryption":{
-      "name":"GetFieldLevelEncryption2018_06_18",
+      "name":"GetFieldLevelEncryption2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/field-level-encryption/{Id}"
+        "requestUri":"/2018-11-05/field-level-encryption/{Id}"
       },
       "input":{"shape":"GetFieldLevelEncryptionRequest"},
       "output":{"shape":"GetFieldLevelEncryptionResult"},
@@ -445,10 +447,10 @@
       "documentation":"<p>Get the field-level encryption configuration information.</p>"
     },
     "GetFieldLevelEncryptionConfig":{
-      "name":"GetFieldLevelEncryptionConfig2018_06_18",
+      "name":"GetFieldLevelEncryptionConfig2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/field-level-encryption/{Id}/config"
+        "requestUri":"/2018-11-05/field-level-encryption/{Id}/config"
       },
       "input":{"shape":"GetFieldLevelEncryptionConfigRequest"},
       "output":{"shape":"GetFieldLevelEncryptionConfigResult"},
@@ -459,10 +461,10 @@
       "documentation":"<p>Get the field-level encryption configuration information.</p>"
     },
     "GetFieldLevelEncryptionProfile":{
-      "name":"GetFieldLevelEncryptionProfile2018_06_18",
+      "name":"GetFieldLevelEncryptionProfile2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}"
+        "requestUri":"/2018-11-05/field-level-encryption-profile/{Id}"
       },
       "input":{"shape":"GetFieldLevelEncryptionProfileRequest"},
       "output":{"shape":"GetFieldLevelEncryptionProfileResult"},
@@ -473,10 +475,10 @@
       "documentation":"<p>Get the field-level encryption profile information.</p>"
     },
     "GetFieldLevelEncryptionProfileConfig":{
-      "name":"GetFieldLevelEncryptionProfileConfig2018_06_18",
+      "name":"GetFieldLevelEncryptionProfileConfig2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}/config"
+        "requestUri":"/2018-11-05/field-level-encryption-profile/{Id}/config"
       },
       "input":{"shape":"GetFieldLevelEncryptionProfileConfigRequest"},
       "output":{"shape":"GetFieldLevelEncryptionProfileConfigResult"},
@@ -487,10 +489,10 @@
       "documentation":"<p>Get the field-level encryption profile configuration information.</p>"
     },
     "GetInvalidation":{
-      "name":"GetInvalidation2018_06_18",
+      "name":"GetInvalidation2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/distribution/{DistributionId}/invalidation/{Id}"
+        "requestUri":"/2018-11-05/distribution/{DistributionId}/invalidation/{Id}"
       },
       "input":{"shape":"GetInvalidationRequest"},
       "output":{"shape":"GetInvalidationResult"},
@@ -502,10 +504,10 @@
       "documentation":"<p>Get the information about an invalidation. </p>"
     },
     "GetPublicKey":{
-      "name":"GetPublicKey2018_06_18",
+      "name":"GetPublicKey2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/public-key/{Id}"
+        "requestUri":"/2018-11-05/public-key/{Id}"
       },
       "input":{"shape":"GetPublicKeyRequest"},
       "output":{"shape":"GetPublicKeyResult"},
@@ -516,10 +518,10 @@
       "documentation":"<p>Get the public key information.</p>"
     },
     "GetPublicKeyConfig":{
-      "name":"GetPublicKeyConfig2018_06_18",
+      "name":"GetPublicKeyConfig2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/public-key/{Id}/config"
+        "requestUri":"/2018-11-05/public-key/{Id}/config"
       },
       "input":{"shape":"GetPublicKeyConfigRequest"},
       "output":{"shape":"GetPublicKeyConfigResult"},
@@ -530,10 +532,10 @@
       "documentation":"<p>Return public key configuration informaation</p>"
     },
     "GetStreamingDistribution":{
-      "name":"GetStreamingDistribution2018_06_18",
+      "name":"GetStreamingDistribution2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/streaming-distribution/{Id}"
+        "requestUri":"/2018-11-05/streaming-distribution/{Id}"
       },
       "input":{"shape":"GetStreamingDistributionRequest"},
       "output":{"shape":"GetStreamingDistributionResult"},
@@ -544,10 +546,10 @@
       "documentation":"<p>Gets information about a specified RTMP distribution, including the distribution configuration.</p>"
     },
     "GetStreamingDistributionConfig":{
-      "name":"GetStreamingDistributionConfig2018_06_18",
+      "name":"GetStreamingDistributionConfig2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/streaming-distribution/{Id}/config"
+        "requestUri":"/2018-11-05/streaming-distribution/{Id}/config"
       },
       "input":{"shape":"GetStreamingDistributionConfigRequest"},
       "output":{"shape":"GetStreamingDistributionConfigResult"},
@@ -558,10 +560,10 @@
       "documentation":"<p>Get the configuration information about a streaming distribution. </p>"
     },
     "ListCloudFrontOriginAccessIdentities":{
-      "name":"ListCloudFrontOriginAccessIdentities2018_06_18",
+      "name":"ListCloudFrontOriginAccessIdentities2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/origin-access-identity/cloudfront"
+        "requestUri":"/2018-11-05/origin-access-identity/cloudfront"
       },
       "input":{"shape":"ListCloudFrontOriginAccessIdentitiesRequest"},
       "output":{"shape":"ListCloudFrontOriginAccessIdentitiesResult"},
@@ -571,10 +573,10 @@
       "documentation":"<p>Lists origin access identities.</p>"
     },
     "ListDistributions":{
-      "name":"ListDistributions2018_06_18",
+      "name":"ListDistributions2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/distribution"
+        "requestUri":"/2018-11-05/distribution"
       },
       "input":{"shape":"ListDistributionsRequest"},
       "output":{"shape":"ListDistributionsResult"},
@@ -584,10 +586,10 @@
       "documentation":"<p>List distributions. </p>"
     },
     "ListDistributionsByWebACLId":{
-      "name":"ListDistributionsByWebACLId2018_06_18",
+      "name":"ListDistributionsByWebACLId2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/distributionsByWebACLId/{WebACLId}"
+        "requestUri":"/2018-11-05/distributionsByWebACLId/{WebACLId}"
       },
       "input":{"shape":"ListDistributionsByWebACLIdRequest"},
       "output":{"shape":"ListDistributionsByWebACLIdResult"},
@@ -598,10 +600,10 @@
       "documentation":"<p>List the distributions that are associated with a specified AWS WAF web ACL. </p>"
     },
     "ListFieldLevelEncryptionConfigs":{
-      "name":"ListFieldLevelEncryptionConfigs2018_06_18",
+      "name":"ListFieldLevelEncryptionConfigs2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/field-level-encryption"
+        "requestUri":"/2018-11-05/field-level-encryption"
       },
       "input":{"shape":"ListFieldLevelEncryptionConfigsRequest"},
       "output":{"shape":"ListFieldLevelEncryptionConfigsResult"},
@@ -611,10 +613,10 @@
       "documentation":"<p>List all field-level encryption configurations that have been created in CloudFront for this account.</p>"
     },
     "ListFieldLevelEncryptionProfiles":{
-      "name":"ListFieldLevelEncryptionProfiles2018_06_18",
+      "name":"ListFieldLevelEncryptionProfiles2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/field-level-encryption-profile"
+        "requestUri":"/2018-11-05/field-level-encryption-profile"
       },
       "input":{"shape":"ListFieldLevelEncryptionProfilesRequest"},
       "output":{"shape":"ListFieldLevelEncryptionProfilesResult"},
@@ -624,10 +626,10 @@
       "documentation":"<p>Request a list of field-level encryption profiles that have been created in CloudFront for this account.</p>"
     },
     "ListInvalidations":{
-      "name":"ListInvalidations2018_06_18",
+      "name":"ListInvalidations2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/distribution/{DistributionId}/invalidation"
+        "requestUri":"/2018-11-05/distribution/{DistributionId}/invalidation"
       },
       "input":{"shape":"ListInvalidationsRequest"},
       "output":{"shape":"ListInvalidationsResult"},
@@ -639,10 +641,10 @@
       "documentation":"<p>Lists invalidation batches. </p>"
     },
     "ListPublicKeys":{
-      "name":"ListPublicKeys2018_06_18",
+      "name":"ListPublicKeys2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/public-key"
+        "requestUri":"/2018-11-05/public-key"
       },
       "input":{"shape":"ListPublicKeysRequest"},
       "output":{"shape":"ListPublicKeysResult"},
@@ -652,10 +654,10 @@
       "documentation":"<p>List all public keys that have been added to CloudFront for this account.</p>"
     },
     "ListStreamingDistributions":{
-      "name":"ListStreamingDistributions2018_06_18",
+      "name":"ListStreamingDistributions2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/streaming-distribution"
+        "requestUri":"/2018-11-05/streaming-distribution"
       },
       "input":{"shape":"ListStreamingDistributionsRequest"},
       "output":{"shape":"ListStreamingDistributionsResult"},
@@ -665,10 +667,10 @@
       "documentation":"<p>List streaming distributions. </p>"
     },
     "ListTagsForResource":{
-      "name":"ListTagsForResource2018_06_18",
+      "name":"ListTagsForResource2018_11_05",
       "http":{
         "method":"GET",
-        "requestUri":"/2018-06-18/tagging"
+        "requestUri":"/2018-11-05/tagging"
       },
       "input":{"shape":"ListTagsForResourceRequest"},
       "output":{"shape":"ListTagsForResourceResult"},
@@ -681,10 +683,10 @@
       "documentation":"<p>List tags for a CloudFront resource.</p>"
     },
     "TagResource":{
-      "name":"TagResource2018_06_18",
+      "name":"TagResource2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/tagging?Operation=Tag",
+        "requestUri":"/2018-11-05/tagging?Operation=Tag",
         "responseCode":204
       },
       "input":{"shape":"TagResourceRequest"},
@@ -697,10 +699,10 @@
       "documentation":"<p>Add tags to a CloudFront resource.</p>"
     },
     "UntagResource":{
-      "name":"UntagResource2018_06_18",
+      "name":"UntagResource2018_11_05",
       "http":{
         "method":"POST",
-        "requestUri":"/2018-06-18/tagging?Operation=Untag",
+        "requestUri":"/2018-11-05/tagging?Operation=Untag",
         "responseCode":204
       },
       "input":{"shape":"UntagResourceRequest"},
@@ -713,10 +715,10 @@
       "documentation":"<p>Remove tags from a CloudFront resource.</p>"
     },
     "UpdateCloudFrontOriginAccessIdentity":{
-      "name":"UpdateCloudFrontOriginAccessIdentity2018_06_18",
+      "name":"UpdateCloudFrontOriginAccessIdentity2018_11_05",
       "http":{
         "method":"PUT",
-        "requestUri":"/2018-06-18/origin-access-identity/cloudfront/{Id}/config"
+        "requestUri":"/2018-11-05/origin-access-identity/cloudfront/{Id}/config"
       },
       "input":{"shape":"UpdateCloudFrontOriginAccessIdentityRequest"},
       "output":{"shape":"UpdateCloudFrontOriginAccessIdentityResult"},
@@ -733,10 +735,10 @@
       "documentation":"<p>Update an origin access identity. </p>"
     },
     "UpdateDistribution":{
-      "name":"UpdateDistribution2018_06_18",
+      "name":"UpdateDistribution2018_11_05",
       "http":{
         "method":"PUT",
-        "requestUri":"/2018-06-18/distribution/{Id}/config"
+        "requestUri":"/2018-11-05/distribution/{Id}/config"
       },
       "input":{"shape":"UpdateDistributionRequest"},
       "output":{"shape":"UpdateDistributionResult"},
@@ -762,6 +764,7 @@
         {"shape":"InvalidRequiredProtocol"},
         {"shape":"NoSuchOrigin"},
         {"shape":"TooManyOrigins"},
+        {"shape":"TooManyOriginGroupsPerDistribution"},
         {"shape":"TooManyCacheBehaviors"},
         {"shape":"TooManyCookieNamesInWhiteList"},
         {"shape":"InvalidForwardCookies"},
@@ -788,10 +791,10 @@
       "documentation":"<p>Updates the configuration for a web distribution. </p> <important> <p>When you update a distribution, there are more required fields than when you create a distribution. When you update your distribution by using this API action, follow the steps here to get the current configuration and then make your updates, to make sure that you include all of the required fields. To view a summary, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-overview-required-fields.html\">Required Fields for Create Distribution and Update Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> </important> <p>The update process includes getting the current distribution configuration, updating the XML document that is returned to make your changes, and then submitting an <code>UpdateDistribution</code> request to make the updates.</p> <p>For information about updating a distribution using the CloudFront console instead, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-creating-console.html\">Creating a Distribution</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p> <b>To update a web distribution using the CloudFront API</b> </p> <ol> <li> <p>Submit a <a>GetDistributionConfig</a> request to get the current configuration and an <code>Etag</code> header for the distribution.</p> <note> <p>If you update the distribution again, you must get a new <code>Etag</code> header.</p> </note> </li> <li> <p>Update the XML document that was returned in the response to your <code>GetDistributionConfig</code> request to include your changes. </p> <important> <p>When you edit the XML file, be aware of the following:</p> <ul> <li> <p>You must strip out the ETag parameter that is returned.</p> </li> <li> <p>Additional fields are required when you update a distribution. There may be fields included in the XML file for features that you haven't configured for your distribution. This is expected and required to successfully update the distribution.</p> </li> <li> <p>You can't change the value of <code>CallerReference</code>. If you try to change this value, CloudFront returns an <code>IllegalUpdate</code> error. </p> </li> <li> <p>The new configuration replaces the existing configuration; the values that you specify in an <code>UpdateDistribution</code> request are not merged into your existing configuration. When you add, delete, or replace values in an element that allows multiple values (for example, <code>CNAME</code>), you must specify all of the values that you want to appear in the updated distribution. In addition, you must update the corresponding <code>Quantity</code> element.</p> </li> </ul> </important> </li> <li> <p>Submit an <code>UpdateDistribution</code> request to update the configuration for your distribution:</p> <ul> <li> <p>In the request body, include the XML document that you updated in Step 2. The request body must include an XML document with a <code>DistributionConfig</code> element.</p> </li> <li> <p>Set the value of the HTTP <code>If-Match</code> header to the value of the <code>ETag</code> header that CloudFront returned when you submitted the <code>GetDistributionConfig</code> request in Step 1.</p> </li> </ul> </li> <li> <p>Review the response to the <code>UpdateDistribution</code> request to confirm that the configuration was successfully updated.</p> </li> <li> <p>Optional: Submit a <a>GetDistribution</a> request to confirm that your changes have propagated. When propagation is complete, the value of <code>Status</code> is <code>Deployed</code>.</p> </li> </ol>"
     },
     "UpdateFieldLevelEncryptionConfig":{
-      "name":"UpdateFieldLevelEncryptionConfig2018_06_18",
+      "name":"UpdateFieldLevelEncryptionConfig2018_11_05",
       "http":{
         "method":"PUT",
-        "requestUri":"/2018-06-18/field-level-encryption/{Id}/config"
+        "requestUri":"/2018-11-05/field-level-encryption/{Id}/config"
       },
       "input":{"shape":"UpdateFieldLevelEncryptionConfigRequest"},
       "output":{"shape":"UpdateFieldLevelEncryptionConfigResult"},
@@ -811,10 +814,10 @@
       "documentation":"<p>Update a field-level encryption configuration. </p>"
     },
     "UpdateFieldLevelEncryptionProfile":{
-      "name":"UpdateFieldLevelEncryptionProfile2018_06_18",
+      "name":"UpdateFieldLevelEncryptionProfile2018_11_05",
       "http":{
         "method":"PUT",
-        "requestUri":"/2018-06-18/field-level-encryption-profile/{Id}/config"
+        "requestUri":"/2018-11-05/field-level-encryption-profile/{Id}/config"
       },
       "input":{"shape":"UpdateFieldLevelEncryptionProfileRequest"},
       "output":{"shape":"UpdateFieldLevelEncryptionProfileResult"},
@@ -835,10 +838,10 @@
       "documentation":"<p>Update a field-level encryption profile. </p>"
     },
     "UpdatePublicKey":{
-      "name":"UpdatePublicKey2018_06_18",
+      "name":"UpdatePublicKey2018_11_05",
       "http":{
         "method":"PUT",
-        "requestUri":"/2018-06-18/public-key/{Id}/config"
+        "requestUri":"/2018-11-05/public-key/{Id}/config"
       },
       "input":{"shape":"UpdatePublicKeyRequest"},
       "output":{"shape":"UpdatePublicKeyResult"},
@@ -854,10 +857,10 @@
       "documentation":"<p>Update public key information. Note that the only value you can change is the comment.</p>"
     },
     "UpdateStreamingDistribution":{
-      "name":"UpdateStreamingDistribution2018_06_18",
+      "name":"UpdateStreamingDistribution2018_11_05",
       "http":{
         "method":"PUT",
-        "requestUri":"/2018-06-18/streaming-distribution/{Id}/config"
+        "requestUri":"/2018-11-05/streaming-distribution/{Id}/config"
       },
       "input":{"shape":"UpdateStreamingDistributionRequest"},
       "output":{"shape":"UpdateStreamingDistributionResult"},
@@ -1135,7 +1138,7 @@
       "members":{
         "CallerReference":{
           "shape":"string",
-          "documentation":"<p>A unique number that ensures the request can't be replayed.</p> <p>If the <code>CallerReference</code> is new (no matter the content of the <code>CloudFrontOriginAccessIdentityConfig</code> object), a new origin access identity is created.</p> <p>If the <code>CallerReference</code> is a value already sent in a previous identity request, and the content of the <code>CloudFrontOriginAccessIdentityConfig</code> is identical to the original request (ignoring white space), the response includes the same information returned to the original request. </p> <p>If the <code>CallerReference</code> is a value you already sent in a previous request to create an identity, but the content of the <code>CloudFrontOriginAccessIdentityConfig</code> is different from the original request, CloudFront returns a <code>CloudFrontOriginAccessIdentityAlreadyExists</code> error. </p>"
+          "documentation":"<p>A unique value (for example, a date-time stamp) that ensures that the request can't be replayed.</p> <p>If the value of <code>CallerReference</code> is new (regardless of the content of the <code>CloudFrontOriginAccessIdentityConfig</code> object), a new origin access identity is created.</p> <p>If the <code>CallerReference</code> is a value already sent in a previous identity request, and the content of the <code>CloudFrontOriginAccessIdentityConfig</code> is identical to the original request (ignoring white space), the response includes the same information returned to the original request. </p> <p>If the <code>CallerReference</code> is a value you already sent in a previous request to create an identity, but the content of the <code>CloudFrontOriginAccessIdentityConfig</code> is different from the original request, CloudFront returns a <code>CloudFrontOriginAccessIdentityAlreadyExists</code> error. </p>"
         },
         "Comment":{
           "shape":"string",
@@ -1322,7 +1325,7 @@
           "shape":"CloudFrontOriginAccessIdentityConfig",
           "documentation":"<p>The current configuration information for the identity.</p>",
           "locationName":"CloudFrontOriginAccessIdentityConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p>The request to create a new origin access identity.</p>",
@@ -1359,7 +1362,7 @@
           "shape":"DistributionConfig",
           "documentation":"<p>The distribution's configuration information.</p>",
           "locationName":"DistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p>The request to create a new distribution.</p>",
@@ -1396,7 +1399,7 @@
           "shape":"DistributionConfigWithTags",
           "documentation":"<p>The distribution's configuration information. </p>",
           "locationName":"DistributionConfigWithTags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p>The request to create a new distribution with tags. </p>",
@@ -1433,7 +1436,7 @@
           "shape":"FieldLevelEncryptionConfig",
           "documentation":"<p>The request to create a new field-level encryption configuration.</p>",
           "locationName":"FieldLevelEncryptionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "payload":"FieldLevelEncryptionConfig"
@@ -1468,7 +1471,7 @@
           "shape":"FieldLevelEncryptionProfileConfig",
           "documentation":"<p>The request to create a field-level encryption profile.</p>",
           "locationName":"FieldLevelEncryptionProfileConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "payload":"FieldLevelEncryptionProfileConfig"
@@ -1512,7 +1515,7 @@
           "shape":"InvalidationBatch",
           "documentation":"<p>The batch information for the invalidation.</p>",
           "locationName":"InvalidationBatch",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p>The request to create an invalidation.</p>",
@@ -1543,7 +1546,7 @@
           "shape":"PublicKeyConfig",
           "documentation":"<p>The request to add a public key to CloudFront.</p>",
           "locationName":"PublicKeyConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "payload":"PublicKeyConfig"
@@ -1578,7 +1581,7 @@
           "shape":"StreamingDistributionConfig",
           "documentation":"<p>The streaming distribution's configuration information.</p>",
           "locationName":"StreamingDistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p>The request to create a new streaming distribution.</p>",
@@ -1615,7 +1618,7 @@
           "shape":"StreamingDistributionConfigWithTags",
           "documentation":"<p> The streaming distribution's configuration information. </p>",
           "locationName":"StreamingDistributionConfigWithTags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p>The request to create a new streaming distribution with tags.</p>",
@@ -1636,6 +1639,7 @@
         },
         "ETag":{
           "shape":"string",
+          "documentation":"<p>The current version of the distribution created.</p>",
           "location":"header",
           "locationName":"ETag"
         }
@@ -1973,7 +1977,7 @@
       "members":{
         "CallerReference":{
           "shape":"string",
-          "documentation":"<p>A unique value (for example, a date-time stamp) that ensures that the request can't be replayed.</p> <p>If the value of <code>CallerReference</code> is new (regardless of the content of the <code>DistributionConfig</code> object), CloudFront creates a new distribution.</p> <p>If <code>CallerReference</code> is a value you already sent in a previous request to create a distribution, and if the content of the <code>DistributionConfig</code> is identical to the original request (ignoring white space), CloudFront returns the same the response that it returned to the original request.</p> <p>If <code>CallerReference</code> is a value you already sent in a previous request to create a distribution but the content of the <code>DistributionConfig</code> is different from the original request, CloudFront returns a <code>DistributionAlreadyExists</code> error.</p>"
+          "documentation":"<p>A unique value (for example, a date-time stamp) that ensures that the request can't be replayed.</p> <p>If the value of <code>CallerReference</code> is new (regardless of the content of the <code>DistributionConfig</code> object), CloudFront creates a new distribution.</p> <p>If <code>CallerReference</code> is a value that you already sent in a previous request to create a distribution, CloudFront returns a <code>DistributionAlreadyExists</code> error.</p>"
         },
         "Aliases":{
           "shape":"Aliases",
@@ -1986,6 +1990,10 @@
         "Origins":{
           "shape":"Origins",
           "documentation":"<p>A complex type that contains information about origins for this distribution. </p>"
+        },
+        "OriginGroups":{
+          "shape":"OriginGroups",
+          "documentation":"<p> A complex type that contains information about origin groups for this distribution.</p>"
         },
         "DefaultCacheBehavior":{
           "shape":"DefaultCacheBehavior",
@@ -2015,8 +2023,14 @@
           "shape":"boolean",
           "documentation":"<p>From this field, you can enable or disable the selected distribution.</p>"
         },
-        "ViewerCertificate":{"shape":"ViewerCertificate"},
-        "Restrictions":{"shape":"Restrictions"},
+        "ViewerCertificate":{
+          "shape":"ViewerCertificate",
+          "documentation":"<p/>"
+        },
+        "Restrictions":{
+          "shape":"Restrictions",
+          "documentation":"<p/>"
+        },
         "WebACLId":{
           "shape":"string",
           "documentation":"<p>A unique identifier that specifies the AWS WAF web ACL, if any, to associate with this distribution.</p> <p>AWS WAF is a web application firewall that lets you monitor the HTTP and HTTPS requests that are forwarded to CloudFront, and lets you control access to your content. Based on conditions that you specify, such as the IP addresses that requests originate from or the values of query strings, CloudFront responds to requests either with the requested content or with an HTTP 403 status code (Forbidden). You can also configure CloudFront to return a custom error page when a request is blocked. For more information about AWS WAF, see the <a href=\"http://docs.aws.amazon.com/waf/latest/developerguide/what-is-aws-waf.html\">AWS WAF Developer Guide</a>. </p>"
@@ -2145,6 +2159,10 @@
           "shape":"Origins",
           "documentation":"<p>A complex type that contains information about origins for this distribution.</p>"
         },
+        "OriginGroups":{
+          "shape":"OriginGroups",
+          "documentation":"<p> A complex type that contains information about origin groups for this distribution.</p>"
+        },
         "DefaultCacheBehavior":{
           "shape":"DefaultCacheBehavior",
           "documentation":"<p>A complex type that describes the default cache behavior if you don't specify a <code>CacheBehavior</code> element or if files don't match any of the values of <code>PathPattern</code> in <code>CacheBehavior</code> elements. You must create exactly one default cache behavior.</p>"
@@ -2161,13 +2179,22 @@
           "shape":"string",
           "documentation":"<p>The comment originally specified when this distribution was created.</p>"
         },
-        "PriceClass":{"shape":"PriceClass"},
+        "PriceClass":{
+          "shape":"PriceClass",
+          "documentation":"<p>A complex type that contains information about price class for this streaming distribution. </p>"
+        },
         "Enabled":{
           "shape":"boolean",
           "documentation":"<p>Whether the distribution is enabled to accept user requests for content.</p>"
         },
-        "ViewerCertificate":{"shape":"ViewerCertificate"},
-        "Restrictions":{"shape":"Restrictions"},
+        "ViewerCertificate":{
+          "shape":"ViewerCertificate",
+          "documentation":"<p/>"
+        },
+        "Restrictions":{
+          "shape":"Restrictions",
+          "documentation":"<p/>"
+        },
         "WebACLId":{
           "shape":"string",
           "documentation":"<p>The Web ACL Id (if any) associated with the distribution.</p>"
@@ -2380,7 +2407,7 @@
         },
         "CallerReference":{
           "shape":"string",
-          "documentation":"<p>A unique number that ensures the request can't be replayed.</p>"
+          "documentation":"<p>A unique number that ensures that the request can't be replayed.</p>"
         },
         "Comment":{
           "shape":"string",
@@ -3320,7 +3347,10 @@
           "shape":"string",
           "documentation":"<p>The unique ID for an invalidation request.</p>"
         },
-        "CreateTime":{"shape":"timestamp"},
+        "CreateTime":{
+          "shape":"timestamp",
+          "documentation":"<p>The time that an invalidation request was created.</p>"
+        },
         "Status":{
           "shape":"string",
           "documentation":"<p>The status of an invalidation request.</p>"
@@ -3379,7 +3409,7 @@
         },
         "EventType":{
           "shape":"EventType",
-          "documentation":"<p>Specifies the event type that triggers a Lambda function invocation. You can specify the following values:</p> <ul> <li> <p> <code>viewer-request</code>: The function executes when CloudFront receives a request from a viewer and before it checks to see whether the requested object is in the edge cache. </p> </li> <li> <p> <code>origin-request</code>: The function executes only when CloudFront forwards a request to your origin. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>origin-response</code>: The function executes after CloudFront receives a response from the origin and before it caches the object in the response. When the requested object is in the edge cache, the function doesn't execute.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> <li> <p> <code>viewer-response</code>: The function executes before CloudFront returns the requested object to the viewer. The function executes regardless of whether the object was already in the edge cache.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> </ul>"
+          "documentation":"<p>Specifies the event type that triggers a Lambda function invocation. You can specify the following values:</p> <ul> <li> <p> <code>viewer-request</code>: The function executes when CloudFront receives a request from a viewer and before it checks to see whether the requested object is in the edge cache. </p> </li> <li> <p> <code>origin-request</code>: The function executes only when CloudFront forwards a request to your origin. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>origin-response</code>: The function executes after CloudFront receives a response from the origin and before it caches the object in the response. When the requested object is in the edge cache, the function doesn't execute.</p> </li> <li> <p> <code>viewer-response</code>: The function executes before CloudFront returns the requested object to the viewer. The function executes regardless of whether the object was already in the edge cache.</p> <p>If the origin returns an HTTP status code other than HTTP 200 (OK), the function doesn't execute.</p> </li> </ul>"
         },
         "IncludeBody":{
           "shape":"boolean",
@@ -3837,11 +3867,11 @@
       "members":{
         "Id":{
           "shape":"string",
-          "documentation":"<p>A unique identifier for the origin. The value of <code>Id</code> must be unique within the distribution.</p> <p>When you specify the value of <code>TargetOriginId</code> for the default cache behavior or for another cache behavior, you indicate the origin to which you want the cache behavior to route requests by specifying the value of the <code>Id</code> element for that origin. When a request matches the path pattern for that cache behavior, CloudFront routes the request to the specified origin. For more information, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesCacheBehavior\">Cache Behavior Settings</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
+          "documentation":"<p>A unique identifier for the origin or origin group. The value of <code>Id</code> must be unique within the distribution.</p> <p>When you specify the value of <code>TargetOriginId</code> for the default cache behavior or for another cache behavior, you indicate the origin to which you want the cache behavior to route requests by specifying the value of the <code>Id</code> element for that origin. When a request matches the path pattern for that cache behavior, CloudFront routes the request to the specified origin. For more information, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesCacheBehavior\">Cache Behavior Settings</a> in the <i>Amazon CloudFront Developer Guide</i>.</p>"
         },
         "DomainName":{
           "shape":"string",
-          "documentation":"<p> <b>Amazon S3 origins</b>: The DNS name of the Amazon S3 bucket from which you want CloudFront to get objects for this origin, for example, <code>myawsbucket.s3.amazonaws.com</code>. If you set up your bucket to be configured as a website endpoint, enter the Amazon S3 static website hosting endpoint for the bucket.</p> <p>Constraints for Amazon S3 origins: </p> <ul> <li> <p>If you configured Amazon S3 Transfer Acceleration for your bucket, don't specify the <code>s3-accelerate</code> endpoint for <code>DomainName</code>.</p> </li> <li> <p>The bucket name must be between 3 and 63 characters long (inclusive).</p> </li> <li> <p>The bucket name must contain only lowercase characters, numbers, periods, underscores, and dashes.</p> </li> <li> <p>The bucket name must not contain adjacent periods.</p> </li> </ul> <p> <b>Custom Origins</b>: The DNS domain name for the HTTP server from which you want CloudFront to get objects for this origin, for example, <code>www.example.com</code>. </p> <p>Constraints for custom origins:</p> <ul> <li> <p> <code>DomainName</code> must be a valid DNS name that contains only a-z, A-Z, 0-9, dot (.), hyphen (-), or underscore (_) characters.</p> </li> <li> <p>The name cannot exceed 128 characters.</p> </li> </ul>"
+          "documentation":"<p> <b>Amazon S3 origins</b>: The DNS name of the Amazon S3 bucket from which you want CloudFront to get objects for this origin, for example, <code>myawsbucket.s3.amazonaws.com</code>. If you set up your bucket to be configured as a website endpoint, enter the Amazon S3 static website hosting endpoint for the bucket.</p> <p>For more information about specifying this value for different types of origins, see <a href=\"http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesDomainName\">Origin Domain Name</a> in the <i>Amazon CloudFront Developer Guide</i>.</p> <p>Constraints for Amazon S3 origins: </p> <ul> <li> <p>If you configured Amazon S3 Transfer Acceleration for your bucket, don't specify the <code>s3-accelerate</code> endpoint for <code>DomainName</code>.</p> </li> <li> <p>The bucket name must be between 3 and 63 characters long (inclusive).</p> </li> <li> <p>The bucket name must contain only lowercase characters, numbers, periods, underscores, and dashes.</p> </li> <li> <p>The bucket name must not contain adjacent periods.</p> </li> </ul> <p> <b>Custom Origins</b>: The DNS domain name for the HTTP server from which you want CloudFront to get objects for this origin, for example, <code>www.example.com</code>. </p> <p>Constraints for custom origins:</p> <ul> <li> <p> <code>DomainName</code> must be a valid DNS name that contains only a-z, A-Z, 0-9, dot (.), hyphen (-), or underscore (_) characters.</p> </li> <li> <p>The name cannot exceed 128 characters.</p> </li> </ul>"
         },
         "OriginPath":{
           "shape":"string",
@@ -3860,7 +3890,7 @@
           "documentation":"<p>A complex type that contains information about a custom origin. If the origin is an Amazon S3 bucket, use the <code>S3OriginConfig</code> element instead.</p>"
         }
       },
-      "documentation":"<p>A complex type that describes the Amazon S3 bucket or the HTTP server (for example, a web server) from which CloudFront gets your files. You must create at least one origin.</p> <p>For the current limit on the number of origins that you can create for a distribution, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html#limits_cloudfront\">Amazon CloudFront Limits</a> in the <i>AWS General Reference</i>.</p>"
+      "documentation":"<p>A complex type that describes the Amazon S3 bucket, HTTP server (for example, a web server), Amazon MediaStore, or other server from which CloudFront gets your files. This can also be an origin group, if you've created an origin group. You must specify at least one origin or origin group.</p> <p>For the current limit on the number of origins or origin groups that you can specify for a distribution, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html#limits_cloudfront\">Amazon CloudFront Limits</a> in the <i>AWS General Reference</i>.</p>"
     },
     "OriginCustomHeader":{
       "type":"structure",
@@ -3886,6 +3916,102 @@
         "shape":"OriginCustomHeader",
         "locationName":"OriginCustomHeader"
       }
+    },
+    "OriginGroup":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "FailoverCriteria",
+        "Members"
+      ],
+      "members":{
+        "Id":{
+          "shape":"string",
+          "documentation":"<p>The origin group's ID.</p>"
+        },
+        "FailoverCriteria":{
+          "shape":"OriginGroupFailoverCriteria",
+          "documentation":"<p>A complex type that contains information about the failover criteria for an origin group.</p>"
+        },
+        "Members":{
+          "shape":"OriginGroupMembers",
+          "documentation":"<p>A complex type that contains information about the origins in an origin group.</p>"
+        }
+      },
+      "documentation":"<p>An origin group includes two origins (a primary origin and a second origin to failover to) and a failover criteria that you specify. You create an origin group to support origin failover in CloudFront. When you create or update a distribution, you can specifiy the origin group instead of a single origin, and CloudFront will failover from the primary origin to the second origin under the failover conditions that you've chosen.</p>"
+    },
+    "OriginGroupFailoverCriteria":{
+      "type":"structure",
+      "required":["StatusCodes"],
+      "members":{
+        "StatusCodes":{
+          "shape":"StatusCodes",
+          "documentation":"<p>The status codes that, when returned from the primary origin, will trigger CloudFront to failover to the second origin.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type that includes information about the failover criteria for an origin group, including the status codes for which CloudFront will failover from the primary origin to the second origin.</p>"
+    },
+    "OriginGroupList":{
+      "type":"list",
+      "member":{
+        "shape":"OriginGroup",
+        "locationName":"OriginGroup"
+      },
+      "documentation":"<p>List of origin groups for a distribution.</p>"
+    },
+    "OriginGroupMember":{
+      "type":"structure",
+      "required":["OriginId"],
+      "members":{
+        "OriginId":{
+          "shape":"string",
+          "documentation":"<p>The ID for an origin in an origin group.</p>"
+        }
+      },
+      "documentation":"<p>An origin in an origin group.</p>"
+    },
+    "OriginGroupMemberList":{
+      "type":"list",
+      "member":{
+        "shape":"OriginGroupMember",
+        "locationName":"OriginGroupMember"
+      },
+      "documentation":"<p>List of origins in an origin group.</p>",
+      "max":2,
+      "min":2
+    },
+    "OriginGroupMembers":{
+      "type":"structure",
+      "required":[
+        "Quantity",
+        "Items"
+      ],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of origins in an origin group.</p>"
+        },
+        "Items":{
+          "shape":"OriginGroupMemberList",
+          "documentation":"<p>Items (origins) in an origin group.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type for the origins included in an origin group.</p>"
+    },
+    "OriginGroups":{
+      "type":"structure",
+      "required":["Quantity"],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of origin groups.</p>"
+        },
+        "Items":{
+          "shape":"OriginGroupList",
+          "documentation":"<p>The items (origin groups) in a distribution.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type for the origin groups specified for a distribution.</p>"
     },
     "OriginList":{
       "type":"list",
@@ -3923,18 +4049,21 @@
     },
     "Origins":{
       "type":"structure",
-      "required":["Quantity"],
+      "required":[
+        "Quantity",
+        "Items"
+      ],
       "members":{
         "Quantity":{
           "shape":"integer",
-          "documentation":"<p>The number of origins for this distribution.</p>"
+          "documentation":"<p>The number of origins or origin groups for this distribution.</p>"
         },
         "Items":{
           "shape":"OriginList",
-          "documentation":"<p>A complex type that contains origins for this distribution.</p>"
+          "documentation":"<p>A complex type that contains origins or origin groups for this distribution.</p>"
         }
       },
-      "documentation":"<p>A complex type that contains information about origins for this distribution. </p>"
+      "documentation":"<p>A complex type that contains information about origins and origin groups for this distribution. </p>"
     },
     "PathList":{
       "type":"list",
@@ -4017,7 +4146,7 @@
       "members":{
         "CallerReference":{
           "shape":"string",
-          "documentation":"<p>A unique number that ensures the request can't be replayed.</p>"
+          "documentation":"<p>A unique number that ensures that the request can't be replayed.</p>"
         },
         "Name":{
           "shape":"string",
@@ -4099,7 +4228,7 @@
           "documentation":"<p> Comment for public key information summary. </p>"
         }
       },
-      "documentation":"<p> Public key information summary. </p>"
+      "documentation":"<p>A complex data type for public key information. </p>"
     },
     "PublicKeySummaryList":{
       "type":"list",
@@ -4278,6 +4407,33 @@
         "locationName":"SslProtocol"
       }
     },
+    "StatusCodeList":{
+      "type":"list",
+      "member":{
+        "shape":"integer",
+        "locationName":"StatusCode"
+      },
+      "documentation":"<p>List of status codes for origin failover.</p>",
+      "min":1
+    },
+    "StatusCodes":{
+      "type":"structure",
+      "required":[
+        "Quantity",
+        "Items"
+      ],
+      "members":{
+        "Quantity":{
+          "shape":"integer",
+          "documentation":"<p>The number of status codes.</p>"
+        },
+        "Items":{
+          "shape":"StatusCodeList",
+          "documentation":"<p>The items (status codes) for an origin group.</p>"
+        }
+      },
+      "documentation":"<p>A complex data type for the status codes that you specify that, when returned by a primary origin, trigger CloudFront to failover to a second origin.</p>"
+    },
     "StreamingDistribution":{
       "type":"structure",
       "required":[
@@ -4293,7 +4449,10 @@
           "shape":"string",
           "documentation":"<p>The identifier for the RTMP distribution. For example: <code>EGTXBD79EXAMPLE</code>.</p>"
         },
-        "ARN":{"shape":"string"},
+        "ARN":{
+          "shape":"string",
+          "documentation":"<p>The ARN (Amazon Resource Name) for the distribution. For example: <code>arn:aws:cloudfront::123456789012:distribution/EDFDVBD632BHDS5</code>, where <code>123456789012</code> is your AWS account ID.</p>"
+        },
         "Status":{
           "shape":"string",
           "documentation":"<p>The current status of the RTMP distribution. When the status is <code>Deployed</code>, the distribution's information is propagated to all CloudFront edge locations.</p>"
@@ -4337,7 +4496,7 @@
       "members":{
         "CallerReference":{
           "shape":"string",
-          "documentation":"<p>A unique number that ensures that the request can't be replayed. If the <code>CallerReference</code> is new (no matter the content of the <code>StreamingDistributionConfig</code> object), a new streaming distribution is created. If the <code>CallerReference</code> is a value that you already sent in a previous request to create a streaming distribution, and the content of the <code>StreamingDistributionConfig</code> is identical to the original request (ignoring white space), the response includes the same information returned to the original request. If the <code>CallerReference</code> is a value that you already sent in a previous request to create a streaming distribution but the content of the <code>StreamingDistributionConfig</code> is different from the original request, CloudFront returns a <code>DistributionAlreadyExists</code> error. </p>"
+          "documentation":"<p>A unique value (for example, a date-time stamp) that ensures that the request can't be replayed.</p> <p>If the value of <code>CallerReference</code> is new (regardless of the content of the <code>StreamingDistributionConfig</code> object), CloudFront creates a new distribution.</p> <p>If <code>CallerReference</code> is a value that you already sent in a previous request to create a distribution, CloudFront returns a <code>DistributionAlreadyExists</code> error.</p>"
         },
         "S3Origin":{
           "shape":"S3Origin",
@@ -4484,7 +4643,10 @@
           "shape":"string",
           "documentation":"<p>The comment originally specified when this distribution was created.</p>"
         },
-        "PriceClass":{"shape":"PriceClass"},
+        "PriceClass":{
+          "shape":"PriceClass",
+          "documentation":"<p/>"
+        },
         "Enabled":{
           "shape":"boolean",
           "documentation":"<p>Whether the distribution is enabled to accept end user requests for content.</p>"
@@ -4585,7 +4747,7 @@
           "shape":"Tags",
           "documentation":"<p> A complex type that contains zero or more <code>Tag</code> elements.</p>",
           "locationName":"Tags",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p> The request to add tags to a CloudFront resource.</p>",
@@ -4767,6 +4929,15 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "TooManyOriginGroupsPerDistribution":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>Processing your request would cause you to exceed the maximum number of origin groups allowed.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TooManyOrigins":{
       "type":"structure",
       "members":{
@@ -4867,7 +5038,7 @@
           "shape":"TagKeys",
           "documentation":"<p> A complex type that contains zero or more <code>Tag</code> key elements.</p>",
           "locationName":"TagKeys",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         }
       },
       "documentation":"<p> The request to remove tags from a CloudFront resource.</p>",
@@ -4884,7 +5055,7 @@
           "shape":"CloudFrontOriginAccessIdentityConfig",
           "documentation":"<p>The identity's configuration information.</p>",
           "locationName":"CloudFrontOriginAccessIdentityConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         },
         "Id":{
           "shape":"string",
@@ -4930,7 +5101,7 @@
           "shape":"DistributionConfig",
           "documentation":"<p>The distribution's configuration information.</p>",
           "locationName":"DistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         },
         "Id":{
           "shape":"string",
@@ -4976,7 +5147,7 @@
           "shape":"FieldLevelEncryptionConfig",
           "documentation":"<p>Request to update a field-level encryption configuration. </p>",
           "locationName":"FieldLevelEncryptionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         },
         "Id":{
           "shape":"string",
@@ -5020,7 +5191,7 @@
           "shape":"FieldLevelEncryptionProfileConfig",
           "documentation":"<p>Request to update a field-level encryption profile. </p>",
           "locationName":"FieldLevelEncryptionProfileConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         },
         "Id":{
           "shape":"string",
@@ -5064,7 +5235,7 @@
           "shape":"PublicKeyConfig",
           "documentation":"<p>Request to update public key information.</p>",
           "locationName":"PublicKeyConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         },
         "Id":{
           "shape":"string",
@@ -5108,7 +5279,7 @@
           "shape":"StreamingDistributionConfig",
           "documentation":"<p>The streaming distribution's configuration information.</p>",
           "locationName":"StreamingDistributionConfig",
-          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-06-18/"}
+          "xmlNamespace":{"uri":"http://cloudfront.amazonaws.com/doc/2018-11-05/"}
         },
         "Id":{
           "shape":"string",
