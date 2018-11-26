@@ -33,7 +33,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
@@ -41,6 +40,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.internal.Base16;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
 @SdkInternalApi
@@ -76,7 +76,6 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
                                                            ExecutionAttributes executionAttributes) {
 
         if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
-            SdkHttpResponse originalResponse = context.httpResponse();
             SdkChecksum checksum = new Md5Checksum();
 
             int contentLength = Integer.valueOf(context.httpResponse().firstMatchingHeader(CONTENT_LENGTH_HEADER).orElse("0"));
@@ -103,7 +102,8 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
 
                 if (!Arrays.equals(digest, ssHash)) {
                     throw SdkClientException.create(String.format("Data read has a different checksum than expected. " +
-                                                                  "Was %d, but expected %d", digest, ssHash));
+                                                                  "Was 0x%s, but expected 0x%s",
+                                                                  Base16.encodeAsString(digest), Base16.encodeAsString(ssHash)));
                 }
             }
         }

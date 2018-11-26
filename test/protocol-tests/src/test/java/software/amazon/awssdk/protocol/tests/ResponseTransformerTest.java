@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -58,7 +60,7 @@ public class ResponseTransformerTest {
 
     @Test
     public void bytesMethodConvertsCorrectly() {
-        stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("test \uD83D\uDE02")));
+        stubForSuccess();
 
         ResponseBytes<StreamingOutputOperationResponse> response =
                 testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
@@ -120,6 +122,38 @@ public class ResponseTransformerTest {
             .isInstanceOf(SdkClientException.class);
     }
 
+    @Test
+    public void streamingCloseActuallyCloses() throws IOException {
+        stubForSuccess();
+
+        ProtocolRestJsonClient client = testClientBuilder()
+                .httpClientBuilder(ApacheHttpClient.builder()
+                                                   .connectionAcquisitionTimeout(Duration.ofSeconds(1))
+                                                   .maxConnections(1))
+                .build();
+
+
+        // Two successful requests with a max of one connection means that closing the connection worked.
+        client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build()).close();
+        client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build()).close();
+    }
+
+    @Test
+    public void streamingAbortActuallyAborts() {
+        stubForSuccess();
+
+        ProtocolRestJsonClient client = testClientBuilder()
+                .httpClientBuilder(ApacheHttpClient.builder()
+                                                   .connectionAcquisitionTimeout(Duration.ofSeconds(1))
+                                                   .maxConnections(1))
+                .build();
+
+
+        // Two successful requests with a max of one connection means that closing the connection worked.
+        client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build()).abort();
+        client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build()).abort();
+    }
+
     private void stubForRetriesTimeoutReadingFromStreams() {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).inScenario("retries")
                                                            .whenScenarioStateIs(STARTED)
@@ -133,11 +167,18 @@ public class ResponseTransformerTest {
     }
 
     private ProtocolRestJsonClient testClient() {
+        return testClientBuilder().build();
+    }
+
+    private ProtocolRestJsonClientBuilder testClientBuilder() {
         return ProtocolRestJsonClient.builder()
                                      .region(Region.US_WEST_1)
                                      .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                      .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                     .httpClientBuilder(ApacheHttpClient.builder().socketTimeout(Duration.ofSeconds(1)))
-                                     .build();
+                                     .httpClientBuilder(ApacheHttpClient.builder().socketTimeout(Duration.ofSeconds(1)));
+    }
+
+    private StubMapping stubForSuccess() {
+        return stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("test \uD83D\uDE02")));
     }
 }
