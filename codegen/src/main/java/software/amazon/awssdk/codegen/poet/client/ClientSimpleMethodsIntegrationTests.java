@@ -19,6 +19,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -66,13 +67,15 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
      * be used.
      */
     private MethodSpec setup() {
+        String defaultRegion = Optional.ofNullable(model.getCustomizationConfig().getDefaultSimpleMethodTestRegion())
+                                       .orElse("US_EAST_1");
         ClassName beforeClass = ClassName.get("org.junit", "BeforeClass");
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
         return MethodSpec.methodBuilder("setup")
                          .addAnnotation(beforeClass)
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                          .beginControlFlow("if ($T.serviceMetadata().regions().isEmpty())", interfaceClass)
-                         .addStatement("client = $T.builder().region($T.US_EAST_1).build()", interfaceClass, Region.class)
+                         .addStatement("client = $T.builder().region($T.$L).build()", interfaceClass, Region.class, defaultRegion)
                          .endControlFlow()
                          .beginControlFlow("else if ($T.serviceMetadata().regions().contains($T.AWS_GLOBAL))",
                                            interfaceClass,

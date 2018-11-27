@@ -179,6 +179,7 @@
         <module>rdsdata</module>
         <module>robomaker</module>
         <module>transfer</module>
+        <module>globalaccelerator</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
