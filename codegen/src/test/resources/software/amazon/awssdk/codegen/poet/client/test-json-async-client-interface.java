@@ -490,12 +490,12 @@ public interface JsonAsyncClient extends SdkClient {
      * <p>
      * The following are few ways to use the response class:
      * </p>
-     * 1) Using the forEach helper method
+     * 1) Using the subscribe helper method
      *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
-     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * CompletableFuture<Void> future = publisher.subscribe(res -> { // Do something with the response });
      * future.get();
      * }
      * </pre>
@@ -561,12 +561,12 @@ public interface JsonAsyncClient extends SdkClient {
      * <p>
      * The following are few ways to use the response class:
      * </p>
-     * 1) Using the forEach helper method
+     * 1) Using the subscribe helper method
      *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
-     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * CompletableFuture<Void> future = publisher.subscribe(res -> { // Do something with the response });
      * future.get();
      * }
      * </pre>
@@ -634,12 +634,12 @@ public interface JsonAsyncClient extends SdkClient {
      * <p>
      * The following are few ways to use the response class:
      * </p>
-     * 1) Using the forEach helper method
+     * 1) Using the subscribe helper method
      *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
-     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * CompletableFuture<Void> future = publisher.subscribe(res -> { // Do something with the response });
      * future.get();
      * }
      * </pre>
@@ -771,12 +771,12 @@ public interface JsonAsyncClient extends SdkClient {
      * <p>
      * The following are few ways to use the response class:
      * </p>
-     * 1) Using the forEach helper method
+     * 1) Using the subscribe helper method
      *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
-     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * CompletableFuture<Void> future = publisher.subscribe(res -> { // Do something with the response });
      * future.get();
      * }
      * </pre>
@@ -844,12 +844,12 @@ public interface JsonAsyncClient extends SdkClient {
      * <p>
      * The following are few ways to use the response class:
      * </p>
-     * 1) Using the forEach helper method
+     * 1) Using the subscribe helper method
      *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
-     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * CompletableFuture<Void> future = publisher.subscribe(res -> { // Do something with the response });
      * future.get();
      * }
      * </pre>

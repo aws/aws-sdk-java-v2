@@ -38,12 +38,12 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct;
  * <p>
  * The following are few ways to use the response class:
  * </p>
- * 1) Using the forEach helper method
+ * 1) Using the subscribe helper method
  *
  * <pre>
  * {@code
  * software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
- * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+ * CompletableFuture<Void> future = publisher.subscribe(res -> { // Do something with the response });
  * future.get();
  * }
  * </pre>
