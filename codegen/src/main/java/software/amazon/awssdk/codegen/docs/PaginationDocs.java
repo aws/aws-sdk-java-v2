@@ -163,13 +163,13 @@ public class PaginationDocs {
 
         return CodeBlock.builder()
                         .add("\n\n<p>The following are few ways to use the response class:</p>")
-                        .add("1) Using the forEach helper method",
+                        .add("1) Using the subscribe helper method",
                              TypeName.get(SequentialSubscriber.class))
                         .add(buildCode(CodeBlock.builder()
                                                 .add(callOperationOnClient)
                                                 .add(CodeBlock.builder()
                                                               .addStatement("CompletableFuture<Void> future = publisher"
-                                                                            + ".forEach(res -> "
+                                                                            + ".subscribe(res -> "
                                                                             + "{ // Do something with the response })")
                                                               .addStatement("future.get()")
                                                               .build())
