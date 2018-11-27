@@ -32,6 +32,9 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
     private long strippedLength;
     private byte[] streamChecksum = new byte[CHECKSUM_SIZE];
     private long lengthRead = 0;
+    // Preserve the computed checksum because some InputStream readers (e.g., java.util.Properties) read more than once at the
+    // end of the stream.
+    private Integer computedChecksum;
 
     /**
      * Creates an input stream using the specified Checksum, input stream, and length.
@@ -171,11 +174,14 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
 
     private void validateAndThrow() {
         int streamChecksumInt = getStreamChecksum();
-        int computedChecksumInt = ByteBuffer.wrap(checkSum.getChecksumBytes()).getInt();
-        if (streamChecksumInt != computedChecksumInt) {
+        if (computedChecksum == null) {
+            computedChecksum = ByteBuffer.wrap(checkSum.getChecksumBytes()).getInt();
+        }
+
+        if (streamChecksumInt != computedChecksum) {
             throw SdkClientException.builder().message(
                 String.format("Data read has a different checksum than expected. Was %d, but expected %d",
-                              computedChecksumInt, streamChecksumInt)).build();
+                              computedChecksum, streamChecksumInt)).build();
         }
     }
 
