@@ -104,6 +104,11 @@ public class CustomizationConfig {
      */
     private List<String> verifiedSimpleMethods = new ArrayList<>();
 
+    /**
+     * If a service isn't in the endpoints.json, the region that should be used for simple method integration tests.
+     */
+    private String defaultSimpleMethodTestRegion;
+
     private List<String> deprecatedOperations = new ArrayList<>();
 
     private List<String> deprecatedShapes = new ArrayList<>();
@@ -268,6 +273,14 @@ public class CustomizationConfig {
 
     public void setVerifiedSimpleMethods(List<String> verifiedSimpleMethods) {
         this.verifiedSimpleMethods = verifiedSimpleMethods;
+    }
+
+    public String getDefaultSimpleMethodTestRegion() {
+        return defaultSimpleMethodTestRegion;
+    }
+
+    public void setDefaultSimpleMethodTestRegion(String defaultSimpleMethodTestRegion) {
+        this.defaultSimpleMethodTestRegion = defaultSimpleMethodTestRegion;
     }
 
     public List<String> getDeprecatedOperations() {
