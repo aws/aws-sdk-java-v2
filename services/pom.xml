@@ -178,8 +178,6 @@
         <module>quicksight</module>
         <module>rdsdata</module>
         <module>robomaker</module>
-        <module>catalog</module>
-        <module>discovery</module>
         <module>transfer</module>
     </modules>
     <description>The AWS Java SDK services</description>
