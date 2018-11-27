@@ -23,12 +23,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.GetObjectAsyncIntegrationTest.AssertingExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -41,6 +43,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(GetObjectIntegrationTest.class);
 
     private static final String KEY = "some-key";
+    private static final String PROPERTY_KEY = "properties";
 
     private final GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                                       .bucket(BUCKET)
@@ -68,6 +71,18 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void toInputStream() throws Exception {
         try (ResponseInputStream<GetObjectResponse> content = s3.getObject(getObjectRequest)) {
+        }
+    }
+
+
+    @Test
+    public void toInputStream_loadFromProperties() throws IOException {
+        s3.putObject(b -> b.bucket(BUCKET).key(PROPERTY_KEY), RequestBody.fromString("test: test"));
+        try (ResponseInputStream<GetObjectResponse> object = s3.getObject(b -> b.bucket(BUCKET).key(PROPERTY_KEY),
+                                                                          ResponseTransformer.toInputStream())) {
+            Properties properties = new Properties();
+            properties.load(object);
+            assertThat(properties.getProperty("test")).isEqualTo("test");
         }
     }
 
