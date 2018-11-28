@@ -20,7 +20,7 @@
         "requestUri": "/"
       },
       "endpoint": {
-        "hostPrefix": "{StringMember}-foo."
+        "hostPrefix": "{StringMember}-{HostPrefixMember}."
       },
       "input": {
         "shape": "APostOperationRequest"
@@ -179,6 +179,11 @@
           "shape": "String",
           "hostLabel": true,
           "documentation": "<p>Member to compute the endpoint host</p>"
+        },
+        "HostPrefixMember": {
+          "shape": "String",
+          "hostLabel": true,
+          "documentation": "<p>Second member to compute the endpoint host</p>"
         }
       }
     },

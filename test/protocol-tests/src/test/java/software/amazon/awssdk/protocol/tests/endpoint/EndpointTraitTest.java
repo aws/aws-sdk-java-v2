@@ -101,10 +101,10 @@ public class EndpointTraitTest {
             verify(mockHttpClient).prepareRequest(httpRequestCaptor.capture());
 
             SdkHttpRequest request = httpRequestCaptor.getAllValues().get(0).httpRequest();
-            assertThat(request.host()).isEqualTo("123456-localhost.com");
+            assertThat(request.host()).isEqualTo("123456-dummypath.localhost.com");
             assertThat(request.port()).isEqualTo(443);
             assertThat(request.encodedPath()).isEqualTo("/dummypath");
-            assertThat(request.getUri()).isEqualTo(new URI("http://123456-localhost.com:443/dummypath"));
+            assertThat(request.getUri()).isEqualTo(new URI("http://123456-dummypath.localhost.com:443/dummypath"));
         }
     }
 
@@ -137,6 +137,7 @@ public class EndpointTraitTest {
         try {
             clientWithDisabledHostPrefix.endpointTraitTwo(EndpointTraitTwoRequest.builder()
                                                                                  .stringMember("123456")
+                                                                                 .pathIdempotentToken("dummypath")
                                                                                  .build());
             Assert.fail("Expected an exception");
         } catch (SdkClientException exception) {

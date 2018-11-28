@@ -34,14 +34,6 @@ public final class HostPrefixProcessor {
     private static final Pattern PATTERN = Pattern.compile(CURLY_BRACES_PATTERN);
 
     /**
-     * This is the same as the {@link EndpointTrait#hostPrefix} expression with labels replaced by "%s"
-     *
-     * For example, if expression in host trait is "{Bucket}-{AccountId}-", then
-     * hostWithStringSpecifier will be "%s-%s-"
-     */
-    private String hostWithStringSpecifier;
-
-    /**
      * The list of member c2j names in input shape that are referenced in the host expression.
      *
      * For example, if expression in host trait is "{Bucket}-{AccountId}-", then the
@@ -50,7 +42,6 @@ public final class HostPrefixProcessor {
     private List<String> c2jNames;
 
     public HostPrefixProcessor(String hostExpression) {
-        this.hostWithStringSpecifier = hostExpression;
         this.c2jNames = new ArrayList<>();
         replaceHostLabelsWithStringSpecifier(hostExpression);
     }
@@ -68,12 +59,7 @@ public final class HostPrefixProcessor {
         while (matcher.find()) {
             String matched = matcher.group(1);
             c2jNames.add(matched);
-            hostWithStringSpecifier = hostWithStringSpecifier.replaceFirst("\\{" + matched + "}", "%s");
         }
-    }
-
-    public String hostWithStringSpecifier() {
-        return hostWithStringSpecifier;
     }
 
     public List<String> c2jNames() {

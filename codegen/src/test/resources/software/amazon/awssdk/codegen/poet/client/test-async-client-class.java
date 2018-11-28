@@ -146,9 +146,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
         try {
-            String hostPrefix = "{StringMember}-foo.";
             Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
-            String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
+            Validate.paramNotBlank(aPostOperationRequest.hostPrefixMember(), "HostPrefixMember");
+            String resolvedHostExpression = "{StringMember}-{HostPrefixMember}.".replace("{StringMember}",
+                                                                                         aPostOperationRequest.stringMember()).replace("{HostPrefixMember}", aPostOperationRequest.hostPrefixMember());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
                                                                            .isPayloadJson(true).build();
 

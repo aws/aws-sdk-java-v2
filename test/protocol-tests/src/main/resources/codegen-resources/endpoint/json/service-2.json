@@ -32,7 +32,7 @@
         "requestUri":"/{PathParam}"
       },
       "endpoint": {
-        "hostPrefix": "{StringMember}-"
+        "hostPrefix": "{StringMember}-{PathIdempotentToken}."
       },
       "input":{"shape":"EndpointTraitStructureTwo"},
       "output":{"shape":"EndpointTraitStructureTwo"}

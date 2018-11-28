@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -29,7 +28,6 @@ public class HostPrefixProcessorTest {
         String hostPrefix = "data-";
 
         HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
-        assertThat(processor.hostWithStringSpecifier(), equalTo("data-"));
         assertThat(processor.c2jNames(), empty());
     }
 
@@ -38,7 +36,6 @@ public class HostPrefixProcessorTest {
         String hostPrefix = "{Bucket}-{AccountId}.";
 
         HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
-        assertThat(processor.hostWithStringSpecifier(), equalTo("%s-%s."));
         assertThat(processor.c2jNames(), contains("Bucket", "AccountId"));
     }
 
@@ -48,7 +45,6 @@ public class HostPrefixProcessorTest {
         String host = "{}.foo";
 
         HostPrefixProcessor processor = new HostPrefixProcessor(host);
-        assertThat(processor.hostWithStringSpecifier(), equalTo("{}.foo"));
         assertThat(processor.c2jNames(), empty());
     }
 

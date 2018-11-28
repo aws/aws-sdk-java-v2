@@ -23,7 +23,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -172,22 +171,16 @@ final class ClientClassUtils {
             String hostPrefix = opModel.getEndpointTrait().getHostPrefix();
             HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
 
-            builder.addStatement("String hostPrefix = $S", hostPrefix);
+            processor.c2jNames()
+                     .forEach(name -> builder.addStatement("$T.paramNotBlank($L, $S)", Validate.class,
+                                                           inputShapeMemberGetter(opModel, name),
+                                                           name));
 
-            if (processor.c2jNames().isEmpty()) {
-                builder.addStatement("String resolvedHostExpression = $S", processor.hostWithStringSpecifier());
-            } else {
-                processor.c2jNames()
-                         .forEach(name -> builder.addStatement("$T.paramNotBlank($L, $S)", Validate.class,
-                                                              inputShapeMemberGetter(opModel, name),
-                                                               name));
-
-                builder.addStatement("String resolvedHostExpression = String.format($S, $L)",
-                                     processor.hostWithStringSpecifier(),
-                                     processor.c2jNames().stream()
-                                              .map(n -> inputShapeMemberGetter(opModel, n))
-                                              .collect(Collectors.joining(",")));
-            }
+            builder.add("String resolvedHostExpression = $S", hostPrefix);
+            processor.c2jNames().stream()
+                     .forEach(name -> builder.add(".replace(\"{$L}\", $L)",
+                                                  name, inputShapeMemberGetter(opModel, name)));
+            builder.add(";");
         }
 
         return builder.build();
