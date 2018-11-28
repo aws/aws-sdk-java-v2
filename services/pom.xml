@@ -180,6 +180,11 @@
         <module>robomaker</module>
         <module>transfer</module>
         <module>globalaccelerator</module>
+        <module>comprehendmedical</module>
+        <module>fsx</module>
+        <module>kinesisanalyticsv2</module>
+        <module>mediaconnect</module>
+        <module>securityhub</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
