@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java V2", 
-    "type": "bugfix", 
-    "description": "Fixes Issue [#864](https://github.com/aws/aws-sdk-java-v2/issues/864) by checking for embedded JSON objects while unmarshalling bytes."
-}
