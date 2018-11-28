@@ -1,3 +1,22 @@
+# __2.1.1__ __2018-11-27__
+## __AWS Organizations__
+  - ### Bugfixes
+    - Add `organizations` to `aws-sdk-java` module.
+
+## __AWS SDK for Java V2__
+  - ### Bugfixes
+    - Fixes Issue [#864](https://github.com/aws/aws-sdk-java-v2/issues/864) by checking for embedded JSON objects while unmarshalling bytes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated to the latest service models.
+    - Updated to the latest service models.
+
+  - ### Bugfixes
+    - Fix async pagination javadocs to use the correct method name `SdkPublisher#subscribe`.
+    - Fixed an issue where close() and abort() weren't being honored for streaming responses in all cases.
+    - Preserve computedChecksum in `ChecksumValidatingInputStream` so that it doesn't throw error if it validates more than once. See [#873](https://github.com/aws/aws-sdk-java-v2/issues/873)
+
 # __2.1.0__ __2018-11-19__
 ## __AWS SDK for Java v2__
   - ### Features

@@ -1,0 +1,41 @@
+{
+    "date": "2018-11-27",
+    "version": "2.1.1",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Preserve computedChecksum in `ChecksumValidatingInputStream` so that it doesn't throw error if it validates more than once. See [#873](https://github.com/aws/aws-sdk-java-v2/issues/873)"
+        },
+        {
+            "category": "AWS SDK for Java V2",
+            "type": "bugfix",
+            "description": "Fixes Issue [#864](https://github.com/aws/aws-sdk-java-v2/issues/864) by checking for embedded JSON objects while unmarshalling bytes."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix async pagination javadocs to use the correct method name `SdkPublisher#subscribe`."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed an issue where close() and abort() weren't being honored for streaming responses in all cases."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        },
+        {
+            "category": "AWS Organizations",
+            "type": "bugfix",
+            "description": "Add `organizations` to `aws-sdk-java` module."
+        }
+    ]
+}

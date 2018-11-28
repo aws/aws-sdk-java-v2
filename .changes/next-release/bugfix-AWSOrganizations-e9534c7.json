@@ -1,5 +1,0 @@
-{
-    "category": "AWS Organizations", 
-    "type": "bugfix", 
-    "description": "Add `organizations` to `aws-sdk-java` module."
-}
