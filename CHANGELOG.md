@@ -1,3 +1,12 @@
+# __2.1.2__ __2018-11-28__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated to the latest service models.
+
+## __core__
+  - ### Features
+    - Jackson 2.9.6 -> 2.9.7
+
 # __2.1.1__ __2018-11-27__
 ## __AWS Organizations__
   - ### Bugfixes

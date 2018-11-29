@@ -1,0 +1,16 @@
+{
+    "date": "2018-11-28",
+    "version": "2.1.2",
+    "entries": [
+        {
+            "category": "core",
+            "type": "feature",
+            "description": "Jackson 2.9.6 -> 2.9.7"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        }
+    ]
+}
