@@ -24,15 +24,17 @@ public final class ClassLoaderHelper {
     }
 
     private static Class<?> loadClassViaClasses(String fqcn, Class<?>[] classes) {
-        if (classes != null) {
-            for (Class<?> c : classes) {
-                ClassLoader loader = c.getClassLoader();
-                if (loader != null) {
-                    try {
-                        return loader.loadClass(fqcn);
-                    } catch (ClassNotFoundException e) {
-                        // move on to try the next class loader
-                    }
+        if (classes == null) {
+            return null;
+        }
+
+        for (Class<?> clzz: classes) {
+            ClassLoader loader = clzz.getClassLoader();
+            if (loader != null) {
+                try {
+                    return loader.loadClass(fqcn);
+                } catch (ClassNotFoundException e) {
+                    // move on to try the next class loader
                 }
             }
         }
@@ -40,7 +42,7 @@ public final class ClassLoaderHelper {
     }
 
     private static Class<?> loadClassViaContext(String fqcn) {
-        ClassLoader loader = classLoader();
+        ClassLoader loader = contextClassLoader();
         try {
             return loader == null ? null : loader.loadClass(fqcn);
         } catch (ClassNotFoundException e) {
@@ -114,11 +116,32 @@ public final class ClassLoaderHelper {
      * Attempt to get the current thread's class loader and fallback to the system classloader if null
      * @return a {@link ClassLoader} or null if none found
      */
-    public static ClassLoader classLoader() {
+    private static ClassLoader contextClassLoader() {
         ClassLoader threadClassLoader = Thread.currentThread().getContextClassLoader();
         if (threadClassLoader != null) {
             return threadClassLoader;
         }
         return ClassLoader.getSystemClassLoader();
     }
+
+    /**
+     * Attempt to get class loader that loads the classes and fallback to the thread context classloader if null.
+     *
+     * @param classes the classes
+     * @return a {@link ClassLoader} or null if none found
+     */
+    public static ClassLoader classLoader(Class<?>... classes) {
+        if (classes != null) {
+            for (Class clzz : classes) {
+                ClassLoader classLoader = clzz.getClassLoader();
+
+                if (classLoader != null) {
+                    return classLoader;
+                }
+            }
+        }
+
+        return contextClassLoader();
+    }
+
 }

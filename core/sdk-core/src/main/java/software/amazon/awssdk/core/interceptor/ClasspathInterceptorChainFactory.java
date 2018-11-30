@@ -136,7 +136,7 @@ public final class ClasspathInterceptorChainFactory {
     }
 
     private ClassLoader classLoader() {
-        return Validate.notNull(ClassLoaderHelper.classLoader(),
-                                "Failed to load the classloader for the current thread or the system.");
+        return Validate.notNull(ClassLoaderHelper.classLoader(getClass()),
+                                "Failed to load the classloader of this class or the system.");
     }
 }

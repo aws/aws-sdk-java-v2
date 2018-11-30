@@ -100,7 +100,7 @@ public final class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentia
         }
 
         /**
-         * Similar to {@link #refreshRequest(AssumeRoleRequest)}, but takes a {@link Supplier} to supply the request to
+         * Similar to {@link #refreshRequest(AssumeRoleWithSamlRequest)}, but takes a {@link Supplier} to supply the request to
          * STS.
          *
          * @param assumeRoleWithSamlRequestSupplier A supplier
