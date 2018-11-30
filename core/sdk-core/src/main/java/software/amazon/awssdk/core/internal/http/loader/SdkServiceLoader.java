@@ -20,7 +20,7 @@ import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Thin layer over {@link ServiceLoader} to allow mocking in tests.
+ * Thin layer over {@link ServiceLoader}.
  */
 @SdkInternalApi
 class SdkServiceLoader {
@@ -28,6 +28,6 @@ class SdkServiceLoader {
     public static final SdkServiceLoader INSTANCE = new SdkServiceLoader();
 
     <T> Iterator<T> loadServices(Class<T> clzz) {
-        return ServiceLoader.load(clzz).iterator();
+        return ServiceLoader.load(clzz, SdkServiceLoader.class.getClassLoader()).iterator();
     }
 }
