@@ -1,3 +1,8 @@
+# __2.1.3__ __2018-11-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated to the latest service models.
+
 # __2.1.2__ __2018-11-28__
 ## __AWS SDK for Java v2__
   - ### Features

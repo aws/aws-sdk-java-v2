@@ -1,0 +1,11 @@
+{
+    "date": "2018-11-29",
+    "version": "2.1.3",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        }
+    ]
+}
