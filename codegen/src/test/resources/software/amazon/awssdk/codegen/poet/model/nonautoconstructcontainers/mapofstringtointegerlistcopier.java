@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
@@ -15,7 +16,7 @@ final class MapOfStringToIntegerListCopier {
             return null;
         }
         Map<String, List<Integer>> mapOfStringToIntegerListParamCopy = mapOfStringToIntegerListParam.entrySet().stream()
-                                                                                                    .collect(toMap(Map.Entry::getKey, e -> ListOfIntegersCopier.copy(e.getValue())));
+            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), ListOfIntegersCopier.copy(e.getValue())), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfStringToIntegerListParamCopy);
     }
 }
