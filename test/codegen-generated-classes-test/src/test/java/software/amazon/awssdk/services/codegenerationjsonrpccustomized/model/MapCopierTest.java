@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.services.codegenerationjsonrpccustomized.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for generated map member copiers.
@@ -39,5 +42,25 @@ public class MapCopierTest {
     @Test
     public void explicitlyEmptyMapsAreNotCopiedAsAutoConstructed() {
         assertThat(MapOfStringToStringCopier.copy(new HashMap<>())).isNotInstanceOf(SdkAutoConstructMap.class);
+    }
+
+    @Test
+    public void nullValuesInMapsAreCopied() {
+        Map<String, String> map = new HashMap<>();
+        map.put("test", null);
+        assertThat(MapOfStringToStringCopier.copy(map)).isEqualTo(map);
+    }
+
+    @Test
+    public void modificationsInOriginalMapDoNotReflectInCopiedMap() {
+        Map<String, String> map = new HashMap<>();
+        Map<String, String> copiedMap = MapOfStringToStringCopier.copy(map);
+        map.put("test", null);
+        assertThat(copiedMap).isEmpty();
+    }
+
+    @Test
+    public void copiedMapIsImmutable() {
+        assertThatThrownBy(() -> MapOfStringToStringCopier.copy(new HashMap<>()).put("test", "a")).isInstanceOf(UnsupportedOperationException.class);
     }
 }

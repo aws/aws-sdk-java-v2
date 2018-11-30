@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
@@ -15,7 +16,7 @@ final class MapOfStringToEnumCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, String> mapOfStringToEnumParamCopy = mapOfStringToEnumParam.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfStringToEnumParamCopy);
     }
 
@@ -24,7 +25,7 @@ final class MapOfStringToEnumCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, String> mapOfStringToEnumParamCopy = mapOfStringToEnumParam.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, e -> e.getValue().toString()));
+            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue().toString()), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfStringToEnumParamCopy);
     }
 }

@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -269,25 +270,25 @@ class MemberCopierSpec implements ClassSpec {
         CodeBlock keyCopyExpr =
             Optional.ofNullable(mapModel.getKeyModel())
                     .map(model -> serviceModelCopiers.copierClassFor(model)
-                                                     .map(copier -> CodeBlock.of("e -> $T.$N(e.getKey())",
+                                                     .map(copier -> CodeBlock.of("$T.$N(e.getKey())",
                                                                                  copier,
                                                                                  copyMethod))
                                                      .orElseGet(() -> checkForModeledEnum && model.getEnumType() != null
-                                                                      ? CodeBlock.of("e -> e.getKey().toString()")
-                                                                      : CodeBlock.of("$T::getKey", Map.Entry.class)))
-                    .orElseGet(() -> CodeBlock.of("e -> $T.$N(e.getKey())",
+                                                                      ? CodeBlock.of("e.getKey().toString()")
+                                                                      : CodeBlock.of("e.getKey()")))
+                    .orElseGet(() -> CodeBlock.of("$T.$N(e.getKey())",
                                                   StandardMemberCopier.class,
                                                   copyMethod));
 
         CodeBlock valueCopyExpr =
             Optional.ofNullable(mapModel.getValueModel())
                     .map(model -> serviceModelCopiers.copierClassFor(model)
-                                                     .map(copier -> CodeBlock.of("e -> $T.$N(e.getValue())",
+                                                     .map(copier -> CodeBlock.of("$T.$N(e.getValue())",
                                                                                  copier,
                                                                                  copyMethod))
                                                      .orElseGet(() -> checkForModeledEnum && model.getEnumType() != null
-                                                                      ? CodeBlock.of("e -> e.getValue().toString()")
-                                                                      : CodeBlock.of("$T::getValue", Map.Entry.class)))
+                                                                      ? CodeBlock.of("e.getValue().toString()")
+                                                                      : CodeBlock.of("e.getValue()")))
                     .orElseGet(() -> CodeBlock.of("e -> $T.$N(e.getValue())",
                                                   StandardMemberCopier.class,
                                                   copyMethod));
@@ -303,8 +304,9 @@ class MemberCopierSpec implements ClassSpec {
                     .endControlFlow();
         }
 
-        builder.addStatement("$T $N = $N.entrySet().stream().collect(toMap($L, $L))", typeProvider.fieldType(memberModel),
-                        copyName, memberParamName(), keyCopyExpr, valueCopyExpr);
+        builder.addStatement("$T $N = $N.entrySet().stream().collect($T::new, (m, e) -> m.put($L, $L), $T::putAll)",
+            typeProvider.fieldType(memberModel), copyName, memberParamName(), HashMap.class, keyCopyExpr, valueCopyExpr,
+            HashMap.class);
 
         return builder.addStatement("return $T.unmodifiableMap($N)", Collections.class, copyName).build();
     }
