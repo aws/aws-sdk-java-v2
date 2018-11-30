@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO Async HTTP Client", 
+    "type": "bugfix", 
+    "description": "Fix the issue where streaming requests with `Expect: 100-continue` header sometimes are hanging because 100Continue response message is not being read automatically. See [#459](https://github.com/aws/aws-sdk-java-v2/issues/459)"
+}
