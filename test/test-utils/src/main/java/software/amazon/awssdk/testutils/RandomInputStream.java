@@ -22,8 +22,6 @@ import java.util.Random;
 /**
  * Test utility InputStream implementation that generates random ASCII data when
  * read, up to the size specified when constructed.
- *
- * @author Jason Fulghum fulghum@amazon.com
  */
 public class RandomInputStream extends InputStream {
 

@@ -35,8 +35,6 @@ import software.amazon.awssdk.utils.StringUtils;
  * Base class for SQS integration tests. Provides convenience methods for creating test data, and
  * automatically loads AWS credentials from a properties file on disk and instantiates clients for
  * the individual tests to use.
- *
- * @author Jason Fulghum fulghum@amazon.com
  */
 public class IntegrationTestBase extends AwsIntegrationTestBase {
 

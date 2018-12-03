@@ -32,6 +32,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.Placement;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
@@ -73,14 +76,8 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * Integration tests for the Elastic Load Balancing client.
- *
- * @author Jason Fulghum fulghum@amazon.com
  */
 public class ElbIntegrationTest extends AwsIntegrationTestBase {
-
-    /** AMI used for tests that require an EC2 instance. */
-    private static final String AMI_ID = "ami-7f418316";
-
     /** Protocol value used in LB requests. */
     private static final String PROTOCOL = "HTTP";
 
@@ -189,12 +186,14 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
      */
     @Test
     public void testLoadBalancerInstanceOperations() throws Exception {
+        String ebs_hvm_ami_id = findEbsBackedPublicHvmAmiId();
+
         // Start up an EC2 instance to register with our LB
         RunInstancesRequest runInstancesRequest = RunInstancesRequest.builder()
                 .placement(
                         Placement.builder()
                                 .availabilityZone(AVAILABILITY_ZONE_1).build())
-                .imageId(AMI_ID).minCount(1).maxCount(1).build();
+                .imageId(ebs_hvm_ami_id).minCount(1).maxCount(1).build();
         instanceId = ec2.runInstances(runInstancesRequest)
                         .instances().get(0).instanceId();
 
@@ -489,5 +488,20 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
 
         // Delete the policy
         elb.deleteLoadBalancerPolicy(DeleteLoadBalancerPolicyRequest.builder().loadBalancerName(loadBalancerName).policyName(policyName).build());
+    }
+
+    private String findEbsBackedPublicHvmAmiId() {
+        List<Image> hvmImages = ec2.describeImages(
+            DescribeImagesRequest
+                .builder()
+                .filters(Filter.builder().name("virtualization-type").values("hvm").build(),
+                         Filter.builder().name("is-public").values("true").build(),
+                         Filter.builder().name("root-device-type").values("ebs").build(),
+                         Filter.builder().name("name").values("ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64*").build())
+                .build()).images();
+
+        assertTrue("Cannot find a public HVM AMI.", hvmImages.size() > 0);
+
+        return hvmImages.get(0).imageId();
     }
 }
