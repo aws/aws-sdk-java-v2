@@ -26,8 +26,6 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
  * Base class for AutoScaling integration tests. Provides several convenience methods for creating
  * test data, test data values, and automatically loads the AWS credentials from a properties file
  * on disk and instantiates clients for the test subclasses to use.
- *
- * @author Jason Fulghum fulghum@amazon.com
  */
 public abstract class IntegrationTestBase extends AwsTestBase {
 
