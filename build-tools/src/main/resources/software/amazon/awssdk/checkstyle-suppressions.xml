@@ -29,7 +29,7 @@
 
     <!-- ignore missing annotation checks under test/codegen directory -->
     <suppress checks="MissingSdkAnnotationCheck"
-              files=".(codegen|test)[\\/].+\.java$"/>
+              files=".(codegen|test|release)[\\/].+\.java$"/>
 
     <!-- TODO want to contribute this back to Netty -->
     <suppress checks=".*"
