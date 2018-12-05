@@ -25,17 +25,11 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A command line application to create a new, empty service.
@@ -51,40 +45,22 @@ import software.amazon.awssdk.utils.Logger;
  *                  --service-protocol json"
  * </pre>
  */
-public class NewServiceMain {
-    private static final Logger log = Logger.loggerFor(NewServiceMain.class);
-
-    private NewServiceMain() {}
-
-    public static void main(String[] args) {
-        Options options = new Options();
-
-        options.addOption(requiredOption("service-module-name", "The name of the service module to be created."));
-        options.addOption(requiredOption("service-id", "The service ID of the service module to be created."));
-        options.addOption(requiredOption("service-protocol", "The protocol of the service module to be created."));
-        options.addOption(requiredOption("maven-project-root", "The root directory for the maven project."));
-        options.addOption(requiredOption("maven-project-version", "The maven version of the service module to be created."));
-
-        CommandLineParser parser = new DefaultParser();
-        HelpFormatter help = new HelpFormatter();
-
-        try {
-            CommandLine commandLine = parser.parse(options, args);
-            new NewServiceCreator(commandLine).run();
-        } catch (ParseException e) {
-            log.error(() -> "Invalid input: " + e.getMessage());
-            help.printHelp("NewServiceMain", options);
-            System.exit(1);
-        } catch (Exception e) {
-            log.error(() -> "Script execution failed.", e);
-            System.exit(2);
-        }
+public class NewServiceMain extends Cli {
+    private NewServiceMain() {
+        super(requiredOption("service-module-name", "The name of the service module to be created."),
+              requiredOption("service-id", "The service ID of the service module to be created."),
+              requiredOption("service-protocol", "The protocol of the service module to be created."),
+              requiredOption("maven-project-root", "The root directory for the maven project."),
+              requiredOption("maven-project-version", "The maven version of the service module to be created."));
     }
 
-    private static Option requiredOption(String longCommand, String description) {
-        Option option = new Option(null, longCommand, true, description);
-        option.setRequired(true);
-        return option;
+    public static void main(String[] args) {
+        new NewServiceMain().run(args);
+    }
+
+    @Override
+    protected void run(CommandLine commandLine) throws Exception {
+        new NewServiceCreator(commandLine).run();
     }
 
     private static class NewServiceCreator {
@@ -100,6 +76,8 @@ public class NewServiceMain {
             this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
             this.serviceId = commandLine.getOptionValue("service-id").trim();
             this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol").trim());
+
+            Validate.isTrue(Files.exists(mavenProjectRoot), "Project root does not exist: " + mavenProjectRoot);
         }
 
         private String transformSpecialProtocols(String protocol) {
