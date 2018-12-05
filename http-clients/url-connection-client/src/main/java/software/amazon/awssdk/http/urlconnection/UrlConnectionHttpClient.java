@@ -25,6 +25,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -54,13 +55,40 @@ import software.amazon.awssdk.utils.IoUtils;
 public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private final AttributeMap options;
+    private final UrlConnectionFactory connectionFactory;
 
-    private UrlConnectionHttpClient(AttributeMap options) {
+    private UrlConnectionHttpClient(AttributeMap options, UrlConnectionFactory connectionFactory) {
         this.options = options;
+        if (connectionFactory != null) {
+            this.connectionFactory = connectionFactory;
+        } else {
+            this.connectionFactory = this::createDefaultConnection;
+        }
+
     }
 
     public static Builder builder() {
         return new DefaultBuilder();
+    }
+
+    /**
+     * Create a {@link HttpURLConnection} client with the default properties
+     *
+     * @return an {@link UrlConnectionHttpClient}
+     */
+    public static SdkHttpClient create() {
+        return new DefaultBuilder().build();
+    }
+
+    /**
+     * Use this method if you want to control the way a {@link HttpURLConnection} is created.
+     * This will ignore SDK defaults like {@link SdkHttpConfigurationOption#CONNECTION_TIMEOUT}
+     * and {@link SdkHttpConfigurationOption#READ_TIMEOUT}
+     * @param connectionFactory a function that, given a {@link URI} will create an {@link HttpURLConnection}
+     * @return an {@link UrlConnectionHttpClient}
+     */
+    public static SdkHttpClient create(UrlConnectionFactory connectionFactory) {
+        return new UrlConnectionHttpClient(AttributeMap.empty(), connectionFactory);
     }
 
     @Override
@@ -75,8 +103,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
-        HttpURLConnection connection =
-            invokeSafely(() -> (HttpURLConnection) request.httpRequest().getUri().toURL().openConnection());
+        HttpURLConnection connection = connectionFactory.createConnection(request.httpRequest().getUri());
         request.httpRequest()
                .headers()
                .forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
@@ -85,9 +112,13 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             connection.setDoOutput(true);
         }
 
+        return connection;
+    }
+
+    private HttpURLConnection createDefaultConnection(URI uri) {
+        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
         connection.setConnectTimeout(saturatedCast(options.get(CONNECTION_TIMEOUT).toMillis()));
         connection.setReadTimeout(saturatedCast(options.get(READ_TIMEOUT).toMillis()));
-
         return connection;
     }
 
@@ -210,7 +241,8 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new UrlConnectionHttpClient(standardOptions.build()
                                                               .merge(serviceDefaults)
-                                                              .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+                                                              .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
+                                               null);
         }
     }
 }
