@@ -12,14 +12,25 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.http.urlconnection;
 
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
-public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTestSuite {
-    @Override
-    protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
-        return UrlConnectionHttpClient.create();
-    }
+/**
+ * An interface that, given a {@link URI} creates a new {@link HttpURLConnection}. This allows customization
+ * of the creation and configuration of the {@link HttpURLConnection}.
+ */
+@FunctionalInterface
+@SdkPublicApi
+public interface UrlConnectionFactory {
+
+    /**
+     * For the given {@link URI} create an {@link HttpURLConnection}.
+     * @param uri the {@link URI} of the request
+     * @return a {@link HttpURLConnection} to the given {@link URI}
+     */
+    HttpURLConnection createConnection(URI uri);
 }

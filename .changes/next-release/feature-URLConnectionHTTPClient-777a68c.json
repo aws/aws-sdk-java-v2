@@ -1,0 +1,5 @@
+{
+    "category": "URLConnection HTTP Client", 
+    "type": "feature", 
+    "description": "Adding a hook to enable custom creation of the initial `HttpURLConnection`. This enables customers to control how a connection is established for a given `URL` including handling any required proxy configuration etc."
+}
