@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
@@ -69,6 +70,7 @@ public class SearchRequestUnitTest {
 
         searchClient.search(SearchRequest.builder().query("Lord of the Rings").build());
 
-        verify(postRequestedFor(urlMatching("/.*")).withRequestBody(equalTo("format=sdk&pretty=true&q=Lord+of+the+Rings")));
+        verify(postRequestedFor(urlEqualTo("/2013-01-01/search"))
+                   .withRequestBody(equalTo("format=sdk&pretty=true&q=Lord+of+the+Rings")));
     }
 }
