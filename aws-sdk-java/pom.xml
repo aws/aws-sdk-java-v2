@@ -602,6 +602,11 @@
             <artifactId>kafka</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>codedeploy</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
