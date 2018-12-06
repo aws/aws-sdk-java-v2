@@ -1130,6 +1130,10 @@
                                     <packages>software.amazon.awssdk.services.workdocs*</packages>
                                 </group>
                                 <group>
+                                    <title>CodeDeploy</title>
+                                    <packages>software.amazon.awssdk.services.codedeploy*</packages>
+                                </group>
+                                <group>
                                     <title>Common</title>
                                     <packages>software.amazon.awssdk*</packages>
                                 </group>
