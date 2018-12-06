@@ -85,6 +85,27 @@ public class PutObjectHeaderTest {
     }
 
     @Test
+    public void putObject_gzipFile_hasProperContentType() throws IOException {
+        File file = new RandomTempFile("test.gz", 10);
+        stubFor(any(urlMatching(".*"))
+                    .willReturn(response()));
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("application/gzip")));
+    }
+
+    @Test
+    public void putObject_gzipFile_shouldNotOverrideContentTypeInRequest() throws IOException {
+        File file = new RandomTempFile("test.gz", 10);
+        String contentType = "something";
+        stubFor(any(urlMatching(".*"))
+                    .willReturn(response()));
+
+        s3Client.putObject(putObjectRequest.toBuilder().contentType(contentType).build(),
+                           RequestBody.fromFile(file));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
+    }
+
+    @Test
     public void putObjectUnknownFileExtension_contentTypeDefaultToBeStream() throws IOException {
         File file = new RandomTempFile("test.unknown", 10);
         stubFor(any(urlMatching(".*"))
