@@ -22,8 +22,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -31,11 +29,10 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
+import software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -52,7 +49,9 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
 
-        boolean checksumValidationEnabled = checksumValidationEnabled(executionAttributes);
+        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(SYNC,
+                                                                                               executionAttributes,
+                                                                                               context.httpRequest().headers());
 
         if (context.request() instanceof PutObjectRequest && checksumValidationEnabled) {
             SdkChecksum checksum = new Md5Checksum();
@@ -75,7 +74,11 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
     public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
                                                            ExecutionAttributes executionAttributes) {
 
-        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
+        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(SYNC,
+                                                                                               executionAttributes,
+                                                                                               context.httpResponse().headers());
+
+        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled) {
             SdkChecksum checksum = new Md5Checksum();
 
             int contentLength = Integer.valueOf(context.httpResponse().firstMatchingHeader(CONTENT_LENGTH_HEADER).orElse("0"));
@@ -91,7 +94,11 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
     @Override
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
 
-        if (context.response() instanceof PutObjectResponse && checksumValidationEnabled(executionAttributes)) {
+        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(SYNC,
+                                                                                               executionAttributes,
+                                                                                               context.httpResponse().headers());
+
+        if (context.response() instanceof PutObjectResponse && checksumValidationEnabled) {
             PutObjectResponse response = (PutObjectResponse) context.response();
 
             if (response.eTag() != null) {
@@ -107,18 +114,5 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
                 }
             }
         }
-    }
-
-    private boolean checksumValidationEnabled(ExecutionAttributes executionAttributes) {
-
-        ClientType clientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
-
-        if (SYNC.equals(clientType)) {
-            S3Configuration serviceConfiguration =
-                (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
-            return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
-        }
-
-        return false;
     }
 }

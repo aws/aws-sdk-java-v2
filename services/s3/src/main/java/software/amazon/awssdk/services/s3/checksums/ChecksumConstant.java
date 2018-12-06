@@ -41,6 +41,16 @@ public final class ChecksumConstant {
     public static final String ENABLE_MD5_CHECKSUM_HEADER_VALUE = "append-md5";
 
     /**
+     * Header value for specifying server side encryption.
+     */
+    public static final String SERVER_SIDE_ENCRYPTION_HEADER = "x-amz-server-side-encryption";
+
+    /**
+     * Header value for specifying server side encryption with a customer managed key.
+     */
+    public static final String SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER = "x-amz-server-side-encryption-customer-algorithm";
+
+    /**
      * Length of an MD5 checksum in bytes.
      */
     public static final int S3_MD5_CHECKSUM_LENGTH = 16;

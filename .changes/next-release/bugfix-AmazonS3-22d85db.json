@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "bugfix", 
+    "description": "Turns off trailing checksums when using SSE-C or SSE-KMS"
+}
