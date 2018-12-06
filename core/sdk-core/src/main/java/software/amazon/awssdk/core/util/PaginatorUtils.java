@@ -31,11 +31,15 @@ public final class PaginatorUtils {
      *
      * @param outputToken the output token to check
      * @param <T> the type of the output token
-     * @return true if the output token is non-null or non-empty if the output token is a map or Collection type
+     * @return true if the output token is non-null or non-empty if the output token is a String or map or Collection type
      */
     public static <T> boolean isOutputTokenAvailable(T outputToken) {
         if (outputToken == null) {
             return false;
+        }
+
+        if (outputToken instanceof String) {
+            return !((String) outputToken).isEmpty();
         }
 
         if (outputToken instanceof Map) {
