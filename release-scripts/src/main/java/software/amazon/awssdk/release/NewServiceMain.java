@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * A command line application to create a new, empty service.
@@ -96,11 +95,11 @@ public class NewServiceMain {
         private final String serviceProtocol;
 
         private NewServiceCreator(CommandLine commandLine) {
-            this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root"));
-            this.mavenProjectVersion = commandLine.getOptionValue("maven-project-version");
-            this.serviceModuleName = commandLine.getOptionValue("service-module-name");
-            this.serviceId = commandLine.getOptionValue("service-id");
-            this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol"));
+            this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root").trim());
+            this.mavenProjectVersion = commandLine.getOptionValue("maven-project-version").trim();
+            this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
+            this.serviceId = commandLine.getOptionValue("service-id").trim();
+            this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol").trim());
         }
 
         private String transformSpecialProtocols(String protocol) {
@@ -113,8 +112,6 @@ public class NewServiceMain {
         }
 
         public void run() throws Exception {
-            Validate.isTrue(Files.exists(mavenProjectRoot), "Project root does not exist: " + mavenProjectRoot);
-
             Path servicesRoot = mavenProjectRoot.resolve("services");
             Path templateModulePath = servicesRoot.resolve("new-service-template");
             Path newServiceModulePath = servicesRoot.resolve(serviceModuleName);
