@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
@@ -33,10 +31,9 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingPublisher;
+import software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -52,7 +49,11 @@ public class AsyncChecksumValidationInterceptor implements ExecutionInterceptor 
     public Optional<AsyncRequestBody> modifyAsyncHttpContent(Context.ModifyHttpRequest context,
                                                              ExecutionAttributes executionAttributes) {
 
-        if (context.request() instanceof PutObjectRequest && checksumValidationEnabled(executionAttributes)) {
+        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(ASYNC,
+                                                                                               executionAttributes,
+                                                                                               context.httpRequest().headers());
+
+        if (context.request() instanceof PutObjectRequest && checksumValidationEnabled) {
             SdkChecksum checksum = new Md5Checksum();
             executionAttributes.putAttribute(CHECKSUM, checksum);
             return Optional.of(new ChecksumCalculatingAsyncRequestBody(context.asyncRequestBody().get(), checksum));
@@ -65,7 +66,11 @@ public class AsyncChecksumValidationInterceptor implements ExecutionInterceptor 
     public Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(Context.ModifyHttpResponse context,
                                                                 ExecutionAttributes executionAttributes) {
 
-        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
+        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(ASYNC,
+                                                                                               executionAttributes,
+                                                                                               context.httpRequest().headers());
+
+        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled) {
             int contentLength = Integer.parseInt(context.httpResponse().firstMatchingHeader("Content-Length").orElse("0"));
             SdkChecksum checksum = new Md5Checksum();
             executionAttributes.putAttribute(CHECKSUM, checksum);
@@ -78,7 +83,9 @@ public class AsyncChecksumValidationInterceptor implements ExecutionInterceptor 
     @Override
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
 
-        boolean checksumValidationEnabled = checksumValidationEnabled(executionAttributes);
+        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(ASYNC,
+                                                                                               executionAttributes,
+                                                                                               context.httpResponse().headers());
 
         if (context.response() instanceof PutObjectResponse && checksumValidationEnabled) {
             validatePutObjectChecksum(context.response(), executionAttributes);
@@ -98,19 +105,5 @@ public class AsyncChecksumValidationInterceptor implements ExecutionInterceptor 
                 throw SdkClientException.create("Data read has a different checksum than expected.");
             }
         }
-    }
-
-    private boolean checksumValidationEnabled(ExecutionAttributes executionAttributes) {
-
-        ClientType clientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
-
-        if (ASYNC.equals(clientType)) {
-            S3Configuration serviceConfiguration =
-                (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
-
-            return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
-        }
-
-        return false;
     }
 }
