@@ -52,7 +52,7 @@ public final class SdkEventLoopGroup {
     private final EventLoopGroup eventLoopGroup;
     private final ChannelFactory<? extends Channel> channelFactory;
 
-    private SdkEventLoopGroup(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> channelFactory) {
+    SdkEventLoopGroup(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> channelFactory) {
         Validate.paramNotNull(eventLoopGroup, "eventLoopGroup");
         Validate.paramNotNull(channelFactory, "channelFactory");
         this.eventLoopGroup = eventLoopGroup;
