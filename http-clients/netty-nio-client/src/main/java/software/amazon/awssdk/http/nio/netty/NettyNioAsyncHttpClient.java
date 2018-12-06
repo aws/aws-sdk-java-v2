@@ -22,12 +22,12 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -39,6 +39,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -67,8 +70,10 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
+    private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
+
     private final SdkEventLoopGroup sdkEventLoopGroup;
-    private final ChannelPoolMap<URI, ChannelPool> pools;
+    private final SdkChannelPoolMap<URI, ChannelPool> pools;
     private final SdkChannelOptions sdkChannelOptions;
     private final NettyConfiguration configuration;
     private final long maxStreams;
@@ -134,7 +139,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
     }
 
-    private ChannelPoolMap<URI, ChannelPool> createChannelPoolMap() {
+    private SdkChannelPoolMap<URI, ChannelPool> createChannelPoolMap() {
         return new SdkChannelPoolMap<URI, ChannelPool>() {
             @Override
             protected ChannelPool newPool(URI key) {
@@ -166,7 +171,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
-        sdkEventLoopGroup.eventLoopGroup().shutdownGracefully();
+        pools.forEach(e -> runAndLogError(log, "Unable to close channel pool for " + e.getKey(), e.getValue()::close));
+        runAndLogError(log, "Unable to shutdown event loop", sdkEventLoopGroup.eventLoopGroup()::shutdownGracefully);
     }
 
     /**
