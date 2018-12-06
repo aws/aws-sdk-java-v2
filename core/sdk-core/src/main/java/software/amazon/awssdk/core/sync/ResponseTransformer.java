@@ -129,6 +129,8 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
                 // Retry the request
                 throw RetryableException.builder().message(copyError).cause(copyException).build();
+            } finally {
+                IoUtils.closeQuietly(in, null);
             }
         };
     }
@@ -155,9 +157,13 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
         return (resp, in) -> {
-            InterruptMonitor.checkInterrupted();
-            IoUtils.copy(in, outputStream);
-            return resp;
+            try {
+                InterruptMonitor.checkInterrupted();
+                IoUtils.copy(in, outputStream);
+                return resp;
+            } finally {
+                IoUtils.closeQuietly(in, null);
+            }
         };
     }
 
@@ -175,6 +181,8 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                 return ResponseBytes.fromByteArray(response, IoUtils.toByteArray(inputStream));
             } catch (IOException e) {
                 throw RetryableException.builder().message("Failed to read response.").cause(e).build();
+            } finally {
+                IoUtils.closeQuietly(inputStream, null);
             }
         };
     }

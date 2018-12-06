@@ -28,6 +28,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBu
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Verify the end-to-end functionality of the SDK-provided {@link ResponseTransformer} implementations.
@@ -136,6 +139,57 @@ public class ResponseTransformerTest {
         // Two successful requests with a max of one connection means that closing the connection worked.
         client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build()).close();
         client.streamingOutputOperation(StreamingOutputOperationRequest.builder().build()).close();
+    }
+
+    @Test
+    public void streamingToBytesShouldCloseInputStream() throws IOException {
+        stubForSuccess();
+
+        ProtocolRestJsonClient client = testClientBuilder().build();
+
+        client.streamingOutputOperation(SdkBuilder::build, new VerifyClosingStreamResponseTransformer<>(ResponseTransformer.toBytes()));
+    }
+
+    @Test
+    public void streamingToOutputStreamShouldCloseInputStream() throws IOException {
+        stubForSuccess();
+
+        ProtocolRestJsonClient client = testClientBuilder().build();
+
+        try (OutputStream outputStream = new ByteArrayOutputStream()) {
+            client.streamingOutputOperation(SdkBuilder::build, new VerifyClosingStreamResponseTransformer<>(ResponseTransformer.toOutputStream(outputStream)));
+        }
+    }
+
+    @Test
+    public void streamingToFileShouldCloseInputStream() throws IOException {
+        stubForSuccess();
+
+        Path tmpDirectory = Files.createTempDirectory("streaming-response-handler-test");
+        tmpDirectory.toFile().deleteOnExit();
+
+        Path tmpFile = tmpDirectory.resolve(UUID.randomUUID().toString());
+        tmpFile.toFile().deleteOnExit();
+
+        ProtocolRestJsonClient client = testClientBuilder().build();
+
+        client.streamingOutputOperation(SdkBuilder::build,
+                                        new VerifyClosingStreamResponseTransformer<>(ResponseTransformer.toFile(tmpFile)));
+    }
+
+    private class VerifyClosingStreamResponseTransformer<T, V> implements ResponseTransformer<T, V> {
+        private ResponseTransformer<T, V> delegate;
+
+        private VerifyClosingStreamResponseTransformer(ResponseTransformer<T, V> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public V transform(T response, AbortableInputStream inputStream) throws Exception {
+            V transform = delegate.transform(response, inputStream);
+            assertThatThrownBy(inputStream::read).isInstanceOf(IOException.class).hasMessageContaining("Attempted read on closed stream");
+            return transform;
+        }
     }
 
     @Test
