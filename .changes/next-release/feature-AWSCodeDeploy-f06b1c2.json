@@ -1,0 +1,5 @@
+{
+    "category": "AWS CodeDeploy", 
+    "type": "feature", 
+    "description": "Supporting AWS CodeDeploy"
+}
