@@ -4834,8 +4834,8 @@
           "documentation":"<p>An array that contains the action for each <code>Rule</code> in a <code>WebACL</code>, the priority of the <code>Rule</code>, and the ID of the <code>Rule</code>.</p>"
         },
         "WebACLArn":{
-            "shape":"ResourceArn",
-            "documentation":"<p>Tha Amazon Resource Name (ARN) of the web ACL.</p>"
+          "shape":"ResourceArn",
+          "documentation":"<p>Tha Amazon Resource Name (ARN) of the web ACL.</p>"
         }
       },
       "documentation":"<p>Contains the <code>Rules</code> that identify the requests that you want to allow, block, or count. In a <code>WebACL</code>, you also specify a default action (<code>ALLOW</code> or <code>BLOCK</code>), and the action for each <code>Rule</code> that you add to a <code>WebACL</code>, for example, block requests from specified IP addresses or block requests from specified referrers. You also associate the <code>WebACL</code> with a CloudFront distribution to identify the requests that you want AWS WAF to filter. If you add more than one <code>Rule</code> to a <code>WebACL</code>, a request needs to match only one of the specifications to be allowed, blocked, or counted. For more information, see <a>UpdateWebACL</a>.</p>"

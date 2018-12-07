@@ -19,6 +19,7 @@ import java.io.Serializable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkPublicApi
 public class AwsErrorDetails implements Serializable {
@@ -99,6 +100,15 @@ public class AwsErrorDetails implements Serializable {
 
     public static Class<? extends Builder> serializableBuilderClass() {
         return BuilderImpl.class;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("AwsErrorDetails")
+                       .add("errorMessage", errorMessage)
+                       .add("errorCode", errorCode)
+                       .add("serviceName", serviceName)
+                       .build();
     }
 
     public interface Builder {

@@ -37,8 +37,6 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 /**
  * Base class for SNS integration tests; responsible for loading AWS account info for running the
  * tests, and instantiating clients, etc.
- *
- * @author fulghum@amazon.com
  */
 public abstract class IntegrationTestBase extends AwsIntegrationTestBase {
 

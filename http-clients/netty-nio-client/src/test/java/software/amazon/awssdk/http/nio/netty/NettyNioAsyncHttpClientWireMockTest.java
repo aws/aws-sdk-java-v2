@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.ChannelFactory;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -282,6 +283,47 @@ public class NettyNioAsyncHttpClientWireMockTest {
         // bytes equal to 'Content-Length' so we need to inspect the raw
         // traffic to ensure that there wasn't anything after that.
         assertThat(wiremockTrafficListener.requests.toString()).endsWith(content);
+    }
+
+    @Test
+    public void closeMethodClosesOpenedChannels() throws InterruptedException, TimeoutException, ExecutionException {
+        String body = randomAlphabetic(10);
+        URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
+        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withHeader("Some-Header", "With Value").withBody(body)));
+
+        SdkHttpFullRequest request = createRequest(uri, "/", body, SdkHttpMethod.POST, Collections.emptyMap());
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+
+        CompletableFuture<Boolean> channelClosedFuture = new CompletableFuture<>();
+        ChannelFactory<NioSocketChannel> channelFactory = new ChannelFactory<NioSocketChannel>() {
+            @Override
+            public NioSocketChannel newChannel() {
+                return new NioSocketChannel() {
+                    @Override
+                    public ChannelFuture close() {
+                        ChannelFuture cf = super.close();
+                        channelClosedFuture.complete(true);
+                        return cf;
+                    }
+                };
+            }
+        };
+
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                .eventLoopGroup(new SdkEventLoopGroup(new NioEventLoopGroup(1), channelFactory))
+                .buildWithDefaults(mapWithTrustAllCerts());
+
+        try {
+            customClient.execute(AsyncExecuteRequest.builder()
+                    .request(request)
+                    .requestContentPublisher(createProvider(body))
+                    .responseHandler(recorder).build())
+                    .join();
+        } finally {
+            customClient.close();
+        }
+
+        assertThat(channelClosedFuture.get(5, TimeUnit.SECONDS)).isTrue();
     }
 
     private void assertCanReceiveBasicRequest(URI uri, String body) throws Exception {

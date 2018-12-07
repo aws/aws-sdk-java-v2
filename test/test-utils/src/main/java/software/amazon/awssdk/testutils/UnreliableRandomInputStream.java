@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
  * Subclass of RandomInputStream that, in addition to spitting out a set length
  * of random characters, throws an IOException. Intended for testing error
  * recovery in the client library.
- *
- * @author Jason Fulghum fulghum@amazon.com
  */
 public class UnreliableRandomInputStream extends RandomInputStream {
     private static final Logger log = LoggerFactory.getLogger(UnreliableRandomInputStream.class);

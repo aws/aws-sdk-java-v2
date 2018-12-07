@@ -169,12 +169,18 @@ public final class NettyRequestExecutor {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
-                       if (!context.executeRequest().fullDuplex()) {
-                           // Starting read so add the idle read timeout handler, removed when channel is released
+                       if (context.executeRequest().fullDuplex()) {
+                           return;
+                       }
+
+                       // if it is 100ContinueExpected request, then we do not need to add another ReadTimeoutHandler
+                       if (!is100ContinueExpected()) {
                            channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                               TimeUnit.MILLISECONDS));
-                           channel.read();
                        }
+
+                       channel.read();
+
                    } else {
                        // TODO: Are there cases where we can keep the channel open?
                        closeAndRelease(channel);
@@ -182,12 +188,31 @@ public final class NettyRequestExecutor {
                    }
                });
 
-        // FullDuplex calls need to start reading at the same time we make the request.
-        if (context.executeRequest().fullDuplex()) {
+        if (shouldExplicitlyTriggerRead()) {
             channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                TimeUnit.MILLISECONDS));
             channel.read();
         }
+    }
+
+    /**
+     * It should explicitly trigger Read for the following situations:
+     *
+     * - FullDuplex calls need to start reading at the same time we make the request.
+     * - Request with "Expect: 100-continue" header should read the 100 continue response.
+     *
+     * @return true if it should explicitly read from channel
+     */
+    private boolean shouldExplicitlyTriggerRead() {
+        return context.executeRequest().fullDuplex() || is100ContinueExpected();
+    }
+
+    private boolean is100ContinueExpected() {
+        return context.executeRequest()
+                      .request()
+                      .firstMatchingHeader("Expect")
+                      .filter(b -> b.equalsIgnoreCase("100-continue"))
+                      .isPresent();
     }
 
     private URI endpoint() {

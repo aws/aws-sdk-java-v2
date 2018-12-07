@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkBytes;
@@ -17,7 +18,7 @@ final class BlobMapTypeCopier {
             return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, SdkBytes> blobMapTypeParamCopy = blobMapTypeParam.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, e -> StandardMemberCopier.copy(e.getValue())));
+            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), StandardMemberCopier.copy(e.getValue())), HashMap::putAll);
         return Collections.unmodifiableMap(blobMapTypeParamCopy);
     }
 }

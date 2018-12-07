@@ -10,3 +10,4 @@ software.amazon.awssdk.services.s3.internal.handlers.GetBucketPolicyInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.EnableTrailingChecksumInterceptor
+software.amazon.awssdk.services.s3.internal.handlers.ExceptionTranslationInterceptor

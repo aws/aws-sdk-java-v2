@@ -71,7 +71,7 @@ public final class Mimetype {
 
     private static final String MIME_TYPE_PATH = "software/amazon/awssdk/core/util/mime.types";
 
-    private static final ClassLoader CLASS_LOADER = ClassLoaderHelper.classLoader();
+    private static final ClassLoader CLASS_LOADER = ClassLoaderHelper.classLoader(Mimetype.class);
 
     private static volatile Mimetype mimetype;
 

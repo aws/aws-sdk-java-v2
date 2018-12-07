@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.cloudsearchdomain.internal;
 
-import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.ByteArrayInputStream;
@@ -39,30 +38,28 @@ public final class SwitchToPostInterceptor implements ExecutionInterceptor {
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        byte[] params = SdkHttpUtils.encodeAndFlattenFormData(context.httpRequest().rawQueryParameters()).orElse("")
-                .getBytes(StandardCharsets.UTF_8);
-
-        return context.httpRequest()
-                      .toBuilder()
-                      .method(SdkHttpMethod.POST)
-                      .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
-                      .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
-                                                               lowerCase(StandardCharsets.UTF_8.toString()))).build();
+        SdkHttpRequest httpRequest = context.httpRequest();
+        if (context.request() instanceof SearchRequest) {
+            return httpRequest.toBuilder()
+                              .clearQueryParameters()
+                              .method(SdkHttpMethod.POST)
+                              .build();
+        }
+        return context.httpRequest();
     }
 
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        SdkHttpRequest request = context.httpRequest();
-        Object originalRequest = context.request();
-        if (originalRequest instanceof SearchRequest && request.method() == SdkHttpMethod.GET) {
-            byte[] params = SdkHttpUtils.encodeAndFlattenFormData(request.rawQueryParameters()).orElse("")
-                .getBytes(StandardCharsets.UTF_8);
+        if (context.request() instanceof SearchRequest) {
+            byte[] params = SdkHttpUtils.encodeAndFlattenFormData(context.httpRequest().rawQueryParameters()).orElse("")
+                                        .getBytes(StandardCharsets.UTF_8);
             return Optional.of(RequestBody.fromContentProvider(() -> new ByteArrayInputStream(params),
-                                                   params.length,
-                                                   "application/x-www-form-urlencoded; charset=" +
-                                                                 lowerCase(StandardCharsets.UTF_8.toString())));
+                                                               params.length,
+                                                               "application/x-www-form-urlencoded; charset=" +
+                                                               lowerCase(StandardCharsets.UTF_8.toString())));
         }
 
         return context.requestBody();
     }
+
 }

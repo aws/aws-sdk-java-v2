@@ -31,8 +31,6 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
  * Base class for IAM integration tests. Provides convenience methods for
  * creating test data, and automatically loads AWS credentials from a properties
  * file on disk and instantiates clients for the individual tests to use.
- *
- * @author Jason Fulghum fulghum@amazon.com
  */
 public class IntegrationTestBase extends AwsTestBase {
 

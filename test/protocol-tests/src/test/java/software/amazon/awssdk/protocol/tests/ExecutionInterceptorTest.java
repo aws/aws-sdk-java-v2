@@ -383,6 +383,7 @@ public class ExecutionInterceptorTest {
         inOrder.verify(interceptor).afterExecution(afterExecutionArg.capture(), attributes.capture());
         if (expectedException != null) {
             ArgumentCaptor<Context.FailedExecution> failedExecutionArg = ArgumentCaptor.forClass(Context.FailedExecution.class);
+            inOrder.verify(interceptor).modifyException(failedExecutionArg.capture(), attributes.capture());
             inOrder.verify(interceptor).onExecutionFailure(failedExecutionArg.capture(), attributes.capture());
             verifyFailedExecutionMethodCalled(failedExecutionArg, true);
             assertThat(failedExecutionArg.getValue().exception()).isEqualTo(expectedException);
@@ -440,6 +441,7 @@ public class ExecutionInterceptorTest {
         if (isAsync) {
             inOrder.verify(interceptor).modifyAsyncHttpResponseContent(any(), attributes.capture());
         }
+        inOrder.verify(interceptor).modifyException(failedExecutionArg.capture(), attributes.capture());
         inOrder.verify(interceptor).onExecutionFailure(failedExecutionArg.capture(), attributes.capture());
         verifyNoMoreInteractions(interceptor);
 
