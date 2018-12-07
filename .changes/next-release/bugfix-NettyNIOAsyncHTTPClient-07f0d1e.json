@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Async HTTP Client", 
-    "type": "bugfix", 
-    "description": "Close created `ChannelPool`s in `close()` method."
-}

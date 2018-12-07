@@ -1,0 +1,71 @@
+{
+    "date": "2018-12-07",
+    "version": "2.1.4",
+    "entries": [
+        {
+            "category": "AWS CodeDeploy",
+            "type": "feature",
+            "description": "Supporting AWS CodeDeploy"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixes nullpointerexception when server responds with null values in map."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Turns off trailing checksums when using SSE-C or SSE-KMS"
+        },
+        {
+            "category": "core",
+            "type": "feature",
+            "description": "Netty 4.1.32.Final"
+        },
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Close created `ChannelPool`s in `close()` method."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add `modifyException` API to `ExecutionInterceptor`."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Update S3 headObject/headBucket operations to throw NoSuchKey/NoSuchException when S3 is returning 404. See [#123](https://github.com/aws/aws-sdk-java-v2/issues/123), [#544](https://github.com/aws/aws-sdk-java-v2/issues/544)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Update spot bugs version to 3.1.9"
+        },
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Fix the issue where streaming requests with `Expect: 100-continue` header sometimes are hanging because 100Continue response message is not being read automatically. See [#459](https://github.com/aws/aws-sdk-java-v2/issues/459)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Use the class loader that loaded the SDK to load the HTTP implementations. See [#56](https://github.com/aws/aws-sdk-java-v2/issues/56)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix infinite stream of results bug in auto paginator APIs when the next token is an empty string"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add application/gzip mime type"
+        }
+    ]
+}

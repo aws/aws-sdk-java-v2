@@ -1,3 +1,34 @@
+# __2.1.4__ __2018-12-07__
+## __AWS CodeDeploy__
+  - ### Features
+    - Supporting AWS CodeDeploy
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `modifyException` API to `ExecutionInterceptor`.
+    - Add application/gzip mime type
+    - Update spot bugs version to 3.1.9
+    - Updated to the latest service models.
+
+  - ### Bugfixes
+    - Fix infinite stream of results bug in auto paginator APIs when the next token is an empty string
+    - Fixes nullpointerexception when server responds with null values in map.
+    - Use the class loader that loaded the SDK to load the HTTP implementations. See [#56](https://github.com/aws/aws-sdk-java-v2/issues/56)
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Turns off trailing checksums when using SSE-C or SSE-KMS
+    - Update S3 headObject/headBucket operations to throw NoSuchKey/NoSuchException when S3 is returning 404. See [#123](https://github.com/aws/aws-sdk-java-v2/issues/123), [#544](https://github.com/aws/aws-sdk-java-v2/issues/544)
+
+## __Netty NIO Async HTTP Client__
+  - ### Bugfixes
+    - Close created `ChannelPool`s in `close()` method.
+    - Fix the issue where streaming requests with `Expect: 100-continue` header sometimes are hanging because 100Continue response message is not being read automatically. See [#459](https://github.com/aws/aws-sdk-java-v2/issues/459)
+
+## __core__
+  - ### Features
+    - Netty 4.1.32.Final
+
 # __2.1.3__ __2018-11-29__
 ## __AWS SDK for Java v2__
   - ### Features
