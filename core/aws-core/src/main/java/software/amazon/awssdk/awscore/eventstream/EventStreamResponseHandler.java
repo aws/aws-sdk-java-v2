@@ -21,8 +21,10 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
+@SdkProtectedApi
 public interface EventStreamResponseHandler<ResponseT, EventT> {
 
     /**
