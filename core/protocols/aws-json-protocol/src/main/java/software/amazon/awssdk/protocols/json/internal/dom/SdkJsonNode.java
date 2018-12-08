@@ -17,10 +17,12 @@ package software.amazon.awssdk.protocols.json.internal.dom;
 
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * DOM interface for reading a JSON document.
  */
+@SdkInternalApi
 public interface SdkJsonNode {
 
     /**

@@ -43,12 +43,13 @@ public class MissingSdkAnnotationCheck extends AbstractCheck {
     @Override
     public int[] getRequiredTokens() {
         return new int[] {
-            TokenTypes.CLASS_DEF
+            TokenTypes.CLASS_DEF,
+            TokenTypes.INTERFACE_DEF
         };
     }
 
     @Override
-    public void visitToken(final DetailAST ast) {
+    public void visitToken(DetailAST ast) {
         if (!ScopeUtils.isOuterMostType(ast) || SDK_ANNOTATIONS.stream().anyMatch(a -> AnnotationUtility.containsAnnotation
             (ast, a))) {
             return;
