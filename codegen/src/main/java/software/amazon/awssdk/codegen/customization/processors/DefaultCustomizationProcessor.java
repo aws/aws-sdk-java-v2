@@ -29,11 +29,11 @@ public final class DefaultCustomizationProcessor {
 
         return new CodegenCustomizationProcessorChain(
                 new MetadataModifiersProcessor(config.getCustomServiceMetadata()),
+                new RenameShapesProcessor(config.getRenameShapes()),
                 new ShapeModifiersProcessor(config.getShapeModifiers()),
                 new ShapeSubstitutionsProcessor(config.getShapeSubstitutions()),
                 new OperationModifiersProcessor(config.getOperationModifiers()),
-                new RemoveExceptionMessagePropertyProcessor(),
-                new RenameShapesProcessor(config.getRenameShapes())
+                new RemoveExceptionMessagePropertyProcessor()
         );
     }
 }
