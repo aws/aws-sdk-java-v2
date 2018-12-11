@@ -78,7 +78,7 @@ public class ChecksumCalculatingInputStream extends InputStream {
             throw new NullPointerException();
         }
 
-        int read = 0;
+        int read = -1;
 
         if (!endOfStream) {
             read = inputStream.read(buf, off, len);
@@ -89,7 +89,6 @@ public class ChecksumCalculatingInputStream extends InputStream {
 
             if (read == -1) {
                 endOfStream = true;
-                read = 0;
             }
         }
 
