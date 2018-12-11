@@ -115,6 +115,7 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                    operationMetadata);
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                                         .withOperationName("APostOperation")
                                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                          .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest)
                                          .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
@@ -155,6 +156,7 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler
             .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                         .withOperationName("APostOperationWithOutput")
                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                          .withInput(aPostOperationWithOutputRequest)
                          .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
@@ -195,6 +197,7 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler
             .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                         .withOperationName("GetWithoutRequiredMembers")
                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                          .withInput(getWithoutRequiredMembersRequest)
                          .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
@@ -231,6 +234,7 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler
             .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
+                         .withOperationName("PaginatedOperationWithResultKey")
                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                          .withInput(paginatedOperationWithResultKeyRequest)
                          .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
@@ -341,6 +345,7 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler
             .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
+                         .withOperationName("PaginatedOperationWithoutResultKey")
                          .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                          .withInput(paginatedOperationWithoutResultKeyRequest)
                          .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
@@ -461,6 +466,7 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                    operationMetadata);
 
         return clientHandler.execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                                         .withOperationName("StreamingInputOperation")
                                          .withResponseHandler(responseHandler)
                                          .withErrorResponseHandler(errorResponseHandler)
                                          .withInput(streamingInputOperationRequest)
@@ -522,6 +528,7 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler.execute(
             new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
+                .withOperationName("StreamingInputOutputOperation")
                 .withResponseHandler(responseHandler)
                 .withErrorResponseHandler(errorResponseHandler)
                 .withInput(streamingInputOutputOperationRequest)
@@ -570,6 +577,7 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler.execute(
             new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                .withOperationName("StreamingOutputOperation")
                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                 .withInput(streamingOutputOperationRequest)
                 .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);

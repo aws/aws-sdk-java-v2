@@ -163,6 +163,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         CodeBlock.Builder codeBlock = CodeBlock
             .builder()
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
+                 ".withOperationName(\"$N\")\n" +
                  ".withResponseHandler($N)\n" +
                  ".withErrorResponseHandler($N)\n" +
                  hostPrefixExpression(opModel) +
@@ -170,6 +171,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  ClientExecutionParams.class,
                  requestType,
                  responseType,
+                 opModel.getOperationName(),
                  "responseHandler",
                  "errorResponseHandler",
                  opModel.getInput().getVariableName());
@@ -228,6 +230,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String protocolFactory = protocolFactoryLiteral(opModel);
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         builder.add("\n\n$L clientHandler.execute(new $T<$T, $T>()\n" +
+                    ".withOperationName(\"$N\")\n" +
                     ".withMarshaller(new $T($L))\n" +
                     "$L" +
                     "$L" +
@@ -242,6 +245,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     ClientExecutionParams.class,
                     requestType,
                     opModel.hasEventStreamOutput() && !isRestJson ? SdkResponse.class : pojoResponseType,
+                    opModel.getOperationName(),
                     marshaller,
                     protocolFactory,
                     opModel.hasEventStreamInput() ? CodeBlock.builder()

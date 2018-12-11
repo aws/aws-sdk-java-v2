@@ -42,6 +42,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
     private boolean fullDuplex;
     private String hostPrefixExpression;
+    private String operationName;
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -108,6 +109,18 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
      */
     public ClientExecutionParams<InputT, OutputT> withFullDuplex(boolean fullDuplex) {
         this.fullDuplex = fullDuplex;
+        return this;
+    }
+
+    public String getOperationName() {
+        return operationName;
+    }
+
+    /**
+     * Sets the operation name of the API.
+     */
+    public ClientExecutionParams<InputT, OutputT> withOperationName(String operationName) {
+        this.operationName = operationName;
         return this;
     }
 
