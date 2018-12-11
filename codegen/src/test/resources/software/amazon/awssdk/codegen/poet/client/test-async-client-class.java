@@ -159,6 +159,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                                                                        operationMetadata);
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                                             .withOperationName("APostOperation")
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
                                              .withInput(aPostOperationRequest));
@@ -205,6 +206,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                             .withOperationName("APostOperationWithOutput")
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(aPostOperationWithOutputRequest));
@@ -272,6 +274,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
+                    .withOperationName("EventStreamOperation")
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
                     .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
                     .withFullDuplex(true).withResponseHandler(responseHandler)
@@ -337,6 +340,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<EventStreamOperationWithOnlyInputRequest, EventStreamOperationWithOnlyInputResponse>()
+                             .withOperationName("EventStreamOperationWithOnlyInput")
                              .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
                              .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
@@ -384,6 +388,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                             .withOperationName("GetWithoutRequiredMembers")
                              .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(getWithoutRequiredMembersRequest));
@@ -427,6 +432,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
+                             .withOperationName("PaginatedOperationWithResultKey")
                              .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(paginatedOperationWithResultKeyRequest));
@@ -543,6 +549,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
+                             .withOperationName("PaginatedOperationWithoutResultKey")
                              .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(paginatedOperationWithoutResultKeyRequest));
@@ -664,6 +671,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                             .withOperationName("StreamingInputOperation")
                              .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
@@ -719,6 +727,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
+                    .withOperationName("StreamingInputOutputOperation")
                     .withMarshaller(new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
@@ -774,6 +783,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                    .withOperationName("StreamingOutputOperation")
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withInput(streamingOutputOperationRequest), asyncResponseTransformer).whenComplete((r, e) -> {
