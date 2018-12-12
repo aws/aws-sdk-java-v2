@@ -33,7 +33,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
 
 /**
@@ -62,6 +64,18 @@ public final class MultiplexedChannelRecord {
         this.availableStreams = new AtomicLong(maxConcurrencyPerConnection);
         this.childChannels = new ConcurrentHashMap<>(saturatedCast(maxConcurrencyPerConnection));
         this.channelReleaser = channelReleaser;
+    }
+
+    @SdkTestInternalApi
+    MultiplexedChannelRecord(Future<Channel> connectionFuture,
+                             Channel connection,
+                             long maxConcurrencyPerConnection,
+                             BiConsumer<Channel, MultiplexedChannelRecord> channelReleaser) {
+        this.connectionFuture = connectionFuture;
+        this.childChannels = new ConcurrentHashMap<>(saturatedCast(maxConcurrencyPerConnection));
+        this.availableStreams = new AtomicLong(maxConcurrencyPerConnection);
+        this.channelReleaser = channelReleaser;
+        this.connection = connection;
     }
 
     MultiplexedChannelRecord acquire(Promise<Channel> channelPromise) {
@@ -138,6 +152,10 @@ public final class MultiplexedChannelRecord {
     void release(Channel channel) {
         availableStreams.incrementAndGet();
         childChannels.remove(channel.id());
+    }
+
+    public Future<Channel> getConnectionFuture() {
+        return connectionFuture;
     }
 
     long availableStreams() {
