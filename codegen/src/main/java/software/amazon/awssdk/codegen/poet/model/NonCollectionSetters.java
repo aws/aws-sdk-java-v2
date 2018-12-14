@@ -130,7 +130,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
 
     private CodeBlock enumToStringAssignmentBody() {
         return CodeBlock.builder()
-                        .addStatement("this.$N($N.toString())", fieldName(), fieldName())
+                        .addStatement("this.$N($N.toString())", memberModel().getFluentSetterMethodName(), fieldName())
                         .build();
     }
 

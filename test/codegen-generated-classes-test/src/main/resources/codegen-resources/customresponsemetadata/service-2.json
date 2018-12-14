@@ -2,7 +2,7 @@
   "version":"2.0",
   "metadata":{
     "apiVersion":"2016-03-11",
-    "endpointPrefix":"restjson",
+    "endpointPrefix":"customresponsemetadata",
     "jsonVersion":"1.1",
     "protocol":"rest-json",
     "serviceAbbreviation":"AmazonProtocolRestJson",
