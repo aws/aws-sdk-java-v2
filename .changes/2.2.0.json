@@ -1,0 +1,36 @@
+{
+    "date": "2018-12-14",
+    "version": "2.2.0",
+    "entries": [
+        {
+            "category": "URLConnection HTTP Client",
+            "type": "feature",
+            "description": "Adding a hook to enable custom creation of the initial `HttpURLConnection`. This enables customers to control how a connection is established for a given `URL` including handling any required proxy configuration etc."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Modify type of S3Object#size member from integer to long. This is a breaking change for customers who are using the size() method currently"
+        },
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Fix a bug where it's possible for an HTTP2 channel pool to be closed while some channels are still being released causing them to be left open and leaked."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Adds the operation name of the calling API to the ExecutionContext class. This exposes a way to get the API name from within an ExecutionInterceptor."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "S3 putObject API using UrlConnectionHttpClient goes into infinite loop. See https://github.com/aws/aws-sdk-java-v2/pull/942 for more details."
+        }
+    ]
+}

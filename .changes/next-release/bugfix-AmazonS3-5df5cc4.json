@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "S3 putObject API using UrlConnectionHttpClient goes into infinite loop. See https://github.com/aws/aws-sdk-java-v2/pull/942 for more details."
-}
