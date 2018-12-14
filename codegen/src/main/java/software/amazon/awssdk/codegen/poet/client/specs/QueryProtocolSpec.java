@@ -96,6 +96,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
         CodeBlock.Builder codeBlock = CodeBlock
             .builder()
             .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()" +
+                 ".withOperationName(\"$N\")\n" +
                  ".withResponseHandler($N)" +
                  ".withErrorResponseHandler($N)" +
                  hostPrefixExpression(opModel) +
@@ -103,6 +104,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                  ClientExecutionParams.class,
                  requestType,
                  responseType,
+                 opModel.getOperationName(),
                  "responseHandler",
                  "errorResponseHandler",
                  opModel.getInput().getVariableName());
@@ -126,6 +128,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                                                               : "";
         return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
+                                       ".withOperationName(\"$N\")\n" +
                                        ".withMarshaller(new $T(protocolFactory))" +
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
@@ -135,6 +138,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                        ClientExecutionParams.class,
                                        requestType,
                                        pojoResponseType,
+                                       opModel.getOperationName(),
                                        marshaller,
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
