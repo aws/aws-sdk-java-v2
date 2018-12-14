@@ -93,15 +93,4 @@ public class Http2MultiplexedChannelPoolTest {
 
         assertThat(h2Pool.acquire().await().isSuccess()).isFalse();
     }
-
-    @Test
-    public void releaseAfterCloseFails() throws InterruptedException {
-        ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
-
-        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 2, Collections.emptyList());
-
-        h2Pool.close();
-
-        assertThat(h2Pool.release(Mockito.mock(Channel.class)).await().isSuccess()).isFalse();
-    }
 }
