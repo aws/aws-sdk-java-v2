@@ -111,8 +111,9 @@ public class IntermediateModelBuilder {
                                             Collections.unmodifiableMap(shapes)));
         }
 
-        // Remove deprecated operations
+        // Remove deprecated operations and their paginators
         operations.entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
+        paginators.getPaginators().entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
 
         log.info("{} shapes found in total.", shapes.size());
 
