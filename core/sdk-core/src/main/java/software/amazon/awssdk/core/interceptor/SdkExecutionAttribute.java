@@ -43,6 +43,8 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>("TimeOffset");
 
     public static final ExecutionAttribute<ClientType> CLIENT_TYPE = new ExecutionAttribute<>("ClientType");
+
+    public static final ExecutionAttribute<String> OPERATION_NAME = new ExecutionAttribute<>("OperationName");
     
     protected SdkExecutionAttribute() {
     }

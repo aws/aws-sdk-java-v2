@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "bugfix", 
+    "description": "Modify type of S3Object#size member from integer to long. This is a breaking change for customers who are using the size() method currently"
+}

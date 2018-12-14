@@ -26,7 +26,10 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
+import java.util.Collection;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
 
 /**
@@ -48,6 +51,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     private final ChannelPool connectionPool;
     private final long maxConcurrencyPerConnection;
     private final ArrayList<MultiplexedChannelRecord> connections;
+    private boolean closed = false;
 
     /**
      * @param connectionPool Connection pool for parent channels (i.e. the socket channel).
@@ -65,6 +69,17 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         this.connections = new ArrayList<>();
     }
 
+    @SdkTestInternalApi
+    Http2MultiplexedChannelPool(ChannelPool connectionPool,
+                                EventLoop eventLoop,
+                                long maxConcurrencyPerConnection,
+                                Collection<MultiplexedChannelRecord> connections) {
+        this.connectionPool = connectionPool;
+        this.eventLoop = eventLoop;
+        this.maxConcurrencyPerConnection = maxConcurrencyPerConnection;
+        this.connections = new ArrayList<>(connections);
+    }
+
     @Override
     public Future<Channel> acquire() {
         return acquire(new DefaultPromise<>(eventLoop));
@@ -77,6 +92,10 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     }
 
     private Future<Channel> acquire0(Promise<Channel> promise) {
+        if (closed) {
+            return promise.setFailure(new IllegalStateException("Channel pool is closed!"));
+        }
+
         for (MultiplexedChannelRecord connection : connections) {
             if (connection.availableStreams() > 0) {
                 connection.acquire(promise);
@@ -150,7 +169,27 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
 
     @Override
     public void close() {
-        doInEventLoop(eventLoop, connectionPool::close);
+        try {
+            setClosedFlag().await();
+            for (MultiplexedChannelRecord c : connections) {
+                Future<Channel> f = c.getConnectionFuture();
+                f.await();
+                if (f.isSuccess()) {
+                    connectionPool.release(f.getNow()).await();
+                }
+            }
+            connectionPool.close();
+        } catch (InterruptedException ie) {
+            throw new RuntimeException(ie);
+        }
     }
 
+    private Promise<Void> setClosedFlag() {
+        Promise<Void> closedFuture = eventLoop.newPromise();
+        doInEventLoop(eventLoop, () -> {
+            closed = true;
+            closedFuture.setSuccess(null);
+        });
+        return closedFuture;
+    }
 }

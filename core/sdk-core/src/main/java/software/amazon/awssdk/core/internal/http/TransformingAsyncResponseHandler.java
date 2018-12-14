@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http;
 
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
 /**
@@ -23,6 +24,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
  *
  * @param <ResultT> The type of the result.
  */
+@SdkInternalApi
 public interface TransformingAsyncResponseHandler<ResultT> extends SdkAsyncHttpResponseHandler {
     /**
      * Return the future holding the transformed response.
