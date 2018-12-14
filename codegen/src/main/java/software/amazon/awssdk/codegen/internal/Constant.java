@@ -66,7 +66,7 @@ public final class Constant {
 
     public static final String FAULT_CLASS_SUFFIX = "Fault";
 
-    public static final String VARIABLE_NAME_SUFFIX = "Value";
+    public static final String CONFLICTING_NAME_SUFFIX = "Value";
 
     public static final String AUTHORIZER_NAME_PREFIX = "I";
 

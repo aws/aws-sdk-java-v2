@@ -179,16 +179,18 @@ class ListSetters extends AbstractMemberSetters {
 
 
     private CodeBlock varargToListSetterBody() {
-        return CodeBlock.of("$1L($2T.asList($3L));", memberModel().getFluentSetterMethodName(), Arrays.class, fieldName());
+        return CodeBlock.of("$1L($2T.asList($3L));",
+                            memberModel().getFluentSetterMethodName(), Arrays.class, fieldName());
     }
 
     private CodeBlock consumerBuilderVarargSetterBody() {
-        return CodeBlock.of("$1L($2T.of($1L).map(c -> $3T.builder().applyMutation(c).build()).collect($4T.toList()));",
-                            fieldName(), Stream.class, listElementType(), Collectors.class);
+        return CodeBlock.of("$1L($3T.of($2L).map(c -> $4T.builder().applyMutation(c).build()).collect($5T.toList()));",
+                            memberModel().getFluentSetterMethodName(), fieldName(),
+                            Stream.class, listElementType(), Collectors.class);
     }
 
     private CodeBlock enumVarargToListSetterBody() {
-        return CodeBlock.of("$1L($2T.asList($1L));", fieldName(), Arrays.class);
+        return CodeBlock.of("$1L($3T.asList($2L));", memberModel().getFluentEnumSetterMethodName(), fieldName(), Arrays.class);
     }
 
     private MemberModel elementModel() {

@@ -138,7 +138,7 @@ abstract class AddShapes {
                                             String protocol, Shape parentShape,
                                             Map<String, Shape> allC2jShapes) {
         String c2jShapeName = c2jMemberDefinition.getShape();
-        Shape c2jShape = allC2jShapes.get(c2jShapeName);
+        Shape shape = allC2jShapes.get(c2jShapeName);
         String variableName = getNamingStrategy().getVariableName(c2jMemberName);
         String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
         String variableDeclarationType = getTypeUtils()
@@ -163,17 +163,17 @@ abstract class AddShapes {
                                          .withDocumentation(c2jMemberDefinition.getDocumentation()))
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
                    .withGetterModel(new ReturnTypeModel(variableType))
-                   .withTimestampFormat(resolveTimestampFormat(c2jMemberDefinition, c2jShape))
+                   .withTimestampFormat(resolveTimestampFormat(c2jMemberDefinition, shape))
                    .withJsonValue(c2jMemberDefinition.getJsonValue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
         memberModel
-                .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, c2jShape))
-                .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, c2jShape))
-                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, c2jShape))
-                .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, c2jShape))
-                .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName))
-                .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName));
+                .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, parentShape, shape))
+                .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, parentShape, shape))
+                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, parentShape, shape))
+                .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, parentShape, shape))
+                .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName, parentShape, shape))
+                .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName, parentShape, shape));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
         memberModel.setEventPayload(c2jMemberDefinition.isEventPayload());
         memberModel.setEventHeader(c2jMemberDefinition.isEventHeader());
@@ -195,7 +195,7 @@ abstract class AddShapes {
 
         String payload = parentShape.getPayload();
 
-        boolean shapeIsStreaming = c2jShape.isStreaming();
+        boolean shapeIsStreaming = shape.isStreaming();
         boolean memberIsStreaming = c2jMemberDefinition.isStreaming();
         boolean payloadIsStreaming = shapeIsStreaming || memberIsStreaming;
 
