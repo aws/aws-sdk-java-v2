@@ -180,6 +180,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
             }
             connectionPool.close();
         } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(ie);
         }
     }

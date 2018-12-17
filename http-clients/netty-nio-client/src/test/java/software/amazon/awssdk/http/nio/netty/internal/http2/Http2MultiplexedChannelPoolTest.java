@@ -26,20 +26,17 @@ import io.netty.util.concurrent.Promise;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 
 /**
  * Tests for {@link Http2MultiplexedChannelPool}.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class Http2MultiplexedChannelPoolTest {
     private static EventLoopGroup loopGroup;
 
@@ -92,5 +89,46 @@ public class Http2MultiplexedChannelPoolTest {
         h2Pool.close();
 
         assertThat(h2Pool.acquire().await().isSuccess()).isFalse();
+    }
+
+    @Test(timeout = 5_000)
+    public void interruptDuringClosePreservesFlag() throws InterruptedException {
+        SocketChannel channel = new NioSocketChannel();
+        try {
+            loopGroup.register(channel).awaitUninterruptibly();
+            Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+            channelPromise.setSuccess(channel);
+
+            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
+            Promise<Void> releasePromise = Mockito.spy(new DefaultPromise<>(loopGroup.next()));
+
+            Mockito.when(connectionPool.release(Mockito.eq(channel))).thenReturn(releasePromise);
+
+            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channelPromise,
+                    channel,
+                    8,
+                    (ch, rec) -> {
+                    });
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 2, Collections.singletonList(record));
+
+            CompletableFuture<Boolean> interrupteFlagPreserved = new CompletableFuture<>();
+
+            Thread t = new Thread(() -> {
+                try {
+                    h2Pool.close();
+                } catch (Exception e) {
+                    if (e.getCause() instanceof InterruptedException && Thread.currentThread().isInterrupted()) {
+                        interrupteFlagPreserved.complete(true);
+                    }
+                }
+            });
+
+            t.start();
+            t.interrupt();
+            t.join();
+            assertThat(interrupteFlagPreserved.join()).isTrue();
+        } finally {
+            channel.close().awaitUninterruptibly();
+        }
     }
 }
