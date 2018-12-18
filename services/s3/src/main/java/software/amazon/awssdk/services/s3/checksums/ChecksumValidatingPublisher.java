@@ -45,7 +45,11 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
-        publisher.subscribe(new ChecksumValidatingSubscriber(s, sdkChecksum, contentLength));
+        if (contentLength > 0) {
+            publisher.subscribe(new ChecksumValidatingSubscriber(s, sdkChecksum, contentLength));
+        } else {
+            publisher.subscribe(new ChecksumSkippingSubscriber(s));
+        }
     }
 
     private static class ChecksumValidatingSubscriber implements Subscriber<ByteBuffer> {
@@ -80,14 +84,34 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
                 int toUpdate = (int) Math.min(strippedLength - lengthRead, buf.length);
 
                 sdkChecksum.update(buf, 0, toUpdate);
-                lengthRead += buf.length;
             }
+            lengthRead += buf.length;
 
             if (lengthRead >= strippedLength) {
-                int offset = toIntExact(lengthRead - strippedLength);
-                streamChecksum = Arrays.copyOfRange(buf, buf.length - offset, buf.length);
-                wrapped.onNext(ByteBuffer.wrap(Arrays.copyOfRange(buf, 0, buf.length - offset)));
+                // Incoming buffer contains at least a bit of the checksum
+                // Code below covers both cases of the incoming buffer relative to checksum border
+                // a) buffer starts before checksum border and extends into checksum
+                //      |<------ data ------->|<--cksum-->|   <--- original data
+                //                       |<---buffer--->|     <--- incoming buffer
+                //                            |<------->|     <--- checksum bytes so far
+                //                       |<-->|               <--- bufChecksumOffset
+                //                            |               <--- streamChecksumOffset
+                // b) buffer starts at or after checksum border
+                //      |<------ data ------->|<--cksum-->|   <--- original data
+                //                                |<-->|      <--- incoming buffer
+                //                            |<------>|      <--- checksum bytes so far
+                //                                |           <--- bufChecksumOffset
+                //                            |<->|           <--- streamChecksumOffset
+                int cksumBytesSoFar = toIntExact(lengthRead - strippedLength);
+                int bufChecksumOffset = (buf.length > cksumBytesSoFar) ? (buf.length - cksumBytesSoFar) : 0;
+                int streamChecksumOffset = (buf.length > cksumBytesSoFar) ? 0 : (cksumBytesSoFar - buf.length);
+                int cksumBytes = Math.min(cksumBytesSoFar, buf.length);
+                System.arraycopy(buf, bufChecksumOffset, streamChecksum, streamChecksumOffset, cksumBytes);
+                if (buf.length > cksumBytesSoFar) {
+                    wrapped.onNext(ByteBuffer.wrap(Arrays.copyOfRange(buf, 0, buf.length - cksumBytesSoFar)));
+                }
             } else {
+                // Incoming buffer totally excludes the checksum
                 wrapped.onNext(byteBuffer);
             }
         }
@@ -111,4 +135,36 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
             wrapped.onComplete();
         }
     }
+
+    private static class ChecksumSkippingSubscriber implements Subscriber<ByteBuffer> {
+        private static final int CHECKSUM_SIZE = 16;
+
+        private final Subscriber<? super ByteBuffer> wrapped;
+
+        ChecksumSkippingSubscriber(Subscriber<? super ByteBuffer> wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            wrapped.onSubscribe(s);
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            byte[] buf = BinaryUtils.copyBytesFrom(byteBuffer);
+            wrapped.onNext(ByteBuffer.wrap(Arrays.copyOfRange(buf, 0, buf.length - CHECKSUM_SIZE)));
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            wrapped.onError(t);
+        }
+
+        @Override
+        public void onComplete() {
+            wrapped.onComplete();
+        }
+    }
+
 }
