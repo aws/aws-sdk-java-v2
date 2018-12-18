@@ -15,31 +15,33 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_CHECKSUM_REQUEST_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.S3_MD5_CHECKSUM_LENGTH;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerRequest;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @SdkInternalApi
-public class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
+public final class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
 
+    /**
+     * Append trailing checksum header for {@link GetObjectRequest} if trailing checksum is enabled from config.
+     */
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
 
-        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled(executionAttributes)) {
+        if (getObjectChecksumEnabledPerRequest(context.request(), executionAttributes)) {
             return context.httpRequest().toBuilder().putHeader(ENABLE_CHECKSUM_REQUEST_HEADER,
                                                                ENABLE_MD5_CHECKSUM_HEADER_VALUE)
                           .build();
@@ -48,25 +50,19 @@ public class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
         return context.httpRequest();
     }
 
+    /**
+     * Subtract the contentLength of {@link GetObjectResponse} if trailing checksums is enabled.
+     */
     @Override
     public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
         SdkResponse response = context.response();
         SdkHttpResponse httpResponse = context.httpResponse();
 
-        if (response instanceof GetObjectResponse && httpResponse.firstMatchingHeader(CHECKSUM_ENABLED_RESPONSE_HEADER)
-                                                                 .isPresent()) {
+        if (getObjectChecksumEnabledPerResponse(context.request(), httpResponse)) {
             GetObjectResponse getResponse = (GetObjectResponse) response;
             return getResponse.toBuilder().contentLength(getResponse.contentLength() - S3_MD5_CHECKSUM_LENGTH).build();
         }
 
         return response;
-    }
-
-    private boolean checksumValidationEnabled(ExecutionAttributes executionAttributes) {
-
-        S3Configuration serviceConfiguration =
-            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
-
-        return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
     }
 }
