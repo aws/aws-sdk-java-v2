@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.core.ClientType.ASYNC;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -71,7 +72,11 @@ public class AsyncChecksumValidationInterceptor implements ExecutionInterceptor 
                                                                                                context.httpRequest().headers());
 
         if (context.request() instanceof GetObjectRequest && checksumValidationEnabled) {
-            int contentLength = Integer.parseInt(context.httpResponse().firstMatchingHeader("Content-Length").orElse("0"));
+            long contentLength = context.httpResponse()
+                                        .firstMatchingHeader(CONTENT_LENGTH_HEADER)
+                                        .map(Long::parseLong)
+                                        .orElse(0L);
+
             SdkChecksum checksum = new Md5Checksum();
             executionAttributes.putAttribute(CHECKSUM, checksum);
             return Optional.of(new ChecksumValidatingPublisher(context.responsePublisher().get(), checksum, contentLength));
