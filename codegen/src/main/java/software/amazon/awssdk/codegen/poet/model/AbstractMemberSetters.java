@@ -124,33 +124,36 @@ abstract class AbstractMemberSetters implements MemberSetters {
 
     protected CodeBlock beanCopySetterBody() {
         if (memberModel.isSdkBytesType()) {
-            return sdkBytesGetter();
+            return sdkBytesSetter();
         }
         if (memberModel.isList() && memberModel.getListModel().getListMemberModel().isSdkBytesType()) {
-            return sdkBytesListGetter();
+            return sdkBytesListSetter();
         }
         if (memberModel.isMap() && memberModel.getMapModel().getValueModel().isSdkBytesType()) {
-            return sdkBytesMapValueGetter();
+            return sdkBytesMapValueSetter();
         }
 
         return copySetterBuilderBody();
     }
 
-    private CodeBlock sdkBytesGetter() {
-        return CodeBlock.of("$1N($1N == null ? null : $2T.fromByteBuffer($1N));",
-                            memberModel.getVariable().getVariableName(), SdkBytes.class);
+    private CodeBlock sdkBytesSetter() {
+        return CodeBlock.of("$1N($2N == null ? null : $3T.fromByteBuffer($2N));",
+                            memberModel.getFluentSetterMethodName(), fieldName(),
+                            SdkBytes.class);
     }
 
-    private CodeBlock sdkBytesListGetter() {
-        return CodeBlock.of("$1N($1N == null ? null : $1N.stream().map($2T::fromByteBuffer).collect($3T.toList()));",
-                            memberModel.getVariable().getVariableName(), SdkBytes.class, Collectors.class);
+    private CodeBlock sdkBytesListSetter() {
+        return CodeBlock.of("$1N($2N == null ? null : $2N.stream().map($3T::fromByteBuffer).collect($4T.toList()));",
+                            memberModel.getFluentSetterMethodName(), fieldName(),
+                            SdkBytes.class, Collectors.class);
     }
 
-    private CodeBlock sdkBytesMapValueGetter() {
-        return CodeBlock.of("$1N($1N == null ? null : " +
-                            "$1N.entrySet().stream()" +
-                            ".collect($3T.toMap(e -> e.getKey(), e -> $2T.fromByteBuffer(e.getValue()))));",
-                            memberModel.getVariable().getVariableName(), SdkBytes.class, Collectors.class);
+    private CodeBlock sdkBytesMapValueSetter() {
+        return CodeBlock.of("$1N($2N == null ? null : " +
+                            "$2N.entrySet().stream()" +
+                            ".collect($4T.toMap(e -> e.getKey(), e -> $3T.fromByteBuffer(e.getValue()))));",
+                            memberModel.getFluentSetterMethodName(), fieldName(),
+                            SdkBytes.class, Collectors.class);
     }
 
     protected ParameterSpec memberAsParameter() {

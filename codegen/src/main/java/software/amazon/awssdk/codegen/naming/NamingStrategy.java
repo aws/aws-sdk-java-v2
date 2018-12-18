@@ -105,45 +105,39 @@ public interface NamingStrategy {
      * @param shape The shape associated with the member.
      * @return Name of the getter method for a model class member.
      */
-    String getFluentGetterMethodName(String memberName, Shape shape);
+    String getFluentGetterMethodName(String memberName, Shape parentShape, Shape shape);
 
     /**
      * @param memberName The full member to get the name for.
      * @param shape The shape associated with the member.
      * @return Name of the getter method for an enum model class member.
      */
-    String getFluentEnumGetterMethodName(String memberName, Shape shape);
+    String getFluentEnumGetterMethodName(String memberName, Shape parentShape, Shape shape);
 
     /**
      * @param memberName Member name to name getter for.
      * @return Name of the JavaBean getter method for model class member.
      */
-    String getBeanStyleGetterMethodName(String memberName);
-
-    /**
-     * @param memberName Member name to name setter for.
-     * @return Name of the setter method for a model class member.
-     */
-    String getSetterMethodName(String memberName);
+    String getBeanStyleGetterMethodName(String memberName, Shape parentShape, Shape c2jShape);
 
     /**
      * @param memberName Member name to name setter for.
      * @return Name of the JavaBean setter method for model class member.
      */
-    String getBeanStyleSetterMethodName(String memberName);
+    String getBeanStyleSetterMethodName(String memberName, Shape parentShape, Shape c2jShape);
 
     /**
      * @param memberName Member name to name fluent setter for.
      * @return Appropriate name to use for fluent setter method (i.e. withFoo) for a model class member.
      */
-    String getFluentSetterMethodName(String memberName, Shape shape);
+    String getFluentSetterMethodName(String memberName, Shape parentShape, Shape shape);
 
     /**
      * @param memberName The full member to get the name for.
      * @param shape The shape associated with the member.
      * @return Name of the getter method for an enum model class member.
      */
-    String getFluentEnumSetterMethodName(String memberName, Shape shape);
+    String getFluentEnumSetterMethodName(String memberName, Shape parentShape, Shape shape);
 
     /**
      * Stuttering is intentional, returns the name of the {@link SdkField} field.
