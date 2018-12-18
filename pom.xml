@@ -122,7 +122,7 @@
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <checkstyle.version>7.8.2</checkstyle.version>
-        <jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
 
@@ -399,6 +399,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
                     <configuration>
+                        <argLine>${argLine}</argLine>
                         <excludes>
                             <exclude>**/*CucumberTest.java</exclude>
                             <exclude>**/*IntegrationTest.java</exclude>
@@ -580,12 +581,11 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
-                    <destFile>${sonar.jacoco.reportPath}</destFile>
-                    <append>true</append>
+                    <destFile>${basedir}/target/jacoco.exec</destFile>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>jacoco-initialize</id>
+                        <id>default-prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
