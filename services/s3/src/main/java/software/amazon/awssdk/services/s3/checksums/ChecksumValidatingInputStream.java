@@ -43,7 +43,7 @@ public class ChecksumValidatingInputStream extends InputStream implements Aborta
      * @param cksum the Checksum implementation
      * @param streamLength the total length of the expected stream (including the extra 4 bytes on the end).
      */
-    public ChecksumValidatingInputStream(final InputStream in, final SdkChecksum cksum, long streamLength) {
+    public ChecksumValidatingInputStream(InputStream in, SdkChecksum cksum, long streamLength) {
         inputStream = in;
         checkSum = cksum;
         this.strippedLength = streamLength - CHECKSUM_SIZE;

@@ -29,15 +29,15 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
-public class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffer> {
+public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> publisher;
     private final SdkChecksum sdkChecksum;
-    private final int contentLength;
+    private final long contentLength;
 
     public ChecksumValidatingPublisher(Publisher<ByteBuffer> publisher,
                                        SdkChecksum sdkChecksum,
-                                       int contentLength) {
+                                       long contentLength) {
         this.publisher = publisher;
         this.sdkChecksum = sdkChecksum;
         this.contentLength = contentLength;
@@ -59,11 +59,9 @@ public class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffer> {
         private byte[] streamChecksum = new byte[CHECKSUM_SIZE];
         private long lengthRead = 0;
 
-        private Subscription subscription;
-
         ChecksumValidatingSubscriber(Subscriber<? super ByteBuffer> wrapped,
                                      SdkChecksum sdkChecksum,
-                                     int contentLength) {
+                                     long contentLength) {
             this.wrapped = wrapped;
             this.sdkChecksum = sdkChecksum;
             this.strippedLength = contentLength - CHECKSUM_SIZE;
