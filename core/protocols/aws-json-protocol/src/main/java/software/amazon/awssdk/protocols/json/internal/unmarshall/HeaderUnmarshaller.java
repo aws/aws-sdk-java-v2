@@ -36,8 +36,6 @@ final class HeaderUnmarshaller {
     public static final JsonUnmarshaller<Long> LONG = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_LONG);
     public static final JsonUnmarshaller<Double> DOUBLE = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_DOUBLE);
     public static final JsonUnmarshaller<Boolean> BOOLEAN = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_BOOLEAN);
-    public static final JsonUnmarshaller<Instant> INSTANT =
-        new SimpleHeaderUnmarshaller<>(JsonProtocolUnmarshaller.INSTANT_STRING_TO_VALUE);
     public static final JsonUnmarshaller<Float> FLOAT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT);
 
     private HeaderUnmarshaller() {
@@ -54,6 +52,11 @@ final class HeaderUnmarshaller {
                                                  SdkField<String> field) {
         return field.containsTrait(JsonValueTrait.class) ?
                new String(BinaryUtils.fromBase64(value), StandardCharsets.UTF_8) : value;
+    }
+
+    public static JsonUnmarshaller<Instant> createInstantHeaderUnmarshaller(
+        StringToValueConverter.StringToValue<Instant> instantStringToValue) {
+        return new SimpleHeaderUnmarshaller<>(instantStringToValue);
     }
 
     /**
