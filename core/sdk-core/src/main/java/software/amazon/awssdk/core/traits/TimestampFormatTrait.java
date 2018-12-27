@@ -61,7 +61,12 @@ public final class TimestampFormatTrait implements Trait {
         /**
          * See {@link DateUtils#parseUnixTimestampInstant(String)}
          */
-        UNIX_TIMESTAMP;
+        UNIX_TIMESTAMP,
+
+        /**
+         * See {@link DateUtils#parseUnixTimestampMillisInstant(String)}. This is only used by the CBOR protocol currently.
+         */
+        UNIX_TIMESTAMP_MILLIS;
 
         /**
          * Creates a timestamp format enum from the string defined in the model.
@@ -77,6 +82,7 @@ public final class TimestampFormatTrait implements Trait {
                     return RFC_822;
                 case "unixTimestamp":
                     return UNIX_TIMESTAMP;
+                // UNIX_TIMESTAMP_MILLIS does not have a defined string format so intentionally omitted here.
                 default:
                     throw new RuntimeException("Unknown timestamp format - " + strFormat);
             }
