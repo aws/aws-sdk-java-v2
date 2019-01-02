@@ -81,7 +81,10 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
         if (context.request() instanceof GetObjectRequest && checksumValidationEnabled) {
             SdkChecksum checksum = new Md5Checksum();
 
-            int contentLength = Integer.valueOf(context.httpResponse().firstMatchingHeader(CONTENT_LENGTH_HEADER).orElse("0"));
+            long contentLength = context.httpResponse()
+                                        .firstMatchingHeader(CONTENT_LENGTH_HEADER)
+                                        .map(Long::parseLong)
+                                        .orElse(0L);
 
             if (contentLength > 0) {
                 return Optional.of(new ChecksumValidatingInputStream(context.responseBody().get(), checksum, contentLength));
