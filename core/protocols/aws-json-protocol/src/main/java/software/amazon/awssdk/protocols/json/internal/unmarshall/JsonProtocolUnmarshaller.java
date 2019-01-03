@@ -19,12 +19,12 @@ import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SD
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -43,23 +43,28 @@ import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
- * Unmarshaller implementation for both JSON RPC and REST JSON services.
+ * Unmarshaller implementation for both JSON RPC and REST JSON services. This class is thread-safe and it is
+ * recommended to reuse a single instance for best performance.
  */
 @SdkInternalApi
+@ThreadSafe
 public final class JsonProtocolUnmarshaller {
 
-    public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
-        = StringToInstant.create(getDefaultTimestampFormats());
+    public final StringToValueConverter.StringToValue<Instant> instantStringToValue;
 
-    private static final JsonUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
+    private final JsonUnmarshallerRegistry registry;
 
     private final JsonDomParser parser;
 
     private JsonProtocolUnmarshaller(Builder builder) {
         this.parser = builder.parser;
+        this.instantStringToValue = StringToInstant.create(new HashMap<>(builder.defaultTimestampFormats));
+        this.registry = createUnmarshallerRegistry(instantStringToValue);
     }
 
-    private static JsonUnmarshallerRegistry createUnmarshallerRegistry() {
+    private static JsonUnmarshallerRegistry createUnmarshallerRegistry(
+        StringToValueConverter.StringToValue<Instant> instantStringToValue) {
+
         return JsonUnmarshallerRegistry
             .builder()
             .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
@@ -68,7 +73,7 @@ public final class JsonProtocolUnmarshaller {
             .headerUnmarshaller(MarshallingType.LONG, HeaderUnmarshaller.LONG)
             .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
             .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
-            .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.INSTANT)
+            .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue))
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
 
             .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
@@ -80,18 +85,11 @@ public final class JsonProtocolUnmarshaller {
                 StringToValueConverter.TO_BIG_DECIMAL))
             .payloadUnmarshaller(MarshallingType.BOOLEAN, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
             .payloadUnmarshaller(MarshallingType.SDK_BYTES, JsonProtocolUnmarshaller::unmarshallSdkBytes)
-            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeJsonUnmarshaller<>(INSTANT_STRING_TO_VALUE))
+            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeJsonUnmarshaller<>(instantStringToValue))
             .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
             .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
             .build();
-    }
-
-    private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
-        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
-        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
-        return Collections.unmodifiableMap(formats);
     }
 
     private static SdkBytes unmarshallSdkBytes(JsonUnmarshallerContext context,
@@ -193,7 +191,7 @@ public final class JsonProtocolUnmarshaller {
                             SdkHttpFullResponse response,
                             SdkJsonNode jsonContent) {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
-                                                                 .unmarshallerRegistry(REGISTRY)
+                                                                 .unmarshallerRegistry(registry)
                                                                  .response(response)
                                                                  .build();
         return unmarshallStructured(sdkPojo, jsonContent, context);
@@ -235,6 +233,7 @@ public final class JsonProtocolUnmarshaller {
     public static final class Builder {
 
         private JsonDomParser parser;
+        private Map<MarshallLocation, TimestampFormatTrait.Format> defaultTimestampFormats;
 
         private Builder() {
         }
@@ -245,6 +244,15 @@ public final class JsonProtocolUnmarshaller {
          */
         public Builder parser(JsonDomParser parser) {
             this.parser = parser;
+            return this;
+        }
+
+        /**
+         * @param formats The default timestamp formats for each location in the HTTP response.
+         * @return This builder for method chaining.
+         */
+        public Builder defaultTimestampFormats(Map<MarshallLocation, TimestampFormatTrait.Format> formats) {
+            this.defaultTimestampFormats = formats;
             return this;
         }
 

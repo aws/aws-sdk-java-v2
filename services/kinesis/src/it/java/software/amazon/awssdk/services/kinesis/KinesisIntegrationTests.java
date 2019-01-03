@@ -15,10 +15,15 @@
 
 package software.amazon.awssdk.services.kinesis;
 
+import static org.junit.Assert.assertThat;
+
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
@@ -183,6 +188,10 @@ public class KinesisIntegrationTests extends AbstractTestCase {
 
             records = result.records();
             if (records.size() > 0) {
+                long arrivalTime = records.get(0).approximateArrivalTimestamp().toEpochMilli();
+                Long delta = Math.abs(Instant.now().minusMillis(arrivalTime).toEpochMilli());
+                // Assert that the arrival date is within a minute of the current date to make sure it unmarshalled correctly.
+                assertThat(delta, Matchers.lessThan(60 * 1000L));
                 break;
             }
 

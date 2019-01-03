@@ -137,6 +137,16 @@ public final class DateUtils {
     }
 
     /**
+     * Parses the given string containing a Unix timestamp in epoch millis into a {@link Instant} object.
+     */
+    public static Instant parseUnixTimestampMillisInstant(String dateString) throws NumberFormatException {
+        if (dateString == null) {
+            return null;
+        }
+        return Instant.ofEpochMilli(Long.parseLong(dateString));
+    }
+
+    /**
      * Formats the give {@link Instant} object into an Unix timestamp with millisecond decimal precision.
      */
     public static String formatUnixTimestampInstant(Instant instant) {
