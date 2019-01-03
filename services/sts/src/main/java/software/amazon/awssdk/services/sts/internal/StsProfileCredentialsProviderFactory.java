@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -22,9 +23,9 @@ import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFa
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.StsClientBuilder;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -60,10 +61,6 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                             .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
             String externalId = profile.property(ProfileProperty.EXTERNAL_ID).orElse(null);
 
-            // Use the default region chain and if that fails us, fall back to AWS_GLOBAL.
-            Region stsRegion =
-                    new AwsRegionProviderChain(new DefaultAwsRegionProviderChain(), () -> Region.AWS_GLOBAL).getRegion();
-
             AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
                                                                    .roleArn(roleArn)
                                                                    .roleSessionName(roleSessionName)
@@ -71,7 +68,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                                                    .build();
 
             this.stsClient = StsClient.builder()
-                                      .region(stsRegion)
+                                      .applyMutation(client -> configureEndpoint(client, profile))
                                       .credentialsProvider(parentCredentialsProvider)
                                       .build();
 
@@ -80,6 +77,25 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                                                        .stsClient(stsClient)
                                                                        .refreshRequest(assumeRoleRequest)
                                                                        .build();
+        }
+
+        private void configureEndpoint(StsClientBuilder stsClientBuilder, Profile profile) {
+            Region stsRegion = profile.property(ProfileProperty.REGION)
+                                      .map(Region::of)
+                                      .orElseGet(() -> {
+                                          try {
+                                              return new DefaultAwsRegionProviderChain().getRegion();
+                                          } catch (RuntimeException e) {
+                                              return null;
+                                          }
+                                      });
+
+            if (stsRegion != null) {
+                stsClientBuilder.region(stsRegion);
+            } else {
+                stsClientBuilder.region(Region.US_EAST_1);
+                stsClientBuilder.endpointOverride(URI.create("https://sts.amazonaws.com"));
+            }
         }
 
         private String requireProperty(Profile profile, String requiredProperty) {
