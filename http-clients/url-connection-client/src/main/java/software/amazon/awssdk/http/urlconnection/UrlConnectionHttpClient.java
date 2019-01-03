@@ -112,6 +112,10 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             connection.setDoOutput(true);
         }
 
+        // Disable following redirects since it breaks SDK error handling and matches Apache.
+        // See: https://github.com/aws/aws-sdk-java-v2/issues/975
+        connection.setInstanceFollowRedirects(false);
+
         return connection;
     }
 
