@@ -15,8 +15,13 @@
 
 package software.amazon.awssdk.protocols.cbor;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.protocols.cbor.internal.AwsStructuredCborFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -63,6 +68,17 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
         } else {
             return super.getSdkFactory();
         }
+    }
+
+    /**
+     * CBOR uses epoch millis for timestamps rather than epoch seconds with millisecond decimal precision like JSON protocols.
+     */
+    @Override
+    protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
+        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS);
+        return Collections.unmodifiableMap(formats);
     }
 
     private boolean isCborEnabled() {
