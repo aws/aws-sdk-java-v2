@@ -18,7 +18,10 @@ package software.amazon.awssdk.protocols.json;
 import static java.util.Collections.unmodifiableList;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -28,6 +31,8 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
@@ -55,6 +60,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
     private final SdkClientConfiguration clientConfiguration;
+    private final JsonProtocolUnmarshaller protocolUnmarshaller;
 
     protected BaseAwsJsonProtocolFactory(Builder<?> builder) {
         this.protocolMetadata = builder.protocolMetadata.build();
@@ -62,6 +68,11 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.clientConfiguration = builder.clientConfiguration;
+        this.protocolUnmarshaller = JsonProtocolUnmarshaller
+            .builder()
+            .parser(JsonDomParser.create(getSdkFactory().getJsonFactory()))
+            .defaultTimestampFormats(getDefaultTimestampFormats())
+            .build();
     }
 
     /**
@@ -91,18 +102,11 @@ public abstract class BaseAwsJsonProtocolFactory {
     public final <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Function<SdkHttpFullResponse, SdkPojo> pojoSupplier) {
-        JsonProtocolUnmarshaller unmarshaller = createJsonProtocolUnmarshaller();
         return new AwsJsonResponseHandler<>(
-            new JsonResponseHandler<>(unmarshaller,
+            new JsonResponseHandler<>(protocolUnmarshaller,
                                       pojoSupplier,
                                       operationMetadata.hasStreamingSuccessResponse(),
                                       operationMetadata.isPayloadJson()));
-    }
-
-    private JsonProtocolUnmarshaller createJsonProtocolUnmarshaller() {
-        return JsonProtocolUnmarshaller.builder()
-                                       .parser(JsonDomParser.create(getSdkFactory().getJsonFactory()))
-                                       .build();
     }
 
     /**
@@ -112,7 +116,7 @@ public abstract class BaseAwsJsonProtocolFactory {
         JsonOperationMetadata errorResponseMetadata) {
         return AwsJsonProtocolErrorUnmarshaller
             .builder()
-            .jsonProtocolUnmarshaller(createJsonProtocolUnmarshaller())
+            .jsonProtocolUnmarshaller(protocolUnmarshaller)
             .exceptions(modeledExceptions)
             .errorCodeParser(getSdkFactory().getErrorCodeParser(customErrorCodeFieldName))
             .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
@@ -151,6 +155,17 @@ public abstract class BaseAwsJsonProtocolFactory {
      */
     protected StructuredJsonFactory getSdkFactory() {
         return AwsStructuredPlainJsonFactory.SDK_JSON_FACTORY;
+    }
+
+    /**
+     * @return The default timestamp format for unmarshalling for each location in the response. This
+     * can be overridden by subclasses to customize behavior.
+     */
+    protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
+        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
+        return Collections.unmodifiableMap(formats);
     }
 
     public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
