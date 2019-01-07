@@ -123,7 +123,7 @@
         <uberjar.name>benchmarks</uberjar.name>
 
         <sdk-v1.version>1.11.404</sdk-v1.version>
-        <jackson.version>2.9.7</jackson.version>
+        <jackson.version>2.9.8</jackson.version>
     </properties>
 
     <build>
