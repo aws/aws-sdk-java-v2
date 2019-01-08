@@ -76,7 +76,7 @@ public final class SyncResponseHandlerAdapter<T> implements TransformingAsyncRes
     @Override
     public CompletableFuture<T> prepare() {
         streamFuture = new CompletableFuture<>();
-        return streamFuture.thenComposeAsync(baos -> {
+        return streamFuture.thenCompose(baos -> {
             ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
             // Ignore aborts - we already have all of the content.
             AbortableInputStream abortableContent = AbortableInputStream.create(content);
