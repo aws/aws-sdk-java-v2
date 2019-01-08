@@ -3,7 +3,7 @@ version: 0.2
 phases:
   build:
     commands:
-      - mvn clean install -Dmaven.wagon.httpconnectionManager.maxPerRoute=2
+      - mvn clean install -D maven.wagon.httpconnectionManager.maxPerRoute=2
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
       - |
