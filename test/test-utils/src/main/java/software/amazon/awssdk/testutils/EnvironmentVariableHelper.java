@@ -21,6 +21,7 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.junit.rules.ExternalResource;
 import software.amazon.awssdk.utils.SystemSetting;
@@ -35,19 +36,11 @@ public class EnvironmentVariableHelper extends ExternalResource {
     private final Map<String, String> modifiableMap;
     private volatile boolean mutated = false;
 
-    @SuppressWarnings("unchecked")
     public EnvironmentVariableHelper() {
-        try {
-            // CHECKSTYLE:OFF - This is a specific utility around system environment variables
-            originalEnvironmentVariables = new HashMap<>(System.getenv());
-            Field f = System.getenv().getClass().getDeclaredField("m");
-            AccessController.doPrivileged(setAccessible(f));
-
-            modifiableMap = (Map<String, String>) f.get(System.getenv());
-            // CHECKSTYLE:ON
-        } catch (ReflectiveOperationException | PrivilegedActionException e) {
-            throw new RuntimeException(e);
-        }
+        // CHECKSTYLE:OFF - This is a specific utility around system environment variables
+        originalEnvironmentVariables = new HashMap<>(System.getenv());
+        modifiableMap = Optional.ofNullable(processEnv()).orElse(envMap());
+        // CHECKSTYLE:ON
     }
 
     public void remove(SystemSetting setting) {
@@ -115,6 +108,39 @@ public class EnvironmentVariableHelper extends ExternalResource {
             helperConsumer.accept(helper);
         } finally {
             helper.reset();
+        }
+    }
+
+    private Map<String, String> envMap() {
+        // CHECKSTYLE:OFF - This is a specific utility around system environment variables
+        return getField(System.getenv().getClass(), System.getenv(), "m");
+        // CHECKSTYLE:ON
+    }
+
+    /**
+     * Windows is using a different process environment.
+     *
+     * See http://hg.openjdk.java.net/jdk8/jdk8/jdk/file/687fd7c7986d/src/windows/classes/java/lang/ProcessEnvironment.java#l235
+     */
+    private Map<String, String> processEnv() {
+        Class<?> processEnvironment;
+        try {
+            processEnvironment = Class.forName("java.lang.ProcessEnvironment");
+            return getField(processEnvironment, null, "theCaseInsensitiveEnvironment");
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, String> getField(Class<?> processEnvironment, Object obj, String fieldName) {
+        try {
+            Field declaredField = processEnvironment.getDeclaredField(fieldName);
+            AccessController.doPrivileged(setAccessible(declaredField));
+
+            return (Map<String, String>) declaredField.get(obj);
+        } catch (IllegalAccessException | NoSuchFieldException | PrivilegedActionException e) {
+            return null;
         }
     }
 }
