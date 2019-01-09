@@ -17,11 +17,11 @@ package software.amazon.awssdk.codegen.naming;
 
 import static java.util.stream.Collectors.joining;
 import static software.amazon.awssdk.codegen.internal.Constant.AUTHORIZER_NAME_PREFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.CONFLICTING_NAME_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.EXCEPTION_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Arrays;
@@ -50,16 +50,41 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     private static final Set<String> RESERVED_KEYWORDS;
 
+    private static final Set<String> RESERVED_EXCEPTION_METHOD_NAMES;
+
+    private static final Set<Object> RESERVED_STRUCTURE_METHOD_NAMES;
+
     static {
-        Set<String> keywords = new HashSet<>();
-        Collections.addAll(keywords,
+        Set<String> reservedJavaKeywords = new HashSet<>();
+        Collections.addAll(reservedJavaKeywords,
                            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
-                           "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
-                           "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
-                           "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
-                           "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
-                           "null", "false", "const", "goto");
-        RESERVED_KEYWORDS = Collections.unmodifiableSet(keywords);
+                           "const", "continue", "default", "do", "double", "else", "enum", "extends", "false", "final",
+                           "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
+                           "interface", "long", "native", "new", "null", "package", "private", "protected", "public",
+                           "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw",
+                           "throws", "transient", "true", "try", "void", "volatile", "while");
+        RESERVED_KEYWORDS = Collections.unmodifiableSet(reservedJavaKeywords);
+
+
+        Set<String> reservedJavaMethodNames = new HashSet<>();
+        Collections.addAll(reservedJavaMethodNames,
+                           "equals", "finalize", "getClass", "hashCode", "notify", "notifyAll", "toString", "wait");
+
+        Set<String> reserveJavaPojoMethodNames = new HashSet<>(reservedJavaMethodNames);
+        Collections.addAll(reserveJavaPojoMethodNames,
+                           "builder", "sdkFields", "toBuilder");
+
+        Set<String> reservedExceptionMethodNames = new HashSet<>(reserveJavaPojoMethodNames);
+        Collections.addAll(reservedExceptionMethodNames,
+                           "awsErrorDetails", "cause", "fillInStackTrace", "getCause", "getLocalizedMessage",
+                           "getMessage", "getStackTrace", "getSuppressed", "isClockSkewException", "isThrottlingException",
+                           "printStackTrace", "requestId", "retryable", "serializableBuilderClass", "statusCode");
+        RESERVED_EXCEPTION_METHOD_NAMES = Collections.unmodifiableSet(reservedExceptionMethodNames);
+
+        Set<String> reservedStructureMethodNames = new HashSet<>(reserveJavaPojoMethodNames);
+        Collections.addAll(reservedStructureMethodNames,
+                           "overrideConfiguration", "sdkHttpResponse");
+        RESERVED_STRUCTURE_METHOD_NAMES = Collections.unmodifiableSet(reservedStructureMethodNames);
     }
 
     private final ServiceModel serviceModel;
@@ -189,11 +214,15 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getVariableName(String name) {
-        if (isJavaKeyword(name)) {
-            return unCapitalize(name + VARIABLE_NAME_SUFFIX);
-        } else {
-            return unCapitalize(name);
+        // Exclude keywords because they will not compile, and exclude reserved method names because they're frequently
+        // used for local variable names.
+        if (RESERVED_KEYWORDS.contains(name) ||
+            RESERVED_STRUCTURE_METHOD_NAMES.contains(name) ||
+            RESERVED_EXCEPTION_METHOD_NAMES.contains(name)) {
+            return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
         }
+
+        return unCapitalize(name);
     }
 
     @Override
@@ -236,8 +265,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentGetterMethodName(String memberName, Shape shape) {
+    public String getFluentGetterMethodName(String memberName, Shape parentShape, Shape shape) {
         String getterMethodName = Utils.unCapitalize(memberName);
+
+        getterMethodName = rewriteInvalidMemberName(getterMethodName, parentShape);
 
         if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
             getterMethodName += "AsString";
@@ -251,32 +282,33 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentEnumGetterMethodName(String memberName, Shape shape) {
+    public String getFluentEnumGetterMethodName(String memberName, Shape parentShape, Shape shape) {
         if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
             return null;
         }
 
-        return Utils.unCapitalize(memberName);
+        String getterMethodName = Utils.unCapitalize(memberName);
+        getterMethodName = rewriteInvalidMemberName(getterMethodName, parentShape);
+        return getterMethodName;
     }
 
     @Override
-    public String getBeanStyleGetterMethodName(String memberName) {
-        return String.format("get%s", Utils.capitalize(memberName));
+    public String getBeanStyleGetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
+        String fluentGetterMethodName = getFluentGetterMethodName(memberName, parentShape, c2jShape);
+        return String.format("get%s", Utils.capitalize(fluentGetterMethodName));
     }
 
     @Override
-    public String getSetterMethodName(String memberName) {
-        return Utils.unCapitalize(memberName);
+    public String getBeanStyleSetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
+        String fluentSetterMethodName = getFluentSetterMethodName(memberName, parentShape, c2jShape);
+        return String.format("set%s", Utils.capitalize(fluentSetterMethodName));
     }
 
     @Override
-    public String getBeanStyleSetterMethodName(String memberName) {
-        return String.format("set%s", Utils.capitalize(memberName));
-    }
-
-    @Override
-    public String getFluentSetterMethodName(String memberName, Shape shape) {
+    public String getFluentSetterMethodName(String memberName, Shape parentShape, Shape shape) {
         String setterMethodName = Utils.unCapitalize(memberName);
+
+        setterMethodName = rewriteInvalidMemberName(setterMethodName, parentShape);
 
         if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes()) &&
             (Utils.isListShape(shape) || Utils.isMapShape(shape))) {
@@ -288,17 +320,35 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentEnumSetterMethodName(String memberName, Shape shape) {
+    public String getFluentEnumSetterMethodName(String memberName, Shape parentShape, Shape shape) {
         if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
             return null;
         }
 
-        return Utils.unCapitalize(memberName);
+        String setterMethodName = Utils.unCapitalize(memberName);
+        setterMethodName = rewriteInvalidMemberName(setterMethodName, parentShape);
+        return setterMethodName;
     }
 
     @Override
     public String getSdkFieldFieldName(MemberModel memberModel) {
         return screamCase(memberModel.getName()) + "_FIELD";
+    }
+
+    private String rewriteInvalidMemberName(String memberName, Shape parentShape) {
+        if (isJavaKeyword(memberName) || isDisallowedNameForShape(memberName, parentShape)) {
+            return Utils.unCapitalize(memberName + CONFLICTING_NAME_SUFFIX);
+        }
+
+        return memberName;
+    }
+
+    private boolean isDisallowedNameForShape(String name, Shape parentShape) {
+        if (parentShape.isException()) {
+            return RESERVED_EXCEPTION_METHOD_NAMES.contains(name);
+        } else {
+            return RESERVED_STRUCTURE_METHOD_NAMES.contains(name);
+        }
     }
 
     private String[] splitOnWordBoundaries(String toSplit) {

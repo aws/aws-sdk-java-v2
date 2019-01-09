@@ -43,6 +43,9 @@ public class DefaultNamingStrategyTest {
     private Map<String, Shape> mockShapeMap;
 
     @Mock
+    private Shape mockParentShape;
+
+    @Mock
     private Shape mockShape;
 
     @Mock
@@ -123,7 +126,7 @@ public class DefaultNamingStrategyTest {
         when(mockShape.getEnumValues()).thenReturn(null);
         when(mockShape.getType()).thenReturn("foo");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethod");
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
     }
 
     @Test
@@ -136,7 +139,7 @@ public class DefaultNamingStrategyTest {
         when(mockShape.getListMember()).thenReturn(member);
         when(member.getShape()).thenReturn(null);
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethod");
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
     }
 
     @Test
@@ -146,7 +149,7 @@ public class DefaultNamingStrategyTest {
         when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
         when(mockShape.getType()).thenReturn("foo");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethod");
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
     }
 
     @Test
@@ -159,7 +162,7 @@ public class DefaultNamingStrategyTest {
         when(mockShape.getListMember()).thenReturn(member);
         when(member.getShape()).thenReturn("Foo");
 
-        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethodWithStrings");
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethodWithStrings");
     }
 
     @Test

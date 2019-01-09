@@ -8,6 +8,10 @@ notifications:
   email:
     - github-awsforjava@amazon.com
 script: mvn -q install
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
+
 branches:
   only:
     - master

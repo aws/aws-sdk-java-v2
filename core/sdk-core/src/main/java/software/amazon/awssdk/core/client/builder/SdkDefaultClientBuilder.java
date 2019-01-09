@@ -267,11 +267,17 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize which async executor service will be used for the created client.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
-        Supplier<Executor> defaultExecutor = () ->
-                new ThreadPoolExecutor(0, 50,
-                                       10, TimeUnit.SECONDS,
-                                       new LinkedBlockingQueue<>(10_000),
-                                       new ThreadFactoryBuilder().threadNamePrefix("sdk-async-response").build());
+        Supplier<Executor> defaultExecutor = () -> {
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(50, 50,
+                                                                 10, TimeUnit.SECONDS,
+                                                                 new LinkedBlockingQueue<>(10_000),
+                                                                 new ThreadFactoryBuilder()
+                                                                     .threadNamePrefix("sdk-async-response").build());
+
+            // Allow idle core threads to time out
+            executor.allowCoreThreadTimeOut(true);
+            return executor;
+        };
 
         return Optional.ofNullable(config.option(FUTURE_COMPLETION_EXECUTOR))
                        .orElseGet(defaultExecutor);

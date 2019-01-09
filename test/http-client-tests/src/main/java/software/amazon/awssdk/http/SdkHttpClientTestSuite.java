@@ -28,6 +28,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -129,8 +130,15 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     private void stubForMockRequest(int returnCode) {
-        stubFor(any(urlPathEqualTo("/")).willReturn(
-                aResponse().withStatus(returnCode).withHeader("Some-Header", "With Value").withBody("hello")));
+        ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(returnCode)
+                                                               .withHeader("Some-Header", "With Value")
+                                                               .withBody("hello");
+
+        if (returnCode >= 300 && returnCode <= 399) {
+            responseBuilder.withHeader("Location", "Some New Location");
+        }
+
+        stubFor(any(urlPathEqualTo("/")).willReturn(responseBuilder));
     }
 
     private void validateResponse(HttpExecuteResponse response, int returnCode) throws IOException {

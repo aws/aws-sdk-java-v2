@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+import java.net.URI;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
