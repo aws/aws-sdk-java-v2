@@ -69,6 +69,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         this.requestPipeline = requestPipeline;
     }
 
+    @Override
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws
                                                                                                                      Exception {
         return new RetryExecutor(request, context).execute();
