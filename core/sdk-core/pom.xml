@@ -225,6 +225,7 @@
                     <configuration>
                         <!-- Run multiple tests in parallel. -->
                         <forkCount>1C</forkCount>
+                        <argLine>${argLine}</argLine>
                     </configuration>
                     <!-- Have to explicitly set surefire provider because reactivestreamsTCK is using TestNG-->
                     <dependencies>

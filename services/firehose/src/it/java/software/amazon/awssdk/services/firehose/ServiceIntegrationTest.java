@@ -58,7 +58,6 @@ public class ServiceIntegrationTest extends AwsTestBase {
 
         // TODO: firehose can't whitelist our shared account at this point, so
         // for now we are using the test account provided by the firehose team
-        ProfileCredentialsProvider firehostTestCreds = ProfileCredentialsProvider.builder().profileName("firehose-test").build();
         firehose = FirehoseClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 

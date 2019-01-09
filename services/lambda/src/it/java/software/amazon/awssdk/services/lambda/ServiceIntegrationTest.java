@@ -75,7 +75,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                                                                     .code(FunctionCode.builder().zipFile(functionBits).build())
                                                                     .handler("helloworld.handler")
                                                                     .memorySize(128)
-                                                                    .runtime(Runtime.NODEJS4_3)
+                                                                    .runtime(Runtime.NODEJS8_10)
                                                                     .timeout(10)
                                                                     .role(lambdaServiceRoleArn)).join();
 

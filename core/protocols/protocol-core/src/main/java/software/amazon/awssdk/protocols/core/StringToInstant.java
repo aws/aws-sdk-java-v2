@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.core;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -50,19 +51,32 @@ public final class StringToInstant implements StringToValueConverter.StringToVal
             case ISO_8601:
                 return DateUtils.parseIso8601Date(value);
             case UNIX_TIMESTAMP:
-                try {
-                    return DateUtils.parseUnixTimestampInstant(value);
-                } catch (NumberFormatException e) {
-                    throw SdkClientException.builder()
-                                            .message("Unable to parse date : " + value)
-                                            .cause(e)
-                                            .build();
-                }
+                return safeParseDate(DateUtils::parseUnixTimestampInstant).apply(value);
+            case UNIX_TIMESTAMP_MILLIS:
+                return safeParseDate(DateUtils::parseUnixTimestampMillisInstant).apply(value);
             case RFC_822:
                 return DateUtils.parseRfc1123Date(value);
             default:
                 throw SdkClientException.create("Unrecognized timestamp format - " + format);
         }
+    }
+
+    /**
+     * Wraps date unmarshalling function to handle the {@link NumberFormatException}.
+     * @param dateUnmarshaller Original date unmarshaller function.
+     * @return New date unmarshaller function with exception handling.
+     */
+    private Function<String, Instant> safeParseDate(Function<String, Instant> dateUnmarshaller) {
+        return value -> {
+            try {
+                return dateUnmarshaller.apply(value);
+            } catch (NumberFormatException e) {
+                throw SdkClientException.builder()
+                                        .message("Unable to parse date : " + value)
+                                        .cause(e)
+                                        .build();
+            }
+        };
     }
 
     private TimestampFormatTrait.Format resolveTimestampFormat(SdkField<Instant> field) {
