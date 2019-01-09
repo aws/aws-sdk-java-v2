@@ -24,9 +24,8 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -35,13 +34,10 @@ public abstract class AwsTestBase {
     private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-test-account";
 
     public static final AwsCredentialsProviderChain CREDENTIALS_PROVIDER_CHAIN =
-        AwsCredentialsProviderChain.builder()
-                                   .credentialsProviders(ProfileCredentialsProvider.builder()
-                                                                                   .profileName(TEST_CREDENTIALS_PROFILE_NAME)
-                                                                                   .build(),
-                                                         SystemPropertyCredentialsProvider.create(),
-                                                         EnvironmentVariableCredentialsProvider.create())
-                                   .build();
+        AwsCredentialsProviderChain.of(ProfileCredentialsProvider.builder()
+                                                                 .profileName(TEST_CREDENTIALS_PROFILE_NAME)
+                                                                 .build(),
+                                       DefaultCredentialsProvider.create());
 
     /**
      * @deprecated Extend from {@link AwsIntegrationTestBase} to access credentials
