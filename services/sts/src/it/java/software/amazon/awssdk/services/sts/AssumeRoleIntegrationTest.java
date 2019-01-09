@@ -60,10 +60,12 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
     private static final int SESSION_DURATION = 60 * 60;
 
     private static final String USER_NAME = "user-" + System.currentTimeMillis();
-    private static final String USER_ARN = "arn:aws:iam::131990247566:user/" + USER_NAME;
+    private static final String USER_ARN_FORMAT = "arn:aws:iam::%s:user/%s";
+    private static String USER_ARN;
 
     private static final String ROLE_NAME = "java-test-role-" + System.currentTimeMillis();
-    private static final String ROLE_ARN = "arn:aws:iam::131990247566:role/" + ROLE_NAME;
+    private static final String ROLE_ARN_FORMAT = "arn:aws:iam::%s:role/%s";
+    private static String ROLE_ARN;
 
     private static final String ASSUME_ROLE = "sts:AssumeRole";
 
@@ -71,6 +73,10 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
+        String accountId = sts.getCallerIdentity().account();
+        USER_ARN = String.format(USER_ARN_FORMAT, accountId, USER_NAME);
+        ROLE_ARN = String.format(ROLE_ARN_FORMAT, accountId, ROLE_NAME);
+
         // Create a user
         iam.createUser(CreateUserRequest.builder().userName(USER_NAME).build());
 
