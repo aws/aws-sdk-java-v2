@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+    - pip install awscli --upgrade --user
+
+  pre_build:
+    commands:
+    - TMP='tmp_settings'
+
+  build:
+    commands:
+    - mkdir -p $TMP
+    - aws s3 cp s3://aws-java-sdk-credentials/settings.xml $TMP/settings.xml
+    -
+    - mvn clean deploy -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -s $TMP/settings.xml -Ddoclint=none -pl !:dynamodbdocument-v1,!:dynamodbmapper-v1,!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests
+    - mvn org.sonatype.plugins:nexus-staging-maven-plugin:release -Ppublishing -s $TMP/settings.xml
