@@ -19,20 +19,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenResponse;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
+import software.amazon.awssdk.utils.Logger;
 
 
 public class SecurityTokenServiceIntegrationTest extends IntegrationTestBase {
+    private static final Logger log = Logger.loggerFor(SecurityTokenServiceIntegrationTest.class);
 
     private static final int SESSION_DURATION = 60 * 60;
 
     /** Tests that we can call GetSession to start a session. */
     @Test
     public void testGetSessionToken() throws Exception {
+        if (CREDENTIALS_PROVIDER_CHAIN.resolveCredentials() instanceof AwsSessionCredentials) {
+            log.warn(() -> "testGetSessionToken() skipped due to the current credentials being session credentials. " +
+                           "Session credentials cannot be used to get other session tokens.");
+            return;
+        }
+
         GetSessionTokenRequest request = GetSessionTokenRequest.builder().durationSeconds(SESSION_DURATION).build();
         GetSessionTokenResponse result = sts.getSessionToken(request);
 
@@ -45,6 +54,12 @@ public class SecurityTokenServiceIntegrationTest extends IntegrationTestBase {
     /** Tests that we can call GetFederatedSession to start a federated session. */
     @Test
     public void testGetFederatedSessionToken() throws Exception {
+        if (CREDENTIALS_PROVIDER_CHAIN.resolveCredentials() instanceof AwsSessionCredentials) {
+            log.warn(() -> "testGetFederatedSessionToken() skipped due to the current credentials being session credentials. " +
+                           "Session credentials cannot be used to get federation tokens.");
+            return;
+        }
+
         GetFederationTokenRequest request = GetFederationTokenRequest.builder()
                                                                      .durationSeconds(SESSION_DURATION)
                                                                      .name("Name").build();
@@ -57,25 +72,5 @@ public class SecurityTokenServiceIntegrationTest extends IntegrationTestBase {
 
         assertNotNull(result.federatedUser().arn());
         assertNotNull(result.federatedUser().federatedUserId());
-
-
-    }
-
-    /**
-     * In the following test, we purposely setting the time offset to trigger a clock skew error.
-     * The time offset must be fixed and then we validate the global value for time offset has been
-     * update.
-     */
-    @Test
-    public void testClockSkew() {
-        SdkGlobalTime.setGlobalTimeOffset(3600);
-        assertTrue(SdkGlobalTime.getGlobalTimeOffset() == 3600);
-        sts = StsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
-        sts.getSessionToken(GetSessionTokenRequest.builder().build());
-        assertTrue("Clockskew is fixed!", SdkGlobalTime.getGlobalTimeOffset() < 3600);
-        // subsequent changes to the global time offset won't affect existing client
-        SdkGlobalTime.setGlobalTimeOffset(3600);
-        sts.getSessionToken(GetSessionTokenRequest.builder().build());
-        assertTrue(SdkGlobalTime.getGlobalTimeOffset() == 3600);
     }
 }

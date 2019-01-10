@@ -30,12 +30,20 @@ import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class S3TestUtils {
 
     public static void deleteBucketAndAllContents(S3Client s3, String bucketName) {
+        if (!Waiter.run(s3::listBuckets)
+                   .until(r -> r.buckets().stream().anyMatch(b -> b.name().equals(bucketName)))
+                   .orReturnFalse()) {
+            // The bucket did not show up after 30 seconds, so it probably doesn't exist.
+            return;
+        }
+
         System.out.println("Deleting S3 bucket: " + bucketName);
         ListObjectsResponse response = s3.listObjects(ListObjectsRequest.builder().bucket(bucketName).build());
         List<S3Object> objectListing = response.contents();

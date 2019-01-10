@@ -98,6 +98,18 @@ public final class Waiter<T> {
     }
 
     /**
+     * Execute the function, returning true if the thing we're trying does not succeed after 30 seconds.
+     */
+    public boolean orReturnFalse() {
+        try {
+            orFail();
+            return true;
+        } catch (AssertionError e) {
+            return false;
+        }
+    }
+
+    /**
      * Execute the function, throwing an assertion error if the thing we're trying does not succeed after 30 seconds.
      */
     public T orFail() {
