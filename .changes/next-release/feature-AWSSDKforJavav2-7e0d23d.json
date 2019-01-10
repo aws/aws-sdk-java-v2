@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2",
-    "type": "bugfix",
-    "description": "Fix an issue where dates were being unmarshalled incorrectly for the CBOR protocol used by Amazon Kinesis."
-}
