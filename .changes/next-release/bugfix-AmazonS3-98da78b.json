@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "Fix `SyncChecksumValidationInterceptor` and `AsyncChecksumValidationInterceptor` to use `long` instead of `int` for contentLength`. See [#963](https://github.com/aws/aws-sdk-java-v2/issues/963)"
-}

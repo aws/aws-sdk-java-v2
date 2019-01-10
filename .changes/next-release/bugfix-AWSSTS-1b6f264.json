@@ -1,5 +1,0 @@
-{
-    "category": "AWS STS", 
-    "type": "bugfix", 
-    "description": "Changed the region resolution logic for `role_arn`-based profiles: 1. Check for a `region` property in the same profile as the `role_arn` definition. 2. Check the default region chain. 3. Fall back to the global endpoint and `us-east-1` signing. Fixes [#988](https://github.com/aws/aws-sdk-java-v2/issues/988)."
-}
