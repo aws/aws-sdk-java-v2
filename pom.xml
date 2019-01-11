@@ -693,6 +693,9 @@
                                         <include>**/*IntegTest.java</include>
                                         <include>**/RunCucumberTest.java</include>
                                     </includes>
+                                    <excludes>
+                                        <exclude>**/SimpleMethodsIntegrationTest.java</exclude>
+                                    </excludes>
                                     <trimStackTrace>false</trimStackTrace>
                                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
                                 </configuration>
