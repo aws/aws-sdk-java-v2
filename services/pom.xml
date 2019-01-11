@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.3.0</version>
+        <version>2.3.1</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -177,6 +177,7 @@
         <module>kafka</module>
         <module>apigatewaymanagementapi</module>
         <module>apigatewayv2</module>
+        <module>docdb</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

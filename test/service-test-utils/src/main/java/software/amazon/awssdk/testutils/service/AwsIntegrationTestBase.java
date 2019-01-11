@@ -20,10 +20,9 @@ import java.io.InputStream;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
 public abstract class AwsIntegrationTestBase {
@@ -32,13 +31,10 @@ public abstract class AwsIntegrationTestBase {
     private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-test-account";
 
     public static final AwsCredentialsProviderChain CREDENTIALS_PROVIDER_CHAIN =
-        AwsCredentialsProviderChain.builder()
-                                   .credentialsProviders(ProfileCredentialsProvider.builder()
-                                                                                   .profileName(TEST_CREDENTIALS_PROFILE_NAME)
-                                                                                   .build(),
-                                                         SystemPropertyCredentialsProvider.create(),
-                                                         EnvironmentVariableCredentialsProvider.create())
-                                   .build();
+        AwsCredentialsProviderChain.of(ProfileCredentialsProvider.builder()
+                                                                 .profileName(TEST_CREDENTIALS_PROFILE_NAME)
+                                                                 .build(),
+                                       DefaultCredentialsProvider.create());
 
 
     /**
