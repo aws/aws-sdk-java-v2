@@ -1,3 +1,16 @@
+# __2.3.1__ __2019-01-11__
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation updates for RDS Data API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated to the latest service models.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Documentation updates for Amazon EMR
+
 # __2.3.0__ __2019-01-09__
 ## __AWS SDK for Java v2__
   - ### Features
