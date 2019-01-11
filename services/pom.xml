@@ -177,6 +177,7 @@
         <module>kafka</module>
         <module>apigatewaymanagementapi</module>
         <module>apigatewayv2</module>
+        <module>docdb</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
