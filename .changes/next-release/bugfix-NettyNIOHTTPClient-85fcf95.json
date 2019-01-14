@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "type": "bugfix", 
-    "description": "Preserve interrupted flag if `Http2MultiplexedChannelPool#close()` interrupted."
-}

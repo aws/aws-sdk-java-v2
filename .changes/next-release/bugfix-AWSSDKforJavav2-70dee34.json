@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "ChecksumValidatingPublisher deals with any packetization of the incoming data. See https://github.com/aws/aws-sdk-java-v2/issues/965"
-}

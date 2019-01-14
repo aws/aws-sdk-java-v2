@@ -1,0 +1,51 @@
+{
+    "date": "2019-01-09",
+    "version": "2.3.0",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix an issue where dates were being unmarshalled incorrectly for the CBOR protocol used by Amazon Kinesis."
+        },
+        {
+            "category": "AWS STS",
+            "type": "bugfix",
+            "description": "Changed the region resolution logic for `role_arn`-based profiles: 1. Check for a `region` property in the same profile as the `role_arn` definition. 2. Check the default region chain. 3. Fall back to the global endpoint and `us-east-1` signing. Fixes [#988](https://github.com/aws/aws-sdk-java-v2/issues/988)."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Make default `asyncFutureCompletionExeuctor` a true multi-threads executor. See [#968](https://github.com/aws/aws-sdk-java-v2/issues/968)"
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Fix `SyncChecksumValidationInterceptor` and `AsyncChecksumValidationInterceptor` to use `long` instead of `int` for contentLength`. See [#963](https://github.com/aws/aws-sdk-java-v2/issues/963)"
+        },
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Preserve interrupted flag if `Http2MultiplexedChannelPool#close()` interrupted."
+        },
+        {
+            "category": "core",
+            "type": "feature",
+            "description": "Jackson 2.9.7 -> 2.9.8"
+        },
+        {
+            "category": "URLConnection HTTP Client",
+            "type": "bugfix",
+            "description": "Disable following redirects automatically since doing so causes SDK response handling to fail"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "ChecksumValidatingPublisher deals with any packetization of the incoming data. See https://github.com/aws/aws-sdk-java-v2/issues/965"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        }
+    ]
+}

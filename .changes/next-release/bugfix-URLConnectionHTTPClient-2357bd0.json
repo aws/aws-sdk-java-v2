@@ -1,5 +1,0 @@
-{
-    "category": "URLConnection HTTP Client", 
-    "type": "bugfix", 
-    "description": "Disable following redirects automatically since doing so causes SDK response handling to fail"
-}

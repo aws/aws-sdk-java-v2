@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import java.net.URI;
+import java.time.Duration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,14 +32,9 @@ import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
-import software.amazon.awssdk.services.iam.model.CreateAccessKeyRequest;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyResponse;
-import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
-import software.amazon.awssdk.services.iam.model.CreateUserRequest;
 import software.amazon.awssdk.services.iam.model.DeleteAccessKeyRequest;
 import software.amazon.awssdk.services.iam.model.DeleteLoginProfileRequest;
 import software.amazon.awssdk.services.iam.model.DeleteRoleRequest;
@@ -49,10 +44,14 @@ import software.amazon.awssdk.services.iam.model.ListAccessKeysRequest;
 import software.amazon.awssdk.services.iam.model.ListAccessKeysResponse;
 import software.amazon.awssdk.services.iam.model.ListUserPoliciesRequest;
 import software.amazon.awssdk.services.iam.model.ListUserPoliciesResponse;
-import software.amazon.awssdk.services.iam.model.PutUserPolicyRequest;
+import software.amazon.awssdk.services.iam.model.MalformedPolicyDocumentException;
+import software.amazon.awssdk.services.iam.model.NoSuchEntityException;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.services.sts.model.StsException;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringInputStream;
 
 //TODO This could be useful to cleanup and present as a customer sample
 public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
@@ -60,23 +59,28 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
     private static final int SESSION_DURATION = 60 * 60;
 
     private static final String USER_NAME = "user-" + System.currentTimeMillis();
-    private static final String USER_ARN = "arn:aws:iam::131990247566:user/" + USER_NAME;
+    private static final String USER_ARN_FORMAT = "arn:aws:iam::%s:user/%s";
+    private static String USER_ARN;
 
     private static final String ROLE_NAME = "java-test-role-" + System.currentTimeMillis();
-    private static final String ROLE_ARN = "arn:aws:iam::131990247566:role/" + ROLE_NAME;
+    private static final String ROLE_ARN_FORMAT = "arn:aws:iam::%s:role/%s";
+    private static String ROLE_ARN;
 
     private static final String ASSUME_ROLE = "sts:AssumeRole";
 
     private static AwsCredentials userCredentials;
 
     @BeforeClass
-    public static void setup() throws InterruptedException {
+    public static void setup() {
+        String accountId = sts.getCallerIdentity().account();
+        USER_ARN = String.format(USER_ARN_FORMAT, accountId, USER_NAME);
+        ROLE_ARN = String.format(ROLE_ARN_FORMAT, accountId, ROLE_NAME);
+
         // Create a user
-        iam.createUser(CreateUserRequest.builder().userName(USER_NAME).build());
+        iam.createUser(r -> r.userName(USER_NAME));
 
         // Create credentials for that user
-        CreateAccessKeyResponse createAccessKeyResult =
-                iam.createAccessKey(CreateAccessKeyRequest.builder().userName(USER_NAME).build());
+        CreateAccessKeyResponse createAccessKeyResult = iam.createAccessKey(r -> r.userName(USER_NAME));
         userCredentials = AwsBasicCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
                                                      createAccessKeyResult.accessKey().secretAccessKey());
 
@@ -87,8 +91,9 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                         .withResources(new Resource("*")))
                 .toJson();
 
-        iam.putUserPolicy(PutUserPolicyRequest.builder().policyDocument(policyDoc)
-                                              .userName(USER_NAME).policyName("assume-role").build());
+        iam.putUserPolicy(r -> r.policyDocument(policyDoc)
+                                .userName(USER_NAME)
+                                .policyName("assume-role"));
 
         // Create a role that can be assumed by the user
         String rolePolicyDoc = new Policy()
@@ -97,11 +102,22 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                         .withActions(new Action(ASSUME_ROLE)))
                 .toJson();
 
-        Thread.sleep(1000 * 10);
+        // Try to create the role until the eventual consistency catches up.
+        Waiter.run(() -> iam.createRole(r -> r.roleName(ROLE_NAME)
+                                              .assumeRolePolicyDocument(rolePolicyDoc)))
+              .ignoringException(MalformedPolicyDocumentException.class)
+              .orFail();
 
-        iam.createRole(CreateRoleRequest.builder().roleName(ROLE_NAME).assumeRolePolicyDocument(rolePolicyDoc).build());
+        StsClient userCredentialSts = StsClient.builder()
+                                               .credentialsProvider(() -> userCredentials)
+                                               .build();
 
-        Thread.sleep(1000 * 10);
+        // Try to assume the role until the eventual consistency catches up.
+        Waiter.run(() -> userCredentialSts.assumeRole(r -> r.durationSeconds(SESSION_DURATION)
+                                                            .roleArn(ROLE_ARN)
+                                                            .roleSessionName("Test")))
+              .ignoringException(StsException.class)
+              .orFail();
     }
 
     @AfterClass

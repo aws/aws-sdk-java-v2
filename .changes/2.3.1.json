@@ -1,0 +1,21 @@
+{
+    "date": "2019-01-11",
+    "version": "2.3.1",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated to the latest service models."
+        },
+        {
+            "category": "AWS RDS DataService",
+            "type": "feature",
+            "description": "Documentation updates for RDS Data API."
+        },
+        {
+            "category": "Amazon Elastic MapReduce",
+            "type": "feature",
+            "description": "Documentation updates for Amazon EMR"
+        }
+    ]
+}

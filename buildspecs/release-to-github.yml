@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+    - git config --global user.name "AWS"
+    - git config --global user.email "<>"
+    - 'STAGING_REPOSITORY_URL="https://$GITHUB_ACCESS_TOKEN@github.com/$STAGING_REPOSITORY.git"'
+    - 'PUBLIC_REPOSITORY_URL="https://$GITHUB_ACCESS_TOKEN@github.com/aws/aws-sdk-java-v2.git"'
+
+  build:
+    commands:
+    - mkdir release
+    - cd release
+    -
+    - git clone -o staging -b release $STAGING_REPOSITORY_URL .
+    - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
+    -
+    - git remote add --fetch public $PUBLIC_REPOSITORY_URL
+    - git tag -a $RELEASE_VERSION -m "AWS SDK for Java v2 ($RELEASE_VERSION)"
+    -
+    - git push public HEAD:release
+    - git push public $RELEASE_VERSION

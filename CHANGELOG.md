@@ -1,3 +1,46 @@
+# __2.3.1__ __2019-01-11__
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation updates for RDS Data API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated to the latest service models.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Documentation updates for Amazon EMR
+
+# __2.3.0__ __2019-01-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated to the latest service models.
+
+  - ### Bugfixes
+    - ChecksumValidatingPublisher deals with any packetization of the incoming data. See https://github.com/aws/aws-sdk-java-v2/issues/965
+    - Fix an issue where dates were being unmarshalled incorrectly for the CBOR protocol used by Amazon Kinesis.
+    - Make default `asyncFutureCompletionExeuctor` a true multi-threads executor. See [#968](https://github.com/aws/aws-sdk-java-v2/issues/968)
+
+## __AWS STS__
+  - ### Bugfixes
+    - Changed the region resolution logic for `role_arn`-based profiles: 1. Check for a `region` property in the same profile as the `role_arn` definition. 2. Check the default region chain. 3. Fall back to the global endpoint and `us-east-1` signing. Fixes [#988](https://github.com/aws/aws-sdk-java-v2/issues/988).
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix `SyncChecksumValidationInterceptor` and `AsyncChecksumValidationInterceptor` to use `long` instead of `int` for contentLength`. See [#963](https://github.com/aws/aws-sdk-java-v2/issues/963)
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Preserve interrupted flag if `Http2MultiplexedChannelPool#close()` interrupted.
+
+## __URLConnection HTTP Client__
+  - ### Bugfixes
+    - Disable following redirects automatically since doing so causes SDK response handling to fail
+
+## __core__
+  - ### Features
+    - Jackson 2.9.7 -> 2.9.8
+
 # __2.2.0__ __2018-12-14__
 ## __AWS SDK for Java v2__
   - ### Features

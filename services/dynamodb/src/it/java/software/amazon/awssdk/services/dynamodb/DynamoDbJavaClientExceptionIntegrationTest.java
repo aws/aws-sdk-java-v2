@@ -19,17 +19,8 @@ import java.util.UUID;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.Credentials;
-import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -54,35 +45,6 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
             Assert.assertNotNull(e.awsErrorDetails().errorCode());
             Assert.assertNotNull(e.awsErrorDetails().errorMessage());
             Assert.assertNotNull(e.awsErrorDetails().rawResponse());
-        }
-    }
-
-    @Test
-    public void testPermissionError() {
-        StsClient sts = StsClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .region(Region.US_EAST_1)
-                .build();
-
-        Credentials creds = sts.getFederationToken(GetFederationTokenRequest.builder()
-                .name("NoAccess")
-                .policy(
-                        "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Deny\",\"Action\":\"*\",\"Resource\":\"*\"}]}")
-                .durationSeconds(900).build()).credentials();
-
-
-        DynamoDbClient client = DynamoDbClient.builder().credentialsProvider(
-                StaticCredentialsProvider.create(AwsSessionCredentials.create(
-                creds.accessKeyId(),
-                creds.secretAccessKey(),
-                creds.sessionToken()))).build();
-
-        try {
-            client.listTables(ListTablesRequest.builder().build());
-        } catch (AwsServiceException e) {
-            Assert.assertEquals("AccessDeniedException", e.awsErrorDetails().errorCode());
-            Assert.assertNotNull(e.awsErrorDetails().errorMessage());
-            Assert.assertNotNull(e.getMessage());
         }
     }
 }
