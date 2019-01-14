@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elemental MediaConvert", 
+    "type": "feature", 
+    "description": "IMF decode from a Composition Playlist for IMF specializations App [#2](https://github.com/aws/aws-sdk-java-v2/issues/2) and App [#2](https://github.com/aws/aws-sdk-java-v2/issues/2)e; up to 99 input clippings; caption channel selection for MXF; and updated rate control for CBR jobs. Added support for acceleration in preview"
+}
