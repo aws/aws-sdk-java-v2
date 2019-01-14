@@ -15,21 +15,32 @@
 
 package software.amazon.awssdk.services.s3.checksums;
 
+import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.http.SdkHttpHeaders;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor;
 import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.internal.Base16Lower;
 
 /**
  * Class used by {@link SyncChecksumValidationInterceptor} and
@@ -39,41 +50,114 @@ import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidati
 @SdkInternalApi
 public final class ChecksumsEnabledValidator {
 
-    private ChecksumsEnabledValidator() {}
+    public static final ExecutionAttribute<SdkChecksum> CHECKSUM = new ExecutionAttribute<>("checksum");
+
+    private ChecksumsEnabledValidator() {
+    }
 
     /**
-     * Validates that trailing checksums should be enabled based on {@link ClientType} and the presence
+     * Checks if trailing checksum is enabled for {@link S3Client#getObject(GetObjectRequest)} per request.
+     *
+     * @param request the request
+     * @param executionAttributes the executionAttributes
+     * @return true if trailing checksums is enabled, false otherwise
+     */
+    public static boolean getObjectChecksumEnabledPerRequest(SdkRequest request,
+                                                             ExecutionAttributes executionAttributes) {
+        return request instanceof GetObjectRequest && checksumEnabledPerConfig(executionAttributes);
+    }
+
+    /**
+     * Checks if trailing checksum is enabled for {@link S3Client#getObject(GetObjectRequest)} per response.
+     *
+     * @param request the request
+     * @param responseHeaders the response headers
+     * @return true if trailing checksums is enabled, false otherwise
+     */
+    public static boolean getObjectChecksumEnabledPerResponse(SdkRequest request, SdkHttpHeaders responseHeaders) {
+        return request instanceof GetObjectRequest && checksumEnabledPerResponse(responseHeaders);
+    }
+
+    /**
+     * Validates that checksums should be enabled based on {@link ClientType} and the presence
      * or S3 specific headers.
      *
      * @param expectedClientType - The expected client type for enabling checksums
      * @param executionAttributes - {@link ExecutionAttributes} to determine the actual client type
-     * @param headers A map of headers for a given request
+     * @param sdkHttpHeaders A map of headers for a given request
      * @return If trailing checksums should be enabled for this request.
      */
-    public static boolean trailingChecksumsEnabled(ClientType expectedClientType,
+    public static boolean putObjectChecksumEnabled(SdkRequest request,
+                                                   ClientType expectedClientType,
                                                    ExecutionAttributes executionAttributes,
-                                                   Map<String, List<String>> headers) {
-
-        // S3 doesn't support trailing checksums for customer encryption
-        if (headers.containsKey(SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER)) {
-            return false;
-        }
-
-        // S3 doesn't support trailing checksums for KMS encrypted objects
-        if (headers.getOrDefault(SERVER_SIDE_ENCRYPTION_HEADER, Collections.emptyList()).contains(AWS_KMS.toString())) {
+                                                   SdkHttpHeaders sdkHttpHeaders) {
+        if (!(request instanceof PutObjectRequest)) {
             return false;
         }
 
         ClientType actualClientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
 
-        // Only validate checksums if the actual client type is the expected client type
-        if (expectedClientType.equals(actualClientType)) {
-            S3Configuration serviceConfiguration =
-                (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
-
-            return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
+        if (!expectedClientType.equals(actualClientType)) {
+            return false;
         }
 
-        return false;
+        // S3 doesn't support trailing checksums for customer encryption
+        if (sdkHttpHeaders.firstMatchingHeader(SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
+            return false;
+        }
+
+        // S3 doesn't support trailing checksums for KMS encrypted objects
+        if (sdkHttpHeaders.firstMatchingHeader(SERVER_SIDE_ENCRYPTION_HEADER)
+                          .filter(h -> h.contains(AWS_KMS.toString()))
+                          .isPresent()) {
+            return false;
+        }
+
+        return checksumEnabledPerConfig(executionAttributes);
+    }
+
+    /**
+     * Client side validation for {@link PutObjectRequest}
+     *
+     * @param response the response
+     * @param executionAttributes the execution attributes
+     */
+    public static void validatePutObjectChecksum(PutObjectResponse response, ExecutionAttributes executionAttributes) {
+        SdkChecksum checksum = executionAttributes.getAttribute(CHECKSUM);
+
+        if (response.eTag() != null) {
+            String contentMd5 = BinaryUtils.toBase64(checksum.getChecksumBytes());
+            byte[] digest = BinaryUtils.fromBase64(contentMd5);
+            byte[] ssHash = Base16Lower.decode(response.eTag().replace("\"", ""));
+
+            if (!Arrays.equals(digest, ssHash)) {
+                throw SdkClientException.create("Data read has a different checksum than expected.");
+            }
+        }
+    }
+
+    /**
+     * Check the response header to see if the trailing checksum is enabled.
+     *
+     * @param responseHeaders the SdkHttpHeaders
+     * @return true if the trailing checksum is present in the header, false otherwise.
+     */
+    private static boolean checksumEnabledPerResponse(SdkHttpHeaders responseHeaders) {
+        return responseHeaders.firstMatchingHeader(CHECKSUM_ENABLED_RESPONSE_HEADER)
+                              .filter(b -> b.equals(ENABLE_MD5_CHECKSUM_HEADER_VALUE))
+                              .isPresent();
+    }
+
+    /**
+     * Check the {@link S3Configuration#checksumValidationEnabled()} to see if the checksum is enabled.
+     *
+     * @param executionAttributes the execution attributes
+     * @return true if the trailing checksum is enabled in the config, false otherwise.
+     */
+    private static boolean checksumEnabledPerConfig(ExecutionAttributes executionAttributes) {
+        S3Configuration serviceConfiguration =
+            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
+
+        return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
     }
 }

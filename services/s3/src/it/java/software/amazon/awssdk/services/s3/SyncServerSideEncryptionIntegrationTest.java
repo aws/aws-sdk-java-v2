@@ -19,6 +19,7 @@ import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES2
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
@@ -28,11 +29,12 @@ import javax.crypto.KeyGenerator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.testutils.SdkAsserts;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class SyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBase {
@@ -70,8 +72,7 @@ public class SyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBa
                                                             .build();
 
         InputStream response = s3.getObject(getObjectRequest);
-        IoUtils.drainInputStream(response);
-        response.close();
+        SdkAsserts.assertFileEqualsStream(file, response);
     }
 
     @Test
@@ -90,13 +91,12 @@ public class SyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBa
                                                             .bucket(BUCKET)
                                                             .build();
 
-        InputStream response = s3.getObject(getObjectRequest);
-        IoUtils.drainInputStream(response);
-        response.close();
+        String response = s3.getObject(getObjectRequest, ResponseTransformer.toBytes()).asUtf8String();
+        SdkAsserts.assertStringEqualsStream(response, new FileInputStream(file));
     }
 
     @Test
-    public void sse_customerManaged_succeeds() throws Exception {
+    public void sse_customerManaged_succeeds() {
         String key = UUID.randomUUID().toString();
         byte[] secretKey = generateSecretKey();
         String b64Key = Base64.getEncoder().encodeToString(secretKey);
@@ -121,8 +121,7 @@ public class SyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBa
                                                             .build();
 
         InputStream response = s3.getObject(getObjectRequest);
-        IoUtils.drainInputStream(response);
-        response.close();
+        SdkAsserts.assertFileEqualsStream(file, response);
     }
 
     private static byte[] generateSecretKey() {

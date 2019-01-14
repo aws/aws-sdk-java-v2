@@ -19,6 +19,8 @@ import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES2
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -32,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.testutils.SdkAsserts;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class AsyncServerSideEncryptionIntegrationTest extends S3IntegrationTestBase {
@@ -53,7 +56,7 @@ public class AsyncServerSideEncryptionIntegrationTest extends S3IntegrationTestB
     }
 
     @Test
-    public void sse_AES256_succeeds() {
+    public void sse_AES256_succeeds() throws FileNotFoundException {
         String key = UUID.randomUUID().toString();
         PutObjectRequest request = PutObjectRequest.builder()
                                                    .key(key)
@@ -68,11 +71,11 @@ public class AsyncServerSideEncryptionIntegrationTest extends S3IntegrationTestB
                                                             .bucket(BUCKET)
                                                             .build();
 
-        s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join();
+        verifyGetResponse(getObjectRequest);
     }
 
     @Test
-    public void sse_AWSKMS_succeeds() {
+    public void sse_AWSKMS_succeeds() throws FileNotFoundException {
         String key = UUID.randomUUID().toString();
         PutObjectRequest request = PutObjectRequest.builder()
                                                    .key(key)
@@ -87,11 +90,11 @@ public class AsyncServerSideEncryptionIntegrationTest extends S3IntegrationTestB
                                                             .bucket(BUCKET)
                                                             .build();
 
-        s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join();
+        verifyGetResponse(getObjectRequest);
     }
 
     @Test
-    public void sse_customerManaged_succeeds() {
+    public void sse_customerManaged_succeeds() throws FileNotFoundException {
         String key = UUID.randomUUID().toString();
         byte[] secretKey = generateSecretKey();
         String b64Key = Base64.getEncoder().encodeToString(secretKey);
@@ -115,7 +118,12 @@ public class AsyncServerSideEncryptionIntegrationTest extends S3IntegrationTestB
                                                             .sseCustomerKeyMD5(b64KeyMd5)
                                                             .build();
 
-        s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join();
+        verifyGetResponse(getObjectRequest);
+    }
+
+    private void verifyGetResponse(GetObjectRequest getObjectRequest) throws FileNotFoundException {
+        String response = s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join().asUtf8String();
+        SdkAsserts.assertStringEqualsStream(response, new FileInputStream(file));
     }
 
     private static byte[] generateSecretKey() {
