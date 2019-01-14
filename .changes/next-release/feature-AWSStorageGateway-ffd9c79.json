@@ -1,5 +1,0 @@
-{
-    "category": "AWS Storage Gateway", 
-    "type": "feature", 
-    "description": "JoinDomain API supports two more parameters: organizational unit(OU) and domain controllers. Two new APIs are introduced: DetachVolume and AttachVolume."
-}
