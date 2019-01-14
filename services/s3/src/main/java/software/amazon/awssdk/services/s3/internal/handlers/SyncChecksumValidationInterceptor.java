@@ -17,43 +17,33 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.CHECKSUM;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.putObjectChecksumEnabled;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.validatePutObjectChecksum;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
-import software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.internal.Base16;
-import software.amazon.awssdk.utils.internal.Base16Lower;
 
 @SdkInternalApi
-public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
-
-    private static final ExecutionAttribute<SdkChecksum> CHECKSUM = new ExecutionAttribute("checksum");
+public final class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
 
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
 
-        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(SYNC,
-                                                                                               executionAttributes,
-                                                                                               context.httpRequest().headers());
-
-        if (context.request() instanceof PutObjectRequest && checksumValidationEnabled) {
+        if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpRequest())
+            && context.requestBody().isPresent()) {
             SdkChecksum checksum = new Md5Checksum();
 
             ChecksumCalculatingInputStream is = new ChecksumCalculatingInputStream(context.requestBody()
@@ -63,8 +53,8 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
                                                                                    checksum);
             executionAttributes.putAttribute(CHECKSUM, checksum);
             return Optional.of(RequestBody.fromContentProvider(() -> is,
-                                                   context.requestBody().get().contentLength(),
-                                                   context.requestBody().get().contentType()));
+                                                               context.requestBody().get().contentLength(),
+                                                               context.requestBody().get().contentType()));
         }
 
         return context.requestBody();
@@ -74,11 +64,9 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
     public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
                                                            ExecutionAttributes executionAttributes) {
 
-        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(SYNC,
-                                                                                               executionAttributes,
-                                                                                               context.httpResponse().headers());
+        if (getObjectChecksumEnabledPerResponse(context.request(), context.httpResponse())
+            && context.responseBody().isPresent()) {
 
-        if (context.request() instanceof GetObjectRequest && checksumValidationEnabled) {
             SdkChecksum checksum = new Md5Checksum();
 
             long contentLength = context.httpResponse()
@@ -96,26 +84,8 @@ public class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
 
     @Override
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
-
-        boolean checksumValidationEnabled = ChecksumsEnabledValidator.trailingChecksumsEnabled(SYNC,
-                                                                                               executionAttributes,
-                                                                                               context.httpResponse().headers());
-
-        if (context.response() instanceof PutObjectResponse && checksumValidationEnabled) {
-            PutObjectResponse response = (PutObjectResponse) context.response();
-
-            if (response.eTag() != null) {
-                SdkChecksum checksum = executionAttributes.getAttribute(CHECKSUM);
-                String contentMd5 = BinaryUtils.toBase64(checksum.getChecksumBytes());
-                byte[] digest = BinaryUtils.fromBase64(contentMd5);
-                byte[] ssHash = Base16Lower.decode(response.eTag().replace("\"", ""));
-
-                if (!Arrays.equals(digest, ssHash)) {
-                    throw SdkClientException.create(String.format("Data read has a different checksum than expected. " +
-                                                                  "Was 0x%s, but expected 0x%s",
-                                                                  Base16.encodeAsString(digest), Base16.encodeAsString(ssHash)));
-                }
-            }
+        if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpResponse())) {
+            validatePutObjectChecksum((PutObjectResponse) context.response(), executionAttributes);
         }
     }
 }

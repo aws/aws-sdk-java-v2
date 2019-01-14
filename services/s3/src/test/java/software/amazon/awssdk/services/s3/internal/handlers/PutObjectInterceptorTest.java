@@ -16,17 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modifyHttpRequestContext;
 
-import java.net.URI;
-import java.util.Optional;
 import org.junit.Test;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -37,7 +30,7 @@ public class PutObjectInterceptorTest {
     @Test
     public void modifyHttpRequest_setsExpect100Continue_whenSdkRequestIsPutObject() {
 
-        final SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(context(PutObjectRequest.builder().build()),
+        final SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext(PutObjectRequest.builder().build()),
                                                                              new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
@@ -46,40 +39,9 @@ public class PutObjectInterceptorTest {
     @Test
     public void modifyHttpRequest_doesNotSetExpect_whenSdkRequestIsNotPutObject() {
 
-        final SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(context(GetObjectRequest.builder().build()),
+        final SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(modifyHttpRequestContext(GetObjectRequest.builder().build()),
                                                                              new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
-    }
-
-    private SdkHttpFullRequest sdkHttpFullRequest() {
-        return SdkHttpFullRequest.builder()
-                                 .uri(URI.create("http://test.com:80"))
-                                 .method(SdkHttpMethod.GET)
-                                 .build();
-    }
-
-    private Context.ModifyHttpRequest context(SdkRequest request) {
-        return new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpRequest httpRequest() {
-                return sdkHttpFullRequest();
-            }
-
-            @Override
-            public Optional<RequestBody> requestBody() {
-                return null;
-            }
-
-            @Override
-            public Optional<AsyncRequestBody> asyncRequestBody() {
-                return null;
-            }
-
-            @Override
-            public SdkRequest request() {
-                return request;
-            }
-        };
     }
 }

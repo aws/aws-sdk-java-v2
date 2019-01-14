@@ -98,6 +98,16 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
             SdkHttpFullRequest marshalled = (SdkHttpFullRequest) finalizeSdkHttpRequestContext.httpRequest();
 
+            // For non-streaming requests, RequestBody can be modified in the interceptors. eg:
+            // CreateMultipartUploadRequestInterceptor
+            if (!finalizeSdkHttpRequestContext.asyncRequestBody().isPresent() &&
+                finalizeSdkHttpRequestContext.requestBody().isPresent()) {
+                marshalled = marshalled.toBuilder()
+                                       .contentStreamProvider(
+                                           finalizeSdkHttpRequestContext.requestBody().get().contentStreamProvider())
+                                       .build();
+            }
+
             TransformingAsyncResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
                 sdkHttpResponseHandler, executionContext);
 

@@ -32,7 +32,7 @@ public class CreateMultipartUploadRequestInterceptor implements ExecutionInterce
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
         if (context.request() instanceof CreateMultipartUploadRequest) {
-            return Optional.ofNullable(RequestBody.fromInputStream(new ByteArrayInputStream(new byte[0]), 0));
+            return Optional.of(RequestBody.fromInputStream(new ByteArrayInputStream(new byte[0]), 0));
         }
 
         return context.requestBody();
@@ -42,7 +42,10 @@ public class CreateMultipartUploadRequestInterceptor implements ExecutionInterce
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
         if (context.request() instanceof CreateMultipartUploadRequest) {
-            return context.httpRequest().toBuilder().putHeader("Content-Length", String.valueOf(0)).build();
+            return context.httpRequest()
+                          .toBuilder()
+                          .putHeader("Content-Length", String.valueOf(0))
+                          .build();
         }
 
         return context.httpRequest();

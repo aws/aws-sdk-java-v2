@@ -1,0 +1,21 @@
+{
+    "date": "2019-01-14",
+    "version": "2.3.2",
+    "entries": [
+        {
+            "category": "AWS Storage Gateway",
+            "type": "feature",
+            "description": "JoinDomain API supports two more parameters: organizational unit(OU) and domain controllers. Two new APIs are introduced: DetachVolume and AttachVolume."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed the bug where query parameters are incorrectly moved to body in async clients. See [#958](https://github.com/aws/aws-sdk-java-v2/issues/958)"
+        },
+        {
+            "category": "AWS Elemental MediaConvert",
+            "type": "feature",
+            "description": "IMF decode from a Composition Playlist for IMF specializations App [#2](https://github.com/aws/aws-sdk-java-v2/issues/2) and App [#2](https://github.com/aws/aws-sdk-java-v2/issues/2)e; up to 99 input clippings; caption channel selection for MXF; and updated rate control for CBR jobs. Added support for acceleration in preview"
+        }
+    ]
+}
