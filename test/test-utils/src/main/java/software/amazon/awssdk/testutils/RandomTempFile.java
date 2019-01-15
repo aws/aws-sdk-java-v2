@@ -50,7 +50,7 @@ public class RandomTempFile extends File {
      *                    file.
      * @throws IOException If any problems were encountered creating the new temp file.
      */
-    public RandomTempFile(int sizeInBytes) throws IOException {
+    public RandomTempFile(long sizeInBytes) throws IOException {
         this(UUID.randomUUID().toString(), sizeInBytes, false);
     }
 
