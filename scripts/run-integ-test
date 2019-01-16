@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+"""Run Integ Tests based on the changed files
+
+"""
+from subprocess import call, check_call, Popen, PIPE
+
+# Minimal modules to tests when core changes are detected.
+# s3 - xml, dynamodb - json, sqs - query
+core_modules_to_test = ["s3", "dynamodb", "sqs"]
+
+# Minimal modules to tests when http client changes are detected.
+# s3 - streaming/non streaming, kinesis - h2
+http_modules_to_test = {
+    "apache-client": ["s3", "apache-client"],
+    "netty-nio-client": ["kinesis", "s3", "netty-nio-client"],
+    "url-connection-client": ["url-connection-client"]
+}
+
+def check_diffs():
+    """
+    Retrieve the changed files
+    """
+    ret = Popen(["git", "diff", "HEAD^", "--name-only"], stdout=PIPE)
+
+    diff, stderr = ret.communicate()
+    return diff.splitlines(False)
+
+def get_modules(file_path):
+    """
+    Parse the changed file path and get the respective module names
+    """
+    path = file_path.split('/')
+    top_directory = path[0]
+
+    if top_directory in ["core", "codegen"]:
+        return core_modules_to_test
+    if top_directory in ["http-clients"]:
+        return http_modules_to_test[path[1]]
+    elif top_directory== "services":
+        return path[1]
+
+def run_tests(modules):
+    """
+    Run integration tests for the given modules
+    """
+    print("Running integ tests in the following modules: " + ', '.join(modules))
+    modules_to_include = ""
+
+    for m in modules:
+        modules_to_include += ":" + m + ","
+
+    # remove last comma
+    modules_to_include = modules_to_include[:-1]
+
+    # build necessary dependencies first
+    check_call(["mvn", "clean", "install", "-pl", modules_to_include, "-P", "quick", "--am", "-Dmaven.wagon.httpconnectionManager.maxPerRoute=2"])
+    check_call(["mvn", "verify", "-pl", modules_to_include, "-P", "integration-tests", "-Dfailsafe.rerunFailingTestsCount=1"])
+
+if __name__ == "__main__":
+    diffs = check_diffs()
+    modules = set()
+    for d in diffs:
+        module = get_modules(d)
+        if isinstance(module, list):
+            modules.update(module)
+        elif module:
+            modules.add(module)
+
+    if modules:
+        run_tests(modules)
+    else:
+        print("No modules configured to run. Skipping integ tests")
