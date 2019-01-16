@@ -1,5 +1,0 @@
-{
-    "category": "AWS Cost Explorer Service", 
-    "type": "feature", 
-    "description": "Removed Tags from the list of GroupBy dimensions available for GetReservationCoverage."
-}

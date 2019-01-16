@@ -1,5 +1,0 @@
-{
-    "category": "URLConnection HTTP Client", 
-    "type": "bugfix", 
-    "description": "Fix NullPointer of AbortableInputStream delegate if there is no body within UrlConnectionHttpClient"
-}

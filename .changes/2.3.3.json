@@ -1,0 +1,26 @@
+{
+    "date": "2019-01-16",
+    "version": "2.3.3",
+    "entries": [
+        {
+            "category": "AWS Cost Explorer Service",
+            "type": "feature",
+            "description": "Removed Tags from the list of GroupBy dimensions available for GetReservationCoverage."
+        },
+        {
+            "category": "URLConnection HTTP Client",
+            "type": "bugfix",
+            "description": "Fix NullPointer of AbortableInputStream delegate if there is no body within UrlConnectionHttpClient"
+        },
+        {
+            "category": "AWS Backup",
+            "type": "feature",
+            "description": "AWS Backup is a unified backup service designed to protect AWS services and their associated data. AWS Backup simplifies the creation, migration, restoration, and deletion of backups, while also providing reporting and auditing"
+        },
+        {
+            "category": "Amazon DynamoDB",
+            "type": "feature",
+            "description": "Amazon DynamoDB now integrates with AWS Backup, a centralized backup service that makes it easy for customers to configure and audit the AWS resources they want to backup, automate backup scheduling, set retention policies, and monitor all recent backup and restore activity. AWS Backup provides a fully managed, policy-based backup solution, simplifying your backup management, and helping you meet your business and regulatory backup compliance requirements. For more information, see the Amazon DynamoDB Developer Guide."
+        }
+    ]
+}
