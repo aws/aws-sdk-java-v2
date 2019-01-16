@@ -19,7 +19,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -29,7 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -39,7 +40,6 @@ import javax.net.ssl.SSLHandshakeException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -54,12 +54,15 @@ public abstract class SdkHttpClientTestSuite {
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
 
-    @Mock
-    private SdkRequestContext requestContext;
-
     @Test
     public void supportsResponseCode200() throws Exception {
         testForResponseCode(HttpURLConnection.HTTP_OK);
+    }
+
+    @Test
+    public void supportsResponseCode200HEAD() throws Exception {
+        // HEAD is special due to closing of the connection immediately and streams are null
+        testForResponseCode(HttpURLConnection.HTTP_FORBIDDEN, SdkHttpMethod.HEAD);
     }
 
     @Test
@@ -70,6 +73,11 @@ public abstract class SdkHttpClientTestSuite {
     @Test
     public void supportsResponseCode403() throws Exception {
         testForResponseCode(HttpURLConnection.HTTP_FORBIDDEN);
+    }
+
+    @Test
+    public void supportsResponseCode403HEAD() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_FORBIDDEN, SdkHttpMethod.HEAD);
     }
 
     @Test
@@ -91,42 +99,45 @@ public abstract class SdkHttpClientTestSuite {
     public void validatesHttpsCertificateIssuer() throws Exception {
         SdkHttpClient client = createSdkHttpClient();
 
-        SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
+        SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort(), SdkHttpMethod.POST);
 
         assertThatThrownBy(client.prepareRequest(HttpExecuteRequest.builder().request(request).build())::call)
                 .isInstanceOf(SSLHandshakeException.class);
     }
 
     private void testForResponseCode(int returnCode) throws Exception {
+        testForResponseCode(returnCode, SdkHttpMethod.POST);
+    }
+
+    private void testForResponseCode(int returnCode, SdkHttpMethod method) throws Exception {
         SdkHttpClient client = createSdkHttpClient();
 
         stubForMockRequest(returnCode);
 
-        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port());
-        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(request)
-                                                                               .contentStreamProvider(
-                                                                                   request.contentStreamProvider()
-                                                                                          .get())
-                                                                               .build())
-                                             .call();
+        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), method);
+        HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                          .request(req)
+                                                                          .contentStreamProvider(req.contentStreamProvider()
+                                                                                                    .orElse(null))
+                                                                          .build())
+                                        .call();
 
-        validateResponse(response, returnCode);
+        validateResponse(rsp, returnCode, method);
     }
 
     protected void testForResponseCodeUsingHttps(SdkHttpClient client, int returnCode) throws Exception {
+        SdkHttpMethod sdkHttpMethod = SdkHttpMethod.POST;
         stubForMockRequest(returnCode);
 
-        SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
-        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(request)
-                                                                               .contentStreamProvider(
-                                                                                   request.contentStreamProvider()
-                                                                                          .get())
-                                                                               .build())
-                                             .call();
+        SdkHttpFullRequest req = mockSdkRequest("https://localhost:" + mockServer.httpsPort(), sdkHttpMethod);
+        HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                          .request(req)
+                                                                          .contentStreamProvider(req.contentStreamProvider()
+                                                                                                    .orElse(null))
+                                                                          .build())
+                                        .call();
 
-        validateResponse(response, returnCode);
+        validateResponse(rsp, returnCode, sdkHttpMethod);
     }
 
     private void stubForMockRequest(int returnCode) {
@@ -141,27 +152,44 @@ public abstract class SdkHttpClientTestSuite {
         stubFor(any(urlPathEqualTo("/")).willReturn(responseBuilder));
     }
 
-    private void validateResponse(HttpExecuteResponse response, int returnCode) throws IOException {
-        verify(1, postRequestedFor(urlMatching("/"))
-                .withHeader("Host", containing("localhost"))
-                .withHeader("User-Agent", equalTo("hello-world!"))
-                .withRequestBody(equalTo("Body")));
+    private void validateResponse(HttpExecuteResponse response, int returnCode, SdkHttpMethod method) throws IOException {
+        RequestMethod requestMethod = RequestMethod.fromString(method.name());
 
-        assertThat(IoUtils.toUtf8String(response.responseBody().orElse(null))).isEqualTo("hello");
+        RequestPatternBuilder patternBuilder = RequestPatternBuilder.newRequestPattern(requestMethod, urlMatching("/"))
+                                                                           .withHeader("Host", containing("localhost"))
+                                                                           .withHeader("User-Agent", equalTo("hello-world!"));
+
+        if (method == SdkHttpMethod.HEAD) {
+            patternBuilder.withRequestBody(equalTo(""));
+        } else {
+            patternBuilder.withRequestBody(equalTo("Body"));
+        }
+
+        verify(1, patternBuilder);
+
+        if (method == SdkHttpMethod.HEAD) {
+            assertThat(response.responseBody()).isEmpty();
+        } else {
+            assertThat(IoUtils.toUtf8String(response.responseBody().orElse(null))).isEqualTo("hello");
+        }
+
         assertThat(response.httpResponse().firstMatchingHeader("Some-Header")).contains("With Value");
         assertThat(response.httpResponse().statusCode()).isEqualTo(returnCode);
         mockServer.resetMappings();
     }
 
-    private SdkHttpFullRequest mockSdkRequest(String uriString) {
+    private SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
         URI uri = URI.create(uriString);
-        return SdkHttpFullRequest.builder()
-                                 .uri(uri)
-                                 .method(SdkHttpMethod.POST)
-                                 .putHeader("Host", uri.getHost())
-                                 .putHeader("User-Agent", "hello-world!")
-                                 .contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)))
-                                 .build();
+        SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder()
+                                                            .uri(uri)
+                                                            .method(method)
+                                                            .putHeader("Host", uri.getHost())
+                                                            .putHeader("User-Agent", "hello-world!");
+        if (method != SdkHttpMethod.HEAD) {
+            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)));
+        }
+
+        return requestBuilder.build();
     }
 
     /**

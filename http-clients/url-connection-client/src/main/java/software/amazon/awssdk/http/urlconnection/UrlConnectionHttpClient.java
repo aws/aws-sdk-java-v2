@@ -146,6 +146,8 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
             int responseCode = connection.getResponseCode();
             boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
             InputStream content = !isErrorResponse ? connection.getInputStream() : connection.getErrorStream();
+            AbortableInputStream responseBody = content != null ?
+                                                AbortableInputStream.create(content) : null;
 
             return HttpExecuteResponse.builder()
                                       .response(SdkHttpResponse.builder()
@@ -154,7 +156,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                                            // TODO: Don't ignore abort?
                                                            .headers(extractHeaders(connection))
                                                            .build())
-                                      .responseBody(AbortableInputStream.create(content))
+                                      .responseBody(responseBody)
                                       .build();
         }
 
