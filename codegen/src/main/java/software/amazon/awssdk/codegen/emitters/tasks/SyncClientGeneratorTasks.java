@@ -25,6 +25,7 @@ import software.amazon.awssdk.codegen.poet.builder.SyncClientBuilderInterface;
 import software.amazon.awssdk.codegen.poet.client.ClientSimpleMethodsIntegrationTests;
 import software.amazon.awssdk.codegen.poet.client.SyncClientClass;
 import software.amazon.awssdk.codegen.poet.client.SyncClientInterface;
+import software.amazon.awssdk.codegen.poet.endpointdiscovery.EndpointDiscoveryCacheLoaderGenerator;
 
 public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -50,6 +51,9 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
         if (!model.simpleMethodsRequiringTesting().isEmpty()) {
             tasks.add(createClientSimpleMethodsTest());
         }
+        if (model.getEndpointOperation().isPresent()) {
+            tasks.add(createEndpointDiscoveryCacheLoaderTask());
+        }
         return tasks;
     }
 
@@ -71,5 +75,9 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
 
     private GeneratorTask createClientSimpleMethodsTest() throws IOException {
         return createPoetGeneratorTestTask(new ClientSimpleMethodsIntegrationTests(model));
+    }
+
+    private GeneratorTask createEndpointDiscoveryCacheLoaderTask() throws IOException {
+        return createPoetGeneratorTask(new EndpointDiscoveryCacheLoaderGenerator(generatorTaskParams));
     }
 }

@@ -177,6 +177,7 @@ abstract class AddShapes {
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());
         memberModel.setEventPayload(c2jMemberDefinition.isEventPayload());
         memberModel.setEventHeader(c2jMemberDefinition.isEventHeader());
+        memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointDiscoveryId());
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {

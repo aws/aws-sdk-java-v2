@@ -26,6 +26,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class SyncClientBuilderClass implements ClassSpec {
+    private final IntermediateModel model;
     private final ClassName clientInterfaceName;
     private final ClassName clientClassName;
     private final ClassName builderInterfaceName;
@@ -34,6 +35,7 @@ public class SyncClientBuilderClass implements ClassSpec {
 
     public SyncClientBuilderClass(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
+        this.model = model;
         this.clientInterfaceName = ClassName.get(basePackage, model.getMetadata().getSyncInterface());
         this.clientClassName = ClassName.get(basePackage, model.getMetadata().getSyncClient());
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getSyncBuilderInterface());
@@ -49,10 +51,23 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.FINAL)
                          .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
                          .addSuperinterface(builderInterfaceName)
-                         .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName)
-                         .addMethod(buildClientMethod());
+                         .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
 
-        return builder.build();
+        if (model.getEndpointOperation().isPresent()) {
+            builder.addMethod(enableEndpointDiscovery());
+        }
+
+        return builder.addMethod(buildClientMethod()).build();
+    }
+
+    private MethodSpec enableEndpointDiscovery() {
+        return MethodSpec.methodBuilder("enableEndpointDiscovery")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderClassName)
+                         .addStatement("endpointDiscoveryEnabled = true")
+                         .addStatement("return this")
+                         .build();
     }
 
     private MethodSpec buildClientMethod() {

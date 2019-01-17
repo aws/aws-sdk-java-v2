@@ -85,4 +85,10 @@ public interface ProtocolSpec {
                ? ".hostPrefixExpression(resolvedHostExpression)\n"
                : "";
     }
+
+    default String discoveredEndpoint(OperationModel opModel) {
+        return opModel.getEndpointDiscovery() != null
+               ? ".discoveredEndpoint(cachedEndpoint)\n"
+               : "";
+    }
 }

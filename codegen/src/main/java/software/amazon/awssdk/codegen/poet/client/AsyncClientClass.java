@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
+import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
@@ -28,6 +29,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -37,6 +39,7 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
@@ -53,7 +56,10 @@ import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
+import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
@@ -109,6 +115,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
+        model.getEndpointOperation().ifPresent(
+            o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();
@@ -124,7 +133,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
-                                protocolFactoryField.type);
+                                 protocolFactoryField.type);
         } else {
             builder.addStatement("this.$N = init()", protocolFactoryField.name);
         }
@@ -138,6 +147,16 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.addStatement("this.executor = clientConfiguration.option($T.FUTURE_COMPLETION_EXECUTOR)",
                                  SdkAdvancedAsyncClientOption.class);
         }
+
+        if (model.getEndpointOperation().isPresent()) {
+            builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED))");
+            builder.addStatement("this.endpointDiscoveryCache = $T.create($T.create(this))",
+                                 EndpointDiscoveryRefreshCache.class,
+                                 poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
+                                                               "AsyncEndpointDiscoveryCacheLoader"));
+            builder.endControlFlow();
+        }
+
         return builder.build();
     }
 
@@ -172,8 +191,24 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
                .addCode(protocolSpec.responseHandler(model, opModel))
                .addCode(protocolSpec.errorResponseHandler(opModel))
-               .addCode(eventToByteBufferPublisher(opModel))
-               .addCode(protocolSpec.asyncExecutionHandler(model, opModel))
+               .addCode(eventToByteBufferPublisher(opModel));
+
+        if (opModel.getEndpointDiscovery() != null) {
+            builder.addStatement("$T cachedEndpoint = null", URI.class);
+            builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED))");
+            builder.addStatement("\n\nString key = clientConfiguration.option($T.CREDENTIALS_PROVIDER).resolveCredentials()" +
+                                 ".accessKeyId()", AwsClientOption.class);
+            builder.addStatement("EndpointDiscoveryRequest endpointDiscoveryRequest = $T.builder().required($L)" +
+                                 ".defaultEndpoint(clientConfiguration.option($T.ENDPOINT)).build()",
+                                EndpointDiscoveryRequest.class,
+                                opModel.getInputShape().getEndpointDiscovery().isRequired(),
+                                 SdkClientOption.class);
+            builder.addStatement("cachedEndpoint = $L.get(key, endpointDiscoveryRequest)",
+                                 "endpointDiscoveryCache");
+            builder.endControlFlow();
+        }
+
+        builder.addCode(protocolSpec.asyncExecutionHandler(model, opModel))
                .endControlFlow()
                .beginControlFlow("catch ($T t)", Throwable.class);
 
@@ -237,8 +272,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                   .collect(Collectors.toList());
 
         eventNames.forEach(event -> builder.add(".putMarshaller($T.class, new $T(protocolFactory))",
-                                                      poetExtensions.getModelClass(event),
-                                                      poetExtensions.getTransformClass(event + "Marshaller")));
+                                                poetExtensions.getModelClass(event),
+                                                poetExtensions.getTransformClass(event + "Marshaller")));
 
         builder.add(".build();");
         return builder.build();
