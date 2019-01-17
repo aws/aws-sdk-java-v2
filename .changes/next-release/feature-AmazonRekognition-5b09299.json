@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Rekognition", 
+    "type": "feature", 
+    "description": "GetLabelDetection now returns bounding box information for common objects and a hierarchical taxonomy of detected labels. The version of the model used for video label detection is also returned. DetectModerationLabels now returns the version of the model used for detecting unsafe content."
+}
