@@ -122,7 +122,12 @@ public enum SdkSystemSetting implements SystemSetting {
      * The execution environment of the SDK user. This is automatically set in certain environments by the underlying AWS service.
      * For example, AWS Lambda will automatically specify a runtime indicating that the SDK is being used within Lambda.
      */
-    AWS_EXECUTION_ENV("aws.executionEnvironment", null);
+    AWS_EXECUTION_ENV("aws.executionEnvironment", null),
+
+    /**
+     * Whether endpoint discovery should be enabled.
+     */
+    AWS_ENDPOINT_DISCOVERY_ENABLED("aws.endpointDiscoveryEnabled", "false");
 
     private final String systemProperty;
     private final String defaultValue;

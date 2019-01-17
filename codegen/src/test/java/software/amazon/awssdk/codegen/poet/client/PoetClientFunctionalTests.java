@@ -68,4 +68,16 @@ public class PoetClientFunctionalTests {
         assertThat(syncClientInterface, generatesTo("test-json-client-interface.java"));
     }
 
+    @Test
+    public void syncClientEndpointDiscovery() throws Exception {
+        ClassSpec syncClientEndpointDiscovery = createSyncClientClass(ClientTestModels.endpointDiscoveryModels());
+        assertThat(syncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-sync.java"));
+    }
+
+    @Test
+    public void asyncClientEndpointDiscovery() throws Exception {
+        ClassSpec asyncClientEndpointDiscovery = new AsyncClientClass(
+                GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/"));
+        assertThat(asyncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-async.java"));
+    }
 }

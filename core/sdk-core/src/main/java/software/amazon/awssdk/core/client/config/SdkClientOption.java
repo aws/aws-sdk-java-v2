@@ -107,6 +107,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<String> SERVICE_NAME = new SdkClientOption<>(String.class);
 
+    /**
+     * Whether or not endpoint discovery is enabled for this client.
+     */
+    public static final SdkClientOption<Boolean> ENDPOINT_DISCOVERY_ENABLED = new SdkClientOption<>(Boolean.class);
+
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
     }

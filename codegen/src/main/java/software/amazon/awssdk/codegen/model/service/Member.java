@@ -52,6 +52,9 @@ public class Member {
     @JsonProperty(value = "eventheader")
     private boolean eventHeader;
 
+    @JsonProperty(value = "endpointdiscoveryid")
+    private boolean endpointDiscoveryId;
+
     public String getShape() {
         return shape;
     }
@@ -170,5 +173,13 @@ public class Member {
 
     public void setEventHeader(boolean eventHeader) {
         this.eventHeader = eventHeader;
+    }
+
+    public boolean isEndpointDiscoveryId() {
+        return endpointDiscoveryId;
+    }
+
+    public void setEndpointDiscoveryId(boolean endpointDiscoveryId) {
+        this.endpointDiscoveryId = endpointDiscoveryId;
     }
 }

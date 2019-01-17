@@ -25,11 +25,13 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -45,7 +47,10 @@ import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
+import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
@@ -94,6 +99,9 @@ public class SyncClientClass implements ClassSpec {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
+        model.getEndpointOperation().ifPresent(
+            o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+
         return classBuilder.build();
     }
 
@@ -125,6 +133,16 @@ public class SyncClientClass implements ClassSpec {
         } else {
             builder.addStatement("this.$N = init()", protocolFactoryField.name);
         }
+
+        if (model.getEndpointOperation().isPresent()) {
+            builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED))");
+            builder.addStatement("this.endpointDiscoveryCache = $T.create($T.create(this))",
+                                 EndpointDiscoveryRefreshCache.class,
+                                 poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
+                                                               "EndpointDiscoveryCacheLoader"));
+            builder.endControlFlow();
+        }
+
         return builder.build();
     }
 
@@ -140,14 +158,31 @@ public class SyncClientClass implements ClassSpec {
     private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
 
-        methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
-                                       .addAnnotation(Override.class)
-                                       .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                                       .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-                                       .addCode(protocolSpec.responseHandler(model, opModel))
-                                       .addCode(protocolSpec.errorResponseHandler(opModel))
-                                       .addCode(protocolSpec.executionHandler(opModel))
-                                       .build());
+        MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
+                                                       .addAnnotation(Override.class)
+                                                       .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
+                                                       .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
+                                                       .addCode(protocolSpec.responseHandler(model, opModel))
+                                                       .addCode(protocolSpec.errorResponseHandler(opModel));
+
+        if (opModel.getEndpointDiscovery() != null) {
+            method.addStatement("$T cachedEndpoint = null", URI.class);
+            method.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED))");
+            method.addStatement("\n\nString key = clientConfiguration.option($T.CREDENTIALS_PROVIDER)." +
+                                "resolveCredentials().accessKeyId()", AwsClientOption.class);
+            method.addStatement("EndpointDiscoveryRequest endpointDiscoveryRequest = $T.builder().required($L)" +
+                                ".defaultEndpoint(clientConfiguration.option($T.ENDPOINT)).build()",
+                                EndpointDiscoveryRequest.class,
+                                opModel.getInputShape().getEndpointDiscovery().isRequired(),
+                                SdkClientOption.class);
+            method.addStatement("cachedEndpoint = $L.get(key, endpointDiscoveryRequest)",
+                                "endpointDiscoveryCache");
+            method.endControlFlow();
+        }
+
+        method.addCode(protocolSpec.executionHandler(opModel));
+
+        methods.add(method.build());
 
         methods.addAll(paginatedMethods(opModel));
 
