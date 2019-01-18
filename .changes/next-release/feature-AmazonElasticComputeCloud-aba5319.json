@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic Compute Cloud", 
-    "type": "feature", 
-    "description": "Adjust EC2's available instance types."
-}
