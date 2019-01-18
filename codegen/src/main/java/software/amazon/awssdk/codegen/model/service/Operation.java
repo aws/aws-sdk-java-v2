@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.model.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
 
 public class Operation {
 
@@ -37,6 +38,12 @@ public class Operation {
     private List<ErrorMap> errors;
 
     private boolean requiresApiKey;
+
+    @JsonProperty("endpointdiscovery")
+    private EndpointDiscovery endpointDiscovery;
+
+    @JsonProperty("endpointoperation")
+    private boolean endpointOperation;
 
     private EndpointTrait endpoint;
 
@@ -136,6 +143,22 @@ public class Operation {
 
     public void setRequiresApiKey(boolean requiresApiKey) {
         this.requiresApiKey = requiresApiKey;
+    }
+
+    public EndpointDiscovery getEndpointDiscovery() {
+        return endpointDiscovery;
+    }
+
+    public void setEndpointDiscovery(EndpointDiscovery endpointDiscovery) {
+        this.endpointDiscovery = endpointDiscovery;
+    }
+
+    public boolean isEndpointOperation() {
+        return endpointOperation;
+    }
+
+    public void setEndpointOperation(boolean endpointOperation) {
+        this.endpointOperation = endpointOperation;
     }
 
     public EndpointTrait getEndpoint() {

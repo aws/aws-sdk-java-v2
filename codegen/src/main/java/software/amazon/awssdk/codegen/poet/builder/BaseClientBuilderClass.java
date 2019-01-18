@@ -15,8 +15,14 @@
 
 package software.amazon.awssdk.codegen.poet.builder;
 
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.STATIC;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
@@ -33,6 +39,8 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
+import software.amazon.awssdk.core.endpointdiscovery.providers.EndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
@@ -68,6 +76,18 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
+        if (model.getEndpointOperation().isPresent()) {
+            builder.addField(FieldSpec.builder(EndpointDiscoveryProviderChain.class, "CHAIN")
+                                      .addModifiers(PRIVATE, STATIC, FINAL)
+                                      .initializer("new $T()", DefaultEndpointDiscoveryProviderChain.class)
+                                      .build());
+
+            builder.addField(FieldSpec.builder(boolean.class, "endpointDiscoveryEnabled")
+                                      .addModifiers(PROTECTED)
+                                      .initializer("false")
+                                      .build());
+        }
+
         builder.addMethod(serviceEndpointPrefixMethod());
         builder.addMethod(serviceNameMethod());
         builder.addMethod(mergeServiceDefaultsMethod());
@@ -88,7 +108,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec signingNameMethod() {
         return MethodSpec.methodBuilder("signingName")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .addModifiers(PROTECTED, FINAL)
                          .returns(String.class)
                          .addCode("return $S;", model.getMetadata().getSigningName())
                          .build();
@@ -97,7 +117,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec defaultSignerMethod() {
         return MethodSpec.methodBuilder("defaultSigner")
                          .returns(Signer.class)
-                         .addModifiers(Modifier.PRIVATE)
+                         .addModifiers(PRIVATE)
                          .addCode(signerDefinitionMethodBody())
                          .build();
     }
@@ -105,7 +125,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec serviceEndpointPrefixMethod() {
         return MethodSpec.methodBuilder("serviceEndpointPrefix")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .addModifiers(PROTECTED, FINAL)
                          .returns(String.class)
                          .addCode("return $S;", model.getMetadata().getEndpointPrefix())
                          .build();
@@ -114,7 +134,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec serviceNameMethod() {
         return MethodSpec.methodBuilder("serviceName")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .addModifiers(PROTECTED, FINAL)
                          .returns(String.class)
                          .addCode("return $S;", model.getMetadata().getServiceName())
                          .build();
@@ -125,7 +145,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
                                                .addAnnotation(Override.class)
-                                               .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                               .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
                                                .addParameter(SdkClientConfiguration.class, "config")
                                                .addCode("return config.merge(c -> c.option($T.SIGNER, defaultSigner())\n",
@@ -146,20 +166,33 @@ public class BaseClientBuilderClass implements ClassSpec {
         String requestHandlerDirectory = Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
         String requestHandlerPath = String.format("%s/execution.interceptors", requestHandlerDirectory);
 
-        return MethodSpec.methodBuilder("finalizeServiceConfiguration")
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("finalizeServiceConfiguration")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .addModifiers(PROTECTED, FINAL)
                          .returns(SdkClientConfiguration.class)
                          .addParameter(SdkClientConfiguration.class, "config")
                          .addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
                          .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
                                   List.class, ExecutionInterceptor.class, requestHandlerPath)
                          .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
-                                  CollectionUtils.class, SdkClientOption.class)
-                         .addCode("return config.toBuilder()\n" +
-                                  "             .option($T.EXECUTION_INTERCEPTORS, interceptors)\n" +
-                                  "             .build();", SdkClientOption.class)
-                         .build();
+                                  CollectionUtils.class, SdkClientOption.class);
+
+        if (model.getEndpointOperation().isPresent()) {
+            builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
+                   .addStatement("endpointDiscoveryEnabled = CHAIN.resolveEndpointDiscovery()")
+                   .endControlFlow();
+
+            builder.addCode("return config.toBuilder()\n" +
+                                  "       .option($1T.EXECUTION_INTERCEPTORS, interceptors)\n" +
+                                  "       .option($1T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n" +
+                                  "       .build();", SdkClientOption.class);
+        } else {
+            builder.addCode("return config.toBuilder()\n" +
+                                  "       .option($T.EXECUTION_INTERCEPTORS, interceptors)\n" +
+                                  "       .build();", SdkClientOption.class);
+        }
+
+        return builder.build();
     }
 
     private MethodSpec setServiceConfigurationMethod() {
@@ -197,7 +230,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .addModifiers(PROTECTED, FINAL)
                          .returns(AttributeMap.class)
                          .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2))
                          .build();

@@ -45,6 +45,10 @@ public class OperationModel extends DocumentationModel {
 
     private boolean isPaginated;
 
+    private boolean endpointOperation;
+
+    private EndpointDiscovery endpointDiscovery;
+
     @JsonIgnore
     private ShapeModel inputShape;
 
@@ -184,12 +188,28 @@ public class OperationModel extends DocumentationModel {
         return hasStreamingInput() || hasStreamingOutput();
     }
 
+    public boolean isEndpointOperation() {
+        return endpointOperation;
+    }
+
+    public void setEndpointOperation(boolean endpointOperation) {
+        this.endpointOperation = endpointOperation;
+    }
+
     public boolean isPaginated() {
         return isPaginated;
     }
 
     public void setPaginated(boolean paginated) {
         isPaginated = paginated;
+    }
+
+    public EndpointDiscovery getEndpointDiscovery() {
+        return endpointDiscovery;
+    }
+
+    public void setEndpointDiscovery(EndpointDiscovery endpointDiscovery) {
+        this.endpointDiscovery = endpointDiscovery;
     }
 
     /**

@@ -167,6 +167,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  ".withResponseHandler($N)\n" +
                  ".withErrorResponseHandler($N)\n" +
                  hostPrefixExpression(opModel) +
+                 discoveredEndpoint(opModel) +
                  ".withInput($L)\n",
                  ClientExecutionParams.class,
                  requestType,
@@ -237,6 +238,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     ".withResponseHandler($L)\n" +
                     ".withErrorResponseHandler(errorResponseHandler)\n" +
                     hostPrefixExpression(opModel) +
+                    discoveredEndpoint(opModel) +
                     asyncRequestBody +
                     ".withInput($L)$L)$L;",
                     // If the operation has an event stream output we use a different future so we don't return the one

@@ -49,6 +49,10 @@ public class BaseClientBuilderInterface implements ClassSpec {
                         .addSuperinterface(PoetUtils.createParameterizedTypeName(AwsClientBuilder.class, "B", "C"))
                         .addJavadoc(getJavadoc());
 
+        if (model.getEndpointOperation().isPresent()) {
+            builder.addMethod(enableEndpointDiscovery());
+        }
+
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
             builder.addMethod(serviceConfigurationMethod());
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
@@ -62,6 +66,13 @@ public class BaseClientBuilderInterface implements ClassSpec {
                             model.getMetadata().getDescriptiveServiceName(),
                             ClassName.get(basePackage, model.getMetadata().getSyncBuilderInterface()),
                             ClassName.get(basePackage, model.getMetadata().getAsyncBuilderInterface()));
+    }
+
+    private MethodSpec enableEndpointDiscovery() {
+        return MethodSpec.methodBuilder("enableEndpointDiscovery")
+                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .returns(TypeVariableName.get("B"))
+                         .build();
     }
 
     private MethodSpec serviceConfigurationMethod() {

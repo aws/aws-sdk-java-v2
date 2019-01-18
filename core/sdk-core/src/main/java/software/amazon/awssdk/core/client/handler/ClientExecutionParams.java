@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.client.handler;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
@@ -43,6 +44,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private boolean fullDuplex;
     private String hostPrefixExpression;
     private String operationName;
+    private URI discoveredEndpoint;
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -134,6 +136,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
      */
     public ClientExecutionParams<InputT, OutputT> hostPrefixExpression(String hostPrefixExpression) {
         this.hostPrefixExpression = hostPrefixExpression;
+        return this;
+    }
+
+    public URI discoveredEndpoint() {
+        return discoveredEndpoint;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> discoveredEndpoint(URI discoveredEndpoint) {
+        this.discoveredEndpoint = discoveredEndpoint;
         return this;
     }
 }

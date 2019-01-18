@@ -69,5 +69,10 @@ public final class ProfileProperty {
      */
     public static final String MFA_SERIAL = "mfa_serial";
 
+    /**
+     * Property name for specifying whether or not endpoint discovery is enabled.
+     */
+    public static final String ENDPOINT_DISCOVERY_ENABLED = "aws_endpoint_discovery_enabled";
+
     private ProfileProperty() {}
 }

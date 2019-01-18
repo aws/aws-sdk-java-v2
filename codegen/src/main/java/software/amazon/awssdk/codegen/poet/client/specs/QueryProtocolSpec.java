@@ -100,6 +100,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                  ".withResponseHandler($N)" +
                  ".withErrorResponseHandler($N)" +
                  hostPrefixExpression(opModel) +
+                 discoveredEndpoint(opModel) +
                  ".withInput($L)",
                  ClientExecutionParams.class,
                  requestType,

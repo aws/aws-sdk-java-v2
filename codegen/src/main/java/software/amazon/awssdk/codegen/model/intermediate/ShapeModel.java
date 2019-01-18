@@ -46,6 +46,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private boolean wrapper;
     private boolean simpleMethod;
     private String requestSignerClassFqcn;
+    private EndpointDiscovery endpointDiscovery;
 
     private List<MemberModel> members;
     private List<EnumModel> enums;
@@ -508,6 +509,14 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setRequestSignerClassFqcn(String authorizerClass) {
         this.requestSignerClassFqcn = authorizerClass;
+    }
+
+    public EndpointDiscovery getEndpointDiscovery() {
+        return endpointDiscovery;
+    }
+
+    public void setEndpointDiscovery(EndpointDiscovery endpointDiscovery) {
+        this.endpointDiscovery = endpointDiscovery;
     }
 
     /**

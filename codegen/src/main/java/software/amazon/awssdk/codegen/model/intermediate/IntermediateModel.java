@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
@@ -55,6 +56,9 @@ public final class IntermediateModel {
     private final Map<String, AuthorizerModel> customAuthorizers;
 
     @JsonIgnore
+    private final Optional<OperationModel> endpointOperation;
+
+    @JsonIgnore
     private final Map<String, PaginatorDefinition> paginators;
 
     @JsonIgnore
@@ -68,7 +72,8 @@ public final class IntermediateModel {
         @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
         @JsonProperty("serviceExamples") ServiceExamples examples) {
 
-        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap(), null);
+        this(metadata, operations, shapes, customizationConfig, examples, null,
+             Collections.emptyMap(), Collections.emptyMap(), null);
     }
 
     public IntermediateModel(
@@ -77,6 +82,7 @@ public final class IntermediateModel {
         Map<String, ShapeModel> shapes,
         CustomizationConfig customizationConfig,
         ServiceExamples examples,
+        OperationModel endpointOperation,
         Map<String, AuthorizerModel> customAuthorizers,
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy) {
@@ -85,6 +91,7 @@ public final class IntermediateModel {
         this.shapes = shapes;
         this.customizationConfig = customizationConfig;
         this.examples = examples;
+        this.endpointOperation = Optional.ofNullable(endpointOperation);
         this.customAuthorizers = customAuthorizers;
         this.paginators = paginators;
         this.namingStrategy = namingStrategy;
@@ -203,6 +210,10 @@ public final class IntermediateModel {
 
     public Map<String, AuthorizerModel> getCustomAuthorizers() {
         return customAuthorizers;
+    }
+
+    public Optional<OperationModel> getEndpointOperation() {
+        return endpointOperation;
     }
 
     public boolean hasPaginators() {

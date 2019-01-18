@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.client.handler;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -50,7 +51,7 @@ public abstract class BaseClientHandler {
 
         runBeforeMarshallingInterceptors(executionContext);
         SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
-        request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams.hostPrefixExpression());
+        request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
@@ -80,15 +81,20 @@ public abstract class BaseClientHandler {
      */
     private static SdkHttpFullRequest modifyEndpointHostIfNeeded(SdkHttpFullRequest originalRequest,
                                                                  SdkClientConfiguration clientConfiguration,
-                                                                 String hostPrefix) {
+                                                                 ClientExecutionParams executionParams) {
+        if (executionParams.discoveredEndpoint() != null) {
+            URI discoveredEndpoint = executionParams.discoveredEndpoint();
+            return originalRequest.toBuilder().host(discoveredEndpoint.getHost()).port(discoveredEndpoint.getPort()).build();
+        }
+
         Boolean disableHostPrefixInjection = clientConfiguration.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION);
         if ((disableHostPrefixInjection != null && disableHostPrefixInjection.equals(Boolean.TRUE)) ||
-            StringUtils.isEmpty(hostPrefix)) {
+            StringUtils.isEmpty(executionParams.hostPrefixExpression())) {
             return originalRequest;
         }
 
         return originalRequest.toBuilder()
-                              .host(hostPrefix + originalRequest.host())
+                              .host(executionParams.hostPrefixExpression() + originalRequest.host())
                               .build();
     }
 
