@@ -1,0 +1,16 @@
+{
+    "date": "2019-01-18",
+    "version": "2.3.5",
+    "entries": [
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "Adjust EC2's available instance types."
+        },
+        {
+            "category": "AWS Glue",
+            "type": "feature",
+            "description": "AllocatedCapacity field is being deprecated and replaced with MaxCapacity field"
+        }
+    ]
+}
