@@ -1,5 +1,0 @@
-{
-    "category": "Firewall Management Service", 
-    "type": "feature", 
-    "description": "This release provides support for cleaning up web ACLs during Firewall Management policy deletion. You can now enable the DeleteAllPolicyResources flag and it will delete all system-generated web ACLs."
-}

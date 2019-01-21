@@ -1,5 +1,0 @@
-{
-    "category": "Amazon AppStream", 
-    "type": "feature", 
-    "description": "This API update includes support for tagging Stack, Fleet, and ImageBuilder resources at creation time."
-}

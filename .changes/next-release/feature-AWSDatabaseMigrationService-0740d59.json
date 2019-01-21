@@ -1,5 +1,0 @@
-{
-    "category": "AWS Database Migration Service", 
-    "type": "feature", 
-    "description": "Update for DMS TestConnectionSucceeds waiter"
-}

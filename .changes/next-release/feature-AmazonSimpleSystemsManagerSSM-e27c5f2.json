@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Simple Systems Manager (SSM)", 
-    "type": "feature", 
-    "description": "AWS Systems Manager State Manager now supports configuration management of all AWS resources through integration with Automation."
-}
