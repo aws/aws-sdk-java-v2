@@ -29,6 +29,6 @@ phases:
     - mvn versions:set -DnewVersion=$NEW_VERSION_SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
     - sed -i -E "s/(<version>).+(<\/version>)/\1$RELEASE_VERSION\2/" README.md
     -
-    - 'git commit -am "Update to next snapshot version: $NEXT_VERSION_SNAPSHOT"'
+    - 'git commit -am "Update to next snapshot version: $NEW_VERSION_SNAPSHOT"'
     -
     - git push
