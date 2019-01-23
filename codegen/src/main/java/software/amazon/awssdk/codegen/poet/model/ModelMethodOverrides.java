@@ -78,17 +78,34 @@ public class ModelMethodOverrides {
     }
 
     public MethodSpec toStringMethod(ShapeModel shapeModel) {
+        String javadoc = "Returns a string representation of this object. This is useful for testing and " +
+                         "debugging. Sensitive data will be redacted from this string using a placeholder " +
+                         "value. ";
+
         MethodSpec.Builder toStringMethod = MethodSpec.methodBuilder("toString")
                                                       .returns(String.class)
                                                       .addAnnotation(Override.class)
-                                                      .addModifiers(Modifier.PUBLIC);
+                                                      .addModifiers(Modifier.PUBLIC)
+                                                      .addJavadoc(javadoc);
 
         toStringMethod.addCode("return $T.builder($S)", ToString.class, shapeModel.getShapeName());
         shapeModel.getNonStreamingMembers()
-                  .forEach(m -> toStringMethod.addCode(".add($S, $N())", m.getName(), m.getFluentGetterMethodName()));
+                  .forEach(m -> toStringMethod.addCode(".add($S, ", m.getName())
+                                              .addCode(toStringValue(m))
+                                              .addCode(")"));
         toStringMethod.addCode(".build();");
 
         return toStringMethod.build();
+    }
+
+    public CodeBlock toStringValue(MemberModel member) {
+        if (!member.isSensitive()) {
+            return CodeBlock.of("$L()", member.getFluentGetterMethodName());
+        }
+
+        return CodeBlock.of("$L() == null ? null : $S",
+                            member.getFluentGetterMethodName(),
+                            "*** Sensitive Data Redacted ***");
     }
 
     public MethodSpec hashCodeMethod(ShapeModel shapeModel) {

@@ -69,6 +69,8 @@ public class Shape {
 
     private String timestampFormat;
 
+    private boolean sensitive;
+
     public boolean isFault() {
         return fault;
     }
@@ -247,5 +249,13 @@ public class Shape {
 
     public void setTimestampFormat(String timestampFormat) {
         this.timestampFormat = timestampFormat;
+    }
+
+    public boolean isSensitive() {
+        return sensitive;
+    }
+
+    public void setSensitive(boolean sensitive) {
+        this.sensitive = sensitive;
     }
 }

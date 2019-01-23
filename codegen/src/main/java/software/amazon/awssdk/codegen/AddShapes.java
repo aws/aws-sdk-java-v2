@@ -167,6 +167,7 @@ abstract class AddShapes {
                    .withJsonValue(c2jMemberDefinition.getJsonValue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
+        memberModel.setSensitive(isSensitiveShapeOrContainer(c2jMemberDefinition, allC2jShapes));
         memberModel
                 .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, parentShape, shape))
                 .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, parentShape, shape))
@@ -206,6 +207,26 @@ abstract class AddShapes {
         memberModel.setHttp(httpMapping);
 
         return memberModel;
+    }
+
+    private boolean isSensitiveShapeOrContainer(Member member, Map<String, Shape> allC2jShapes) {
+        if (member == null) {
+            return false;
+        }
+
+        return member.isSensitive() ||
+               isSensitiveShapeOrContainer(allC2jShapes.get(member.getShape()), allC2jShapes);
+    }
+
+    private boolean isSensitiveShapeOrContainer(Shape c2jShape, Map<String, Shape> allC2jShapes) {
+        if (c2jShape == null) {
+            return false;
+        }
+
+        return c2jShape.isSensitive() ||
+               isSensitiveShapeOrContainer(c2jShape.getListMember(), allC2jShapes) ||
+               isSensitiveShapeOrContainer(c2jShape.getMapKeyType(), allC2jShapes) ||
+               isSensitiveShapeOrContainer(c2jShape.getMapValueType(), allC2jShapes);
     }
 
     private String resolveTimestampFormat(Member c2jMemberDefinition, Shape c2jShape) {
