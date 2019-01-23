@@ -251,13 +251,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             return headersFuture.thenCompose(headers -> {
                 if (headers.isSuccessful()) {
                     return transformFuture.thenApply(r -> Response.fromSuccess(r, response));
-                } else {
-                    if (errorTransformFuture != null) {
-                        return errorTransformFuture.thenApply(e -> Response.fromFailure(e, response));
-                    } else {
-                        return CompletableFuture.completedFuture(Response.fromFailure(null, response));
-                    }
                 }
+
+                if (errorTransformFuture != null) {
+                    return errorTransformFuture.thenApply(e -> Response.fromFailure(e, response));
+                }
+                return CompletableFuture.completedFuture(Response.fromFailure(null, response));
             });
         }
     }

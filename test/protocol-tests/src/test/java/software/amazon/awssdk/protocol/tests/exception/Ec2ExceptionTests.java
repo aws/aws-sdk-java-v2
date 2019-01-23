@@ -16,7 +16,7 @@
 package software.amazon.awssdk.protocol.tests.exception;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static util.exception.ExceptionTestUtils.stub404Response;
+import static software.amazon.awssdk.protocol.tests.util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
