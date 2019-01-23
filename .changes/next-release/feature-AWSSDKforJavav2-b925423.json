@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Redact potentially-sensitive data from the `toString` of service request and response objects."
-}

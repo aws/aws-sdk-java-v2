@@ -1,0 +1,36 @@
+{
+    "date": "2019-01-23",
+    "version": "2.3.7",
+    "entries": [
+        {
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "type": "feature",
+            "description": "Added TagOnCreate parameter to the CreateCertificateAuthority operation, updated the Tag regex pattern to align with AWS tagging APIs, and added RevokeCertificate limit."
+        },
+        {
+            "category": "Amazon WorkLink",
+            "type": "feature",
+            "description": "This is the initial SDK release for Amazon WorkLink. Amazon WorkLink is a fully managed, cloud-based service that enables secure, one-click access to internal websites and web apps from mobile phones. With Amazon WorkLink, employees can access internal websites as seamlessly as they access any other website. IT administrators can manage users, devices, and domains by enforcing their own security and access policies via the AWS Console or the AWS SDK."
+        },
+        {
+            "category": "AmazonApiGatewayManagementApi",
+            "type": "feature",
+            "description": "Fixes a typo in the 'max' constraint."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Redact potentially-sensitive data from the `toString` of service request and response objects."
+        },
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Add `OneTimeReadTimeoutHanlder` to requests with `expect: 100-continue` header to avoid unexpected `ReadTimeoutException`. See [#954](https://github.com/aws/aws-sdk-java-v2/issues/954)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed the time marshalling issue when CBOR is disabled. See [#1023](https://github.com/aws/aws-sdk-java-v2/issues/1023)"
+        }
+    ]
+}
