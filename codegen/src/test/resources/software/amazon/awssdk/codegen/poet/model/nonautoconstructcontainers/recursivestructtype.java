@@ -169,6 +169,10 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
                && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
     }
 
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
+     */
     @Override
     public String toString() {
         return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse()).add("RecursiveStruct", recursiveStruct())

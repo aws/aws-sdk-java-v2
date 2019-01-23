@@ -55,6 +55,10 @@ public final class OperationWithNoInputOrOutputRequest extends JsonProtocolTests
         return true;
     }
 
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
+     */
     @Override
     public String toString() {
         return ToString.builder("OperationWithNoInputOrOutputRequest").build();

@@ -80,6 +80,10 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
         return Objects.equals(stringMember(), other.stringMember());
     }
 
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
+     */
     @Override
     public String toString() {
         return ToString.builder("SimpleStruct").add("StringMember", stringMember()).build();

@@ -55,6 +55,8 @@ public class Member {
     @JsonProperty(value = "endpointdiscoveryid")
     private boolean endpointDiscoveryId;
 
+    private boolean sensitive;
+
     public String getShape() {
         return shape;
     }
@@ -181,5 +183,13 @@ public class Member {
 
     public void setEndpointDiscoveryId(boolean endpointDiscoveryId) {
         this.endpointDiscoveryId = endpointDiscoveryId;
+    }
+
+    public boolean isSensitive() {
+        return sensitive;
+    }
+
+    public void setSensitive(boolean sensitive) {
+        this.sensitive = sensitive;
     }
 }

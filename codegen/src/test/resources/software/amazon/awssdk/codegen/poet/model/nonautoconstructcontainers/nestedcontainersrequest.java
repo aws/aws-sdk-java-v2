@@ -214,6 +214,10 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
                && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
+     */
     @Override
     public String toString() {
         return ToString.builder("NestedContainersRequest").add("ListOfListOfStrings", listOfListOfStrings())
