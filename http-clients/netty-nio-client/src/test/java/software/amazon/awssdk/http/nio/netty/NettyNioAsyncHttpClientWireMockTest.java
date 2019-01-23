@@ -47,6 +47,7 @@ import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import java.io.IOException;
 import java.net.Socket;
@@ -84,6 +85,9 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -191,6 +195,29 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
 
         Mockito.verify(channelFactory, atLeastOnce()).newChannel();
+    }
+
+    @Test
+    public void closeClient_shouldCloseUnderlyingResources() {
+        SdkEventLoopGroup eventLoopGroup = SdkEventLoopGroup.builder().build();
+        ChannelPool channelPool = mock(ChannelPool.class);
+        SdkChannelPoolMap<URI, ChannelPool> sdkChannelPoolMap = new SdkChannelPoolMap<URI, ChannelPool>() {
+            @Override
+            protected ChannelPool newPool(URI key) {
+                return channelPool;
+            }
+        };
+
+        sdkChannelPoolMap.get(URI.create("http://blah"));
+        SdkChannelOptions channelOptions = new SdkChannelOptions();
+        NettyConfiguration nettyConfiguration = new NettyConfiguration(AttributeMap.empty());
+
+        SdkAsyncHttpClient client = new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, channelOptions, nettyConfiguration, 1);
+
+        client.close();
+        assertThat(eventLoopGroup.eventLoopGroup().isShuttingDown()).isTrue();
+        assertThat(sdkChannelPoolMap).isEmpty();
+        Mockito.verify(channelPool).close();
     }
 
     /**
