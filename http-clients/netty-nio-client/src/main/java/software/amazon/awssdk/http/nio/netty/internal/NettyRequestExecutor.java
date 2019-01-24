@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -173,12 +172,8 @@ public final class NettyRequestExecutor {
                            return;
                        }
 
-                       // if it is 100ContinueExpected request, then we do not need to add another ReadTimeoutHandler
-                       if (!is100ContinueExpected()) {
-                           channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
-                                                                              TimeUnit.MILLISECONDS));
-                       }
-
+                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                          TimeUnit.MILLISECONDS));
                        channel.read();
 
                    } else {
@@ -189,8 +184,16 @@ public final class NettyRequestExecutor {
                });
 
         if (shouldExplicitlyTriggerRead()) {
-            channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
-                                                               TimeUnit.MILLISECONDS));
+
+            // Should only add an one-time ReadTimeoutHandler to 100 Continue request.
+            if (is100ContinueExpected()) {
+                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                          TimeUnit.MILLISECONDS));
+            } else {
+                channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                   TimeUnit.MILLISECONDS));
+            }
+
             channel.read();
         }
     }

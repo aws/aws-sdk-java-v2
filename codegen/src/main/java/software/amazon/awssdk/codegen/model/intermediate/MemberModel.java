@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -82,6 +83,8 @@ public class MemberModel extends DocumentationModel {
     private boolean eventHeader;
 
     private boolean endpointDiscoveryId;
+
+    private boolean sensitive;
 
     public String getName() {
         return name;
@@ -533,6 +536,14 @@ public class MemberModel extends DocumentationModel {
         return this;
     }
 
+    public void setSensitive(boolean sensitive) {
+        this.sensitive = sensitive;
+    }
+
+    public boolean isSensitive() {
+        return sensitive;
+    }
+
     @JsonIgnore
     public boolean hasBuilder() {
         return !(isSimple() || isList() || isMap());
@@ -551,7 +562,7 @@ public class MemberModel extends DocumentationModel {
 
     /**
      * @return Marshalling type to use when creating a {@link SdkField}. Must be a
-     * field of {@link software.amazon.awssdk.core.protocol.MarshallingType}.
+     * field of {@link MarshallingType}.
      */
     public String getMarshallingType() {
         if (isList()) {

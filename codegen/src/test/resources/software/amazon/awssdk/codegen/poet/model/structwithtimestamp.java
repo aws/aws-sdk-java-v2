@@ -82,6 +82,10 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
         return Objects.equals(nestedTimestamp(), other.nestedTimestamp());
     }
 
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value.
+     */
     @Override
     public String toString() {
         return ToString.builder("StructWithTimestamp").add("NestedTimestamp", nestedTimestamp()).build();

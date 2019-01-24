@@ -1,0 +1,98 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"tostring",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"ToString",
+    "serviceFullName":"Amazon ToString",
+    "serviceId":"ToString",
+    "signatureVersion":"v4",
+    "targetPrefix":"ToString",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations" : {
+    "ToStringTest":{
+      "name":"ToStringTest",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2018-08-19/tostringtest"
+      },
+      "input":{"shape":"InputShape"},
+      "output":{"shape":"OutputShape"}
+    }
+  },
+  "shapes": {
+    "InputShape": {
+      "type": "structure",
+      "members": {
+        "RecursiveShape": {
+          "shape": "InputShape"
+        },
+        "String": {
+          "shape": "String"
+        },
+        "SensitiveString": {
+          "shape": "SensitiveString"
+        },
+        "ListOfSensitiveString": {
+          "shape": "ListOfSensitiveString"
+        },
+        "ListOfListOfSensitiveString": {
+          "shape": "ListOfListOfSensitiveString"
+        },
+        "MapOfSensitiveStringToString": {
+          "shape": "MapOfSensitiveStringToString"
+        },
+        "MapOfStringToSensitiveString": {
+          "shape": "MapOfStringToSensitiveString"
+        },
+        "MapOfStringToListOfListOfSensitiveString": {
+          "shape": "MapOfStringToListOfListOfSensitiveString"
+        },
+        "StringMemberMarkedSensitive": {
+          "shape": "String",
+          "sensitive": true
+        }
+      }
+    },
+    "OutputShape": {
+      "type": "structure",
+      "members": {}
+    },
+    "String":{"type":"string"},
+    "SensitiveString": {
+      "type": "string",
+      "sensitive": true
+    },
+    "ListOfSensitiveString": {
+      "type": "list",
+      "member": {
+        "shape": "SensitiveString"
+      }
+    },
+    "ListOfListOfSensitiveString": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfSensitiveString"
+      }
+    },
+    "MapOfSensitiveStringToString": {
+      "type": "map",
+      "key":{"shape": "SensitiveString"},
+      "value":{"shape":"String"}
+    },
+    "MapOfStringToSensitiveString": {
+      "type": "map",
+      "key":{"shape": "String"},
+      "value":{"shape":"SensitiveString"}
+    },
+    "MapOfStringToListOfListOfSensitiveString": {
+      "type": "map",
+      "key":{"shape": "String"},
+      "value":{"shape":"ListOfListOfSensitiveString"}
+    }
+  }
+}

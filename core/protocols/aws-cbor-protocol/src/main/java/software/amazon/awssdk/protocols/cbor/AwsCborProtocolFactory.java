@@ -16,7 +16,7 @@
 package software.amazon.awssdk.protocols.cbor;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -75,7 +75,13 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
      */
     @Override
     protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+
+        // If Cbor is disabled, getting the default timestamp format from parent class
+        if (!isCborEnabled()) {
+            return super.getDefaultTimestampFormats();
+        }
+
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS);
         return Collections.unmodifiableMap(formats);
