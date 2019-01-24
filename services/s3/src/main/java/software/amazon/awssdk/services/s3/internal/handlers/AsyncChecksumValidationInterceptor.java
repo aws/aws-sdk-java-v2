@@ -80,7 +80,7 @@ public final class AsyncChecksumValidationInterceptor implements ExecutionInterc
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
 
         boolean putObjectChecksumsEnabled =
-            putObjectChecksumEnabled(context.request(), ASYNC, executionAttributes, context.httpResponse());
+            putObjectChecksumEnabled(context.request(), ASYNC, executionAttributes, context.httpRequest());
 
         if (putObjectChecksumsEnabled) {
             validatePutObjectChecksum((PutObjectResponse) context.response(), executionAttributes);

@@ -17,30 +17,46 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.CLIENT_TYPE;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.CHECKSUM;
+import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Optional;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.checksums.Md5Checksum;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingAsyncRequestBody;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.InterceptorTestUtils;
+import software.amazon.awssdk.utils.internal.Base16Lower;
 
 public class AsyncChecksumValidationInterceptorTest {
+
+    private static final byte[] CONTENT_BYTES = "CONTENT".getBytes(Charset.forName("UTF-8"));
+    private static final String VALID_CHECKSUM = Base16Lower.encodeAsString(checkSumFor(CONTENT_BYTES).getChecksumBytes());
+    private static final String INVALID_CHECKSUM = "3902ee7e149eb8313a34757e89e21af6";
 
     private AsyncChecksumValidationInterceptor interceptor = new AsyncChecksumValidationInterceptor();
 
@@ -115,6 +131,78 @@ public class AsyncChecksumValidationInterceptorTest {
 
     }
 
+    @Test
+    public void afterUnmarshalling_putObjectRequest_shouldValidateChecksum() {
+        SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
+
+        PutObjectResponse response = PutObjectResponse.builder()
+                                                      .eTag(VALID_CHECKSUM)
+                                                      .build();
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                                                            .build();
+
+        SdkHttpRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                                                          .uri(URI.create("http://localhost:8080"))
+                                                          .method(SdkHttpMethod.PUT)
+                                                          .build();
+
+        Context.AfterUnmarshalling afterUnmarshallingContext =
+            InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
+
+        interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum());
+    }
+
+    @Test
+    public void afterUnmarshalling_putObjectRequest_shouldValidateChecksum_throwExceptionIfInvalid() {
+        SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
+
+        PutObjectResponse response = PutObjectResponse.builder()
+                                                      .eTag(INVALID_CHECKSUM)
+                                                      .build();
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder().build();
+
+        SdkHttpRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                                                          .uri(URI.create("http://localhost:8080"))
+                                                          .method(SdkHttpMethod.PUT)
+                                                          .build();
+
+        Context.AfterUnmarshalling afterUnmarshallingContext =
+            InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
+
+        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum()))
+                .hasMessage("Data read has a different checksum than expected.");
+    }
+
+    @Test
+    public void afterUnmarshalling_putObjectRequest_with_SSE_shouldNotValidateChecksum() {
+        SdkHttpResponse sdkHttpResponse = getSdkHttpResponseWithChecksumHeader();
+
+        PutObjectResponse response = PutObjectResponse.builder()
+                                                      .eTag(INVALID_CHECKSUM)
+                                                      .build();
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder().build();
+
+        SdkHttpRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                                                          .putHeader(SERVER_SIDE_ENCRYPTION_HEADER, AWS_KMS.toString())
+                                                          .putHeader("x-amz-server-side-encryption-aws-kms-key-id", ENABLE_MD5_CHECKSUM_HEADER_VALUE)
+                                                          .uri(URI.create("http://localhost:8080"))
+                                                          .method(SdkHttpMethod.PUT)
+                                                          .build();
+
+        Context.AfterUnmarshalling afterUnmarshallingContext =
+            InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
+
+        interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum());
+    }
+
+    private ExecutionAttributes getExecutionAttributesWithChecksum() {
+        SdkChecksum checksum = checkSumFor(CONTENT_BYTES);
+        return getExecutionAttributes().putAttribute(CHECKSUM, checksum);
+    }
+
     private ExecutionAttributes getExecutionAttributes() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         executionAttributes.putAttribute(CLIENT_TYPE, ASYNC);
@@ -133,4 +221,11 @@ public class AsyncChecksumValidationInterceptorTest {
         executionAttributes.putAttribute(SERVICE_CONFIG, S3Configuration.builder().checksumValidationEnabled(false).build());
         return executionAttributes;
     }
+
+    private static SdkChecksum checkSumFor(byte[] bytes) {
+        SdkChecksum checksum = new Md5Checksum();
+        checksum.update(bytes, 0, bytes.length);
+        return checksum;
+    }
+
 }
