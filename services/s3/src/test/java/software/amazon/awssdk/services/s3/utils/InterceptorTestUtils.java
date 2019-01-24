@@ -162,4 +162,48 @@ public final class InterceptorTestUtils {
             }
         };
     }
+
+    public static Context.AfterUnmarshalling afterUnmarshallingContext(SdkRequest request, SdkHttpRequest sdkHttpRequest, SdkResponse response, SdkHttpResponse sdkHttpResponse) {
+        return new Context.AfterUnmarshalling() {
+            @Override
+            public SdkResponse response() {
+                return response;
+            }
+
+            @Override
+            public SdkHttpResponse httpResponse() {
+                return sdkHttpResponse;
+            }
+
+            @Override
+            public Optional<Publisher<ByteBuffer>> responsePublisher() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<InputStream> responseBody() {
+                return Optional.empty();
+            }
+
+            @Override
+            public SdkHttpRequest httpRequest() {
+                return sdkHttpRequest;
+            }
+
+            @Override
+            public Optional<RequestBody> requestBody() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<AsyncRequestBody> asyncRequestBody() {
+                return Optional.empty();
+            }
+
+            @Override
+            public SdkRequest request() {
+                return request;
+            }
+        };
+    }
 }
