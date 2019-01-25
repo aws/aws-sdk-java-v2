@@ -1,0 +1,5 @@
+{
+    "category": "AWS Device Farm", 
+    "type": "feature", 
+    "description": "Introduces a new rule in Device Pools - \"Availability\". Customers can now ensure they pick devices that are available (i.e., not being used by other customers)."
+}
