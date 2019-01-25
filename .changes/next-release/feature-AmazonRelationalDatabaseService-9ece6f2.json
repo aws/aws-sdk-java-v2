@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Relational Database Service", 
+    "type": "feature", 
+    "description": "The Amazon RDS API allows you to add or remove Identity and Access Management (IAM) role associated with a specific feature name with an RDS database instance. This helps with capabilities such as invoking Lambda functions from within a trigger in the database, load data from Amazon S3 and so on"
+}
