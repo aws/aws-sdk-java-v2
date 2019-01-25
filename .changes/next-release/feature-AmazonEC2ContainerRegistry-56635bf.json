@@ -1,5 +1,0 @@
-{
-    "category": "Amazon EC2 Container Registry", 
-    "type": "feature", 
-    "description": "Amazon ECR updated the default endpoint URL to support AWS Private Link."
-}

@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodeBuild", 
-    "type": "feature", 
-    "description": "This release adds support for cross-account ECR images and private registry authentication."
-}
