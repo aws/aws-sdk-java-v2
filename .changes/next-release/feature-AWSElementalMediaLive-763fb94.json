@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaLive", 
-    "type": "feature", 
-    "description": "This release adds support for Frame Capture output groups and for I-frame only manifests (playlists) in HLS output groups."
-}

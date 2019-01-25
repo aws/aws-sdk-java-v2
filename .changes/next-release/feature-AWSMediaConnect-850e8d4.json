@@ -1,5 +1,0 @@
-{
-    "category": "AWS MediaConnect", 
-    "type": "feature", 
-    "description": "This release adds support for tagging, untagging, and listing tags for existing AWS Elemental MediaConnect resources."
-}
