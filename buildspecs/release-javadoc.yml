@@ -11,7 +11,7 @@ phases:
 
   build:
     commands:
-    - mvn javadoc:aggregate -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:module-path-tests'
+    - mvn install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:module-path-tests'
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     -
     - aws s3 sync target/site/apidocs/ $DOC_PATH/$RELEASE_VERSION/
