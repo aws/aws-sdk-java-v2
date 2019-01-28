@@ -240,6 +240,11 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private void onEventComplete() {
         synchronized (this) {
+            // No op if it's already done
+            if (isDone) {
+                return;
+            }
+
             isDone = true;
             runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
                 () -> subscriberRef.get().onComplete());
@@ -462,11 +467,24 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         if (isDone) {
             return;
         }
+
+        if (isCompletedOrDeliverEvent()) {
+            onEventComplete();
+        }
+    }
+
+    /**
+     * Checks whether the eventsToDeliver is completed and if it is not completed,
+     * deliver more events
+     *
+     * @return true if the eventsToDeliver is completed, otherwise false.
+     */
+    private boolean isCompletedOrDeliverEvent() {
         synchronized (eventsToDeliver) {
             if (eventsToDeliver.peek() == ON_COMPLETE_EVENT) {
-                onEventComplete();
-                return;
+                return true;
             }
+
             if (eventsToDeliver.isEmpty() || remainingDemand.get() == 0) {
                 isDelivering.compareAndSet(true, false);
                 // If we still have demand to fulfill then request more if we aren't already requesting
@@ -478,9 +496,16 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                 Object event = eventsToDeliver.remove();
                 remainingDemand.decrementAndGet();
                 CompletableFuture.runAsync(() -> deliverEvent(event), executor)
-                                 .thenRunAsync(this::drainEvents, executor);
+                                 .thenRunAsync(this::drainEvents, executor)
+                                 .whenComplete((v, t) -> {
+                                     if (t != null) {
+                                         log.error("Error occurred when delivering an event", t);
+                                         throw SdkClientException.create("fail to deliver events", t);
+                                     }
+                                 });
             }
         }
+        return false;
     }
 
     /**
