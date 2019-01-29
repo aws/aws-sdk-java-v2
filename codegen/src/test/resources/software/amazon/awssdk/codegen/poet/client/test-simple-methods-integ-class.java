@@ -23,7 +23,7 @@ public class SimpleMethodsIntegrationTest {
     }
 
     @Test
-    public void getWithoutRequiredMembers_SimpleMethod_Succeeds() throws Exception {
-        client.getWithoutRequiredMembers();
+    public void paginatedOperationWithResultKey_SimpleMethod_Succeeds() throws Exception {
+        client.paginatedOperationWithResultKey();
     }
 }

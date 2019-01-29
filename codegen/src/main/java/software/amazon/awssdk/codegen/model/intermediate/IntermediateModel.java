@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import static software.amazon.awssdk.codegen.internal.Constant.APPROVED_SIMPLE_METHOD_VERBS;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,12 +35,6 @@ import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.utils.IoUtils;
 
 public final class IntermediateModel {
-
-    /**
-     * This is used for all service clients unless overridden in the Customizations file.
-     */
-    private static final String DEFAULT_CLIENT_CONFIG_FACTORY = "LegacyClientConfigurationFactory";
-
     private final Metadata metadata;
 
     private final Map<String, OperationModel> operations;
@@ -203,8 +195,6 @@ public final class IntermediateModel {
     public List<OperationModel> simpleMethodsRequiringTesting() {
         return getOperations().values().stream()
                               .filter(v -> v.getInputShape().isSimpleMethod())
-                              .filter(v -> !getCustomizationConfig().getVerifiedSimpleMethods().contains(v.getMethodName()))
-                              .filter(v -> v.getMethodName().matches(APPROVED_SIMPLE_METHOD_VERBS))
                               .collect(Collectors.toList());
     }
 
