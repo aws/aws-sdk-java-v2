@@ -45,6 +45,7 @@ import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -247,24 +248,24 @@ public class IntermediateModelBuilder {
     }
 
     private void setSimpleMethods(IntermediateModel model) {
-        model.getOperations().entrySet().forEach(m -> {
+        CustomizationConfig config = model.getCustomizationConfig();
+        model.getOperations().values().forEach(operation -> {
+            ShapeModel inputShape = operation.getInputShape();
+            String methodName = operation.getMethodName();
 
-            ShapeModel inputShape = m.getValue().getInputShape();
-            String methodName = m.getValue().getMethodName();
-            CustomizationConfig config = model.getCustomizationConfig();
+            if (config.getVerifiedSimpleMethods().contains(methodName)) {
+                inputShape.setSimpleMethod(true);
+            } else {
+                inputShape.setSimpleMethod(false);
 
-            if (inputShape.getRequired() == null
-                && !config.getBlacklistedSimpleMethods().contains(methodName)
-                && !(config.getBlacklistedSimpleMethods().size() == 1 && config.getBlacklistedSimpleMethods().get(0).equals("*"))
-                && !m.getValue().hasStreamingInput()
-                && !m.getValue().hasStreamingOutput()) {
+                boolean methodIsNotBlacklisted = !config.getBlacklistedSimpleMethods().contains(methodName) ||
+                                                 config.getBlacklistedSimpleMethods().stream().noneMatch(m -> m.equals("*"));
+                boolean methodHasNoRequiredMembers = !CollectionUtils.isNullOrEmpty(inputShape.getRequired());
+                boolean methodIsNotStreaming = !operation.isStreaming();
+                boolean methodHasSimpleMethodVerb = methodName.matches(Constant.APPROVED_SIMPLE_METHOD_VERBS);
 
-                if (!methodName.matches(Constant.APPROVED_SIMPLE_METHOD_VERBS) &&
-                    !config.getVerifiedSimpleMethods().contains(methodName)) {
-                    // TODO: How do we prevent these from being missed before services launch?
-                    log.warn("Simple method encountered that is not approved or blacklisted: " + methodName);
-                } else {
-                    inputShape.setSimpleMethod(true);
+                if (methodIsNotBlacklisted && methodHasNoRequiredMembers && methodIsNotStreaming && methodHasSimpleMethodVerb) {
+                    log.warn("A potential simple method exists that isn't whitelisted or blacklisted: " + methodName);
                 }
             }
         });
