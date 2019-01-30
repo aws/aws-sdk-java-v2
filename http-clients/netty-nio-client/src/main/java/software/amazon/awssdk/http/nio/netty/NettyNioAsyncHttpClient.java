@@ -43,6 +43,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -86,6 +87,19 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
         this.sdkChannelOptions = channelOptions(builder);
+    }
+
+    @SdkTestInternalApi
+    NettyNioAsyncHttpClient(SdkEventLoopGroup sdkEventLoopGroup,
+                            SdkChannelPoolMap<URI, ChannelPool> pools,
+                            SdkChannelOptions sdkChannelOptions,
+                            NettyConfiguration configuration,
+                            long maxStreams) {
+        this.sdkEventLoopGroup = sdkEventLoopGroup;
+        this.pools = pools;
+        this.sdkChannelOptions = sdkChannelOptions;
+        this.configuration = configuration;
+        this.maxStreams = maxStreams;
     }
 
     private SdkChannelOptions channelOptions(DefaultBuilder builder) {
@@ -171,7 +185,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
-        pools.forEach(e -> runAndLogError(log, "Unable to close channel pool for " + e.getKey(), e.getValue()::close));
+        runAndLogError(log, "Unable to close channel pools", pools::close);
         runAndLogError(log, "Unable to shutdown event loop", sdkEventLoopGroup.eventLoopGroup()::shutdownGracefully);
     }
 
