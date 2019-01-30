@@ -75,6 +75,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         }
 
         pipeline.addLast(new FutureCancelHandler());
+        pipeline.addLast(new UnusedChannelExceptionHandler());
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
