@@ -54,6 +54,19 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("ConnectionAcquireTimeout", Duration.class);
 
     /**
+     * Timeout after which an idle connection should be closed.
+     */
+    public static final SdkHttpConfigurationOption<Duration> CONNECTION_MAX_IDLE_TIMEOUT =
+            new SdkHttpConfigurationOption<>("ConnectionMaxIdleTimeout", Duration.class);
+
+    /**
+     * Timeout after which a connection should be closed, regardless of whether it is idle. Zero indicates an infinite amount
+     * of time.
+     */
+    public static final SdkHttpConfigurationOption<Duration> CONNECTION_TIME_TO_LIVE =
+            new SdkHttpConfigurationOption<>("ConnectionTimeToLive", Duration.class);
+
+    /**
      * Maximum number of connections allowed in a connection pool.
      */
     public static final SdkHttpConfigurationOption<Integer> MAX_CONNECTIONS =
@@ -64,6 +77,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
      */
     public static final SdkHttpConfigurationOption<Protocol> PROTOCOL =
         new SdkHttpConfigurationOption<>("Protocol", Protocol.class);
+
     /**
      * Maximum number of requests allowed to wait for a connection.
      */
@@ -77,10 +91,19 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
             new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
 
+    /**
+     * Whether idle connection should be removed after the {@link #CONNECTION_MAX_IDLE_TIMEOUT} has passed.
+     */
+    public static final SdkHttpConfigurationOption<Boolean> REAP_IDLE_CONNECTIONS =
+            new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
+
     private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
     private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration DEFAULT_CONNECTION_MAX_IDLE_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration DEFAULT_CONNECTION_TIME_TO_LIVE = Duration.ZERO;
+    private static final Boolean DEFAULT_REAP_IDLE_CONNECTIONS = Boolean.TRUE;
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
@@ -93,10 +116,13 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(WRITE_TIMEOUT, DEFAULT_SOCKET_WRITE_TIMEOUT)
             .put(CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT)
             .put(CONNECTION_ACQUIRE_TIMEOUT, DEFAULT_CONNECTION_ACQUIRE_TIMEOUT)
+            .put(CONNECTION_MAX_IDLE_TIMEOUT, DEFAULT_CONNECTION_MAX_IDLE_TIMEOUT)
+            .put(CONNECTION_TIME_TO_LIVE, DEFAULT_CONNECTION_TIME_TO_LIVE)
             .put(MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
             .put(MAX_PENDING_CONNECTION_ACQUIRES, DEFAULT_MAX_CONNECTION_ACQUIRES)
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
+            .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
             .build();
 
     private final String name;

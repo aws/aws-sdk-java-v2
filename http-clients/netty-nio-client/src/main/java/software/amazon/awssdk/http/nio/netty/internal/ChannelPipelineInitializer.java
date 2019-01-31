@@ -49,15 +49,18 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final SslContext sslCtx;
     private final long clientMaxStreams;
     private final AtomicReference<ChannelPool> channelPoolRef;
+    private final NettyConfiguration configuration;
 
     public ChannelPipelineInitializer(Protocol protocol,
                                       SslContext sslCtx,
                                       long clientMaxStreams,
-                                      AtomicReference<ChannelPool> channelPoolRef) {
+                                      AtomicReference<ChannelPool> channelPoolRef,
+                                      NettyConfiguration configuration) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
         this.channelPoolRef = channelPoolRef;
+        this.configuration = configuration;
     }
 
     @Override
@@ -73,6 +76,14 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             configureHttp2(ch, pipeline);
         } else {
             configureHttp11(ch, pipeline);
+        }
+
+        if (configuration.reapIdleConnections()) {
+            pipeline.addLast(new IdleConnectionReaperHandler(configuration.idleTimeoutMillis()));
+        }
+
+        if (configuration.connectionTtlMillis() > 0) {
+            pipeline.addLast(new OldConnectionReaperHandler(configuration.connectionTtlMillis()));
         }
 
         pipeline.addLast(new FutureCancelHandler());

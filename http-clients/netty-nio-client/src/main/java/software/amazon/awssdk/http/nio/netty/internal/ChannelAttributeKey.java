@@ -71,6 +71,11 @@ public final class ChannelAttributeKey {
      */
     static final AttributeKey<Boolean> IN_USE = AttributeKey.newInstance("aws.http.nio.netty.async.inUse");
 
+    /**
+     * Whether the channel should be closed once it is released.
+     */
+    static final AttributeKey<Boolean> CLOSE_ON_RELEASE = AttributeKey.newInstance("aws.http.nio.netty.async.closeOnRelease");
+
     private ChannelAttributeKey() {
     }
 

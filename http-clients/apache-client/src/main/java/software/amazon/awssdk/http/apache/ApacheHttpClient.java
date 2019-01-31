@@ -19,7 +19,9 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
@@ -134,7 +136,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
                .disableContentCompression()
-               .setKeepAliveStrategy(buildKeepAliveStrategy(configuration))
+               .setKeepAliveStrategy(buildKeepAliveStrategy(standardOptions))
                .disableRedirectHandling()
                .disableAutomaticRetries()
                .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
@@ -144,7 +146,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         if (useIdleConnectionReaper(configuration)) {
             IdleConnectionReaper.getInstance().registerConnectionManager(
-                    cm, connectionMaxIdleTime(configuration).toMillis());
+                    cm, resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis());
         }
 
         return new ApacheSdkHttpClient(builder.build(), cm);
@@ -167,14 +169,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
     }
 
-    private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheHttpClient.DefaultBuilder configuration) {
-        long maxIdle = connectionMaxIdleTime(configuration).toMillis();
+    private ConnectionKeepAliveStrategy buildKeepAliveStrategy(AttributeMap standardOptions) {
+        long maxIdle = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
-    }
-
-    private Duration connectionMaxIdleTime(DefaultBuilder configuration) {
-        return Optional.ofNullable(configuration.connectionMaxIdleTime)
-                       .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME);
     }
 
     private boolean useIdleConnectionReaper(DefaultBuilder configuration) {
@@ -336,7 +333,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * Configure whether the idle connections in the connection pool should be closed asynchronously.
          * <p>
          * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
-         * closed. If no value is set, the default value of {@link DefaultConfiguration#MAX_IDLE_CONNECTION_TIME} is used.
+         * closed. This will not close connections currently in use. By default, this is enabled.
          */
         Builder useIdleConnectionReaper(Boolean useConnectionReaper);
     }
@@ -346,8 +343,6 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
-        private Duration connectionTimeToLive;
-        private Duration connectionMaxIdleTime;
         private Boolean useIdleConnectionReaper;
 
         private DefaultBuilder() {
@@ -431,7 +426,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder connectionTimeToLive(Duration connectionTimeToLive) {
-            this.connectionTimeToLive = connectionTimeToLive;
+            standardOptions.put(CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
             return this;
         }
 
@@ -441,7 +436,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout) {
-            this.connectionMaxIdleTime = maxIdleConnectionTimeout;
+            standardOptions.put(CONNECTION_MAX_IDLE_TIMEOUT, maxIdleConnectionTimeout);
             return this;
         }
 
@@ -478,9 +473,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                     null,
                     DefaultSchemePortResolver.INSTANCE,
                     null,
-                    Optional.ofNullable(configuration.connectionTimeToLive)
-                            .orElse(DefaultConfiguration.CONNECTION_POOL_TTL)
-                            .toMillis(),
+                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
                     TimeUnit.MILLISECONDS);
 
             cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));

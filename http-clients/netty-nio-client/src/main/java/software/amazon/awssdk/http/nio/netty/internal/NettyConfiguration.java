@@ -68,4 +68,16 @@ public final class NettyConfiguration {
     public int writeTimeoutMillis() {
         return saturatedCast(configuration.get(SdkHttpConfigurationOption.WRITE_TIMEOUT).toMillis());
     }
+
+    public int idleTimeoutMillis() {
+        return saturatedCast(configuration.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis());
+    }
+
+    public int connectionTtlMillis() {
+        return saturatedCast(configuration.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis());
+    }
+
+    public boolean reapIdleConnections() {
+        return configuration.get(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS);
+    }
 }
