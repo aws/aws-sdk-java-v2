@@ -223,7 +223,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link
          * software.amazon.awssdk.services.s3.model.UploadPartRequest}.
          *
-         * @see S3Configuration#accelerateModeEnabled()
+         * @see S3Configuration#chunkedEncodingEnabled()
          */
         Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
     }

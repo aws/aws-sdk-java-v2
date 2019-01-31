@@ -61,6 +61,7 @@ import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -76,6 +77,7 @@ import software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheHttpRequestFactory;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -99,6 +101,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
     private final ConnectionManagerAwareHttpClient httpClient;
     private final ApacheHttpRequestConfig requestConfig;
     private final AttributeMap resolvedOptions;
+
+    @SdkTestInternalApi
+    ApacheHttpClient(ConnectionManagerAwareHttpClient httpClient,
+                     ApacheHttpRequestConfig requestConfig,
+                     AttributeMap resolvedOptions) {
+        this.httpClient = httpClient;
+        this.requestConfig = requestConfig;
+        this.resolvedOptions = resolvedOptions;
+    }
 
     private ApacheHttpClient(DefaultBuilder builder, AttributeMap resolvedOptions) {
         this.httpClient = createClient(builder, resolvedOptions);
@@ -136,7 +147,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                     cm, connectionMaxIdleTime(configuration).toMillis());
         }
 
-        return new software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient(builder.build(), cm);
+        return new ApacheSdkHttpClient(builder.build(), cm);
     }
 
     private void addProxyConfig(HttpClientBuilder builder,

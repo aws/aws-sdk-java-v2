@@ -51,11 +51,10 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
 
-public class SubscribeToShardIntegrationTest {
+public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
     private String streamName;
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
-    private static KinesisAsyncClient client;
     private static String consumerArn;
     private static String shardId;
 
@@ -63,29 +62,27 @@ public class SubscribeToShardIntegrationTest {
     public void setup() throws InterruptedException {
         streamName = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
 
-        client = KinesisAsyncClient.builder()
-                                   .build();
-        client.createStream(r -> r.streamName(streamName)
-                                  .shardCount(1)).join();
+        asyncClient.createStream(r -> r.streamName(streamName)
+                                       .shardCount(1)).join();
         waitForStreamToBeActive();
-        String streamARN = client.describeStream(r -> r.streamName(streamName)).join()
-                                 .streamDescription()
-                                 .streamARN();
+        String streamARN = asyncClient.describeStream(r -> r.streamName(streamName)).join()
+                                      .streamDescription()
+                                      .streamARN();
 
-        this.shardId = client.listShards(r -> r.streamName(streamName))
-                             .join()
-                             .shards().get(0).shardId();
-        this.consumerArn = client.registerStreamConsumer(r -> r.streamARN(streamARN)
-                                                               .consumerName(CONSUMER_NAME)).join()
-                                 .consumer()
-                                 .consumerARN();
+        this.shardId = asyncClient.listShards(r -> r.streamName(streamName))
+                                  .join()
+                                  .shards().get(0).shardId();
+        this.consumerArn = asyncClient.registerStreamConsumer(r -> r.streamARN(streamARN)
+                                                                    .consumerName(CONSUMER_NAME)).join()
+                                      .consumer()
+                                      .consumerARN();
         waitForConsumerToBeActive();
     }
 
     @After
     public void tearDown() {
-        client.deleteStream(r -> r.streamName(streamName)
-                                  .enforceConsumerDeletion(true)).join();
+        asyncClient.deleteStream(r -> r.streamName(streamName)
+                                       .enforceConsumerDeletion(true)).join();
     }
 
     @Test
@@ -101,15 +98,15 @@ public class SubscribeToShardIntegrationTest {
             s.records().stream()
              .map(Record::data)
              .collect(Collectors.toList()));
-        client.subscribeToShard(r -> r.consumerARN(consumerArn)
-                                      .shardId(shardId)
-                                      .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
-                                SubscribeToShardResponseHandler.builder()
-                                                               .onEventStream(p -> p.filter(SubscribeToShardEvent.class)
-                                                                                    .subscribe(eventConsumer))
-                                                               .onResponse(this::verifyHttpMetadata)
-                                                               .build())
-              .join();
+        asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                                           .shardId(shardId)
+                                           .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                                     SubscribeToShardResponseHandler.builder()
+                                                                    .onEventStream(p -> p.filter(SubscribeToShardEvent.class)
+                                                                                         .subscribe(eventConsumer))
+                                                                    .onResponse(this::verifyHttpMetadata)
+                                                                    .build())
+                   .join();
         producer.shutdown();
         // Make sure we all the data we received was data we published, we may have published more
         // if the producer isn't shutdown immediately after we finish subscribing.
@@ -121,50 +118,50 @@ public class SubscribeToShardIntegrationTest {
         AtomicBoolean terminalCalled = new AtomicBoolean(false);
         AtomicReference<Throwable> exceptionOccurredThrowable = new AtomicReference<>();
         try {
-            client.subscribeToShard(r -> r.consumerARN(consumerArn)
-                                          .shardId(shardId)
-                                          .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
-                                    new SubscribeToShardResponseHandler() {
-                                        @Override
-                                        public void responseReceived(SubscribeToShardResponse response) {
-                                            verifyHttpMetadata(response);
-                                        }
+            asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                                               .shardId(shardId)
+                                               .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                                         new SubscribeToShardResponseHandler() {
+                                             @Override
+                                             public void responseReceived(SubscribeToShardResponse response) {
+                                                 verifyHttpMetadata(response);
+                                             }
 
-                                        @Override
-                                        public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
-                                            publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
-                                                @Override
-                                                public void onSubscribe(Subscription subscription) {
-                                                    subscription.request(10);
-                                                }
+                                             @Override
+                                             public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
+                                                 publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
+                                                     @Override
+                                                     public void onSubscribe(Subscription subscription) {
+                                                         subscription.request(10);
+                                                     }
 
-                                                @Override
-                                                public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
-                                                }
+                                                     @Override
+                                                     public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
+                                                     }
 
-                                                @Override
-                                                public void onError(Throwable throwable) {
-                                                    terminalCalled.set(true);
-                                                }
+                                                     @Override
+                                                     public void onError(Throwable throwable) {
+                                                         terminalCalled.set(true);
+                                                     }
 
-                                                @Override
-                                                public void onComplete() {
-                                                    terminalCalled.set(true);
-                                                }
-                                            });
-                                        }
+                                                     @Override
+                                                     public void onComplete() {
+                                                         terminalCalled.set(true);
+                                                     }
+                                                 });
+                                             }
 
-                                        @Override
-                                        public void exceptionOccurred(Throwable throwable) {
-                                            // Expected to be called
-                                            exceptionOccurredThrowable.set(throwable);
-                                        }
+                                             @Override
+                                             public void exceptionOccurred(Throwable throwable) {
+                                                 // Expected to be called
+                                                 exceptionOccurredThrowable.set(throwable);
+                                             }
 
-                                        @Override
-                                        public void complete() {
-                                            terminalCalled.set(true);
-                                        }
-                                    }).join();
+                                             @Override
+                                             public void complete() {
+                                                 terminalCalled.set(true);
+                                             }
+                                         }).join();
             fail("Expected exception");
         } catch (CompletionException e) {
             assertThat(e.getCause().getCause()).isInstanceOf(SdkCancellationException.class);
@@ -175,17 +172,17 @@ public class SubscribeToShardIntegrationTest {
     }
 
     private static void waitForConsumerToBeActive() throws InterruptedException {
-        waitUntilTrue(() -> ConsumerStatus.ACTIVE == client.describeStreamConsumer(r -> r.consumerARN(consumerArn))
-                                                           .join()
-                                                           .consumerDescription()
-                                                           .consumerStatus());
+        waitUntilTrue(() -> ConsumerStatus.ACTIVE == asyncClient.describeStreamConsumer(r -> r.consumerARN(consumerArn))
+                                                                .join()
+                                                                .consumerDescription()
+                                                                .consumerStatus());
     }
 
     private void waitForStreamToBeActive() throws InterruptedException {
-        waitUntilTrue(() -> StreamStatus.ACTIVE == client.describeStream(r -> r.streamName(streamName))
-                                                         .join()
-                                                         .streamDescription()
-                                                         .streamStatus());
+        waitUntilTrue(() -> StreamStatus.ACTIVE == asyncClient.describeStream(r -> r.streamName(streamName))
+                                                              .join()
+                                                              .streamDescription()
+                                                              .streamStatus());
     }
 
     private static void waitUntilTrue(Supplier<Boolean> state) throws InterruptedException {
@@ -210,12 +207,12 @@ public class SubscribeToShardIntegrationTest {
     private Optional<SdkBytes> putRecord() {
         try {
             SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(50));
-            client.putRecord(PutRecordRequest.builder()
-                                             .streamName(streamName)
-                                             .data(data)
-                                             .partitionKey(UUID.randomUUID().toString())
-                                             .build())
-                  .join();
+            asyncClient.putRecord(PutRecordRequest.builder()
+                                                  .streamName(streamName)
+                                                  .data(data)
+                                                  .partitionKey(UUID.randomUUID().toString())
+                                                  .build())
+                       .join();
             return Optional.of(data);
         } catch (Exception e) {
             e.printStackTrace();

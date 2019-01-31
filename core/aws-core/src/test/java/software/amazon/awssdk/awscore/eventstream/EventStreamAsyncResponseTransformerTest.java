@@ -93,6 +93,58 @@ public class EventStreamAsyncResponseTransformerTest {
     }
 
     @Test
+    public void devilSubscriber_requestDataAfterComplete() throws InterruptedException {
+
+        Message eventMessage = new Message(ImmutableMap.of(":message-type", HeaderValue.fromString("event"),
+                                                           ":event-type", HeaderValue.fromString("foo")),
+                                           "helloworld".getBytes());
+
+        CountDownLatch latch = new CountDownLatch(1);
+        Flowable<ByteBuffer> bytePublisher = Flowable.just(eventMessage.toByteBuffer(), eventMessage.toByteBuffer());
+        AtomicInteger numEvents = new AtomicInteger(0);
+
+        Subscriber<Object> requestAfterCompleteSubscriber = new Subscriber<Object>() {
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                this.subscription = subscription;
+                subscription.request(1);
+            }
+
+            @Override
+            public void onNext(Object o) {
+                subscription.request(1);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+            }
+
+            @Override
+            public void onComplete() {
+                // Should never ever do this in production!
+                subscription.request(1);
+                latch.countDown();
+            }
+        };
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+            EventStreamAsyncResponseTransformer.builder()
+                                               .eventStreamResponseHandler(
+                                                   onEventStream(p -> p.subscribe(requestAfterCompleteSubscriber)))
+                                               .eventResponseHandler((r, e) -> numEvents.incrementAndGet())
+                                               .executor(Executors.newFixedThreadPool(2))
+                                               .future(new CompletableFuture<>())
+                                               .build();
+        transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+        latch.await();
+        assertThat(numEvents)
+            .as("Expected only one event to be delivered")
+            .hasValue(2);
+    }
+
+    @Test
     public void unknownExceptionEventsThrowException() {
         Map<String, HeaderValue> headers = new HashMap<>();
         headers.put(":message-type", HeaderValue.fromString("exception"));

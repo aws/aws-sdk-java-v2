@@ -100,11 +100,17 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             ByteBuffer bb = copyToByteBuffer(fullContent);
             fullContent.release();
             requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb, ef));
-            finalizeRequest(requestContext, channelContext);
+            finalizeResponse(requestContext, channelContext);
         }
     }
 
-    private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
+    /**
+     * Finalize the response by completing the execute future and release the channel pool being used.
+     *
+     * @param requestContext the request context
+     * @param channelContext the channel context
+     */
+    private static void finalizeResponse(RequestContext requestContext, ChannelHandlerContext channelContext) {
         channelContext.channel().attr(RESPONSE_COMPLETE_KEY).set(true);
         executeFuture(channelContext).complete(null);
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
@@ -268,7 +274,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
                                        subscriber::onComplete);
                     } finally {
-                        finalizeRequest(requestContext, channelContext);
+                        finalizeResponse(requestContext, channelContext);
                     }
                 }
             });

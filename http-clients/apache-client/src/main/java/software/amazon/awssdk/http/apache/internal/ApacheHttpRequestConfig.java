@@ -83,7 +83,7 @@ public final class ApacheHttpRequestConfig {
         private Duration connectionTimeout;
         private Duration connectionAcquireTimeout;
         private InetAddress localAddress;
-        private Boolean expectContinueEnabled;
+        private boolean expectContinueEnabled;
         private ProxyConfiguration proxyConfiguration;
 
         private Builder() {
@@ -109,7 +109,7 @@ public final class ApacheHttpRequestConfig {
             return this;
         }
 
-        public Builder expectContinueEnabled(Boolean expectContinueEnabled) {
+        public Builder expectContinueEnabled(boolean expectContinueEnabled) {
             this.expectContinueEnabled = expectContinueEnabled;
             return this;
         }
