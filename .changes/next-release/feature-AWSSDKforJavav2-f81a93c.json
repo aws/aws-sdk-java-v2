@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Enable `useIdleConnectionReaper` by default for Netty and Apache."
+}

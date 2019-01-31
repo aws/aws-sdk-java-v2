@@ -16,10 +16,13 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
@@ -28,6 +31,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.SimpleChannelPool;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -39,7 +43,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -51,6 +54,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.HonorCloseOnReleaseChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
@@ -166,16 +170,37 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         // TODO run some performance tests with and without this.
                         .remoteAddress(key.getHost(), key.getPort());
                 sdkChannelOptions.channelOptions().forEach(bootstrap::option);
+
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
                 ChannelPipelineInitializer handler =
-                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef);
-                channelPoolRef.set(new ReleaseOnceChannelPool(
-                    new HandlerRemovingChannelPool(
-                        new HttpOrHttp2ChannelPool(bootstrap, handler,
-                                                   configuration.maxConnections(), configuration))));
+                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration);
+                channelPoolRef.set(createChannelPool(bootstrap, handler));
                 return channelPoolRef.get();
             }
         };
+    }
+
+    private ChannelPool createChannelPool(Bootstrap bootstrap, ChannelPipelineInitializer handler) {
+        // Create a simple channel pool for pooling raw TCP connections to the service.
+        ChannelPool channelPool = new SimpleChannelPool(bootstrap, handler);
+
+        // Wrap the channel pool such that the ChannelAttributeKey.CLOSE_ON_RELEASE flag is honored.
+        channelPool = new HonorCloseOnReleaseChannelPool(channelPool);
+
+        // Wrap the channel pool such that HTTP 2 channels won't be released to the underlying pool while they're still in use.
+        channelPool = new HttpOrHttp2ChannelPool(channelPool,
+                                                 bootstrap,
+                                                 configuration.maxConnections(),
+                                                 configuration);
+
+
+        // Wrap the channel pool such that we remove request-specific handlers with each request.
+        channelPool = new HandlerRemovingChannelPool(channelPool);
+
+        // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
+        channelPool = new ReleaseOnceChannelPool(channelPool);
+
+        return channelPool;
     }
 
     private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
@@ -249,6 +274,32 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return this builder for method chaining.
          */
         Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
+
+        /**
+         * The maximum amount of time that a connection should be allowed to remain open, regardless of usage frequency.
+         *
+         * Unlike {@link #readTimeout(Duration)} and {@link #writeTimeout(Duration)}, this will never close a connection that
+         * is currently in use, so long-lived connections may remain open longer than this time. In particular, an HTTP/2
+         * connection won't be closed as long as there is at least one stream active on the connection.
+         */
+        Builder connectionTimeToLive(Duration connectionTimeToLive);
+
+        /**
+         * Configure the maximum amount of time that a connection should be allowed to remain open while idle. Currently has no
+         * effect if {@link #useIdleConnectionReaper(Boolean)} is false.
+         *
+         * Unlike {@link #readTimeout(Duration)} and {@link #writeTimeout(Duration)}, this will never close a connection that
+         * is currently in use, so long-lived connections may remain open longer than this time.
+         */
+        Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout);
+
+        /**
+         * Configure whether the idle connections in the connection pool should be closed.
+         * <p>
+         * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
+         * closed. This will not close connections currently in use. By default, this is enabled.
+         */
+        Builder useIdleConnectionReaper(Boolean useConnectionReaper);
 
         /**
          * Sets the {@link SdkEventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
@@ -433,6 +484,38 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setConnectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
             connectionAcquisitionTimeout(connectionAcquisitionTimeout);
+        }
+
+        @Override
+        public Builder connectionTimeToLive(Duration connectionTimeToLive) {
+            Validate.isPositive(connectionTimeToLive, "connectionTimeToLive");
+            standardOptions.put(CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
+            return this;
+        }
+
+        public void setConnectionTimeToLive(Duration connectionTimeToLive) {
+            connectionTimeToLive(connectionTimeToLive);
+        }
+
+        @Override
+        public Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
+            Validate.isPositive(connectionMaxIdleTime, "connectionMaxIdleTime");
+            standardOptions.put(CONNECTION_MAX_IDLE_TIMEOUT, connectionMaxIdleTime);
+            return this;
+        }
+
+        public void setConnectionMaxIdleTime(Duration connectionMaxIdleTime) {
+            connectionMaxIdleTime(connectionMaxIdleTime);
+        }
+
+        @Override
+        public Builder useIdleConnectionReaper(Boolean useIdleConnectionReaper) {
+            standardOptions.put(REAP_IDLE_CONNECTIONS, useIdleConnectionReaper);
+            return this;
+        }
+
+        public void setUseIdleConnectionReaper(Boolean useIdleConnectionReaper) {
+            useIdleConnectionReaper(useIdleConnectionReaper);
         }
 
         @Override

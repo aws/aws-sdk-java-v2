@@ -219,12 +219,12 @@ DynamoDbAsyncClient client =
 | Max Connections | `clientConfig.setMaxConnections(...)`<br />`clientConfig.withMaxConnections(...)` | `httpClientBuilder.maxConnections(...)` | `httpClientBuilder.maxConcurrency(...)` |
 | Connection Timeout | `clientConfig.setConnectionTimeout(...)`<br />`clientConfig.withConnectionTimeout(...)` | `httpClientBuilder.connectionTimeout(...)` | `httpClientBuilder.connectionTimeout(...)` |
 | Socket Timeout | `clientConfig.setSocketTimeout(...)`<br />`clientConfig.withSocketTimeout(...)` | `httpClientBuilder.socketTimeout(...)` | `httpClientBuilder.writeTimeout(...)` <br /> `httpClientBuilder.readTimeout(...)` |
-| Connection TTL | `clientConfig.setConnectionTTL(...)`<br />`clientConfig.withConnectionTTL(...)` | `httpClientBuilder.connectionTimeToLive(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/856) |
-| Connection Max Idle | `clientConfig.setConnectionMaxIdleMillis(...)`<br />`clientConfig.withConnectionMaxIdleMillis(...)` | `httpClientBuilder.connectionMaxIdleTime(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/856) |
+| Connection TTL | `clientConfig.setConnectionTTL(...)`<br />`clientConfig.withConnectionTTL(...)` | `httpClientBuilder.connectionTimeToLive(...)` | `httpClientBuilder.connectionTimeToLive(...)` |
+| Connection Max Idle | `clientConfig.setConnectionMaxIdleMillis(...)`<br />`clientConfig.withConnectionMaxIdleMillis(...)` | `httpClientBuilder.connectionMaxIdleTime(...)` | `httpClientBuilder.connectionMaxIdleTime(...)` |
 | Validate After Inactivity | `clientConfig.setValidateAfterInactivityMillis(...)`<br />`clientConfig.withValidateAfterInactivityMillis(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
 | Local Address | `clientConfig.setLocalAddress(...)`<br />`clientConfig.withLocalAddress(...)` | `httpClientBuilder.localAddress(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/857) |
 | Expect-Continue Enabled | `clientConfig.setUseExpectContinue(...)`<br />`clientConfig.withUseExpectContinue(...)` | `httpClientBuilder.expectContinueEnabled(...)` | Not Supported ([Request Feature](https://github.com/aws/aws-sdk-java-v2/issues/new)) |
-| Connection Reaper | `clientConfig.setUseReaper(...)`<br />`clientConfig.withReaper(...)` | `httpClientBuilder.useIdleConnectionReaper(...)` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/856) |
+| Connection Reaper | `clientConfig.setUseReaper(...)`<br />`clientConfig.withReaper(...)` | `httpClientBuilder.useIdleConnectionReaper(...)` | `httpClientBuilder.useIdleConnectionReaper(...)` |
 | | `AmazonDynamoDBClientBuilder.standard()`<br />`.withClientConfiguration(clientConfiguration)`<br />`.build()` | `DynamoDbClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` | `DynamoDbAsyncClient.builder()`<br />`.httpClientBuilder(httpClientBuilder)`<br />`.build()` |
 
 

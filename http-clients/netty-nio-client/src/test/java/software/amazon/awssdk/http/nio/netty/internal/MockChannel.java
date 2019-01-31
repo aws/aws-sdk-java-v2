@@ -13,17 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache.internal;
+package software.amazon.awssdk.http.nio.netty.internal;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import io.netty.channel.embedded.EmbeddedChannel;
 
-/**
- * Default configuration values.
- */
-@SdkInternalApi
-public final class DefaultConfiguration {
-    public static final Boolean EXPECT_CONTINUE_ENABLED = Boolean.TRUE;
+class MockChannel extends EmbeddedChannel {
+    public MockChannel() throws Exception {
+        super.doRegister();
+    }
 
-    private DefaultConfiguration() {
+    public void runAllPendingTasks() throws InterruptedException {
+        super.runPendingTasks();
+        while (runScheduledPendingTasks() != -1) {
+            Thread.sleep(1);
+        }
     }
 }
