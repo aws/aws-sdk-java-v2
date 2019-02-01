@@ -8,7 +8,6 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 import software.amazon.awssdk.core.util.PaginatorUtils;
@@ -111,26 +110,6 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
         };
         return PaginatedItemsPublisher.builder().nextPageFetcher(new PaginatedOperationWithResultKeyResponseFetcher())
                                       .iteratorFunction(getIterator).isLastPage(isLastPage).build();
-    }
-
-    /**
-     * <p>
-     * A helper method to resume the pages in case of unexpected failures. The method takes the last successful response
-     * page as input and returns an instance of {@link PaginatedOperationWithResultKeyPublisher} that can be used to
-     * retrieve the consecutive pages that follows the input page.
-     * </p>
-     */
-    private final PaginatedOperationWithResultKeyPublisher resume(PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
-        if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
-            return new PaginatedOperationWithResultKeyPublisher(client, firstRequest.toBuilder()
-                                                                                    .nextToken(lastSuccessfulPage.nextToken()).build());
-        }
-        return new PaginatedOperationWithResultKeyPublisher(client, firstRequest, true) {
-            @Override
-            public void subscribe(Subscriber<? super PaginatedOperationWithResultKeyResponse> subscriber) {
-                subscriber.onSubscribe(new EmptySubscription(subscriber));
-            }
-        };
     }
 
     private class PaginatedOperationWithResultKeyResponseFetcher implements

@@ -40,7 +40,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 
@@ -49,9 +48,9 @@ import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
  */
 public class AsyncResponseClassSpec extends PaginatorsClassSpec {
 
+    protected static final String LAST_PAGE_FIELD = "isLastPage";
     private static final String SUBSCRIBER = "subscriber";
     private static final String SUBSCRIBE_METHOD = "subscribe";
-    private static final String LAST_PAGE_FIELD = "isLastPage";
 
     public AsyncResponseClassSpec(IntermediateModel model, String c2jOperationName, PaginatorDefinition paginatorDefinition) {
         super(model, c2jOperationName, paginatorDefinition);
@@ -63,19 +62,14 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                                                .addModifiers(Modifier.PUBLIC)
                                                .addAnnotation(PoetUtils.generatedAnnotation())
                                                .addSuperinterface(getAsyncResponseInterface())
-                                               .addFields(Stream.of(asyncClientInterfaceField(),
-                                                                    requestClassField(),
-                                                                    asyncPageFetcherField(),
-                                                                    lastPageField())
-                                                                .collect(Collectors.toList()))
+                                               .addFields(fields().collect(Collectors.toList()))
                                                .addMethod(publicConstructor())
                                                .addMethod(privateConstructor())
                                                .addMethod(subscribeMethod())
                                                .addMethods(getMethodSpecsForResultKeyList())
-                                               .addMethod(resumeMethod())
                                                .addJavadoc(paginationDocs.getDocsForAsyncResponseClass(
                                                    getAsyncClientInterfaceName()))
-                                               .addType(nextPageFetcherClass());
+                                               .addType(nextPageFetcherClass().build());
 
         return specBuilder.build();
     }
@@ -95,11 +89,18 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
     /**
      * @return A Poet {@link ClassName} for the async client interface
      */
-    private ClassName getAsyncClientInterfaceName() {
+    protected ClassName getAsyncClientInterfaceName() {
         return poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
     }
 
-    private FieldSpec asyncClientInterfaceField() {
+    protected Stream<FieldSpec> fields() {
+        return Stream.of(asyncClientInterfaceField(),
+                         requestClassField(),
+                         asyncPageFetcherField(),
+                         lastPageField());
+    }
+
+    protected FieldSpec asyncClientInterfaceField() {
         return FieldSpec.builder(getAsyncClientInterfaceName(), CLIENT_MEMBER, Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -107,11 +108,11 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
         return FieldSpec.builder(AsyncPageFetcher.class, NEXT_PAGE_FETCHER_MEMBER, Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
-    private FieldSpec lastPageField() {
+    protected FieldSpec lastPageField() {
         return FieldSpec.builder(boolean.class, LAST_PAGE_FIELD, Modifier.PRIVATE).build();
     }
 
-    private MethodSpec publicConstructor() {
+    protected MethodSpec publicConstructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(getAsyncClientInterfaceName(), CLIENT_MEMBER)
@@ -120,7 +121,7 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                          .build();
     }
 
-    private MethodSpec privateConstructor() {
+    protected MethodSpec privateConstructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PRIVATE)
                          .addParameter(getAsyncClientInterfaceName(), CLIENT_MEMBER)
@@ -143,9 +144,14 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                          .addParameter(ParameterizedTypeName.get(ClassName.get(Subscriber.class),
                                                                  WildcardTypeName.supertypeOf(responseType())),
                                        SUBSCRIBER)
-                         .addStatement("$1L.onSubscribe($2T.builder().$1L($1L).$3L($3L).build())",
-                                       SUBSCRIBER, ResponsesSubscription.class, NEXT_PAGE_FETCHER_MEMBER)
+                         .addStatement("$1L.onSubscribe($2T.builder().$1L($1L).$3L($4L).build())",
+                                       SUBSCRIBER, ResponsesSubscription.class,
+                                       NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherArgument())
                          .build();
+    }
+
+    protected String nextPageFetcherArgument() {
+        return NEXT_PAGE_FETCHER_MEMBER;
     }
 
     /**
@@ -220,7 +226,7 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
      * Generates a inner class that implements {@link AsyncPageFetcher}. This is a helper class that can be used
      * to find if there are more pages in the response and to get the next page if exists.
      */
-    private TypeSpec nextPageFetcherClass() {
+    protected TypeSpec.Builder nextPageFetcherClass() {
         return TypeSpec.classBuilder(nextPageFetcherClassName())
                        .addModifiers(Modifier.PRIVATE)
                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(AsyncPageFetcher.class), responseType()))
@@ -238,29 +244,6 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                                             .returns(ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                                                                                responseType()))
                                             .addCode(nextPageMethodBody())
-                                            .build())
-                       .build();
-    }
-
-    private MethodSpec resumeMethod() {
-        return resumeMethodBuilder().addCode(CodeBlock.builder()
-                                                      .addStatement("return $L", anonymousClassWithEmptySubscription())
-                                                      .build())
-                                    .build();
-    }
-
-    private TypeSpec anonymousClassWithEmptySubscription() {
-        return TypeSpec.anonymousClassBuilder("$L, $L, true", CLIENT_MEMBER, REQUEST_MEMBER)
-                       .addSuperinterface(className())
-                       .addMethod(MethodSpec.methodBuilder(SUBSCRIBE_METHOD)
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(Modifier.PUBLIC)
-                                            .addParameter(ParameterizedTypeName.get(ClassName.get(Subscriber.class),
-                                                                                    WildcardTypeName.supertypeOf(responseType())),
-                                                          SUBSCRIBER)
-                                            .addStatement("$L.onSubscribe(new $T($L))", SUBSCRIBER,
-                                                          TypeName.get(EmptySubscription.class), SUBSCRIBER)
-                                            .build())
-                       .build();
+                                            .build());
     }
 }

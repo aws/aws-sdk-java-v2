@@ -5,7 +5,6 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
@@ -90,26 +89,6 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
     @Override
     public void subscribe(Subscriber<? super PaginatedOperationWithoutResultKeyResponse> subscriber) {
         subscriber.onSubscribe(ResponsesSubscription.builder().subscriber(subscriber).nextPageFetcher(nextPageFetcher).build());
-    }
-
-    /**
-     * <p>
-     * A helper method to resume the pages in case of unexpected failures. The method takes the last successful response
-     * page as input and returns an instance of {@link PaginatedOperationWithoutResultKeyPublisher} that can be used to
-     * retrieve the consecutive pages that follows the input page.
-     * </p>
-     */
-    private final PaginatedOperationWithoutResultKeyPublisher resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
-        if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
-            return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest.toBuilder()
-                                                                                       .nextToken(lastSuccessfulPage.nextToken()).build());
-        }
-        return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest, true) {
-            @Override
-            public void subscribe(Subscriber<? super PaginatedOperationWithoutResultKeyResponse> subscriber) {
-                subscriber.onSubscribe(new EmptySubscription(subscriber));
-            }
-        };
     }
 
     private class PaginatedOperationWithoutResultKeyResponseFetcher implements

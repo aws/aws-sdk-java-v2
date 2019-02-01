@@ -85,6 +85,20 @@
         "shape": "PaginatedOperationWithoutResultKeyResponse"
       },
       "documentation": "Some paginated operation without result_key in paginators.json file"
+    },
+    "SameTokenPaginationApi": {
+      "name": "SameTokenPaginationApi",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "SameTokenPaginationApiRequest"
+      },
+      "output": {
+        "shape": "SameTokenPaginationApiResponse"
+      },
+      "documentation": "Paginated operation that indicates end of page by returning same next token value passed in request"
     }
   },
   "shapes":{
@@ -342,6 +356,33 @@
         "NextToken": {
           "shape": "String",
           "documentation": "<p>Token for the next set of results</p>"
+        }
+      },
+      "documentation": "<p>Response type of a single page</p>"
+    },
+    "SameTokenPaginationApiRequest": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "String",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "SameTokenPaginationApiResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results. If you have reached the end of the stream, this value will be the same token you passed in.</p>"
+        },
+        "Items": {
+          "shape": "ListOfSimpleStructs",
+          "documentation": "<p>Maximum number of results in a single page</p>"
         }
       },
       "documentation": "<p>Response type of a single page</p>"

@@ -77,7 +77,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
     private final SyncPageFetcher nextPageFetcher;
 
     public PaginatedOperationWithResultKeyIterable(JsonProtocolTestsClient client,
-            PaginatedOperationWithResultKeyRequest firstRequest) {
+                                                   PaginatedOperationWithResultKeyRequest firstRequest) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.nextPageFetcher = new PaginatedOperationWithResultKeyResponseFetcher();
@@ -107,28 +107,8 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
         return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
     }
 
-    /**
-     * <p>
-     * A helper method to resume the pages in case of unexpected failures. The method takes the last successful response
-     * page as input and returns an instance of {@link PaginatedOperationWithResultKeyIterable} that can be used to
-     * retrieve the consecutive pages that follows the input page.
-     * </p>
-     */
-    private final PaginatedOperationWithResultKeyIterable resume(PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
-        if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
-            return new PaginatedOperationWithResultKeyIterable(client, firstRequest.toBuilder()
-                    .nextToken(lastSuccessfulPage.nextToken()).build());
-        }
-        return new PaginatedOperationWithResultKeyIterable(client, firstRequest) {
-            @Override
-            public Iterator<PaginatedOperationWithResultKeyResponse> iterator() {
-                return Collections.emptyIterator();
-            }
-        };
-    }
-
     private class PaginatedOperationWithResultKeyResponseFetcher implements
-            SyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
+                                                                 SyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
         @Override
         public boolean hasNextPage(PaginatedOperationWithResultKeyResponse previousPage) {
             return PaginatorUtils.isOutputTokenAvailable(previousPage.nextToken());
