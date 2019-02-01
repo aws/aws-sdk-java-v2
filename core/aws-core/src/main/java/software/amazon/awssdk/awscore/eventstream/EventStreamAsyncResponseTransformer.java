@@ -185,6 +185,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     @Override
     public CompletableFuture<Void> prepare() {
         transformFuture = new CompletableFuture<>();
+        isDone = false;
         return transformFuture;
     }
 
@@ -202,10 +203,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        synchronized (this) {
-            // Reset to allow more exceptions to propagate for retries
-            isDone = false;
-        }
         CompletableFuture<Subscription> dataSubscriptionFuture = new CompletableFuture<>();
         publisher.subscribe(new ByteSubscriber(dataSubscriptionFuture));
         dataSubscriptionFuture.thenAccept(dataSubscription -> {
