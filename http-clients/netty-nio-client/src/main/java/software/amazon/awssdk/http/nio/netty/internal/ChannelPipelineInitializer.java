@@ -66,6 +66,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+            pipeline.addLast(new SslCloseCompletionEventHandler());
         }
 
         if (protocol == Protocol.HTTP2) {
@@ -75,6 +76,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         }
 
         pipeline.addLast(new FutureCancelHandler());
+        pipeline.addLast(new UnusedChannelExceptionHandler());
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
