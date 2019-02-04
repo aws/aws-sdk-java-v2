@@ -1,0 +1,5 @@
+{
+    "category": "AWS CodeCommit", 
+    "type": "feature", 
+    "description": "This release supports a more graceful handling of the error case when a repository is not associated with a pull request ID in a merge request in AWS CodeCommit."
+}
