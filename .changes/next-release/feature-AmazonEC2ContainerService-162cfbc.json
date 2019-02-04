@@ -1,5 +1,0 @@
-{
-    "category": "Amazon EC2 Container Service", 
-    "type": "feature", 
-    "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces support for GPU workloads by enabling you to create clusters with GPU-enabled container instances."
-}

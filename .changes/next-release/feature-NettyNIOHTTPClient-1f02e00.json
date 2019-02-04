@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "type": "feature", 
-    "description": "Allows customers to enable wire logging with the Netty client at debug level."
-}
