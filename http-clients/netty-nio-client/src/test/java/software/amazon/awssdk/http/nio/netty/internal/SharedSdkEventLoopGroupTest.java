@@ -22,7 +22,7 @@ import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 
 public class SharedSdkEventLoopGroupTest {
-
+    
     @Test
     public void referenceCountIsInitiallyZero() {
         assertThat(SharedSdkEventLoopGroup.referenceCount()).isEqualTo(0);

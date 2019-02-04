@@ -23,8 +23,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolHandler;
-import io.netty.channel.pool.SimpleChannelPool;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -41,8 +39,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
  */
 @SdkInternalApi
 public class HttpOrHttp2ChannelPool implements ChannelPool {
-
-    private final ChannelPool simpleChannelPool;
+    private final ChannelPool delegatePool;
     private final int maxConcurrency;
     private final EventLoop eventLoop;
     private final NettyConfiguration configuration;
@@ -50,11 +47,11 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     private Promise<ChannelPool> protocolImplPromise;
     private ChannelPool protocolImpl;
 
-    public HttpOrHttp2ChannelPool(Bootstrap bootstrap,
-                                  ChannelPoolHandler handler,
+    public HttpOrHttp2ChannelPool(ChannelPool delegatePool,
+                                  Bootstrap bootstrap,
                                   int maxConcurrency,
                                   NettyConfiguration configuration) {
-        this.simpleChannelPool = new SimpleChannelPool(bootstrap, handler);
+        this.delegatePool = delegatePool;
         this.maxConcurrency = maxConcurrency;
         this.eventLoop = bootstrap.config().group().next();
         this.configuration = configuration;
@@ -95,22 +92,20 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
      */
     private void initializeProtocol() {
         protocolImplPromise = new DefaultPromise<>(eventLoop);
-        simpleChannelPool.acquire()
-                         .addListener((GenericFutureListener<Future<Channel>>) future -> {
-                             if (future.isSuccess()) {
-                                 Channel newChannel = future.getNow();
-                                 newChannel.attr(PROTOCOL_FUTURE).get()
-                                           .whenComplete((r, e) -> {
-                                               if (e != null) {
-                                                   failProtocolImplPromise(e);
-                                               } else {
-                                                   protocolImplPromise.setSuccess(configureProtocol(newChannel, r));
-                                               }
-                                           });
-                             } else {
-                                 failProtocolImplPromise(future.cause());
-                             }
-                         });
+        delegatePool.acquire().addListener((GenericFutureListener<Future<Channel>>) future -> {
+            if (future.isSuccess()) {
+                Channel newChannel = future.getNow();
+                newChannel.attr(PROTOCOL_FUTURE).get().whenComplete((r, e) -> {
+                    if (e != null) {
+                        failProtocolImplPromise(e);
+                    } else {
+                        protocolImplPromise.setSuccess(configureProtocol(newChannel, r));
+                    }
+                });
+            } else {
+                failProtocolImplPromise(future.cause());
+            }
+        });
     }
 
     /**
@@ -127,7 +122,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
         if (Protocol.HTTP1_1 == protocol) {
             // For HTTP/1.1 we use a traditional channel pool without multiplexing
             protocolImpl = BetterFixedChannelPool.builder()
-                                                 .channelPool(simpleChannelPool)
+                                                 .channelPool(delegatePool)
                                                  .executor(eventLoop)
                                                  .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
                                                  .acquireTimeoutMillis(configuration.connectionAcquireTimeoutMillis())
@@ -136,7 +131,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .build();
         } else {
             ChannelPool h2Pool = new Http2MultiplexedChannelPool(
-                simpleChannelPool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
+                    delegatePool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)
@@ -147,7 +142,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .build();
         }
         // Give the channel back so it can be acquired again by protocolImpl
-        simpleChannelPool.release(newChannel);
+        delegatePool.release(newChannel);
         return protocolImpl;
     }
 
@@ -168,7 +163,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
         if (protocolImpl == null) {
             // If protocolImpl is null that means the first connection failed to establish. Release it back to the
             // underlying connection pool.
-            simpleChannelPool.release(channel, promise);
+            delegatePool.release(channel, promise);
         } else {
             protocolImpl.release(channel, promise);
         }

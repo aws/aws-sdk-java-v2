@@ -99,7 +99,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     @Override
     public void close() {
-
+        // Nothing to close. The connections will be closed by closing the InputStreams.
     }
 
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {

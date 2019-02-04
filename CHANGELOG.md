@@ -1,3 +1,36 @@
+# __2.4.0__ __2019-02-04__
+## __AWS CodeCommit__
+  - ### Features
+    - This release supports a more graceful handling of the error case when a repository is not associated with a pull request ID in a merge request in AWS CodeCommit.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for `connectionTimeToLive`, `connectionMaxIdleTime` and `useIdleConnectionReaper` to the netty HTTP client.
+    - Enable `useIdleConnectionReaper` by default for Netty and Apache.
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Added a new handler ([#1041](https://github.com/aws/aws-sdk-java-v2/issues/1041)) to close channels which have triggered an SslCloseCompletionEvent and are no longer usable per [#452](https://github.com/aws/aws-sdk-java-v2/issues/452).
+    - Fix the deadlock issue in `EventStreamAsyncResponseTransformer` for event streaming operations triggered in an edge case where customer subscriber signals `Subscription#request` the same time as `SdkPublisher` signals `Subscriber#onComplete`
+    - Reduced netty client logging noise, by logging at a DEBUG level (instead of WARN) when encountering IO errors on channels not currently in use and not logging the whole stack trace.
+    - Removed broken client methods: `BackupClient#getSupportedResourceTypes()` and `PinpointSmsVoiceClient.listConfigurationSets()`.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces support for GPU workloads by enabling you to create clusters with GPU-enabled container instances.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release sets ClientProperties as a required parameter.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for application-autoscaling
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Allows customers to enable wire logging with the Netty client at debug level.
+
 # __2.3.9__ __2019-01-25__
 ## __AWS CodeCommit__
   - ### Features

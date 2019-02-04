@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutorService;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,15 +32,16 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import utils.HttpTestUtils;
@@ -53,6 +55,9 @@ public class AmazonHttpClientTest {
 
     @Mock
     private ExecutableHttpRequest abortableCallable;
+
+    @Mock
+    private ExecutorService executor;
 
     private AmazonSyncHttpClient client;
 
@@ -144,6 +149,20 @@ public class AmazonHttpClientTest {
 
         Assert.assertTrue(userAgent.startsWith(prefix));
         Assert.assertTrue(userAgent.endsWith(suffix));
+    }
+
+    @Test
+    public void closeClient_shouldCloseDependencies() {
+        SdkClientConfiguration config = HttpTestUtils.testClientConfiguration()
+                                                     .toBuilder()
+                                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, executor)
+                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
+                                                     .build();
+
+        AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
+        client.close();
+        verify(sdkHttpClient).close();
+        verify(executor).shutdown();
     }
 
     private void stubSuccessfulResponse() throws Exception {

@@ -15,18 +15,31 @@
 
 package software.amazon.awssdk.http.apache;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import java.net.HttpURLConnection;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
+import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
+
+    @Mock
+    private ConnectionManagerAwareHttpClient httpClient;
+
+    @Mock
+    private HttpClientConnectionManager connectionManager;
+
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
         return ApacheHttpClient.builder().build();
@@ -41,4 +54,14 @@ public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
 
         testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
     }
+
+    @Test
+    public void closeClient_shouldCloseUnderlyingResources() {
+        ApacheHttpClient client = new ApacheHttpClient(httpClient, ApacheHttpRequestConfig.builder().build(), AttributeMap.empty());
+        when(httpClient.getHttpClientConnectionManager()).thenReturn(connectionManager);
+
+        client.close();
+        verify(connectionManager).shutdown();
+    }
+
 }

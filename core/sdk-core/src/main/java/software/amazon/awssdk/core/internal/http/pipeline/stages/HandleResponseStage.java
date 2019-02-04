@@ -130,7 +130,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
      */
     private void closeInputStreamIfNeeded(SdkHttpFullResponse httpResponse,
                                           boolean didRequestFail) {
-        // Always close on failed requests. Close on successful unless streaming operation.
+        // Always close on failed requests. Close on successful requests unless it needs connection left open
         if (didRequestFail || !successResponseHandler.needsConnectionLeftOpen()) {
             Optional.ofNullable(httpResponse)
                     .flatMap(SdkHttpFullResponse::content) // If no content, no need to close

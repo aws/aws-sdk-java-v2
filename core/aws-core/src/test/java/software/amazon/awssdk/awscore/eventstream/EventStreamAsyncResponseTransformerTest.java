@@ -27,6 +27,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import org.junit.Test;
 import org.reactivestreams.Subscriber;
@@ -93,6 +94,58 @@ public class EventStreamAsyncResponseTransformerTest {
     }
 
     @Test
+    public void devilSubscriber_requestDataAfterComplete() throws InterruptedException {
+
+        Message eventMessage = new Message(ImmutableMap.of(":message-type", HeaderValue.fromString("event"),
+                                                           ":event-type", HeaderValue.fromString("foo")),
+                                           "helloworld".getBytes());
+
+        CountDownLatch latch = new CountDownLatch(1);
+        Flowable<ByteBuffer> bytePublisher = Flowable.just(eventMessage.toByteBuffer(), eventMessage.toByteBuffer());
+        AtomicInteger numEvents = new AtomicInteger(0);
+
+        Subscriber<Object> requestAfterCompleteSubscriber = new Subscriber<Object>() {
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                this.subscription = subscription;
+                subscription.request(1);
+            }
+
+            @Override
+            public void onNext(Object o) {
+                subscription.request(1);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+            }
+
+            @Override
+            public void onComplete() {
+                // Should never ever do this in production!
+                subscription.request(1);
+                latch.countDown();
+            }
+        };
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+            EventStreamAsyncResponseTransformer.builder()
+                                               .eventStreamResponseHandler(
+                                                   onEventStream(p -> p.subscribe(requestAfterCompleteSubscriber)))
+                                               .eventResponseHandler((r, e) -> numEvents.incrementAndGet())
+                                               .executor(Executors.newFixedThreadPool(2))
+                                               .future(new CompletableFuture<>())
+                                               .build();
+        transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+        latch.await();
+        assertThat(numEvents)
+            .as("Expected only one event to be delivered")
+            .hasValue(2);
+    }
+
+    @Test
     public void unknownExceptionEventsThrowException() {
         Map<String, HeaderValue> headers = new HashMap<>();
         headers.put(":message-type", HeaderValue.fromString("exception"));
@@ -108,6 +161,126 @@ public class EventStreamAsyncResponseTransformerTest {
         headers.put(":message-type", HeaderValue.fromString("error"));
 
         verifyExceptionThrown(headers);
+    }
+
+    @Test
+    public void prepareReturnsNewFuture() {
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+                EventStreamAsyncResponseTransformer.builder()
+                        .eventStreamResponseHandler(
+                                onEventStream(p -> {}))
+                        .eventResponseHandler((r, e) -> null)
+                        .executor(Executors.newFixedThreadPool(2))
+                        .future(new CompletableFuture<>())
+                        .build();
+
+        CompletableFuture<?> cf1 = transformer.prepare();
+
+        transformer.exceptionOccurred(new RuntimeException("Boom!"));
+
+        assertThat(cf1.isCompletedExceptionally()).isTrue();
+        assertThat(transformer.prepare()).isNotEqualTo(cf1);
+    }
+
+    @Test
+    public void erroneousExtraExceptionOccurredDoesNotSurfaceException() {
+        AtomicLong numExceptions = new AtomicLong(0);
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+                EventStreamAsyncResponseTransformer.builder()
+                        .eventStreamResponseHandler(new EventStreamResponseHandler<Object, Object>() {
+                            @Override
+                            public void responseReceived(Object response) {
+                            }
+
+                            @Override
+                            public void onEventStream(SdkPublisher<Object> publisher) {
+                            }
+
+                            @Override
+                            public void exceptionOccurred(Throwable throwable) {
+                                numExceptions.incrementAndGet();
+                            }
+
+                            @Override
+                            public void complete() {
+                            }
+                        })
+                        .eventResponseHandler((r, e) -> null)
+                        .executor(Executors.newFixedThreadPool(2))
+                        .future(new CompletableFuture<>())
+                        .build();
+
+        transformer.prepare();
+        transformer.exceptionOccurred(new RuntimeException("Boom!"));
+        transformer.exceptionOccurred(new RuntimeException("Boom again!"));
+
+        assertThat(numExceptions).hasValue(1);
+    }
+
+    // Test that the class guards against signalling exceptionOccurred if the stream is already complete.
+    @Test
+    public void erroneousExceptionOccurredAfterCompleteDoesNotSurfaceException() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        Subscriber<Object> subscriber = new Subscriber<Object>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                subscription.request(1);
+            }
+
+            @Override
+            public void onNext(Object o) {
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+            }
+
+            @Override
+            public void onComplete() {
+                latch.countDown();
+            }
+        };
+
+        AtomicLong numExceptionOccurredCalls = new AtomicLong(0);
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+                EventStreamAsyncResponseTransformer.builder()
+                        .eventStreamResponseHandler(new EventStreamResponseHandler<Object, Object>() {
+                            @Override
+                            public void responseReceived(Object response) {
+                            }
+
+                            @Override
+                            public void onEventStream(SdkPublisher<Object> publisher) {
+                                publisher.subscribe(subscriber);
+                            }
+
+                            @Override
+                            public void exceptionOccurred(Throwable throwable) {
+                                numExceptionOccurredCalls.incrementAndGet();
+                            }
+
+                            @Override
+                            public void complete() {
+                                latch.countDown();
+                            }
+                        })
+                        .eventResponseHandler((r, e) -> null)
+                        .executor(Executors.newFixedThreadPool(2))
+                        .future(new CompletableFuture<>())
+                        .build();
+
+        Flowable<ByteBuffer> bytePublisher = Flowable.empty();
+
+        transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+
+        latch.await();
+
+        transformer.exceptionOccurred(new RuntimeException("Uh-oh"));
+
+        assertThat(numExceptionOccurredCalls)
+                .as("Expected only one event to be delivered")
+                .hasValue(0);
     }
 
     private void verifyExceptionThrown(Map<String, HeaderValue> headers) {
