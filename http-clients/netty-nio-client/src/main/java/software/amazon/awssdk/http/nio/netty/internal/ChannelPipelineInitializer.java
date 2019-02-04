@@ -28,8 +28,11 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import java.io.IOException;
 import java.util.Optional;
@@ -38,7 +41,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
-import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
 
 /**
  * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
@@ -88,6 +90,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
         pipeline.addLast(new FutureCancelHandler());
         pipeline.addLast(new UnusedChannelExceptionHandler());
+        pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
@@ -95,8 +98,8 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             .forClient(new NoOpChannelInitializer())
             .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
             .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576));
-        // If frame logging is enabled, add it
-        SdkHttp2FrameLogger.frameLogger().ifPresent(codecBuilder::frameLogger);
+
+        codecBuilder.frameLogger(new Http2FrameLogger(LogLevel.DEBUG));
 
         pipeline.addLast(codecBuilder.build());
 
