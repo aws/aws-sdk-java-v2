@@ -1038,12 +1038,6 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
-          "fips" : {
-            "credentialScope" : {
-              "region" : "us-west-1"
-            },
-            "hostname" : "elasticache-fips.us-west-1.amazonaws.com"
-          },
           "sa-east-1" : { },
           "us-east-1" : { },
           "us-east-2" : { },
