@@ -1,0 +1,26 @@
+{
+    "date": "2019-02-05",
+    "version": "2.4.1",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix an issue where an exception could be raised when configuring the idle connection reaper in the apache HTTP client [#1059](https://github.com/aws/aws-sdk-java-v2/issues/1059)."
+        },
+        {
+            "category": "AWS Service Catalog",
+            "type": "feature",
+            "description": "Service Catalog Documentation Update for ProvisionedProductDetail"
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "ec2.DescribeVpcPeeringConnections pagination support"
+        },
+        {
+            "category": "AWS Shield",
+            "type": "feature",
+            "description": "The DescribeProtection request now accepts resource ARN as valid parameter."
+        }
+    ]
+}

@@ -45,7 +45,7 @@ public interface SdkHttpClient extends SdkAutoCloseable {
     @FunctionalInterface
     interface Builder<T extends SdkHttpClient.Builder<T>> extends SdkBuilder<T, SdkHttpClient> {
         /**
-         * Create a {@link SdkHttpClient} without defaults applied. This is useful for reusing an HTTP client across multiple
+         * Create a {@link SdkHttpClient} with global defaults applied. This is useful for reusing an HTTP client across multiple
          * services.
          */
         default SdkHttpClient build() {

@@ -20,9 +20,12 @@ def check_diffs():
     """
     Retrieve the changed files
     """
-    ret = Popen(["git", "diff", "HEAD^", "--name-only"], stdout=PIPE)
+    process = Popen(["git", "diff", "HEAD^", "--name-only"], stdout=PIPE)
 
-    diff, stderr = ret.communicate()
+    diff, stderr = process.communicate()
+
+    if process.returncode !=0:
+        raise Exception("Unable to do git diff")
     return diff.splitlines(False)
 
 def get_modules(file_path):
@@ -30,12 +33,17 @@ def get_modules(file_path):
     Parse the changed file path and get the respective module names
     """
     path = file_path.split('/')
+
+    # filter out non-java file
+    if not path[-1].endswith(".java"):
+        return
+
     top_directory = path[0]
 
     if top_directory in ["core", "codegen"]:
         return core_modules_to_test
     if top_directory in ["http-clients"]:
-        return http_modules_to_test[path[1]]
+        return http_modules_to_test.get(path[1])
     elif top_directory== "services":
         return path[1]
 
