@@ -25,6 +25,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -144,9 +145,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         addProxyConfig(builder, configuration.proxyConfiguration);
 
-        if (useIdleConnectionReaper(configuration)) {
+        if (useIdleConnectionReaper(standardOptions)) {
             IdleConnectionReaper.getInstance().registerConnectionManager(
-                    cm, resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis());
+                    cm, standardOptions.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis());
         }
 
         return new ApacheSdkHttpClient(builder.build(), cm);
@@ -174,8 +175,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
     }
 
-    private boolean useIdleConnectionReaper(DefaultBuilder configuration) {
-        return Boolean.TRUE.equals(configuration.useIdleConnectionReaper);
+    private boolean useIdleConnectionReaper(AttributeMap standardOptions) {
+        return Boolean.TRUE.equals(standardOptions.get(REAP_IDLE_CONNECTIONS));
     }
 
     private boolean isAuthenticatedProxy(ProxyConfiguration proxyConfiguration) {
@@ -343,7 +344,6 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
-        private Boolean useIdleConnectionReaper;
 
         private DefaultBuilder() {
         }
@@ -446,7 +446,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder useIdleConnectionReaper(Boolean useIdleConnectionReaper) {
-            this.useIdleConnectionReaper = useIdleConnectionReaper;
+            standardOptions.put(REAP_IDLE_CONNECTIONS, useIdleConnectionReaper);
             return this;
         }
 
