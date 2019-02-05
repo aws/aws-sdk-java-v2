@@ -1,5 +1,0 @@
-{
-    "category": "AWS Shield", 
-    "type": "feature", 
-    "description": "The DescribeProtection request now accepts resource ARN as valid parameter."
-}

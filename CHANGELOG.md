@@ -1,3 +1,20 @@
+# __2.4.1__ __2019-02-05__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where an exception could be raised when configuring the idle connection reaper in the apache HTTP client [#1059](https://github.com/aws/aws-sdk-java-v2/issues/1059).
+
+## __AWS Service Catalog__
+  - ### Features
+    - Service Catalog Documentation Update for ProvisionedProductDetail
+
+## __AWS Shield__
+  - ### Features
+    - The DescribeProtection request now accepts resource ARN as valid parameter.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - ec2.DescribeVpcPeeringConnections pagination support
+
 # __2.4.0__ __2019-02-04__
 ## __AWS CodeCommit__
   - ### Features

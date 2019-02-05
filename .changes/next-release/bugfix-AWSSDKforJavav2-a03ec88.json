@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix",
-    "description": "Fix an issue where an exception could be raised when configuring the idle connection reaper in the apache HTTP client [#1059](https://github.com/aws/aws-sdk-java-v2/issues/1059)."
-}

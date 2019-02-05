@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic Compute Cloud", 
-    "type": "feature", 
-    "description": "ec2.DescribeVpcPeeringConnections pagination support"
-}
