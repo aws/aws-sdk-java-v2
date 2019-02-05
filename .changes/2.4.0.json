@@ -1,0 +1,66 @@
+{
+    "date": "2019-02-04",
+    "version": "2.4.0",
+    "entries": [
+        {
+            "category": "Amazon WorkSpaces",
+            "type": "feature",
+            "description": "This release sets ClientProperties as a required parameter."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add support for `connectionTimeToLive`, `connectionMaxIdleTime` and `useIdleConnectionReaper` to the netty HTTP client."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Enable `useIdleConnectionReaper` by default for Netty and Apache."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Reduced netty client logging noise, by logging at a DEBUG level (instead of WARN) when encountering IO errors on channels not currently in use and not logging the whole stack trace."
+        },
+        {
+            "category": "Amazon EC2 Container Service",
+            "type": "feature",
+            "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces support for GPU workloads by enabling you to create clusters with GPU-enabled container instances."
+        },
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "feature",
+            "description": "Allows customers to enable wire logging with the Netty client at debug level."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Added a new handler ([#1041](https://github.com/aws/aws-sdk-java-v2/issues/1041)) to close channels which have triggered an SslCloseCompletionEvent and are no longer usable per [#452](https://github.com/aws/aws-sdk-java-v2/issues/452)."
+        },
+        {
+            "category": "AWS CodeCommit",
+            "type": "feature",
+            "description": "This release supports a more graceful handling of the error case when a repository is not associated with a pull request ID in a merge request in AWS CodeCommit."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Removed broken client methods: `BackupClient#getSupportedResourceTypes()` and `PinpointSmsVoiceClient.listConfigurationSets()`."
+        },
+        {
+            "category": "Application Auto Scaling",
+            "type": "feature",
+            "description": "Documentation updates for application-autoscaling"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix the deadlock issue in `EventStreamAsyncResponseTransformer` for event streaming operations triggered in an edge case where customer subscriber signals `Subscription#request` the same time as `SdkPublisher` signals `Subscriber#onComplete`"
+        }
+    ]
+}
