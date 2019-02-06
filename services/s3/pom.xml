@@ -45,7 +45,6 @@
         </plugins>
     </build>
 
-    <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

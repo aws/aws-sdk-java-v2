@@ -31,14 +31,26 @@
     <description>A set of tests to run v2 in module path with Java 9+.</description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${awsjavasdk.version}</version>
             <exclusions>
                 <exclusion>
-                    <!-- TODO remove exclusions after we fix netty module -->
+                     <!-- TODO remove exclusions after we fix netty module -->
                     <artifactId>netty-nio-client</artifactId>
                     <groupId>software.amazon.awssdk</groupId>
                 </exclusion>
@@ -47,10 +59,10 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>protocol-tests</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${awsjavasdk.version}</version>
             <exclusions>
                 <exclusion>
-                    <!-- TODO remove exclusions after we fix netty module -->
+                     <!-- TODO remove exclusions after we fix netty module -->
                     <artifactId>netty-nio-client</artifactId>
                     <groupId>software.amazon.awssdk</groupId>
                 </exclusion>
@@ -59,22 +71,22 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>url-connection-client</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>service-test-utils</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

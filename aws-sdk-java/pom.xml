@@ -15,7 +15,7 @@
         Amazon AutoScaling, etc).
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
-    <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
+
     <dependencies>
         <dependency>
             <artifactId>pinpoint</artifactId>
@@ -633,17 +633,10 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
+
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -655,50 +648,4 @@
             </plugin>
         </plugins>
     </build>
-    <!-- This profile uses the JAPICMP plugin to generate a report of changes between the release version and the latest version -->
-    <!-- For more information on the plugin, see https://github.com/siom79/japicmp -->
-    <profiles>
-        <profile>
-            <id>versiondiff</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.siom79.japicmp</groupId>
-                        <artifactId>japicmp-maven-plugin</artifactId>
-                        <version>0.5.0</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>cmp</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <oldVersion>
-                                <dependency>
-                                    <groupId>software.amazon.awssdk</groupId>
-                                    <artifactId>aws-java-sdk</artifactId>
-                                    <version>RELEASE</version>
-                                </dependency>
-                            </oldVersion>
-                            <newVersion>
-                                <file>
-                                    <path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
-                                </file>
-                            </newVersion>
-                            <parameter>
-                                <onlyModified>true</onlyModified>
-                                <accessModifier>public</accessModifier>
-                                <breakBuildOnModifications>false</breakBuildOnModifications>
-                                <breakBuildOnBinaryIncompatibleModifications>false
-                                </breakBuildOnBinaryIncompatibleModifications>
-                                <onlyBinaryIncompatible>false</onlyBinaryIncompatible>
-                            </parameter>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

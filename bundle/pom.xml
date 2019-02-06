@@ -37,10 +37,22 @@
         <sonar.skip>true</sonar.skip>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
-            <artifactId>aws-sdk-java</artifactId>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-sdk-java</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

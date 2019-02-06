@@ -33,7 +33,19 @@
     <properties>
         <jre.version>1.8</jre.version>
     </properties>
-    <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -71,41 +83,6 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>org.eclipse.jdt.core</artifactId>
-            <groupId>org.eclipse.jdt</groupId>
-            <version>${org.eclipse.jdt.version}</version>
-        </dependency>
-        <dependency>
-            <artifactId>org.eclipse.text</artifactId>
-            <groupId>org.eclipse.text</groupId>
-            <version>${org.eclipse.text.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup</groupId>
-            <artifactId>javapoet</artifactId>
-            <version>${javapoet.verion}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.reactivestreams</groupId>
-            <artifactId>reactive-streams</artifactId>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
@@ -137,6 +114,39 @@
         </dependency>
 
         <dependency>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <groupId>org.eclipse.jdt</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>org.eclipse.text</artifactId>
+            <groupId>org.eclipse.text</groupId>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup</groupId>
+            <artifactId>javapoet</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams</artifactId>
+        </dependency>
+
+        <dependency>
             <artifactId>junit</artifactId>
             <groupId>junit</groupId>
             <scope>test</scope>
@@ -157,65 +167,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-    <!-- This profile uses the JAPICMP plugin to generate a report of changes between the release version and the latest version -->
-    <!-- For more information on the plugin, see https://github.com/siom79/japicmp -->
-    <profiles>
-        <profile>
-            <id>versiondiff</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.siom79.japicmp</groupId>
-                        <artifactId>japicmp-maven-plugin</artifactId>
-                        <version>0.5.0</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>cmp</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <oldVersion>
-                                <dependency>
-                                    <groupId>software.amazon.awssdk</groupId>
-                                    <artifactId>codegen</artifactId>
-                                    <version>RELEASE</version>
-                                </dependency>
-                            </oldVersion>
-                            <newVersion>
-                                <file>
-                                    <path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
-                                </file>
-                            </newVersion>
-                            <parameter>
-                                <onlyModified>true</onlyModified>
-                                <accessModifier>public</accessModifier>
-                                <breakBuildOnModifications>false</breakBuildOnModifications>
-                                <breakBuildOnBinaryIncompatibleModifications>false
-                                </breakBuildOnBinaryIncompatibleModifications>
-                                <onlyBinaryIncompatible>false</onlyBinaryIncompatible>
-                            </parameter>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
