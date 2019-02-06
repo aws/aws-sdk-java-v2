@@ -33,7 +33,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.util.AttributeKey;
@@ -94,7 +93,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             // Be prepared to take care of (ignore) a trailing LastHttpResponse
             // from the HttpClientCodec if there is one.
             channelContext.pipeline().replace(HttpStreamsClientHandler.class,
-                    channelContext.name() + "-LastHttpContentSwallower", new LastHttpContentSwallower());
+                    channelContext.name() + "-LastHttpContentSwallower", LastHttpContentSwallower.getInstance());
 
             ByteBuf fullContent = ((FullHttpResponse) msg).content();
             ByteBuffer bb = copyToByteBuffer(fullContent);
@@ -345,22 +344,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 }
             });
 
-        }
-    }
-
-    private static class LastHttpContentSwallower extends SimpleChannelInboundHandler<HttpObject> {
-
-        @Override
-        protected void channelRead0(ChannelHandlerContext ctx, HttpObject obj) throws Exception {
-            if (obj instanceof LastHttpContent) {
-                // Queue another read to make up for the one we just ignored
-                ctx.read();
-            } else {
-                ctx.fireChannelRead(obj);
-            }
-            // Remove self from pipeline since we only care about potentially
-            // ignoring the very first message
-            ctx.pipeline().remove(this);
         }
     }
 
