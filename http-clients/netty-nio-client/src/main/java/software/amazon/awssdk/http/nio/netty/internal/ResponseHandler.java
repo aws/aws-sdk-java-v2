@@ -64,11 +64,16 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
+    private static final ResponseHandler INSTANCE = new ResponseHandler();
+
     /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request
      * has completed.
      */
     private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("KeepAlive");
+
+    private ResponseHandler() {
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelContext, HttpObject msg) throws Exception {
@@ -139,6 +144,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             executeFuture(handlerCtx).completeExceptionally(err);
             runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));
         }
+    }
+
+    public static ResponseHandler getInstance() {
+        return INSTANCE;
     }
 
     /**
