@@ -30,7 +30,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class FutureCancelHandler extends SimpleChannelInboundHandler {
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object o) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Object o) {
         ReferenceCountUtil.retain(o);
         ctx.fireChannelRead(o);
     }
