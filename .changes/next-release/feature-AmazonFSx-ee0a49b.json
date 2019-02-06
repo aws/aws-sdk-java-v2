@@ -1,0 +1,5 @@
+{
+    "category": "Amazon FSx", 
+    "type": "feature", 
+    "description": "New optional ExportPath parameter added to the CreateFileSystemLustreConfiguration object for user-defined export paths. Used with the CreateFileSystem action when creating an Amazon FSx for Lustre file system."
+}
