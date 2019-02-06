@@ -27,6 +27,18 @@
     <artifactId>http-client-spi</artifactId>
     <name>AWS Java SDK :: HTTP Client Interface</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -56,7 +68,6 @@
         <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams-tck</artifactId>
-            <version>${reactive-streams.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
