@@ -1,0 +1,5 @@
+{
+    "category": "AWS RoboMaker", 
+    "type": "feature", 
+    "description": "Added support for tagging and tag-based access control for AWS RoboMaker resources. Also, DescribeSimulationJob now includes a new failureReason field to help debug simulation job failures"
+}
