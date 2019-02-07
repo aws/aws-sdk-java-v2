@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
+    private static final long MAX_STREAMS_ALLOWED = 4294967295L; // unsigned 32-bit, 2^32 -1
 
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final SdkChannelPoolMap<URI, ChannelPool> pools;
@@ -87,7 +88,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
-        this.maxStreams = builder.maxHttp2Streams == null ? Integer.MAX_VALUE : builder.maxHttp2Streams;
+        this.maxStreams = builder.maxHttp2Streams == null ? MAX_STREAMS_ALLOWED : builder.maxHttp2Streams;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
         this.sdkChannelOptions = channelOptions(builder);
@@ -106,10 +107,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.maxStreams = maxStreams;
     }
 
-    private SdkChannelOptions channelOptions(DefaultBuilder builder) {
-        return builder.sdkChannelOptions;
-    }
-
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
         RequestContext ctx = createRequestContext(request);
@@ -118,6 +115,10 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     public static Builder builder() {
         return new DefaultBuilder();
+    }
+
+    private SdkChannelOptions channelOptions(DefaultBuilder builder) {
+        return builder.sdkChannelOptions;
     }
 
     private RequestContext createRequestContext(AsyncExecuteRequest request) {
@@ -304,7 +305,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         /**
          * Sets the {@link SdkEventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
          * across multiple HTTP clients for better resource and thread utilization. The preferred way to create
-         * an {@link EventLoopGroup} is by using the {@link SdkEventLoopGroup#builder()})} method which will choose the
+         * an {@link EventLoopGroup} is by using the {@link SdkEventLoopGroup#builder()} method which will choose the
          * optimal implementation per the platform.
          *
          * <p>The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
@@ -348,12 +349,15 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder protocol(Protocol protocol);
 
         /**
-         * Add new socket channel option which will be used to create Netty Http client. This allows custom configuration
-         * for Netty.
+         * Configures additional {@link ChannelOption} which will be used to create Netty Http client. This allows custom
+         * configuration for Netty.
+         *
+         * <p>
+         * If a {@link ChannelOption} was previously configured, the old value is replaced.
+         *
          * @param channelOption {@link ChannelOption} to set
          * @param value See {@link ChannelOption} to find the type of value for each option
          * @return This builder for method chaining.
-         * @see SdkEventLoopGroup.Builder
          */
         Builder putChannelOption(ChannelOption channelOption, Object value);
 
@@ -387,12 +391,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private DefaultBuilder() {
         }
 
-        /**
-         * Max allowed connections per endpoint allowed in the connection pool.
-         *
-         * @param maxConcurrency New value for max connections per endpoint.
-         * @return This builder for method chaining.
-         */
         @Override
         public Builder maxConcurrency(Integer maxConcurrency) {
             standardOptions.put(MAX_CONNECTIONS, maxConcurrency);
@@ -403,12 +401,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             maxConcurrency(maxConnectionsPerEndpoint);
         }
 
-        /**
-         * The maximum number of pending acquires allowed. Once this exceeds, acquire tries will be failed.
-         *
-         * @param maxPendingAcquires Max number of pending acquires
-         * @return This builder for method chaining.
-         */
         @Override
         public Builder maxPendingConnectionAcquires(Integer maxPendingAcquires) {
             standardOptions.put(MAX_PENDING_CONNECTION_ACQUIRES, maxPendingAcquires);
@@ -419,12 +411,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             maxPendingConnectionAcquires(maxPendingAcquires);
         }
 
-        /**
-         * The amount of time to wait for a read on a socket before an exception is thrown.
-         *
-         * @param readTimeout timeout duration
-         * @return this builder for method chaining.
-         */
         @Override
         public Builder readTimeout(Duration readTimeout) {
             Validate.isPositive(readTimeout, "readTimeout");
@@ -436,12 +422,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             readTimeout(readTimeout);
         }
 
-        /**
-         * The amount of time to wait for a write on a socket before an exception is thrown.
-         *
-         * @param writeTimeout timeout duration
-         * @return this builder for method chaining.
-         */
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
             Validate.isPositive(writeTimeout, "writeTimeout");
@@ -453,12 +433,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             writeTimeout(writeTimeout);
         }
 
-        /**
-         * The amount of time to wait when initially establishing a connection before giving up and timing out.
-         *
-         * @param timeout the timeout duration
-         * @return this builder for method chaining.
-         */
         @Override
         public Builder connectionTimeout(Duration timeout) {
             Validate.isPositive(timeout, "connectionTimeout");
@@ -470,11 +444,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             connectionTimeout(connectionTimeout);
         }
 
-        /**
-         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
-         * @param connectionAcquisitionTimeout the timeout duration
-         * @return this builder for method chaining.
-         */
         @Override
         public Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
             Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");

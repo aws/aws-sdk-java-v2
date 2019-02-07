@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.embedded.EmbeddedChannel;
 
-class MockChannel extends EmbeddedChannel {
+public class MockChannel extends EmbeddedChannel {
     public MockChannel() throws Exception {
         super.doRegister();
     }

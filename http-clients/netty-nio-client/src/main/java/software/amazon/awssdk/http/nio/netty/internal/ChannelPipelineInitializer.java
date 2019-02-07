@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,38 +15,32 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Settings;
-import io.netty.handler.codec.http2.Http2SettingsFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
-import java.io.IOException;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
 
 /**
- * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
+ * ChannelPoolHandler to configure the client pipeline.
  */
 @SdkInternalApi
-public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
+public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final Protocol protocol;
     private final SslContext sslCtx;
     private final long clientMaxStreams;
@@ -103,46 +97,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
         pipeline.addLast(codecBuilder.build());
 
-        pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
-            @Override
-            protected void channelRead0(ChannelHandlerContext ctx, Http2SettingsFrame msg) {
-                Long serverMaxStreams = Optional.ofNullable(msg.settings().maxConcurrentStreams()).orElse(Long.MAX_VALUE);
-                ch.attr(MAX_CONCURRENT_STREAMS).set(Math.min(clientMaxStreams, serverMaxStreams));
-                ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP2);
-            }
-
-            @Override
-            public void channelUnregistered(ChannelHandlerContext ctx) {
-                if (!ch.attr(PROTOCOL_FUTURE).get().isDone()) {
-                    channelError(new IOException("The channel was closed before the protocol could be determined."), ch);
-                }
-            }
-
-            @Override
-            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-                channelError(cause, ch);
-            }
-        });
-    }
-
-    private void channelError(Throwable cause, Channel ch) {
-        ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
-        MultiplexedChannelRecord record = ch.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD).get();
-        // Deliver the exception to any child channels registered to this connection.
-        if (record != null) {
-            record.shutdownChildChannels(cause);
-        }
-        // Channel status may still be active at this point even if it's not so queue up the close so that status is
-        // accurately updated
-        ch.eventLoop().submit(() -> {
-            try {
-                if (ch.isActive()) {
-                    ch.close();
-                }
-            } finally {
-                channelPoolRef.get().release(ch);
-            }
-        });
+        pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
     }
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {

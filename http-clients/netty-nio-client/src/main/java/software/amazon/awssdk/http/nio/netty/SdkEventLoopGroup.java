@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,21 +30,33 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Provides {@link EventLoopGroup} and {@link ChannelFactory} for {@link NettyNioAsyncHttpClient}.
  * <p>
- * There are two ways to create a new instance.
+ * There are three ways to create a new instance.
  *
  * <ul>
- * <li>Using {@link #create(EventLoopGroup, ChannelFactory)} to provide a custom {@link EventLoopGroup} and
- * {@link ChannelFactory}
- * <p>
- * The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
- * be disposed. The SDK will not close the {@link EventLoopGroup} when the HTTP client is closed. See
- * {@link EventLoopGroup#shutdownGracefully()} to properly close the event loop group.
+ * <li>using {@link #builder()} to provide custom configuration of {@link EventLoopGroup}.
+ * This is the preferred configuration method when you just want to customize the {@link EventLoopGroup}</li>
+ *
+ *
+ * <li>Using {@link #create(EventLoopGroup)} to provide a custom {@link EventLoopGroup}. {@link ChannelFactory} will
+ * be resolved based on the type of {@link EventLoopGroup} provided via
+ * {@link SocketChannelResolver#resolveSocketChannelFactory(EventLoopGroup)}
  * </li>
  *
- * <li>using {@link #builder()} to provide custom configuration of {@link EventLoopGroup}. The {@link EventLoopGroup} created by
- * the builder is managed by the SDK and will be shutdown when the HTTP client is closed.
- * </li>
+ * <li>Using {@link #create(EventLoopGroup, ChannelFactory)} to provide a custom {@link EventLoopGroup} and
+ * {@link ChannelFactory}
  * </ul>
+ *
+ * <p>
+ * When configuring the {@link EventLoopGroup} of {@link NettyNioAsyncHttpClient}, if {@link SdkEventLoopGroup.Builder} is
+ * passed to {@link NettyNioAsyncHttpClient.Builder#eventLoopGroupBuilder},
+ * the {@link EventLoopGroup} is managed by the SDK and will be shutdown when the HTTP client is closed. Otherwise,
+ * if an instance of {@link SdkEventLoopGroup} is passed to {@link NettyNioAsyncHttpClient.Builder#eventLoopGroup},
+ * the {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to be disposed. The SDK will not
+ * close the {@link EventLoopGroup} when the HTTP client is closed. See {@link EventLoopGroup#shutdownGracefully()} to
+ * properly close the event loop group.
+ *
+ * @see NettyNioAsyncHttpClient.Builder#eventLoopGroupBuilder(Builder)
+ * @see NettyNioAsyncHttpClient.Builder#eventLoopGroup(SdkEventLoopGroup)
  */
 @SdkPublicApi
 public final class SdkEventLoopGroup {
