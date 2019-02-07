@@ -1,0 +1,5 @@
+{
+    "category": "Amazon GameLift", 
+    "type": "feature", 
+    "description": "This release delivers a new API action for deleting unused matchmaking rule sets. More details are available at https://aws.amazon.com/releasenotes/?tag=releasenotes%23keywords%23amazon-gamelift."
+}
