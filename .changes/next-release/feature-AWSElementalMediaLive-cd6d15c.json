@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaLive", 
-    "type": "feature", 
-    "description": "This release adds tagging of channels, inputs, and input security groups."
-}

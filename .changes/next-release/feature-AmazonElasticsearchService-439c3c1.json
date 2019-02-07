@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elasticsearch Service", 
-    "type": "feature", 
-    "description": "Feature: Support for three Availability Zone deployments"
-}
