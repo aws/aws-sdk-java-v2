@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.embedded.EmbeddedChannel;
 
-class MockChannel extends EmbeddedChannel {
+public class MockChannel extends EmbeddedChannel {
     public MockChannel() throws Exception {
         super.doRegister();
     }
