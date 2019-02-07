@@ -149,7 +149,7 @@ public final class NettyRequestExecutor {
             return;
         }
         pipeline.addLast(new HttpStreamsClientHandler());
-        pipeline.addLast(new ResponseHandler());
+        pipeline.addLast(ResponseHandler.getInstance());
     }
 
     private void makeRequest() {
