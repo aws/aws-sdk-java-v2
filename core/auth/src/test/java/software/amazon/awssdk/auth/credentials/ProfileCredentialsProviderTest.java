@@ -28,6 +28,16 @@ import software.amazon.awssdk.utils.StringInputStream;
  */
 public class ProfileCredentialsProviderTest {
     @Test
+    public void missingCredentialsFileThrowsExceptionInGetCredentials() {
+        ProfileCredentialsProvider provider =
+                new ProfileCredentialsProvider.BuilderImpl()
+                        .defaultProfileFileLoader(() -> { throw new IllegalStateException(); })
+                        .build();
+
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     public void missingProfileFileThrowsExceptionInGetCredentials() {
         ProfileCredentialsProvider provider =
             new ProfileCredentialsProvider.BuilderImpl()

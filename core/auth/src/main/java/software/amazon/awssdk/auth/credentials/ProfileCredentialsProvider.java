@@ -52,28 +52,47 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
      * @see #builder()
      */
     private ProfileCredentialsProvider(BuilderImpl builder) {
-        this.profileName = builder.profileName != null ? builder.profileName
-                                                       : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+        AwsCredentialsProvider credentialsProvider = null;
+        RuntimeException loadException = null;
+        ProfileFile profileFile = null;
+        String profileName = null;
 
-        // Load the profiles file
-        this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElseGet(builder.defaultProfileFileLoader);
+        try {
+            profileName = builder.profileName != null ? builder.profileName
+                                                      : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
-        // Load the profile and credentials provider
-        this.credentialsProvider = profileFile.profile(profileName)
-                                              .flatMap(p -> new ProfileCredentialsUtils(p, profileFile::profile)
-                                                  .credentialsProvider())
-                                              .orElse(null);
+            // Load the profiles file
+            profileFile = Optional.ofNullable(builder.profileFile)
+                                  .orElseGet(builder.defaultProfileFileLoader);
 
-        // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception will
-        // only be raised on calls to getCredentials. We don't want to raise an exception here because it may be expected (eg. in
-        // the default credential chain).
-        if (credentialsProvider == null) {
-            String loadError = String.format("Profile file contained no credentials for profile '%s': %s",
-                                             profileName, profileFile);
-            this.loadException = SdkClientException.builder().message(loadError).build();
+            // Load the profile and credentials provider
+            String finalProfileName = profileName;
+            ProfileFile finalProfileFile = profileFile;
+            credentialsProvider =
+                    profileFile.profile(profileName)
+                               .flatMap(p -> new ProfileCredentialsUtils(p, finalProfileFile::profile).credentialsProvider())
+                               .orElseThrow(() -> {
+                                   String errorMessage = String.format("Profile file contained no credentials for " +
+                                                                       "profile '%s': %s", finalProfileName, finalProfileFile);
+                                   return SdkClientException.builder().message(errorMessage).build();
+                               });
+        } catch (RuntimeException e) {
+            // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
+            // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
+            // expected (eg. in the default credential chain).
+            loadException = e;
+        }
+
+        if (loadException != null) {
+            this.loadException = loadException;
+            this.credentialsProvider = null;
+            this.profileFile = null;
+            this.profileName = null;
         } else {
             this.loadException = null;
+            this.credentialsProvider = credentialsProvider;
+            this.profileFile = profileFile;
+            this.profileName = profileName;
         }
     }
 
