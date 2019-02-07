@@ -35,6 +35,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.LazyAwsRegionProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -60,7 +61,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
-    private static final AwsRegionProvider DEFAULT_REGION_PROVIDER = new DefaultAwsRegionProviderChain();
+    private static final AwsRegionProvider DEFAULT_REGION_PROVIDER =
+            new LazyAwsRegionProvider(DefaultAwsRegionProviderChain::new);
 
     protected AwsDefaultClientBuilder() {
         super();
