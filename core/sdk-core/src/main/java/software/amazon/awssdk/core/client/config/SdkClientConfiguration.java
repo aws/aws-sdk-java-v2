@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.client.config;
 
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
