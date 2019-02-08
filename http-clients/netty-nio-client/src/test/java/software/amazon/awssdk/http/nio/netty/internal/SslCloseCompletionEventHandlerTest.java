@@ -35,7 +35,7 @@ public class SslCloseCompletionEventHandlerTest {
 
     @Test
     public void userEventTriggered_ClosesChannel() {
-        SslCloseCompletionEventHandler handler = new SslCloseCompletionEventHandler();
+        SslCloseCompletionEventHandler handler = SslCloseCompletionEventHandler.getInstance();
         handler.userEventTriggered(ctx, new SslCloseCompletionEvent(new ClosedChannelException()));
 
         verify(ctx).close();
@@ -43,7 +43,7 @@ public class SslCloseCompletionEventHandlerTest {
 
     @Test
     public void userEventTriggered_StaticVariable_ClosesChannel() {
-        SslCloseCompletionEventHandler handler = new SslCloseCompletionEventHandler();
+        SslCloseCompletionEventHandler handler = SslCloseCompletionEventHandler.getInstance();
         handler.userEventTriggered(ctx, SslCloseCompletionEvent.SUCCESS);
 
         verify(ctx).close();

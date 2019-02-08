@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
@@ -26,7 +27,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * in this state can't be reused so they must be closed.
  */
 @SdkInternalApi
+@ChannelHandler.Sharable
 public final class SslCloseCompletionEventHandler extends ChannelInboundHandlerAdapter {
+
+    private static final SslCloseCompletionEventHandler INSTANCE = new SslCloseCompletionEventHandler();
+
+    private SslCloseCompletionEventHandler() {
+    }
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
@@ -35,5 +42,9 @@ public final class SslCloseCompletionEventHandler extends ChannelInboundHandlerA
         } else {
             ctx.fireUserEventTriggered(evt);
         }
+    }
+
+    public static SslCloseCompletionEventHandler getInstance() {
+        return INSTANCE;
     }
 }
