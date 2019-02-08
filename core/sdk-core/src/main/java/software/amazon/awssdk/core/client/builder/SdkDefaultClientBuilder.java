@@ -284,7 +284,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize which scheduled executor service will be used for retries in the created client.
+     * Finalize the internal SDK scheduled executor service that is used for scheduling tasks such
+     * as async retry attempts and timeout task.
      */
     private ScheduledExecutorService resolveScheduledExecutorService() {
         return Executors.newScheduledThreadPool(5, new ThreadFactoryBuilder()
@@ -301,6 +302,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     @Override
     public final B endpointOverride(URI endpointOverride) {
+        Validate.paramNotNull(endpointOverride, "endpointOverride");
+        Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
         clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
         return thisBuilder();
     }
