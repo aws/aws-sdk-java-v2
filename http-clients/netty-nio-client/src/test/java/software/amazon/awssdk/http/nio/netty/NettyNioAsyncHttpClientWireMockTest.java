@@ -185,16 +185,19 @@ public class NettyNioAsyncHttpClientWireMockTest {
         ChannelFactory channelFactory = mock(ChannelFactory.class);
 
         when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> new NioSocketChannel());
+        EventLoopGroup customEventLoopGroup = new NioEventLoopGroup();
 
         SdkAsyncHttpClient customClient =
             NettyNioAsyncHttpClient.builder()
-                                   .eventLoopGroup(SdkEventLoopGroup.create(new NioEventLoopGroup(), channelFactory))
+                                   .eventLoopGroup(SdkEventLoopGroup.create(customEventLoopGroup, channelFactory))
                                    .build();
 
         makeSimpleRequest(customClient);
         customClient.close();
 
         Mockito.verify(channelFactory, atLeastOnce()).newChannel();
+        assertThat(customEventLoopGroup.isShuttingDown()).isFalse();
+        customEventLoopGroup.shutdownGracefully().awaitUninterruptibly();
     }
 
     @Test
@@ -212,10 +215,12 @@ public class NettyNioAsyncHttpClientWireMockTest {
         SdkChannelOptions channelOptions = new SdkChannelOptions();
         NettyConfiguration nettyConfiguration = new NettyConfiguration(AttributeMap.empty());
 
-        SdkAsyncHttpClient client = new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, channelOptions, nettyConfiguration, 1);
+        SdkAsyncHttpClient customerClient =
+            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, channelOptions, nettyConfiguration, 1);
 
-        client.close();
+        customerClient.close();
         assertThat(eventLoopGroup.eventLoopGroup().isShuttingDown()).isTrue();
+        assertThat(eventLoopGroup.eventLoopGroup().isTerminated()).isTrue();
         assertThat(sdkChannelPoolMap).isEmpty();
         Mockito.verify(channelPool).close();
     }
