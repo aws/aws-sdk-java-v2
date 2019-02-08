@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -88,6 +89,13 @@ public class DefaultClientBuilderTest {
         TestClient client = testClientBuilder().endpointOverride(ENDPOINT).build();
 
         assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+    }
+
+    @Test
+    public void buildWithEndpointWithoutScheme_shouldThrowException() {
+        assertThatThrownBy(() -> testClientBuilder().endpointOverride(URI.create("localhost")).build())
+            .hasMessageContaining("The URI scheme of endpointOverride must not be null");
+
     }
 
     @Test
