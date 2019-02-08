@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelPromise;
@@ -58,7 +61,7 @@ public abstract class DelegatingEventLoopGroup implements EventLoopGroup {
 
     @Override
     public Future<?> shutdownGracefully() {
-        return delegate.shutdownGracefully();
+        return shutdownGracefully(EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS, EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override

@@ -24,6 +24,9 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -40,6 +43,9 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
@@ -212,7 +218,23 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public void close() {
         runAndLogError(log, "Unable to close channel pools", pools::close);
-        runAndLogError(log, "Unable to shutdown event loop", sdkEventLoopGroup.eventLoopGroup()::shutdownGracefully);
+        runAndLogError(log, "Unable to shutdown event loop", () ->
+            closeEventLoopUninterruptibly(sdkEventLoopGroup.eventLoopGroup()));
+    }
+
+    private void closeEventLoopUninterruptibly(EventLoopGroup eventLoopGroup) throws ExecutionException {
+        try {
+            eventLoopGroup.shutdownGracefully(EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS,
+                                              EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS,
+                                              TimeUnit.SECONDS)
+                          .get(EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
+                                                     EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS));
+        }
     }
 
     /**

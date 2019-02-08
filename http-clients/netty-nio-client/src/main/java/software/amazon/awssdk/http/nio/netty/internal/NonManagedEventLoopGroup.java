@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.SUCCEEDED_FUTURE;
+
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -31,8 +34,7 @@ public final class NonManagedEventLoopGroup extends DelegatingEventLoopGroup {
     }
 
     @Override
-    public Future<?> shutdownGracefully() {
-        return null;
+    public Future<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
+        return SUCCEEDED_FUTURE;
     }
-
 }
