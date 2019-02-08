@@ -1,5 +1,0 @@
-{
-    "category": "AWS S3", 
-    "type": "bugfix", 
-    "description": "Use request header to determine if checksum validation should be enabled for `s3#putObject`"
-}

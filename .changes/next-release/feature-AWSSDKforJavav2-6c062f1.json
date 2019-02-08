@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Never initialie the default region provider chain if the region is always specified in the client builder."
-}

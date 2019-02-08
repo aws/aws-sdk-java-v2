@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Defer all errors raised when creating `ProfileCredentialsProvider` to the `resolveCredentials()` call."
-}

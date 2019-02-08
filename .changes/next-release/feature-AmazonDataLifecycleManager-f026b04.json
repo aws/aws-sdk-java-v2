@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Data Lifecycle Manager", 
-    "type": "feature", 
-    "description": "This release is to correct the timestamp format to ISO8601 for the DateCreated and DateModified files in the GetLifecyclePolicy response object."
-}

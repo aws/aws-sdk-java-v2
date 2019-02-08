@@ -1,0 +1,41 @@
+{
+    "date": "2019-02-08",
+    "version": "2.4.4",
+    "entries": [
+        {
+            "category": "AWS Application Discovery Service",
+            "type": "feature",
+            "description": "Documentation updates for the AWS Application Discovery Service."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Never initialie the default region provider chain if the region is always specified in the client builder."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Defer all errors raised when creating `ProfileCredentialsProvider` to the `resolveCredentials()` call."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Never initialize the default credentials provider chain if credentials are always specified in the client builder."
+        },
+        {
+            "category": "Amazon Data Lifecycle Manager",
+            "type": "feature",
+            "description": "This release is to correct the timestamp format to ISO8601 for the DateCreated and DateModified files in the GetLifecyclePolicy response object."
+        },
+        {
+            "category": "Amazon EC2 Container Service",
+            "type": "feature",
+            "description": "Amazon ECS introduces the PutAccountSettingDefault API, an API that allows a user to set the default ARN/ID format opt-in status for all the roles and users in the account. Previously, setting the account's default opt-in status required the use of the root user with the PutAccountSetting API."
+        },
+        {
+            "category": "AWS S3",
+            "type": "bugfix",
+            "description": "Use request header to determine if checksum validation should be enabled for `s3#putObject`"
+        }
+    ]
+}
