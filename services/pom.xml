@@ -4,14 +4,16 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.4.3</version>
+        <version>2.4.4</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
     <packaging>pom</packaging>
+
     <properties>
         <root.offset>../..</root.offset>
     </properties>
+
     <modules>
         <module>acm</module>
         <module>apigateway</module>
@@ -183,6 +185,19 @@
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -279,17 +294,10 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                </plugin>
                 <plugin>
                     <groupId>software.amazon.awssdk</groupId>
                     <artifactId>codegen-maven-plugin</artifactId>
@@ -303,7 +311,7 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!-- Disable spotbugs for service clients to speed up the build. -->
+
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
@@ -313,22 +321,8 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-        <!-- Build steps executed for every service -->
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
     </build>
+
     <profiles>
         <!-- Build steps executed for services with models -->
         <profile>

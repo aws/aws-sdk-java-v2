@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.4.3</version>
+        <version>2.4.4</version>
     </parent>
     <artifactId>sdk-core</artifactId>
     <name>AWS Java SDK :: SDK Core</name>
@@ -169,21 +169,7 @@
         </dependency>
     </dependencies>
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -226,12 +212,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven.surefire.version}</version>
-                    <configuration>
-                        <!-- Run multiple tests in parallel. -->
-                        <forkCount>1C</forkCount>
-                        <argLine>${argLine}</argLine>
-                    </configuration>
                     <!-- Have to explicitly set surefire provider because reactivestreamsTCK is using TestNG-->
                     <dependencies>
                         <dependency>

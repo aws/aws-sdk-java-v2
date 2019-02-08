@@ -7,7 +7,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.4.3</version>
+        <version>2.4.4</version>
     </parent>
 
     <artifactId>auth</artifactId>
@@ -54,37 +54,31 @@
         <dependency>
             <groupId>software.amazon</groupId>
             <artifactId>flow</artifactId>
-            <version>${flow.version}</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
@@ -41,7 +42,7 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
 
     private static final DefaultCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER = new DefaultCredentialsProvider(builder());
 
-    private final AwsCredentialsProviderChain providerChain;
+    private final LazyAwsCredentialsProvider providerChain;
 
     /**
      * @see #builder()
@@ -61,23 +62,28 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
     /**
      * Create the default credential chain using the configuration in the provided builder.
      */
-    private static AwsCredentialsProviderChain createChain(Builder builder) {
-        AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
-            SystemPropertyCredentialsProvider.create(),
-            EnvironmentVariableCredentialsProvider.create(),
-            ProfileCredentialsProvider.create(),
-            ContainerCredentialsProvider.builder()
-                                        .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                            .build(),
-            InstanceProfileCredentialsProvider.builder()
-                                              .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                                  .build()
-        };
+    private static LazyAwsCredentialsProvider createChain(Builder builder) {
+        boolean asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
+        boolean reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
 
-        return AwsCredentialsProviderChain.builder()
-                                          .reuseLastProviderEnabled(builder.reuseLastProviderEnabled)
-                                          .credentialsProviders(credentialsProviders)
-                                          .build();
+        return LazyAwsCredentialsProvider.create(() -> {
+            AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
+                    SystemPropertyCredentialsProvider.create(),
+                    EnvironmentVariableCredentialsProvider.create(),
+                    ProfileCredentialsProvider.create(),
+                    ContainerCredentialsProvider.builder()
+                                                .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                                .build(),
+                    InstanceProfileCredentialsProvider.builder()
+                                                      .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                                      .build()
+            };
+
+            return AwsCredentialsProviderChain.builder()
+                                              .reuseLastProviderEnabled(reuseLastProviderEnabled)
+                                              .credentialsProviders(credentialsProviders)
+                                              .build();
+        });
     }
 
     /**

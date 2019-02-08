@@ -7,7 +7,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.4.3</version>
+        <version>2.4.4</version>
     </parent>
 
     <artifactId>aws-core</artifactId>
@@ -55,9 +55,14 @@
         <dependency>
             <groupId>software.amazon</groupId>
             <artifactId>flow</artifactId>
-            <version>${flow.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>test-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -76,12 +81,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -126,12 +125,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${commons-lang.verson}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
             <scope>test</scope>
@@ -139,18 +132,6 @@
     </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -163,21 +144,6 @@
                 </configuration>
             </plugin>
         </plugins>
-
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven.surefire.version}</version>
-                    <configuration>
-                        <argLine>${argLine}</argLine>
-                        <!-- Run multiple tests in parallel. -->
-                        <forkCount>1C</forkCount>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     

@@ -1,3 +1,28 @@
+# __2.4.4__ __2019-02-08__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Documentation updates for the AWS Application Discovery Service.
+
+## __AWS S3__
+  - ### Bugfixes
+    - Use request header to determine if checksum validation should be enabled for `s3#putObject`
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Never initialie the default region provider chain if the region is always specified in the client builder.
+    - Never initialize the default credentials provider chain if credentials are always specified in the client builder.
+
+  - ### Bugfixes
+    - Defer all errors raised when creating `ProfileCredentialsProvider` to the `resolveCredentials()` call.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release is to correct the timestamp format to ISO8601 for the DateCreated and DateModified files in the GetLifecyclePolicy response object.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS introduces the PutAccountSettingDefault API, an API that allows a user to set the default ARN/ID format opt-in status for all the roles and users in the account. Previously, setting the account's default opt-in status required the use of the root user with the PutAccountSetting API.
+
 # __2.4.3__ __2019-02-07__
 ## __AWS Elemental MediaLive__
   - ### Features
