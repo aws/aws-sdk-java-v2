@@ -83,7 +83,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         }
 
         pipeline.addLast(FutureCancelHandler.getInstance());
-        pipeline.addLast(new UnusedChannelExceptionHandler());
+        pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
     }
 
