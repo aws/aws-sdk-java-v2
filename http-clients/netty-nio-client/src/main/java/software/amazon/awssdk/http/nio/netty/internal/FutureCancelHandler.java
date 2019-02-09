@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.ReferenceCountUtil;
@@ -28,7 +29,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Closes the channel if the execution future has been cancelled.
  */
 @SdkInternalApi
-public class FutureCancelHandler extends SimpleChannelInboundHandler {
+@ChannelHandler.Sharable
+public final class FutureCancelHandler extends SimpleChannelInboundHandler {
+    private static final FutureCancelHandler INSTANCE = new FutureCancelHandler();
+
+    private FutureCancelHandler() {
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object o) {
         ReferenceCountUtil.retain(o);
@@ -46,6 +53,10 @@ public class FutureCancelHandler extends SimpleChannelInboundHandler {
         } else {
             ctx.fireExceptionCaught(e);
         }
+    }
+
+    public static FutureCancelHandler getInstance() {
+        return INSTANCE;
     }
 
     private boolean cancelled(ChannelHandlerContext ctx, Throwable t) {
