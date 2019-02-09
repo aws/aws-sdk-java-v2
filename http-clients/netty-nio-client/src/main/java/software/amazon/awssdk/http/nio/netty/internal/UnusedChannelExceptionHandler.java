@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
@@ -33,8 +34,14 @@ import software.amazon.awssdk.utils.Logger;
  * This prevents spamming customer logs when errors (eg. connection resets) occur on an unused channel.
  */
 @SdkInternalApi
-public class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
+@ChannelHandler.Sharable
+public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
+    public static final UnusedChannelExceptionHandler INSTANCE = new UnusedChannelExceptionHandler();
+
     private static final Logger log = Logger.loggerFor(UnusedChannelExceptionHandler.class);
+
+    private UnusedChannelExceptionHandler() {
+    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
@@ -63,6 +70,10 @@ public class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
                                "The channel has been closed to prevent any ongoing issues.", cause);
             }
         }
+    }
+
+    public static UnusedChannelExceptionHandler getInstance() {
+        return INSTANCE;
     }
 
     private <T> Optional<T> getAttribute(ChannelHandlerContext ctx, AttributeKey<T> key) {
