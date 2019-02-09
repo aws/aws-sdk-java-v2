@@ -42,7 +42,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 @RunWith(MockitoJUnitRunner.class)
 public class FutureCancelHandlerTest {
 
-    private FutureCancelHandler handler = new FutureCancelHandler();
+    private FutureCancelHandler handler = FutureCancelHandler.getInstance();
 
     @Mock
     private ChannelHandlerContext ctx;
