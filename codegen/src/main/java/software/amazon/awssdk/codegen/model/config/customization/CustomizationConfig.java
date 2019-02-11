@@ -147,6 +147,13 @@ public class CustomizationConfig {
      */
     private String customProtocolFactoryFqcn;
 
+    /**
+     * Map of paginated operations that use custom class generation.
+     * Key - c2j operation name
+     * Value - indicates the type of pagination strategy to use
+     */
+    private Map<String, String> paginationCustomization;
+
     private CustomizationConfig() {
     }
 
@@ -377,5 +384,13 @@ public class CustomizationConfig {
 
     public void setCustomProtocolFactoryFqcn(String customProtocolFactoryFqcn) {
         this.customProtocolFactoryFqcn = customProtocolFactoryFqcn;
+    }
+
+    public Map<String, String> getPaginationCustomization() {
+        return paginationCustomization;
+    }
+
+    public void setPaginationCustomization(Map<String, String> paginationCustomization) {
+        this.paginationCustomization = paginationCustomization;
     }
 }

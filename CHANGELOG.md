@@ -1,3 +1,20 @@
+# __2.4.5__ __2019-02-11__
+## __AWS CodeBuild__
+  - ### Features
+    - Add customized webhook filter support
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Adds optional configuration for DASH to compact the manifest by combining duplicate SegmentTemplate tags. Adds optional configuration for DASH SegmentTemplate format to refer to segments by "Number" (default) or by "Time".
+
+## __Amazon AppStream__
+  - ### Features
+    - This update enables customers to find the start time, max expiration time, and connection status associated with AppStream streaming session.
+
+## __Amazon CloudWatch Logs__
+  - ### Bugfixes
+    - Fix infinite pagination bug in CloudWatchLogsClient.getLogEventsPaginator API. See https://github.com/aws/aws-sdk-java-v2/issues/1045
+
 # __2.4.4__ __2019-02-08__
 ## __AWS Application Discovery Service__
   - ### Features

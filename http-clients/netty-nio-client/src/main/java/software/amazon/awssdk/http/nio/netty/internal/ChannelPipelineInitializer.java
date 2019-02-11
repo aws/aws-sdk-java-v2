@@ -65,7 +65,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
             pipeline.addLast(sslCtx.newHandler(ch.alloc()));
-            pipeline.addLast(new SslCloseCompletionEventHandler());
+            pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
         }
 
         if (protocol == Protocol.HTTP2) {
@@ -82,8 +82,8 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             pipeline.addLast(new OldConnectionReaperHandler(configuration.connectionTtlMillis()));
         }
 
-        pipeline.addLast(new FutureCancelHandler());
-        pipeline.addLast(new UnusedChannelExceptionHandler());
+        pipeline.addLast(FutureCancelHandler.getInstance());
+        pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
     }
 

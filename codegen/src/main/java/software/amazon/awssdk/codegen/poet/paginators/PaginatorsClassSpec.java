@@ -167,7 +167,6 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
     }
 
     protected CodeBlock hasNextPageMethodBody() {
-
         if (paginatorDefinition.getMoreResults() != null) {
             return CodeBlock.builder()
                     .add("return $N.$L.booleanValue()",
@@ -212,7 +211,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * Sample generated code:
      * return client.listTables(firstRequest.toBuilder().exclusiveStartTableName(response.lastEvaluatedTableName()).build());
      */
-    private String codeToGetNextPageIfOldResponseIsNotNull() {
+    protected String codeToGetNextPageIfOldResponseIsNotNull() {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("return %s.%s(%s)", CLIENT_MEMBER,
                                 operationModel.getMethodName(),
@@ -269,7 +268,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * Returns a list of fluent getter methods for members in {@link PaginatorDefinition#getOutputToken()} list.
      * The size of list returned by this method is equal to the size of {@link PaginatorDefinition#getOutputToken()} list.
      */
-    private List<String> fluentGetterMethodsForOutputToken() {
+    protected List<String> fluentGetterMethodsForOutputToken() {
         return paginatorDefinition.getOutputToken().stream()
                                   .map(this::fluentGetterMethodForResponseMember)
                                   .collect(Collectors.toList());
@@ -285,7 +284,7 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      *
      * @param member A top level or nested member in response of {@link #c2jOperationName}.
      */
-    private String fluentGetterMethodForResponseMember(String member) {
+    protected String fluentGetterMethodForResponseMember(String member) {
         String[] hierarchy = member.split("\\.");
 
         if (hierarchy.length < 1) {

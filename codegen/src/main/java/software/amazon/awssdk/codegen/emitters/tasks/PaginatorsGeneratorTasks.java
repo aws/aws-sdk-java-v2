@@ -29,14 +29,20 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.paginators.AsyncResponseClassSpec;
 import software.amazon.awssdk.codegen.poet.paginators.SyncResponseClassSpec;
+import software.amazon.awssdk.codegen.poet.paginators.customizations.SameTokenAsyncResponseClassSpec;
+import software.amazon.awssdk.codegen.poet.paginators.customizations.SameTokenSyncResponseClassSpec;
 
 public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
 
+    private static final String SAME_TOKEN_CUSTOMIZATION = "LastPageHasPreviousToken";
+
     private final String paginatorsClassDir;
+    private final Map<String, String> customization;
 
     public PaginatorsGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
         this.paginatorsClassDir = dependencies.getPathProvider().getPaginatorsDirectory();
+        this.customization = dependencies.getModel().getCustomizationConfig().getPaginationCustomization();
     }
 
     @Override
@@ -62,11 +68,23 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
     private GeneratorTask createSyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
         ClassSpec classSpec = new SyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
+        if (customization != null && customization.containsKey(entry.getKey())) {
+            if (SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
+                classSpec = new SameTokenSyncResponseClassSpec(model, entry.getKey(), entry.getValue());
+            }
+        }
+
         return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
     }
 
     private GeneratorTask createAsyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
         ClassSpec classSpec = new AsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
+
+        if (customization != null && customization.containsKey(entry.getKey())) {
+            if (SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
+                classSpec = new SameTokenAsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
+            }
+        }
 
         return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
     }

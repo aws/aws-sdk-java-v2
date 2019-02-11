@@ -44,7 +44,7 @@ import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
  */
 public class SyncResponseClassSpec extends PaginatorsClassSpec {
 
-    private static final String ITERATOR_METHOD = "iterator";
+    protected static final String ITERATOR_METHOD = "iterator";
 
     public SyncResponseClassSpec(IntermediateModel model, String c2jOperationName, PaginatorDefinition paginatorDefinition) {
         super(model, c2jOperationName, paginatorDefinition);
@@ -56,17 +56,13 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                                                .addModifiers(Modifier.PUBLIC)
                                                .addAnnotation(PoetUtils.generatedAnnotation())
                                                .addSuperinterface(getSyncResponseInterface())
-                                               .addFields(Stream.of(syncClientInterfaceField(),
-                                                                    requestClassField(),
-                                                                    syncPageFetcherField())
-                                                                .collect(Collectors.toList()))
+                                               .addFields(fields().collect(Collectors.toList()))
                                                .addMethod(constructor())
                                                .addMethod(iteratorMethod())
                                                .addMethods(getMethodSpecsForResultKeyList())
-                                               .addMethod(resumeMethod())
                                                .addJavadoc(paginationDocs.getDocsForSyncResponseClass(
                                                    getClientInterfaceName()))
-                                               .addType(nextPageFetcherClass());
+                                               .addType(nextPageFetcherClass().build());
 
         return specBuilder.build();
     }
@@ -86,11 +82,15 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
     /**
      * @return A Poet {@link ClassName} for the sync client interface
      */
-    private ClassName getClientInterfaceName() {
+    protected ClassName getClientInterfaceName() {
         return poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
     }
 
-    private FieldSpec syncClientInterfaceField() {
+    protected Stream<FieldSpec> fields() {
+        return Stream.of(syncClientInterfaceField(), requestClassField(), syncPageFetcherField());
+    }
+
+    protected FieldSpec syncClientInterfaceField() {
         return FieldSpec.builder(getClientInterfaceName(), CLIENT_MEMBER, Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -98,7 +98,7 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
         return FieldSpec.builder(SyncPageFetcher.class, NEXT_PAGE_FETCHER_MEMBER, Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
-    private MethodSpec constructor() {
+    protected MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(getClientInterfaceName(), CLIENT_MEMBER)
@@ -113,13 +113,18 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
      * A {@link MethodSpec} for the overridden iterator() method which is inherited
      * from the interface.
      */
-    private MethodSpec iteratorMethod() {
+    protected MethodSpec iteratorMethod() {
         return MethodSpec.methodBuilder(ITERATOR_METHOD)
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ParameterizedTypeName.get(ClassName.get(Iterator.class), responseType()))
-                .addStatement("return $1T.builder().$2L($2L).build()", PaginatedResponsesIterator.class, NEXT_PAGE_FETCHER_MEMBER)
+                .addStatement("return $1T.builder().$2L($3L).build()", PaginatedResponsesIterator.class,
+                              NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherArgument())
                 .build();
+    }
+
+    protected String nextPageFetcherArgument() {
+        return NEXT_PAGE_FETCHER_MEMBER;
     }
 
     /**
@@ -196,7 +201,7 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
      * Generates a inner class that implements {@link SyncPageFetcher}. An instance of this class
      * is passed to {@link PaginatedResponsesIterator} to be used while iterating through pages.
      */
-    private TypeSpec nextPageFetcherClass() {
+    protected TypeSpec.Builder nextPageFetcherClass() {
         return TypeSpec.classBuilder(nextPageFetcherClassName())
                        .addModifiers(Modifier.PRIVATE)
                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(SyncPageFetcher.class), responseType()))
@@ -213,24 +218,6 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                                             .addParameter(responseType(), PREVIOUS_PAGE_METHOD_ARGUMENT)
                                             .returns(responseType())
                                             .addCode(nextPageMethodBody())
-                                            .build())
-                       .build();
-    }
-
-    private MethodSpec resumeMethod() {
-        return resumeMethodBuilder().addStatement("return $L", anonymousClassWithEmptyIterator())
-                                    .build();
-    }
-
-    private TypeSpec anonymousClassWithEmptyIterator() {
-        return TypeSpec.anonymousClassBuilder("$L, $L", CLIENT_MEMBER, REQUEST_MEMBER)
-                       .addSuperinterface(className())
-                       .addMethod(MethodSpec.methodBuilder(ITERATOR_METHOD)
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(Modifier.PUBLIC)
-                                            .returns(ParameterizedTypeName.get(ClassName.get(Iterator.class), responseType()))
-                                            .addStatement("return $T.emptyIterator()", TypeName.get(Collections.class))
-                                            .build())
-                       .build();
+                                            .build());
     }
 }

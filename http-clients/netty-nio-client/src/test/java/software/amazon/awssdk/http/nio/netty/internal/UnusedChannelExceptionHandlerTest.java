@@ -39,7 +39,7 @@ public class UnusedChannelExceptionHandlerTest {
     public void inUseDoesNothing() {
         Mockito.when(inUseAttribute.get()).thenReturn(true);
 
-        new UnusedChannelExceptionHandler().exceptionCaught(ctx, exception);
+        UnusedChannelExceptionHandler.getInstance().exceptionCaught(ctx, exception);
 
         Mockito.verify(ctx).fireExceptionCaught(exception);
         Mockito.verify(ctx, new Times(0)).close();
@@ -59,7 +59,7 @@ public class UnusedChannelExceptionHandlerTest {
         Mockito.when(inUseAttribute.get()).thenReturn(false);
         Mockito.when(futureAttribute.get()).thenReturn(CompletableFuture.completedFuture(null));
 
-        new UnusedChannelExceptionHandler().exceptionCaught(ctx, exception);
+        UnusedChannelExceptionHandler.getInstance().exceptionCaught(ctx, exception);
 
         Mockito.verify(ctx).close();
     }
@@ -71,7 +71,7 @@ public class UnusedChannelExceptionHandlerTest {
         Mockito.when(inUseAttribute.get()).thenReturn(false);
         Mockito.when(futureAttribute.get()).thenReturn(incompleteFuture);
 
-        new UnusedChannelExceptionHandler().exceptionCaught(ctx, exception);
+        UnusedChannelExceptionHandler.getInstance().exceptionCaught(ctx, exception);
 
         Mockito.verify(ctx).close();
         assertThat(incompleteFuture.isDone()).isTrue();
