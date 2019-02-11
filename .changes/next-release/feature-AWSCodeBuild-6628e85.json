@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodeBuild", 
-    "type": "feature", 
-    "description": "Add customized webhook filter support"
-}
