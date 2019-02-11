@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
-import software.amazon.awssdk.codegen.model.config.customization.PaginationSubstitution;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.paginators.AsyncResponseClassSpec;
@@ -35,8 +34,10 @@ import software.amazon.awssdk.codegen.poet.paginators.customizations.SameTokenSy
 
 public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
 
+    private static final String SAME_TOKEN_CUSTOMIZATION = "LastPageHasPreviousToken";
+
     private final String paginatorsClassDir;
-    private final Map<String, PaginationSubstitution> customization;
+    private final Map<String, String> customization;
 
     public PaginatorsGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
@@ -68,8 +69,7 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
         ClassSpec classSpec = new SyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
         if (customization != null && customization.containsKey(entry.getKey())) {
-            String sync = customization.get(entry.getKey()).getSync();
-            if (sync != null && sync.equals("SameTokenSyncResponseClassSpec")) {
+            if (SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
                 classSpec = new SameTokenSyncResponseClassSpec(model, entry.getKey(), entry.getValue());
             }
         }
@@ -81,8 +81,7 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
         ClassSpec classSpec = new AsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
         if (customization != null && customization.containsKey(entry.getKey())) {
-            String async = customization.get(entry.getKey()).getAsync();
-            if (async != null && async.equals("SameTokenAsyncResponseClassSpec")) {
+            if (SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
                 classSpec = new SameTokenAsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
             }
         }
