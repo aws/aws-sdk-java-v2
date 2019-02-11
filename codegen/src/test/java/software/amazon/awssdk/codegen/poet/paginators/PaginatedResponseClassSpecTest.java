@@ -26,7 +26,6 @@ import org.junit.Test;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.config.customization.PaginationSubstitution;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -38,9 +37,10 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
 public class PaginatedResponseClassSpecTest {
 
+    private static final String SAME_TOKEN_CUSTOMIZATION = "LastPageHasPreviousToken";
     private static IntermediateModel intermediateModel;
     private static Paginators paginators;
-    private static Map<String, PaginationSubstitution> customization;
+    private static Map<String, String> paginationCustomization;
 
     @BeforeClass
     public static void setUp() throws IOException {
@@ -60,7 +60,7 @@ public class PaginatedResponseClassSpecTest {
                      .build())
             .build();
 
-        customization = intermediateModel.getCustomizationConfig().getPaginationCustomization();
+        paginationCustomization = intermediateModel.getCustomizationConfig().getPaginationCustomization();
     }
 
     private static Paginators getPaginatorsModel(File file) {
@@ -96,17 +96,17 @@ public class PaginatedResponseClassSpecTest {
                                                         entry.getKey(),
                                                         entry.getValue());
 
-        if (customization != null && customization.containsKey(entry.getKey())) {
-            String sync = customization.get(entry.getKey()).getSync();
-            switch (sync) {
-                case "SameTokenSyncResponseClassSpec":
+        if (paginationCustomization != null && paginationCustomization.containsKey(entry.getKey())) {
+            String customvalue = paginationCustomization.get(entry.getKey());
+            switch (customvalue) {
+                case SAME_TOKEN_CUSTOMIZATION:
                     classSpec = new SameTokenSyncResponseClassSpec(intermediateModel,
                                                                    entry.getKey(),
                                                                    entry.getValue());
                     break;
 
                 default:
-                    throw new IllegalArgumentException("Unknown customization value: " + sync);
+                    throw new IllegalArgumentException("Unknown paginationCustomization value: " + customvalue);
             }
         }
 
@@ -118,17 +118,17 @@ public class PaginatedResponseClassSpecTest {
                                                          entry.getKey(),
                                                          entry.getValue());
 
-        if (customization != null && customization.containsKey(entry.getKey())) {
-            String async = customization.get(entry.getKey()).getAsync();
-            switch (async) {
-                case "SameTokenAsyncResponseClassSpec":
+        if (paginationCustomization != null && paginationCustomization.containsKey(entry.getKey())) {
+            String customvalue = paginationCustomization.get(entry.getKey());
+            switch (customvalue) {
+                case SAME_TOKEN_CUSTOMIZATION:
                     classSpec = new SameTokenAsyncResponseClassSpec(intermediateModel,
                                                                     entry.getKey(),
                                                                     entry.getValue());
                     break;
 
                 default:
-                    throw new IllegalArgumentException("Unknown customization value: " + async);
+                    throw new IllegalArgumentException("Unknown paginationCustomization value: " + customvalue);
             }
         }
 
