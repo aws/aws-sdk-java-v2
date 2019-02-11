@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elemental MediaPackage", 
+    "type": "feature", 
+    "description": "Adds optional configuration for DASH to compact the manifest by combining duplicate SegmentTemplate tags. Adds optional configuration for DASH SegmentTemplate format to refer to segments by \"Number\" (default) or by \"Time\"."
+}
