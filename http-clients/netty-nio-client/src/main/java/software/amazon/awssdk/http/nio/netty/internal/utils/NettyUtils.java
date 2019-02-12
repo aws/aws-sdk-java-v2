@@ -19,6 +19,7 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import io.netty.util.concurrent.SucceededFuture;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -26,6 +27,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class NettyUtils {
+
+    /**
+     * Completed succeed future.
+     */
+    public static final SucceededFuture<?> SUCCEEDED_FUTURE = new SucceededFuture<>(null, null);
 
     private NettyUtils() {
     }

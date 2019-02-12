@@ -1,0 +1,21 @@
+{
+    "date": "2019-02-12",
+    "version": "2.4.6",
+    "entries": [
+        {
+            "category": "AWS Lambda",
+            "type": "feature",
+            "description": "Documentation updates for AWS Lambda"
+        },
+        {
+            "category": "AWS Transcribe Streaming",
+            "type": "feature",
+            "description": "Amazon Transcribe now supports US Spanish, which expands upon the existing language support for US English."
+        },
+        {
+            "category": "Netty Nio HTTP Client",
+            "type": "bugfix",
+            "description": "Awaits `EventLoopGroup#shutdownGracefully` to complete when closing Netty client."
+        }
+    ]
+}

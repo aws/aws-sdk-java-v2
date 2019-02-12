@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.SUCCEEDED_FUTURE;
+
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -46,12 +49,14 @@ public final class SharedSdkEventLoopGroup {
     /**
      * @return The default {@link SdkEventLoopGroup} that will be shared across all service clients.
      * This is used when the customer does not specify a custom {@link SdkEventLoopGroup} or {@link SdkEventLoopGroup.Builder}.
+     * Each SdkEventLoopGroup returned is wrapped with a new {@link ReferenceCountingEventLoopGroup}.
      */
     @SdkInternalApi
     public static synchronized SdkEventLoopGroup get() {
         if (sharedSdkEventLoopGroup == null) {
             sharedSdkEventLoopGroup = SdkEventLoopGroup.builder().build();
         }
+
         referenceCount++;
         return SdkEventLoopGroup.create(new ReferenceCountingEventLoopGroup(sharedSdkEventLoopGroup.eventLoopGroup()),
                                         sharedSdkEventLoopGroup.channelFactory());
@@ -59,13 +64,23 @@ public final class SharedSdkEventLoopGroup {
 
     /**
      * Decrement the reference count and close if necessary.
+     *
+     * @param quietPeriod the quite period to use
+     * @param timeout the timeout to use
+     * @param unit the time unit
+     *
+     * @return the close future. If the shared event loop group is still being used, return a completed close future,
+     * otherwise return the future from {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)};
      */
-    private static synchronized void decrementReference() {
+    private static synchronized Future<?> decrementReference(long quietPeriod, long timeout, TimeUnit unit) {
         referenceCount--;
         if (referenceCount == 0) {
-            sharedSdkEventLoopGroup.eventLoopGroup().shutdownGracefully();
+            Future<?> shutdownGracefully =
+                sharedSdkEventLoopGroup.eventLoopGroup().shutdownGracefully(quietPeriod, timeout, unit);
             sharedSdkEventLoopGroup = null;
+            return shutdownGracefully;
         }
+        return SUCCEEDED_FUTURE;
     }
 
     @SdkTestInternalApi
@@ -86,13 +101,13 @@ public final class SharedSdkEventLoopGroup {
         }
 
         @Override
-        public Future<?> shutdownGracefully() {
+        public Future<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
             // Only want to decrement the reference the first time it's closed. Shutdown is idempotent and may be
             // called multiple times.
             if (hasBeenClosed.compareAndSet(false, true)) {
-                decrementReference();
+                return decrementReference(quietPeriod, timeout, unit);
             }
-            return null;
+            return SUCCEEDED_FUTURE;
         }
     }
 }

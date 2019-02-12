@@ -70,6 +70,13 @@ public class PluralEnumNames extends AbstractCheck {
         DetailAST classBody = ast.findFirstToken(TokenTypes.OBJBLOCK);
         DetailAST maybeVariableDefinition = classBody.getFirstChild();
 
+        String className = ast.findFirstToken(TokenTypes.IDENT).getText();
+
+        // Filter out util classes
+        if (className.endsWith("Utils")) {
+            return false;
+        }
+
         while (maybeVariableDefinition != null) {
             if (maybeVariableDefinition.getType() == TokenTypes.VARIABLE_DEF) {
                 DetailAST modifiers = maybeVariableDefinition.findFirstToken(TokenTypes.MODIFIERS);
