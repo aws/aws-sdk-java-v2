@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
@@ -24,7 +27,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
@@ -35,7 +37,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
-import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
@@ -50,7 +51,6 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.OptionalUtils;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -83,22 +83,23 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     @Override
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request,
                                                         RequestExecutionContext context) throws Exception {
-        InterruptMonitor.checkInterrupted();
         return executeHttpRequest(request, context);
     }
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
-                                                                    RequestExecutionContext context) throws Exception {
+                                                                    RequestExecutionContext context) {
 
-        CompletableFuture<? extends SdkException> errorResponseFuture =
-            errorResponseHandler == null ? null : errorResponseHandler.prepare();
-
+        CompletableFuture<OutputT> preparedTransformFuture = responseHandler.prepare();
+        CompletableFuture<? extends SdkException> preparedErrorTransformFuture = errorResponseHandler == null ? null :
+                                                                                 errorResponseHandler.prepare();
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
 
         //FIXME(dongie): We need to be careful to only call responseHandler.prepare() exactly once per execute() call
         //because it calls prepare() under the hood and we guarantee that we call that once per execution. It would be good
         //to find a way to prevent multiple calls to prepare() within a single execution to only call prepare() once.
-        ResponseHandler handler = new ResponseHandler(responseFuture, responseHandler.prepare(), errorResponseFuture);
+        ResponseHandler handler = new ResponseHandler(responseFuture, preparedTransformFuture, preparedErrorTransformFuture);
+
+        CompletableFuture<Response<OutputT>> preparedWrapperTransformFuture = handler.prepare();
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
@@ -115,8 +116,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
 
-        CompletableFuture<Response<OutputT>> transformFuture = handler.prepare();
-
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);
 
@@ -129,7 +128,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         // Offload the completion of the future returned from this stage onto
         // the future completion executor
-        transformFuture.whenCompleteAsync((r, t) -> {
+        preparedWrapperTransformFuture.whenCompleteAsync((r, t) -> {
             if (t == null) {
                 responseFuture.complete(r);
             } else {
@@ -148,24 +147,24 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpContentPublisher requestProvider) {
         if (shouldSetContentLength(request, requestProvider)) {
             return request.toBuilder()
-                          .putHeader("Content-Length", String.valueOf(requestProvider.contentLength().get()))
+                          .putHeader(CONTENT_LENGTH, String.valueOf(requestProvider.contentLength().get()))
                           .build();
         }
         return request;
     }
 
     private boolean shouldSetContentLength(SdkHttpFullRequest request, SdkHttpContentPublisher requestProvider) {
-        return requestProvider != null
-               && !request.firstMatchingHeader("Content-Length").isPresent()
-               && requestProvider.contentLength().isPresent()
-               // Can cause issues with signing if content length is present for these method
-               && request.method() != SdkHttpMethod.GET
-               && request.method() != SdkHttpMethod.HEAD;
 
+        if (request.method() == SdkHttpMethod.GET || request.method() == SdkHttpMethod.HEAD ||
+            request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
+            return false;
+        }
+
+        return Optional.ofNullable(requestProvider).map(SdkHttpContentPublisher::contentLength).isPresent();
     }
 
     private TimeoutTracker setupAttemptTimer(CompletableFuture<Response<OutputT>> executeFuture, RequestExecutionContext ctx) {
-        long timeoutMillis = apiCallAttemptTimeoutInMillis(ctx.requestConfig());
+        long timeoutMillis = resolveTimeoutInMillis(ctx.requestConfig()::apiCallAttemptTimeout, apiCallAttemptTimeout);
         return TimerUtils.timeAsyncTaskIfNeeded(executeFuture,
                                                 timeoutExecutor,
                                                 ApiCallAttemptTimeoutException.create(timeoutMillis),
@@ -201,11 +200,17 @@ public final class MakeAsyncHttpRequestStage<OutputT>
      */
     private class ResponseHandler implements TransformingAsyncResponseHandler<Response<OutputT>> {
         private final CompletableFuture<Response<OutputT>> responseFuture;
-        private final CompletableFuture<SdkHttpResponse> headersFuture = new CompletableFuture<>();
         private final CompletableFuture<OutputT> transformFuture;
         private final CompletableFuture<? extends SdkException> errorTransformFuture;
+        private CompletableFuture<SdkHttpResponse> headersFuture;
         private volatile SdkHttpFullResponse response;
 
+        /**
+         * @param responseFuture the response future to be returned from
+         * {@link #executeHttpRequest(SdkHttpFullRequest, RequestExecutionContext)}
+         * @param transformFuture the transformFuture returned from {@link #responseHandler#prepare()}
+         * @param errorTransformFuture the error transform future returned from {@link #errorResponseHandler#prepare()}
+         */
         ResponseHandler(CompletableFuture<Response<OutputT>> responseFuture,
                         CompletableFuture<OutputT> transformFuture,
                         CompletableFuture<? extends SdkException> errorTransformFuture) {
@@ -248,6 +253,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public CompletableFuture<Response<OutputT>> prepare() {
+            headersFuture = new CompletableFuture<>();
             return headersFuture.thenCompose(headers -> {
                 if (headers.isSuccessful()) {
                     return transformFuture.thenApply(r -> Response.fromSuccess(r, response));
@@ -259,13 +265,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 return CompletableFuture.completedFuture(Response.fromFailure(null, response));
             });
         }
-    }
-
-    private long apiCallAttemptTimeoutInMillis(RequestOverrideConfiguration requestConfig) {
-        return OptionalUtils.firstPresent(
-            requestConfig.apiCallAttemptTimeout(), () -> apiCallAttemptTimeout)
-                            .map(Duration::toMillis)
-                            .orElse(0L);
     }
 
     private static SdkHttpFullResponse toFullResponse(SdkHttpResponse response) {
