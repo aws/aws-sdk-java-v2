@@ -1,5 +1,0 @@
-{
-    "category": "Netty Nio HTTP Client", 
-    "type": "bugfix", 
-    "description": "Awaits `EventLoopGroup#shutdownGracefully` to complete when closing Netty client."
-}

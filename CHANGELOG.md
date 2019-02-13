@@ -1,3 +1,16 @@
+# __2.4.6__ __2019-02-12__
+## __AWS Lambda__
+  - ### Features
+    - Documentation updates for AWS Lambda
+
+## __AWS Transcribe Streaming__
+  - ### Features
+    - Amazon Transcribe now supports US Spanish, which expands upon the existing language support for US English.
+
+## __Netty Nio HTTP Client__
+  - ### Bugfixes
+    - Awaits `EventLoopGroup#shutdownGracefully` to complete when closing Netty client.
+
 # __2.4.5__ __2019-02-11__
 ## __AWS CodeBuild__
   - ### Features
