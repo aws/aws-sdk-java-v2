@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Rekognition", 
-    "type": "feature", 
-    "description": "GetContentModeration now returns the version of the moderation detection model used to detect unsafe content."
-}

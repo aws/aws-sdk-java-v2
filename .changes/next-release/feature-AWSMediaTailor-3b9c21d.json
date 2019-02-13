@@ -1,5 +1,0 @@
-{
-    "category": "AWS MediaTailor", 
-    "type": "feature", 
-    "description": "This release adds support for tagging AWS Elemental MediaTailor resources."
-}
