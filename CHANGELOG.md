@@ -1,3 +1,16 @@
+# __2.4.7__ __2019-02-13__
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support for tagging AWS Elemental MediaTailor resources.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Customers can now use the EFS Infrequent Access (IA) storage class to more cost-effectively store larger amounts of data in their file systems. EFS IA is cost-optimized storage for files that are not accessed every day. You can create a new file system and enable Lifecycle Management to automatically move files that have not been accessed for 30 days from the Standard storage class to the IA storage class.
+
+## __Amazon Rekognition__
+  - ### Features
+    - GetContentModeration now returns the version of the moderation detection model used to detect unsafe content.
+
 # __2.4.6__ __2019-02-12__
 ## __AWS Lambda__
   - ### Features
