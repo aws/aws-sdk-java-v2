@@ -55,7 +55,7 @@ public final class AwsClientHandlerUtils {
 
     }
 
-    public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
+    static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
         ClientExecutionParams<InputT, OutputT> executionParams,
         SdkClientConfiguration clientConfig) {
 
