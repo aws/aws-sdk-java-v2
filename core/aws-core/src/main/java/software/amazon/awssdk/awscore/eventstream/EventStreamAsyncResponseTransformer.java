@@ -60,7 +60,7 @@ import software.amazon.eventstream.MessageDecoder;
  * @param <EventT> Base type of event stream message frames.
  */
 @SdkProtectedApi
-public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
+public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     implements AsyncResponseTransformer<SdkResponse, Void> {
 
     private static final Logger log = LoggerFactory.getLogger(EventStreamAsyncResponseTransformer.class);
@@ -317,6 +317,10 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         if (requestId != null) {
             headers.put(X_AMZN_REQUEST_ID_HEADER, singletonList(requestId));
+        }
+
+        if (extendedRequestId != null) {
+            headers.put(X_AMZ_ID_2_HEADER, singletonList(extendedRequestId));
         }
 
         SdkHttpFullResponse.Builder builder =
