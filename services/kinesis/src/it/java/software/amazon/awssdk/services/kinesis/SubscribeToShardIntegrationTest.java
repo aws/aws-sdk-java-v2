@@ -225,5 +225,8 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
         assertThat(sdkHttpResponse).isNotNull();
         assertThat(sdkHttpResponse.isSuccessful()).isTrue();
         assertThat(sdkHttpResponse.headers()).isNotEmpty();
+        assertThat(response.responseMetadata()).isNotNull();
+        assertThat(response.responseMetadata().extendedRequestId()).isNotEqualTo("UNKNOWN");
+        assertThat(response.responseMetadata().requestId()).isNotEqualTo("UNKNOWN");
     }
 }
