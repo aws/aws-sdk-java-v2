@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Kinesis Video Streams", 
-    "type": "feature", 
-    "description": "Adds support for Tag-On-Create for Kinesis Video Streams. A list of tags associated with the stream can be created at the same time as the stream creation."
-}
