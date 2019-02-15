@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -30,11 +29,10 @@ import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
+import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
-import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Logger;
 
@@ -117,25 +115,23 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
 
         private SdkException handleUnmarshalledException(Response<OutputT> response) {
             SdkException exception = response.exception();
+
+            ClockSkewAdjuster clockSkewAdjuster = dependencies.clockSkewAdjuster();
+            if (clockSkewAdjuster.shouldAdjust(exception)) {
+                dependencies.updateTimeOffset(clockSkewAdjuster.getAdjustmentInSeconds(response.httpResponse()));
+            }
+
             if (!retryHandler.shouldRetry(response.httpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
-            /**
-             * Checking for clock skew error again because we don't want to set the global time offset
-             * for every service exception.
-             */
-            if (RetryUtils.isClockSkewException(exception)) {
-                int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.httpResponse());
-                dependencies.updateTimeOffset(clockSkew);
-            }
+
             return exception;
         }
 
         private SdkException handleThrownException(Exception e) {
             SdkClientException sdkClientException = e instanceof SdkClientException ?
                     (SdkClientException) e : SdkClientException.builder()
-                                                               .message("Unable to execute HTTP request: " +
-                                                                        e.getMessage())
+                                                               .message("Unable to execute HTTP request: " + e.getMessage())
                                                                .cause(e)
                                                                .build();
             boolean willRetry = retryHandler.shouldRetry(null, request, context, sdkClientException, requestCount);
