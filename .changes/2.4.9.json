@@ -1,0 +1,26 @@
+{
+    "date": "2019-02-15",
+    "version": "2.4.9",
+    "entries": [
+        {
+            "category": "Amazon Chime",
+            "type": "feature",
+            "description": "Documentation updates for Amazon Chime"
+        },
+        {
+            "category": "AWS IoT",
+            "type": "feature",
+            "description": "In this release, IoT Device Defender introduces support for tagging Scheduled Audit resources."
+        },
+        {
+            "category": "Application Auto Scaling",
+            "type": "feature",
+            "description": "Documentation updates for Application Auto Scaling"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Attach `extendedRequestId` to `AwsResponseMetadata` if available for event streaming operations so that customers can retrieve it from response metadata"
+        }
+    ]
+}

@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT", 
-    "type": "feature", 
-    "description": "In this release, IoT Device Defender introduces support for tagging Scheduled Audit resources."
-}

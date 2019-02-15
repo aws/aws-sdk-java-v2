@@ -1,3 +1,20 @@
+# __2.4.9__ __2019-02-15__
+## __AWS IoT__
+  - ### Features
+    - In this release, IoT Device Defender introduces support for tagging Scheduled Audit resources.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Attach `extendedRequestId` to `AwsResponseMetadata` if available for event streaming operations so that customers can retrieve it from response metadata
+
+## __Amazon Chime__
+  - ### Features
+    - Documentation updates for Amazon Chime
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for Application Auto Scaling
+
 # __2.4.8__ __2019-02-14__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
