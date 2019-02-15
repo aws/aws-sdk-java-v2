@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,11 +80,17 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         String errorMessage = errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode());
         exception.awsErrorDetails(extractAwsErrorDetails(response, executionAttributes, jsonContent,
                                                          errorCode, errorMessage));
+        exception.clockSkew(getClockSkew(executionAttributes));
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
         exception.statusCode(statusCode(response, modeledExceptionMetadata));
         exception.requestId(getRequestIdFromHeaders(response.headers()));
         return exception.build();
+    }
+
+    private Duration getClockSkew(ExecutionAttributes executionAttributes) {
+        Integer timeOffset = executionAttributes.getAttribute(SdkExecutionAttribute.TIME_OFFSET);
+        return timeOffset == null ? null : Duration.ofSeconds(timeOffset);
     }
 
     private int statusCode(SdkHttpFullResponse response, Optional<ExceptionMetadata> modeledExceptionMetadata) {

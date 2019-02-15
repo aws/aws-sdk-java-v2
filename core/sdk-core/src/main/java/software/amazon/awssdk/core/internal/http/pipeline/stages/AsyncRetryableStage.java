@@ -33,12 +33,11 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
-import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
@@ -130,9 +129,9 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             } else {
                 SdkException err = resp.exception();
 
-                if (RetryUtils.isClockSkewException(err)) {
-                    int clockSkew = ClockSkewUtil.parseClockSkewOffset(resp.httpResponse());
-                    dependencies.updateTimeOffset(clockSkew);
+                ClockSkewAdjuster clockSkewAdjuster = dependencies.clockSkewAdjuster();
+                if (clockSkewAdjuster.shouldAdjust(err)) {
+                    dependencies.updateTimeOffset(clockSkewAdjuster.getAdjustmentInSeconds(resp.httpResponse()));
                 }
 
                 if (shouldRetry(resp.httpResponse(), resp.exception())) {
