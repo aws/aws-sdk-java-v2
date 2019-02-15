@@ -24,6 +24,12 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
+/**
+ * Response handler for event streaming operations.
+ *
+ * @param <ResponseT> the POJO response type
+ * @param <EventT> the event type
+ */
 @SdkProtectedApi
 public interface EventStreamResponseHandler<ResponseT, EventT> {
 
