@@ -1208,12 +1208,6 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
-          "fips" : {
-            "credentialScope" : {
-              "region" : "us-west-1"
-            },
-            "hostname" : "es-fips.us-west-1.amazonaws.com"
-          },
           "sa-east-1" : { },
           "us-east-1" : { },
           "us-east-2" : { },
@@ -1493,12 +1487,6 @@
       },
       "kms" : {
         "endpoints" : {
-          "ProdFips" : {
-            "credentialScope" : {
-              "region" : "ca-central-1"
-            },
-            "hostname" : "kms-fips.ca-central-1.amazonaws.com"
-          },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-south-1" : { },
@@ -3437,12 +3425,6 @@
       },
       "elasticache" : {
         "endpoints" : {
-          "fips" : {
-            "credentialScope" : {
-              "region" : "us-gov-west-1"
-            },
-            "hostname" : "elasticache-fips.us-gov-west-1.amazonaws.com"
-          },
           "us-gov-east-1" : { },
           "us-gov-west-1" : { }
         }
@@ -3476,12 +3458,6 @@
       },
       "es" : {
         "endpoints" : {
-          "fips" : {
-            "credentialScope" : {
-              "region" : "us-gov-west-1"
-            },
-            "hostname" : "es-fips.us-gov-west-1.amazonaws.com"
-          },
           "us-gov-east-1" : { },
           "us-gov-west-1" : { }
         }
@@ -3555,12 +3531,6 @@
       },
       "kms" : {
         "endpoints" : {
-          "ProdFips" : {
-            "credentialScope" : {
-              "region" : "us-gov-west-1"
-            },
-            "hostname" : "kms-fips.us-gov-west-1.amazonaws.com"
-          },
           "us-gov-east-1" : { },
           "us-gov-west-1" : { }
         }
