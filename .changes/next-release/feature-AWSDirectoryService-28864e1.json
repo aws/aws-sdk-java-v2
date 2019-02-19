@@ -1,0 +1,5 @@
+{
+    "category": "AWS Directory Service", 
+    "type": "feature", 
+    "description": "This release adds support for tags during directory creation (CreateDirectory, CreateMicrosoftAd, ConnectDirectory)."
+}
