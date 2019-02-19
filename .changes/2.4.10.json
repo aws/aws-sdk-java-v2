@@ -1,0 +1,21 @@
+{
+    "date": "2019-02-18",
+    "version": "2.4.10",
+    "entries": [
+        {
+            "category": "Amazon Athena",
+            "type": "feature",
+            "description": "This release adds support for Workgroups to Amazon Athena. Use Workgroups to isolate users, teams, applications or workloads in the same account, control costs by setting up query limits and creating Amazon SNS alarms, and publish query-related metrics to Amazon CloudWatch."
+        },
+        {
+            "category": "AWS Secrets Manager",
+            "type": "feature",
+            "description": "This release increases the maximum allowed size of SecretString or SecretBinary from 4KB to 7KB in the CreateSecret, UpdateSecret, PutSecretValue and GetSecretValue APIs."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
