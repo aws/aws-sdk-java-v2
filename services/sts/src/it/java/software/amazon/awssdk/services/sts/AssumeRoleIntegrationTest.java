@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+import java.time.Duration;
 import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -107,7 +108,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         Waiter.run(() -> iam.createRole(r -> r.roleName(ROLE_NAME)
                                               .assumeRolePolicyDocument(rolePolicyDoc)))
               .ignoringException(MalformedPolicyDocumentException.class)
-              .orFail();
+              .orFailAfter(Duration.ofMinutes(2));
 
         StsClient userCredentialSts = StsClient.builder()
                                                .credentialsProvider(() -> userCredentials)
@@ -118,7 +119,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                                             .roleArn(ROLE_ARN)
                                                             .roleSessionName("Test")))
               .ignoringException(StsException.class)
-              .orFail();
+              .orFailAfter(Duration.ofMinutes(2));
     }
 
     @AfterClass

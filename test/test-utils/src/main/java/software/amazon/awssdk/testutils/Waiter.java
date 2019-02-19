@@ -113,7 +113,7 @@ public final class Waiter<T> {
      * Execute the function, throwing an assertion error if the thing we're trying does not succeed after 30 seconds.
      */
     public T orFail() {
-        return orFailAfter(Duration.ofSeconds(30));
+        return orFailAfter(Duration.ofMinutes(1));
     }
 
     /**

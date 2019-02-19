@@ -32,9 +32,13 @@ import software.amazon.awssdk.services.directconnect.model.DescribeConnectionsRe
 import software.amazon.awssdk.services.directconnect.model.DescribeConnectionsResponse;
 import software.amazon.awssdk.services.directconnect.model.DescribeLocationsRequest;
 import software.amazon.awssdk.services.directconnect.model.DescribeLocationsResponse;
+import software.amazon.awssdk.services.directconnect.model.DirectConnectException;
 import software.amazon.awssdk.services.directconnect.model.Location;
+import software.amazon.awssdk.testutils.Waiter;
+import software.amazon.awssdk.utils.Logger;
 
 public class ServiceIntegrationTest extends IntegrationTestBase {
+    private static final Logger log = Logger.loggerFor(ServiceIntegrationTest.class);
 
     private static final String CONNECTION_NAME = "test-connection-name";
     private static final String EXPECTED_CONNECTION_STATUS = "requested";
@@ -53,7 +57,14 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     @AfterClass
     public static void tearDown() {
-        dc.deleteConnection(DeleteConnectionRequest.builder().connectionId(connectionId).build());
+        boolean cleanedUp =
+                Waiter.run(() -> dc.deleteConnection(r -> r.connectionId(connectionId)))
+                      .ignoringException(DirectConnectException.class)
+                      .orReturnFalse();
+
+        if (!cleanedUp) {
+            log.warn(() -> "Failed to clean up connection: " + connectionId);
+        }
     }
 
     @Test

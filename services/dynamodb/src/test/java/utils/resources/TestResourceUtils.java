@@ -60,6 +60,6 @@ public class TestResourceUtils {
     public static ResourceStatus waitForFinalizedStatus(TestResource resource) throws InterruptedException {
         return Waiter.run(resource::getResourceStatus)
                      .until(s -> s != ResourceStatus.TRANSIENT)
-                     .orFailAfter(Duration.ofMinutes(5));
+                     .orFailAfter(Duration.ofMinutes(10));
     }
 }
