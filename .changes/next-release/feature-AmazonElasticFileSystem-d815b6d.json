@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic File System", 
-    "type": "feature", 
-    "description": "Amazon EFS now supports adding tags to file system resources as part of the CreateFileSystem API . Using this capability, customers can now more easily enforce tag-based authorization for EFS file system resources."
-}

@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT", 
-    "type": "feature", 
-    "description": "AWS IoT - AWS IoT Device Defender adds support for configuring behaviors in a security profile with statistical thresholds. Device Defender also adds support for configuring multiple data-point evaluations before a violation is either created or cleared."
-}

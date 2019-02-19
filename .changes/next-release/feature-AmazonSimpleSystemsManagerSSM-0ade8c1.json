@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Simple Systems Manager (SSM)", 
-    "type": "feature", 
-    "description": "AWS Systems Manager now supports adding tags when creating Activations, Patch Baselines, Documents, Parameters, and Maintenance Windows"
-}
