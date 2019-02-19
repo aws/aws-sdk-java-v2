@@ -19,12 +19,9 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.List;
 import org.junit.AfterClass;
@@ -35,23 +32,17 @@ import software.amazon.awssdk.services.ses.model.Body;
 import software.amazon.awssdk.services.ses.model.Content;
 import software.amazon.awssdk.services.ses.model.DeleteIdentityRequest;
 import software.amazon.awssdk.services.ses.model.Destination;
-import software.amazon.awssdk.services.ses.model.GetIdentityDkimAttributesRequest;
-import software.amazon.awssdk.services.ses.model.GetIdentityDkimAttributesResponse;
 import software.amazon.awssdk.services.ses.model.GetIdentityVerificationAttributesRequest;
 import software.amazon.awssdk.services.ses.model.GetIdentityVerificationAttributesResponse;
 import software.amazon.awssdk.services.ses.model.GetSendQuotaRequest;
 import software.amazon.awssdk.services.ses.model.GetSendQuotaResponse;
-import software.amazon.awssdk.services.ses.model.IdentityDkimAttributes;
 import software.amazon.awssdk.services.ses.model.IdentityType;
 import software.amazon.awssdk.services.ses.model.IdentityVerificationAttributes;
 import software.amazon.awssdk.services.ses.model.ListIdentitiesRequest;
 import software.amazon.awssdk.services.ses.model.Message;
 import software.amazon.awssdk.services.ses.model.MessageRejectedException;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
-import software.amazon.awssdk.services.ses.model.SetIdentityDkimEnabledRequest;
 import software.amazon.awssdk.services.ses.model.VerificationStatus;
-import software.amazon.awssdk.services.ses.model.VerifyDomainDkimRequest;
-import software.amazon.awssdk.services.ses.model.VerifyDomainDkimResponse;
 import software.amazon.awssdk.services.ses.model.VerifyDomainIdentityRequest;
 import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 
@@ -140,43 +131,6 @@ public class EmailIntegrationTest extends IntegrationTestBase {
         IdentityVerificationAttributes identityVerificationAttributes = result.verificationAttributes().get(DOMAIN);
         assertEquals(VerificationStatus.PENDING, identityVerificationAttributes.verificationStatus());
         assertEquals(DOMAIN_VERIFICATION_TOKEN, identityVerificationAttributes.verificationToken());
-    }
-
-    @Test
-    public void verifyDomainDkim_ChangesDkimVerificationStatusToPending() throws InterruptedException {
-        String testDomain = "java-integ-test-dkim-" + System.currentTimeMillis() + ".com";
-        try {
-            email.verifyDomainIdentity(VerifyDomainIdentityRequest.builder().domain(testDomain).build());
-            GetIdentityDkimAttributesResponse result = email
-                    .getIdentityDkimAttributes(GetIdentityDkimAttributesRequest.builder().identities(testDomain).build());
-            assertTrue(result.dkimAttributes().size() == 1);
-
-            // should be no tokens and no verification
-            IdentityDkimAttributes attributes = result.dkimAttributes().get(testDomain);
-            assertFalse(attributes.dkimEnabled());
-            assertEquals(VerificationStatus.NOT_STARTED, attributes.dkimVerificationStatus());
-
-            VerifyDomainDkimResponse dkim = email.verifyDomainDkim(VerifyDomainDkimRequest.builder().domain(testDomain).build());
-            Thread.sleep(5 * 1000);
-
-            result = email.getIdentityDkimAttributes(GetIdentityDkimAttributesRequest.builder().identities(testDomain).build());
-            assertTrue(result.dkimAttributes().size() == 1);
-
-            attributes = result.dkimAttributes().get(testDomain);
-            assertTrue(attributes.dkimEnabled());
-            assertTrue(attributes.dkimVerificationStatus().equals(VerificationStatus.PENDING));
-            assertTrue(attributes.dkimTokens().size() == dkim.dkimTokens().size());
-
-            try {
-                email.setIdentityDkimEnabled(SetIdentityDkimEnabledRequest.builder().identity(testDomain).build());
-                fail("Exception should have occurred during enable");
-            } catch (SdkServiceException exception) {
-                // exception expected
-            }
-        } finally {
-            // Delete domain from verified list.
-            email.deleteIdentity(DeleteIdentityRequest.builder().identity(testDomain).build());
-        }
     }
 
     private Message newMessage(String subject) {
