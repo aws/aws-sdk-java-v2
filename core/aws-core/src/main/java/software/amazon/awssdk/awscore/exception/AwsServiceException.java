@@ -15,11 +15,15 @@
 
 package software.amazon.awssdk.awscore.exception;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
+import software.amazon.awssdk.awscore.internal.AwsStatusCode;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.retry.ClockSkew;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * Extension of {@link SdkServiceException} that represents an error response returned
@@ -38,10 +42,12 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 public class AwsServiceException extends SdkServiceException {
 
     private AwsErrorDetails awsErrorDetails;
+    private Duration clockSkew;
 
     protected AwsServiceException(Builder b) {
         super(b);
         this.awsErrorDetails = b.awsErrorDetails();
+        this.clockSkew = b.clockSkew();
     }
 
     /**
@@ -67,16 +73,36 @@ public class AwsServiceException extends SdkServiceException {
 
     @Override
     public boolean isClockSkewException() {
-        return Optional.ofNullable(awsErrorDetails)
-                .map(a -> AwsErrorCode.CLOCK_SKEW_ERROR_CODES.contains(a.errorCode()))
-                .orElse(false);
+        if (super.isClockSkewException()) {
+            return true;
+        }
+
+        if (awsErrorDetails == null) {
+            return false;
+        }
+
+        if (AwsErrorCode.isDefiniteClockSkewErrorCode(awsErrorDetails.errorCode())) {
+            return true;
+        }
+
+        SdkHttpResponse sdkHttpResponse = awsErrorDetails.sdkHttpResponse();
+
+        if (clockSkew == null || sdkHttpResponse == null) {
+            return false;
+        }
+
+        boolean isPossibleClockSkewError = AwsErrorCode.isPossibleClockSkewErrorCode(awsErrorDetails.errorCode()) ||
+                                           AwsStatusCode.isPossibleClockSkewStatusCode(statusCode());
+
+        return isPossibleClockSkewError && ClockSkew.isClockSkewed(Instant.now().minus(clockSkew),
+                                                                   ClockSkew.getServerTime(sdkHttpResponse).orElse(null));
     }
 
     @Override
     public boolean isThrottlingException() {
         return super.isThrottlingException() ||
                 Optional.ofNullable(awsErrorDetails)
-                        .map(a -> AwsErrorCode.THROTTLING_ERROR_CODES.contains(a.errorCode()))
+                        .map(a -> AwsErrorCode.isThrottlingErrorCode(a.errorCode()))
                         .orElse(false);
     }
 
@@ -117,6 +143,18 @@ public class AwsServiceException extends SdkServiceException {
          */
         AwsErrorDetails awsErrorDetails();
 
+        /**
+         * The request-level time skew between the client and server date for the request that generated this exception. Positive
+         * values imply the client clock is "fast" and negative values imply the client clock is "slow".
+         */
+        Builder clockSkew(Duration timeOffSet);
+
+        /**
+         * The request-level time skew between the client and server date for the request that generated this exception. Positive
+         * values imply the client clock is "fast" and negative values imply the client clock is "slow".
+         */
+        Duration clockSkew();
+
         @Override
         Builder message(String message);
 
@@ -136,6 +174,7 @@ public class AwsServiceException extends SdkServiceException {
     protected static class BuilderImpl extends SdkServiceException.BuilderImpl implements Builder {
 
         protected AwsErrorDetails awsErrorDetails;
+        private Duration clockSkew;
 
         protected BuilderImpl() {
         }
@@ -162,6 +201,17 @@ public class AwsServiceException extends SdkServiceException {
 
         public void setAwsErrorDetails(AwsErrorDetails awsErrorDetails) {
             this.awsErrorDetails = awsErrorDetails;
+        }
+
+        @Override
+        public Builder clockSkew(Duration clockSkew) {
+            this.clockSkew = clockSkew;
+            return this;
+        }
+
+        @Override
+        public Duration clockSkew() {
+            return clockSkew;
         }
 
         @Override

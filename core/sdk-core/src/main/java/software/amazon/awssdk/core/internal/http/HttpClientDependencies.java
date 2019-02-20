@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
+import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -31,6 +32,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkInternalApi
 public final class HttpClientDependencies implements SdkAutoCloseable {
+    private final ClockSkewAdjuster clockSkewAdjuster = new ClockSkewAdjuster();
     private final SdkClientConfiguration clientConfiguration;
     private final CapacityManager capacityManager;
 
@@ -57,6 +59,13 @@ public final class HttpClientDependencies implements SdkAutoCloseable {
      */
     public CapacityManager retryCapacity() {
         return capacityManager;
+    }
+
+    /**
+     * @return The adjuster used for adjusting the {@link #timeOffset} for this client.
+     */
+    public ClockSkewAdjuster clockSkewAdjuster() {
+        return clockSkewAdjuster;
     }
 
     /**
