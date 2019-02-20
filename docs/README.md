@@ -7,10 +7,10 @@
 - [Getting Started](GettingStarted.md)
 
 ## Style Conventions
-- [Client Configuration](ClientConfiguraion.md)
-- [Favor Static Factory Methods Over Constructors](FavorStaticFactoryMethods.md)
-- [Use of Optional](UseOfOptional.md)
-- [Naming Conventions](NamingConventions.md)
+- [Client Configuration](design/ClientConfiguration.md)
+- [Favor Static Factory Methods Over Constructors](design/FavorStaticFactoryMethods.md)
+- [Use of Optional](design/UseOfOptional.md)
+- [Naming Conventions](design/NamingConventions.md)
 
-## Key Design Decisions
-- [Use of CompletableFuture](UseOfCompletableFuture.md)
+## Design Decisions
+- [Use of CompletableFuture](design/UseOfCompletableFuture.md)
