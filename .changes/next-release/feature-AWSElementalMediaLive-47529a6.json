@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaLive", 
-    "type": "feature", 
-    "description": "This release adds support for VPC inputs, allowing you to push content from your Amazon VPC directly to MediaLive."
-}

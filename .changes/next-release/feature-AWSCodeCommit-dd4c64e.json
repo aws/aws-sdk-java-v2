@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodeCommit", 
-    "type": "feature", 
-    "description": "This release adds an API for adding / updating / deleting / copying / moving / setting file modes for one or more files directly to an AWS CodeCommit repository without requiring a Git client."
-}
