@@ -1,3 +1,21 @@
+# __2.4.12__ __2019-02-20__
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds an API for adding / updating / deleting / copying / moving / setting file modes for one or more files directly to an AWS CodeCommit repository without requiring a Git client.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Documentation updates for AWS Direct Connect
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for VPC inputs, allowing you to push content from your Amazon VPC directly to MediaLive.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where the SDK could be over-retrying on signature errors.
+    - Fixed an issue where the SDK could fail to adjust the local clock under skewed-clock conditions.
+
 # __2.4.11__ __2019-02-19__
 ## __AWS Directory Service__
   - ### Features
