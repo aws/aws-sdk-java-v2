@@ -1,5 +1,0 @@
-{
-    "category": "AWS Transfer for SFTP", 
-    "type": "feature", 
-    "description": "Bug fix: increased the max length allowed for request parameter NextToken when paginating List operations"
-}

@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Kinesis Video Streams Archived Media", 
-    "type": "feature", 
-    "description": "In this release, HLS playback of KVS streams can be configured to output MPEG TS fragments using the ContainerFormat parameter. HLS playback of KVS streams can also be configured to include the EXT-X-PROGRAM-DATE-TIME field using the DisplayFragmentTimestamp parameter."
-}
