@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "removal", 
+    "description": "Removes invalid AWS regions that don't match the partition regex"
+}

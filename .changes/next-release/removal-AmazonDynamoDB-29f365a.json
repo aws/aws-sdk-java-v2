@@ -1,0 +1,5 @@
+{
+    "category": "Amazon DynamoDB", 
+    "type": "removal", 
+    "description": "Removing invalid \"local\" region"
+}
