@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "removal", 
+    "description": "Removing invalid dualstack regions and s3-external-1"
+}
