@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Athena", 
-    "type": "feature", 
-    "description": "This release adds tagging support for Workgroups to Amazon Athena. Use these APIs to add, remove, or list tags on Workgroups, and leverage the tags for various authorization and billing scenarios."
-}
