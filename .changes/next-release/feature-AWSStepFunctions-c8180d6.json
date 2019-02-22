@@ -1,0 +1,5 @@
+{
+    "category": "AWS Step Functions", 
+    "type": "feature", 
+    "description": "This release adds support for tag-on-create. You can now add tags when you create AWS Step Functions activity and state machine resources. For more information about tagging, see AWS Tagging Strategies."
+}
