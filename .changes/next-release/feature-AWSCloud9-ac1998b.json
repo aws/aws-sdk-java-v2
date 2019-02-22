@@ -1,0 +1,5 @@
+{
+    "category": "AWS Cloud9", 
+    "type": "feature", 
+    "description": "Adding EnvironmentLifecycle to the Environment data type."
+}
