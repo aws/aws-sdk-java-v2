@@ -1,0 +1,31 @@
+{
+    "date": "2019-02-20",
+    "version": "2.4.12",
+    "entries": [
+        {
+            "category": "AWS Direct Connect",
+            "type": "feature",
+            "description": "Documentation updates for AWS Direct Connect"
+        },
+        {
+            "category": "AWS CodeCommit",
+            "type": "feature",
+            "description": "This release adds an API for adding / updating / deleting / copying / moving / setting file modes for one or more files directly to an AWS CodeCommit repository without requiring a Git client."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed an issue where the SDK could be over-retrying on signature errors."
+        },
+        {
+            "category": "AWS Elemental MediaLive",
+            "type": "feature",
+            "description": "This release adds support for VPC inputs, allowing you to push content from your Amazon VPC directly to MediaLive."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed an issue where the SDK could fail to adjust the local clock under skewed-clock conditions."
+        }
+    ]
+}

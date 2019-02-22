@@ -31,28 +31,31 @@ import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandle
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
- * Adapts an {@link HttpResponseHandler} to the asynchronous {@link SdkHttpResponseHandler}. Buffers
+ *
+ * Response handler for asynchronous non-streaming operations.
+ *
+ * <p>
+ * Adapts an {@link HttpResponseHandler} to the asynchronous {@link TransformingAsyncResponseHandler}. Buffers
  * all content into a {@link ByteArrayInputStream} then invokes the {@link HttpResponseHandler#handle}
  * method.
  *
  * @param <T> Type that the response handler produces.
  */
 @SdkInternalApi
-public final class SyncResponseHandlerAdapter<T> implements TransformingAsyncResponseHandler<T> {
+public final class AsyncResponseHandler<T> implements TransformingAsyncResponseHandler<T> {
     private volatile CompletableFuture<ByteArrayOutputStream> streamFuture;
     private final HttpResponseHandler<T> responseHandler;
     private final ExecutionAttributes executionAttributes;
     private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
     private SdkHttpFullResponse.Builder httpResponse;
 
-    public SyncResponseHandlerAdapter(HttpResponseHandler<T> responseHandler,
-                                      Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator,
-                                      ExecutionAttributes executionAttributes) {
+    public AsyncResponseHandler(HttpResponseHandler<T> responseHandler,
+                                Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator,
+                                ExecutionAttributes executionAttributes) {
         this.responseHandler = responseHandler;
         this.executionAttributes = executionAttributes;
         this.crc32Validator = crc32Validator;
@@ -82,9 +85,8 @@ public final class SyncResponseHandlerAdapter<T> implements TransformingAsyncRes
             AbortableInputStream abortableContent = AbortableInputStream.create(content);
             httpResponse.content(abortableContent);
             try {
-                return CompletableFuture.completedFuture(responseHandler.handle(crc32Validator
-                        .apply(httpResponse.build()),
-                        executionAttributes));
+                return CompletableFuture.completedFuture(responseHandler.handle(crc32Validator.apply(httpResponse.build()),
+                                                                                executionAttributes));
             } catch (Exception e) {
                 return CompletableFutureUtils.failedFuture(e);
             }

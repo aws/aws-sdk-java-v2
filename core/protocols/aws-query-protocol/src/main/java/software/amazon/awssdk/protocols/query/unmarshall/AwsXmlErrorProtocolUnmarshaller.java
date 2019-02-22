@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.query.unmarshall;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.utils.Pair;
@@ -119,9 +121,15 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
 
         builder.requestId(getRequestId(response, document))
                .statusCode(response.statusCode())
+               .clockSkew(getClockSkew(executionAttributes))
                .awsErrorDetails(awsErrorDetails);
 
         return builder.build();
+    }
+
+    private Duration getClockSkew(ExecutionAttributes executionAttributes) {
+        Integer timeOffset = executionAttributes.getAttribute(SdkExecutionAttribute.TIME_OFFSET);
+        return timeOffset == null ? null : Duration.ofSeconds(timeOffset);
     }
 
     /**

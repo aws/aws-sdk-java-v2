@@ -1,3 +1,71 @@
+# __2.4.13__ __2019-02-21__
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for CodeBuild local caching feature
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for organizations
+
+## __AWS Transfer for SFTP__
+  - ### Features
+    - Bug fix: increased the max length allowed for request parameter NextToken when paginating List operations
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Documentation updates for monitoring
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Documentation updates for Kinesis Video Streams
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - In this release, HLS playback of KVS streams can be configured to output MPEG TS fragments using the ContainerFormat parameter. HLS playback of KVS streams can also be configured to include the EXT-X-PROGRAM-DATE-TIME field using the DisplayFragmentTimestamp parameter.
+
+## __Amazon Kinesis Video Streams Media__
+  - ### Features
+    - Documentation updates for Kinesis Video Streams
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Documentation updates for workdocs
+
+# __2.4.12__ __2019-02-20__
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds an API for adding / updating / deleting / copying / moving / setting file modes for one or more files directly to an AWS CodeCommit repository without requiring a Git client.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Documentation updates for AWS Direct Connect
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for VPC inputs, allowing you to push content from your Amazon VPC directly to MediaLive.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where the SDK could be over-retrying on signature errors.
+    - Fixed an issue where the SDK could fail to adjust the local clock under skewed-clock conditions.
+
+# __2.4.11__ __2019-02-19__
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for tags during directory creation (CreateDirectory, CreateMicrosoftAd, ConnectDirectory).
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support for configuring behaviors in a security profile with statistical thresholds. Device Defender also adds support for configuring multiple data-point evaluations before a violation is either created or cleared.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Amazon EFS now supports adding tags to file system resources as part of the CreateFileSystem API . Using this capability, customers can now more easily enforce tag-based authorization for EFS file system resources.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager now supports adding tags when creating Activations, Patch Baselines, Documents, Parameters, and Maintenance Windows
+
 # __2.4.10__ __2019-02-18__
 ## __AWS SDK for Java v2__
   - ### Features
