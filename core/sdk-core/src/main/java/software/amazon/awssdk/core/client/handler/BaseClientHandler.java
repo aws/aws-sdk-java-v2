@@ -39,11 +39,21 @@ public abstract class BaseClientHandler {
         this.clientConfiguration = clientConfiguration;
     }
 
+    /**
+     * Finalize {@link SdkRequest} by running beforeExecution and modifyRequest interceptors.
+     *
+     * @param executionContext the execution context
+     * @return the {@link InterceptorContext}
+     */
     static InterceptorContext finalizeSdkRequest(ExecutionContext executionContext) {
         runBeforeExecutionInterceptors(executionContext);
         return runModifyRequestInterceptors(executionContext);
     }
 
+    /**
+     * Finalize {@link SdkHttpFullRequest} by running beforeMarshalling, afterMarshalling,
+     * modifyHttpRequest, modifyHttpContent and modifyAsyncHttpContent interceptors
+     */
     static <InputT extends SdkRequest, OutputT> InterceptorContext finalizeSdkHttpFullRequest(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext, InputT inputT,
@@ -55,7 +65,7 @@ public abstract class BaseClientHandler {
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
-        return runModifyHttpRequestInterceptors(request, executionContext);
+        return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }
 
     private static void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
@@ -108,15 +118,17 @@ public abstract class BaseClientHandler {
                                                              executionContext.executionAttributes());
     }
 
-    private static InterceptorContext runModifyHttpRequestInterceptors(SdkHttpFullRequest sdkHttpFullRequest,
-                                                                       ExecutionContext executionContext) {
+    private static InterceptorContext runModifyHttpRequestAndHttpContentInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
-            executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
-                                                                  executionContext.executionAttributes());
+            executionContext.interceptorChain().modifyHttpRequestAndHttpContent(executionContext.interceptorContext(),
+                                                                                executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return interceptorContext;
     }
 
+    /**
+     * Run afterUnmarshalling and modifyResponse interceptors.
+     */
     private static <OutputT extends SdkResponse> OutputT runAfterUnmarshallingInterceptors(OutputT response,
                                                                                            ExecutionContext context) {
         // Update interceptor context to include response
