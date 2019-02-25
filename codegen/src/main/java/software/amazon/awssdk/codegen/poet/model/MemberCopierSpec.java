@@ -36,7 +36,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
-import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
@@ -47,6 +46,15 @@ class MemberCopierSpec implements ClassSpec {
     private final ServiceModelCopiers serviceModelCopiers;
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
+
+    private enum EnumTransform {
+        /** Copy enums as strings */
+        STRING_TO_ENUM,
+        /** Copy strings as enums */
+        ENUM_TO_STRING,
+        /** Copy without a transformation */
+        NONE
+    }
 
     MemberCopierSpec(MemberModel memberModel,
                      ServiceModelCopiers serviceModelCopiers,
@@ -69,8 +77,12 @@ class MemberCopierSpec implements ClassSpec {
             builder.addMethod(builderCopyMethod());
         }
 
-        if (Utils.isListWithEnumShape(memberModel) || Utils.isMapWithEnumShape(memberModel)) {
+        // If this is a collection, and it contains enums, or recursively
+        // contains enums, add extra methods for copying the elements from an
+        // enum to string and vice versa
+        if (isEnumCopyAvailable(memberModel)) {
             builder.addMethod(enumToStringCopyMethod());
+            builder.addMethod(stringToEnumCopyMethod());
         }
 
         return builder.build();
@@ -94,47 +106,87 @@ class MemberCopierSpec implements ClassSpec {
         return Collections.emptyList();
     }
 
+    public static boolean isEnumCopyAvailable(MemberModel memberModel) {
+        if (!(memberModel.isMap() || memberModel.isList())) {
+            return false;
+        }
+
+        if (memberModel.isMap()) {
+            MapModel mapModel = memberModel.getMapModel();
+            MemberModel keyModel = mapModel.getKeyModel();
+            MemberModel valueModel = mapModel.getValueModel();
+            if (keyModel.getEnumType() != null || valueModel.getEnumType() != null) {
+                return true;
+            }
+
+            if (valueModel.isList() || valueModel.isMap()) {
+                return isEnumCopyAvailable(valueModel);
+            }
+            // Keys are always simple, don't need to check
+            return false;
+        } else {
+            MemberModel element = memberModel.getListModel().getListMemberModel();
+            if (element.getEnumType() != null) {
+                return true;
+            }
+            if (element.isList() || element.isMap()) {
+                return isEnumCopyAvailable(element);
+            }
+            return false;
+        }
+    }
+
     private MethodSpec copyMethod() {
         return copyMethodProto().addCode(copyMethodBody()).build();
     }
 
     private MethodSpec.Builder copyMethodProto() {
-        return copyMethodProto(typeProvider.parameterType(memberModel), serviceModelCopiers.copyMethodName());
+        return copyMethodProto(typeProvider.parameterType(memberModel),
+                               typeProvider.fieldType(memberModel),
+                               serviceModelCopiers.copyMethodName());
     }
 
-    private MethodSpec.Builder copyMethodProto(TypeName parameterType, String methodName) {
+    private MethodSpec.Builder copyMethodProto(TypeName parameterType, TypeName returnType, String methodName) {
         return MethodSpec.methodBuilder(methodName)
                          .addModifiers(Modifier.STATIC)
                          .addParameter(parameterType, memberParamName())
-                         .returns(typeProvider.fieldType(memberModel));
+                         .returns(returnType);
     }
 
     private MethodSpec enumToStringCopyMethod() {
-        return copyMethodProto(paramaterTypeForEnumToStringCopyMethod(),
+        return copyMethodProto(parameterTypeForEnumToStringCopyMethod(),
+                               typeProvider.fieldType(memberModel),
                                serviceModelCopiers.enumToStringCopyMethodName())
             .addCode(enumToStringCopyMethodBody()).build();
     }
 
-    private TypeName paramaterTypeForEnumToStringCopyMethod() {
-        TypeName typeName = null;
+    private MethodSpec stringToEnumCopyMethod() {
+        return copyMethodProto(typeProvider.parameterType(memberModel),
+                               typeProvider.enumReturnType(memberModel),
+                               serviceModelCopiers.stringToEnumCopyMethodName())
+                .addCode(stringToEnumCopyMethodBody()).build();
+    }
 
-        if (memberModel.isList()) {
-            typeName = typeProvider.listWithEnumParameterType(memberModel);
-        } else if (memberModel.isMap()) {
-            typeName = typeProvider.mapWithEnumParameterType(memberModel.getMapModel());
-        }
-
-        return typeName;
+    private TypeName parameterTypeForEnumToStringCopyMethod() {
+        return typeProvider.parameterType(memberModel, true);
     }
 
     private CodeBlock enumToStringCopyMethodBody() {
         if (memberModel.isList()) {
-            return listCopyBody(true);
+            return listCopyBody(EnumTransform.ENUM_TO_STRING);
         } else if (memberModel.isMap()) {
-            return mapCopyBody(true);
+            return mapCopyBody(EnumTransform.ENUM_TO_STRING);
         }
 
         return null;
+    }
+
+    private CodeBlock stringToEnumCopyMethodBody() {
+        if (memberModel.isList()) {
+            return listCopyBody(EnumTransform.STRING_TO_ENUM);
+        } else {
+            return mapCopyBody(EnumTransform.STRING_TO_ENUM);
+        }
     }
 
     private MethodSpec builderCopyMethod() {
@@ -202,19 +254,18 @@ class MemberCopierSpec implements ClassSpec {
 
     private CodeBlock copyMethodBody() {
         if (memberModel.isMap()) {
-            return mapCopyBody(false);
+            return mapCopyBody(EnumTransform.NONE);
         }
 
         if (memberModel.isList()) {
-            return listCopyBody(false);
+            return listCopyBody(EnumTransform.NONE);
         }
 
         return modelCopyBody();
     }
 
-    private CodeBlock listCopyBody(boolean checkForModeledEnum) {
+    private CodeBlock listCopyBody(EnumTransform enumTransform) {
         String paramName = memberParamName();
-        MemberModel listMember = memberModel.getListModel().getListMemberModel();
         String copyName = paramName + "Copy";
 
         CodeBlock.Builder builder = CodeBlock.builder();
@@ -230,30 +281,67 @@ class MemberCopierSpec implements ClassSpec {
                    .endControlFlow();
         }
 
-        Optional<ClassName> elementCopier = serviceModelCopiers.copierClassFor(listMember);
+        Optional<ClassName> copierClass = serviceModelCopiers.copierClassFor(memberModel.getListModel().getListMemberModel());
+        boolean hasCopier = copierClass.isPresent();
 
-        // If list member is enum type, generate the body to convert collection of enums into collection of strings
-        // checkForModeledEnum is set to true for generating copyEnumToString method
-        if (checkForModeledEnum && listMember.getEnumType() != null) {
-            builder.addStatement("$T $N = $N.stream().map(Object::toString).collect(toList())",
-                                 typeProvider.fieldType(memberModel),
-                                 copyName,
-                                 paramName);
-
-        } else if (!elementCopier.isPresent()) { // Just use constructor copy if there's no copier for the element
-            builder.addStatement("$T $N = new $T<>($N)",
-                                 typeProvider.fieldType(memberModel),
-                                 copyName,
-                                 typeProvider.listImplClassName(),
-                                 paramName);
+        TypeName copyType;
+        if (enumTransform == EnumTransform.STRING_TO_ENUM) {
+            copyType = typeProvider.enumReturnType(memberModel);
         } else {
-            ClassName copier = elementCopier.get();
-            builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
-                                 typeProvider.fieldType(memberModel),
-                                 copyName,
-                                 paramName,
-                                 copier,
-                                 serviceModelCopiers.copyMethodName());
+            copyType = typeProvider.fieldType(memberModel);
+        }
+
+        MemberModel elementModel = memberModel.getListModel().getListMemberModel();
+
+        switch (enumTransform) {
+            case STRING_TO_ENUM:
+                if (hasCopier) {
+                    builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
+                                         copyType,
+                                         copyName,
+                                         paramName, copierClass.get(),
+                                         serviceModelCopiers.stringToEnumCopyMethodName());
+                } else {
+                    builder.addStatement("$T $N = $N.stream().map($T::fromValue).collect(toList())",
+                                         copyType,
+                                         copyName,
+                                         paramName,
+                                         poetExtensions.getModelClass(elementModel.getEnumType()));
+                }
+                break;
+            case ENUM_TO_STRING:
+                if (hasCopier) {
+                    builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
+                                         copyType,
+                                         copyName,
+                                         paramName,
+                                         copierClass.get(),
+                                         serviceModelCopiers.enumToStringCopyMethodName());
+                } else {
+                    builder.addStatement("$T $N = $N.stream().map(Object::toString).collect(toList())",
+                                         copyType,
+                                         copyName,
+                                         paramName);
+                }
+                break;
+            case NONE:
+                if (hasCopier) {
+                    builder.addStatement("$T $N = $N.stream().map($T::$N).collect(toList())",
+                                         copyType,
+                                         copyName,
+                                         paramName,
+                                         copierClass.get(),
+                                         serviceModelCopiers.copyMethodName());
+                } else {
+                    builder.addStatement("$T $N = new $T<>($N)",
+                                         copyType,
+                                         copyName,
+                                         typeProvider.listImplClassName(),
+                                         paramName);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown enum transform: " + enumTransform);
         }
 
         builder.addStatement("return $T.unmodifiableList($N)", Collections.class, copyName);
@@ -261,37 +349,22 @@ class MemberCopierSpec implements ClassSpec {
         return builder.build();
     }
 
-    private CodeBlock mapCopyBody(boolean checkForModeledEnum) {
+    private CodeBlock mapCopyBody(EnumTransform enumTransform) {
         MapModel mapModel = memberModel.getMapModel();
-        String copyMethod = serviceModelCopiers.copyMethodName();
         String paramName = memberParamName();
         String copyName = paramName + "Copy";
 
-        CodeBlock keyCopyExpr =
-            Optional.ofNullable(mapModel.getKeyModel())
-                    .map(model -> serviceModelCopiers.copierClassFor(model)
-                                                     .map(copier -> CodeBlock.of("$T.$N(e.getKey())",
-                                                                                 copier,
-                                                                                 copyMethod))
-                                                     .orElseGet(() -> checkForModeledEnum && model.getEnumType() != null
-                                                                      ? CodeBlock.of("e.getKey().toString()")
-                                                                      : CodeBlock.of("e.getKey()")))
-                    .orElseGet(() -> CodeBlock.of("$T.$N(e.getKey())",
-                                                  StandardMemberCopier.class,
-                                                  copyMethod));
+        MemberModel keyModel = mapModel.getKeyModel();
+        MemberModel valueModel = mapModel.getValueModel();
 
-        CodeBlock valueCopyExpr =
-            Optional.ofNullable(mapModel.getValueModel())
-                    .map(model -> serviceModelCopiers.copierClassFor(model)
-                                                     .map(copier -> CodeBlock.of("$T.$N(e.getValue())",
-                                                                                 copier,
-                                                                                 copyMethod))
-                                                     .orElseGet(() -> checkForModeledEnum && model.getEnumType() != null
-                                                                      ? CodeBlock.of("e.getValue().toString()")
-                                                                      : CodeBlock.of("e.getValue()")))
-                    .orElseGet(() -> CodeBlock.of("e -> $T.$N(e.getValue())",
-                                                  StandardMemberCopier.class,
-                                                  copyMethod));
+        // We need to know if we're applying the transform to the key, value, or both
+        boolean keyHasEnum = keyModel.getEnumType() != null || isEnumCopyAvailable(keyModel);
+        boolean valueHasEnum = valueModel.getEnumType() != null || isEnumCopyAvailable(valueModel);
+        EnumTransform keyTransform = keyHasEnum ? enumTransform : EnumTransform.NONE;
+        EnumTransform valueTransform = valueHasEnum ? enumTransform : EnumTransform.NONE;
+
+        CodeBlock keyCopyExpr = mapKeyValCopyExpr(keyModel, "getKey", keyTransform);
+        CodeBlock valueCopyExpr = mapKeyValCopyExpr(valueModel, "getValue", valueTransform);
 
         CodeBlock.Builder builder = CodeBlock.builder();
         if (typeProvider.useAutoConstructMaps()) {
@@ -304,11 +377,71 @@ class MemberCopierSpec implements ClassSpec {
                     .endControlFlow();
         }
 
-        builder.addStatement("$T $N = $N.entrySet().stream().collect($T::new, (m, e) -> m.put($L, $L), $T::putAll)",
-            typeProvider.fieldType(memberModel), copyName, memberParamName(), HashMap.class, keyCopyExpr, valueCopyExpr,
-            HashMap.class);
+        TypeName copyType;
+        if (enumTransform == EnumTransform.STRING_TO_ENUM) {
+            copyType = typeProvider.enumReturnType(memberModel);
+        } else {
+            copyType = typeProvider.fieldType(memberModel);
+        }
+
+        // If we're transforming from string to enum, Don't include UNKNOWN_TO_SDK_VERSION values as keys in the map
+        if (keyTransform == EnumTransform.STRING_TO_ENUM) {
+            ClassName enumClassName = poetExtensions.getModelClass(keyModel.getEnumType());
+            CodeBlock putLambda = CodeBlock.builder()
+                    .beginControlFlow("(m, e) ->")
+                    .add("$T keyAsEnum = $L;", enumClassName, keyCopyExpr)
+                    .beginControlFlow("if (keyAsEnum != $T.UNKNOWN_TO_SDK_VERSION)", enumClassName)
+                    .add("m.put(keyAsEnum, $L);", valueCopyExpr)
+                    .endControlFlow()
+                    .endControlFlow()
+                    .build();
+            builder.addStatement("$T $N = $N.entrySet().stream().collect($T::new, $L, $T::putAll)",
+                    copyType, copyName, memberParamName(), HashMap.class, putLambda, HashMap.class);
+        } else {
+            builder.addStatement("$T $N = $N.entrySet().stream().collect($T::new, (m, e) -> m.put($L, $L), $T::putAll)",
+                    copyType, copyName, memberParamName(), HashMap.class, keyCopyExpr, valueCopyExpr,
+                    HashMap.class);
+        }
 
         return builder.addStatement("return $T.unmodifiableMap($N)", Collections.class, copyName).build();
+    }
+
+    private CodeBlock mapKeyValCopyExpr(MemberModel keyValModel, String getterName, EnumTransform enumTransform) {
+        Optional<ClassName> keyCopier = serviceModelCopiers.copierClassFor(keyValModel);
+        boolean hasCopier = keyCopier.isPresent();
+        switch (enumTransform) {
+            case STRING_TO_ENUM:
+                if (hasCopier) {
+                    return CodeBlock.of("$T.$N(e.$N())",
+                                        keyCopier.get(),
+                                        serviceModelCopiers.stringToEnumCopyMethodName(),
+                                        getterName);
+                } else {
+                    return CodeBlock.of("$T.fromValue(e.$N())",
+                                        poetExtensions.getModelClass(keyValModel.getEnumType()),
+                                        getterName);
+                }
+            case ENUM_TO_STRING:
+                if (hasCopier) {
+                    return CodeBlock.of("$T.$N(e.$N())",
+                                        keyCopier.get(),
+                                        serviceModelCopiers.enumToStringCopyMethodName(),
+                                        getterName);
+                } else {
+                    return CodeBlock.of("e.$N().toString()", getterName);
+                }
+            case NONE:
+                if (hasCopier) {
+                    return CodeBlock.of("$T.$N(e.$N())",
+                                        keyCopier.get(),
+                                        serviceModelCopiers.copyMethodName(),
+                                        getterName);
+                } else {
+                    return CodeBlock.of("e.$N()", getterName);
+                }
+            default:
+                throw new IllegalArgumentException("Unknown enum transform: " + enumTransform);
+        }
     }
 
     private CodeBlock modelCopyBody() {

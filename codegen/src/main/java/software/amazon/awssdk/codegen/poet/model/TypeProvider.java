@@ -26,12 +26,10 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ListModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
@@ -61,10 +59,6 @@ public class TypeProvider {
 
     public boolean useAutoConstructMaps() {
         return intermediateModel.getCustomizationConfig().isUseAutoConstructMap();
-    }
-
-    public ClassName mapImplClassName() {
-        return ClassName.get(HashMap.class);
     }
 
     public TypeName enumReturnType(MemberModel memberModel) {
@@ -99,65 +93,23 @@ public class TypeProvider {
     }
 
     public TypeName parameterType(MemberModel memberModel) {
+        return parameterType(memberModel, false);
+    }
+
+    public TypeName parameterType(MemberModel memberModel, boolean preserveEnum) {
         if (memberModel.isList()) {
-            return listParameterType(memberModel.getListModel());
+            return listParameterType(memberModel.getListModel(), preserveEnum);
         }
 
         if (memberModel.isMap()) {
             MapModel mapModel = memberModel.getMapModel();
-            TypeName keyType = mapKeyParameterType(mapModel);
-            TypeName valueType = mapValueParameterType(mapModel);
+            TypeName keyType = mapKeyParameterType(mapModel, preserveEnum);
+            TypeName valueType = mapValueParameterType(mapModel, preserveEnum);
 
             return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
         }
 
-        return fieldType(memberModel);
-    }
-
-    public TypeName listWithEnumParameterType(MemberModel memberModel) {
-        if (Utils.isListWithEnumShape(memberModel)) {
-            return ParameterizedTypeName.get(ClassName.get(Collection.class),
-                                             poetExtensions.getModelClass(memberModel.getListModel()
-                                                                                     .getListMemberModel()
-                                                                                     .getEnumType()));
-        } else {
-            return listParameterType(memberModel.getListModel());
-        }
-    }
-
-    public TypeName mapWithEnumParameterType(MapModel mapModel) {
-        TypeName keyType;
-        TypeName valueType;
-
-        if (Utils.isMapKeyWithEnumShape(mapModel)) {
-            keyType = poetExtensions.getModelClass(mapModel.getKeyModel().getEnumType());
-        } else {
-            keyType = mapKeyParameterType(mapModel);
-        }
-
-        if (Utils.isMapValueWithEnumShape(mapModel)) {
-            valueType = poetExtensions.getModelClass(mapModel.getValueModel().getEnumType());
-        } else {
-            valueType = mapValueParameterType(mapModel);
-        }
-
-        return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
-    }
-
-    public TypeName mapEntryType(MapModel mapModel) {
-        TypeName keyType;
-        if (mapModel.getKeyModel().isSimple()) {
-            keyType = getTypeNameForSimpleType(mapModel.getKeyModel().getVariable().getVariableType());
-        } else {
-            keyType = parameterType(mapModel.getKeyModel());
-        }
-
-        TypeName valueType = parameterType(mapModel.getValueModel());
-        if (mapModel.getValueModel().isList()) {
-            valueType = WildcardTypeName.subtypeOf(valueType);
-        }
-
-        return ParameterizedTypeName.get(ClassName.get(Map.Entry.class), keyType, valueType);
+        return fieldType(memberModel, preserveEnum);
     }
 
     public TypeName mapEntryWithConcreteTypes(MapModel mapModel) {
@@ -198,29 +150,34 @@ public class TypeProvider {
         return builder.build();
     }
 
-    private TypeName listParameterType(ListModel listModel) {
+    private TypeName listParameterType(ListModel listModel, boolean preserveEnum) {
         MemberModel elementModel = listModel.getListMemberModel();
-        TypeName listElementType = parameterType(elementModel);
+        TypeName listElementType = parameterType(elementModel, preserveEnum);
         if (isContainerType(elementModel)) {
             listElementType = WildcardTypeName.subtypeOf(listElementType);
         }
         return ParameterizedTypeName.get(ClassName.get(Collection.class), listElementType);
     }
 
-    private TypeName mapKeyParameterType(MapModel mapModel) {
+    private TypeName mapKeyParameterType(MapModel mapModel, boolean preserveEnum) {
         TypeName keyType;
+        MemberModel keyModel = mapModel.getKeyModel();
         if (mapModel.getKeyModel().isSimple()) {
-            keyType = getTypeNameForSimpleType(mapModel.getKeyModel().getVariable().getVariableType());
+            if (preserveEnum && keyModel.getEnumType() != null) {
+                keyType = poetExtensions.getModelClass(keyModel.getEnumType());
+            } else {
+                keyType = getTypeNameForSimpleType(keyModel.getVariable().getVariableType());
+            }
         } else {
-            keyType = parameterType(mapModel.getKeyModel());
+            keyType = parameterType(keyModel, preserveEnum);
 
         }
 
         return keyType;
     }
 
-    private TypeName mapValueParameterType(MapModel mapModel) {
-        TypeName valueType = parameterType(mapModel.getValueModel());
+    private TypeName mapValueParameterType(MapModel mapModel, boolean preserveEnum) {
+        TypeName valueType = parameterType(mapModel.getValueModel(), preserveEnum);
         if (mapModel.getValueModel().isList()) {
             valueType = WildcardTypeName.subtypeOf(valueType);
         }

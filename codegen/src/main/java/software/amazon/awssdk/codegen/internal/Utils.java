@@ -70,9 +70,12 @@ public final class Utils {
 
     public static boolean isOrContainsEnumShape(Shape shape, Map<String, Shape> allShapes) {
         boolean isEnum = isEnumShape(shape);
-        boolean isMapWithEnumMember = isMapShape(shape) && (isEnumShape(allShapes.get(shape.getMapKeyType().getShape())) ||
-                                                            isEnumShape(allShapes.get(shape.getMapValueType().getShape())));
-        boolean isListWithEnumMember = isListShape(shape) && isEnumShape(allShapes.get(shape.getListMember().getShape()));
+        boolean isMapWithEnumMember = isMapShape(shape)
+             && (isOrContainsEnumShape(allShapes.get(shape.getMapKeyType().getShape()), allShapes)
+                 || isOrContainsEnumShape(allShapes.get(shape.getMapValueType().getShape()), allShapes));
+        boolean isListWithEnumMember = isListShape(shape)
+             && isOrContainsEnumShape(allShapes.get(shape.getListMember().getShape()), allShapes);
+
         return isEnum || isMapWithEnumMember || isListWithEnumMember;
     }
 

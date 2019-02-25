@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -39,9 +38,7 @@ import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -53,7 +50,6 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
-import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -68,6 +64,7 @@ public class AwsServiceModel implements ClassSpec {
     private final ShapeModelSpec shapeModelSpec;
     private final ModelMethodOverrides modelMethodOverrides;
     private final ModelBuilderSpecs modelBuilderSpecs;
+    private final ServiceModelCopiers serviceModelCopiers;
 
     public AwsServiceModel(IntermediateModel intermediateModel, ShapeModel shapeModel) {
         this.intermediateModel = intermediateModel;
@@ -80,6 +77,7 @@ public class AwsServiceModel implements ClassSpec {
                                                  intermediateModel);
         this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
         this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.typeProvider);
+        this.serviceModelCopiers = new ServiceModelCopiers(this.intermediateModel);
     }
 
     @Override
@@ -388,7 +386,8 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private boolean shouldGenerateEnumGetter(MemberModel member) {
-        return Utils.isOrContainsEnum(member);
+        return member.getEnumType() != null || MemberCopierSpec.isEnumCopyAvailable(member);
+
     }
 
     private MethodSpec enumMemberGetter(MemberModel member) {
@@ -411,47 +410,16 @@ public class AwsServiceModel implements ClassSpec {
 
     private CodeBlock enumGetterStatement(MemberModel member) {
         String fieldName = member.getVariable().getVariableName();
-
-        if (member.isList()) {
-            ClassName valueEnumClass = poetExtensions.getModelClass(member.getListModel().getListMemberModel().getEnumType());
-            return CodeBlock.of("return $T.convert($N, $T::fromValue);", TypeConverter.class, fieldName, valueEnumClass);
-        } else if (member.isMap()) {
-            MapModel mapModel = member.getMapModel();
-            String keyEnumType = mapModel.getKeyModel().getEnumType();
-            String valueEnumType = mapModel.getValueModel().getEnumType();
-
-            CodeBlock keyConverter = keyEnumType != null ? enumConverterFunction(poetExtensions.getModelClass(keyEnumType))
-                                                         : identityFunction();
-            CodeBlock valueConverter = valueEnumType != null ? enumConverterFunction(poetExtensions.getModelClass(valueEnumType))
-                                                             : identityFunction();
-
-            CodeBlock entryPredicate = mapEntryFilter(keyEnumType);
-
-            return CodeBlock.builder()
-                            .add("return $T.convert($N, ", TypeConverter.class, fieldName)
-                            .add(keyConverter).add(", ")
-                            .add(valueConverter).add(", ")
-                            .add(entryPredicate).add(");")
-                            .build();
+        if (member.isList() || member.isMap()) {
+            Optional<ClassName> copier = serviceModelCopiers.copierClassFor(member);
+            if (!copier.isPresent()) {
+                throw new IllegalStateException("Don't know how to copy " + fieldName + " with enum elements!");
+            }
+            return CodeBlock.of("return $T.$N($N);", copier.get(), serviceModelCopiers.stringToEnumCopyMethodName(), fieldName);
         } else {
             ClassName enumClass = poetExtensions.getModelClass(member.getEnumType());
             return CodeBlock.of("return $T.fromValue($N);", enumClass, fieldName);
         }
-    }
-
-    private CodeBlock mapEntryFilter(String keyEnumType) {
-        // Don't include UNKNOWN_TO_SDK_VERSION keys in the enum map. Customers should use the string version to get at that data.
-        return keyEnumType != null ? CodeBlock.of("(k, v) -> !$T.equals(k, $T.UNKNOWN_TO_SDK_VERSION)",
-                                                  Objects.class, poetExtensions.getModelClass(keyEnumType))
-                                   : CodeBlock.of("(k, v) -> true");
-    }
-
-    private CodeBlock enumConverterFunction(ClassName enumClass) {
-        return CodeBlock.of("$T::fromValue", enumClass);
-    }
-
-    private CodeBlock identityFunction() {
-        return CodeBlock.of("$T.identity()", Function.class);
     }
 
     private CodeBlock getterStatement(MemberModel model) {

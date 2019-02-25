@@ -235,7 +235,7 @@ class ListSetters extends AbstractMemberSetters {
     }
 
     private ParameterSpec collectionOfModeledEnumAsParameter() {
-        return ParameterSpec.builder(typeProvider.listWithEnumParameterType(memberModel()), fieldName())
+        return ParameterSpec.builder(typeProvider.parameterType(memberModel(), true), fieldName())
                             .build();
     }
 }
