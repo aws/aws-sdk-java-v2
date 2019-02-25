@@ -1,0 +1,5 @@
+{
+    "category": "Auto Scaling", 
+    "type": "feature", 
+    "description": "Added support for passing an empty SpotMaxPrice parameter to remove a value previously set when updating an Amazon EC2 Auto Scaling group."
+}
