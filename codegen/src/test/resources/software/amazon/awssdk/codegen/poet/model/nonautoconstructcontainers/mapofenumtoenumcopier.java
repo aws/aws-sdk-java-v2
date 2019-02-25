@@ -14,7 +14,7 @@ final class MapOfEnumToEnumCopier {
             return null;
         }
         Map<String, String> mapOfEnumToEnumParamCopy = mapOfEnumToEnumParam.entrySet().stream()
-            .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
+                .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll);
         return Collections.unmodifiableMap(mapOfEnumToEnumParamCopy);
     }
 
@@ -23,7 +23,21 @@ final class MapOfEnumToEnumCopier {
             return null;
         }
         Map<String, String> mapOfEnumToEnumParamCopy = mapOfEnumToEnumParam.entrySet().stream()
-            .collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue().toString()), HashMap::putAll);
+                .collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue().toString()), HashMap::putAll);
+        return Collections.unmodifiableMap(mapOfEnumToEnumParamCopy);
+    }
+
+    static Map<EnumType, EnumType> copyStringToEnum(Map<String, String> mapOfEnumToEnumParam) {
+        if (mapOfEnumToEnumParam == null) {
+            return null;
+        }
+        Map<EnumType, EnumType> mapOfEnumToEnumParamCopy = mapOfEnumToEnumParam.entrySet().stream()
+                .collect(HashMap::new, (m, e) -> {
+                    EnumType keyAsEnum = EnumType.fromValue(e.getKey());
+                    if (keyAsEnum != EnumType.UNKNOWN_TO_SDK_VERSION) {
+                        m.put(keyAsEnum, EnumType.fromValue(e.getValue()));
+                    }
+                }, HashMap::putAll);
         return Collections.unmodifiableMap(mapOfEnumToEnumParamCopy);
     }
 }

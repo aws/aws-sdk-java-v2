@@ -63,4 +63,20 @@ public class MapCopierTest {
     public void copiedMapIsImmutable() {
         assertThatThrownBy(() -> MapOfStringToStringCopier.copy(new HashMap<>()).put("test", "a")).isInstanceOf(UnsupportedOperationException.class);
     }
+
+    @Test
+    public void unknownEnumKeyNotAddedToCopiedMap() {
+        Map<String, String> mapOfEnumToEnum = new HashMap<>();
+        mapOfEnumToEnum.put("foo", "bar");
+        Map<EnumType, EnumType> copy = MapOfEnumToEnumCopier.copyStringToEnum(mapOfEnumToEnum);
+        assertThat(copy).isEmpty();
+    }
+
+    @Test
+    public void knownEnumKeyAddedToCopiedMap() {
+        Map<String, String> mapOfEnumToEnum = new HashMap<>();
+        mapOfEnumToEnum.put(EnumType.ENUM_VALUE1.toString(), "bar");
+        Map<EnumType, EnumType> copy = MapOfEnumToEnumCopier.copyStringToEnum(mapOfEnumToEnum);
+        assertThat(copy).hasSize(1);
+    }
 }
