@@ -42,6 +42,7 @@ import software.amazon.awssdk.regions.servicemetadata.DaxServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.DevicefarmServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.DirectconnectServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.DiscoveryServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.DlmServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.DmsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.DsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.DynamodbServiceMetadata;
@@ -67,8 +68,10 @@ import software.amazon.awssdk.regions.servicemetadata.GreengrassServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.GuarddutyServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.HealthServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.IamServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.ImportexportServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.InspectorServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.IotServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.IotanalyticsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.KinesisServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.KinesisanalyticsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.KinesisvideoServiceMetadata;
@@ -77,6 +80,7 @@ import software.amazon.awssdk.regions.servicemetadata.LambdaServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.LightsailServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.LogsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MachinelearningServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.MacieServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MarketplacecommerceanalyticsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MediaconvertServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MedialiveServiceMetadata;
@@ -87,6 +91,7 @@ import software.amazon.awssdk.regions.servicemetadata.MghServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MobileanalyticsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.ModelsLexServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MonitoringServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.MqServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.MturkRequesterServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.NeptuneServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.OpsworksCmServiceMetadata;
@@ -122,6 +127,7 @@ import software.amazon.awssdk.regions.servicemetadata.StsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.SupportServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.SwfServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.TaggingServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.TranscribeServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.TranslateServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.WafRegionalServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.WafServiceMetadata;
@@ -135,72 +141,77 @@ import software.amazon.awssdk.utils.ImmutableMap;
 @SdkPublicApi
 public final class GeneratedServiceMetadataProvider implements ServiceMetadataProvider {
     private static final Map<String, ServiceMetadata> SERVICE_METADATA = ImmutableMap.<String, ServiceMetadata> builder()
-        .put("a4b", new A4bServiceMetadata()).put("acm", new AcmServiceMetadata())
-        .put("acm-pca", new AcmPcaServiceMetadata()).put("api.mediatailor", new ApiMediatailorServiceMetadata())
-        .put("api.pricing", new ApiPricingServiceMetadata()).put("apigateway", new ApigatewayServiceMetadata())
-        .put("application-autoscaling", new ApplicationAutoscalingServiceMetadata())
-        .put("appstream2", new Appstream2ServiceMetadata()).put("athena", new AthenaServiceMetadata())
-        .put("autoscaling", new AutoscalingServiceMetadata()).put("autoscaling-plans", new AutoscalingPlansServiceMetadata())
-        .put("batch", new BatchServiceMetadata()).put("budgets", new BudgetsServiceMetadata())
-        .put("ce", new CeServiceMetadata()).put("cloud9", new Cloud9ServiceMetadata())
-        .put("clouddirectory", new ClouddirectoryServiceMetadata())
-        .put("cloudformation", new CloudformationServiceMetadata()).put("cloudfront", new CloudfrontServiceMetadata())
-        .put("cloudhsm", new CloudhsmServiceMetadata()).put("cloudhsmv2", new Cloudhsmv2ServiceMetadata())
-        .put("cloudsearch", new CloudsearchServiceMetadata()).put("cloudtrail", new CloudtrailServiceMetadata())
-        .put("codebuild", new CodebuildServiceMetadata()).put("codecommit", new CodecommitServiceMetadata())
-        .put("codedeploy", new CodedeployServiceMetadata()).put("codepipeline", new CodepipelineServiceMetadata())
-        .put("codestar", new CodestarServiceMetadata()).put("cognito-identity", new CognitoIdentityServiceMetadata())
-        .put("cognito-idp", new CognitoIdpServiceMetadata()).put("cognito-sync", new CognitoSyncServiceMetadata())
-        .put("comprehend", new ComprehendServiceMetadata()).put("config", new ConfigServiceMetadata())
-        .put("cur", new CurServiceMetadata()).put("data.iot", new DataIotServiceMetadata())
-        .put("datapipeline", new DatapipelineServiceMetadata()).put("dax", new DaxServiceMetadata())
-        .put("devicefarm", new DevicefarmServiceMetadata()).put("directconnect", new DirectconnectServiceMetadata())
-        .put("discovery", new DiscoveryServiceMetadata()).put("dms", new DmsServiceMetadata())
-        .put("ds", new DsServiceMetadata()).put("dynamodb", new DynamodbServiceMetadata())
-        .put("ec2", new Ec2ServiceMetadata()).put("ecr", new EcrServiceMetadata()).put("ecs", new EcsServiceMetadata())
-        .put("elasticache", new ElasticacheServiceMetadata()).put("elasticbeanstalk", new ElasticbeanstalkServiceMetadata())
-        .put("elasticfilesystem", new ElasticfilesystemServiceMetadata())
-        .put("elasticloadbalancing", new ElasticloadbalancingServiceMetadata())
-        .put("elasticmapreduce", new ElasticmapreduceServiceMetadata())
-        .put("elastictranscoder", new ElastictranscoderServiceMetadata()).put("email", new EmailServiceMetadata())
-        .put("entitlement.marketplace", new EntitlementMarketplaceServiceMetadata()).put("es", new EsServiceMetadata())
-        .put("events", new EventsServiceMetadata()).put("firehose", new FirehoseServiceMetadata())
-        .put("fms", new FmsServiceMetadata()).put("gamelift", new GameliftServiceMetadata())
-        .put("glacier", new GlacierServiceMetadata()).put("glue", new GlueServiceMetadata())
-        .put("greengrass", new GreengrassServiceMetadata()).put("guardduty", new GuarddutyServiceMetadata())
-        .put("health", new HealthServiceMetadata()).put("iam", new IamServiceMetadata())
-        .put("inspector", new InspectorServiceMetadata()).put("iot", new IotServiceMetadata())
-        .put("kinesis", new KinesisServiceMetadata()).put("kinesisanalytics", new KinesisanalyticsServiceMetadata())
-        .put("kinesisvideo", new KinesisvideoServiceMetadata()).put("kms", new KmsServiceMetadata())
-        .put("lambda", new LambdaServiceMetadata()).put("lightsail", new LightsailServiceMetadata())
-        .put("logs", new LogsServiceMetadata()).put("machinelearning", new MachinelearningServiceMetadata())
-        .put("marketplacecommerceanalytics", new MarketplacecommerceanalyticsServiceMetadata())
-        .put("mediaconvert", new MediaconvertServiceMetadata()).put("medialive", new MedialiveServiceMetadata())
-        .put("mediapackage", new MediapackageServiceMetadata()).put("mediastore", new MediastoreServiceMetadata())
-        .put("metering.marketplace", new MeteringMarketplaceServiceMetadata()).put("mgh", new MghServiceMetadata())
-        .put("mobileanalytics", new MobileanalyticsServiceMetadata()).put("models.lex", new ModelsLexServiceMetadata())
-        .put("monitoring", new MonitoringServiceMetadata()).put("mturk-requester", new MturkRequesterServiceMetadata())
-        .put("neptune", new NeptuneServiceMetadata()).put("opsworks", new OpsworksServiceMetadata())
-        .put("opsworks-cm", new OpsworksCmServiceMetadata()).put("organizations", new OrganizationsServiceMetadata())
-        .put("pinpoint", new PinpointServiceMetadata()).put("polly", new PollyServiceMetadata())
-        .put("rds", new RdsServiceMetadata()).put("redshift", new RedshiftServiceMetadata())
-        .put("rekognition", new RekognitionServiceMetadata()).put("resource-groups", new ResourceGroupsServiceMetadata())
-        .put("route53", new Route53ServiceMetadata()).put("route53domains", new Route53domainsServiceMetadata())
-        .put("runtime.lex", new RuntimeLexServiceMetadata()).put("runtime.sagemaker", new RuntimeSagemakerServiceMetadata())
-        .put("s3", new S3ServiceMetadata()).put("sagemaker", new SagemakerServiceMetadata())
-        .put("sdb", new SdbServiceMetadata()).put("secretsmanager", new SecretsmanagerServiceMetadata())
-        .put("serverlessrepo", new ServerlessrepoServiceMetadata())
-        .put("servicecatalog", new ServicecatalogServiceMetadata())
-        .put("servicediscovery", new ServicediscoveryServiceMetadata()).put("shield", new ShieldServiceMetadata())
-        .put("sms", new SmsServiceMetadata()).put("snowball", new SnowballServiceMetadata())
-        .put("sns", new SnsServiceMetadata()).put("sqs", new SqsServiceMetadata()).put("ssm", new SsmServiceMetadata())
-        .put("states", new StatesServiceMetadata()).put("storagegateway", new StoragegatewayServiceMetadata())
-        .put("streams.dynamodb", new StreamsDynamodbServiceMetadata()).put("sts", new StsServiceMetadata())
-        .put("support", new SupportServiceMetadata()).put("swf", new SwfServiceMetadata())
-        .put("tagging", new TaggingServiceMetadata()).put("translate", new TranslateServiceMetadata())
-        .put("waf", new WafServiceMetadata()).put("waf-regional", new WafRegionalServiceMetadata())
-        .put("workdocs", new WorkdocsServiceMetadata()).put("workmail", new WorkmailServiceMetadata())
-        .put("workspaces", new WorkspacesServiceMetadata()).put("xray", new XrayServiceMetadata()).build();
+            .put("a4b", new A4bServiceMetadata()).put("acm", new AcmServiceMetadata())
+            .put("acm-pca", new AcmPcaServiceMetadata()).put("api.mediatailor", new ApiMediatailorServiceMetadata())
+            .put("api.pricing", new ApiPricingServiceMetadata()).put("apigateway", new ApigatewayServiceMetadata())
+            .put("application-autoscaling", new ApplicationAutoscalingServiceMetadata())
+            .put("appstream2", new Appstream2ServiceMetadata()).put("athena", new AthenaServiceMetadata())
+            .put("autoscaling", new AutoscalingServiceMetadata()).put("autoscaling-plans", new AutoscalingPlansServiceMetadata())
+            .put("batch", new BatchServiceMetadata()).put("budgets", new BudgetsServiceMetadata())
+            .put("ce", new CeServiceMetadata()).put("cloud9", new Cloud9ServiceMetadata())
+            .put("clouddirectory", new ClouddirectoryServiceMetadata())
+            .put("cloudformation", new CloudformationServiceMetadata()).put("cloudfront", new CloudfrontServiceMetadata())
+            .put("cloudhsm", new CloudhsmServiceMetadata()).put("cloudhsmv2", new Cloudhsmv2ServiceMetadata())
+            .put("cloudsearch", new CloudsearchServiceMetadata()).put("cloudtrail", new CloudtrailServiceMetadata())
+            .put("codebuild", new CodebuildServiceMetadata()).put("codecommit", new CodecommitServiceMetadata())
+            .put("codedeploy", new CodedeployServiceMetadata()).put("codepipeline", new CodepipelineServiceMetadata())
+            .put("codestar", new CodestarServiceMetadata()).put("cognito-identity", new CognitoIdentityServiceMetadata())
+            .put("cognito-idp", new CognitoIdpServiceMetadata()).put("cognito-sync", new CognitoSyncServiceMetadata())
+            .put("comprehend", new ComprehendServiceMetadata()).put("config", new ConfigServiceMetadata())
+            .put("cur", new CurServiceMetadata()).put("data.iot", new DataIotServiceMetadata())
+            .put("datapipeline", new DatapipelineServiceMetadata()).put("dax", new DaxServiceMetadata())
+            .put("devicefarm", new DevicefarmServiceMetadata()).put("directconnect", new DirectconnectServiceMetadata())
+            .put("discovery", new DiscoveryServiceMetadata()).put("dlm", new DlmServiceMetadata())
+            .put("dms", new DmsServiceMetadata()).put("ds", new DsServiceMetadata())
+            .put("dynamodb", new DynamodbServiceMetadata()).put("ec2", new Ec2ServiceMetadata())
+            .put("ecr", new EcrServiceMetadata()).put("ecs", new EcsServiceMetadata())
+            .put("elasticache", new ElasticacheServiceMetadata()).put("elasticbeanstalk", new ElasticbeanstalkServiceMetadata())
+            .put("elasticfilesystem", new ElasticfilesystemServiceMetadata())
+            .put("elasticloadbalancing", new ElasticloadbalancingServiceMetadata())
+            .put("elasticmapreduce", new ElasticmapreduceServiceMetadata())
+            .put("elastictranscoder", new ElastictranscoderServiceMetadata()).put("email", new EmailServiceMetadata())
+            .put("entitlement.marketplace", new EntitlementMarketplaceServiceMetadata()).put("es", new EsServiceMetadata())
+            .put("events", new EventsServiceMetadata()).put("firehose", new FirehoseServiceMetadata())
+            .put("fms", new FmsServiceMetadata()).put("gamelift", new GameliftServiceMetadata())
+            .put("glacier", new GlacierServiceMetadata()).put("glue", new GlueServiceMetadata())
+            .put("greengrass", new GreengrassServiceMetadata()).put("guardduty", new GuarddutyServiceMetadata())
+            .put("health", new HealthServiceMetadata()).put("iam", new IamServiceMetadata())
+            .put("importexport", new ImportexportServiceMetadata()).put("inspector", new InspectorServiceMetadata())
+            .put("iot", new IotServiceMetadata()).put("iotanalytics", new IotanalyticsServiceMetadata())
+            .put("kinesis", new KinesisServiceMetadata()).put("kinesisanalytics", new KinesisanalyticsServiceMetadata())
+            .put("kinesisvideo", new KinesisvideoServiceMetadata()).put("kms", new KmsServiceMetadata())
+            .put("lambda", new LambdaServiceMetadata()).put("lightsail", new LightsailServiceMetadata())
+            .put("logs", new LogsServiceMetadata()).put("machinelearning", new MachinelearningServiceMetadata())
+            .put("macie", new MacieServiceMetadata())
+            .put("marketplacecommerceanalytics", new MarketplacecommerceanalyticsServiceMetadata())
+            .put("mediaconvert", new MediaconvertServiceMetadata()).put("medialive", new MedialiveServiceMetadata())
+            .put("mediapackage", new MediapackageServiceMetadata()).put("mediastore", new MediastoreServiceMetadata())
+            .put("metering.marketplace", new MeteringMarketplaceServiceMetadata()).put("mgh", new MghServiceMetadata())
+            .put("mobileanalytics", new MobileanalyticsServiceMetadata()).put("models.lex", new ModelsLexServiceMetadata())
+            .put("monitoring", new MonitoringServiceMetadata()).put("mq", new MqServiceMetadata())
+            .put("mturk-requester", new MturkRequesterServiceMetadata()).put("neptune", new NeptuneServiceMetadata())
+            .put("opsworks", new OpsworksServiceMetadata()).put("opsworks-cm", new OpsworksCmServiceMetadata())
+            .put("organizations", new OrganizationsServiceMetadata()).put("pinpoint", new PinpointServiceMetadata())
+            .put("polly", new PollyServiceMetadata()).put("rds", new RdsServiceMetadata())
+            .put("redshift", new RedshiftServiceMetadata()).put("rekognition", new RekognitionServiceMetadata())
+            .put("resource-groups", new ResourceGroupsServiceMetadata()).put("route53", new Route53ServiceMetadata())
+            .put("route53domains", new Route53domainsServiceMetadata()).put("runtime.lex", new RuntimeLexServiceMetadata())
+            .put("runtime.sagemaker", new RuntimeSagemakerServiceMetadata()).put("s3", new S3ServiceMetadata())
+            .put("sagemaker", new SagemakerServiceMetadata()).put("sdb", new SdbServiceMetadata())
+            .put("secretsmanager", new SecretsmanagerServiceMetadata())
+            .put("serverlessrepo", new ServerlessrepoServiceMetadata())
+            .put("servicecatalog", new ServicecatalogServiceMetadata())
+            .put("servicediscovery", new ServicediscoveryServiceMetadata()).put("shield", new ShieldServiceMetadata())
+            .put("sms", new SmsServiceMetadata()).put("snowball", new SnowballServiceMetadata())
+            .put("sns", new SnsServiceMetadata()).put("sqs", new SqsServiceMetadata()).put("ssm", new SsmServiceMetadata())
+            .put("states", new StatesServiceMetadata()).put("storagegateway", new StoragegatewayServiceMetadata())
+            .put("streams.dynamodb", new StreamsDynamodbServiceMetadata()).put("sts", new StsServiceMetadata())
+            .put("support", new SupportServiceMetadata()).put("swf", new SwfServiceMetadata())
+            .put("tagging", new TaggingServiceMetadata()).put("transcribe", new TranscribeServiceMetadata())
+            .put("translate", new TranslateServiceMetadata()).put("waf", new WafServiceMetadata())
+            .put("waf-regional", new WafRegionalServiceMetadata()).put("workdocs", new WorkdocsServiceMetadata())
+            .put("workmail", new WorkmailServiceMetadata()).put("workspaces", new WorkspacesServiceMetadata())
+            .put("xray", new XrayServiceMetadata()).build();
 
     public ServiceMetadata serviceMetadata(String endpointPrefix) {
         return SERVICE_METADATA.get(endpointPrefix);

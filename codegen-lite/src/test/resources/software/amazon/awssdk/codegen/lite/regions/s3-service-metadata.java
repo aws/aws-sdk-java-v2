@@ -19,22 +19,22 @@ public final class S3ServiceMetadata implements ServiceMetadata {
     private static final Map<String, String> PARTITION_OVERRIDDEN_ENDPOINTS = ImmutableMap.<String, String> builder().build();
 
     private static final Map<String, String> REGION_OVERRIDDEN_ENDPOINTS = ImmutableMap.<String, String> builder()
-            .put("fips-us-gov-west-1", "s3-fips-us-gov-west-1.amazonaws.com")
-            .put("us-gov-west-1", "s3.us-gov-west-1.amazonaws.com").put("ap-northeast-1", "s3.ap-northeast-1.amazonaws.com")
-            .put("ap-southeast-1", "s3.ap-southeast-1.amazonaws.com").put("ap-southeast-2", "s3.ap-southeast-2.amazonaws.com")
-            .put("eu-west-1", "s3.eu-west-1.amazonaws.com").put("s3-external-1", "s3-external-1.amazonaws.com")
+            .put("ap-northeast-1", "s3.ap-northeast-1.amazonaws.com").put("ap-southeast-1", "s3.ap-southeast-1.amazonaws.com")
+            .put("ap-southeast-2", "s3.ap-southeast-2.amazonaws.com").put("eu-west-1", "s3.eu-west-1.amazonaws.com")
             .put("sa-east-1", "s3.sa-east-1.amazonaws.com").put("us-east-1", "s3.amazonaws.com")
-            .put("us-west-1", "s3.us-west-1.amazonaws.com").put("us-west-2", "s3.us-west-2.amazonaws.com").build();
+            .put("us-west-1", "s3.us-west-1.amazonaws.com").put("us-west-2", "s3.us-west-2.amazonaws.com")
+            .put("fips-us-gov-west-1", "s3-fips-us-gov-west-1.amazonaws.com")
+            .put("us-gov-west-1", "s3.us-gov-west-1.amazonaws.com").build();
 
     private static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(Region.of("ap-northeast-1"),
-            Region.of("ap-northeast-2"), Region.of("ap-south-1"), Region.of("ap-southeast-1"), Region.of("ap-southeast-2"),
-            Region.of("ca-central-1"), Region.of("eu-central-1"), Region.of("eu-west-1"), Region.of("eu-west-2"),
-            Region.of("eu-west-3"), Region.of("s3-external-1"), Region.of("sa-east-1"), Region.of("us-east-1"),
+            Region.of("ap-northeast-2"), Region.of("ap-northeast-3"), Region.of("ap-south-1"), Region.of("ap-southeast-1"),
+            Region.of("ap-southeast-2"), Region.of("ca-central-1"), Region.of("eu-central-1"), Region.of("eu-west-1"),
+            Region.of("eu-west-2"), Region.of("eu-west-3"), Region.of("sa-east-1"), Region.of("us-east-1"),
             Region.of("us-east-2"), Region.of("us-west-1"), Region.of("us-west-2"), Region.of("cn-north-1"),
             Region.of("cn-northwest-1"), Region.of("fips-us-gov-west-1"), Region.of("us-gov-west-1")));
 
     private static final Map<String, String> SIGNING_REGION_OVERRIDES = ImmutableMap.<String, String> builder()
-            .put("fips-us-gov-west-1", "us-gov-west-1").put("s3-external-1", "us-east-1").build();
+            .put("fips-us-gov-west-1", "us-gov-west-1").build();
 
     @Override
     public List<Region> regions() {

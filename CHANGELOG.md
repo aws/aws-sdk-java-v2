@@ -1,3 +1,44 @@
+# __2.4.15__ __2019-02-25__
+## __AWS CodeCommit__
+  - ### Removals
+    - Removing invalid "fips" region
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added metrics to normalized units.
+
+## __AWS Elasticache__
+  - ### Removals
+    - Removing invalid "fips" region
+
+## __AWS Elemental MediaStore__
+  - ### Features
+    - This release adds support for access logging, which provides detailed records for the requests that are made to objects in a container.
+
+## __AWS SDK for Java v2__
+  - ### Removals
+    - Removes invalid AWS regions that don't match the partition regex
+
+## __Amazon DynamoDB__
+  - ### Removals
+    - Removing invalid "local" region
+
+## __Amazon MTurk__
+  - ### Removals
+    - Removing invalid "sandbox" region
+
+## __Amazon S3__
+  - ### Removals
+    - Removing invalid dualstack regions and s3-external-1
+
+## __Auto Scaling__
+  - ### Features
+    - Added support for passing an empty SpotMaxPrice parameter to remove a value previously set when updating an Amazon EC2 Auto Scaling group.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables you to use the existing client secret when modifying a rule with an action of type authenticate-oidc.
+
 # __2.4.14__ __2019-02-22__
 ## __AWS Cloud9__
   - ### Features
