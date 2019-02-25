@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodeCommit", 
-    "type": "removal", 
-    "description": "Removing invalid \"fips\" region"
-}

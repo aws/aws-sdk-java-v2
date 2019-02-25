@@ -1,5 +1,0 @@
-{
-    "category": "Elastic Load Balancing", 
-    "type": "feature", 
-    "description": "This release enables you to use the existing client secret when modifying a rule with an action of type authenticate-oidc."
-}

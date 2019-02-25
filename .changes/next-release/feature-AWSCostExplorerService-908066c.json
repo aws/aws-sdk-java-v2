@@ -1,5 +1,0 @@
-{
-    "category": "AWS Cost Explorer Service", 
-    "type": "feature", 
-    "description": "Added metrics to normalized units."
-}

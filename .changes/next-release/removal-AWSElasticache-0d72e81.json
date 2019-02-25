@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elasticache", 
-    "type": "removal", 
-    "description": "Removing invalid \"fips\" region"
-}

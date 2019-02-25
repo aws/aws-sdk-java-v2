@@ -1,5 +1,0 @@
-{
-    "category": "Amazon MTurk", 
-    "type": "removal", 
-    "description": "Removing invalid \"sandbox\" region"
-}

@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaStore", 
-    "type": "feature", 
-    "description": "This release adds support for access logging, which provides detailed records for the requests that are made to objects in a container."
-}
