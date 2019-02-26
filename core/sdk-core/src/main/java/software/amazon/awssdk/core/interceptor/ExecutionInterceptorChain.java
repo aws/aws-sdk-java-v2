@@ -77,8 +77,8 @@ public class ExecutionInterceptorChain {
         interceptors.forEach(i -> i.afterMarshalling(context, executionAttributes));
     }
 
-    public InterceptorContext modifyHttpRequest(InterceptorContext context,
-                                                ExecutionAttributes executionAttributes) {
+    public InterceptorContext modifyHttpRequestAndHttpContent(InterceptorContext context,
+                                                              ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
         for (ExecutionInterceptor interceptor : interceptors) {
 
@@ -89,8 +89,8 @@ public class ExecutionInterceptorChain {
                 int contentLength = Integer.parseInt(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
                 String contentType = sdkHttpFullRequest.firstMatchingHeader("Content-Type").orElse("");
                 RequestBody requestBody = RequestBody.fromContentProvider(sdkHttpFullRequest.contentStreamProvider().get(),
-                                                                      contentLength,
-                                                                      contentType);
+                                                                          contentLength,
+                                                                          contentType);
                 result = result.toBuilder().requestBody(requestBody).build();
             }
 

@@ -1,3 +1,94 @@
+# __2.4.16__ __2019-02-26__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Documentation updates for discovery
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Adding support for Athena and new report preferences to the Cost and Usage Report API.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added several features including support for: auto-rotation or user-specified rotation of 0, 90, 180, or 270 degrees; multiple output groups with DRM; ESAM XML documents to specify ad insertion points; Offline Apple HLS FairPlay content protection.
+
+## __AWS OpsWorks for Chef Automate__
+  - ### Features
+    - Documentation updates for opsworkscm
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for AWS Organizations
+
+## __AWS Resource Groups__
+  - ### Features
+    - Documentation updates for Resource Groups API; updating description of Tag API.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release adds support for the Amazon Resource Groups Tagging API to Amazon Pinpoint, which means that you can now add and manage tags for Amazon Pinpoint projects (apps), campaigns, and segments. A tag is a label that you optionally define and associate with Amazon Pinpoint resource. Tags can help you categorize and manage these types of resources in different ways, such as by purpose, owner, environment, or other criteria. For example, you can use tags to apply policies or automation, or to identify resources that are subject to certain compliance requirements. A project, campaign, or segment can have as many as 50 tags. For more information about using and managing tags in Amazon Pinpoint, see the Amazon Pinpoint Developer Guide at https://docs.aws.amazon.com/pinpoint/latest/developerguide/welcome.html. For more information about the Amazon Resource Group Tagging API, see the Amazon Resource Group Tagging API Reference at https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/Welcome.html.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix the issue where NoSuchBucketException was not unmarshalled for `s3#getBucketPolicy` when the bucket doesn't exist. See [#1088](https://github.com/aws/aws-sdk-java-v2/issues/1088)
+
+# __2.4.15__ __2019-02-25__
+## __AWS CodeCommit__
+  - ### Removals
+    - Removing invalid "fips" region
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added metrics to normalized units.
+
+## __AWS Elasticache__
+  - ### Removals
+    - Removing invalid "fips" region
+
+## __AWS Elemental MediaStore__
+  - ### Features
+    - This release adds support for access logging, which provides detailed records for the requests that are made to objects in a container.
+
+## __AWS SDK for Java v2__
+  - ### Removals
+    - Removes invalid AWS regions that don't match the partition regex
+
+## __Amazon DynamoDB__
+  - ### Removals
+    - Removing invalid "local" region
+
+## __Amazon MTurk__
+  - ### Removals
+    - Removing invalid "sandbox" region
+
+## __Amazon S3__
+  - ### Removals
+    - Removing invalid dualstack regions and s3-external-1
+
+## __Auto Scaling__
+  - ### Features
+    - Added support for passing an empty SpotMaxPrice parameter to remove a value previously set when updating an Amazon EC2 Auto Scaling group.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables you to use the existing client secret when modifying a rule with an action of type authenticate-oidc.
+
+# __2.4.14__ __2019-02-22__
+## __AWS Cloud9__
+  - ### Features
+    - Adding EnvironmentLifecycle to the Environment data type.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue adds support for assigning AWS resource tags to jobs, triggers, development endpoints, and crawlers. Each tag consists of a key and an optional value, both of which you define. With this capacity, customers can use tags in AWS Glue to easily organize and identify your resources, create cost allocation reports, and control access to resources.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for tag-on-create. You can now add tags when you create AWS Step Functions activity and state machine resources. For more information about tagging, see AWS Tagging Strategies.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds tagging support for Workgroups to Amazon Athena. Use these APIs to add, remove, or list tags on Workgroups, and leverage the tags for various authorization and billing scenarios.
+
 # __2.4.13__ __2019-02-21__
 ## __AWS CodeBuild__
   - ### Features

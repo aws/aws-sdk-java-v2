@@ -43,6 +43,8 @@ public final class Region {
 
     public static final Region EU_WEST_1 = Region.of("eu-west-1");
 
+    public static final Region AP_NORTHEAST_3 = Region.of("ap-northeast-3");
+
     public static final Region AP_NORTHEAST_2 = Region.of("ap-northeast-2");
 
     public static final Region AP_NORTHEAST_1 = Region.of("ap-northeast-1");
@@ -78,9 +80,9 @@ public final class Region {
     public static final Region AWS_US_GOV_GLOBAL = Region.of("aws-us-gov-global", true);
 
     private static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(AP_SOUTH_1, EU_WEST_3, EU_WEST_2,
-            EU_WEST_1, AP_NORTHEAST_2, AP_NORTHEAST_1, CA_CENTRAL_1, SA_EAST_1, CN_NORTH_1, US_GOV_WEST_1, AP_SOUTHEAST_1,
-            AP_SOUTHEAST_2, EU_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, CN_NORTHWEST_1, US_WEST_2, AWS_GLOBAL, AWS_CN_GLOBAL,
-            AWS_US_GOV_GLOBAL));
+            EU_WEST_1, AP_NORTHEAST_3, AP_NORTHEAST_2, AP_NORTHEAST_1, CA_CENTRAL_1, SA_EAST_1, CN_NORTH_1, US_GOV_WEST_1,
+            AP_SOUTHEAST_1, AP_SOUTHEAST_2, EU_CENTRAL_1, US_EAST_1, US_EAST_2, US_WEST_1, CN_NORTHWEST_1, US_WEST_2, AWS_GLOBAL,
+            AWS_CN_GLOBAL, AWS_US_GOV_GLOBAL));
 
     private final boolean isGlobalRegion;
 
