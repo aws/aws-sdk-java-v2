@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -188,6 +189,52 @@ public final class InterceptorTestUtils {
             @Override
             public SdkHttpRequest httpRequest() {
                 return sdkHttpRequest;
+            }
+
+            @Override
+            public Optional<RequestBody> requestBody() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<AsyncRequestBody> asyncRequestBody() {
+                return Optional.empty();
+            }
+
+            @Override
+            public SdkRequest request() {
+                return request;
+            }
+        };
+    }
+
+    public static Context.ModifyHttpResponse modifyHttpResponseContent(SdkRequest request, SdkHttpResponse sdkHttpResponse) {
+        InputStream stream = new StringInputStream("hello world");
+
+        return new Context.ModifyResponse() {
+            @Override
+            public SdkResponse response() {
+                return null;
+            }
+
+            @Override
+            public SdkHttpResponse httpResponse() {
+                return sdkHttpResponse;
+            }
+
+            @Override
+            public Optional<Publisher<ByteBuffer>> responsePublisher() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<InputStream> responseBody() {
+                return Optional.of(stream);
+            }
+
+            @Override
+            public SdkHttpRequest httpRequest() {
+                return null;
             }
 
             @Override

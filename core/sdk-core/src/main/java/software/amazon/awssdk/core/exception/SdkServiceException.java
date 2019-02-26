@@ -66,7 +66,7 @@ public class SdkServiceException extends SdkException implements SdkPojo {
     }
 
     /**
-     * Specifies whether or not an exception is caused by clock skew.
+     * Specifies whether or not an exception may have been caused by clock skew.
      */
     public boolean isClockSkewException() {
         return false;

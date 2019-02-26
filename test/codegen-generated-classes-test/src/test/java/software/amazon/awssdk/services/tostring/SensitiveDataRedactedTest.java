@@ -24,7 +24,7 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.services.tostring.model.InputShape;
 
-public class SensitiveDataRedacted {
+public class SensitiveDataRedactedTest {
     @Test
     public void stringIncluded() {
         assertThat(InputShape.builder().string("Value").build().toString())

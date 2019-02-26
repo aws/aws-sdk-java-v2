@@ -31,9 +31,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
+import software.amazon.awssdk.codegen.lite.regions.model.Partition;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 import software.amazon.awssdk.codegen.lite.regions.model.Service;
 import software.amazon.awssdk.utils.ImmutableMap;
@@ -110,7 +112,7 @@ public class ServiceMetadataGenerator implements PoetClass {
     }
 
     private CodeBlock partitionEndpoints(Partitions partitions) {
-        Map<String, Service> services = getServiceData(partitions);
+        Map<Partition, Service> services = getServiceData(partitions);
 
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
@@ -124,16 +126,17 @@ public class ServiceMetadataGenerator implements PoetClass {
     }
 
     private CodeBlock serviceEndpoints(Partitions partitions) {
-        Map<String, Service> services = getServiceData(partitions);
+        Map<Partition, Service> services = getServiceData(partitions);
 
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
-        services.values()
+        services.entrySet()
                 .stream()
-                .forEach(s -> s.getEndpoints()
+                .forEach(s -> s.getValue().getEndpoints()
                                .entrySet()
                                .stream()
                                .filter(e -> e.getValue().getHostname() != null)
+                               .filter(r -> RegionValidationUtil.validRegion(r.getKey(), s.getKey().getRegionRegex()))
                                .forEach(e -> builder.add(".put(\"" + e.getKey() + "\", " +
                                                          "\"" + e.getValue().getHostname() + "\")")));
 
@@ -144,12 +147,15 @@ public class ServiceMetadataGenerator implements PoetClass {
         ClassName regionClass = ClassName.get(regionBasePackage, "Region");
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.unmodifiableList($T.asList(", Collections.class, Arrays.class);
 
-        List<String> regions = new ArrayList<>();
+        ArrayList<String> regions = new ArrayList<>();
 
         partitions.getPartitions()
                   .stream()
                   .filter(p -> p.getServices().containsKey(service))
-                  .forEach(p -> regions.addAll(p.getServices().get(service).getEndpoints().keySet()));
+                  .forEach(p -> regions.addAll(p.getServices().get(service).getEndpoints().keySet()
+                                                .stream()
+                                                .filter(r -> RegionValidationUtil.validRegion(r, p.getRegionRegex()))
+                                                .collect(Collectors.toList())));
 
         for (int i = 0; i < regions.size(); i++) {
             builder.add("$T.of($S)", regionClass, regions.get(i));
@@ -162,17 +168,18 @@ public class ServiceMetadataGenerator implements PoetClass {
     }
 
     private CodeBlock signingRegionOverrides(Partitions partitions) {
-        Map<String, Service> serviceData = getServiceData(partitions);
+        Map<Partition, Service> serviceData = getServiceData(partitions);
 
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
-        serviceData.values()
+        serviceData.entrySet()
                    .stream()
-                   .forEach(s -> s.getEndpoints()
+                   .forEach(s -> s.getValue().getEndpoints()
                                   .entrySet()
                                   .stream()
                                   .filter(e -> e.getValue().getCredentialScope() != null)
                                   .filter(e -> e.getValue().getCredentialScope().getRegion() != null)
+                                  .filter(r -> RegionValidationUtil.validRegion(r.getKey(), s.getKey().getRegionRegex()))
                                   .forEach(fm ->
                                                builder.add(".put(\"" + fm.getKey() + "\", \"" +
                                                            fm.getValue().getCredentialScope().getRegion() + "\")")));
@@ -214,15 +221,16 @@ public class ServiceMetadataGenerator implements PoetClass {
                          .build();
     }
 
-    private Map<String, Service> getServiceData(Partitions partitions) {
-        Map<String, Service> serviceData = new HashMap<>();
+    private Map<Partition, Service> getServiceData(Partitions partitions) {
+        Map<Partition, Service> serviceData = new TreeMap<>(Comparator.comparing(Partition::getPartition));
+
         partitions.getPartitions()
                   .stream()
                   .forEach(p -> p.getServices()
                                  .entrySet()
                                  .stream()
                                  .filter(s -> s.getKey().equalsIgnoreCase(service))
-                                 .forEach(r -> serviceData.put(p.getPartition(), r.getValue())));
+                                 .forEach(s -> serviceData.put(p, s.getValue())));
 
         return serviceData;
     }

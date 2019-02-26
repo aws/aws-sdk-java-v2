@@ -33,12 +33,11 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
-import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
@@ -127,25 +126,26 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             if (resp.isSuccess()) {
                 retryHandler.releaseRetryCapacity();
                 future.complete(resp);
+                return;
+            }
+
+            SdkException err = resp.exception();
+
+            ClockSkewAdjuster clockSkewAdjuster = dependencies.clockSkewAdjuster();
+            if (clockSkewAdjuster.shouldAdjust(err)) {
+                dependencies.updateTimeOffset(clockSkewAdjuster.getAdjustmentInSeconds(resp.httpResponse()));
+            }
+
+            if (shouldRetry(resp.httpResponse(), resp.exception())) {
+                // We only notify onError if we are retrying the request.
+                // Otherwise we rely on the generated code in the in the
+                // client class to forward exception to the handler's
+                // exceptionOcurred method.
+                responseHandler.onError(err);
+                retryHandler.setLastRetriedException(err);
+                executeRetry(future);
             } else {
-                SdkException err = resp.exception();
-
-                if (RetryUtils.isClockSkewException(err)) {
-                    int clockSkew = ClockSkewUtil.parseClockSkewOffset(resp.httpResponse());
-                    dependencies.updateTimeOffset(clockSkew);
-                }
-
-                if (shouldRetry(resp.httpResponse(), resp.exception())) {
-                    // We only notify onError if we are retrying the request.
-                    // Otherwise we rely on the generated code in the in the
-                    // client class to forward exception to the handler's
-                    // exceptionOcurred method.
-                    responseHandler.onError(err);
-                    retryHandler.setLastRetriedException(err);
-                    executeRetry(future);
-                } else {
-                    future.completeExceptionally(err);
-                }
+                future.completeExceptionally(err);
             }
         }
 
@@ -173,11 +173,10 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {
-            int retriesAttempted = requestCount - 2;
             Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected, will retry in " + delay.toMillis() + "ms,"
-                                                         + " attempt number " + retriesAttempted);
+                                                         + " attempt number " + requestCount);
             scheduledExecutor.schedule(() -> {
                 execute(future);
                 return null;

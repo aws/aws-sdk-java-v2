@@ -37,14 +37,18 @@ public final class GetBucketPolicyInterceptor implements ExecutionInterceptor {
     @Override
     public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
                                                            ExecutionAttributes executionAttributes) {
-        if (context.request() instanceof GetBucketPolicyRequest) {
+        if (context.request() instanceof GetBucketPolicyRequest && context.httpResponse().isSuccessful()) {
 
-            String policy = context.responseBody() == null ? null : invokeSafely(
-                () -> IoUtils.toUtf8String(context.responseBody().get()));
-            // Wrap in CDATA to deal with any escaping issues
-            String xml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                                       + "<Policy><![CDATA[%s]]></Policy>", policy);
-            return Optional.of(AbortableInputStream.create(new StringInputStream(xml)));
+            String policy = context.responseBody()
+                                   .map(r -> invokeSafely(() -> IoUtils.toUtf8String(r)))
+                                   .orElse(null);
+
+            if (policy != null) {
+                // Wrap in CDATA to deal with any escaping issues
+                String xml = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                                           + "<Policy><![CDATA[%s]]></Policy>", policy);
+                return Optional.of(AbortableInputStream.create(new StringInputStream(xml)));
+            }
         }
 
         return context.responseBody();

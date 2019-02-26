@@ -1,3 +1,175 @@
+# __2.4.16__ __2019-02-26__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Documentation updates for discovery
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Adding support for Athena and new report preferences to the Cost and Usage Report API.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added several features including support for: auto-rotation or user-specified rotation of 0, 90, 180, or 270 degrees; multiple output groups with DRM; ESAM XML documents to specify ad insertion points; Offline Apple HLS FairPlay content protection.
+
+## __AWS OpsWorks for Chef Automate__
+  - ### Features
+    - Documentation updates for opsworkscm
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for AWS Organizations
+
+## __AWS Resource Groups__
+  - ### Features
+    - Documentation updates for Resource Groups API; updating description of Tag API.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release adds support for the Amazon Resource Groups Tagging API to Amazon Pinpoint, which means that you can now add and manage tags for Amazon Pinpoint projects (apps), campaigns, and segments. A tag is a label that you optionally define and associate with Amazon Pinpoint resource. Tags can help you categorize and manage these types of resources in different ways, such as by purpose, owner, environment, or other criteria. For example, you can use tags to apply policies or automation, or to identify resources that are subject to certain compliance requirements. A project, campaign, or segment can have as many as 50 tags. For more information about using and managing tags in Amazon Pinpoint, see the Amazon Pinpoint Developer Guide at https://docs.aws.amazon.com/pinpoint/latest/developerguide/welcome.html. For more information about the Amazon Resource Group Tagging API, see the Amazon Resource Group Tagging API Reference at https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/Welcome.html.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix the issue where NoSuchBucketException was not unmarshalled for `s3#getBucketPolicy` when the bucket doesn't exist. See [#1088](https://github.com/aws/aws-sdk-java-v2/issues/1088)
+
+# __2.4.15__ __2019-02-25__
+## __AWS CodeCommit__
+  - ### Removals
+    - Removing invalid "fips" region
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added metrics to normalized units.
+
+## __AWS Elasticache__
+  - ### Removals
+    - Removing invalid "fips" region
+
+## __AWS Elemental MediaStore__
+  - ### Features
+    - This release adds support for access logging, which provides detailed records for the requests that are made to objects in a container.
+
+## __AWS SDK for Java v2__
+  - ### Removals
+    - Removes invalid AWS regions that don't match the partition regex
+
+## __Amazon DynamoDB__
+  - ### Removals
+    - Removing invalid "local" region
+
+## __Amazon MTurk__
+  - ### Removals
+    - Removing invalid "sandbox" region
+
+## __Amazon S3__
+  - ### Removals
+    - Removing invalid dualstack regions and s3-external-1
+
+## __Auto Scaling__
+  - ### Features
+    - Added support for passing an empty SpotMaxPrice parameter to remove a value previously set when updating an Amazon EC2 Auto Scaling group.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables you to use the existing client secret when modifying a rule with an action of type authenticate-oidc.
+
+# __2.4.14__ __2019-02-22__
+## __AWS Cloud9__
+  - ### Features
+    - Adding EnvironmentLifecycle to the Environment data type.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue adds support for assigning AWS resource tags to jobs, triggers, development endpoints, and crawlers. Each tag consists of a key and an optional value, both of which you define. With this capacity, customers can use tags in AWS Glue to easily organize and identify your resources, create cost allocation reports, and control access to resources.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for tag-on-create. You can now add tags when you create AWS Step Functions activity and state machine resources. For more information about tagging, see AWS Tagging Strategies.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds tagging support for Workgroups to Amazon Athena. Use these APIs to add, remove, or list tags on Workgroups, and leverage the tags for various authorization and billing scenarios.
+
+# __2.4.13__ __2019-02-21__
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for CodeBuild local caching feature
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for organizations
+
+## __AWS Transfer for SFTP__
+  - ### Features
+    - Bug fix: increased the max length allowed for request parameter NextToken when paginating List operations
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Documentation updates for monitoring
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Documentation updates for Kinesis Video Streams
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - In this release, HLS playback of KVS streams can be configured to output MPEG TS fragments using the ContainerFormat parameter. HLS playback of KVS streams can also be configured to include the EXT-X-PROGRAM-DATE-TIME field using the DisplayFragmentTimestamp parameter.
+
+## __Amazon Kinesis Video Streams Media__
+  - ### Features
+    - Documentation updates for Kinesis Video Streams
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Documentation updates for workdocs
+
+# __2.4.12__ __2019-02-20__
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds an API for adding / updating / deleting / copying / moving / setting file modes for one or more files directly to an AWS CodeCommit repository without requiring a Git client.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Documentation updates for AWS Direct Connect
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for VPC inputs, allowing you to push content from your Amazon VPC directly to MediaLive.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue where the SDK could be over-retrying on signature errors.
+    - Fixed an issue where the SDK could fail to adjust the local clock under skewed-clock conditions.
+
+# __2.4.11__ __2019-02-19__
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for tags during directory creation (CreateDirectory, CreateMicrosoftAd, ConnectDirectory).
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support for configuring behaviors in a security profile with statistical thresholds. Device Defender also adds support for configuring multiple data-point evaluations before a violation is either created or cleared.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Amazon EFS now supports adding tags to file system resources as part of the CreateFileSystem API . Using this capability, customers can now more easily enforce tag-based authorization for EFS file system resources.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager now supports adding tags when creating Activations, Patch Baselines, Documents, Parameters, and Maintenance Windows
+
+# __2.4.10__ __2019-02-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - This release increases the maximum allowed size of SecretString or SecretBinary from 4KB to 7KB in the CreateSecret, UpdateSecret, PutSecretValue and GetSecretValue APIs.
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for Workgroups to Amazon Athena. Use Workgroups to isolate users, teams, applications or workloads in the same account, control costs by setting up query limits and creating Amazon SNS alarms, and publish query-related metrics to Amazon CloudWatch.
+
 # __2.4.9__ __2019-02-15__
 ## __AWS IoT__
   - ### Features

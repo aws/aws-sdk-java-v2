@@ -1,0 +1,56 @@
+{
+    "date": "2019-02-25",
+    "version": "2.4.15",
+    "entries": [
+        {
+            "category": "Auto Scaling",
+            "type": "feature",
+            "description": "Added support for passing an empty SpotMaxPrice parameter to remove a value previously set when updating an Amazon EC2 Auto Scaling group."
+        },
+        {
+            "category": "AWS Elasticache",
+            "type": "removal",
+            "description": "Removing invalid \"fips\" region"
+        },
+        {
+            "category": "Elastic Load Balancing",
+            "type": "feature",
+            "description": "This release enables you to use the existing client secret when modifying a rule with an action of type authenticate-oidc."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "removal",
+            "description": "Removing invalid dualstack regions and s3-external-1"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "Removes invalid AWS regions that don't match the partition regex"
+        },
+        {
+            "category": "AWS Elemental MediaStore",
+            "type": "feature",
+            "description": "This release adds support for access logging, which provides detailed records for the requests that are made to objects in a container."
+        },
+        {
+            "category": "Amazon MTurk",
+            "type": "removal",
+            "description": "Removing invalid \"sandbox\" region"
+        },
+        {
+            "category": "AWS Cost Explorer Service",
+            "type": "feature",
+            "description": "Added metrics to normalized units."
+        },
+        {
+            "category": "Amazon DynamoDB",
+            "type": "removal",
+            "description": "Removing invalid \"local\" region"
+        },
+        {
+            "category": "AWS CodeCommit",
+            "type": "removal",
+            "description": "Removing invalid \"fips\" region"
+        }
+    ]
+}

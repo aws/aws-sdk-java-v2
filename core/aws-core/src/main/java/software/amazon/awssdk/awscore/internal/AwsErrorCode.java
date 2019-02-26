@@ -29,11 +29,11 @@ public final class AwsErrorCode {
 
     public static final Set<String> RETRYABLE_ERROR_CODES;
     public static final Set<String> THROTTLING_ERROR_CODES;
-    public static final Set<String> CLOCK_SKEW_ERROR_CODES;
+    public static final Set<String> DEFINITE_CLOCK_SKEW_ERROR_CODES;
+    public static final Set<String> POSSIBLE_CLOCK_SKEW_ERROR_CODES;
 
     static {
         Set<String> throttlingErrorCodes = new HashSet<>(9);
-
         throttlingErrorCodes.add("Throttling");
         throttlingErrorCodes.add("ThrottlingException");
         throttlingErrorCodes.add("ThrottledException");
@@ -45,14 +45,17 @@ public final class AwsErrorCode {
         throttlingErrorCodes.add("RequestThrottled");
         THROTTLING_ERROR_CODES = unmodifiableSet(throttlingErrorCodes);
 
-        Set<String> clockSkewErrorCodes = new HashSet<>(6);
-        clockSkewErrorCodes.add("RequestTimeTooSkewed");
-        clockSkewErrorCodes.add("RequestExpired");
-        clockSkewErrorCodes.add("InvalidSignatureException");
-        clockSkewErrorCodes.add("SignatureDoesNotMatch");
-        clockSkewErrorCodes.add("AuthFailure");
-        clockSkewErrorCodes.add("RequestInTheFuture");
-        CLOCK_SKEW_ERROR_CODES = unmodifiableSet(clockSkewErrorCodes);
+        Set<String> definiteClockSkewErrorCodes = new HashSet<>(3);
+        definiteClockSkewErrorCodes.add("RequestTimeTooSkewed");
+        definiteClockSkewErrorCodes.add("RequestExpired");
+        definiteClockSkewErrorCodes.add("RequestInTheFuture");
+        DEFINITE_CLOCK_SKEW_ERROR_CODES = unmodifiableSet(definiteClockSkewErrorCodes);
+
+        Set<String> possibleClockSkewErrorCodes = new HashSet<>(3);
+        possibleClockSkewErrorCodes.add("InvalidSignatureException");
+        possibleClockSkewErrorCodes.add("SignatureDoesNotMatch");
+        possibleClockSkewErrorCodes.add("AuthFailure");
+        POSSIBLE_CLOCK_SKEW_ERROR_CODES = unmodifiableSet(possibleClockSkewErrorCodes);
 
         Set<String> retryableErrorCodes = new HashSet<>(1);
         retryableErrorCodes.add("PriorRequestNotComplete");
@@ -60,5 +63,21 @@ public final class AwsErrorCode {
     }
 
     private AwsErrorCode() {
+    }
+
+    public static boolean isThrottlingErrorCode(String errorCode) {
+        return THROTTLING_ERROR_CODES.contains(errorCode);
+    }
+
+    public static boolean isDefiniteClockSkewErrorCode(String errorCode) {
+        return DEFINITE_CLOCK_SKEW_ERROR_CODES.contains(errorCode);
+    }
+
+    public static boolean isPossibleClockSkewErrorCode(String errorCode) {
+        return POSSIBLE_CLOCK_SKEW_ERROR_CODES.contains(errorCode);
+    }
+
+    public static boolean isRetryableErrorCode(String errorCode) {
+        return RETRYABLE_ERROR_CODES.contains(errorCode);
     }
 }

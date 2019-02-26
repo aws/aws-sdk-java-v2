@@ -14,11 +14,14 @@
  */
 package software.amazon.awssdk.awscore.retry;
 
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.awscore.retry.AwsRetryPolicy.defaultRetryCondition;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.function.Consumer;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -27,6 +30,9 @@ import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.DateUtils;
 
 public class AwsRetryPolicyTest {
 
@@ -45,7 +51,7 @@ public class AwsRetryPolicyTest {
     @Test
     public void retriesOnClockSkewErrors() {
         assertTrue(shouldRetry(applyErrorCode("RequestTimeTooSkewed")));
-        assertTrue(shouldRetry(applyErrorCode("AuthFailure")));
+        assertTrue(shouldRetry(applyErrorCode("AuthFailure", Duration.ZERO, Instant.now().minus(1, HOURS))));
     }
 
     @Test
@@ -103,6 +109,24 @@ public class AwsRetryPolicyTest {
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {
         AwsServiceException.Builder exception = AwsServiceException.builder().statusCode(404);
         exception.awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build());
+        return b -> b.exception(exception.build());
+    }
+
+
+    private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode, Duration clockSkew, Instant dateHeader) {
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder()
+                                                          .putHeader("Date", DateUtils.formatRfc1123Date(dateHeader))
+                                                          .build();
+
+        AwsErrorDetails errorDetails = AwsErrorDetails.builder()
+                                                      .errorCode(errorCode)
+                                                      .sdkHttpResponse(response)
+                                                      .build();
+
+        AwsServiceException.Builder exception = AwsServiceException.builder()
+                                                                   .statusCode(404)
+                                                                   .awsErrorDetails(errorDetails)
+                                                                   .clockSkew(clockSkew);
         return b -> b.exception(exception.build());
     }
 
