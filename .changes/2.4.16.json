@@ -1,0 +1,46 @@
+{
+    "date": "2019-02-26",
+    "version": "2.4.16",
+    "entries": [
+        {
+            "category": "AWS Cost and Usage Report Service",
+            "type": "feature",
+            "description": "Adding support for Athena and new report preferences to the Cost and Usage Report API."
+        },
+        {
+            "category": "Amazon Pinpoint",
+            "type": "feature",
+            "description": "This release adds support for the Amazon Resource Groups Tagging API to Amazon Pinpoint, which means that you can now add and manage tags for Amazon Pinpoint projects (apps), campaigns, and segments. A tag is a label that you optionally define and associate with Amazon Pinpoint resource. Tags can help you categorize and manage these types of resources in different ways, such as by purpose, owner, environment, or other criteria. For example, you can use tags to apply policies or automation, or to identify resources that are subject to certain compliance requirements. A project, campaign, or segment can have as many as 50 tags. For more information about using and managing tags in Amazon Pinpoint, see the Amazon Pinpoint Developer Guide at https://docs.aws.amazon.com/pinpoint/latest/developerguide/welcome.html. For more information about the Amazon Resource Group Tagging API, see the Amazon Resource Group Tagging API Reference at https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/Welcome.html."
+        },
+        {
+            "category": "AWS Application Discovery Service",
+            "type": "feature",
+            "description": "Documentation updates for discovery"
+        },
+        {
+            "category": "AWS Elemental MediaConvert",
+            "type": "feature",
+            "description": "AWS Elemental MediaConvert SDK has added several features including support for: auto-rotation or user-specified rotation of 0, 90, 180, or 270 degrees; multiple output groups with DRM; ESAM XML documents to specify ad insertion points; Offline Apple HLS FairPlay content protection."
+        },
+        {
+            "category": "AWS Resource Groups",
+            "type": "feature",
+            "description": "Documentation updates for Resource Groups API; updating description of Tag API."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Fix the issue where NoSuchBucketException was not unmarshalled for `s3#getBucketPolicy` when the bucket doesn't exist. See [#1088](https://github.com/aws/aws-sdk-java-v2/issues/1088)"
+        },
+        {
+            "category": "AWS Organizations",
+            "type": "feature",
+            "description": "Documentation updates for AWS Organizations"
+        },
+        {
+            "category": "AWS OpsWorks for Chef Automate",
+            "type": "feature",
+            "description": "Documentation updates for opsworkscm"
+        }
+    ]
+}

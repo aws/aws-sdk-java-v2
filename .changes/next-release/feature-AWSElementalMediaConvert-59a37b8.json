@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaConvert", 
-    "type": "feature", 
-    "description": "AWS Elemental MediaConvert SDK has added several features including support for: auto-rotation or user-specified rotation of 0, 90, 180, or 270 degrees; multiple output groups with DRM; ESAM XML documents to specify ad insertion points; Offline Apple HLS FairPlay content protection."
-}
