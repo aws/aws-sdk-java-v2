@@ -1,0 +1,5 @@
+{
+    "category": "AWS Cost and Usage Report Service", 
+    "type": "feature", 
+    "description": "Adding support for Athena and new report preferences to the Cost and Usage Report API."
+}
