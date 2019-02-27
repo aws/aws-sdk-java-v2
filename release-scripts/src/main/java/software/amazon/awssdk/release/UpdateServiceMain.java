@@ -44,6 +44,7 @@ public class UpdateServiceMain extends Cli {
 
     private UpdateServiceMain() {
         super(requiredOption("service-module-name", "The name of the service module to be created."),
+              requiredOption("service-id", "The service ID of the service to be updated."),
               requiredOption("maven-project-root", "The root directory for the maven project."),
               requiredOption("service-json", "The service-2.json file for the service."),
               optionalOption("paginators-json", "The paginators-1.json file for the service."),
@@ -61,6 +62,7 @@ public class UpdateServiceMain extends Cli {
 
     private static class ServiceUpdater {
         private final String serviceModuleName;
+        private final String serviceId;
         private final Path mavenProjectRoot;
         private final Path serviceJson;
         private final Path paginatorsJson;
@@ -68,6 +70,7 @@ public class UpdateServiceMain extends Cli {
 
         private ServiceUpdater(CommandLine commandLine) {
             this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root").trim());
+            this.serviceId = commandLine.getOptionValue("service-id").trim();
             this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
             this.serviceJson = Paths.get(commandLine.getOptionValue("service-json").trim());
             this.paginatorsJson = optionalPath(commandLine.getOptionValue("paginators-json"));
@@ -85,40 +88,33 @@ public class UpdateServiceMain extends Cli {
         public void run() throws Exception {
             Validate.isTrue(Files.isRegularFile(serviceJson), serviceJson + " is not a file.");
 
-            Path codegenFileLocation = codegenFileLocation(serviceModuleName);
+            Path codegenFileLocation = codegenFileLocation(serviceModuleName, serviceId);
 
             copyFile(serviceJson, codegenFileLocation.resolve("service-2.json"));
             copyFile(paginatorsJson, codegenFileLocation.resolve("paginators-1.json"));
             copyFile(waitersJson, codegenFileLocation.resolve("waiters-2.json"));
         }
 
-        private Path codegenFileLocation(String serviceModuleName) {
-            String actualServiceModuleName = actualServiceModuleName(serviceModuleName);
+        private Path codegenFileLocation(String serviceModuleName, String serviceId) {
 
             Path codegenPath = mavenProjectRoot.resolve("services")
-                                               .resolve(actualServiceModuleName)
+                                               .resolve(serviceModuleName)
                                                .resolve("src")
                                                .resolve("main")
                                                .resolve("resources")
                                                .resolve("codegen-resources");
 
-            switch (actualServiceModuleName) {
-                case "waf":
-                case "dynamodb":
-                    return codegenPath.resolve(serviceModuleName);
+            switch (serviceId) {
+                case "WAF Regional":
+                    return codegenPath.resolve("wafregional");
+                case "WAF":
+                    return codegenPath.resolve("waf");
+                case "DynamoDB Streams":
+                    return codegenPath.resolve("dynamodbstreams");
+                case "DynamoDB":
+                    return codegenPath.resolve("dynamodb");
                 default:
                     return codegenPath;
-            }
-        }
-
-        private String actualServiceModuleName(String serviceModuleName) {
-            switch (serviceModuleName) {
-                case "wafregional":
-                    return "waf";
-                case "dynamodbstreams":
-                    return "dynamodb";
-                default:
-                    return serviceModuleName;
             }
         }
 

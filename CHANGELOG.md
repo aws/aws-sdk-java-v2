@@ -1,3 +1,16 @@
+# __2.4.17__ __2019-02-27__
+## __AWS WAF__
+  - ### Features
+    - Documentation updates for waf
+
+## __AWS WAF Regional__
+  - ### Features
+    - Documentation updates for waf-regional
+
+## __core__
+  - ### Bugfixes
+    - Netty 4.1.33.Final
+
 # __2.4.16__ __2019-02-26__
 ## __AWS Application Discovery Service__
   - ### Features
