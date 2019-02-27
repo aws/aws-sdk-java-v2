@@ -1,0 +1,21 @@
+{
+    "date": "2019-02-27",
+    "version": "2.4.17",
+    "entries": [
+        {
+            "category": "core",
+            "type": "bugfix",
+            "description": "Netty 4.1.33.Final"
+        },
+        {
+            "category": "AWS WAF Regional",
+            "type": "feature",
+            "description": "Documentation updates for waf-regional"
+        },
+        {
+            "category": "AWS WAF",
+            "type": "feature",
+            "description": "Documentation updates for waf"
+        }
+    ]
+}
