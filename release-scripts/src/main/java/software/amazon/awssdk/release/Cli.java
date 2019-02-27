@@ -41,7 +41,7 @@ public abstract class Cli {
         HelpFormatter help = new HelpFormatter();
 
         try {
-            CommandLine commandLine = parser.parse(options, args);
+            CommandLine commandLine = parser.parse(options, args, false);
             run(commandLine);
         } catch (ParseException e) {
             log.error(() -> "Invalid input: " + e.getMessage());
