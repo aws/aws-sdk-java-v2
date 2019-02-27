@@ -105,9 +105,10 @@ public class UpdateServiceMain extends Cli {
                                                .resolve("codegen-resources");
 
             switch (serviceId) {
-                case "wafregional":
-                case "dynamodbstreams":
-                    return codegenPath.resolve(serviceId);
+                case "WAF Regional":
+                    return codegenPath.resolve("wafregional");
+                case "DynamoDB Streams":
+                    return codegenPath.resolve("dynamodbstreams");
                 default:
                     return codegenPath;
             }
