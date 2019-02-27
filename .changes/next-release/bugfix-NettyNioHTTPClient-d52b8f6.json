@@ -1,0 +1,5 @@
+{
+    "category": "Netty Nio HTTP Client", 
+    "type": "bugfix", 
+    "description": "Added try-catch blocks to prevent uncompleted future when exception is thrown."
+}
