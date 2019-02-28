@@ -1,5 +1,0 @@
-{
-    "category": "Alexa For Business", 
-    "type": "feature", 
-    "description": "This release adds the PutInvitationConfiguration API to configure the user invitation email template with custom attributes, and the GetInvitationConfiguration API to retrieve the configured values."
-}

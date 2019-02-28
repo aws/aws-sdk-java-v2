@@ -1,5 +1,0 @@
-{
-    "category": "AmazonApiGatewayV2", 
-    "type": "feature", 
-    "description": "Marking certain properties as explicitly required and fixing an issue with the GetApiMappings operation for ApiMapping resources."
-}
