@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Simple Systems Manager (SSM)", 
+    "type": "feature", 
+    "description": "AWS Systems Manager State Manager now supports associations using documents shared by other AWS accounts."
+}
