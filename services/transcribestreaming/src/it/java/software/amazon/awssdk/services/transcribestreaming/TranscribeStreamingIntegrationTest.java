@@ -55,7 +55,6 @@ import software.amazon.awssdk.services.transcribestreaming.model.TranscriptEvent
  *
  * The audio files used in this class don't have voice, so there won't be any transcripted text would be empty
  */
-@Ignore
 public class TranscribeStreamingIntegrationTest {
 
     private static TranscribeStreamingAsyncClient client;

@@ -160,7 +160,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             return false;
         }
 
-        return Optional.ofNullable(requestProvider).map(SdkHttpContentPublisher::contentLength).isPresent();
+        return Optional.ofNullable(requestProvider).flatMap(SdkHttpContentPublisher::contentLength).isPresent();
     }
 
     private TimeoutTracker setupAttemptTimer(CompletableFuture<Response<OutputT>> executeFuture, RequestExecutionContext ctx) {

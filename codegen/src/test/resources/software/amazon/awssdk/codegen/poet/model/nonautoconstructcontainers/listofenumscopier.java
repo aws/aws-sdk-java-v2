@@ -25,4 +25,13 @@ final class ListOfEnumsCopier {
         List<String> listOfEnumsParamCopy = listOfEnumsParam.stream().map(Object::toString).collect(toList());
         return Collections.unmodifiableList(listOfEnumsParamCopy);
     }
+
+    static List<EnumType> copyStringToEnum(Collection<String> listOfEnumsParam) {
+        if (listOfEnumsParam == null) {
+            return null;
+        }
+        List<EnumType> listOfEnumsParamCopy = listOfEnumsParam.stream().map(EnumType::fromValue).collect(toList());
+        return Collections.unmodifiableList(listOfEnumsParamCopy);
+    }
 }
+
