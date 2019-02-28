@@ -17,11 +17,15 @@ package software.amazon.awssdk.codegen.naming;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -49,12 +53,20 @@ public class DefaultNamingStrategyTest {
     private Shape mockShape;
 
     @Mock
+    private Shape mockStringShape;
+
+    @Mock
     private Member member;
 
     @Mock
     private ServiceMetadata serviceMetadata;
 
     private DefaultNamingStrategy strat = new DefaultNamingStrategy(serviceModel, null);
+
+    @Before
+    public void setUp() {
+
+    }
 
     @Test
     public void canConvertStringsWithNonAlphasToClassNames() {
@@ -132,12 +144,17 @@ public class DefaultNamingStrategyTest {
     @Test
     public void test_GetFluentSetterMethodName_NoEnum_WithList() {
         when(serviceModel.getShapes()).thenReturn(mockShapeMap);
-        when(mockShapeMap.get(any())).thenReturn(mockShape);
+        when(mockShapeMap.get(eq("MockShape"))).thenReturn(mockShape);
+        when(mockShapeMap.get(eq("MockStringShape"))).thenReturn(mockStringShape);
 
         when(mockShape.getEnumValues()).thenReturn(null);
         when(mockShape.getType()).thenReturn("list");
         when(mockShape.getListMember()).thenReturn(member);
-        when(member.getShape()).thenReturn(null);
+
+        when(mockStringShape.getEnumValues()).thenReturn(null);
+        when(mockStringShape.getType()).thenReturn("string");
+
+        when(member.getShape()).thenReturn("MockStringShape");
 
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethod");
     }
@@ -155,12 +172,17 @@ public class DefaultNamingStrategyTest {
     @Test
     public void test_GetFluentSetterMethodName_WithEnumShape_WithList() {
         when(serviceModel.getShapes()).thenReturn(mockShapeMap);
-        when(mockShapeMap.get(any())).thenReturn(mockShape);
+        when(mockShapeMap.get(eq("MockShape"))).thenReturn(mockShape);
+        when(mockShapeMap.get(eq("MockStringShape"))).thenReturn(mockStringShape);
 
-        when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
+        when(mockShape.getEnumValues()).thenReturn(null);
         when(mockShape.getType()).thenReturn("list");
         when(mockShape.getListMember()).thenReturn(member);
-        when(member.getShape()).thenReturn("Foo");
+
+        when(mockStringShape.getEnumValues()).thenReturn(Arrays.asList("Enum1", "Enum2"));
+        when(mockStringShape.getType()).thenReturn("string");
+
+        when(member.getShape()).thenReturn("MockStringShape");
 
         assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockParentShape, mockShape)).isEqualTo("awesomeMethodWithStrings");
     }

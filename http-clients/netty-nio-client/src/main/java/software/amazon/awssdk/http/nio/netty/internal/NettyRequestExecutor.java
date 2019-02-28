@@ -423,19 +423,23 @@ public final class NettyRequestExecutor {
                         return;
                     }
 
-                    int newLimit = clampedBufferLimit(byteBuffer.remaining());
-                    byteBuffer.limit(newLimit);
-                    ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
-                    buffer.writeBytes(byteBuffer);
-                    HttpContent content = new DefaultHttpContent(buffer);
+                    try {
+                        int newLimit = clampedBufferLimit(byteBuffer.remaining());
+                        byteBuffer.limit(newLimit);
+                        ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
+                        buffer.writeBytes(byteBuffer);
+                        HttpContent content = new DefaultHttpContent(buffer);
 
-                    subscriber.onNext(content);
-                    written += newLimit;
+                        subscriber.onNext(content);
+                        written += newLimit;
 
-                    if (!shouldContinuePublishing()) {
-                        done = true;
-                        subscription.cancel();
-                        subscriber.onComplete();
+                        if (!shouldContinuePublishing()) {
+                            done = true;
+                            subscription.cancel();
+                            subscriber.onComplete();
+                        }
+                    } catch (Throwable t) {
+                        onError(t);
                     }
                 }
 
@@ -443,6 +447,7 @@ public final class NettyRequestExecutor {
                 public void onError(Throwable t) {
                     if (!done) {
                         done = true;
+                        subscription.cancel();
                         subscriber.onError(t);
                     }
                 }

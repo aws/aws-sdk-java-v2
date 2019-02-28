@@ -20,10 +20,13 @@ import static java.util.stream.Collectors.mapping;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatchFinally;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -40,6 +43,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -95,16 +99,21 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             requestContext.handler().onStream(
                     new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext, ef));
         } else if (msg instanceof FullHttpResponse) {
-            // Be prepared to take care of (ignore) a trailing LastHttpResponse
-            // from the HttpClientCodec if there is one.
-            channelContext.pipeline().replace(HttpStreamsClientHandler.class,
-                    channelContext.name() + "-LastHttpContentSwallower", LastHttpContentSwallower.getInstance());
+            ByteBuf fullContent = null;
+            try {
+                // Be prepared to take care of (ignore) a trailing LastHttpResponse
+                // from the HttpClientCodec if there is one.
+                channelContext.pipeline().replace(HttpStreamsClientHandler.class,
+                                                  channelContext.name() + "-LastHttpContentSwallower",
+                                                  LastHttpContentSwallower.getInstance());
 
-            ByteBuf fullContent = ((FullHttpResponse) msg).content();
-            ByteBuffer bb = copyToByteBuffer(fullContent);
-            fullContent.release();
-            requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb, ef));
-            finalizeResponse(requestContext, channelContext);
+                fullContent = ((FullHttpResponse) msg).content();
+                ByteBuffer bb = copyToByteBuffer(fullContent);
+                requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb, ef));
+                finalizeResponse(requestContext, channelContext);
+            } finally {
+                Optional.ofNullable(fullContent).ifPresent(ByteBuf::release);
+            }
         }
     }
 
@@ -129,21 +138,19 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         log.debug("Exception processing request: {}", requestContext.executeRequest().request(), cause);
         Throwable throwable = wrapException(cause);
-        requestContext.handler().onError(throwable);
         executeFuture(ctx).completeExceptionally(throwable);
+        runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestContext.handler().onError(throwable));
         runAndLogError("Could not release channel back to the pool", () -> closeAndRelease(ctx));
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext handlerCtx) throws Exception {
-        RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
-        if (!responseCompleted) {
-            IOException err = new IOException("Server failed to send complete response");
-            requestCtx.handler().onError(err);
-            executeFuture(handlerCtx).completeExceptionally(err);
-            runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));
-        }
+        notifyIfResponseNotCompleted(handlerCtx);
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext handlerCtx) throws Exception {
+        notifyIfResponseNotCompleted(handlerCtx);
     }
 
     public static ResponseHandler getInstance() {
@@ -156,9 +163,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      * @param ctx Context for channel
      */
     private static void closeAndRelease(ChannelHandlerContext ctx) {
-        RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        ctx.channel().close();
-        requestContext.channelPool().release(ctx.channel());
+        Channel channel = ctx.channel();
+        RequestContext requestContext = channel.attr(REQUEST_CONTEXT_KEY).get();
+        channel.close().addListener(i -> requestContext.channelPool().release(channel));
     }
 
     /**
@@ -246,11 +253,22 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     if (isDone.get()) {
                         return;
                     }
+
                     // Needed to prevent use-after-free bug if the subscriber's onNext is asynchronous
-                    ByteBuffer b = copyToByteBuffer(httpContent.content());
-                    httpContent.release();
-                    subscriber.onNext(b);
-                    channelContext.read();
+                    ByteBuffer byteBuffer =
+                        tryCatchFinally(() -> copyToByteBuffer(httpContent.content()),
+                                        this::onError,
+                                        httpContent::release);
+
+
+                    //As per reactive-streams rule 2.13, we should not call subscriber#onError when
+                    //exception is thrown from subscriber#onNext
+                    if (byteBuffer != null) {
+                        tryCatch(() -> subscriber.onNext(byteBuffer),
+                                 this::notifyError);
+
+                        tryCatch(channelContext::read, this::onError);
+                    }
                 }
 
                 @Override
@@ -261,10 +279,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onError.", subscriber.toString()),
                             () -> subscriber.onError(t));
-                        SdkAsyncHttpResponseHandler handler = requestContext.handler();
-                        runAndLogError(String.format("SdkAsyncHttpResponseHandler %s threw an exception in onError.", handler),
-                            () -> handler.onError(t));
-                        executeFuture.completeExceptionally(t);
+                        notifyError(t);
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
                             () -> closeAndRelease(channelContext));
@@ -285,6 +300,15 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         finalizeResponse(requestContext, channelContext);
                     }
                 }
+
+                private void notifyError(Throwable throwable) {
+                    SdkAsyncHttpResponseHandler handler = requestContext.handler();
+                    runAndLogError(
+                        String.format("SdkAsyncHttpResponseHandler %s threw an exception in onError.", handler), () ->
+                            handler.onError(throwable));
+                    executeFuture.completeExceptionally(throwable);
+                }
+
             });
         }
     }
@@ -364,5 +388,16 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
 
         return originalCause;
+    }
+
+    private void notifyIfResponseNotCompleted(ChannelHandlerContext handlerCtx) {
+        RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
+        boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
+        if (!responseCompleted) {
+            IOException err = new IOException("Server failed to send complete response");
+            runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestCtx.handler().onError(err));
+            executeFuture(handlerCtx).completeExceptionally(err);
+            runAndLogError("Could not release channel", () -> closeAndRelease(handlerCtx));
+        }
     }
 }

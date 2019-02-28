@@ -90,6 +90,10 @@ public class ServiceModelCopiers {
         return "copyEnumToString";
     }
 
+    public String stringToEnumCopyMethodName() {
+        return "copyStringToEnum";
+    }
+
     public String builderCopyMethodName() {
         return "copyFromBuilder";
     }

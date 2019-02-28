@@ -18,6 +18,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
@@ -60,8 +62,7 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
                                 "Java SDK, where a future was not completed while the channel was in use. The channel has " +
                                 "been closed, and the future will be completed to prevent any ongoing issues.", cause);
                 executeFuture.get().completeExceptionally(cause);
-
-            } else if (cause instanceof IOException) {
+            } else if (isNettyIoException(cause)) {
                 log.debug(() -> "An I/O exception (" + cause.getMessage() + ") occurred on a channel (" + ctx.channel().id() +
                                 ") that was not in use. The channel has been closed. This is usually normal.");
 
@@ -81,4 +82,7 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
                        .map(Attribute::get);
     }
 
+    private boolean isNettyIoException(Throwable cause) {
+        return cause instanceof IOException || cause instanceof ReadTimeoutException || cause instanceof WriteTimeoutException;
+    }
 }

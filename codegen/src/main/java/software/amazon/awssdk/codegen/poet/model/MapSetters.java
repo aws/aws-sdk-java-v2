@@ -83,7 +83,7 @@ class MapSetters extends AbstractMemberSetters {
     }
 
     private ParameterSpec mapWithEnumAsParameter() {
-        return ParameterSpec.builder(typeProvider.mapWithEnumParameterType(memberModel().getMapModel()), fieldName())
+        return ParameterSpec.builder(typeProvider.parameterType(memberModel(), true), fieldName())
                             .build();
     }
 }

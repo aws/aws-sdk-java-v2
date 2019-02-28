@@ -1,3 +1,29 @@
+# __2.5.0__ __2019-02-28__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in the code generator where the enum getter for a structure member is not being generated in some cases. Additionally, fix a bug that generated the wrong code for enum getters where the enum is not at the top level container but is nested, such as `List<List<EnumType>>`. This breaks the interface for affected services so the minor version is increased.
+    - Fixed a bug where the request would fail of NoSuchElementException. This bug would affect `TranscribeStreaming#startStreamTranscription` request
+
+## __Alexa For Business__
+  - ### Features
+    - This release adds the PutInvitationConfiguration API to configure the user invitation email template with custom attributes, and the GetInvitationConfiguration API to retrieve the configured values.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager State Manager now supports associations using documents shared by other AWS accounts.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Marking certain properties as explicitly required and fixing an issue with the GetApiMappings operation for ApiMapping resources.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for application-autoscaling
+
+## __Netty Nio HTTP Client__
+  - ### Bugfixes
+    - Added try-catch blocks to prevent uncompleted future when exception is thrown.
+
 # __2.4.17__ __2019-02-27__
 ## __AWS WAF__
   - ### Features
