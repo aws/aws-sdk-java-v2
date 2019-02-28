@@ -237,6 +237,7 @@ public interface DocumentClientConfiguration {
          *     <li>{@link Iterable} -> {@link ItemAttributeValueType#LIST_OF_*}</li>
          *     <li>{@link Iterator} -> {@link ItemAttributeValueType#LIST_OF_*}</li>
          *     <li>{@link Enumeration} -> {@link ItemAttributeValueType#LIST_OF_*}</li>
+         *     <li>{@link Optional} -> {@link ItemAttributeValue#*}</li>
          *     <li>{@link Map} -> {@link ItemAttributeValueType#ITEM}</li>
          *     <li>{@link Object} -> {@link ItemAttributeValueType#ITEM}</li>
          *     <li>{@link null} -> {@link ItemAttributeValueType#NULL}</li>
