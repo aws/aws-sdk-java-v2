@@ -19,11 +19,10 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
@@ -46,20 +45,21 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     private Promise<ChannelPool> protocolImplPromise;
     private ChannelPool protocolImpl;
+    private boolean closed;
 
     public HttpOrHttp2ChannelPool(ChannelPool delegatePool,
-                                  Bootstrap bootstrap,
+                                  EventLoopGroup group,
                                   int maxConcurrency,
                                   NettyConfiguration configuration) {
         this.delegatePool = delegatePool;
         this.maxConcurrency = maxConcurrency;
-        this.eventLoop = bootstrap.config().group().next();
+        this.eventLoop = group.next();
         this.configuration = configuration;
     }
 
     @Override
     public Future<Channel> acquire() {
-        return acquire(new DefaultPromise<>(eventLoop));
+        return acquire(eventLoop.newPromise());
     }
 
     @Override
@@ -69,6 +69,11 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     }
 
     private void acquire0(Promise<Channel> promise) {
+        if (closed) {
+            promise.setFailure(new IllegalStateException("Channel pool is closed!"));
+            return;
+        }
+
         if (protocolImpl != null) {
             protocolImpl.acquire(promise);
             return;
@@ -91,15 +96,15 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
      * for {@link #protocolImpl}.
      */
     private void initializeProtocol() {
-        protocolImplPromise = new DefaultPromise<>(eventLoop);
+        protocolImplPromise = eventLoop.newPromise();
         delegatePool.acquire().addListener((GenericFutureListener<Future<Channel>>) future -> {
             if (future.isSuccess()) {
                 Channel newChannel = future.getNow();
-                newChannel.attr(PROTOCOL_FUTURE).get().whenComplete((r, e) -> {
+                newChannel.attr(PROTOCOL_FUTURE).get().whenComplete((protocol, e) -> {
                     if (e != null) {
                         failProtocolImplPromise(e);
                     } else {
-                        protocolImplPromise.setSuccess(configureProtocol(newChannel, r));
+                        completeProtocolConfiguration(newChannel, protocol);
                     }
                 });
             } else {
@@ -114,8 +119,22 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
      * @param e Cause of failure.
      */
     private void failProtocolImplPromise(Throwable e) {
-        protocolImplPromise.setFailure(e);
-        protocolImplPromise = null;
+        doInEventLoop(eventLoop, () -> {
+            protocolImplPromise.setFailure(e);
+            protocolImplPromise = null;
+        });
+    }
+
+    void completeProtocolConfiguration(Channel newChannel, Protocol protocol) {
+        doInEventLoop(eventLoop, () -> {
+            if (closed) {
+                newChannel.close();
+                delegatePool.release(newChannel);
+                protocolImplPromise.setFailure(new IllegalStateException("Pool closed"));
+            } else {
+                protocolImplPromise.setSuccess(configureProtocol(newChannel, protocol));
+            }
+        });
     }
 
     private ChannelPool configureProtocol(Channel newChannel, Protocol protocol) {
@@ -171,7 +190,27 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     @Override
     public void close() {
-        doInEventLoop(eventLoop, protocolImpl::close);
+        doInEventLoop(eventLoop, this::close0);
     }
 
+    private void close0() {
+        if (closed) {
+            return;
+        }
+
+        closed = true;
+        if (protocolImpl != null) {
+            protocolImpl.close();
+        } else if (protocolImplPromise != null) {
+            protocolImplPromise.addListener((Future<ChannelPool> f) -> {
+                if (f.isSuccess()) {
+                    f.getNow().close();
+                } else {
+                    delegatePool.close();
+                }
+            });
+        } else {
+            delegatePool.close();
+        }
+    }
 }
