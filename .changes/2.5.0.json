@@ -1,0 +1,41 @@
+{
+    "date": "2019-02-28",
+    "version": "2.5.0",
+    "entries": [
+        {
+            "category": "Alexa For Business",
+            "type": "feature",
+            "description": "This release adds the PutInvitationConfiguration API to configure the user invitation email template with custom attributes, and the GetInvitationConfiguration API to retrieve the configured values."
+        },
+        {
+            "category": "Application Auto Scaling",
+            "type": "feature",
+            "description": "Documentation updates for application-autoscaling"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed a bug where the request would fail of NoSuchElementException. This bug would affect `TranscribeStreaming#startStreamTranscription` request"
+        },
+        {
+            "category": "Netty Nio HTTP Client",
+            "type": "bugfix",
+            "description": "Added try-catch blocks to prevent uncompleted future when exception is thrown."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix a bug in the code generator where the enum getter for a structure member is not being generated in some cases. Additionally, fix a bug that generated the wrong code for enum getters where the enum is not at the top level container but is nested, such as `List<List<EnumType>>`. This breaks the interface for affected services so the minor version is increased."
+        },
+        {
+            "category": "AmazonApiGatewayV2",
+            "type": "feature",
+            "description": "Marking certain properties as explicitly required and fixing an issue with the GetApiMappings operation for ApiMapping resources."
+        },
+        {
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "type": "feature",
+            "description": "AWS Systems Manager State Manager now supports associations using documents shared by other AWS accounts."
+        }
+    ]
+}
