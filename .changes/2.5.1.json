@@ -1,0 +1,16 @@
+{
+    "date": "2019-03-01",
+    "version": "2.5.1",
+    "entries": [
+        {
+            "category": "AWS Auto Scaling Plans",
+            "type": "feature",
+            "description": "Documentation updates for autoscaling-plans"
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "This release adds support for modifying instance event start time which allows users to reschedule EC2 events."
+        }
+    ]
+}
