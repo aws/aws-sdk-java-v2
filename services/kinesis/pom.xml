@@ -62,9 +62,9 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon</groupId>
-            <artifactId>flow</artifactId>
-            <version>${flow.version}</version>
+            <groupId>software.amazon.eventstream</groupId>
+            <artifactId>eventstream</artifactId>
+            <version>${eventstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
