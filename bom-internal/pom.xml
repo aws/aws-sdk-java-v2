@@ -15,9 +15,9 @@
         <dependencies>
             <!-- Non-Test Dependencies -->
             <dependency>
-                <groupId>software.amazon</groupId>
-                <artifactId>flow</artifactId>
-                <version>${flow.version}</version>
+                <groupId>software.amazon.eventstream</groupId>
+                <artifactId>eventstream</artifactId>
+                <version>${eventstream.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
