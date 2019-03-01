@@ -26,10 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.runners.MethodSorters;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
@@ -69,18 +68,15 @@ import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
 import software.amazon.awssdk.testutils.Waiter;
 
 /**
- * TODO Remove Ignore
  * Tests of the Stack APIs : CloudFormation
  */
-@Ignore
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
 
     private static final String STACK_NAME_PREFIX = StackIntegrationTest.class.getName().replace('.', '-');
 
     /** The initial stack policy which allows access to all resources. */
     private static final Policy INIT_STACK_POLICY;
-    private static Logger LOG = LoggerFactory.getLogger(StackIntegrationTest.class);
-    private static final int PAGINATION_THRESHOLD = 120;
     private static String testStackName;
     private static String testStackId;
 
@@ -145,7 +141,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testDescribeStacks() throws Exception {
+    public void testA_DescribeStacks() throws Exception {
         DescribeStacksResponse response = cf.describeStacks(DescribeStacksRequest.builder().stackName(testStackName).build());
 
         assertEquals(1, response.stacks().size());
@@ -156,7 +152,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testDescribeStackResources() throws Exception {
+    public void testB_DescribeStackResources() throws Exception {
 
         DescribeStackResourcesResponse response = null;
 
@@ -178,7 +174,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testDescribeStackResource() throws Exception {
+    public void testC_DescribeStackResource() throws Exception {
         DescribeStackResourcesResponse response = null;
 
         int attempt = 0;
@@ -209,7 +205,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testListStackResources() throws Exception {
+    public void testD_ListStackResources() throws Exception {
         waitForStackToChangeStatus(StackStatus.CREATE_IN_PROGRESS);
         List<StackResourceSummary> stackResourceSummaries = cf.listStackResources(
                 ListStackResourcesRequest.builder().stackName(testStackName).build()).stackResourceSummaries();
@@ -223,17 +219,15 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testGetStackPolicy() {
+    public void testE_GetStackPolicy() {
         GetStackPolicyResponse getStackPolicyResult = cf.getStackPolicy(GetStackPolicyRequest.builder()
                                                                                            .stackName(testStackName).build());
         Policy returnedPolicy = Policy.fromJson(getStackPolicyResult.stackPolicyBody());
         assertPolicyEquals(INIT_STACK_POLICY, returnedPolicy);
     }
 
-    // TODO: Fix test
-    @Ignore
     @Test
-    public void testSetStackPolicy() throws Exception {
+    public void testF_SetStackPolicy() throws Exception {
         waitForStackToChangeStatus(StackStatus.CREATE_IN_PROGRESS);
 
         Policy DENY_ALL_POLICY = new Policy().withStatements(new Statement(Effect.Deny).withActions(
@@ -249,7 +243,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testDescribeStackEvents() throws Exception {
+    public void testG_DescribeStackEvents() throws Exception {
 
         DescribeStackEventsResponse response = null;
         int attempt = 0;
@@ -273,7 +267,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testListStacks() throws Exception {
+    public void testH_ListStacks() throws Exception {
         ListStacksResponse listStacksResult = cf.listStacks(ListStacksRequest.builder().build());
         assertNotNull(listStacksResult);
         assertNotNull(listStacksResult.stackSummaries());
@@ -311,10 +305,8 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
         }
     }
 
-    // TODO: Fix test
-    @Ignore
     @Test
-    public void testListStacksFilter() throws Exception {
+    public void testI_istStacksFilter() throws Exception {
         ListStacksResponse listStacksResult = cf.listStacks(ListStacksRequest.builder().stackStatusFiltersWithStrings(
                 "CREATE_COMPLETE", "DELETE_COMPLETE").build());
         assertNotNull(listStacksResult);
@@ -338,7 +330,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testGetTemplate() {
+    public void testJ_GetTemplate() {
         GetTemplateResponse response = cf.getTemplate(GetTemplateRequest.builder().stackName(testStackName).build());
 
         assertNotNull(response.templateBody());
@@ -346,7 +338,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testCancelUpdateStack() throws Exception {
+    public void testK_CancelUpdateStack() throws Exception {
         waitForStackToChangeStatus(StackStatus.CREATE_IN_PROGRESS);
 
         List<Stack> stacks = cf.describeStacks(DescribeStacksRequest.builder().stackName(testStackName).build()).stacks();
@@ -363,7 +355,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testUpdateStack() throws Exception {
+    public void testL_UpdateStack() throws Exception {
         List<Stack> stacks = cf.describeStacks(DescribeStacksRequest.builder().stackName(testStackName).build()).stacks();
         assertEquals(1, stacks.size());
 
@@ -376,7 +368,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
     }
 
     @Test
-    public void testAlreadyExistsException() {
+    public void testM_AlreadyExistsException() {
         try {
             cf.createStack(CreateStackRequest.builder().templateURL(templateUrlForStackIntegrationTests).stackName(
                     testStackName).build());
@@ -407,7 +399,7 @@ public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
      * update.
      */
     @Test
-    public void testClockSkew() {
+    public void testN_ClockSkew() {
         SdkGlobalTime.setGlobalTimeOffset(3600);
         // Need to create a new client to have the time offset take affect
         CloudFormationClient clockSkewClient = CloudFormationClient.builder()
