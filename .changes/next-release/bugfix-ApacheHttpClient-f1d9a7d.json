@@ -1,0 +1,5 @@
+{
+    "category": "Apache Http Client", 
+    "type": "bugfix", 
+    "description": "Updated to not set a default `Content-Type` if the header does not exist. Per [RFC7231](https://tools.ietf.org/html/rfc7231#page-11), we should let the recipient to decide if not known."
+}
