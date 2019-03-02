@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Builder for a {@link RequestPipeline}.
@@ -224,7 +225,9 @@ public final class RequestPipelineBuilder<InputT, OutputT> {
         @Override
         public CompletableFuture<OutputT> execute(CompletableFuture<InputT> inputFuture, RequestExecutionContext context)
                 throws Exception {
-            return inputFuture.thenApply(safeFunction(input -> delegate.execute(input, context)));
+            CompletableFuture<OutputT> outputFuture =
+                    inputFuture.thenApply(safeFunction(input -> delegate.execute(input, context)));
+            return CompletableFutureUtils.forwardExceptionTo(outputFuture, inputFuture);
         }
     }
 

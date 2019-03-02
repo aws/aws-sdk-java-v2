@@ -2,16 +2,16 @@
   "version":"2.0",
   "metadata":{
     "apiVersion":"2016-03-11",
-    "endpointPrefix":"customresponsemetadata",
+    "endpointPrefix":"query",
     "jsonVersion":"1.1",
-    "protocol":"rest-json",
-    "serviceAbbreviation":"AmazonProtocolRestJson",
-    "serviceFullName":"Amazon Protocol Rest Json",
-    "serviceId":"AmazonProtocolRestJson",
+    "protocol":"query",
+    "serviceAbbreviation":"AmazonProtocolQuery",
+    "serviceFullName":"Amazon Protocol Query",
+    "serviceId":"AmazonProtocolQuery",
     "signatureVersion":"v4",
-    "targetPrefix":"ProtocolTestsService",
+    "targetPrefix":"QueryService",
     "timestampFormat":"unixTimestamp",
-    "uid":"restjson-2016-03-11"
+    "uid":"query-2016-03-11"
   },
   "operations":{
     "AllTypes":{
@@ -166,19 +166,6 @@
         "requestUri":"/2016-03-11/streamingOutputOperation"
       },
       "output":{"shape":"StructureWithStreamingMember"}
-    },
-    "EventStreamOperation": {
-      "name": "EventStreamOperation",
-      "http": {
-        "method": "POST",
-        "requestUri": "/2016-03-11/eventStreamOperation"
-      },
-      "input": {
-        "shape": "EventStreamOperationRequest"
-      },
-      "output": {
-        "shape": "EventStreamOutput"
-      }
     }
   },
   "shapes":{
