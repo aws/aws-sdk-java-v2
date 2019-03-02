@@ -120,14 +120,21 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
                 resolveErrorResponseHandler(executionParams, executionContext, crc32Validator);
 
-            return invoke(marshalled, finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null), inputT,
-                          executionContext, successResponseHandler, errorHandler)
-                .handle((resp, err) -> {
-                    if (err != null) {
-                        throw ThrowableUtils.failure(err);
-                    }
-                    return resp;
-                });
+            CompletableFuture<ReturnT> invokeFuture = invoke(marshalled,
+                                                             finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null),
+                                                             inputT,
+                                                             executionContext,
+                                                             successResponseHandler,
+                                                             errorHandler);
+
+            CompletableFuture<ReturnT> exceptionTranslatedFuture = invokeFuture.handle((resp, err) -> {
+                if (err != null) {
+                    throw ThrowableUtils.failure(err);
+                }
+                return resp;
+            });
+
+            return CompletableFutureUtils.forwardExceptionTo(exceptionTranslatedFuture, invokeFuture);
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(ThrowableUtils.asSdkException(t));
         }

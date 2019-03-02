@@ -38,7 +38,8 @@ public final class AsyncExecutionFailureExceptionReportingStage<OutputT>
 
     @Override
     public CompletableFuture<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
-        return wrapped.execute(input, context).handle((o, t) -> {
+        CompletableFuture<OutputT> wrappedExecute = wrapped.execute(input, context);
+        CompletableFuture<OutputT> executeFuture = wrappedExecute.handle((o, t) -> {
             if (t != null) {
                 Throwable toReport = t;
 
@@ -52,6 +53,7 @@ public final class AsyncExecutionFailureExceptionReportingStage<OutputT>
                 return o;
             }
         });
+        return CompletableFutureUtils.forwardExceptionTo(executeFuture, wrappedExecute);
     }
 
 

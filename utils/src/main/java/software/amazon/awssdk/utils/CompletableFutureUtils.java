@@ -60,4 +60,21 @@ public final class CompletableFutureUtils {
         }
         return new CompletionException(t);
     }
+
+    /**
+     * Forward the {@code Throwable} from {@code src} to {@code dst}.
+
+     * @param src The source of the {@code Throwable}.
+     * @param dst The destination where the {@code Throwable} will be forwarded to.
+     *
+     * @return {@code src}.
+     */
+    public static <T> CompletableFuture<T> forwardExceptionTo(CompletableFuture<T> src, CompletableFuture<?> dst) {
+        src.whenComplete((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(e);
+            }
+        });
+        return src;
+    }
 }
