@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.apache.internal.impl;
 
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
-import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -151,14 +150,6 @@ public class ApacheHttpRequestFactory {
                 */
                .filter(e -> !IGNORE_HEADERS.contains(e.getKey()))
                .forEach(e -> e.getValue().forEach(h -> httpRequest.addHeader(e.getKey(), h)));
-
-        /* Set content type and encoding */
-        if (httpRequest.getHeaders(HttpHeaders.CONTENT_TYPE) == null ||
-            httpRequest.getHeaders(HttpHeaders.CONTENT_TYPE).length == 0) {
-            httpRequest.addHeader(HttpHeaders.CONTENT_TYPE,
-                                  "application/x-www-form-urlencoded; " +
-                                  "charset=" + lowerCase(DEFAULT_ENCODING));
-        }
     }
 
     private String getHostHeaderValue(SdkHttpRequest request) {
