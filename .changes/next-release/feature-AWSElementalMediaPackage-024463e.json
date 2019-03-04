@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elemental MediaPackage", 
+    "type": "feature", 
+    "description": "This release adds support for user-defined tagging of MediaPackage resources. Users may now call operations to list, add and remove tags from channels and origin-endpoints. Users can also specify tags to be attached to these resources during their creation. Describe and list operations on these resources will now additionally return any tags associated with them."
+}
