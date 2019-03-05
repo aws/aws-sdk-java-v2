@@ -34,4 +34,46 @@ public class UserAgentUtilsTest {
     private boolean isValidInput(String input) {
         return input.startsWith("(") || input.contains("/") && input.split("/").length == 2;
     }
+
+    @Test
+    public void userAgentWithCustomVendorName(){
+        //store current value before setting it
+        String vendorName = System.getProperty("java.vendor");
+        System.setProperty("java.vendor", "foo");
+        
+        String userAgent = UserAgentUtils.userAgent();
+    
+        //reset value
+        System.setProperty("java.vendor", vendorName);
+        assertThat(userAgent).contains("vendor/foo");
+    }
+
+    @Test
+    public void userAgentWithJDKProvidedVendorName(){
+        String userAgent = UserAgentUtils.userAgent();
+        String vendorName = System.getProperty("java.vendor");
+        if ( vendorName != null ) {
+            // Note: This mimics the behavior in UserAgentUtils by replacing
+            // characters not allowed in UA strings with underscores. If that
+            // logic changes, this test will break
+            vendorName = vendorName.replace(" ", "_");
+            assertThat(userAgent).contains("vendor/" + vendorName);
+        }else{
+            assertThat(userAgent).contains("vendor/unknown");
+        }
+    }
+
+    @Test
+    public void userAgentWithNullVendorName(){
+        //store current value before setting it
+        String vendorName = System.getProperty("java.vendor");
+        System.clearProperty("java.vendor");
+        
+        String userAgent = UserAgentUtils.userAgent();
+    
+        //reset value
+        System.setProperty("java.vendor", vendorName);
+        assertThat(userAgent).contains("vendor/unknown");
+    
+    }
 }

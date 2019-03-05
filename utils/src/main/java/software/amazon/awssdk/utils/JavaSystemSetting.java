@@ -26,6 +26,7 @@ public enum JavaSystemSetting implements SystemSetting {
     TEMP_DIRECTORY("java.io.tmpdir"),
     JAVA_VM_NAME("java.vm.name"),
     JAVA_VM_VERSION("java.vm.version"),
+    JAVA_VENDOR("java.vendor"),
 
     OS_NAME("os.name"),
     OS_VERSION("os.version"),
