@@ -124,7 +124,6 @@
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
-
             <!-- Services -->
             <dependency>
                 <artifactId>pinpoint</artifactId>
@@ -639,6 +638,11 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>worklink</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>textract</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>
