@@ -1,0 +1,31 @@
+{
+    "date": "2019-03-05",
+    "version": "2.5.3",
+    "entries": [
+        {
+            "category": "AWS CodeDeploy",
+            "type": "feature",
+            "description": "Documentation updates for codedeploy"
+        },
+        {
+            "category": "AWS Elemental MediaLive",
+            "type": "feature",
+            "description": "This release adds support for pausing and unpausing one or both pipelines at scheduled times."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Add missing non-service modules to bom. See [#1063](https://github.com/aws/aws-sdk-java-v2/issues/1063)"
+        },
+        {
+            "category": "AWS Storage Gateway",
+            "type": "feature",
+            "description": "ActivateGateway, CreateNFSFileShare and CreateSMBFileShare APIs support a new parameter: Tags (to be attached to the created resource). Output for DescribeNFSFileShare, DescribeSMBFileShare and DescribeGatewayInformation APIs now also list the Tags associated with the resource. Minimum length of a KMSKey is now 7 characters."
+        },
+        {
+            "category": "Amazon Textract",
+            "type": "feature",
+            "description": "This release is intended ONLY for customers that are officially part of the Amazon Textract Preview program. If you are not officially part of the Amazon Textract program THIS WILL NOT WORK. Our two main regions for Amazon Textract Preview are N. Virginia and Dublin. Also some members have been added to Oregon and Ohio. If you are outside of any of these AWS regions, Amazon Textract Preview definitely will not work. If you would like to be part of the Amazon Textract program, you can officially request sign up here - https://pages.awscloud.com/textract-preview.html. To set expectations appropriately, we are aiming to admit new preview participants once a week until General Availability."
+        }
+    ]
+}

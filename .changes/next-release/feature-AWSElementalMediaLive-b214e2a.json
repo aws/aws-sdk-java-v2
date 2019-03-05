@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaLive", 
-    "type": "feature", 
-    "description": "This release adds support for pausing and unpausing one or both pipelines at scheduled times."
-}
