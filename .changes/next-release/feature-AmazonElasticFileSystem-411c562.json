@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic File System", 
-    "type": "feature", 
-    "description": "Documentation updates for elasticfilesystem adding new examples for EFS Lifecycle Management feature."
-}

@@ -1,3 +1,20 @@
+# __2.5.4__ __2019-03-06__
+## __AWS Direct Connect__
+  - ### Features
+    - Exposed a new available port speeds field in the DescribeLocation api call.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix the generated ServiceMetadata classes for services that have PARTITION_OVERRIDDEN_ENDPOINTS
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds pagination support for ec2.DescribeVpcs, ec2.DescribeInternetGateways and ec2.DescribeNetworkAcls APIs
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for elasticfilesystem adding new examples for EFS Lifecycle Management feature.
+
 # __2.5.3__ __2019-03-05__
 ## __AWS CodeDeploy__
   - ### Features
