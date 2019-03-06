@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.5.3-SNAPSHOT</version>
+        <version>2.5.4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>aws-sdk-java</artifactId>
@@ -15,7 +15,6 @@
         Amazon AutoScaling, etc).
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
     <dependencies>
         <dependency>
             <artifactId>pinpoint</artifactId>
@@ -632,8 +631,12 @@
             <artifactId>worklink</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>textract</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
-
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>

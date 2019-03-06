@@ -4,16 +4,14 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.5.3-SNAPSHOT</version>
+        <version>2.5.4-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
     <packaging>pom</packaging>
-
     <properties>
         <root.offset>../..</root.offset>
     </properties>
-
     <modules>
         <module>acm</module>
         <module>apigateway</module>
@@ -182,10 +180,10 @@
         <module>docdb</module>
         <module>backup</module>
         <module>worklink</module>
+        <module>textract</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -197,7 +195,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -294,7 +291,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <pluginManagement>
             <plugins>
@@ -311,7 +307,6 @@
                         </execution>
                     </executions>
                 </plugin>
-
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
@@ -322,7 +317,6 @@
             </plugins>
         </pluginManagement>
     </build>
-
     <profiles>
         <!-- Build steps executed for services with models -->
         <profile>
