@@ -1,0 +1,5 @@
+{
+    "category": "AWS Direct Connect", 
+    "type": "feature", 
+    "description": "Exposed a new available port speeds field in the DescribeLocation api call."
+}
