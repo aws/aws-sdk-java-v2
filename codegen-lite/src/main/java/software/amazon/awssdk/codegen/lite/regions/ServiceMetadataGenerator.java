@@ -116,9 +116,9 @@ public class ServiceMetadataGenerator implements PoetClass {
 
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
-        services.entrySet().forEach(e -> {
-            if (e.getValue().getDefaults() != null && e.getValue().getDefaults().getHostname() != null) {
-                builder.add(".put($S, $S)", e.getKey(), e.getValue().getDefaults().getHostname());
+        services.forEach((key, value) -> {
+            if (value.getDefaults() != null && value.getDefaults().getHostname() != null) {
+                builder.add(".put($S, $S)", key.getPartition(), value.getDefaults().getHostname());
             }
         });
 
