@@ -343,7 +343,7 @@
     "AttributeNameList":{
       "type":"list",
       "member":{
-        "shape":"QueueAttributeName",
+        "shape":"MessageSystemAttributeName",
         "locationName":"AttributeName"
       },
       "flattened":true
