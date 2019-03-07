@@ -623,4 +623,9 @@ final class DefaultJsonClient implements JsonClient {
                                                                        .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
+
+    @Override
+    public JsonUtilities utilities() {
+        return JsonUtilities.create(param1, param2, param3);
+    }
 }
