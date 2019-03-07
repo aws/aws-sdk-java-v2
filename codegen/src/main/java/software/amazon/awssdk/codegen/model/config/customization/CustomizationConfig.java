@@ -154,6 +154,11 @@ public class CustomizationConfig {
      */
     private Map<String, String> paginationCustomization;
 
+    /**
+     * Config to generate methods in the low-level client that delegate to a hand-written client
+     */
+    private EnhancementClientConfig enhancementClientConfig;
+
     private CustomizationConfig() {
     }
 
@@ -392,5 +397,13 @@ public class CustomizationConfig {
 
     public void setPaginationCustomization(Map<String, String> paginationCustomization) {
         this.paginationCustomization = paginationCustomization;
+    }
+
+    public EnhancementClientConfig getEnhancementClientConfig() {
+        return enhancementClientConfig;
+    }
+
+    public void setEnhancementClientConfig(EnhancementClientConfig enhancementClientConfig) {
+        this.enhancementClientConfig = enhancementClientConfig;
     }
 }

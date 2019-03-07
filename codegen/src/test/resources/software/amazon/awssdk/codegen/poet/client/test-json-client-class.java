@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.json;
 
+import java.net.MalformedURLException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -68,10 +69,14 @@ final class DefaultJsonClient implements JsonClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final EnhancementClient enhancementClient;
+
     protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
+        this.enhancementClient = DefaultEnhancementClient.builder().protocolFactory(protocolFactory)
+                                                         .sdkClientConfiguration(clientConfiguration).build();
     }
 
     @Override
@@ -581,6 +586,12 @@ final class DefaultJsonClient implements JsonClient {
                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                 .withInput(streamingOutputOperationRequest)
                 .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
+    }
+
+    @Override
+    public customOperationResponse customOperation(RequestParamOne param1, RequestParamTwo param2) throws AwsServiceException,
+                                                                                                          MalformedURLException {
+        return enhancementClient.customOperation(param1, param2);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

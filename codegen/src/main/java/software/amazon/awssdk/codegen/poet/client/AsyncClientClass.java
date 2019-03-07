@@ -44,6 +44,7 @@ import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.config.customization.EnhancementClientConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -69,6 +70,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final EnhancementClientConfig enhancementClientConfig;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -76,6 +78,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.enhancementClientConfig = model.getCustomizationConfig().getEnhancementClientConfig();
     }
 
     @Override
@@ -98,6 +101,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                     .addMethod(constructor(classBuilder))
                     .addMethod(nameMethod())
                     .addMethods(operations())
+                    .addMethods(EnhancementClientUtils.asyncEnhancementMethods(enhancementClientConfig))
                     .addMethod(closeMethod())
                     .addMethods(protocolSpec.additionalMethods())
                     .addMethod(protocolSpec.initProtocolFactory(model));
@@ -113,6 +117,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         if (model.containsRequestSigners() || model.containsRequestEventStreams()) {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
+        if (enhancementClientConfig != null) {
+            classBuilder.addField(EnhancementClientUtils.classFieldSpec(
+                enhancementClientConfig.getAsyncClientInterface()));
         }
 
         model.getEndpointOperation().ifPresent(
@@ -155,6 +164,12 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
                                                                "AsyncEndpointDiscoveryCacheLoader"));
             builder.endControlFlow();
+        }
+
+        if (enhancementClientConfig != null) {
+            EnhancementClientUtils.initializeClientMember(builder,
+                                                          enhancementClientConfig.getAsyncClientImpl(),
+                                                          protocolFactoryField.name);
         }
 
         return builder.build();

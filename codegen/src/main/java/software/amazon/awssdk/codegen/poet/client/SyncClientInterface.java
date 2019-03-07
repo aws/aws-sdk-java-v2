@@ -75,6 +75,12 @@ public final class SyncClientInterface implements ClassSpec {
                                  .initializer("$S", model.getMetadata().getSigningName())
                                  .build());
 
+        if (model.getCustomizationConfig().getEnhancementClientConfig() != null) {
+            result.addSuperinterface(PoetUtils.classNameFromFqcn(model.getCustomizationConfig()
+                                                                      .getEnhancementClientConfig()
+                                                                      .getSyncClientInterface()));
+        }
+
         PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
 
         if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {

@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonAsyncClient extends SdkClient {
+public interface JsonAsyncClient extends SdkClient, AsyncEnhancementClient {
     String SERVICE_NAME = "json-service";
 
     /**

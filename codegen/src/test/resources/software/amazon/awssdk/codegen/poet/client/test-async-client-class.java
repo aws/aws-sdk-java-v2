@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -108,11 +109,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final Executor executor;
 
+    private final AsyncEnhancementClient enhancementClient;
+
     protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
+        this.enhancementClient = DefaultAsyncEnhancementClient.builder().protocolFactory(protocolFactory)
+                                                              .sdkClientConfiguration(clientConfiguration).build();
     }
 
     @Override
@@ -809,6 +814,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     () -> asyncResponseTransformer.exceptionOccurred(t));
             return CompletableFutureUtils.failedFuture(t);
         }
+    }
+
+    @Override
+    public CompletableFuture<customOperationResponse> customOperation(RequestParamOne param1, RequestParamTwo param2)
+        throws AwsServiceException, MalformedURLException {
+        return enhancementClient.customOperation(param1, param2);
     }
 
     @Override

@@ -34,6 +34,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.config.customization.EnhancementClientConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -54,17 +55,18 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public class SyncClientClass implements ClassSpec {
-
     private final IntermediateModel model;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final EnhancementClientConfig enhancementClientConfig;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         this.model = taskParams.getModel();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.enhancementClientConfig = model.getCustomizationConfig().getEnhancementClientConfig();
     }
 
     @Override
@@ -83,7 +85,8 @@ public class SyncClientClass implements ClassSpec {
                                         .addMethod(constructor())
                                         .addMethod(nameMethod())
                                         .addMethods(protocolSpec.additionalMethods())
-                                        .addMethods(operations());
+                                        .addMethods(operations())
+                                        .addMethods(EnhancementClientUtils.syncEnhancementMethods(enhancementClientConfig));
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
@@ -97,6 +100,11 @@ public class SyncClientClass implements ClassSpec {
 
         if (model.containsRequestSigners()) {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
+        if (enhancementClientConfig != null) {
+            classBuilder.addField(EnhancementClientUtils.classFieldSpec(
+                enhancementClientConfig.getSyncClientInterface()));
         }
 
         model.getEndpointOperation().ifPresent(
@@ -141,6 +149,12 @@ public class SyncClientClass implements ClassSpec {
                                  poetExtensions.getClientClass(model.getNamingStrategy().getServiceName() +
                                                                "EndpointDiscoveryCacheLoader"));
             builder.endControlFlow();
+        }
+
+        if (enhancementClientConfig != null) {
+            EnhancementClientUtils.initializeClientMember(builder,
+                                                          enhancementClientConfig.getSyncClientImpl(),
+                                                          protocolFactoryField.name);
         }
 
         return builder.build();
