@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "feature", 
+    "description": "Add support for getUrl operation. The API can be used to generate a URL that represents an object in Amazon S3. The url can only be used to download the object content if the object has public read permissions. Original issue: https://github.com/aws/aws-sdk-java-v2/issues/860"
+}

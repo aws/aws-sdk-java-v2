@@ -1291,4 +1291,11 @@ public interface JsonAsyncClient extends SdkClient {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
                                                                        .build(), destinationPath);
     }
+
+    /**
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
+     */
+    default JsonUtilities utilities() {
+        throw new UnsupportedOperationException();
+    }
 }

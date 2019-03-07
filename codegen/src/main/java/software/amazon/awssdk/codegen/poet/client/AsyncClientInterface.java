@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
+import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -86,6 +87,10 @@ public class AsyncClientInterface implements ClassSpec {
 
         result.addMethod(builder())
               .addMethods(operationsAndSimpleMethods());
+
+        if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
+            result.addMethod(utilitiesMethod());
+        }
 
         return result.build();
     }
@@ -422,5 +427,19 @@ public class AsyncClientInterface implements ClassSpec {
 
     private String consumerBuilderJavadoc(OperationModel opModel, SimpleMethodOverload overload) {
         return opModel.getDocs(model, ClientType.ASYNC, overload, new DocConfiguration().isConsumerBuilder(true));
+    }
+
+    private MethodSpec utilitiesMethod() {
+        UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
+        ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+
+        return MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addModifiers(Modifier.DEFAULT)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .addJavadoc("Creates an instance of {@link $T} object with the "
+                                     + "configuration set on this client.", returnType)
+                         .build();
     }
 }
