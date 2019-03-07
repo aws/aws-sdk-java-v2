@@ -16,33 +16,47 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.DefaultPromise;
-import io.netty.util.concurrent.Promise;
+import io.netty.util.concurrent.Future;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link Http2MultiplexedChannelPool}.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class Http2MultiplexedChannelPoolTest {
     private static EventLoopGroup loopGroup;
+    private static EventLoop eventLoop;
+
+    @Mock
+    private ChannelPool mockDelegatePool;
 
     @BeforeClass
     public static void setup() {
-        loopGroup = new NioEventLoopGroup(4);
+        loopGroup = new NioEventLoopGroup(1);
+        eventLoop = loopGroup.next();
     }
 
     @AfterClass
@@ -51,84 +65,166 @@ public class Http2MultiplexedChannelPoolTest {
     }
 
     @Test
-    public void closeWaitsForConnectionToBeReleasedBeforeClosingConnectionPool() throws InterruptedException {
-        SocketChannel channel = new NioSocketChannel();
-        try {
-            loopGroup.register(channel).awaitUninterruptibly();
-            Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
-            channelPromise.setSuccess(channel);
-
-            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
-            Promise<Void> releasePromise = Mockito.spy(new DefaultPromise<>(loopGroup.next()));
-            Mockito.doCallRealMethod().when(releasePromise).await();
-            releasePromise.setSuccess(null);
-            Mockito.when(connectionPool.release(Mockito.eq(channel))).thenReturn(releasePromise);
-
-            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channelPromise,
-                                                                           channel,
-                                                                           8,
-                                                                           (ch, rec) -> {});
-            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 2, Collections.singletonList(record));
-
-            h2Pool.close();
-
-            InOrder inOrder = Mockito.inOrder(connectionPool, releasePromise);
-            inOrder.verify(releasePromise).await();
-            inOrder.verify(connectionPool).close();
-        } finally {
-            channel.close().awaitUninterruptibly();
-        }
-    }
-
-    @Test
     public void acquireAfterCloseFails() throws InterruptedException {
-        ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
-
-        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 2, Collections.emptyList());
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, loopGroup.next(), 2, Collections.emptyList());
 
         h2Pool.close();
 
         assertThat(h2Pool.acquire().await().isSuccess()).isFalse();
     }
 
-    @Test(timeout = 5_000)
-    public void interruptDuringClosePreservesFlag() throws InterruptedException {
-        SocketChannel channel = new NioSocketChannel();
-        try {
-            loopGroup.register(channel).awaitUninterruptibly();
-            Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
-            channelPromise.setSuccess(channel);
+    @Test
+    public void closeReleasesAllOpenConnections_connectionFuturesSuccessful() throws InterruptedException {
+        Channel mockConnection1 = mock(Channel.class);
+        Channel mockConnection2 = mock(Channel.class);
 
-            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
-            Promise<Void> releasePromise = Mockito.spy(new DefaultPromise<>(loopGroup.next()));
+        Future<Channel> c1Future = eventLoop.newSucceededFuture(mockConnection1);
+        Future<Channel> c2Future = eventLoop.newSucceededFuture(mockConnection2);
 
-            Mockito.when(connectionPool.release(Mockito.eq(channel))).thenReturn(releasePromise);
+        MultiplexedChannelRecord r1 = new MultiplexedChannelRecord(c1Future, mockConnection1, 1, (c, r) -> {});
+        MultiplexedChannelRecord r2 = new MultiplexedChannelRecord(c2Future, mockConnection2, 1, (c, r) -> {});
 
-            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channelPromise,
-                    channel,
-                    8,
-                    (ch, rec) -> {
-                    });
-            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 2, Collections.singletonList(record));
+        List<MultiplexedChannelRecord> connections = Stream.of(r1, r2).collect(Collectors.toList());
 
-            CompletableFuture<Boolean> interrupteFlagPreserved = new CompletableFuture<>();
+        when(mockDelegatePool.release(any())).thenReturn(eventLoop.newSucceededFuture(null));
 
-            Thread t = new Thread(() -> {
-                try {
-                    h2Pool.close();
-                } catch (Exception e) {
-                    if (e.getCause() instanceof InterruptedException && Thread.currentThread().isInterrupted()) {
-                        interrupteFlagPreserved.complete(true);
-                    }
-                }
-            });
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, connections);
 
-            t.start();
-            t.interrupt();
-            t.join();
-            assertThat(interrupteFlagPreserved.join()).isTrue();
-        } finally {
-            channel.close().awaitUninterruptibly();
+        h2Pool.close();
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool).release(eq(mockConnection1));
+        verify(mockDelegatePool).release(eq(mockConnection2));
+        verify(mockDelegatePool).close();
+    }
+
+    @Test
+    public void closeReleasesAllOpenConnections_hasFailedConnectionFuture() throws InterruptedException {
+        Channel mockConnection1 = mock(Channel.class);
+
+        Future<Channel> c1Future = eventLoop.newSucceededFuture(mockConnection1);
+        Future<Channel> c2Future = eventLoop.newFailedFuture(new IOException("Timeout"));
+
+        MultiplexedChannelRecord r1 = new MultiplexedChannelRecord(c1Future, mockConnection1, 1, (c, r) -> {});
+        MultiplexedChannelRecord r2 = new MultiplexedChannelRecord(c2Future, null, 1, (c, r) -> {});
+
+        List<MultiplexedChannelRecord> connections = Stream.of(r1, r2).collect(Collectors.toList());
+
+        when(mockDelegatePool.release(eq(mockConnection1))).thenReturn(eventLoop.newSucceededFuture(null));
+
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, connections);
+
+        h2Pool.close();
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool).release(eq(mockConnection1));
+        verify(mockDelegatePool).close();
+    }
+
+    @Test
+    public void closeReleasesAllOpenConnections_hasAllFailedFutures() throws InterruptedException {
+        Future<Channel> c1Future = eventLoop.newFailedFuture(new IOException("Timeout"));
+        Future<Channel> c2Future = eventLoop.newFailedFuture(new IOException("Timeout"));
+
+        MultiplexedChannelRecord r1 = new MultiplexedChannelRecord(c1Future, null, 1, (c, r) -> {});
+        MultiplexedChannelRecord r2 = new MultiplexedChannelRecord(c2Future, null, 1, (c, r) -> {});
+
+        List<MultiplexedChannelRecord> connections = Stream.of(r1, r2).collect(Collectors.toList());
+
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, connections);
+
+        h2Pool.close();
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool, times(0)).release(any(Channel.class));
+        verify(mockDelegatePool).close();
+    }
+
+    @Test
+    public void closeReleasesAllOpenConnections_connectionFuturesSuccessful_hasFailedRelease() throws InterruptedException {
+        Channel mockConnection1 = mock(Channel.class);
+        Channel mockConnection2 = mock(Channel.class);
+
+        Future<Channel> c1Future = eventLoop.newSucceededFuture(mockConnection1);
+        Future<Channel> c2Future = eventLoop.newSucceededFuture(mockConnection2);
+
+        MultiplexedChannelRecord r1 = new MultiplexedChannelRecord(c1Future, mockConnection1, 1, (c, r) -> {});
+        MultiplexedChannelRecord r2 = new MultiplexedChannelRecord(c2Future, mockConnection2, 1, (c, r) -> {});
+
+        List<MultiplexedChannelRecord> connections = Stream.of(r1, r2).collect(Collectors.toList());
+
+        when(mockDelegatePool.release(eq(mockConnection1))).thenReturn(eventLoop.newSucceededFuture(null));
+        when(mockDelegatePool.release(eq(mockConnection2))).thenReturn(eventLoop.newFailedFuture(new RuntimeException("Couldn't release channel")));
+
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, connections);
+
+        h2Pool.close();
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool).release(eq(mockConnection1));
+        verify(mockDelegatePool).release(eq(mockConnection2));
+        verify(mockDelegatePool).close();
+    }
+
+    @Test
+    public void closeReleasesAllOpenConnections_connectionFuturesSuccessful_releasesFailed() throws InterruptedException {
+        Channel mockConnection1 = mock(Channel.class);
+        Channel mockConnection2 = mock(Channel.class);
+
+        Future<Channel> c1Future = eventLoop.newSucceededFuture(mockConnection1);
+        Future<Channel> c2Future = eventLoop.newSucceededFuture(mockConnection2);
+
+        MultiplexedChannelRecord r1 = new MultiplexedChannelRecord(c1Future, mockConnection1, 1, (c, r) -> {});
+        MultiplexedChannelRecord r2 = new MultiplexedChannelRecord(c2Future, mockConnection2, 1, (c, r) -> {});
+
+        List<MultiplexedChannelRecord> connections = Stream.of(r1, r2).collect(Collectors.toList());
+
+        when(mockDelegatePool.release(eq(mockConnection1))).thenReturn(eventLoop.newFailedFuture(new RuntimeException("Couldn't release channel")));
+        when(mockDelegatePool.release(eq(mockConnection2))).thenReturn(eventLoop.newFailedFuture(new RuntimeException("Couldn't release channel")));
+
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, connections);
+
+        h2Pool.close();
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool).release(eq(mockConnection1));
+        verify(mockDelegatePool).release(eq(mockConnection2));
+        verify(mockDelegatePool).close();
+    }
+
+    @Test
+    public void close_noOpenConnections_closesDelegatePool() throws InterruptedException {
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, Collections.emptyList());
+
+        h2Pool.close();
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool).close();
+    }
+
+    @Test
+    public void closeIsIdempotent() throws InterruptedException {
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(mockDelegatePool, eventLoop, 2, Collections.emptyList());
+
+        for (int i = 0; i < 8; ++i) {
+            h2Pool.close();
         }
+
+        // Allow time for close logic to run in the loop
+        Thread.sleep(500);
+
+        verify(mockDelegatePool, times(1)).close();
     }
 }

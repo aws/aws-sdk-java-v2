@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "type": "bugfix", 
+    "description": "Remove blocking in `Http2MultiplexedChannelPool#close` which could cause a deadlock if `close()` is called on an event loop, and the operations it waits on get scheduled on the same event loop."
+}

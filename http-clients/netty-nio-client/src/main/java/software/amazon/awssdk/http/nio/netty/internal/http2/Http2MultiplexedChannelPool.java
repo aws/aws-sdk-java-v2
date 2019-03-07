@@ -27,7 +27,10 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
@@ -46,6 +49,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
  */
 @SdkInternalApi
 public class Http2MultiplexedChannelPool implements ChannelPool {
+    private static final Logger log = LoggerFactory.getLogger(Http2MultiplexedChannelPool.class);
 
     private final EventLoop eventLoop;
     private final ChannelPool connectionPool;
@@ -169,28 +173,42 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
 
     @Override
     public void close() {
-        try {
-            setClosedFlag().await();
-            for (MultiplexedChannelRecord c : connections) {
-                Future<Channel> f = c.getConnectionFuture();
-                f.await();
-                if (f.isSuccess()) {
-                    connectionPool.release(f.getNow()).await();
-                }
-            }
-            connectionPool.close();
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(ie);
-        }
+        doInEventLoop(eventLoop, this::close0);
     }
 
-    private Promise<Void> setClosedFlag() {
-        Promise<Void> closedFuture = eventLoop.newPromise();
-        doInEventLoop(eventLoop, () -> {
-            closed = true;
-            closedFuture.setSuccess(null);
-        });
-        return closedFuture;
+    private void close0() {
+        if (closed) {
+            return;
+        }
+
+        closed = true;
+
+        if (connections.isEmpty()) {
+            connectionPool.close();
+            return;
+        }
+
+        AtomicLong unreleasedConnections = new AtomicLong(connections.size());
+
+        for (MultiplexedChannelRecord record : connections) {
+            record.getConnectionFuture().addListener((Future<Channel> connectionFuture) -> {
+                if (connectionFuture.isSuccess()) {
+                    Channel connection = connectionFuture.getNow();
+                    connectionPool.release(connection).addListener((Future<Void> releaseFuture) -> {
+                        if (!releaseFuture.isSuccess()) {
+                            log.warn("Failed to release channel {} back to connection pool", connection, releaseFuture.cause());
+                        }
+
+                        if (unreleasedConnections.decrementAndGet() == 0) {
+                            connectionPool.close();
+                        }
+                    });
+                } else {
+                    if (unreleasedConnections.decrementAndGet() == 0) {
+                        connectionPool.close();
+                    }
+                }
+            });
+        }
     }
 }
