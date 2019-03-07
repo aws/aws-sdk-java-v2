@@ -176,6 +176,13 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         doInEventLoop(eventLoop, this::close0);
     }
 
+    /**
+     * Close this channel pool. Releases any pending and acquired H2 connections
+     * back to connectionPool, then closes connectionPool. This operation does
+     * not block.
+     * <p>
+     * Must be executed within the event loop.
+     */
     private void close0() {
         if (closed) {
             return;
@@ -195,10 +202,6 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
                 if (connectionFuture.isSuccess()) {
                     Channel connection = connectionFuture.getNow();
                     connectionPool.release(connection).addListener((Future<Void> releaseFuture) -> {
-                        if (!releaseFuture.isSuccess()) {
-                            log.warn("Failed to release channel {} back to connection pool", connection, releaseFuture.cause());
-                        }
-
                         if (unreleasedConnections.decrementAndGet() == 0) {
                             connectionPool.close();
                         }
