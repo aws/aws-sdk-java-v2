@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -24,17 +25,26 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 public final class RequestContext {
 
     private final ChannelPool channelPool;
+    private final EventLoopGroup eventLoopGroup;
     private final AsyncExecuteRequest executeRequest;
     private final NettyConfiguration configuration;
 
-    public RequestContext(ChannelPool channelPool, AsyncExecuteRequest executeRequest, NettyConfiguration configuration) {
+    public RequestContext(ChannelPool channelPool,
+                          EventLoopGroup eventLoopGroup,
+                          AsyncExecuteRequest executeRequest,
+                          NettyConfiguration configuration) {
         this.channelPool = channelPool;
+        this.eventLoopGroup = eventLoopGroup;
         this.executeRequest = executeRequest;
         this.configuration = configuration;
     }
 
     public ChannelPool channelPool() {
         return channelPool;
+    }
+
+    public EventLoopGroup eventLoopGroup() {
+        return eventLoopGroup;
     }
 
     public AsyncExecuteRequest executeRequest() {

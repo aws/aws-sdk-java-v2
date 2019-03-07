@@ -42,6 +42,7 @@ import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -51,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -78,7 +80,8 @@ public final class NettyRequestExecutor {
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<Void> execute() {
-        Future<Channel> channelFuture = context.channelPool().acquire();
+        Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
+        context.channelPool().acquire(channelFuture);
         executeFuture = createExecuteFuture(channelFuture);
         channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
         return executeFuture;
@@ -87,11 +90,11 @@ public final class NettyRequestExecutor {
     /**
      * Convenience method to create the execution future and set up the cancellation logic.
      *
-     * @param channelFuture The Netty future holding the channel.
+     * @param channelPromise The Netty future holding the channel.
      *
      * @return The created execution future.
      */
-    private CompletableFuture<Void> createExecuteFuture(Future<Channel> channelFuture) {
+    private CompletableFuture<Void> createExecuteFuture(Promise<Channel> channelPromise) {
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         future.whenComplete((r, t) -> {
@@ -99,18 +102,24 @@ public final class NettyRequestExecutor {
                 return;
             }
 
-            channelFuture.addListener((Future<Channel> f) -> {
-                if (!f.isSuccess()) {
+            if (!channelPromise.tryFailure(t)) {
+                // Couldn't fail promise, it's already done
+                if (!channelPromise.isSuccess()) {
                     return;
                 }
-
-                Channel ch = f.getNow();
-                ch.eventLoop().submit(() -> {
-                    if (ch.attr(IN_USE).get()) {
-                        ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
-                    }
-                });
-            });
+                Channel ch = channelPromise.getNow();
+                try {
+                    ch.eventLoop().submit(() -> {
+                        if (ch.attr(IN_USE).get()) {
+                            ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                        } else {
+                            ch.close().addListener(closeFuture -> context.channelPool().release(ch));
+                        }
+                    });
+                } catch (Throwable exc) {
+                    log.warn("Unable to add a task to cancel the request to channel's EventLoop", exc);
+                }
+            }
         });
 
         return future;
@@ -244,11 +253,16 @@ public final class NettyRequestExecutor {
     }
 
     private boolean isAcquireTimeoutException(Throwable originalCause) {
-        return originalCause instanceof TimeoutException && originalCause.getMessage().contains("Acquire operation took longer");
+        String message = originalCause.getMessage();
+        return originalCause instanceof TimeoutException &&
+                message != null &&
+                message.contains("Acquire operation took longer");
     }
 
     private boolean isTooManyPendingAcquiresException(Throwable originalCause) {
+        String message = originalCause.getMessage();
         return originalCause instanceof IllegalStateException &&
+               message != null &&
                originalCause.getMessage().contains("Too many outstanding acquire operations");
     }
 

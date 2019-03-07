@@ -99,10 +99,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                     operationMetadata);
 
-            return clientHandler.execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
-                    .withOperationName("DescribeEndpoints")
-                    .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withInput(describeEndpointsRequest));
+            CompletableFuture<DescribeEndpointsResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
+                            .withOperationName("DescribeEndpoints")
+                            .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(describeEndpointsRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -147,12 +150,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
             }
 
-            return clientHandler
+            CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
                             .withOperationName("TestDiscoveryIdentifiersRequired")
                             .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory))
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryIdentifiersRequiredRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -196,11 +200,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
             }
 
-            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                    .withOperationName("TestDiscoveryOptional")
-                    .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryOptionalRequest));
+            CompletableFuture<TestDiscoveryOptionalResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
+                            .withOperationName("TestDiscoveryOptional")
+                            .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryOptionalRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -244,11 +250,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest);
             }
 
-            return clientHandler.execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                    .withOperationName("TestDiscoveryRequired")
-                    .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryRequiredRequest));
+            CompletableFuture<TestDiscoveryRequiredResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
+                            .withOperationName("TestDiscoveryRequired")
+                            .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryRequiredRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }

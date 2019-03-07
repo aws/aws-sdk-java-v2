@@ -58,6 +58,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.internal.CancellableAcquireChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.HonorCloseOnReleaseChannelPool;
@@ -129,7 +130,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private RequestContext createRequestContext(AsyncExecuteRequest request) {
         ChannelPool pool = pools.get(poolKey(request.request()));
-        return new RequestContext(pool, request, configuration);
+        return new RequestContext(pool, sdkEventLoopGroup.eventLoopGroup(), request, configuration);
     }
 
     private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
@@ -206,6 +207,10 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
         channelPool = new ReleaseOnceChannelPool(channelPool);
+
+        // Wrap the channel pool such that if the Promise given to acquire(Promise) is done when the channel is acquired
+        // from the underlying pool, the channel is closed and released.
+        channelPool = new CancellableAcquireChannelPool(bootstrap.config().group().next(), channelPool);
 
         return channelPool;
     }
