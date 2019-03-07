@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Relational Database Service", 
+    "type": "feature", 
+    "description": "You can configure your Aurora database cluster to automatically copy tags on the cluster to any automated or manual database cluster snapshots that are created from the cluster. This allows you to easily set metadata on your snapshots to match the parent cluster, including access policies. You may enable or disable this functionality while creating a new cluster, or by modifying an existing database cluster."
+}
