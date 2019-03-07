@@ -1,0 +1,5 @@
+{
+    "category": "AWS Greengrass", 
+    "type": "feature", 
+    "description": "Greengrass group UID and GID settings can now be configured to use a provided default via FunctionDefaultConfig. If configured, all Lambda processes in your deployed Greengrass group will by default start with the provided UID and/or GID, rather than by default starting with UID \"ggc_user\" and GID \"ggc_group\" as they would if not configured. Individual Lambdas can also be configured to override the defaults if desired via each object in the Functions list of your FunctionDefinitionVersion."
+}
