@@ -1,0 +1,5 @@
+{
+    "category": "Amazon GameLift", 
+    "type": "feature", 
+    "description": "Amazon GameLift-hosted instances can now securely access resources on other AWS services using IAM roles. See more details at https://aws.amazon.com/releasenotes/amazon-gamelift/."
+}
