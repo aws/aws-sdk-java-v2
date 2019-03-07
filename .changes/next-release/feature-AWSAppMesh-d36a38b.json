@@ -1,5 +1,0 @@
-{
-    "category": "AWS App Mesh", 
-    "type": "feature", 
-    "description": "This release includes a new version of the AWS App Mesh APIs. You can read more about the new APIs here: https://docs.aws.amazon.com/app-mesh/latest/APIReference/Welcome.html."
-}

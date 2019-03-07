@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaLive", 
-    "type": "feature", 
-    "description": "This release adds a MediaPackage output group, simplifying configuration of outputs to AWS Elemental MediaPackage."
-}

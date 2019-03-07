@@ -1,5 +1,0 @@
-{
-    "category": "Amazon EC2 Container Service", 
-    "type": "feature", 
-    "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces additional task definition parameters that enable you to define dependencies for container startup and shutdown, a per-container start and stop timeout value, as well as an AWS App Mesh proxy configuration which eases the integration between Amazon ECS and AWS App Mesh."
-}
