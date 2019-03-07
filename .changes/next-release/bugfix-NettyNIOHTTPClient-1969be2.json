@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "type": "bugfix", 
-    "description": "Fix a bug where, if the future returned from the `NettyRequestExecutor#execute` is cancelled, the client continues to wait for the `Channel` acquire to complete, which leads to keeping potentially many resources around unnecessarily."
-}

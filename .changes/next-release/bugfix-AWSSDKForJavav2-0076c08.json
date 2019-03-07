@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK For Java v2", 
-    "type": "bugfix", 
-    "description": "Fix bug in the generated async clients where cancelling the `CompletableFuture` returned from an async operation does not result in cancelling the underlying HTTP request execution. In some cases, this can lead to unnecesarily keeping resources from being freed until the request execution finishes."
-}
