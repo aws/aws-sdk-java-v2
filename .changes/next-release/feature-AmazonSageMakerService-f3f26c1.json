@@ -1,0 +1,5 @@
+{
+    "category": "Amazon SageMaker Service", 
+    "type": "feature", 
+    "description": "SageMaker notebook instances now support enabling or disabling root access for notebook users. SageMaker Neo now supports rk3399 and rk3288 as compilation target devices."
+}
