@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodeBuild", 
-    "type": "feature", 
-    "description": "CodeBuild also now supports Git Submodules. CodeBuild now supports opting out of Encryption for S3 Build Logs. By default these logs are encrypted."
-}
