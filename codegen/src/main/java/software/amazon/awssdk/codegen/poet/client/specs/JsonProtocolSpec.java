@@ -52,6 +52,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class JsonProtocolSpec implements ProtocolSpec {
 
@@ -230,7 +231,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
         String protocolFactory = protocolFactoryLiteral(opModel);
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
-        builder.add("\n\n$L clientHandler.execute(new $T<$T, $T>()\n" +
+        TypeName responseType = opModel.hasEventStreamOutput() && !isRestJson ? ClassName.get(SdkResponse.class)
+                                                                              : pojoResponseType;
+        TypeName executeFutureValueType = executeFutureValueType(opModel);
+
+        builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n" +
                     ".withOperationName(\"$N\")\n" +
                     ".withMarshaller(new $T($L))\n" +
                     "$L" +
@@ -240,13 +245,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     hostPrefixExpression(opModel) +
                     discoveredEndpoint(opModel) +
                     asyncRequestBody +
-                    ".withInput($L)$L)$L;",
-                    // If the operation has an event stream output we use a different future so we don't return the one
-                    // from the client.
-                    opModel.hasEventStreamOutput() ? "" : "return",
+                    ".withInput($L)$L);",
+                    CompletableFuture.class,
+                    executeFutureValueType,
                     ClientExecutionParams.class,
                     requestType,
-                    opModel.hasEventStreamOutput() && !isRestJson ? SdkResponse.class : pojoResponseType,
+                    responseType,
                     opModel.getOperationName(),
                     marshaller,
                     protocolFactory,
@@ -260,10 +264,15 @@ public class JsonProtocolSpec implements ProtocolSpec {
                         .builder().add(".withFullDuplex(true)").build() : "",
                     opModel.hasEventStreamOutput() && !isRestJson ? "voidResponseHandler" : "responseHandler",
                     opModel.getInput().getVariableName(),
-                    asyncResponseTransformerVariable(isStreaming, isRestJson, opModel),
-                    whenCompleteBody(opModel, customerResponseHandler));
+                    asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
+        String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
+        if (!whenComplete.isEmpty()) {
+            builder.add("executeFuture$L;", whenComplete);
+        }
         if (opModel.hasEventStreamOutput()) {
-            builder.addStatement("return future");
+            builder.addStatement("return $T.forwardExceptionTo(future, executeFuture)", CompletableFutureUtils.class);
+        } else {
+            builder.addStatement("return executeFuture");
         }
         return builder.build();
     }
@@ -455,5 +464,15 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private boolean isRestJson(IntermediateModel model) {
         return Protocol.REST_JSON.equals(model.getMetadata().getProtocol());
+    }
+
+    private TypeName executeFutureValueType(OperationModel opModel) {
+        if (opModel.hasEventStreamOutput()) {
+            return ClassName.get(Void.class);
+        } else if (opModel.hasStreamingOutput()) {
+            return TypeVariableName.get("ReturnT");
+        } else {
+            return getPojoResponseType(opModel);
+        }
     }
 }

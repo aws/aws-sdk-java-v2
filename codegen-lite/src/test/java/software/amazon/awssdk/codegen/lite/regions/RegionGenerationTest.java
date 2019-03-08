@@ -78,6 +78,16 @@ public class RegionGenerationTest {
     }
 
     @Test
+    public void serviceWithOverriddenPartitionsMetadataClass() {
+        ServiceMetadataGenerator serviceMetadataGenerator = new ServiceMetadataGenerator(partitions,
+                                                                                         "sts",
+                                                                                         SERVICE_METADATA_BASE,
+                                                                                         REGION_BASE);
+
+        assertThat(serviceMetadataGenerator, generatesTo("sts-service-metadata.java"));
+    }
+
+    @Test
     public void serviceMetadataProviderClass() {
         ServiceMetadataProviderGenerator serviceMetadataProviderGenerator = new ServiceMetadataProviderGenerator(partitions,
                                                                                                                  SERVICE_METADATA_BASE,

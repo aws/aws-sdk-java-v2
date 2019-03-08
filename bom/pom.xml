@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.5.2-SNAPSHOT</version>
+        <version>2.5.7-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -17,7 +17,114 @@
         <sonar.skip>true</sonar.skip>
     </properties>
     <dependencyManagement>
+        <!-- Non-services -->
         <dependencies>
+            <dependency>
+                <artifactId>annotations</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>auth</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>aws-core</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>profiles</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>regions</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>sdk-core</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>aws-cbor-protocol</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>aws-ion-protocol</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>aws-json-protocol</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>aws-query-protocol</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>aws-xml-protocol</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>protocol-core</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>utils</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>http-client-spi</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>apache-client</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>netty-nio-client</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>url-connection-client</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>codegen</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>codegen-lite</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>codegen-maven-plugin</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>codegen-lite-maven-plugin</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <!-- Services -->
             <dependency>
                 <artifactId>pinpoint</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
@@ -519,51 +626,6 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>runtime</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>annotations</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>utils</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>http-client-spi</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>apache-client</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>netty-nio-client</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>url-connection-client</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>codegen</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>codegen-maven-plugin</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
                 <artifactId>athena</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
@@ -576,6 +638,11 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>worklink</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>textract</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>

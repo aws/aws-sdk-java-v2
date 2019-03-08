@@ -1,3 +1,100 @@
+# __2.5.6__ __2019-03-08__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild also now supports Git Submodules. CodeBuild now supports opting out of Encryption for S3 Build Logs. By default these logs are encrypted.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker notebook instances now support enabling or disabling root access for notebook users. SageMaker Neo now supports rk3399 and rk3288 as compilation target devices.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for s3
+
+# __2.5.5__ __2019-03-07__
+## __AWS App Mesh__
+  - ### Features
+    - This release includes a new version of the AWS App Mesh APIs. You can read more about the new APIs here: https://docs.aws.amazon.com/app-mesh/latest/APIReference/Welcome.html.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds a MediaPackage output group, simplifying configuration of outputs to AWS Elemental MediaPackage.
+
+## __AWS Greengrass__
+  - ### Features
+    - Greengrass group UID and GID settings can now be configured to use a provided default via FunctionDefaultConfig. If configured, all Lambda processes in your deployed Greengrass group will by default start with the provided UID and/or GID, rather than by default starting with UID "ggc_user" and GID "ggc_group" as they would if not configured. Individual Lambdas can also be configured to override the defaults if desired via each object in the Functions list of your FunctionDefinitionVersion.
+
+## __AWS SDK For Java v2__
+  - ### Bugfixes
+    - Fix bug in the generated async clients where cancelling the `CompletableFuture` returned from an async operation does not result in cancelling the underlying HTTP request execution. In some cases, this can lead to unnecesarily keeping resources from being freed until the request execution finishes.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces additional task definition parameters that enable you to define dependencies for container startup and shutdown, a per-container start and stop timeout value, as well as an AWS App Mesh proxy configuration which eases the integration between Amazon ECS and AWS App Mesh.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift-hosted instances can now securely access resources on other AWS services using IAM roles. See more details at https://aws.amazon.com/releasenotes/amazon-gamelift/.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - You can configure your Aurora database cluster to automatically copy tags on the cluster to any automated or manual database cluster snapshots that are created from the cluster. This allows you to easily set metadata on your snapshots to match the parent cluster, including access policies. You may enable or disable this functionality while creating a new cluster, or by modifying an existing database cluster.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for autoscaling
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where, if the future returned from the `NettyRequestExecutor#execute` is cancelled, the client continues to wait for the `Channel` acquire to complete, which leads to keeping potentially many resources around unnecessarily.
+
+# __2.5.4__ __2019-03-06__
+## __AWS Direct Connect__
+  - ### Features
+    - Exposed a new available port speeds field in the DescribeLocation api call.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix the generated ServiceMetadata classes for services that have PARTITION_OVERRIDDEN_ENDPOINTS
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds pagination support for ec2.DescribeVpcs, ec2.DescribeInternetGateways and ec2.DescribeNetworkAcls APIs
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for elasticfilesystem adding new examples for EFS Lifecycle Management feature.
+
+# __2.5.3__ __2019-03-05__
+## __AWS CodeDeploy__
+  - ### Features
+    - Documentation updates for codedeploy
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for pausing and unpausing one or both pipelines at scheduled times.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add missing non-service modules to bom. See [#1063](https://github.com/aws/aws-sdk-java-v2/issues/1063)
+
+## __AWS Storage Gateway__
+  - ### Features
+    - ActivateGateway, CreateNFSFileShare and CreateSMBFileShare APIs support a new parameter: Tags (to be attached to the created resource). Output for DescribeNFSFileShare, DescribeSMBFileShare and DescribeGatewayInformation APIs now also list the Tags associated with the resource. Minimum length of a KMSKey is now 7 characters.
+
+## __Amazon Textract__
+  - ### Features
+    - This release is intended ONLY for customers that are officially part of the Amazon Textract Preview program. If you are not officially part of the Amazon Textract program THIS WILL NOT WORK. Our two main regions for Amazon Textract Preview are N. Virginia and Dublin. Also some members have been added to Oregon and Ohio. If you are outside of any of these AWS regions, Amazon Textract Preview definitely will not work. If you would like to be part of the Amazon Textract program, you can officially request sign up here - https://pages.awscloud.com/textract-preview.html. To set expectations appropriately, we are aiming to admit new preview participants once a week until General Availability.
+
+# __2.5.2__ __2019-03-04__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release adds support for user-defined tagging of MediaPackage resources. Users may now call operations to list, add and remove tags from channels and origin-endpoints. Users can also specify tags to be attached to these resources during their creation. Describe and list operations on these resources will now additionally return any tags associated with them.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release updates AWS Systems Manager APIs to support service settings for AWS customers. A service setting is a key-value pair that defines how a user interacts with or uses an AWS service, and is typically created and consumed by the AWS service team. AWS customers can read a service setting via GetServiceSetting API and update the setting via UpdateServiceSetting API or ResetServiceSetting API, which are introduced in this release. For example, if an AWS service charges money to the account based on a feature or service usage, then the AWS service team might create a setting with the default value of "false". This means the user can't use this feature unless they update the setting to "true" and intentionally opt in for a paid feature.
+
 # __2.5.1__ __2019-03-01__
 ## __AWS Auto Scaling Plans__
   - ### Features
