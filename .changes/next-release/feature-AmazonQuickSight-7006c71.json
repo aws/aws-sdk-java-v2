@@ -1,0 +1,5 @@
+{
+    "category": "Amazon QuickSight", 
+    "type": "feature", 
+    "description": "Amazon QuickSight user and group operation results now include group principal IDs and user principal IDs. This release also adds \"DeleteUserByPrincipalId\", which deletes users given their principal ID. The update also improves role session name validation."
+}
