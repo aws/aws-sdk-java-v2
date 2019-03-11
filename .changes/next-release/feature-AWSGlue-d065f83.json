@@ -1,5 +1,0 @@
-{
-    "category": "AWS Glue", 
-    "type": "feature", 
-    "description": "CreateDevEndpoint and UpdateDevEndpoint now support Arguments to configure the DevEndpoint."
-}

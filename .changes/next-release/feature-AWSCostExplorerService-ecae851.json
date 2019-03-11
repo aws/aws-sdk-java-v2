@@ -1,5 +1,0 @@
-{
-    "category": "AWS Cost Explorer Service", 
-    "type": "feature", 
-    "description": "The only change in this release is to make TimePeriod a required parameter in GetCostAndUsageRequest."
-}
