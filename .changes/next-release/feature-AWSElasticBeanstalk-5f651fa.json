@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elastic Beanstalk", 
+    "type": "feature", 
+    "description": "Elastic Beanstalk added support for tagging, and tag-based access control, of all Elastic Beanstalk resources."
+}
