@@ -1,3 +1,12 @@
+# __2.5.8__ __2019-03-12__
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - The AWS Serverless Application Repository now supports associating a ZIP source code archive with versions of an application.
+
+## __Netty Nio Http Client__
+  - ### Bugfixes
+    - Fix a bug where the channel fails to be released if there is an exception thrown.
+
 # __2.5.7__ __2019-03-11__
 ## __AWS Cost Explorer Service__
   - ### Features
