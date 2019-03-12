@@ -1,0 +1,5 @@
+{
+    "category": "AWSServerlessApplicationRepository", 
+    "type": "feature", 
+    "description": "The AWS Serverless Application Repository now supports associating a ZIP source code archive with versions of an application."
+}
