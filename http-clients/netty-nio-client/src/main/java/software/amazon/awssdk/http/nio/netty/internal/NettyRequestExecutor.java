@@ -312,7 +312,8 @@ public final class NettyRequestExecutor {
      */
     private void closeAndRelease(Channel channel) {
         log.trace("closing and releasing channel {}", channel.id().asLongText());
-        channel.close().addListener(ignored -> context.channelPool().release(channel));
+        channel.close();
+        context.channelPool().release(channel);
     }
 
     /**
