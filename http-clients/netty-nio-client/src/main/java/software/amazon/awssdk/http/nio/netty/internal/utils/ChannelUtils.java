@@ -15,8 +15,12 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
@@ -36,5 +40,18 @@ public final class ChannelUtils {
                 pipeline.remove(handler);
             }
         }
+    }
+
+    /**
+     * Retrieve optional attribute of the channel
+     *
+     * @param channel the channel
+     * @param key the key of the attribute
+     * @param <T> the type of the attribute value
+     * @return optional attribute
+     */
+    public static <T> Optional<T> getAttribute(Channel channel, AttributeKey<T> key) {
+        return Optional.ofNullable(channel.attr(key))
+                       .map(Attribute::get);
     }
 }
