@@ -1,3 +1,16 @@
+# __2.5.9__ __2019-03-13__
+## __AWS Config__
+  - ### Features
+    - Config released Remediation APIs allowing Remediation of Config Rules
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation updates for logs
+
+## __Netty Nio HTTP Client__
+  - ### Bugfixes
+    - Update `SslCompletionEventHandler` to close channel for `SslCloseCompletionEvent` only if the channel is not currently in use. This would fix the race condition in the async clients causing incorrect IOException to be thrown when the service returns error response and closes the connection. See [#1076](https://github.com/aws/aws-sdk-java-v2/issues/1076)
+
 # __2.5.8__ __2019-03-12__
 ## __AWSServerlessApplicationRepository__
   - ### Features
