@@ -20,6 +20,7 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.io.ByteArrayInputStream;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +35,16 @@ import org.junit.Test;
  * interfaces.
  */
 public class SdkHttpRequestResponseTest {
+
+    @Test
+    public void contentStreamProviderNullOnGets() {
+        assertThat(validRequestBuilder().contentStreamProvider(() -> new ByteArrayInputStream("test".getBytes()))
+                                        .method(SdkHttpMethod.GET)
+                                        .build()
+                                        .contentStreamProvider())
+            .isNotPresent();
+    }
+
     @Test
     public void optionalValuesAreOptional() {
         assertThat(validRequest().contentStreamProvider()).isNotPresent();

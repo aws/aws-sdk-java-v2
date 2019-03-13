@@ -56,7 +56,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         this.queryParameters = deepUnmodifiableMap(builder.queryParameters, () -> new LinkedHashMap<>());
         this.httpMethod = Validate.paramNotNull(builder.httpMethod, "method");
         this.headers = deepUnmodifiableMap(builder.headers, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-        this.contentStreamProvider = builder.contentStreamProvider;
+        this.contentStreamProvider = standardizeBody(builder.contentStreamProvider);
     }
 
     private String standardizeProtocol(String protocol) {
@@ -95,6 +95,14 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         }
 
         return port;
+    }
+
+    private ContentStreamProvider standardizeBody(ContentStreamProvider contentStreamProvider) {
+        if (httpMethod.equals(SdkHttpMethod.GET)) {
+            return null;
+        }
+
+        return contentStreamProvider;
     }
 
     @Override
