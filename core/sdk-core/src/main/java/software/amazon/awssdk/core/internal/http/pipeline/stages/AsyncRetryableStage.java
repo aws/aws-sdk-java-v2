@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
@@ -100,13 +101,18 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         public CompletableFuture<Response<OutputT>> execute(CompletableFuture<Response<OutputT>> future) throws Exception {
             beforeExecute();
-            doExecute().whenComplete((resp, err) -> retryIfNeeded(future, resp, err));
-            return future;
+            CompletableFuture<Response<OutputT>> executeFuture = doExecute();
+            executeFuture.whenComplete((resp, err) -> retryIfNeeded(future, resp, err));
+            return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         }
 
         private void retryIfNeeded(CompletableFuture<Response<OutputT>> future,
                                    Response<OutputT> resp,
                                    Throwable err) {
+            if (future.isDone()) {
+                return;
+            }
+
             try {
                 if (resp != null) {
                     retryResponseIfNeeded(resp, future);

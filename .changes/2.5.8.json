@@ -1,0 +1,16 @@
+{
+    "date": "2019-03-12",
+    "version": "2.5.8",
+    "entries": [
+        {
+            "category": "Netty Nio Http Client",
+            "type": "bugfix",
+            "description": "Fix a bug where the channel fails to be released if there is an exception thrown."
+        },
+        {
+            "category": "AWSServerlessApplicationRepository",
+            "type": "feature",
+            "description": "The AWS Serverless Application Repository now supports associating a ZIP source code archive with versions of an application."
+        }
+    ]
+}

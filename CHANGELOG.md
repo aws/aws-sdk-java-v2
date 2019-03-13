@@ -1,3 +1,112 @@
+# __2.5.8__ __2019-03-12__
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - The AWS Serverless Application Repository now supports associating a ZIP source code archive with versions of an application.
+
+## __Netty Nio Http Client__
+  - ### Bugfixes
+    - Fix a bug where the channel fails to be released if there is an exception thrown.
+
+# __2.5.7__ __2019-03-11__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - The only change in this release is to make TimePeriod a required parameter in GetCostAndUsageRequest.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Elastic Beanstalk added support for tagging, and tag-based access control, of all Elastic Beanstalk resources.
+
+## __AWS Glue__
+  - ### Features
+    - CreateDevEndpoint and UpdateDevEndpoint now support Arguments to configure the DevEndpoint.
+
+## __AWS IoT__
+  - ### Features
+    - Documentation updates for iot
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight user and group operation results now include group principal IDs and user principal IDs. This release also adds "DeleteUserByPrincipalId", which deletes users given their principal ID. The update also improves role session name validation.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Documentation updates for Amazon Rekognition
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Set `Content-Type` to `binary/octet-stream` for `S3#createMultipartRequest`. See [#1092](https://github.com/aws/aws-sdk-java-v2/issues/1092)
+
+## __Apache Http Client__
+  - ### Bugfixes
+    - Updated to not set a default `Content-Type` if the header does not exist. Per [RFC7231](https://tools.ietf.org/html/rfc7231#page-11), we should let the recipient to decide if not known.
+
+# __2.5.6__ __2019-03-08__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild also now supports Git Submodules. CodeBuild now supports opting out of Encryption for S3 Build Logs. By default these logs are encrypted.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker notebook instances now support enabling or disabling root access for notebook users. SageMaker Neo now supports rk3399 and rk3288 as compilation target devices.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for s3
+
+# __2.5.5__ __2019-03-07__
+## __AWS App Mesh__
+  - ### Features
+    - This release includes a new version of the AWS App Mesh APIs. You can read more about the new APIs here: https://docs.aws.amazon.com/app-mesh/latest/APIReference/Welcome.html.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds a MediaPackage output group, simplifying configuration of outputs to AWS Elemental MediaPackage.
+
+## __AWS Greengrass__
+  - ### Features
+    - Greengrass group UID and GID settings can now be configured to use a provided default via FunctionDefaultConfig. If configured, all Lambda processes in your deployed Greengrass group will by default start with the provided UID and/or GID, rather than by default starting with UID "ggc_user" and GID "ggc_group" as they would if not configured. Individual Lambdas can also be configured to override the defaults if desired via each object in the Functions list of your FunctionDefinitionVersion.
+
+## __AWS SDK For Java v2__
+  - ### Bugfixes
+    - Fix bug in the generated async clients where cancelling the `CompletableFuture` returned from an async operation does not result in cancelling the underlying HTTP request execution. In some cases, this can lead to unnecesarily keeping resources from being freed until the request execution finishes.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces additional task definition parameters that enable you to define dependencies for container startup and shutdown, a per-container start and stop timeout value, as well as an AWS App Mesh proxy configuration which eases the integration between Amazon ECS and AWS App Mesh.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift-hosted instances can now securely access resources on other AWS services using IAM roles. See more details at https://aws.amazon.com/releasenotes/amazon-gamelift/.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - You can configure your Aurora database cluster to automatically copy tags on the cluster to any automated or manual database cluster snapshots that are created from the cluster. This allows you to easily set metadata on your snapshots to match the parent cluster, including access policies. You may enable or disable this functionality while creating a new cluster, or by modifying an existing database cluster.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for autoscaling
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where, if the future returned from the `NettyRequestExecutor#execute` is cancelled, the client continues to wait for the `Channel` acquire to complete, which leads to keeping potentially many resources around unnecessarily.
+
+# __2.5.4__ __2019-03-06__
+## __AWS Direct Connect__
+  - ### Features
+    - Exposed a new available port speeds field in the DescribeLocation api call.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix the generated ServiceMetadata classes for services that have PARTITION_OVERRIDDEN_ENDPOINTS
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds pagination support for ec2.DescribeVpcs, ec2.DescribeInternetGateways and ec2.DescribeNetworkAcls APIs
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for elasticfilesystem adding new examples for EFS Lifecycle Management feature.
+
 # __2.5.3__ __2019-03-05__
 ## __AWS CodeDeploy__
   - ### Features

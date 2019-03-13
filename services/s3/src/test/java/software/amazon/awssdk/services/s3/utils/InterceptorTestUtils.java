@@ -89,11 +89,12 @@ public final class InterceptorTestUtils {
     public static Context.ModifyHttpRequest modifyHttpRequestContext(SdkRequest request) {
         Optional<RequestBody> requestBody = Optional.of(RequestBody.fromString("helloworld"));
         Optional<AsyncRequestBody> asyncRequestBody = Optional.of(AsyncRequestBody.fromString("helloworld"));
+        SdkHttpFullRequest sdkHttpFullRequest = sdkHttpFullRequest();
 
         return new Context.ModifyHttpRequest() {
             @Override
             public SdkHttpRequest httpRequest() {
-                return sdkHttpFullRequest();
+                return sdkHttpFullRequest;
             }
 
             @Override

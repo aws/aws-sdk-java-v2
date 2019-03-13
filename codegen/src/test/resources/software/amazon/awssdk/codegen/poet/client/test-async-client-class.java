@@ -150,19 +150,21 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             Validate.paramNotBlank(aPostOperationRequest.stringMember(), "StringMember");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, APostOperationResponse::builder);
+                    operationMetadata, APostOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withOperationName("APostOperation")
-                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).hostPrefixExpression(resolvedHostExpression)
-                                             .withInput(aPostOperationRequest));
+            CompletableFuture<APostOperationResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                            .withOperationName("APostOperation")
+                            .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -193,23 +195,24 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, APostOperationWithOutputResponse::builder);
+                    operationMetadata, APostOperationWithOutputResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
-                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withInput(aPostOperationWithOutputRequest));
+            CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                            .withOperationName("APostOperationWithOutput")
+                            .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(aPostOperationWithOutputRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -236,50 +239,51 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
-                                                        Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
+            Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
         try {
             eventStreamOperationRequest = applySignerOverride(eventStreamOperationRequest, EventStreamAws4Signer.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<EventStreamOperationResponse> responseHandler = new AttachHttpMetadataResponseHandler(
-                protocolFactory.createResponseHandler(operationMetadata, EventStreamOperationResponse::builder));
+                    protocolFactory.createResponseHandler(operationMetadata, EventStreamOperationResponse::builder));
 
             HttpResponseHandler<SdkResponse> voidResponseHandler = protocolFactory.createResponseHandler(JsonOperationMetadata
-                                                                                                             .builder().isPayloadJson(false).hasStreamingSuccessResponse(true).build(), VoidSdkResponse::builder);
+                    .builder().isPayloadJson(false).hasStreamingSuccessResponse(true).build(), VoidSdkResponse::builder);
 
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
-                JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
-                EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
-                                                  .putSdkPojoSupplier("EventTwo", EventTwo::builder).defaultSdkPojoSupplier(() -> EventStream.UNKNOWN)
-                                                  .build());
+                    JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
+                    EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
+                            .putSdkPojoSupplier("EventTwo", EventTwo::builder).defaultSdkPojoSupplier(() -> EventStream.UNKNOWN)
+                            .build());
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
-                                                                                                       .putMarshaller(InputEvent.class, new InputEventMarshaller(protocolFactory)).build();
+                    .putMarshaller(InputEvent.class, new InputEventMarshaller(protocolFactory)).build();
             SdkPublisher<InputEventStream> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
-                AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
+                    AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
             CompletableFuture<Void> future = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
-                .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
-                                                                      .eventResponseHandler(eventResponseHandler).initialResponseHandler(responseHandler)
-                                                                      .exceptionResponseHandler(errorResponseHandler).future(future).executor(executor).serviceName(serviceName())
-                                                                      .build();
+                    .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
+                    .eventResponseHandler(eventResponseHandler).initialResponseHandler(responseHandler)
+                    .exceptionResponseHandler(errorResponseHandler).future(future).executor(executor).serviceName(serviceName())
+                    .build();
             RestEventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> restAsyncResponseTransformer = RestEventStreamAsyncResponseTransformer
-                .<EventStreamOperationResponse, EventStream> builder()
-                .eventStreamAsyncResponseTransformer(asyncResponseTransformer)
-                .eventStreamResponseHandler(asyncResponseHandler).build();
+                    .<EventStreamOperationResponse, EventStream> builder()
+                    .eventStreamAsyncResponseTransformer(asyncResponseTransformer)
+                    .eventStreamResponseHandler(asyncResponseHandler).build();
 
-            clientHandler.execute(
-                new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
-                    .withOperationName("EventStreamOperation")
-                    .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
-                    .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
-                    .withFullDuplex(true).withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withInput(eventStreamOperationRequest),
-                restAsyncResponseTransformer).whenComplete((r, e) -> {
+            CompletableFuture<Void> executeFuture = clientHandler.execute(
+                    new ClientExecutionParams<EventStreamOperationRequest, EventStreamOperationResponse>()
+                            .withOperationName("EventStreamOperation")
+                            .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
+                            .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
+                            .withFullDuplex(true).withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withInput(eventStreamOperationRequest),
+                    restAsyncResponseTransformer);
+            executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     try {
                         asyncResponseHandler.exceptionOccurred(e);
@@ -288,10 +292,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     }
                 }
             });
-            return future;
+            return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseHandler.exceptionOccurred(t));
+                    () -> asyncResponseHandler.exceptionOccurred(t));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -318,33 +322,34 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
-        EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
-        Publisher<InputEventStreamTwo> requestStream) {
+            EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
+            Publisher<InputEventStreamTwo> requestStream) {
         try {
             eventStreamOperationWithOnlyInputRequest = applySignerOverride(eventStreamOperationWithOnlyInputRequest,
-                                                                           EventStreamAws4Signer.create());
+                    EventStreamAws4Signer.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<EventStreamOperationWithOnlyInputResponse> responseHandler = protocolFactory
-                .createResponseHandler(operationMetadata, EventStreamOperationWithOnlyInputResponse::builder);
+                    .createResponseHandler(operationMetadata, EventStreamOperationWithOnlyInputResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
-                                                                                                       .putMarshaller(InputEventOne.class, new InputEventOneMarshaller(protocolFactory))
-                                                                                                       .putMarshaller(InputEventTwo.class, new InputEventTwoMarshaller(protocolFactory)).build();
+                    .putMarshaller(InputEventOne.class, new InputEventOneMarshaller(protocolFactory))
+                    .putMarshaller(InputEventTwo.class, new InputEventTwoMarshaller(protocolFactory)).build();
             SdkPublisher<InputEventStreamTwo> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
-                AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
+                    AwsClientHandlerUtils::encodeEventStreamRequestToByteBuffer);
 
-            return clientHandler
-                .execute(new ClientExecutionParams<EventStreamOperationWithOnlyInputRequest, EventStreamOperationWithOnlyInputResponse>()
-                             .withOperationName("EventStreamOperationWithOnlyInput")
-                             .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
-                             .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withInput(eventStreamOperationWithOnlyInputRequest));
+            CompletableFuture<EventStreamOperationWithOnlyInputResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<EventStreamOperationWithOnlyInputRequest, EventStreamOperationWithOnlyInputResponse>()
+                            .withOperationName("EventStreamOperationWithOnlyInput")
+                            .withMarshaller(new EventStreamOperationWithOnlyInputRequestMarshaller(protocolFactory))
+                            .withAsyncRequestBody(software.amazon.awssdk.core.async.AsyncRequestBody.fromPublisher(adapted))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(eventStreamOperationWithOnlyInputRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -375,23 +380,24 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
+            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, GetWithoutRequiredMembersResponse::builder);
+                    operationMetadata, GetWithoutRequiredMembersResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler
-                .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                             .withOperationName("GetWithoutRequiredMembers")
-                             .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withInput(getWithoutRequiredMembersRequest));
+            CompletableFuture<GetWithoutRequiredMembersResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                            .withOperationName("GetWithoutRequiredMembers")
+                            .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(getWithoutRequiredMembersRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -419,23 +425,24 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<PaginatedOperationWithResultKeyResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, PaginatedOperationWithResultKeyResponse::builder);
+                    operationMetadata, PaginatedOperationWithResultKeyResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler
-                .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithResultKey")
-                             .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withInput(paginatedOperationWithResultKeyRequest));
+            CompletableFuture<PaginatedOperationWithResultKeyResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
+                            .withOperationName("PaginatedOperationWithResultKey")
+                            .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(paginatedOperationWithResultKeyRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -463,7 +470,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -473,19 +480,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     *
+     * 
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     *
-     *
+     * 
+     * 
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     *
+     * 
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
@@ -510,7 +517,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *      target="_top">AWS API Documentation</a>
      */
     public PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
         return new PaginatedOperationWithResultKeyPublisher(this, applyPaginatorUserAgent(paginatedOperationWithResultKeyRequest));
     }
 
@@ -536,23 +543,24 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<PaginatedOperationWithoutResultKeyResponse> responseHandler = protocolFactory
-                .createResponseHandler(operationMetadata, PaginatedOperationWithoutResultKeyResponse::builder);
+                    .createResponseHandler(operationMetadata, PaginatedOperationWithoutResultKeyResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler
-                .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                             .withOperationName("PaginatedOperationWithoutResultKey")
-                             .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withInput(paginatedOperationWithoutResultKeyRequest));
+            CompletableFuture<PaginatedOperationWithoutResultKeyResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
+                            .withOperationName("PaginatedOperationWithoutResultKey")
+                            .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(paginatedOperationWithoutResultKeyRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -580,7 +588,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -590,19 +598,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     *
+     * 
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     *
+     * 
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     *
-     *
+     * 
+     * 
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     *
+     * 
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
@@ -627,9 +635,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *      target="_top">AWS API Documentation</a>
      */
     public PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
         return new PaginatedOperationWithoutResultKeyPublisher(this,
-                                                               applyPaginatorUserAgent(paginatedOperationWithoutResultKeyRequest));
+                applyPaginatorUserAgent(paginatedOperationWithoutResultKeyRequest));
     }
 
     /**
@@ -658,23 +666,24 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, StreamingInputOperationResponse::builder);
+                    operationMetadata, StreamingInputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler
-                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                             .withOperationName("StreamingInputOperation")
-                             .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+            CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                            .withOperationName("StreamingInputOperation")
+                            .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+            return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
@@ -711,34 +720,36 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
-        StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
-        AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+            StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
+            AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         try {
             streamingInputOutputOperationRequest = applySignerOverride(streamingInputOutputOperationRequest,
-                                                                       Aws4UnsignedPayloadSigner.create());
+                    Aws4UnsignedPayloadSigner.create());
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
-                                                                           .isPayloadJson(false).build();
+                    .isPayloadJson(false).build();
 
             HttpResponseHandler<StreamingInputOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, StreamingInputOutputOperationResponse::builder);
+                    operationMetadata, StreamingInputOutputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler.execute(
-                new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
-                    .withOperationName("StreamingInputOutputOperation")
-                    .withMarshaller(new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
-                asyncResponseTransformer).whenComplete((r, e) -> {
+            CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
+                    new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
+                            .withOperationName("StreamingInputOutputOperation")
+                            .withMarshaller(new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
+                    asyncResponseTransformer);
+            executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     asyncResponseTransformer.exceptionOccurred(e);
                 }
             });
+            return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseTransformer.exceptionOccurred(t));
+                    () -> asyncResponseTransformer.exceptionOccurred(t));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -769,31 +780,33 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest,
-        AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+            StreamingOutputOperationRequest streamingOutputOperationRequest,
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         try {
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
-                                                                           .isPayloadJson(false).build();
+                    .isPayloadJson(false).build();
 
             HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, StreamingOutputOperationResponse::builder);
+                    operationMetadata, StreamingOutputOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                    operationMetadata);
 
-            return clientHandler.execute(
-                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
-                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withInput(streamingOutputOperationRequest), asyncResponseTransformer).whenComplete((r, e) -> {
+            CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
+                    new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                            .withOperationName("StreamingOutputOperation")
+                            .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
+            executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     asyncResponseTransformer.exceptionOccurred(e);
                 }
             });
+            return executeFuture;
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseTransformer.exceptionOccurred(t));
+                    () -> asyncResponseTransformer.exceptionOccurred(t));
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -805,21 +818,21 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder
-            .clientConfiguration(clientConfiguration)
-            .defaultServiceExceptionSupplier(JsonException::builder)
-            .protocol(AwsJsonProtocol.REST_JSON)
-            .protocolVersion("1.1")
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidInput")
-                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+                .clientConfiguration(clientConfiguration)
+                .defaultServiceExceptionSupplier(JsonException::builder)
+                .protocol(AwsJsonProtocol.REST_JSON)
+                .protocolVersion("1.1")
+                .registerModeledException(
+                        ExceptionMetadata.builder().errorCode("InvalidInput")
+                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
     }
 
     private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
         Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
-                                                                                                      .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
+                .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
+                .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
+                .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
@@ -829,13 +842,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         }
         Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+                .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
+            JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 }

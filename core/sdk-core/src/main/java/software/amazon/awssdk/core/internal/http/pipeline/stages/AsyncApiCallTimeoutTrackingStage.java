@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
 public class AsyncApiCallTimeoutTrackingStage<OutputT>
@@ -57,7 +58,8 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
                                                               apiCallTimeoutInMillis);
         context.apiCallTimeoutTracker(timeoutTracker);
 
-        requestPipeline.execute(input, context).whenComplete((r, t) -> {
+        CompletableFuture<OutputT> executeFuture = requestPipeline.execute(input, context);
+        executeFuture.whenComplete((r, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
             } else {
@@ -65,6 +67,6 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
             }
         });
 
-        return future;
+        return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
     }
 }

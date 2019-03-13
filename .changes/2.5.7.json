@@ -1,0 +1,46 @@
+{
+    "date": "2019-03-11",
+    "version": "2.5.7",
+    "entries": [
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Set `Content-Type` to `binary/octet-stream` for `S3#createMultipartRequest`. See [#1092](https://github.com/aws/aws-sdk-java-v2/issues/1092)"
+        },
+        {
+            "category": "AWS Glue",
+            "type": "feature",
+            "description": "CreateDevEndpoint and UpdateDevEndpoint now support Arguments to configure the DevEndpoint."
+        },
+        {
+            "category": "AWS IoT",
+            "type": "feature",
+            "description": "Documentation updates for iot"
+        },
+        {
+            "category": "Amazon Rekognition",
+            "type": "feature",
+            "description": "Documentation updates for Amazon Rekognition"
+        },
+        {
+            "category": "AWS Cost Explorer Service",
+            "type": "feature",
+            "description": "The only change in this release is to make TimePeriod a required parameter in GetCostAndUsageRequest."
+        },
+        {
+            "category": "AWS Elastic Beanstalk",
+            "type": "feature",
+            "description": "Elastic Beanstalk added support for tagging, and tag-based access control, of all Elastic Beanstalk resources."
+        },
+        {
+            "category": "Amazon QuickSight",
+            "type": "feature",
+            "description": "Amazon QuickSight user and group operation results now include group principal IDs and user principal IDs. This release also adds \"DeleteUserByPrincipalId\", which deletes users given their principal ID. The update also improves role session name validation."
+        },
+        {
+            "category": "Apache Http Client",
+            "type": "bugfix",
+            "description": "Updated to not set a default `Content-Type` if the header does not exist. Per [RFC7231](https://tools.ietf.org/html/rfc7231#page-11), we should let the recipient to decide if not known."
+        }
+    ]
+}
