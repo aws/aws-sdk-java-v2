@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.getAttribute;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -47,14 +47,14 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        boolean channelInUse = getAttribute(ctx, ChannelAttributeKey.IN_USE).orElse(false);
+        boolean channelInUse = getAttribute(ctx.channel(), ChannelAttributeKey.IN_USE).orElse(false);
 
         if (channelInUse) {
             ctx.fireExceptionCaught(cause);
         } else {
             ctx.close();
 
-            Optional<CompletableFuture<Void>> executeFuture = getAttribute(ctx, ChannelAttributeKey.EXECUTE_FUTURE_KEY);
+            Optional<CompletableFuture<Void>> executeFuture = getAttribute(ctx.channel(), ChannelAttributeKey.EXECUTE_FUTURE_KEY);
 
             if (executeFuture.isPresent() && !executeFuture.get().isDone()) {
                 log.error(() -> "An exception occurred on an channel (" + ctx.channel().id() + ") that was not in use, " +
@@ -75,11 +75,6 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
 
     public static UnusedChannelExceptionHandler getInstance() {
         return INSTANCE;
-    }
-
-    private <T> Optional<T> getAttribute(ChannelHandlerContext ctx, AttributeKey<T> key) {
-        return Optional.ofNullable(ctx.channel().attr(key))
-                       .map(Attribute::get);
     }
 
     private boolean isNettyIoException(Throwable cause) {

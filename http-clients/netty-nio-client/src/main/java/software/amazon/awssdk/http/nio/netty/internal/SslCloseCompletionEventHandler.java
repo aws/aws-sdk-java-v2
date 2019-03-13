@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.getAttribute;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -35,9 +37,18 @@ public final class SslCloseCompletionEventHandler extends ChannelInboundHandlerA
     private SslCloseCompletionEventHandler() {
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Close the channel if the event is {@link SslCloseCompletionEvent} and the channel is unused.
+     * If the channel is being used, it will be closed in {@link ResponseHandler}
+     *
+     */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-        if (evt instanceof SslCloseCompletionEvent) {
+        boolean channelInUse = getAttribute(ctx.channel(), ChannelAttributeKey.IN_USE).orElse(false);
+
+        if (!channelInUse && evt instanceof SslCloseCompletionEvent) {
             ctx.close();
         } else {
             ctx.fireUserEventTriggered(evt);
