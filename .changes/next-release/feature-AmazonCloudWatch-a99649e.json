@@ -1,5 +1,0 @@
-{
-    "category": "Amazon CloudWatch", 
-    "type": "feature", 
-    "description": "New Messages parameter for the output of GetMetricData, to support new metric search functionality."
-}

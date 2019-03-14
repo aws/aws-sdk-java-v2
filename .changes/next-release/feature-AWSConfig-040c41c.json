@@ -1,5 +1,0 @@
-{
-    "category": "AWS Config", 
-    "type": "feature", 
-    "description": "AWS Config - add ability to tag, untag and list tags for ConfigRule, ConfigurationAggregator and AggregationAuthorization resource types. Tags can be used for various scenarios including tag based authorization."
-}
