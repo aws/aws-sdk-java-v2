@@ -37,6 +37,6 @@ public class ServiceIntegrationTest extends AwsTestBase {
 
     @Test
     public void smokeTest() {
-        assertThat(iam.listAccessKeys().accessKeyMetadata()).isNotNull();
+        assertThat(iam.listUsers().users()).isNotNull();
     }
 }
