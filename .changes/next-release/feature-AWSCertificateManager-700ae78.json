@@ -1,0 +1,5 @@
+{
+    "category": "AWS Certificate Manager", 
+    "type": "feature", 
+    "description": "AWS Certificate Manager has added a new API action, RenewCertificate. RenewCertificate causes ACM to force the renewal of any private certificate which has been exported."
+}
