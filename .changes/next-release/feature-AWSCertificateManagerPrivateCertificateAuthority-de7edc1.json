@@ -1,0 +1,5 @@
+{
+    "category": "AWS Certificate Manager Private Certificate Authority", 
+    "type": "feature", 
+    "description": "AWS Certificate Manager (ACM) Private CA allows customers to manage permissions on their CAs. Customers can grant or deny AWS Certificate Manager permission to renew exported private certificates."
+}
