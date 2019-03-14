@@ -41,19 +41,22 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import utils.resources.tables.BasicTempTable;
 import utils.test.util.DynamoDBTestBase;
 import utils.test.util.TableUtils;
 
 public class SignersIntegrationTest extends DynamoDBTestBase {
+    private static final Logger log = Logger.loggerFor(SignersIntegrationTest.class);
 
     private static final String TABLE_NAME = BasicTempTable.TEMP_TABLE_NAME;
     private static final String HASH_KEY_NAME = BasicTempTable.HASH_KEY_NAME;
@@ -95,7 +98,13 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     @AfterClass
     public static void cleanUpFixture() {
-        dynamo.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
+        boolean deleteWorked =
+                Waiter.run(() -> dynamo.deleteTable(r -> r.tableName(TABLE_NAME)))
+                      .ignoringException(DynamoDbException.class)
+                      .orReturnFalse();
+        if (!deleteWorked) {
+            log.warn(() -> "Ignoring failure to delete table: " + TABLE_NAME);
+        }
     }
 
     @Test
