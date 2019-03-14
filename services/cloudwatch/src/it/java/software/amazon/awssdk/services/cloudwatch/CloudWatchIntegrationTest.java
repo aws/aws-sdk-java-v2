@@ -132,7 +132,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                                                       .statisticsWithStrings("Average", "Maximum", "Minimum", "Sum")
                                                                       .endTime(Instant.now())))
                       .until(r -> r.datapoints().size() == 1)
-                      .orFailAfter(Duration.ofMinutes(1));
+                      .orFailAfter(Duration.ofMinutes(2));
 
         assertNotNull(result.label());
         assertEquals(measureName, result.label());

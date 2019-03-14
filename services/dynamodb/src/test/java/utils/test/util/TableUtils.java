@@ -42,8 +42,8 @@ import software.amazon.awssdk.services.dynamodb.model.TableStatus;
  */
 public class TableUtils {
 
-    private static final int DEFAULT_WAIT_TIMEOUT = 10 * 60 * 1000;
-    private static final int DEFAULT_WAIT_INTERVAL = 20 * 1000;
+    private static final int DEFAULT_WAIT_TIMEOUT = 20 * 60 * 1000;
+    private static final int DEFAULT_WAIT_INTERVAL = 10 * 1000;
     /**
      * The logging utility.
      */

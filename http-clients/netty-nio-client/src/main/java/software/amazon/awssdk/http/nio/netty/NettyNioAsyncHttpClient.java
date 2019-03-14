@@ -197,7 +197,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         // Wrap the channel pool such that HTTP 2 channels won't be released to the underlying pool while they're still in use.
         channelPool = new HttpOrHttp2ChannelPool(channelPool,
-                                                 bootstrap,
+                                                 bootstrap.config().group(),
                                                  configuration.maxConnections(),
                                                  configuration);
 

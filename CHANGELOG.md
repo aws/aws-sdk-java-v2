@@ -1,3 +1,71 @@
+# __2.5.9__ __2019-03-13__
+## __AWS Config__
+  - ### Features
+    - Config released Remediation APIs allowing Remediation of Config Rules
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation updates for logs
+
+## __Netty Nio HTTP Client__
+  - ### Bugfixes
+    - Update `SslCompletionEventHandler` to close channel for `SslCloseCompletionEvent` only if the channel is not currently in use. This would fix the race condition in the async clients causing incorrect IOException to be thrown when the service returns error response and closes the connection. See [#1076](https://github.com/aws/aws-sdk-java-v2/issues/1076)
+
+# __2.5.8__ __2019-03-12__
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - The AWS Serverless Application Repository now supports associating a ZIP source code archive with versions of an application.
+
+## __Netty Nio Http Client__
+  - ### Bugfixes
+    - Fix a bug where the channel fails to be released if there is an exception thrown.
+
+# __2.5.7__ __2019-03-11__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - The only change in this release is to make TimePeriod a required parameter in GetCostAndUsageRequest.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Elastic Beanstalk added support for tagging, and tag-based access control, of all Elastic Beanstalk resources.
+
+## __AWS Glue__
+  - ### Features
+    - CreateDevEndpoint and UpdateDevEndpoint now support Arguments to configure the DevEndpoint.
+
+## __AWS IoT__
+  - ### Features
+    - Documentation updates for iot
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight user and group operation results now include group principal IDs and user principal IDs. This release also adds "DeleteUserByPrincipalId", which deletes users given their principal ID. The update also improves role session name validation.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Documentation updates for Amazon Rekognition
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Set `Content-Type` to `binary/octet-stream` for `S3#createMultipartRequest`. See [#1092](https://github.com/aws/aws-sdk-java-v2/issues/1092)
+
+## __Apache Http Client__
+  - ### Bugfixes
+    - Updated to not set a default `Content-Type` if the header does not exist. Per [RFC7231](https://tools.ietf.org/html/rfc7231#page-11), we should let the recipient to decide if not known.
+
+# __2.5.6__ __2019-03-08__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild also now supports Git Submodules. CodeBuild now supports opting out of Encryption for S3 Build Logs. By default these logs are encrypted.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker notebook instances now support enabling or disabling root access for notebook users. SageMaker Neo now supports rk3399 and rk3288 as compilation target devices.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for s3
+
 # __2.5.5__ __2019-03-07__
 ## __AWS App Mesh__
   - ### Features
