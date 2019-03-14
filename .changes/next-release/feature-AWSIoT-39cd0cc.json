@@ -1,0 +1,5 @@
+{
+    "category": "AWS IoT", 
+    "type": "feature", 
+    "description": "In this release, AWS IoT introduces support for tagging OTA Update and Stream resources. For more information about tagging, see the AWS IoT Developer Guide."
+}
