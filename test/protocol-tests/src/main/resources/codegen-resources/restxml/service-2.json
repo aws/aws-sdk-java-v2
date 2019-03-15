@@ -295,6 +295,11 @@
           "shape":"Timestamp",
           "location":"header",
           "locationName":"x-amz-timestamp"
+        },
+        "MetadataMember":{
+          "shape":"Metadata",
+          "location":"header",
+          "locationName":"x-amz-meta-"
         }
       }
     },
@@ -535,12 +540,6 @@
       },
       "exception":true
     },
-    "EmptyModeledException":{
-      "type":"structure",
-      "members":{
-      },
-      "exception":true
-    },
     "ExplicitPayloadAndHeadersException":{
       "type":"structure",
       "members":{
@@ -584,6 +583,13 @@
       "exception":true,
       "payload":"PayloadMember"
     },
-    "Timestamp":{"type":"timestamp"}
+    "Timestamp":{"type":"timestamp"},
+    "Metadata":{
+      "type":"map",
+      "key":{"shape":"MetadataKey"},
+      "value":{"shape":"MetadataValue"}
+    },
+    "MetadataKey":{"type":"string"},
+    "MetadataValue":{"type":"string"}
   }
 }
