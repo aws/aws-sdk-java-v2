@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.ec2;
+package software.amazon.awssdk.benchmark.marshaller.ec2;
 
 import java.util.List;
 import java.util.Random;
