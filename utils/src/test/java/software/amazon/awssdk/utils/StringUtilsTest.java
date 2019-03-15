@@ -16,7 +16,11 @@
 package software.amazon.awssdk.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
 
 import org.junit.Test;
 
@@ -106,5 +110,19 @@ public class StringUtilsTest {
                 FOO_UNCAP, StringUtils.uncapitalize(StringUtils.capitalize(FOO_UNCAP)));
         assertEquals("capitalize(uncapitalize(String)) failed",
                 FOO_CAP, StringUtils.capitalize(StringUtils.uncapitalize(FOO_CAP)));
+    }
+
+    @Test
+    public void testStartsWithIgnoreCase() {
+        assertTrue(StringUtils.startsWithIgnoreCase("helloworld", "hello"));
+        assertTrue(StringUtils.startsWithIgnoreCase("hELlOwOrlD", "hello"));
+        assertFalse(StringUtils.startsWithIgnoreCase("hello", "world"));
+    }
+
+    @Test
+    public void testReplacePrefixIgnoreCase() {
+        assertEquals("lloWorld" ,replacePrefixIgnoreCase("helloWorld", "he", ""));
+        assertEquals("lloWORld" ,replacePrefixIgnoreCase("helloWORld", "He", ""));
+        assertEquals("llOwOrld" ,replacePrefixIgnoreCase("HEllOwOrld", "he", ""));
     }
 }

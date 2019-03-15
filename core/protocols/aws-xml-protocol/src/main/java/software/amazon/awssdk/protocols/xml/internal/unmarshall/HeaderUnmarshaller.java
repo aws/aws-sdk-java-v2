@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
+import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
+import static software.amazon.awssdk.utils.StringUtils.startsWithIgnoreCase;
+
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -39,9 +41,9 @@ public final class HeaderUnmarshaller {
     public static final XmlUnmarshaller<Map<String, ?>> MAP = ((context, content, field) -> {
         Map<String, String> result = new HashMap<>();
         context.response().headers().entrySet().stream()
-               .filter(e -> e.getKey().startsWith(field.locationName()))
-               .forEach(e -> result.put(e.getKey().replace(field.locationName(), ""),
-                                        e.getValue().stream().collect(Collectors.joining(","))));
+               .filter(e -> startsWithIgnoreCase(e.getKey(), field.locationName()))
+               .forEach(e -> result.put(replacePrefixIgnoreCase(e.getKey(), field.locationName(), ""),
+                                        String.join(",", e.getValue())));
         return result;
     });
 
