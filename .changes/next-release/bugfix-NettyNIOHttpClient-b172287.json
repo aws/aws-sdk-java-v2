@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO Http Client", 
+    "type": "bugfix", 
+    "description": "Fix failed test NettyNioAsyncHttpClientSpiVerificationTest when running with JDK11. See [#1038](https://github.com/aws/aws-sdk-java-v2/issues/1038)"
+}

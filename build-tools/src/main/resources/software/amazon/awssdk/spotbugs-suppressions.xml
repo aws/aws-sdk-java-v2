@@ -133,4 +133,14 @@
         <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
 
+    <!-- https://github.com/spotbugs/spotbugs/issues/600 -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory"/>
+            <Class name="software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser"/>
+            <Class name="software.amazon.awssdk.testutils.service.AwsIntegrationTestBase"/>
+            <Class name="software.amazon.awssdk.protocol.asserts.marshalling.XmlAsserts" />
+        </Or>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
 </FindBugsFilter>

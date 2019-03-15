@@ -15,6 +15,7 @@
         Amazon AutoScaling, etc).
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+
     <dependencies>
         <dependency>
             <artifactId>pinpoint</artifactId>
