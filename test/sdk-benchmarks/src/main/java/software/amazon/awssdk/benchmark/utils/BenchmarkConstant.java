@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.benchmark.utils;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -23,13 +22,16 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.protocolec2.model.AllTypesRequest;
 
 /**
- * Contains utility methods and constants used by the benchmarks
+ * Contains constants used by the benchmarks
  */
 @SuppressWarnings("unchecked")
-public final class BenchmarkUtil {
+public final class BenchmarkConstant {
 
-    public static final int PORT_NUMBER = 8089;
-    public static final URI LOCAL_URI = URI.create(String.format("http://localhost:%s", PORT_NUMBER));
+    public static final String DEFAULT_JDK_SSL_PROVIDER = "jdk";
+    public static final String OPEN_SSL_PROVIDER = "openssl";
+
+    public static final int CONCURRENT_CALLS = 50;
+
     public static final Instant TIMESTAMP_MEMBER = LocalDateTime.now().toInstant(ZoneOffset.UTC);
 
     public static final String ERROR_JSON_BODY = "{}";
@@ -84,6 +86,7 @@ public final class BenchmarkUtil {
                                                 + "      </SimpleStructMember>"
                                                 + "   </Error>"
                                                 + "</ErrorResponse>";
+
     public static final software.amazon.awssdk.services.protocolrestxml.model.AllTypesRequest XML_ALL_TYPES_REQUEST =
         software.amazon.awssdk.services.protocolrestxml.model.AllTypesRequest.builder()
                                                                              .stringMember("foo")
@@ -170,7 +173,6 @@ public final class BenchmarkUtil {
                                                         + "world"))
                        .build();
 
-    private BenchmarkUtil() {
+    private BenchmarkConstant() {
     }
-
 }

@@ -15,10 +15,9 @@
 
 package software.amazon.awssdk.benchmark.apicall.protocol;
 
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.EC2_ALL_TYPES_REQUEST;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.ERROR_XML_BODY;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.LOCAL_URI;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.XML_BODY;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.EC2_ALL_TYPES_REQUEST;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.ERROR_XML_BODY;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.XML_BODY;
 
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -42,7 +41,7 @@ import software.amazon.awssdk.services.protocolec2.ProtocolEc2Client;
 /**
  * Benchmarking for running with different protocols.
  */
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
@@ -54,7 +53,6 @@ public class Ec2ProtocolBenchmark implements SdkProtocolBenchmark {
     @Setup(Level.Trial)
     public void setup() {
         client = ProtocolEc2Client.builder()
-                                  .endpointOverride(LOCAL_URI)
                                   .httpClient(new MockHttpClient(XML_BODY, ERROR_XML_BODY))
                                   .build();
     }
