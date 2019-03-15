@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.IoUtils;
 
-@Ignore("The tests are intended to run manually as it can take a relatively long time")
 public class UploadLargeObjectIntegrationTest extends S3IntegrationTestBase {
 
     private static final String BUCKET = temporaryBucketName(UploadLargeObjectIntegrationTest.class);
@@ -51,13 +50,13 @@ public class UploadLargeObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void syncPutLargeObject() throws Exception {
+    public void syncPutLargeObject() {
         s3.putObject(b -> b.bucket(BUCKET).key(SYNC_KEY), file.toPath());
         verifyResponse(SYNC_KEY);
     }
 
     @Test
-    public void asyncPutLargeObject() throws Exception {
+    public void asyncPutLargeObject() {
         s3Async.putObject(b -> b.bucket(BUCKET).key(ASYNC_KEY), file.toPath()).join();
         verifyResponse(ASYNC_KEY);
     }
