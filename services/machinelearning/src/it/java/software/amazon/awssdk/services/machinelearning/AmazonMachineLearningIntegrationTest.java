@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.Waiter;
@@ -111,12 +112,14 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
         s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
 
-        s3.putObject(PutObjectRequest.builder()
-                                     .bucket(BUCKET_NAME)
-                                     .key(KEY)
-                                     .acl(ObjectCannedACL.PUBLIC_READ)
-                                     .build(),
-                     RequestBody.fromBytes(DATA.getBytes()));
+        Waiter.run(() -> s3.putObject(PutObjectRequest.builder()
+                                                      .bucket(BUCKET_NAME)
+                                                      .key(KEY)
+                                                      .acl(ObjectCannedACL.PUBLIC_READ)
+                                                      .build(),
+                                      RequestBody.fromBytes(DATA.getBytes())))
+              .ignoringException(NoSuchBucketException.class)
+              .orFail();
     }
 
     @AfterClass
@@ -207,7 +210,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
         Prediction prediction = Waiter.run(() -> client.predict(r -> r.predictEndpoint(uri).mlModelId(mlModelId).record(record)))
                                       .ignoringException(PredictorNotMountedException.class)
-                                      .orFailAfter(Duration.ofMinutes(5))
+                                      .orFailAfter(Duration.ofMinutes(10))
                                       .prediction();
 
         System.out.println(prediction.predictedLabel());
