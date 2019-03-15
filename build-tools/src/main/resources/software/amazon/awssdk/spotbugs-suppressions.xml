@@ -97,13 +97,13 @@
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.benchmark.dynamodb.V1DynamoDbAttributeValue$TestItemUnmarshalling" />
+        <Class name="software.amazon.awssdk.benchmark.marshaller.dynamodb.V1DynamoDbAttributeValue$TestItemUnmarshalling" />
         <Method name="utf8" />
         <Bug pattern="EI_EXPOSE_REP" />
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.benchmark.dynamodb.V2DynamoDbAttributeValue$TestItemUnmarshalling" />
+        <Class name="software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue$TestItemUnmarshalling" />
         <Method name="utf8" />
         <Bug pattern="EI_EXPOSE_REP" />
     </Match>
