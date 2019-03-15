@@ -13,12 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.apicall.protocol;
+package software.amazon.awssdk.benchmark.apicall.httpclient.sync;
 
-import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.ERROR_JSON_BODY;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.JSON_ALL_TYPES_REQUEST;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.JSON_BODY;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.CONCURRENT_CALLS;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
 
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -29,44 +31,68 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
+import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.benchmark.utils.MockHttpClient;
+import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
+import software.amazon.awssdk.benchmark.utils.MockServer;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
 /**
- * Benchmarking for running with different protocols.
+ * Benchmarking for running with different http clients.
  */
 @State(Scope.Benchmark)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class JsonProtocolBenchmark implements SdkProtocolBenchmark {
+public class UrlConnectionHttpClientBenchmark implements SdkHttpClientBenchmark {
 
+    private MockServer mockServer;
+    private SdkHttpClient sdkHttpClient;
     private ProtocolRestJsonClient client;
+    private ExecutorService executorService = Executors.newFixedThreadPool(CONCURRENT_CALLS);
 
     @Setup(Level.Trial)
-    public void setup() {
+    public void setup() throws Exception {
+        mockServer = new MockServer();
+        mockServer.start();
+        sdkHttpClient = UrlConnectionHttpClient.builder()
+                                               .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonClient.builder()
-                                       .httpClient(new MockHttpClient(JSON_BODY, ERROR_JSON_BODY))
+                                       .endpointOverride(mockServer.getHttpsUri())
+                                       .httpClient(sdkHttpClient)
                                        .build();
+        client.allTypes();
+    }
+
+    @TearDown(Level.Trial)
+    public void tearDown() throws Exception {
+        executorService.shutdown();
+        mockServer.stop();
+        sdkHttpClient.close();
+        client.close();
     }
 
     @Benchmark
-    public void successfulResponse(Blackhole blackhole) {
-        blackhole.consume(client.allTypes(JSON_ALL_TYPES_REQUEST));
+    @Override
+    public void sequentialApiCall(Blackhole blackhole) {
+        blackhole.consume(client.allTypes());
     }
 
     public static void main(String... args) throws Exception {
+
         Options opt = new OptionsBuilder()
-            .include(JsonProtocolBenchmark.class.getSimpleName())
+            .include(UrlConnectionHttpClientBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
-        new Runner(opt).run();
+        Collection<RunResult> run = new Runner(opt).run();
     }
 }
