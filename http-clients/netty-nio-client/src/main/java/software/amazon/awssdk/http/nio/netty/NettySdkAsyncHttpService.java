@@ -21,7 +21,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 
 /**
  * Service binding for the Netty default implementation. Allows SDK to pick this up automatically from the classpath.
- * test test
+ * test test test
  */
 @SdkPublicApi
 public class NettySdkAsyncHttpService implements SdkAsyncHttpService {
