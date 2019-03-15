@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
@@ -41,6 +42,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -133,6 +135,22 @@ public class PutObjectHeaderTest {
         putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().overrideConfiguration(b -> b.putHeader(CONTENT_TYPE, contentType)).build();
         s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
+    }
+
+    @Test
+    public void headObject_userMetadataReturnMixedCaseMetadata() {
+        String lowerCaseMetadataPrefix = "x-amz-meta-";
+        String mixedCaseMetadataPrefix = "X-AmZ-MEta-";
+        String metadataKey = "foo";
+        String mixedCaseMetadataKey = "bAr";
+
+        stubFor(any(urlMatching(".*"))
+                    .willReturn(response().withHeader(lowerCaseMetadataPrefix + metadataKey, "test")
+                                          .withHeader(mixedCaseMetadataPrefix + mixedCaseMetadataKey, "test")));
+        HeadObjectResponse headObjectResponse = s3Client.headObject(b -> b.key("key").bucket("bucket"));
+
+        assertThat(headObjectResponse.metadata()).containsKey(metadataKey);
+        assertThat(headObjectResponse.metadata()).containsKey(mixedCaseMetadataKey);
     }
 
     private ResponseDefinitionBuilder response() {

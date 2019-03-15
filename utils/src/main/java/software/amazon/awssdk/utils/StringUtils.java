@@ -578,4 +578,31 @@ public final class StringUtils {
             throw new UncheckedIOException("Cannot encode string.", e);
         }
     }
+
+    /**
+     * Tests if this string starts with the specified prefix ignoring case considerations.
+     *
+     * @param str the string to be tested
+     * @param prefix the prefix
+     * @return true if the string starts with the prefix ignoring case
+     */
+    public static boolean startsWithIgnoreCase(String str, String prefix) {
+        return str.regionMatches(true, 0, prefix, 0, prefix.length());
+    }
+
+    /**
+     * Replace the prefix of the string provided ignoring case considerations.
+     *
+     * <p>
+     * The unmatched part is unchanged.
+     *
+     *
+     * @param str the string to replace
+     * @param prefix the prefix to find
+     * @param replacement the replacement
+     * @return the replaced string
+     */
+    public static String replacePrefixIgnoreCase(String str, String prefix, String replacement) {
+        return str.replaceFirst("(?i)" + prefix, replacement);
+    }
 }

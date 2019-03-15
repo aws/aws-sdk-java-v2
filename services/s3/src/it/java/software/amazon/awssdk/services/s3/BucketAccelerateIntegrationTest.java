@@ -24,6 +24,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
@@ -49,10 +52,6 @@ import software.amazon.awssdk.testutils.retry.RetryableParams;
 /**
  * Integration tests for S3 bucket accelerate configuration.
  */
-// TODO: "These tests are a bit flaky. Looks like S3 returns 307 Temporary Redirect occasionally
-// for a newly accelerated bucket. Not sure what the right fix is without following redirects
-// which we don't want to do for other reasons.
-@Ignore
 public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
     private static final String US_BUCKET_NAME = temporaryBucketName("s3-accelerate-us-east-1");
@@ -70,6 +69,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                                    .serviceConfiguration(S3Configuration.builder()
                                                                         .accelerateModeEnabled(true)
                                                                         .build())
+                                   .overrideConfiguration(o -> o.addExecutionInterceptor(new AccelerateValidatingInterceptor()))
                                    .build();
 
         setUpBuckets();
@@ -82,47 +82,6 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
     private static void setUpBuckets() {
         createBucket(US_BUCKET_NAME);
-    }
-
-    @Test
-    public void testControlPlaneOperationsUnderAccelerateMode() throws Exception {
-        enableAccelerateOnBucket();
-
-        Tagging tags = Tagging.builder()
-                              .tagSet(Tag.builder()
-                                         .key("foo")
-                                         .value("bar")
-                                         .build())
-                              .build();
-
-        accelerateClient.putBucketTagging(PutBucketTaggingRequest.builder().bucket(US_BUCKET_NAME).tagging(tags).build());
-        accelerateClient.putBucketVersioning(PutBucketVersioningRequest.builder()
-                                                                       .bucket(US_BUCKET_NAME)
-                                                                       .versioningConfiguration(
-                                                                           VersioningConfiguration.builder()
-                                                                                                  .status("Enabled")
-                                                                                                  .build())
-                                                                       .build());
-
-        // Retry a couple of times due to eventual consistency
-        RetryableAssertion.doRetryableAssert(new AssertCallable() {
-            @Override
-            public void doAssert() {
-                List<Tag> taggingConfiguration = accelerateClient
-                    .getBucketTagging(GetBucketTaggingRequest.builder().bucket(US_BUCKET_NAME).build()).tagSet();
-
-                assertEquals("foo", taggingConfiguration.get(0).key());
-                assertEquals("bar", taggingConfiguration.get(0).value());
-            }
-        }, new RetryableParams().withMaxAttempts(30).withDelayInMs(200));
-
-        assertEquals(BucketVersioningStatus.ENABLED,
-                     accelerateClient.getBucketVersioning(GetBucketVersioningRequest.builder()
-                                                                                    .bucket(US_BUCKET_NAME)
-                                                                                    .build())
-                                     .status());
-
-        accelerateClient.deleteBucketTagging(DeleteBucketTaggingRequest.builder().bucket(US_BUCKET_NAME).build());
     }
 
     @Test
@@ -166,11 +125,15 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
         // PutObject
         File uploadFile = new RandomTempFile(KEY_NAME, 1000);
-        accelerateClient.putObject(PutObjectRequest.builder()
-                                                   .bucket(US_BUCKET_NAME)
-                                                   .key(KEY_NAME)
-                                                   .build(),
-                                   RequestBody.fromFile(uploadFile));
+        try {
+            accelerateClient.putObject(PutObjectRequest.builder()
+                                                       .bucket(US_BUCKET_NAME)
+                                                       .key(KEY_NAME)
+                                                       .build(),
+                                       RequestBody.fromFile(uploadFile));
+        } catch (Exception e) {
+            // We really only need to verify the request is using the accelerate endpoint
+        }
     }
 
     private void enableAccelerateOnBucket() throws InterruptedException {
@@ -202,6 +165,16 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         } catch (Exception e) {
             throw e;
             //fail("Exception is not expected!");
+        }
+    }
+
+    private static final class AccelerateValidatingInterceptor implements ExecutionInterceptor {
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+        if (!(context.request() instanceof ListBucketsRequest)) {
+            assertEquals(context.httpRequest().host(), US_BUCKET_NAME + ".s3-accelerate.amazonaws.com");
+        }
         }
     }
 }
