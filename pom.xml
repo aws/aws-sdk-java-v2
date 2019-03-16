@@ -974,7 +974,7 @@
                                     <packages>software.amazon.awssdk*</packages>
                                 </group>
                             </groups>
-                            <bottom><![CDATA[Copyright &#169; 2017 Amazon Web Services, Inc. All Rights Reserved.]]></bottom>
+                            <bottom><![CDATA[Copyright &#169; 2019 Amazon Web Services, Inc. All Rights Reserved.]]></bottom>
                         </configuration>
                     </plugin>
                 </plugins>
