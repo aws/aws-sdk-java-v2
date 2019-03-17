@@ -1,0 +1,51 @@
+{
+    "date": "2019-03-14",
+    "version": "2.5.10",
+    "entries": [
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Fix a possible `NullPointerException` if `HttpOrHttp2ChannelPool` is closed while the protocol is still being determined. The operation is now done synchronously with other operations on the pool to prevent a data race."
+        },
+        {
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "type": "feature",
+            "description": "AWS Certificate Manager (ACM) Private CA allows customers to manage permissions on their CAs. Customers can grant or deny AWS Certificate Manager permission to renew exported private certificates."
+        },
+        {
+            "category": "Amazon SageMaker Service",
+            "type": "feature",
+            "description": "Amazon SageMaker Automatic Model Tuning now supports random search and hyperparameter scaling."
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "This release adds tagging support for Dedicated Host Reservations."
+        },
+        {
+            "category": "AWS IoT",
+            "type": "feature",
+            "description": "In this release, AWS IoT introduces support for tagging OTA Update and Stream resources. For more information about tagging, see the AWS IoT Developer Guide."
+        },
+        {
+            "category": "AWS Certificate Manager",
+            "type": "feature",
+            "description": "AWS Certificate Manager has added a new API action, RenewCertificate. RenewCertificate causes ACM to force the renewal of any private certificate which has been exported."
+        },
+        {
+            "category": "Amazon CloudWatch",
+            "type": "feature",
+            "description": "New Messages parameter for the output of GetMetricData, to support new metric search functionality."
+        },
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Backport `FixedChannelPool` fix from https://github.com/netty/netty/pull/7927, which ensures that the operation doesn't become blocked from closing the wrapped pool."
+        },
+        {
+            "category": "AWS Config",
+            "type": "feature",
+            "description": "AWS Config - add ability to tag, untag and list tags for ConfigRule, ConfigurationAggregator and AggregationAuthorization resource types. Tags can be used for various scenarios including tag based authorization."
+        }
+    ]
+}

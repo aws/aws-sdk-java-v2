@@ -310,5 +310,29 @@
         "stringMember": ""
       }
     }
+  },
+  {
+    "description": "Map headers are unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-amz-meta-FoO": "foo",
+          "X-aMZ-mEtA-bAr": "bar"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "MetadataMember": {
+          "FoO": "foo",
+          "bAr": "bar"
+        }
+      }
+    }
   }
 ]
