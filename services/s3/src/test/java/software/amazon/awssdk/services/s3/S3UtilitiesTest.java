@@ -23,6 +23,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
@@ -49,13 +50,13 @@ public class S3UtilitiesTest {
     @BeforeClass
     public static void setup() {
         defaultClient = S3Client.builder()
-                                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                .credentialsProvider(dummyCreds())
                                 .region(Region.US_WEST_2)
                                 .build();
         defaultUtilities = defaultClient.utilities();
 
         asyncClient = S3AsyncClient.builder()
-                                   .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                   .credentialsProvider(dummyCreds())
                                    .region(Region.AP_NORTHEAST_2)
                                    .build();
         utilitiesFromAsyncClient = asyncClient.utilities();
@@ -131,6 +132,8 @@ public class S3UtilitiesTest {
     @Test
     public void testWithAccelerateAndDualStackEnabled() throws MalformedURLException {
         S3Utilities utilities = S3Client.builder()
+                                        .credentialsProvider(dummyCreds())
+                                        .region(Region.US_WEST_2)
                                         .serviceConfiguration(ACCELERATE_AND_DUALSTACK_ENABLED)
                                         .build()
                                         .utilities();
@@ -168,5 +171,9 @@ public class S3UtilitiesTest {
                             .bucket("foo-bucket")
                             .key("key with@spaces")
                             .build();
+    }
+
+    private static AwsCredentialsProvider dummyCreds() {
+        return StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
     }
 }
