@@ -20,7 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.MalformedURLException;
 import java.net.URI;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 
@@ -37,11 +40,26 @@ public class S3UtilitiesTest {
                                                                    .pathStyleAccessEnabled(true)
                                                                    .build();
 
-    private static final S3Client defaultClient = S3Client.create();
-    private static final S3Utilities defaultUtilities = defaultClient.utilities();
+    private static S3Client defaultClient;
+    private static S3Utilities defaultUtilities;
 
-    private static final S3AsyncClient asyncClient = S3AsyncClient.builder().region(Region.AP_NORTHEAST_2).build();
-    private static final S3Utilities utilitiesFromAsyncClient = asyncClient.utilities();
+    private static S3AsyncClient asyncClient;
+    private static S3Utilities utilitiesFromAsyncClient;
+
+    @BeforeClass
+    public static void setup() {
+        defaultClient = S3Client.builder()
+                                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                .region(Region.US_WEST_2)
+                                .build();
+        defaultUtilities = defaultClient.utilities();
+
+        asyncClient = S3AsyncClient.builder()
+                                   .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                   .region(Region.AP_NORTHEAST_2)
+                                   .build();
+        utilitiesFromAsyncClient = asyncClient.utilities();
+    }
 
     @AfterClass
     public static void cleanup() {
