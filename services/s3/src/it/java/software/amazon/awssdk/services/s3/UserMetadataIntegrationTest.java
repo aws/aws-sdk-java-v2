@@ -36,6 +36,8 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
      * The S3 bucket created and used by these tests.
      */
     private static final String BUCKET_NAME = temporaryBucketName("user-metadata-integ-test");
+
+    private static final String KEY = "UserMetadataIntegrationTest";
     /**
      * Length of the data uploaded to S3.
      */
@@ -54,6 +56,10 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
         createBucket(BUCKET_NAME);
 
         file = new RandomTempFile("user-metadata-integ-test-" + new Date().getTime(), CONTENT_LENGTH);
+        s3.putObject(PutObjectRequest.builder()
+                                     .bucket(BUCKET_NAME)
+                                     .key(KEY)
+                                     .build(), file.toPath());
     }
 
     @AfterClass
@@ -67,11 +73,15 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
         userMetadata.put("thing1", "IAmThing1");
         userMetadata.put("thing2", "IAmThing2");
 
+        String mixedCasePrefix = "x-AmZ-mEtA-";
+        String metadataKey = "test";
+
         final String key = "user-metadata-key";
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET_NAME)
                                      .key(key)
                                      .metadata(userMetadata)
+                                     .overrideConfiguration(b -> b.putHeader(mixedCasePrefix + metadataKey, "test"))
                                      .build(),
                      RequestBody.fromFile(file));
 
@@ -83,5 +93,6 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
         Map<String, String> returnedMetadata = response.metadata();
 
         assertThat(returnedMetadata).containsAllEntriesOf(userMetadata);
+        assertThat(returnedMetadata).containsKey(metadataKey);
     }
 }
