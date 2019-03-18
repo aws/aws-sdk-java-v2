@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic Compute Cloud", 
+    "type": "feature", 
+    "description": "DescribeFpgaImages API now returns a new DataRetentionSupport attribute to indicate if the AFI meets the requirements to support DRAM data retention. DataRetentionSupport is a read-only attribute."
+}
