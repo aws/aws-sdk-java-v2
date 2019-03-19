@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -84,7 +85,7 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(Path path) {
-        return new RequestBody(() -> invokeSafely(() -> Files.newInputStream(path)),
+        return new RequestBody(new FileContentStreamProvider(path),
                                invokeSafely(() -> Files.size(path)),
                                Mimetype.getInstance().getMimetype(path));
     }

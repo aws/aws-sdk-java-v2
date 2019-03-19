@@ -22,8 +22,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * Provides the content stream of a request.
  * <p>
  * Each call to to the {@link #newStream()} method must result in a stream whose position is at the beginning of the content.
- * Implementations are not required to return the same instance for each call, and may close or otherwise discard the stream
- * returned from the previous invocation.
+ * Implementations may return a new stream or the same stream for each call. If returning a new stream, the implementation
+ * must ensure to {@code close()} and free any resources acquired by the previous stream. The last stream returned by {@link
+ * #newStream()}} will be closed by the SDK.
  *
  */
 @SdkPublicApi
