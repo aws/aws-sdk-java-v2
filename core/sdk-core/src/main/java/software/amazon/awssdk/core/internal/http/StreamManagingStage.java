@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
+import java.io.InputStream;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -43,16 +47,44 @@ public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHt
 
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+        ClosingStreamProvider toBeClosed = null;
         if (request.contentStreamProvider().isPresent()) {
-            request = request.toBuilder()
-                             .contentStreamProvider(createManagedStream(request.contentStreamProvider().get())).build();
+            toBeClosed = createManagedProvider(request.contentStreamProvider().get());
+            request = request.toBuilder().contentStreamProvider(toBeClosed).build();
         }
-        InterruptMonitor.checkInterrupted();
-        return wrapped.execute(request, context);
+        try {
+            InterruptMonitor.checkInterrupted();
+            return wrapped.execute(request, context);
+        } finally {
+            if (toBeClosed != null) {
+                toBeClosed.closeCurrentStream();
+            }
+        }
     }
 
-    private static ContentStreamProvider createManagedStream(ContentStreamProvider contentStreamProvider) {
-        return () -> ReleasableInputStream.wrap(contentStreamProvider.newStream()).disableClose();
+    private static ClosingStreamProvider createManagedProvider(ContentStreamProvider contentStreamProvider) {
+        return new ClosingStreamProvider(contentStreamProvider);
     }
 
+    private static class ClosingStreamProvider implements ContentStreamProvider {
+        private final ContentStreamProvider wrapped;
+        private InputStream currentStream;
+
+        ClosingStreamProvider(ContentStreamProvider wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public InputStream newStream() {
+            currentStream = wrapped.newStream();
+            return ReleasableInputStream.wrap(currentStream).disableClose();
+        }
+
+        void closeCurrentStream() {
+            if (currentStream != null) {
+                invokeSafely(currentStream::close);
+                currentStream = null;
+            }
+        }
+    }
 }
