@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public enum JavaSystemSetting implements SystemSetting {
     JAVA_VERSION("java.version"),
+    JAVA_VENDOR("java.vendor"),
     TEMP_DIRECTORY("java.io.tmpdir"),
     JAVA_VM_NAME("java.vm.name"),
     JAVA_VM_VERSION("java.vm.version"),

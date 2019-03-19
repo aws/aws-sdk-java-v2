@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Adds the Java vendor the user agent as well as using the updated user agent for all HTTP calls"
+}
