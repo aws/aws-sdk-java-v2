@@ -1,0 +1,31 @@
+{
+    "date": "2019-03-19",
+    "version": "2.5.12",
+    "entries": [
+        {
+            "category": "Amazon S3",
+            "type": "feature",
+            "description": "Add support for getUrl operation. The API can be used to generate a URL that represents an object in Amazon S3. The url can only be used to download the object content if the object has public read permissions. Original issue: https://github.com/aws/aws-sdk-java-v2/issues/860"
+        },
+        {
+            "category": "Amazon Elastic Container Service for Kubernetes",
+            "type": "feature",
+            "description": "Added support to control private/public access to the Kubernetes API-server endpoint"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Adds the Java vendor the user agent as well as using the updated user agent for all HTTP calls"
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Only set content type of S3 `CreateMultipartUploadRequest` if `Content-Type` header is not present and honor the overridden content type."
+        },
+        {
+            "category": "AWS Config",
+            "type": "feature",
+            "description": "AWS Config adds a new API called SelectResourceConfig to run advanced queries based on resource configuration properties."
+        }
+    ]
+}
