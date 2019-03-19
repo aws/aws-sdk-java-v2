@@ -154,6 +154,11 @@ public class CustomizationConfig {
      */
     private Map<String, String> paginationCustomization;
 
+    /**
+     * Config to generate a utilities() in the low-level client
+     */
+    private UtilitiesMethod utilitiesMethod;
+
     private CustomizationConfig() {
     }
 
@@ -392,5 +397,13 @@ public class CustomizationConfig {
 
     public void setPaginationCustomization(Map<String, String> paginationCustomization) {
         this.paginationCustomization = paginationCustomization;
+    }
+
+    public UtilitiesMethod getUtilitiesMethod() {
+        return utilitiesMethod;
+    }
+
+    public void setUtilitiesMethod(UtilitiesMethod utilitiesMethod) {
+        this.utilitiesMethod = utilitiesMethod;
     }
 }

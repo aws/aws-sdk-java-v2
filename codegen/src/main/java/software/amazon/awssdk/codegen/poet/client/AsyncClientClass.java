@@ -44,6 +44,7 @@ import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonMarshaller;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -113,6 +114,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         if (model.containsRequestSigners() || model.containsRequestEventStreams()) {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
+        if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
+            classBuilder.addMethod(utilitiesMethod());
         }
 
         model.getEndpointOperation().ifPresent(
@@ -281,5 +286,19 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     private TypeName eventStreamType(ShapeModel shapeModel) {
         return poetExtensions.getModelClass(shapeModel.getShapeName());
+    }
+
+    private MethodSpec utilitiesMethod() {
+        UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
+        ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+
+        return MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addStatement("return $T.create($L)",
+                                       returnType,
+                                       config.getCreateMethodParams().stream().collect(Collectors.joining(",")))
+                         .build();
     }
 }

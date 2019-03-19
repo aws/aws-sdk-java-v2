@@ -33,7 +33,8 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
 public final class UserAgentUtils {
 
     private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm"
-                                            + ".version} Java/{java.version}{language.and.region}{additional.languages}";
+                                            + ".version} Java/{java.version}{language.and.region}{additional.languages} "
+                                            + "vendor/{java.vendor}";
 
     /** Disallowed characters in the user agent token: @see <a href="https://tools.ietf.org/html/rfc7230#section-3.2.6">RFC 7230</a> */
     private static final String UA_BLACKLIST_REGEX = "[() ,/:;<=>?@\\[\\]{}\\\\]";
@@ -84,6 +85,7 @@ public final class UserAgentUtils {
                 .replace("{java.vm.name}", sanitizeInput(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)))
                 .replace("{java.vm.version}", sanitizeInput(JavaSystemSetting.JAVA_VM_VERSION.getStringValue().orElse(null)))
                 .replace("{java.version}", sanitizeInput(JavaSystemSetting.JAVA_VERSION.getStringValue().orElse(null)))
+                .replace("{java.vendor}", sanitizeInput(JavaSystemSetting.JAVA_VENDOR.getStringValue().orElse(null)))
                 .replace("{additional.languages}", getAdditionalJvmLanguages());
 
         Optional<String> language = JavaSystemSetting.USER_LANGUAGE.getStringValue();

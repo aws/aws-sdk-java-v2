@@ -1287,4 +1287,11 @@ public interface JsonClient extends SdkClient {
     static ServiceMetadata serviceMetadata() {
         return ServiceMetadata.of("json-service");
     }
+
+    /**
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
+     */
+    default JsonUtilities utilities() {
+        throw new UnsupportedOperationException();
+    }
 }
