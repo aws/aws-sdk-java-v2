@@ -18,7 +18,7 @@ package software.amazon.awssdk.buildtools.checkstyle;
 import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
-import com.puppycrawl.tools.checkstyle.utils.ScopeUtils;
+import com.puppycrawl.tools.checkstyle.utils.ScopeUtil;
 
 /**
  * A rule that disallows unnecessary 'final' on local variables
@@ -42,8 +42,8 @@ public class UnnecessaryFinalOnLocalVariableCheck extends AbstractCheck {
 
     @Override
     public void visitToken(DetailAST ast) {
-        if (ScopeUtils.isLocalVariableDef(ast) && ast.findFirstToken(TokenTypes.MODIFIERS)
-                                                     .findFirstToken(TokenTypes.FINAL) != null) {
+        if (ScopeUtil.isLocalVariableDef(ast) && ast.findFirstToken(TokenTypes.MODIFIERS)
+                                                    .findFirstToken(TokenTypes.FINAL) != null) {
             log(ast, "final should be removed from local variable");
         }
     }

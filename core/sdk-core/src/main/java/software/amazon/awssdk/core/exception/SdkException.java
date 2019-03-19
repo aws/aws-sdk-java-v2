@@ -33,6 +33,10 @@ public class SdkException extends RuntimeException {
         super(builder.message(), builder.cause());
     }
 
+    public static SdkException create(String message, Throwable cause) {
+        return SdkException.builder().message(message).cause(cause).build();
+    }
+
     /**
      * Specifies whether or not an exception can be expected to succeed on a retry.
      */
