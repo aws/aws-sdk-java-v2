@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic Container Service for Kubernetes", 
-    "type": "feature", 
-    "description": "Added support to control private/public access to the Kubernetes API-server endpoint"
-}

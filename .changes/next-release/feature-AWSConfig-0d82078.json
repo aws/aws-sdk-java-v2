@@ -1,5 +1,0 @@
-{
-    "category": "AWS Config", 
-    "type": "feature", 
-    "description": "AWS Config adds a new API called SelectResourceConfig to run advanced queries based on resource configuration properties."
-}
