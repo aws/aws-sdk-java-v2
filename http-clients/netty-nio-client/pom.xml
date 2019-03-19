@@ -137,6 +137,11 @@
             <artifactId>log4j</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

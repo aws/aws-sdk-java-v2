@@ -309,6 +309,12 @@
                 <version>${jimfs.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-tcnative-boringssl-static</artifactId>
+                <version>${netty-open-ssl-version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
