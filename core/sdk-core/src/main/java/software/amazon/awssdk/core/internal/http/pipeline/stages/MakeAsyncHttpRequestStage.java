@@ -207,9 +207,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         /**
          * @param responseFuture the response future to be returned from
-         * {@link #executeHttpRequest(SdkHttpFullRequest, RequestExecutionContext)}
-         * @param transformFuture the transformFuture returned from {@link #responseHandler#prepare()}
-         * @param errorTransformFuture the error transform future returned from {@link #errorResponseHandler#prepare()}
+         * {@link MakeAsyncHttpRequestStage#executeHttpRequest(SdkHttpFullRequest, RequestExecutionContext)}
+         * @param transformFuture the transformFuture returned from {@link MakeAsyncHttpRequestStage#responseHandler#prepare()}
+         * @param errorTransformFuture the error transform future returned from
+         * {@link MakeAsyncHttpRequestStage#errorResponseHandler#prepare()}
          */
         ResponseHandler(CompletableFuture<Response<OutputT>> responseFuture,
                         CompletableFuture<OutputT> transformFuture,

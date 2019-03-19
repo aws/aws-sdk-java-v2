@@ -66,7 +66,8 @@ public final class ApiCallTimeoutTrackingStage<OutputT> implements RequestToResp
     /**
      * Start and end client execution timer around the execution of the request. It's important
      * that the client execution task is canceled before the InterruptedException is handled by
-     * {@link #wrapped#execute(SdkHttpFullRequest)} so the interrupt status doesn't leak out to the callers code
+     * {@link ApiCallTimeoutTrackingStage#wrapped#execute(SdkHttpFullRequest)} so the interrupt status
+     * doesn't leak out to the callers code
      */
     private Response<OutputT> executeWithTimer(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
 

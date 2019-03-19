@@ -18,8 +18,8 @@ package software.amazon.awssdk.buildtools.checkstyle;
 import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
-import com.puppycrawl.tools.checkstyle.utils.AnnotationUtility;
-import com.puppycrawl.tools.checkstyle.utils.ScopeUtils;
+import com.puppycrawl.tools.checkstyle.utils.AnnotationUtil;
+import com.puppycrawl.tools.checkstyle.utils.ScopeUtil;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class MissingSdkAnnotationCheck extends AbstractCheck {
 
     @Override
     public void visitToken(DetailAST ast) {
-        if (!ScopeUtils.isOuterMostType(ast) || SDK_ANNOTATIONS.stream().anyMatch(a -> AnnotationUtility.containsAnnotation
+        if (!ScopeUtil.isOuterMostType(ast) || SDK_ANNOTATIONS.stream().anyMatch(a -> AnnotationUtil.containsAnnotation
             (ast, a))) {
             return;
         }
