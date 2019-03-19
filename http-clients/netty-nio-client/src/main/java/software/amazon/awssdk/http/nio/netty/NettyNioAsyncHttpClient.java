@@ -38,6 +38,7 @@ import io.netty.channel.pool.SimpleChannelPool;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
@@ -90,6 +91,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final SdkChannelOptions sdkChannelOptions;
     private final NettyConfiguration configuration;
     private final long maxStreams;
+    private SslProvider sslProvider;
     private Protocol protocol;
 
     NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
@@ -99,6 +101,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
         this.sdkChannelOptions = channelOptions(builder);
+        this.sslProvider = resolveSslProvider(builder);
     }
 
     @SdkTestInternalApi
@@ -112,6 +115,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.sdkChannelOptions = sdkChannelOptions;
         this.configuration = configuration;
         this.maxStreams = maxStreams;
+        this.sslProvider = SslContext.defaultClientProvider();
     }
 
     @Override
@@ -152,13 +156,21 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         }
         try {
             return SslContextBuilder.forClient()
-                                    .sslProvider(SslContext.defaultClientProvider())
+                                    .sslProvider(sslProvider)
                                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                                     .trustManager(getTrustManager())
                                     .build();
         } catch (SSLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private SslProvider resolveSslProvider(DefaultBuilder builder) {
+        if (builder.sslProvider != null) {
+            return builder.sslProvider;
+        }
+
+        return SslContext.defaultClientProvider();
     }
 
     private TrustManagerFactory getTrustManager() {
@@ -399,6 +411,19 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return This builder for method chaining.
          */
         Builder maxHttp2Streams(Integer maxHttp2Streams);
+
+        /**
+         * Sets the {@link SslProvider} to be used in the Netty client.
+         *
+         * <p>If not configured, {@link SslContext#defaultClientProvider()} will be used to determine the SslProvider.
+         *
+         * <p>Note that you might need to add other dependencies if not using JDK's default Ssl Provider.
+         * See https://netty.io/wiki/requirements-for-4.x.html#transport-security-tls
+         *
+         * @param sslProvider the SslProvider
+         * @return the builder of the method chaining.
+         */
+        Builder sslProvider(SslProvider sslProvider);
     }
 
     /**
@@ -414,6 +439,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
         private Integer maxHttp2Streams;
+        private SslProvider sslProvider;
 
         private DefaultBuilder() {
         }
@@ -558,6 +584,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setMaxHttp2Streams(Integer maxHttp2Streams) {
             maxHttp2Streams(maxHttp2Streams);
+        }
+
+        @Override
+        public Builder sslProvider(SslProvider sslProvider) {
+            this.sslProvider = sslProvider;
+            return this;
+        }
+
+        public void setSslProvider(SslProvider sslProvider) {
+            sslProvider(sslProvider);
         }
 
         @Override
