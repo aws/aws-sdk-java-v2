@@ -45,11 +45,15 @@ public class CreateMultipartUploadRequestInterceptor implements ExecutionInterce
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
         if (context.request() instanceof CreateMultipartUploadRequest) {
-            return context.httpRequest()
-                          .toBuilder()
-                          .putHeader(CONTENT_LENGTH, String.valueOf(0))
-                          .putHeader(CONTENT_TYPE, "binary/octet-stream")
-                          .build();
+            SdkHttpRequest.Builder builder = context.httpRequest()
+                                                    .toBuilder()
+                                                    .putHeader(CONTENT_LENGTH, String.valueOf(0));
+
+            if (!context.httpRequest().firstMatchingHeader(CONTENT_TYPE).isPresent()) {
+                builder.putHeader(CONTENT_TYPE, "binary/octet-stream");
+            }
+
+            return builder.build();
         }
 
         return context.httpRequest();
