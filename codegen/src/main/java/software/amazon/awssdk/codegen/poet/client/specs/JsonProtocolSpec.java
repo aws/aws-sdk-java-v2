@@ -124,7 +124,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
     public CodeBlock responseHandler(IntermediateModel model, OperationModel opModel) {
         TypeName pojoResponseType = getPojoResponseType(opModel);
 
-        String protocolFactory = protocolFactoryLiteral(opModel);
+        String protocolFactory = protocolFactoryLiteral(model, opModel);
         CodeBlock.Builder builder = CodeBlock.builder();
         builder.add("$T operationMetadata = $T.builder()\n"
                     + ".hasStreamingSuccessResponse($L)\n"
@@ -145,7 +145,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock errorResponseHandler(OperationModel opModel) {
-        String protocolFactory = protocolFactoryLiteral(opModel);
+        String protocolFactory = protocolFactoryLiteral(model, opModel);
 
         return CodeBlock
             .builder()
@@ -229,7 +229,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
 
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
-        String protocolFactory = protocolFactoryLiteral(opModel);
+        String protocolFactory = protocolFactoryLiteral(intermediateModel, opModel);
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         TypeName responseType = opModel.hasEventStreamOutput() && !isRestJson ? ClassName.get(SdkResponse.class)
                                                                               : pojoResponseType;
@@ -449,13 +449,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     + ".build());\n", eventStreamBaseClass);
     }
 
-    private String protocolFactoryLiteral(OperationModel opModel) {
-        // TODO Fix once below kinesis TODO is done
-        if (opModel.hasEventStreamInput() && opModel.hasEventStreamOutput()) {
-            return "protocolFactory";
-
-            // TODO remove this once kinesis supports CBOR for event streaming
-        } else if (opModel.hasEventStreamOutput()) {
+    private String protocolFactoryLiteral(IntermediateModel model, OperationModel opModel) {
+        // TODO remove this once kinesis supports CBOR for event streaming
+        if ("Kinesis".equals(model.getMetadata().getServiceId()) && opModel.hasEventStreamOutput()) {
             return "jsonProtocolFactory";
         }
 

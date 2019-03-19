@@ -97,6 +97,8 @@ public class Metadata {
 
     private boolean supportsH2;
 
+    private String serviceId;
+
     public String getApiVersion() {
         return apiVersion;
     }
@@ -167,12 +169,12 @@ public class Metadata {
     }
 
     public void setDefaultEndpointWithoutHttpProtocol(
-            String defaultEndpointWithoutHttpProtocol) {
+        String defaultEndpointWithoutHttpProtocol) {
         this.defaultEndpointWithoutHttpProtocol = defaultEndpointWithoutHttpProtocol;
     }
 
     public Metadata withDefaultEndpointWithoutHttpProtocol(
-            String defaultEndpointWithoutHttpProtocol) {
+        String defaultEndpointWithoutHttpProtocol) {
         setDefaultEndpointWithoutHttpProtocol(defaultEndpointWithoutHttpProtocol);
         return this;
     }
@@ -634,7 +636,25 @@ public class Metadata {
         return supportsH2;
     }
 
-    public void withSupportsH2(boolean supportsH2) {
+    public void setSupportsH2(boolean supportsH2) {
         this.supportsH2 = supportsH2;
+    }
+
+    public Metadata withSupportsH2(boolean supportsH2) {
+        setSupportsH2(supportsH2);
+        return this;
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
+
+    public Metadata withServiceId(String serviceId) {
+        setServiceId(serviceId);
+        return this;
     }
 }
