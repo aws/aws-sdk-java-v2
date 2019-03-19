@@ -18,7 +18,7 @@ package software.amazon.awssdk.buildtools.checkstyle;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 import com.puppycrawl.tools.checkstyle.checks.naming.MethodNameCheck;
-import com.puppycrawl.tools.checkstyle.utils.AnnotationUtility;
+import com.puppycrawl.tools.checkstyle.utils.AnnotationUtil;
 
 /**
  * Sdk Method Name check to check only public methods in the classes with {@code @SdkPublicApi} annotation.
@@ -55,8 +55,8 @@ public final class SdkPublicMethodNameCheck extends MethodNameCheck {
         DetailAST classDef = ast.getParent().getParent();
 
         try {
-            if (!AnnotationUtility.containsAnnotation(ast, OVERRIDE)
-                && AnnotationUtility.containsAnnotation(classDef, SDK_PUBLIC_API)) {
+            if (!AnnotationUtil.containsAnnotation(ast, OVERRIDE)
+                && AnnotationUtil.containsAnnotation(classDef, SDK_PUBLIC_API)) {
                 super.visitToken(ast);
             }
         } catch (NullPointerException ex) {

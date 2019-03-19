@@ -847,6 +847,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
+    @Override
+    public JsonUtilities utilities() {
+        return JsonUtilities.create(param1, param2, param3);
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
             JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);

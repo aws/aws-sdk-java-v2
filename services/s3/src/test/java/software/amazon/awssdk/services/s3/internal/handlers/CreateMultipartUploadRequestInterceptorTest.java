@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.sdkHttpFullRequest;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -53,6 +54,20 @@ public class CreateMultipartUploadRequestInterceptorTest {
         assertThat(httpRequest).isNotEqualTo(modifyHttpRequest.httpRequest());
         assertThat(httpRequest.headers()).containsEntry(CONTENT_LENGTH, Collections.singletonList("0"));
         assertThat(httpRequest.headers()).containsEntry(CONTENT_TYPE, Collections.singletonList("binary/octet-stream"));
+    }
+
+    @Test
+    public void createMultipartRequest_contentTypePresent_shouldNotModifyContentType() {
+        String overrideContentType = "application/json";
+        Context.ModifyHttpRequest modifyHttpRequest =
+            InterceptorTestUtils.modifyHttpRequestContext(CreateMultipartUploadRequest.builder().build(),
+                                                          sdkHttpFullRequest().toBuilder()
+                                                                              .putHeader(CONTENT_TYPE, overrideContentType).build());
+
+        SdkHttpRequest httpRequest = interceptor.modifyHttpRequest(modifyHttpRequest, new ExecutionAttributes());
+        assertThat(httpRequest).isNotEqualTo(modifyHttpRequest.httpRequest());
+        assertThat(httpRequest.headers()).containsEntry(CONTENT_LENGTH, Collections.singletonList("0"));
+        assertThat(httpRequest.headers()).containsEntry(CONTENT_TYPE, Collections.singletonList(overrideContentType));
     }
 
     @Test

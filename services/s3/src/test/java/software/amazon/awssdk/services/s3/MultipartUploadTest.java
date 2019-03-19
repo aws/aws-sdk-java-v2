@@ -79,4 +79,17 @@ public class MultipartUploadTest {
         verify(anyRequestedFor(anyUrl()).withQueryParam("uploads", containing("")));
         verify(anyRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("binary/octet-stream")));
     }
+
+    @Test
+    public void createMultipartUpload_overrideContentType() {
+        String overrideContentType = "application/html";
+        stubFor(any(urlMatching(".*"))
+                    .willReturn(aResponse().withStatus(200).withBody("<xml></xml>")));
+        s3Client.createMultipartUpload(b -> b.key("key")
+                                             .bucket("bucket")
+                                             .overrideConfiguration(c -> c.putHeader(CONTENT_TYPE, overrideContentType)));
+
+        verify(anyRequestedFor(anyUrl()).withQueryParam("uploads", containing("")));
+        verify(anyRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(overrideContentType)));
+    }
 }

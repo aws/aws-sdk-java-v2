@@ -1,3 +1,23 @@
+# __2.5.12__ __2019-03-19__
+## __AWS Config__
+  - ### Features
+    - AWS Config adds a new API called SelectResourceConfig to run advanced queries based on resource configuration properties.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds the Java vendor the user agent as well as using the updated user agent for all HTTP calls
+
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Added support to control private/public access to the Kubernetes API-server endpoint
+
+## __Amazon S3__
+  - ### Features
+    - Add support for getUrl operation. The API can be used to generate a URL that represents an object in Amazon S3. The url can only be used to download the object content if the object has public read permissions. Original issue: https://github.com/aws/aws-sdk-java-v2/issues/860
+
+  - ### Bugfixes
+    - Only set content type of S3 `CreateMultipartUploadRequest` if `Content-Type` header is not present and honor the overridden content type.
+
 # __2.5.11__ __2019-03-18__
 ## __AWS Database Migration Service__
   - ### Features
