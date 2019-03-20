@@ -43,6 +43,7 @@ public final class AwsErrorCode {
         throttlingErrorCodes.add("RequestLimitExceeded");
         throttlingErrorCodes.add("BandwidthLimitExceeded");
         throttlingErrorCodes.add("RequestThrottled");
+        throttlingErrorCodes.add("RequestThrottledException");
         THROTTLING_ERROR_CODES = unmodifiableSet(throttlingErrorCodes);
 
         Set<String> definiteClockSkewErrorCodes = new HashSet<>(3);
