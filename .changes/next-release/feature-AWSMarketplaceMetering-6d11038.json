@@ -1,0 +1,5 @@
+{
+    "category": "AWSMarketplace Metering", 
+    "type": "feature", 
+    "description": "This release increases AWS Marketplace Metering Service maximum usage quantity to 2147483647 and makes parameters usage quantity and dryrun optional."
+}
