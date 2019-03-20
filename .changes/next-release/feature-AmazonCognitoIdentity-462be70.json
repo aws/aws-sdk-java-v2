@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Cognito Identity", 
+    "type": "feature", 
+    "description": "This release adds tags and tag-based access control support to Amazon Cognito Identity Pools (Federated Identities)."
+}
