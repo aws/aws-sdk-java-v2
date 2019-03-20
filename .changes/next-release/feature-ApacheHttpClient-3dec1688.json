@@ -1,0 +1,5 @@
+{
+  "category": "Apache Http Client",
+  "type": "feature",
+  "description": "Add the ability to set a custom Apache HttpRoutePlanner and CredentialProvider"
+}

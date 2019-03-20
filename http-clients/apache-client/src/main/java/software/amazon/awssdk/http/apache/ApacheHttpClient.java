@@ -46,6 +46,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -53,6 +54,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -143,7 +145,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm));
 
-        addProxyConfig(builder, configuration.proxyConfiguration);
+        addProxyConfig(builder, configuration);
 
         if (useIdleConnectionReaper(standardOptions)) {
             IdleConnectionReaper.getInstance().registerConnectionManager(
@@ -154,19 +156,34 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private void addProxyConfig(HttpClientBuilder builder,
-                                ProxyConfiguration proxyConfiguration) {
+                                DefaultBuilder configuration) {
+        ProxyConfiguration proxyConfiguration = configuration.proxyConfiguration;
+
+        Validate.isTrue(configuration.httpRoutePlanner == null || !isProxyEnabled(proxyConfiguration),
+                        "The httpRoutePlanner and proxyConfiguration can't both be configured.");
+        Validate.isTrue(configuration.credentialsProvider == null || !isAuthenticatedProxy(proxyConfiguration),
+                        "The credentialsProvider and proxyConfiguration username/password can't both be configured.");
+
+        HttpRoutePlanner routePlanner = configuration.httpRoutePlanner;
         if (isProxyEnabled(proxyConfiguration)) {
-
             log.debug(() -> "Configuring Proxy. Proxy Host: " + proxyConfiguration.host());
+            routePlanner = new SdkProxyRoutePlanner(proxyConfiguration.host(),
+                                                    proxyConfiguration.port(),
+                                                    proxyConfiguration.scheme(),
+                                                    proxyConfiguration.nonProxyHosts());
+        }
 
-            builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.host(),
-                                                             proxyConfiguration.port(),
-                                                             proxyConfiguration.scheme(),
-                                                             proxyConfiguration.nonProxyHosts()));
+        CredentialsProvider credentialsProvider = configuration.credentialsProvider;
+        if (isAuthenticatedProxy(proxyConfiguration)) {
+            credentialsProvider = ApacheUtils.newProxyCredentialsProvider(proxyConfiguration);
+        }
 
-            if (isAuthenticatedProxy(proxyConfiguration)) {
-                builder.setDefaultCredentialsProvider(ApacheUtils.newProxyCredentialsProvider(proxyConfiguration));
-            }
+        if (routePlanner != null) {
+            builder.setRoutePlanner(routePlanner);
+        }
+
+        if (credentialsProvider != null) {
+            builder.setDefaultCredentialsProvider(credentialsProvider);
         }
     }
 
@@ -337,6 +354,18 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * closed. This will not close connections currently in use. By default, this is enabled.
          */
         Builder useIdleConnectionReaper(Boolean useConnectionReaper);
+
+        /**
+         * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
+         * May not be used in conjunction with {@link #proxyConfiguration(ProxyConfiguration)}.
+         */
+        Builder httpRoutePlanner(HttpRoutePlanner proxyConfiguration);
+
+        /**
+         * Configuration that defines a custom credential provider for HTTP requests.
+         * May not be used in conjunction with {@link ProxyConfiguration#username()} and {@link ProxyConfiguration#password()}.
+         */
+        Builder credentialsProvider(CredentialsProvider credentialsProvider);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -344,6 +373,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
+        private HttpRoutePlanner httpRoutePlanner;
+        private CredentialsProvider credentialsProvider;
 
         private DefaultBuilder() {
         }
@@ -452,6 +483,26 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public void setUseIdleConnectionReaper(Boolean useIdleConnectionReaper) {
             useIdleConnectionReaper(useIdleConnectionReaper);
+        }
+
+        @Override
+        public Builder httpRoutePlanner(HttpRoutePlanner httpRoutePlanner) {
+            this.httpRoutePlanner = httpRoutePlanner;
+            return this;
+        }
+
+        public void setHttpRoutePlanner(HttpRoutePlanner httpRoutePlanner) {
+            httpRoutePlanner(httpRoutePlanner);
+        }
+
+        @Override
+        public Builder credentialsProvider(CredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+            credentialsProvider(credentialsProvider);
         }
 
         @Override
