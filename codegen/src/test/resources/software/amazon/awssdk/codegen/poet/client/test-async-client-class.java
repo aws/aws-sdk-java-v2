@@ -51,6 +51,9 @@ import software.amazon.awssdk.services.json.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputResponse;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputRequest;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponse;
+import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
 import software.amazon.awssdk.services.json.model.EventTwo;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
@@ -78,6 +81,7 @@ import software.amazon.awssdk.services.json.transform.APostOperationRequestMarsh
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.EventStreamOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOnlyInputRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOnlyOutputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventOneMarshaller;
@@ -355,6 +359,83 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         }
     }
 
+    /**
+     * Invokes the EventStreamOperationWithOnlyOutput operation asynchronously.
+     *
+     * @param eventStreamOperationWithOnlyOutputRequest
+     * @return A Java Future containing the result of the EventStreamOperationWithOnlyOutput operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.EventStreamOperationWithOnlyOutput
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/EventStreamOperationWithOnlyOutput"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
+        EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
+        EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
+        try {
+            JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                           .isPayloadJson(true).build();
+
+            HttpResponseHandler<EventStreamOperationWithOnlyOutputResponse> responseHandler = new AttachHttpMetadataResponseHandler(
+                protocolFactory.createResponseHandler(operationMetadata, EventStreamOperationWithOnlyOutputResponse::builder));
+
+            HttpResponseHandler<SdkResponse> voidResponseHandler = protocolFactory.createResponseHandler(JsonOperationMetadata
+                                                                                                             .builder().isPayloadJson(false).hasStreamingSuccessResponse(true).build(), VoidSdkResponse::builder);
+
+            HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
+                JsonOperationMetadata.builder().isPayloadJson(true).hasStreamingSuccessResponse(false).build(),
+                EventStreamTaggedUnionPojoSupplier.builder().putSdkPojoSupplier("EventOne", EventOne::builder)
+                                                  .putSdkPojoSupplier("EventTwo", EventTwo::builder).defaultSdkPojoSupplier(() -> EventStream.UNKNOWN)
+                                                  .build());
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                       operationMetadata);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            EventStreamAsyncResponseTransformer<EventStreamOperationWithOnlyOutputResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
+                .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
+                .eventStreamResponseHandler(asyncResponseHandler).eventResponseHandler(eventResponseHandler)
+                .initialResponseHandler(responseHandler).exceptionResponseHandler(errorResponseHandler).future(future)
+                .executor(executor).serviceName(serviceName()).build();
+            RestEventStreamAsyncResponseTransformer<EventStreamOperationWithOnlyOutputResponse, EventStream> restAsyncResponseTransformer = RestEventStreamAsyncResponseTransformer
+                .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
+                .eventStreamAsyncResponseTransformer(asyncResponseTransformer)
+                .eventStreamResponseHandler(asyncResponseHandler).build();
+
+            CompletableFuture<Void> executeFuture = clientHandler
+                .execute(
+                    new ClientExecutionParams<EventStreamOperationWithOnlyOutputRequest, EventStreamOperationWithOnlyOutputResponse>()
+                        .withOperationName("EventStreamOperationWithOnlyOutput")
+                        .withMarshaller(new EventStreamOperationWithOnlyOutputRequestMarshaller(protocolFactory))
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(eventStreamOperationWithOnlyOutputRequest), restAsyncResponseTransformer);
+            executeFuture.whenComplete((r, e) -> {
+                if (e != null) {
+                    try {
+                        asyncResponseHandler.exceptionOccurred(e);
+                    } finally {
+                        future.completeExceptionally(e);
+                    }
+                }
+            });
+            return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
+        } catch (Throwable t) {
+            runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
+                           () -> asyncResponseHandler.exceptionOccurred(t));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+    
     /**
      * <p>
      * Performs a post operation to the query service and has no output

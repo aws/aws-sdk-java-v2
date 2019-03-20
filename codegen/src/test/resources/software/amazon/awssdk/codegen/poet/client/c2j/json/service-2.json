@@ -157,6 +157,16 @@
       "input": {
         "shape": "EventStreamOperationWithOnlyInputRequest"
       }
+    },
+    "EventStreamOperationWithOnlyOutput": {
+      "name": "EventStreamOperationWithOnlyOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/EventStreamOperationWithOnlyOutput"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes": {

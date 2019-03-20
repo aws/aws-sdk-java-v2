@@ -108,6 +108,10 @@ public final class ClasspathInterceptorChainFactory {
     }
 
     private ExecutionInterceptor createExecutionInterceptor(String interceptorClassName) {
+        if (interceptorClassName == null) {
+            return null;
+        }
+
         interceptorClassName = interceptorClassName.trim();
         if (interceptorClassName.equals("")) {
             return null;
