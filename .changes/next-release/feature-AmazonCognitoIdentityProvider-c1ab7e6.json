@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Cognito Identity Provider", 
+    "type": "feature", 
+    "description": "This release adds tags and tag-based access control support to Amazon Cognito User Pools."
+}
