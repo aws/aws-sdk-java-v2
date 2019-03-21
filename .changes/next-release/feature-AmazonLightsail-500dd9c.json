@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Lightsail", 
+    "type": "feature", 
+    "description": "This release adds the DeleteKnownHostKeys API, which enables Lightsail's browser-based SSH or RDP clients to connect to the instance after a host key mismatch."
+}
