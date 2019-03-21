@@ -85,6 +85,7 @@ final class AddMetadata {
                 .withAuthType(AuthType.fromValue(serviceMetadata.getSignatureVersion()))
                 .withRequiresApiKey(requiresApiKey(serviceModel))
                 .withUid(serviceMetadata.getUid())
+                .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata));
 
         String jsonVersion = getJsonVersion(metadata, serviceMetadata);

@@ -1,3 +1,61 @@
+# __2.5.13__ __2019-03-20__
+## __AWS CodePipeline__
+  - ### Features
+    - Add support for viewing details of each action execution belonging to past and latest pipeline executions that have occurred in customer's pipeline. The details include start/updated times, action execution results, input/output artifacts information, etc. Customers also have the option to add pipelineExecutionId in the input to filter the results down to a single pipeline execution.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - This release increases AWS Marketplace Metering Service maximum usage quantity to 2147483647 and makes parameters usage quantity and dryrun optional.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - This release adds tags and tag-based access control support to Amazon Cognito Identity Pools (Federated Identities).
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug that could pollute non SDK threads with `ThreadLocal`'s when allocating memory. See [#1133](https://github.com/aws/aws-sdk-java-v2/issues/1133)
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Fix failed test NettyNioAsyncHttpClientSpiVerificationTest when running with JDK11. See [#1038](https://github.com/aws/aws-sdk-java-v2/issues/1038)
+
+# __2.5.12__ __2019-03-19__
+## __AWS Config__
+  - ### Features
+    - AWS Config adds a new API called SelectResourceConfig to run advanced queries based on resource configuration properties.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds the Java vendor the user agent as well as using the updated user agent for all HTTP calls
+
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Added support to control private/public access to the Kubernetes API-server endpoint
+
+## __Amazon S3__
+  - ### Features
+    - Add support for getUrl operation. The API can be used to generate a URL that represents an object in Amazon S3. The url can only be used to download the object content if the object has public read permissions. Original issue: https://github.com/aws/aws-sdk-java-v2/issues/860
+
+  - ### Bugfixes
+    - Only set content type of S3 `CreateMultipartUploadRequest` if `Content-Type` header is not present and honor the overridden content type.
+
+# __2.5.11__ __2019-03-18__
+## __AWS Database Migration Service__
+  - ### Features
+    - S3 Endpoint Settings added support for 1) Migrating to Amazon S3 as a target in Parquet format 2) Encrypting S3 objects after migration with custom KMS Server-Side encryption. Redshift Endpoint Settings added support for encrypting intermediate S3 objects during migration with custom KMS Server-Side encryption.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix HeaderUnmarshaller to compare header ignoring cases.
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds support for the Amazon Chime Business Calling and Voice Connector features.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeFpgaImages API now returns a new DataRetentionSupport attribute to indicate if the AFI meets the requirements to support DRAM data retention. DataRetentionSupport is a read-only attribute.
+
 # __2.5.10__ __2019-03-14__
 ## __AWS Certificate Manager__
   - ### Features

@@ -67,9 +67,10 @@ public class NettyNioAsyncHttpClientSpiVerificationTest {
         client.close();
     }
 
+    // CONNECTION_RESET_BY_PEER does not work on JDK 11. See https://github.com/tomakehurst/wiremock/issues/1009
     @Test
     public void signalsErrorViaOnErrorAndFuture() throws InterruptedException, ExecutionException, TimeoutException {
-        stubFor(any(urlEqualTo("/")).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+        stubFor(any(urlEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
 
         CompletableFuture<Boolean> errorSignaled = new CompletableFuture<>();
 

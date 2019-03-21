@@ -77,7 +77,7 @@ public final class SdkBytes extends BytesWrapper implements Serializable {
      */
     public static SdkBytes fromString(String string, Charset charset) {
         Validate.paramNotNull(string, "string");
-        Validate.paramNotNull(string, "charset");
+        Validate.paramNotNull(charset, "charset");
         return new SdkBytes(string.getBytes(charset));
     }
 

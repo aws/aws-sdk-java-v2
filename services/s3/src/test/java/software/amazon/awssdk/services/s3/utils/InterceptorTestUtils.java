@@ -26,7 +26,6 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -87,14 +86,17 @@ public final class InterceptorTestUtils {
     }
 
     public static Context.ModifyHttpRequest modifyHttpRequestContext(SdkRequest request) {
+        return modifyHttpRequestContext(request, sdkHttpFullRequest());
+    }
+
+    public static Context.ModifyHttpRequest modifyHttpRequestContext(SdkRequest request, SdkHttpRequest sdkHttpRequest) {
         Optional<RequestBody> requestBody = Optional.of(RequestBody.fromString("helloworld"));
         Optional<AsyncRequestBody> asyncRequestBody = Optional.of(AsyncRequestBody.fromString("helloworld"));
-        SdkHttpFullRequest sdkHttpFullRequest = sdkHttpFullRequest();
 
         return new Context.ModifyHttpRequest() {
             @Override
             public SdkHttpRequest httpRequest() {
-                return sdkHttpFullRequest;
+                return sdkHttpRequest;
             }
 
             @Override

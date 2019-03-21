@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -170,8 +171,7 @@ public final class NettyRequestExecutor {
         channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
                                                             TimeUnit.MILLISECONDS));
         StreamedRequest streamedRequest = new StreamedRequest(request,
-                                                              context.executeRequest().requestContentPublisher(),
-                                                              channel);
+                                                              context.executeRequest().requestContentPublisher());
         channel.writeAndFlush(streamedRequest)
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
@@ -410,16 +410,14 @@ public final class NettyRequestExecutor {
     private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
 
         private final Publisher<ByteBuffer> publisher;
-        private final Channel channel;
         private final Optional<Long> requestContentLength;
         private long written = 0L;
         private boolean done;
         private Subscription subscription;
 
-        StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher, Channel channel) {
+        StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher) {
             super(request);
             this.publisher = publisher;
-            this.channel = channel;
             this.requestContentLength = contentLength(request);
         }
 
@@ -433,17 +431,16 @@ public final class NettyRequestExecutor {
                 }
 
                 @Override
-                public void onNext(ByteBuffer byteBuffer) {
+                public void onNext(ByteBuffer contentBytes) {
                     if (done) {
                         return;
                     }
 
                     try {
-                        int newLimit = clampedBufferLimit(byteBuffer.remaining());
-                        byteBuffer.limit(newLimit);
-                        ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
-                        buffer.writeBytes(byteBuffer);
-                        HttpContent content = new DefaultHttpContent(buffer);
+                        int newLimit = clampedBufferLimit(contentBytes.remaining());
+                        contentBytes.limit(newLimit);
+                        ByteBuf contentByteBuf = Unpooled.wrappedBuffer(contentBytes);
+                        HttpContent content = new DefaultHttpContent(contentByteBuf);
 
                         subscriber.onNext(content);
                         written += newLimit;
