@@ -116,6 +116,12 @@ Once you check out the code from GitHub, you can build it using Maven.
 
 ```sh
 mvn clean install
+
+# Skip tests, checkstyles, findbugs, etc for quick build
+mvn clean install -P quick
+
+# Build a specific service module
+mvn clean install -pl :s3 -P quick --am
 ```
 
 ## Sample Code
