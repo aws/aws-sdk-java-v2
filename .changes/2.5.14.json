@@ -1,0 +1,46 @@
+{
+    "date": "2019-03-21",
+    "version": "2.5.14",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix bug where the stream returned from a `ContentStreamProvider` is not closed after request execution. See [#1138](https://github.com/aws/aws-sdk-java-v2/issues/1138)"
+        },
+        {
+            "category": "Amazon Cognito Identity Provider",
+            "type": "feature",
+            "description": "This release adds tags and tag-based access control support to Amazon Cognito User Pools."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Fix bug in `ChecksumCalculatingInputStream` where methods not overridden, such as `close()`, are not called on the wrapped stream. See [#1138](https://github.com/aws/aws-sdk-java-v2/issues/1138)."
+        },
+        {
+            "category": "Auto Scaling",
+            "type": "feature",
+            "description": "Documentation updates for Amazon EC2 Auto Scaling"
+        },
+        {
+            "category": "AWS IoT",
+            "type": "feature",
+            "description": "This release adds the GetStatistics API for the AWS IoT Fleet Indexing Service, which allows customers to query for statistics about registered devices that match a search query. This release only supports the count statistics. For more information about this API, see https://docs.aws.amazon.com/iot/latest/apireference/API_GetStatistics.html"
+        },
+        {
+            "category": "Amazon CloudWatch Events",
+            "type": "feature",
+            "description": "Added 3 new APIs, and one additional parameter to the PutRule API, to support tagging of CloudWatch Events rules."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Automatically retry on `RequestThrottledException` error codes."
+        },
+        {
+            "category": "Amazon Lightsail",
+            "type": "feature",
+            "description": "This release adds the DeleteKnownHostKeys API, which enables Lightsail's browser-based SSH or RDP clients to connect to the instance after a host key mismatch."
+        }
+    ]
+}

@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.services.s3.checksums;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 
 @SdkInternalApi
-public class ChecksumCalculatingInputStream extends InputStream {
+public class ChecksumCalculatingInputStream extends FilterInputStream {
 
     private final SdkChecksum checkSum;
     private final InputStream inputStream;
@@ -34,6 +35,7 @@ public class ChecksumCalculatingInputStream extends InputStream {
      * @param cksum the Checksum implementation to use for computing the checksum
      */
     public ChecksumCalculatingInputStream(final InputStream in, final SdkChecksum cksum) {
+        super(in);
         inputStream = in;
         checkSum = cksum;
     }
