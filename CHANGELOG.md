@@ -1,3 +1,35 @@
+# __2.5.14__ __2019-03-21__
+## __AWS IoT__
+  - ### Features
+    - This release adds the GetStatistics API for the AWS IoT Fleet Indexing Service, which allows customers to query for statistics about registered devices that match a search query. This release only supports the count statistics. For more information about this API, see https://docs.aws.amazon.com/iot/latest/apireference/API_GetStatistics.html
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Automatically retry on `RequestThrottledException` error codes.
+
+  - ### Bugfixes
+    - Fix bug where the stream returned from a `ContentStreamProvider` is not closed after request execution. See [#1138](https://github.com/aws/aws-sdk-java-v2/issues/1138)
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Added 3 new APIs, and one additional parameter to the PutRule API, to support tagging of CloudWatch Events rules.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds tags and tag-based access control support to Amazon Cognito User Pools.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds the DeleteKnownHostKeys API, which enables Lightsail's browser-based SSH or RDP clients to connect to the instance after a host key mismatch.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix bug in `ChecksumCalculatingInputStream` where methods not overridden, such as `close()`, are not called on the wrapped stream. See [#1138](https://github.com/aws/aws-sdk-java-v2/issues/1138).
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling
+
 # __2.5.13__ __2019-03-20__
 ## __AWS CodePipeline__
   - ### Features

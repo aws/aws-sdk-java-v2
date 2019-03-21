@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT", 
-    "type": "feature", 
-    "description": "This release adds the GetStatistics API for the AWS IoT Fleet Indexing Service, which allows customers to query for statistics about registered devices that match a search query. This release only supports the count statistics. For more information about this API, see https://docs.aws.amazon.com/iot/latest/apireference/API_GetStatistics.html"
-}
