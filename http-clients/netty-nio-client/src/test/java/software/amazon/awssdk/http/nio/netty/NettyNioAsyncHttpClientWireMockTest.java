@@ -51,6 +51,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.Socket;
@@ -129,6 +130,27 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
+    }
+
+    @Test
+    public void openSslBeingUsed() throws Exception {
+        try (SdkAsyncHttpClient customClient =
+                 NettyNioAsyncHttpClient.builder()
+                                        .sslProvider(SslProvider.OPENSSL)
+                                        .build()) {
+            makeSimpleRequest(customClient);
+        }
+    }
+
+    @Test
+    public void defaultJdkSslProvider() throws Exception {
+        try (SdkAsyncHttpClient customClient =
+                 NettyNioAsyncHttpClient.builder()
+                                        .sslProvider(SslProvider.JDK)
+                                        .build()) {
+            makeSimpleRequest(customClient);
+            customClient.close();
+        }
     }
 
     @Test
