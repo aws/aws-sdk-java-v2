@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.cloudsearchdomain.internal;
 
+import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.ByteArrayInputStream;
@@ -43,6 +44,7 @@ public final class SwitchToPostInterceptor implements ExecutionInterceptor {
             return httpRequest.toBuilder()
                               .clearQueryParameters()
                               .method(SdkHttpMethod.POST)
+                              .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded"))
                               .build();
         }
         return context.httpRequest();
