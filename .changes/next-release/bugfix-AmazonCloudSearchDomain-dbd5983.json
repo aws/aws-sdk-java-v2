@@ -1,5 +1,0 @@
-{
-    "category": "Amazon CloudSearch Domain", 
-    "type": "bugfix", 
-    "description": "Use application/x-www-form-urlencoded as Content-Type for search API"
-}

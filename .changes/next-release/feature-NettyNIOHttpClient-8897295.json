@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Http Client", 
-    "type": "feature", 
-    "description": "Add sslProvider configuration in `NettyNioAsyncHttpClient.Builder`."
-}
