@@ -120,6 +120,26 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file.
+     *
+     * @param path            Path to file to write to.
+     * @param position        The value for the data between the current end of the file and the starting position is
+     *                        undefined.
+     * @param isNewFile       Whether this is a new file. If this is {@code true} and the file already exists, the
+     *                        transformer will complete with an exception.
+     * @param deleteOnFailure Whether the file on disk should be deleted in the event of a failure when writing the
+     *                        stream.
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path,
+                                                                             long position,
+                                                                             boolean isNewFile,
+                                                                             boolean deleteOnFailure) {
+        return new FileAsyncResponseTransformer<>(path, position, isNewFile, deleteOnFailure);
+    }
+
+    /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
      * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
      * exception will be thrown.

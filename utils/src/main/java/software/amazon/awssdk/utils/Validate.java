@@ -619,7 +619,30 @@ public final class Validate {
         return num;
     }
 
+    /**
+     * Asserts that the given number is non-negative.
+     *
+     * @param num Number to validate
+     * @param fieldName Field name to display in exception message if negative.
+     * @return Number if not negative.
+     */
     public static int isNotNegative(int num, String fieldName) {
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
+    /**
+     * Asserts that the given number is non-negative.
+     *
+     * @param num Number to validate
+     * @param fieldName Field name to display in exception message if negative.
+     * @return Number if not negative.
+     */
+    public static long isNotNegative(long num, String fieldName) {
 
         if (num < 0) {
             throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
