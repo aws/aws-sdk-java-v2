@@ -53,6 +53,7 @@
         <module>aws-sdk-java</module>
         <module>core</module>
         <module>services</module>
+        <module>services-custom/s3-transfermanager</module>
         <module>bom</module>
         <module>bom-internal</module>
         <module>codegen</module>
