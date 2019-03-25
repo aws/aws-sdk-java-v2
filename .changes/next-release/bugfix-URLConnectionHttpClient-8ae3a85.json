@@ -1,5 +1,0 @@
-{
-    "category": "URL Connection Http Client", 
-    "type": "bugfix", 
-    "description": "Bypass ssl validations when `TRUST_ALL_CERTIFICATES` is set to true."
-}

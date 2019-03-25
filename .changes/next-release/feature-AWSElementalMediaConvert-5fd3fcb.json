@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaConvert", 
-    "type": "feature", 
-    "description": "This release adds support for detailed job progress status and S3 server-side output encryption. In addition, the anti-alias filter will now be automatically applied to all outputs"
-}

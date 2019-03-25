@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT Analytics", 
-    "type": "feature", 
-    "description": "This change allows you to specify the number of versions of IoT Analytics data set content to be retained. Previously, the number of versions was managed implicitly via the setting of the data set's retention period."
-}

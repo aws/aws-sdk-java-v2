@@ -1,5 +1,0 @@
-{
-    "category": "AWS RoboMaker", 
-    "type": "feature", 
-    "description": "Added additional progress metadata fields for robot deployments"
-}
