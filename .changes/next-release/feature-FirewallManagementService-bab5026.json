@@ -1,0 +1,5 @@
+{
+    "category": "Firewall Management Service", 
+    "type": "feature", 
+    "description": "AWS Firewall Manager now allows customer to centrally enable AWS Shield Advanced DDoS protection for their entire AWS infrastructure, across accounts and applications."
+}
