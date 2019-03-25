@@ -1,0 +1,5 @@
+{
+    "category": "AWS IoT 1-Click Devices Service", 
+    "type": "feature", 
+    "description": "This release adds tagging support for AWS IoT 1-Click Device resources. Use these APIs to add, remove, or list tags on Devices, and leverage the tags for various authorization and billing scenarios. This release also adds the ARN property for DescribeDevice response object."
+}
