@@ -1,0 +1,5 @@
+{
+    "category": "AWS Glue", 
+    "type": "feature", 
+    "description": "This new feature will now allow customers to add a customized csv classifier with classifier API. They can specify a custom delimiter, quote symbol and control other behavior they'd like crawlers to have while recognizing csv files"
+}
