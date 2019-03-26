@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.benchmark.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -33,6 +34,8 @@ public final class BenchmarkConstant {
     public static final int CONCURRENT_CALLS = 50;
 
     public static final Instant TIMESTAMP_MEMBER = LocalDateTime.now().toInstant(ZoneOffset.UTC);
+
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static final String ERROR_JSON_BODY = "{}";
 
