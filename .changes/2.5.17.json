@@ -1,0 +1,16 @@
+{
+    "date": "2019-03-26",
+    "version": "2.5.17",
+    "entries": [
+        {
+            "category": "AWS Glue",
+            "type": "feature",
+            "description": "This new feature will now allow customers to add a customized csv classifier with classifier API. They can specify a custom delimiter, quote symbol and control other behavior they'd like crawlers to have while recognizing csv files"
+        },
+        {
+            "category": "Amazon WorkMail",
+            "type": "feature",
+            "description": "Documentation updates for Amazon WorkMail."
+        }
+    ]
+}
