@@ -13,8 +13,7 @@ phases:
     - cd release
     -
     - git clone -o public -b release $PUBLIC_REPOSITORY_URL .
-    - echo 'For debugging, running version command without -q'
-    - mvn -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec
+    -
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     - echo "Release version - $RELEASE_VERSION"
     -
