@@ -11,6 +11,7 @@ artifact source.
 
 * [SDK Homepage][sdk-website]
 * [1.11 to 2.0 Changelog](docs/LaunchChangelog.md)
+* [Best Practices](docs/BestPractices.md)
 * [Sample Code](#sample-code)
 * [API Docs][docs-api]
 * [Developer Guide][docs-guide] ([source][docs-guide-source])
