@@ -60,6 +60,11 @@ public final class ProfileProperty {
     public static final String SOURCE_PROFILE = "source_profile";
 
     /**
+     * Property name for specifying the credential source to use when assuming a role
+     */
+    public static final String CREDENTIAL_SOURCE = "credential_source";
+
+    /**
      * AWS Region to use when creating clients.
      */
     public static final String REGION = "region";
