@@ -1,5 +1,0 @@
-{
-    "category": "AWS App Mesh", 
-    "type": "feature", 
-    "description": "This release includes AWS Tagging integration for App Mesh, VirtualNode access logging, TCP routing, and Mesh-wide external traffic egress control. See https://docs.aws.amazon.com/app-mesh/latest/APIReference/Welcome.html for more details."
-}

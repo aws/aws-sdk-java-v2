@@ -1,5 +1,0 @@
-{
-    "category": "AWS Storage Gateway", 
-    "type": "feature", 
-    "description": "This change allows you to select a pool for archiving virtual tapes. Pools are associated with S3 storage classes. You can now choose to archive virtual tapes in either S3 Glacier or S3 Glacier Deep Archive storage class. CreateTapes API now takes a new PoolId parameter which can either be GLACIER or DEEP_ARCHIVE. Tapes created with this parameter will be archived in the corresponding storage class."
-}

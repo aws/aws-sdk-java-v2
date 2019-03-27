@@ -1,5 +1,0 @@
-{
-    "category": "Elastic Load Balancing", 
-    "type": "feature", 
-    "description": "This release adds support for routing based on HTTP headers, methods, query string or query parameters and source IP addresses in Application Load Balancer."
-}

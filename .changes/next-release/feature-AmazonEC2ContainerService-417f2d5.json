@@ -1,5 +1,0 @@
-{
-    "category": "Amazon EC2 Container Service", 
-    "type": "feature", 
-    "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces support for external deployment controllers for ECS services with the launch of task set management APIs. Task sets are a new primitive for controlled management of application deployments within a single ECS service."
-}
