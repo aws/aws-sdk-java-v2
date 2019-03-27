@@ -51,6 +51,7 @@ import software.amazon.awssdk.services.iam.model.MalformedPolicyDocumentExceptio
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 import software.amazon.awssdk.services.sts.model.StsException;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -220,5 +221,75 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         assertThat(awsCredentials.accessKeyId()).isNotBlank();
         assertThat(awsCredentials.secretAccessKey()).isNotBlank();
         ((SdkAutoCloseable) awsCredentialsProvider).close();
+    }
+
+    @Test
+    public void profileCredentialProviderCanAssumeRolesWithEnvironmentCredentialSource() throws InterruptedException {
+        EnvironmentVariableHelper.run(helper -> {
+            helper.set("AWS_ACCESS_KEY_ID", userCredentials.accessKeyId());
+            helper.set("AWS_SECRET_ACCESS_KEY", userCredentials.secretAccessKey());
+
+            String ASSUME_ROLE_PROFILE =
+                "[test]\n"
+                + "region = us-west-1\n"
+                + "credential_source = Environment\n"
+                + "role_arn = " + ROLE_ARN;
+
+            ProfileFile profiles = ProfileFile.builder()
+                                              .content(new StringInputStream(ASSUME_ROLE_PROFILE))
+                                              .type(ProfileFile.Type.CREDENTIALS)
+                                              .build();
+            Optional<Profile> profile = profiles.profile("test");
+            AwsCredentialsProvider awsCredentialsProvider =
+                new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
+
+
+            // Try to assume the role until the eventual consistency catches up.
+            AwsCredentials awsCredentials = Waiter.run(awsCredentialsProvider::resolveCredentials)
+                                                  .ignoringException(StsException.class)
+                                                  .orFail();
+
+            assertThat(awsCredentials.accessKeyId()).isNotBlank();
+            assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+            ((SdkAutoCloseable) awsCredentialsProvider).close();
+        });
+    }
+
+    @Test
+    public void profileCredentialProviderWithEnvironmentCredentialSourceAndSystemProperties() throws InterruptedException {
+        System.setProperty("aws.accessKeyId", userCredentials.accessKeyId());
+        System.setProperty("aws.secretAccessKey", userCredentials.secretAccessKey());
+
+        EnvironmentVariableHelper.run(helper -> {
+            helper.remove("AWS_ACCESS_KEY_ID");
+            helper.remove("AWS_SECRET_ACCESS_KEY");
+
+            String ASSUME_ROLE_PROFILE =
+                "[test]\n"
+                + "region = us-west-1\n"
+                + "credential_source = Environment\n"
+                + "role_arn = " + ROLE_ARN;
+
+            ProfileFile profiles = ProfileFile.builder()
+                                              .content(new StringInputStream(ASSUME_ROLE_PROFILE))
+                                              .type(ProfileFile.Type.CREDENTIALS)
+                                              .build();
+            Optional<Profile> profile = profiles.profile("test");
+            AwsCredentialsProvider awsCredentialsProvider =
+                new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
+
+
+            // Try to assume the role until the eventual consistency catches up.
+            AwsCredentials awsCredentials = Waiter.run(awsCredentialsProvider::resolveCredentials)
+                                                  .ignoringException(StsException.class)
+                                                  .orFail();
+
+            assertThat(awsCredentials.accessKeyId()).isNotBlank();
+            assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+            ((SdkAutoCloseable) awsCredentialsProvider).close();
+        });
+
+        System.clearProperty("aws.accessKeyId");
+        System.clearProperty("aws.secretAccessKey");
     }
 }
