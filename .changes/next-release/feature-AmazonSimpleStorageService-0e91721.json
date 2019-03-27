@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Simple Storage Service", 
+    "type": "feature", 
+    "description": "S3 Glacier Deep Archive provides secure, durable object storage class for long term data archival. This SDK release provides API support for this new storage class."
+}
