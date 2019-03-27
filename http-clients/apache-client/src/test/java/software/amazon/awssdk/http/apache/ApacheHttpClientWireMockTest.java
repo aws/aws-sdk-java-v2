@@ -15,12 +15,25 @@
 
 package software.amazon.awssdk.http.apache;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.net.HttpURLConnection;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoute;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -33,6 +46,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
+    @Rule
+    public WireMockRule mockProxyServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
 
     @Mock
     private ConnectionManagerAwareHttpClient httpClient;
@@ -64,4 +79,71 @@ public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
         verify(connectionManager).shutdown();
     }
 
+    @Test
+    public void routePlannerIsInvoked() throws Exception {
+        mockProxyServer.resetToDefaultMappings();
+        mockProxyServer.addStubMapping(WireMock.any(urlPathEqualTo("/"))
+                                               .willReturn(aResponse().proxiedFrom("http://localhost:" + mockServer.port()))
+                                               .build());
+
+        SdkHttpClient client = ApacheHttpClient.builder()
+                                               .httpRoutePlanner(
+                                                   (host, request, context) ->
+                                                       new HttpRoute(
+                                                           new HttpHost("localhost", mockProxyServer.httpsPort(), "https")
+                                                       )
+                                               )
+                                               .buildWithDefaults(AttributeMap.builder()
+                                                                              .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                                                                              .build());
+
+        testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
+
+        mockProxyServer.verify(1, RequestPatternBuilder.allRequests());
+    }
+
+    @Test
+    public void credentialPlannerIsInvoked() throws Exception {
+        mockProxyServer.addStubMapping(WireMock.any(urlPathEqualTo("/"))
+                                               .willReturn(aResponse()
+                                                               .withHeader("WWW-Authenticate", "Basic realm=\"proxy server\"")
+                                                               .withStatus(401))
+                                               .build());
+
+        mockProxyServer.addStubMapping(WireMock.any(urlPathEqualTo("/"))
+                                               .withBasicAuth("foo", "bar")
+                                               .willReturn(aResponse()
+                                                               .proxiedFrom("http://localhost:" + mockServer.port()))
+                                               .build());
+
+        SdkHttpClient client = ApacheHttpClient.builder()
+                                               .credentialsProvider(new CredentialsProvider() {
+                                                   @Override
+                                                   public void setCredentials(AuthScope authScope, Credentials credentials) {
+
+                                                   }
+
+                                                   @Override
+                                                   public Credentials getCredentials(AuthScope authScope) {
+                                                       return new UsernamePasswordCredentials("foo", "bar");
+                                                   }
+
+                                                   @Override
+                                                   public void clear() {
+
+                                                   }
+                                               })
+                                               .httpRoutePlanner(
+                                                   (host, request, context) ->
+                                                       new HttpRoute(
+                                                           new HttpHost("localhost", mockProxyServer.httpsPort(), "https")
+                                                       )
+                                               )
+                                               .buildWithDefaults(AttributeMap.builder()
+                                                                              .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                                                                              .build());
+        testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
+
+        mockProxyServer.verify(2, RequestPatternBuilder.allRequests());
+    }
 }
