@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.benchmark;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -24,23 +24,53 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyClientH1NonTlsBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.sync.UrlConnectionHttpClientBenchmark;
+import software.amazon.awssdk.benchmark.apicall.protocol.Ec2ProtocolBenchmark;
+import software.amazon.awssdk.benchmark.apicall.protocol.JsonProtocolBenchmark;
+import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
+import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
 import software.amazon.awssdk.utils.Logger;
 
 public class BenchmarkRunner {
 
-    private static final List<String> BENCHMARKS_TO_RUN =
-        Arrays.asList("Ec2ProtocolBenchmark", "JsonProtocolBenchmark", "QueryProtocolBenchmark", "XmlProtocolBenchmark",
-                      "V2OptimizedClientCreationBenchmark", "V1ClientCreationBenchmark", "V2DefaultClientCreationBenchmark",
-                      "ApacheHttpClientBenchmark", "UrlConnectionHttpClientClientBenchmark");
+    private static final List<String> PROTOCOL_BENCHMARKS = Arrays.asList(
+        Ec2ProtocolBenchmark.class.getSimpleName(), JsonProtocolBenchmark.class.getSimpleName(),
+        QueryProtocolBenchmark.class.getSimpleName(), XmlProtocolBenchmark.class.getSimpleName());
+
+    private static final List<String> ASYNC_BENCHMARKS = Arrays.asList(
+        NettyHttpClientH2Benchmark.class.getSimpleName(),
+        NettyHttpClientH1Benchmark.class.getSimpleName(),
+        NettyClientH1NonTlsBenchmark.class.getSimpleName());
+
+    private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
+        ApacheHttpClientBenchmark.class.getSimpleName(),
+        UrlConnectionHttpClientBenchmark.class.getSimpleName());
+
+    private static final List<String> COLD_START_BENCHMARKS = Arrays.asList(
+        V2OptimizedClientCreationBenchmark.class.getSimpleName(),
+        V2DefaultClientCreationBenchmark.class.getSimpleName());
+
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
+
     private final List<String> benchmarksToRun;
 
     private BenchmarkRunner(List<String> benchmarksToRun) {
         this.benchmarksToRun = benchmarksToRun;
     }
 
-    public static void main(String... args) throws RunnerException, IOException {
-        BenchmarkRunner runner = new BenchmarkRunner(BENCHMARKS_TO_RUN);
+    public static void main(String... args) throws RunnerException {
+        List<String> benchmarksToRun = new ArrayList<>(SYNC_BENCHMARKS);
+        benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
+        benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        benchmarksToRun.addAll(ASYNC_BENCHMARKS);
+
+        BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
         runner.runBenchmark();
     }
 
