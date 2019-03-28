@@ -1,5 +1,0 @@
-{
-    "category": "AWS Service Catalog", 
-    "type": "feature", 
-    "description": "Adds \"Tags\" field in UpdateProvisionedProduct API. The product should have a new RESOURCE_UPDATE Constraint with TagUpdateOnProvisionedProduct field set to ALLOWED for it to work. See API docs for CreateConstraint for more information"
-}
