@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 /**
  * Benchmark for creating the clients
  */
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 3)

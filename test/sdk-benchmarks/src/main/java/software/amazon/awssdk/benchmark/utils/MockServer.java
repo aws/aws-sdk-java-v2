@@ -15,27 +15,52 @@
 
 package software.amazon.awssdk.benchmark.utils;
 
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.JSON_BODY;
-
 import java.io.IOException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-/**
- * Local mock server used to stub fixed response.
- */
-public class MockServer {
-    private final Server server;
+public class MockServer extends BaseMockServer {
+    private Server server;
+    private ServerConnector connector;
+    private ServerConnector sslConnector;
 
-    public MockServer(int port) {
-        server = new Server(port);
-        ServletHandler handler = new ServletHandler();
-        handler.addServletWithMapping(AlwaysSuccessServlet.class, "/*");
-        server.setHandler(handler);
+    public MockServer() throws IOException {
+        server = new Server();
+        connector = new ServerConnector(server);
+        connector.setPort(httpPort);
+
+        HttpConfiguration https = new HttpConfiguration();
+        https.addCustomizer(new SecureRequestCustomizer());
+
+        SslContextFactory sslContextFactory = new SslContextFactory();
+        sslContextFactory.setTrustAll(true);
+        sslContextFactory.setValidateCerts(false);
+        sslContextFactory.setNeedClientAuth(false);
+        sslContextFactory.setWantClientAuth(false);
+        sslContextFactory.setValidatePeerCerts(false);
+        sslContextFactory.setKeyStorePassword("password");
+        sslContextFactory.setKeyStorePath(MockServer.class.getResource("mock-keystore.jks").toExternalForm());
+
+        sslConnector = new ServerConnector(server,
+                                           new SslConnectionFactory(sslContextFactory,
+                                                                    HttpVersion.HTTP_1_1.asString()),
+                                           new HttpConnectionFactory(https));
+        sslConnector.setPort(httpsPort);
+
+        server.setConnectors(new Connector[] {connector, sslConnector});
+
+        ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
+        context.addServlet(new ServletHolder(new AlwaysSuccessServlet()), "/*");
+        server.setHandler(context);
     }
 
     public void start() throws Exception {
@@ -44,22 +69,7 @@ public class MockServer {
 
     public void stop() throws Exception {
         server.stop();
-    }
-
-    /**
-     * Always succeeds with with a 200 response.
-     */
-    public static class AlwaysSuccessServlet extends HttpServlet {
-
-        @Override
-        public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-            response.setStatus(HttpStatus.OK_200);
-            if (request.getContentType().equals("application/xml")) {
-                response.setContentType("application/xml");
-            } else {
-                response.setContentType("application/json");
-            }
-            response.getWriter().write(JSON_BODY);
-        }
+        sslConnector.stop();
+        connector.stop();
     }
 }

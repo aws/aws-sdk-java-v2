@@ -13,12 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.apicall.sync;
+package software.amazon.awssdk.benchmark.apicall.httpclient.sync;
 
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.LOCAL_URI;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.PORT_NUMBER;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.CONCURRENT_CALLS;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.awaitCountdownLatchUninterruptibly;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.countDownUponCompletion;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -26,6 +32,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OperationsPerInvocation;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -37,38 +44,45 @@ import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 
 /**
  * Benchmarking for running with different http clients.
  */
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class UrlConnectionHttpClientClientBenchmark implements SdkApiCallBenchmark {
+public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
 
     private MockServer mockServer;
     private SdkHttpClient sdkHttpClient;
     private ProtocolRestJsonClient client;
+    private ExecutorService executorService;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        mockServer = new MockServer(PORT_NUMBER);
+        mockServer = new MockServer();
         mockServer.start();
-        sdkHttpClient = UrlConnectionHttpClient.builder().build();
+        sdkHttpClient = ApacheHttpClient.builder()
+                                        .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonClient.builder()
-                                       .endpointOverride(LOCAL_URI)
+                                       .endpointOverride(mockServer.getHttpsUri())
                                        .httpClient(sdkHttpClient)
                                        .build();
+        executorService = Executors.newFixedThreadPool(CONCURRENT_CALLS);
+
+        client.allTypes();
     }
 
     @TearDown(Level.Trial)
     public void tearDown() throws Exception {
+        executorService.shutdown();
         mockServer.stop();
         sdkHttpClient.close();
         client.close();
@@ -76,14 +90,27 @@ public class UrlConnectionHttpClientClientBenchmark implements SdkApiCallBenchma
 
     @Benchmark
     @Override
-    public void apiCall(Blackhole blackhole) {
+    public void sequentialApiCall(Blackhole blackhole) {
         blackhole.consume(client.allTypes());
+    }
+
+    @Benchmark
+    @Override
+    @OperationsPerInvocation(CONCURRENT_CALLS)
+    public void concurrentApiCall(Blackhole blackhole) {
+        CountDownLatch countDownLatch = new CountDownLatch(CONCURRENT_CALLS);
+        for (int i = 0; i < CONCURRENT_CALLS; i++) {
+            countDownUponCompletion(blackhole,
+                                    CompletableFuture.runAsync(() -> client.allTypes(), executorService), countDownLatch);
+        }
+
+        awaitCountdownLatchUninterruptibly(countDownLatch, 10, TimeUnit.SECONDS);
     }
 
     public static void main(String... args) throws Exception {
 
         Options opt = new OptionsBuilder()
-            .include(UrlConnectionHttpClientClientBenchmark.class.getSimpleName())
+            .include(ApacheHttpClientBenchmark.class.getSimpleName() + ".concurrentApiCall")
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
