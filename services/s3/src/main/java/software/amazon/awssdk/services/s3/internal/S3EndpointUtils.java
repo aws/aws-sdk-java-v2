@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 @SdkInternalApi
 public final class S3EndpointUtils {
 
-    public static final List<Class<?>> ACCELERATE_DISABLED_OPERATIONS = Arrays.asList(
+    private static final List<Class<?>> ACCELERATE_DISABLED_OPERATIONS = Arrays.asList(
         ListBucketsRequest.class, CreateBucketRequest.class, DeleteBucketRequest.class);
 
     private S3EndpointUtils() {
