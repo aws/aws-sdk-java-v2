@@ -1,5 +1,0 @@
-{
-    "category": "Amazon API Gateway", 
-    "type": "bugfix", 
-    "description": "Fix the SDK cloberring existed 'Accept' headers on marshalled requests."
-}

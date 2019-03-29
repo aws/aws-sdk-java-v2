@@ -1,5 +1,0 @@
-{
-    "category": "AWS Greengrass", 
-    "type": "feature", 
-    "description": "Greengrass APIs now support tagging operations on resources"
-}

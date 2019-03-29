@@ -1,3 +1,20 @@
+# __2.5.20__ __2019-03-29__
+## __AWS Greengrass__
+  - ### Features
+    - Greengrass APIs now support tagging operations on resources
+
+## __Amazon API Gateway__
+  - ### Bugfixes
+    - Fix the SDK cloberring existed 'Accept' headers on marshalled requests.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Added 3 new APIs, and one additional parameter to PutMetricAlarm API, to support tagging of CloudWatch Alarms.
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend supports encryption of output results of analysis jobs and volume data on the storage volume attached to the compute instance that processes the analysis job.
+
 # __2.5.19__ __2019-03-28__
 ## __AWS Elemental MediaLive__
   - ### Features
