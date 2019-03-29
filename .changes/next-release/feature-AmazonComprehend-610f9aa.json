@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Comprehend", 
+    "type": "feature", 
+    "description": "With this release AWS Comprehend supports encryption of output results of analysis jobs and volume data on the storage volume attached to the compute instance that processes the analysis job."
+}
