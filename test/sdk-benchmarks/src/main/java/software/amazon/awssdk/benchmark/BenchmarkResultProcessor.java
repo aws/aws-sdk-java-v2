@@ -15,16 +15,23 @@
 
 package software.amazon.awssdk.benchmark;
 
-import com.amazonaws.util.CollectionUtils;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OBJECT_MAPPER;
+import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.compare;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.openjdk.jmh.infra.BenchmarkParams;
-import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.util.Statistics;
+import software.amazon.awssdk.benchmark.stats.SdkBenchmarkParams;
+import software.amazon.awssdk.benchmark.stats.SdkBenchmarkResult;
+import software.amazon.awssdk.benchmark.stats.SdkBenchmarkStatistics;
 import software.amazon.awssdk.utils.Logger;
 
 
@@ -36,82 +43,99 @@ class BenchmarkResultProcessor {
 
     private static final Logger log = Logger.loggerFor(BenchmarkResultProcessor.class);
 
-    private final Map<String, Double> benchmarkIdToBaselineScore;
-    private List<String> failedBenchmarkNames = new ArrayList<>();
+    private Map<String, SdkBenchmarkResult> baseline;
 
-    BenchmarkResultProcessor(List<BenchmarkScore> benchmarkScores) {
-        this.benchmarkIdToBaselineScore = constructBenchmarkIdToScoreMap(benchmarkScores);
+    private List<String> failedBenchmarkIds = new ArrayList<>();
+
+    BenchmarkResultProcessor() {
+        try {
+            URL file = BenchmarkResultProcessor.class.getResource("baseline.json");
+            List<SdkBenchmarkResult> baselineResults =
+                OBJECT_MAPPER.readValue(file, new TypeReference<List<SdkBenchmarkResult>>() {});
+
+            baseline = baselineResults.stream().collect(Collectors.toMap(SdkBenchmarkResult::getId, b -> b));
+        } catch (Exception e) {
+            log.warn(() -> "Not able to retrieve baseline result. Skipping regression validation ", e);
+        }
     }
 
     /**
      * Process benchmark results
+     *
      * @param results the results of the benchmark
-     * @return the benchmark name that failed the test
+     * @return the benchmark Id that failed the regression
      */
     List<String> processBenchmarkResult(Collection<RunResult> results) {
-
         for (RunResult result : results) {
-            String benchmarkId = retrieveBenchmarkId(result);
-            Double baseline = benchmarkIdToBaselineScore.getOrDefault(benchmarkId, Double.MAX_VALUE);
+            String benchmarkId = getBenchmarkId(result.getParams());
 
-            double calibratedScore = calibrateScore(result.getPrimaryResult());
-            if (calibratedScore > baseline) {
-                failedBenchmarkNames.add(benchmarkId);
+            SdkBenchmarkResult baselineResult = baseline.get(benchmarkId);
+            SdkBenchmarkResult sdkBenchmarkData = constructSdkBenchmarkResult(result);
+
+            if (baselineResult == null) {
+                log.warn(() -> "Unable to find the baseline for " + benchmarkId + " Skipping regression validation");
+                continue;
+            }
+
+            if (!validateBenchmarkResult(baselineResult, sdkBenchmarkData)) {
+                failedBenchmarkIds.add(benchmarkId);
             }
         }
-        return failedBenchmarkNames;
+        return failedBenchmarkIds;
+    }
+
+    private SdkBenchmarkResult constructSdkBenchmarkResult(RunResult runResult) {
+        Statistics statistics = runResult.getPrimaryResult().getStatistics();
+
+        SdkBenchmarkStatistics sdkBenchmarkStatistics = new SdkBenchmarkStatistics(statistics);
+        SdkBenchmarkParams sdkBenchmarkParams = new SdkBenchmarkParams(runResult.getParams());
+
+        return new SdkBenchmarkResult(getBenchmarkId(runResult.getParams()),
+                                      sdkBenchmarkParams,
+                                      sdkBenchmarkStatistics);
     }
 
     /**
-     * Calibrate score if needed. Ignoring the result if the score error is
-     * greater than the result score.
+     * Validate benchmark result by comparing it with baseline result statistically.
+     *
+     * @param baseline the baseline result
+     * @param currentResult current result
+     * @return true if current result is equal to or better than the baseline result statistically, false otherwise.
      */
-    private double calibrateScore(Result result) {
-        if (Double.isNaN(result.getScoreError())) {
-            return result.getScore();
+    private boolean validateBenchmarkResult(SdkBenchmarkResult currentResult, SdkBenchmarkResult baseline) {
+        if (!validateBenchmarkParams(currentResult.getParams(), baseline.getParams())) {
+            log.warn(() -> "Baseline result and current result are not comparable due to running from different environments."
+                           + "Skipping validation for " + currentResult.getId());
+            return true;
         }
 
-        if (result.getScoreError() > result.getScore()) {
-            log.warn(() -> "Ignoring the result since it's not accurate: " + result.getLabel());
-            return Double.NaN;
-        }
+        int comparison = compare(currentResult.getStatistics(), baseline.getStatistics());
+        log.debug(() -> "comparison result for " + baseline.getId() + " is " + comparison);
 
-        return result.getScore() - result.getScoreError();
+        switch (currentResult.getParams().getMode()) {
+            case Throughput:
+                return comparison >= 0;
+            case SampleTime:
+                return comparison <= 0;
+            case AverageTime:
+                return comparison <= 0;
+            case SingleShotTime:
+                return comparison <= 0;
+            default:
+                log.warn(() -> "Unsupported mode, skipping " + currentResult.getId());
+                return true;
+        }
     }
 
-    /**
-     *  Retrieve BenchmarkId from the runResult.
-     */
-    private String retrieveBenchmarkId(RunResult runResult) {
-        BenchmarkParams params = runResult.getParams();
-        String benchmark = params.getBenchmark();
-
-        String[] split = benchmark.split("\\.");
-
-        String className = split[split.length - 2];
-        String benchmarkMethodName = split[split.length - 1];
-
-        StringJoiner stringJoiner = new StringJoiner(".").add(className).add(benchmarkMethodName);
-
-        Collection<String> paramsKeys = params.getParamsKeys();
-
-        if (!CollectionUtils.isNullOrEmpty(paramsKeys)) {
-            String paramKey = paramsKeys.iterator().next();
-            String paramValue = params.getParam(paramKey);
-            stringJoiner.add(paramValue);
-        }
-        return stringJoiner.toString();
+    private String getBenchmarkId(BenchmarkParams params) {
+        return params.id().replaceFirst("software.amazon.awssdk.benchmark.", "");
     }
 
-    private Map<String, Double> constructBenchmarkIdToScoreMap(List<BenchmarkScore> benchmarkScores) {
-        Map<String, Double> benchmarkIdToScore = new HashMap<>();
-        for (BenchmarkScore score : benchmarkScores) {
-            String id = score.getBenchmark();
-            if (score.getParameter() != null) {
-                id += "." + score.getParameter();
-            }
-            benchmarkIdToScore.put(id, score.getScore());
+    private boolean validateBenchmarkParams(SdkBenchmarkParams current, SdkBenchmarkParams baseline) {
+        if (!Objects.equals(current.getJdkVersion(), baseline.getJdkVersion())) {
+            return false;
         }
-        return benchmarkIdToScore;
+
+        return Objects.equals(current.getMode(), baseline.getMode());
     }
 }

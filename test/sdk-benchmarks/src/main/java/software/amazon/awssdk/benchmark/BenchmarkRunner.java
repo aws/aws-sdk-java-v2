@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.benchmark;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
 import software.amazon.awssdk.utils.Logger;
+
 
 public class BenchmarkRunner {
 
@@ -59,18 +61,22 @@ public class BenchmarkRunner {
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
     private final List<String> benchmarksToRun;
+    private final BenchmarkResultProcessor resultProcessor;
 
     private BenchmarkRunner(List<String> benchmarksToRun) {
         this.benchmarksToRun = benchmarksToRun;
+        this.resultProcessor = new BenchmarkResultProcessor();
     }
 
-    public static void main(String... args) throws RunnerException {
-        List<String> benchmarksToRun = new ArrayList<>(SYNC_BENCHMARKS);
+    public static void main(String... args) throws RunnerException, JsonProcessingException {
+        List<String> benchmarksToRun = new ArrayList<>();
+        benchmarksToRun.addAll(SYNC_BENCHMARKS);
+        benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
-        benchmarksToRun.addAll(ASYNC_BENCHMARKS);
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
+
         runner.runBenchmark();
     }
 
@@ -79,9 +85,15 @@ public class BenchmarkRunner {
 
         benchmarksToRun.forEach(optionsBuilder::include);
 
-        log.info(() -> "benchmarks to run " + benchmarksToRun);
+        log.info(() -> "Starting to run: " + benchmarksToRun);
 
         Collection<RunResult> results = new Runner(optionsBuilder.build()).run();
-        //TODO: process the results and compare with baseline, consider using Statistics#isDifferent
+
+        List<String> failedResult = resultProcessor.processBenchmarkResult(results);
+
+        if (!failedResult.isEmpty()) {
+            log.info(() -> "Failed perf regression tests: " + failedResult);
+            throw new RuntimeException("Perf regression tests failed: " + failedResult);
+        }
     }
 }
