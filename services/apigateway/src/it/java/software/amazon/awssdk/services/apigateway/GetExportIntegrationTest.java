@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.testutils.Waiter;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.testutils.Waiter;
 /**
  * Integration tests for {@link software.amazon.awssdk.services.apigateway.model.GetExportRequest}.
  */
+@Ignore // Running during release causing TooManyRequests exception
 public class GetExportIntegrationTest extends IntegrationTestBase {
     private static final String STAGE = "Alpha";
 
