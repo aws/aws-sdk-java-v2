@@ -1,0 +1,16 @@
+{
+    "date": "2019-04-01",
+    "version": "2.5.21",
+    "entries": [
+        {
+            "category": "Amazon Elastic MapReduce",
+            "type": "feature",
+            "description": "Amazon EMR adds the ability to modify instance group configurations on a running cluster through the new \"configurations\" field in the ModifyInstanceGroups API."
+        },
+        {
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "type": "feature",
+            "description": "March 2019 documentation updates for Systems Manager."
+        }
+    ]
+}
