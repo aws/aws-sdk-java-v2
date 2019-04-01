@@ -26,7 +26,10 @@ import java.net.ServerSocket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.math3.stat.inference.TestUtils;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.util.Statistics;
+import software.amazon.awssdk.benchmark.stats.SdkBenchmarkStatistics;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 
@@ -86,5 +89,38 @@ public final class BenchmarkUtils {
             socket.setReuseAddress(true);
             return socket.getLocalPort();
         }
+    }
+
+    /**
+     * Compare the results statistically.
+     *
+     * See {@link Statistics#compareTo(Statistics, double)}
+     *
+     * @param current the current result
+     * @param other the other result to compare with
+     * @param confidence the confidence level
+     * @return a negative integer, zero, or a positive integer as this statistics
+     * is less than, equal to, or greater than the specified statistics.
+     */
+    public static int compare(SdkBenchmarkStatistics current, SdkBenchmarkStatistics other, double confidence) {
+        if (isDifferent(current, other, confidence)) {
+            logger.info(() -> "isDifferent ? " + true);
+            double t = current.getMean();
+            double o = other.getMean();
+            return (t > o) ? -1 : 1;
+        }
+
+        return 0;
+    }
+
+    /**
+     * See {@link Statistics#compareTo(Statistics)}
+     */
+    public static int compare(SdkBenchmarkStatistics current, SdkBenchmarkStatistics other) {
+        return compare(current, other, 0.99);
+    }
+
+    private static boolean isDifferent(SdkBenchmarkStatistics current, SdkBenchmarkStatistics other, double confidence) {
+        return TestUtils.tTest(current, other, 1 - confidence);
     }
 }
