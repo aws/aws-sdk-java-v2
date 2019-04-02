@@ -41,10 +41,14 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+        ClassName asyncInterfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
 
         TypeSpec.Builder builder = PoetUtils.createClassBuilder(className())
                                             .addModifiers(Modifier.PUBLIC)
                                             .addField(FieldSpec.builder(interfaceClass, "client")
+                                                               .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                                               .build())
+                                            .addField(FieldSpec.builder(asyncInterfaceClass, "asyncClient")
                                                                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                                                                .build())
                                             .addMethod(setup());
@@ -71,17 +75,26 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
                                        .orElse("US_EAST_1");
         ClassName beforeClass = ClassName.get("org.junit", "BeforeClass");
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+        ClassName asyncInterfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
+
         return MethodSpec.methodBuilder("setup")
                          .addAnnotation(beforeClass)
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                          .beginControlFlow("if ($T.serviceMetadata().regions().isEmpty())", interfaceClass)
                          .addStatement("client = $T.builder().region($T.$L).build()", interfaceClass, Region.class, defaultRegion)
+                         .addStatement("asyncClient = $T.builder().region($T.$L).build()",
+                                       asyncInterfaceClass,
+                                       Region.class,
+                                       defaultRegion)
                          .endControlFlow()
                          .beginControlFlow("else if ($T.serviceMetadata().regions().contains($T.AWS_GLOBAL))",
                                            interfaceClass,
                                            Region.class)
                          .addStatement("client = $T.builder().region($T.AWS_GLOBAL).build()",
                                        interfaceClass,
+                                       Region.class)
+                         .addStatement("asyncClient = $T.builder().region($T.AWS_GLOBAL).build()",
+                                       asyncInterfaceClass,
                                        Region.class)
                          .endControlFlow()
                          .beginControlFlow("else if ($T.serviceMetadata().regions().contains($T.US_EAST_1))",
@@ -90,9 +103,15 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
                          .addStatement("client = $T.builder().region($T.US_EAST_1).build()",
                                        interfaceClass,
                                        Region.class)
+                         .addStatement("asyncClient = $T.builder().region($T.US_EAST_1).build()",
+                                       asyncInterfaceClass,
+                                       Region.class)
                          .endControlFlow()
                          .beginControlFlow("else")
                          .addStatement("client = $1T.builder().region($1T.serviceMetadata().regions().get(0)).build()",
+                                       interfaceClass)
+                         .addStatement("asyncClient = $1T.builder().region($2T.serviceMetadata().regions().get(0)).build()",
+                                       asyncInterfaceClass,
                                        interfaceClass)
                          .endControlFlow()
                          .build();
@@ -105,6 +124,7 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
                          .addException(Exception.class)
                          .addModifiers(Modifier.PUBLIC)
                          .addStatement("client.$N()", opModel.getMethodName())
+                         .addStatement("asyncClient.$N().join()", opModel.getMethodName())
                          .build();
     }
 }

@@ -9,21 +9,28 @@ import software.amazon.awssdk.regions.Region;
 public class SimpleMethodsIntegrationTest {
     private static JsonClient client;
 
+    private static JsonAsyncClient asyncClient;
+
     @BeforeClass
     public static void setup() {
         if (JsonClient.serviceMetadata().regions().isEmpty()) {
             client = JsonClient.builder().region(Region.US_EAST_1).build();
+            asyncClient = JsonAsyncClient.builder().region(Region.US_EAST_1).build();
         } else if (JsonClient.serviceMetadata().regions().contains(Region.AWS_GLOBAL)) {
             client = JsonClient.builder().region(Region.AWS_GLOBAL).build();
+            asyncClient = JsonAsyncClient.builder().region(Region.AWS_GLOBAL).build();
         } else if (JsonClient.serviceMetadata().regions().contains(Region.US_EAST_1)) {
             client = JsonClient.builder().region(Region.US_EAST_1).build();
+            asyncClient = JsonAsyncClient.builder().region(Region.US_EAST_1).build();
         } else {
             client = JsonClient.builder().region(JsonClient.serviceMetadata().regions().get(0)).build();
+            asyncClient = JsonAsyncClient.builder().region(JsonAsyncClient.serviceMetadata().regions().get(0)).build();
         }
     }
 
     @Test
     public void paginatedOperationWithResultKey_SimpleMethod_Succeeds() throws Exception {
         client.paginatedOperationWithResultKey();
+        asyncClient.paginatedOperationWithResultKey().join();
     }
 }
