@@ -38,20 +38,20 @@ public final class TimerUtils {
      *
      * @param completableFuture the completableFuture to be timed
      * @param timeoutExecutor the executor to execute the {@link TimeoutTask}
-     * @param exceptionToThrow the exception to thrown after timeout
+     * @param exceptionSupplier the exception to thrown after timeout
      * @param timeoutInMills the timeout in milliseconds.
      * @param <T> the type of the {@link CompletableFuture}
      * @return a {@link TimeoutTracker}
      */
     public static <T> TimeoutTracker timeAsyncTaskIfNeeded(CompletableFuture<T> completableFuture,
                                                            ScheduledExecutorService timeoutExecutor,
-                                                           SdkClientException exceptionToThrow,
+                                                           Supplier<SdkClientException> exceptionSupplier,
                                                            long timeoutInMills) {
         if (timeoutInMills <= 0) {
             return NoOpTimeoutTracker.INSTANCE;
         }
 
-        TimeoutTask timeoutTask = new AsyncTimeoutTask(completableFuture, exceptionToThrow);
+        TimeoutTask timeoutTask = new AsyncTimeoutTask(completableFuture, exceptionSupplier);
 
         ScheduledFuture<?> scheduledFuture =
             timeoutExecutor.schedule(timeoutTask,
