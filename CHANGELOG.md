@@ -1,3 +1,16 @@
+# __2.5.23__ __2019-04-03__
+## __AWS Batch__
+  - ### Features
+    - Support for GPU resource requirement in RegisterJobDefinition and SubmitJob
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend adds tagging support for document-classifiers and entity-recognizers.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where SNI was not enabled in Netty NIO Async Client for TLS and caused the requests to fail of handshake_failure in some services. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)
+
 # __2.5.22__ __2019-04-02__
 ## __AWS Certificate Manager__
   - ### Features
