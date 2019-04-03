@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "type": "bugfix", 
-    "description": "Fix a bug where SNI was not enabled in Netty NIO Async Client for TLS and caused the requests to fail of handshake_failure in some services. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)"
-}

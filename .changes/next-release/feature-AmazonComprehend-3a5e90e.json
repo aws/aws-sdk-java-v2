@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Comprehend", 
-    "type": "feature", 
-    "description": "With this release AWS Comprehend adds tagging support for document-classifiers and entity-recognizers."
-}

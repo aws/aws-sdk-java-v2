@@ -1,5 +1,0 @@
-{
-    "category": "AWS Batch", 
-    "type": "feature", 
-    "description": "Support for GPU resource requirement in RegisterJobDefinition and SubmitJob"
-}
