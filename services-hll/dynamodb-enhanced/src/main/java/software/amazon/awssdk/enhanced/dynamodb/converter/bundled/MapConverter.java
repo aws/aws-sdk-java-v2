@@ -49,7 +49,7 @@ public class MapConverter extends InstanceOfConverter<Map<?, ?>> {
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(Map<?, ?> input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(Map<?, ?> input, ConversionContext context) {
         Map<String, ItemAttributeValue> result = new LinkedHashMap<>();
         input.forEach((key, value) -> result.put(keyToStringConverter.apply(key),
                                                  context.converter().toAttributeValue(value, context)));
@@ -57,7 +57,7 @@ public class MapConverter extends InstanceOfConverter<Map<?, ?>> {
     }
 
     @Override
-    protected Map<?, ?> doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected Map<?, ?> convertFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
         Class<?> mapType = desiredType.rawClass();
         List<TypeToken<?>> mapTypeParameters = desiredType.rawClassParameters();
 

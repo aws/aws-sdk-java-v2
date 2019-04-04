@@ -41,12 +41,14 @@ public class ResponseItemConverter extends ExactInstanceOfConverter<ResponseItem
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(ResponseItem input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(ResponseItem input, ConversionContext context) {
         throw new UnsupportedOperationException("Cannot convert a ResponseItem to an ItemAttributeValue.");
     }
 
     @Override
-    protected ResponseItem doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected ResponseItem convertFromAttributeValue(ItemAttributeValue input,
+                                                     TypeToken<?> desiredType,
+                                                     ConversionContext context) {
         return input.convert(new TypeConvertingVisitor<ResponseItem>(ResponseItem.class, ResponseItemConverter.class) {
             @Override
             public ResponseItem convertMap(Map<String, ItemAttributeValue> value) {

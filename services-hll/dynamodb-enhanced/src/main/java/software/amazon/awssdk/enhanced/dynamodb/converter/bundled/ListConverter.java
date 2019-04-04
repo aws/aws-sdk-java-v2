@@ -44,7 +44,7 @@ public class ListConverter extends InstanceOfConverter<List<?>> {
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(List<?> input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(List<?> input, ConversionContext context) {
         List<ItemAttributeValue> attributeValues = new ArrayList<>();
         for (Object object : input) {
             attributeValues.add(context.converter().toAttributeValue(object, context));
@@ -53,7 +53,7 @@ public class ListConverter extends InstanceOfConverter<List<?>> {
     }
 
     @Override
-    protected List<?> doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected List<?> convertFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
         Class<?> listType = desiredType.rawClass();
         List<TypeToken<?>> listTypeParameters = desiredType.rawClassParameters();
 
