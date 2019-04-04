@@ -1,0 +1,26 @@
+{
+    "date": "2019-03-22",
+    "version": "2.5.15",
+    "entries": [
+        {
+            "category": "AWS IoT 1-Click Projects Service",
+            "type": "feature",
+            "description": "This release adds tagging support for AWS IoT 1-Click Project resources. Use these APIs to add, remove, or list tags on Projects, and leverage the tags for various authorization and billing scenarios. This release also adds the ARN property to projects for DescribeProject and ListProject responses."
+        },
+        {
+            "category": "Amazon CloudSearch Domain",
+            "type": "bugfix",
+            "description": "Use application/x-www-form-urlencoded as Content-Type for search API"
+        },
+        {
+            "category": "Netty NIO Http Client",
+            "type": "feature",
+            "description": "Add sslProvider configuration in `NettyNioAsyncHttpClient.Builder`."
+        },
+        {
+            "category": "Amazon Transcribe Service",
+            "type": "feature",
+            "description": "Amazon Transcribe - support transcriptions from audio sources in German (de-DE) and Korean (ko-KR)."
+        }
+    ]
+}

@@ -13,11 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.apicall.sync;
+package software.amazon.awssdk.benchmark.utils;
 
-import org.openjdk.jmh.infra.Blackhole;
+import java.io.IOException;
+import java.net.URI;
 
-public interface SdkApiCallBenchmark {
+public abstract class BaseMockServer {
 
-    void apiCall(Blackhole blackhole);
+    protected int httpPort;
+    protected int httpsPort;
+
+    public BaseMockServer() throws IOException {
+        httpPort = BenchmarkUtils.getUnusedPort();
+        httpsPort = BenchmarkUtils.getUnusedPort();
+    }
+
+    public URI getHttpUri() {
+        return URI.create(String.format("http://localhost:%s", httpPort));
+    }
+
+    public URI getHttpsUri() {
+        return URI.create(String.format("https://localhost:%s", httpsPort));
+    }
 }

@@ -19,10 +19,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -149,7 +147,7 @@ public abstract class SdkHttpClientTestSuite {
             responseBuilder.withHeader("Location", "Some New Location");
         }
 
-        stubFor(any(urlPathEqualTo("/")).willReturn(responseBuilder));
+        mockServer.stubFor(any(urlPathEqualTo("/")).willReturn(responseBuilder));
     }
 
     private void validateResponse(HttpExecuteResponse response, int returnCode, SdkHttpMethod method) throws IOException {
@@ -165,7 +163,7 @@ public abstract class SdkHttpClientTestSuite {
             patternBuilder.withRequestBody(equalTo("Body"));
         }
 
-        verify(1, patternBuilder);
+        mockServer.verify(1, patternBuilder);
 
         if (method == SdkHttpMethod.HEAD) {
             assertThat(response.responseBody()).isEmpty();

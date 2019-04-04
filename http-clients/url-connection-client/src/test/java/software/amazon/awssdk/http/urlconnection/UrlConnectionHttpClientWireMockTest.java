@@ -14,12 +14,37 @@
  */
 package software.amazon.awssdk.http.urlconnection;
 
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
+
+import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocketFactory;
+import org.junit.After;
+import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTestSuite {
+
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
         return UrlConnectionHttpClient.create();
+    }
+
+    @After
+    public void reset() {
+        HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
+    }
+
+    @Test
+    public void trustAllCertificates_shouldWork() throws Exception {
+        try (SdkHttpClient client = UrlConnectionHttpClient.builder()
+                                                           .buildWithDefaults(AttributeMap.builder()
+                                                                                          .put(TRUST_ALL_CERTIFICATES,
+                                                                                               Boolean.TRUE)
+                                                                                          .build())) {
+            testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
+        }
     }
 }

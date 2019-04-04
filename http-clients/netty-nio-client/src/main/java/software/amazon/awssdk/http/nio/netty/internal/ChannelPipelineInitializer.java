@@ -30,8 +30,12 @@ import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
@@ -46,17 +50,20 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final long clientMaxStreams;
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
+    private final URI poolKey;
 
     public ChannelPipelineInitializer(Protocol protocol,
                                       SslContext sslCtx,
                                       long clientMaxStreams,
                                       AtomicReference<ChannelPool> channelPoolRef,
-                                      NettyConfiguration configuration) {
+                                      NettyConfiguration configuration,
+                                      URI poolKey) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
         this.channelPoolRef = channelPoolRef;
         this.configuration = configuration;
+        this.poolKey = poolKey;
     }
 
     @Override
@@ -64,7 +71,13 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
-            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+
+            // Need to provide host and port to enable SNI
+            // https://github.com/netty/netty/issues/3801#issuecomment-104274440
+            SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), poolKey.getHost(), poolKey.getPort());
+            configureSslEngine(sslHandler.engine());
+
+            pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
         }
 
@@ -85,6 +98,20 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         pipeline.addLast(FutureCancelHandler.getInstance());
         pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
+    }
+
+    /**
+     * Enable HostName verification.
+     *
+     * See https://netty.io/4.0/api/io/netty/handler/ssl/SslContext.html#newHandler-io.netty.buffer.ByteBufAllocator-java.lang
+     * .String-int-
+     *
+     * @param sslEngine the sslEngine to configure
+     */
+    private void configureSslEngine(SSLEngine sslEngine) {
+        SSLParameters sslParameters = sslEngine.getSSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+        sslEngine.setSSLParameters(sslParameters);
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {

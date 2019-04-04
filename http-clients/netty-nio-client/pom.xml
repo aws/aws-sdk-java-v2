@@ -20,7 +20,7 @@
     <parent>
         <artifactId>http-clients</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.5.15-SNAPSHOT</version>
+        <version>2.5.25-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -135,6 +135,11 @@
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

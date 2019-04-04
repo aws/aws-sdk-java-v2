@@ -13,14 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.apicall.sync;
-
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.LOCAL_URI;
-import static software.amazon.awssdk.benchmark.utils.BenchmarkUtil.PORT_NUMBER;
+package software.amazon.awssdk.benchmark.apicall.httpclient.async;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
@@ -31,58 +27,46 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.utils.MockServer;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 
 /**
- * Benchmarking for running with different http clients.
+ * Using netty client to test against local mock http server.
  */
-@State(Scope.Thread)
+@State(Scope.Benchmark)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class ApacheHttpClientBenchmark implements SdkApiCallBenchmark {
+public class NettyClientH1NonTlsBenchmark extends BaseNettyBenchmark {
 
     private MockServer mockServer;
-    private SdkHttpClient sdkHttpClient;
-    private ProtocolRestJsonClient client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        mockServer = new MockServer(PORT_NUMBER);
+        mockServer = new MockServer();
         mockServer.start();
-        sdkHttpClient = ApacheHttpClient.builder().build();
-        client = ProtocolRestJsonClient.builder()
-                                       .endpointOverride(LOCAL_URI)
-                                       .httpClient(sdkHttpClient)
-                                       .build();
+        client = ProtocolRestJsonAsyncClient.builder()
+                                            .endpointOverride(mockServer.getHttpUri())
+                                            .build();
+        // Making sure the request actually succeeds
+        client.allTypes().join();
     }
 
     @TearDown(Level.Trial)
     public void tearDown() throws Exception {
         mockServer.stop();
-        sdkHttpClient.close();
         client.close();
     }
 
-    @Benchmark
-    public void apiCall(Blackhole blackhole) {
-        blackhole.consume(client.allTypes());
-    }
-
     public static void main(String... args) throws Exception {
-
         Options opt = new OptionsBuilder()
-            .include(ApacheHttpClientBenchmark.class.getSimpleName())
+            .include(NettyClientH1NonTlsBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();

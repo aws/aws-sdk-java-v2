@@ -19,7 +19,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.5.15-SNAPSHOT</version>
+        <version>2.5.25-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -131,6 +131,16 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>regions</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -153,14 +163,33 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>9.2.22.v20170606</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>http2-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-alpn-java-server</artifactId>
+        </dependency>
+         <dependency>
+             <groupId>org.eclipse.jetty.http2</groupId>
+             <artifactId>http2-hpack</artifactId>
+         </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -184,6 +213,13 @@
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom-internal</artifactId>
                 <version>${awsjavasdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>9.4.15.v20190215</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -271,11 +307,22 @@
                         </goals>
                         <configuration>
                             <finalName>${uberjar.name}</finalName>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                            <includes>
+                                <include>*:*</include>
+                            </includes>
+                            </artifactSet>
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.openjdk.jmh.Main</mainClass>
+                                    <manifestEntries>
+                                        <Main-Class>org.openjdk.jmh.Main</Main-Class>
+                                    </manifestEntries>
                                 </transformer>
+                                <!-- This is important to run h2 server -->
+                                <!-- https://github.com/jetty-project/embedded-jetty-live-war/blob/master/theserver/pom.xml -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                             <filters>
                                 <filter>
