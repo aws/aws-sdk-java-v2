@@ -46,12 +46,12 @@ public class StringConverter extends ExactInstanceOfConverter<String> {
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(String input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(String input, ConversionContext context) {
         return ItemAttributeValue.fromString(input);
     }
 
     @Override
-    protected String doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected String convertFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
         return input.convert(Visitor.INSTANCE);
     }
 

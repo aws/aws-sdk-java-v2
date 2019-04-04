@@ -37,12 +37,12 @@ public class IntegerConverter extends ExactInstanceOfConverter<Integer> {
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(Integer input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(Integer input, ConversionContext context) {
         return ItemAttributeValue.fromNumber(input.toString());
     }
 
     @Override
-    protected Integer doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected Integer convertFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
         return input.convert(Visitor.INSTANCE);
     }
 

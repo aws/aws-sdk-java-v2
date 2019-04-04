@@ -38,12 +38,12 @@ public class InstantConverter extends ExactInstanceOfConverter<Instant> {
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(Instant input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(Instant input, ConversionContext context) {
         return ItemAttributeValue.fromNumber(Long.toString(input.toEpochMilli()));
     }
 
     @Override
-    protected Instant doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected Instant convertFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
         return input.convert(Visitor.INSTANCE);
     }
 

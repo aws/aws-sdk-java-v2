@@ -35,14 +35,14 @@ public class IdentityConverter extends ExactInstanceOfConverter<ItemAttributeVal
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(ItemAttributeValue input, ConversionContext context) {
+    protected ItemAttributeValue convertToAttributeValue(ItemAttributeValue input, ConversionContext context) {
         return input;
     }
 
     @Override
-    protected ItemAttributeValue doFromAttributeValue(ItemAttributeValue input,
-                                                      TypeToken<?> desiredType,
-                                                      ConversionContext context) {
+    protected ItemAttributeValue convertFromAttributeValue(ItemAttributeValue input,
+                                                           TypeToken<?> desiredType,
+                                                           ConversionContext context) {
         return input;
     }
 }

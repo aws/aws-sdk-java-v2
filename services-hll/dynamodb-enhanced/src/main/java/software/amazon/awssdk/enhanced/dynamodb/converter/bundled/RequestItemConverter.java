@@ -40,7 +40,7 @@ public class RequestItemConverter extends InstanceOfConverter<RequestItem> {
     }
 
     @Override
-    protected ItemAttributeValue doToAttributeValue(RequestItem input, ConversionContext conversionContext) {
+    protected ItemAttributeValue convertToAttributeValue(RequestItem input, ConversionContext conversionContext) {
         ItemAttributeValueConverter converter = ItemAttributeValueConverterChain.builder()
                                                                                 .addConverters(input.converters())
                                                                                 .parent(conversionContext.converter())
@@ -60,7 +60,9 @@ public class RequestItemConverter extends InstanceOfConverter<RequestItem> {
     }
 
     @Override
-    protected RequestItem doFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    protected RequestItem convertFromAttributeValue(ItemAttributeValue input,
+                                                    TypeToken<?> desiredType,
+                                                    ConversionContext context) {
         throw new UnsupportedOperationException("Cannot convert an ItemAttributeValue to a RequestItem.");
     }
 }
