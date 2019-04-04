@@ -1,3 +1,12 @@
+# __2.5.24__ __2019-04-04__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for iam
+
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Added support to enable or disable publishing Kubernetes cluster logs in AWS CloudWatch
+
 # __2.5.23__ __2019-04-03__
 ## __AWS Batch__
   - ### Features

@@ -1,0 +1,16 @@
+{
+    "date": "2019-04-04",
+    "version": "2.5.24",
+    "entries": [
+        {
+            "category": "AWS Identity and Access Management",
+            "type": "feature",
+            "description": "Documentation updates for iam"
+        },
+        {
+            "category": "Amazon Elastic Container Service for Kubernetes",
+            "type": "feature",
+            "description": "Added support to enable or disable publishing Kubernetes cluster logs in AWS CloudWatch"
+        }
+    ]
+}
