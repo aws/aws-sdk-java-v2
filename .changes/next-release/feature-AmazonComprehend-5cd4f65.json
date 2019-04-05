@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Comprehend", 
-    "type": "feature", 
-    "description": "With this release AWS Comprehend provides confusion matrix for custom document classifier."
-}

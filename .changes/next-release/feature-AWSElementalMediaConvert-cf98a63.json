@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaConvert", 
-    "type": "feature", 
-    "description": "Rectify incorrect modelling of DisassociateCertificate method"
-}
