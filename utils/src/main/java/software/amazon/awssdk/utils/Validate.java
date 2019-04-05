@@ -564,11 +564,13 @@ public final class Validate {
      * @param values  the optional values for the formatted exception message, null array not recommended
      * @throws IllegalArgumentException if argument can not be converted to the specified class
      */
-    public static void isAssignableFrom(final Class<?> superType, final Class<?> type,
+    public static <T> Class<? extends T> isAssignableFrom(final Class<T> superType, final Class<?> type,
                                         final String message, final Object... values) {
         if (!superType.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format(message, values));
         }
+
+        return (Class<? extends T>) type;
     }
 
     /**
