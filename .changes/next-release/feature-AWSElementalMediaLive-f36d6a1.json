@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elemental MediaLive", 
+    "type": "feature", 
+    "description": "Today AWS Elemental MediaLive (https://aws.amazon.com/medialive/) adds the option to create \"Single Pipeline\" channels, which offers a lower-cost option compared to Standard channels. MediaLive Single Pipeline channels have a single encoding pipeline rather than the redundant dual Availability Zone (AZ) pipelines that MediaLive provides with a \"Standard\" channel."
+}
