@@ -1,0 +1,5 @@
+{
+    "category": "AWS Transcribe Streaming", 
+    "type": "feature", 
+    "description": "Amazon Transcribe now supports GB English, CA French and FR French which expands upon the existing language support for US English and US Spanish."
+}

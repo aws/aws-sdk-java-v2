@@ -1,3 +1,38 @@
+# __2.5.24__ __2019-04-04__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for iam
+
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Added support to enable or disable publishing Kubernetes cluster logs in AWS CloudWatch
+
+# __2.5.23__ __2019-04-03__
+## __AWS Batch__
+  - ### Features
+    - Support for GPU resource requirement in RegisterJobDefinition and SubmitJob
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend adds tagging support for document-classifiers and entity-recognizers.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where SNI was not enabled in Netty NIO Async Client for TLS and caused the requests to fail of handshake_failure in some services. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)
+
+# __2.5.22__ __2019-04-02__
+## __AWS Certificate Manager__
+  - ### Features
+    - Documentation updates for acm
+
+## __AWS SecurityHub__
+  - ### Features
+    - This update includes 3 additional error codes: AccessDeniedException, InvalidAccessException, and ResourceConflictException. This update also removes the error code ResourceNotFoundException from the GetFindings, GetInvitationsCount, ListInvitations, and ListMembers operations.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add paginators.
+
 # __2.5.21__ __2019-04-01__
 ## __Amazon Elastic MapReduce__
   - ### Features

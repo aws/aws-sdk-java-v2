@@ -1,0 +1,21 @@
+{
+    "date": "2019-04-03",
+    "version": "2.5.23",
+    "entries": [
+        {
+            "category": "Amazon Comprehend",
+            "type": "feature",
+            "description": "With this release AWS Comprehend adds tagging support for document-classifiers and entity-recognizers."
+        },
+        {
+            "category": "AWS Batch",
+            "type": "feature",
+            "description": "Support for GPU resource requirement in RegisterJobDefinition and SubmitJob"
+        },
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Fix a bug where SNI was not enabled in Netty NIO Async Client for TLS and caused the requests to fail of handshake_failure in some services. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)"
+        }
+    ]
+}

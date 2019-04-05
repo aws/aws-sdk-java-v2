@@ -1,0 +1,21 @@
+{
+    "date": "2019-04-02",
+    "version": "2.5.22",
+    "entries": [
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "Add paginators."
+        },
+        {
+            "category": "AWS Certificate Manager",
+            "type": "feature",
+            "description": "Documentation updates for acm"
+        },
+        {
+            "category": "AWS SecurityHub",
+            "type": "feature",
+            "description": "This update includes 3 additional error codes: AccessDeniedException, InvalidAccessException, and ResourceConflictException. This update also removes the error code ResourceNotFoundException from the GetFindings, GetInvitationsCount, ListInvitations, and ListMembers operations."
+        }
+    ]
+}

@@ -193,7 +193,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
                 AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
                 ChannelPipelineInitializer handler =
-                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration);
+                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration, key);
                 channelPoolRef.set(createChannelPool(bootstrap, handler));
                 return channelPoolRef.get();
             }
