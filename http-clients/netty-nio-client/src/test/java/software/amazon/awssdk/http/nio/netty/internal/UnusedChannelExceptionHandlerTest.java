@@ -55,6 +55,12 @@ public class UnusedChannelExceptionHandlerTest {
         notInUseCloses(ioException);
     }
 
+    @Test
+    public void notInUseHasIoExceptionCauseCloses() {
+        notInUseCloses(new RuntimeException(ioException));
+    }
+
+
     private void notInUseCloses(Throwable exception) {
         Mockito.when(inUseAttribute.get()).thenReturn(false);
         Mockito.when(futureAttribute.get()).thenReturn(CompletableFuture.completedFuture(null));
