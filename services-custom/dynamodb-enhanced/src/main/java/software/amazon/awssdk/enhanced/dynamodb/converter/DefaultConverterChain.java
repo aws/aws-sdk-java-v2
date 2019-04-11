@@ -91,7 +91,7 @@ public final class DefaultConverterChain implements ItemAttributeValueConverter 
 
                                                 // InstanceOf Converters
                                                 // Potential optimization: allow InstanceOf converters to specify a set of
-                                                // types that should be cached in an eager fashion (eg. DefaultRequestItem)
+                                                // types that should be cached in an eager fashion (e.g. DefaultRequestItem)
                                                 .addConverter(new RequestItemConverter())
                                                 .addConverter(new ResponseItemConverter())
                                                 .addConverter(new ListConverter())

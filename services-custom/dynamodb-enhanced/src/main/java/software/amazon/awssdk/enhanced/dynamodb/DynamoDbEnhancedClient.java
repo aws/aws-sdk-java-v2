@@ -33,14 +33,18 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * <p>
  * This enhanced DynamoDB client replaces the generated {@link DynamoDbClient} with one that is easier for a Java customer to
- * use. It does this by converting between Java built-in types (eg. java.time.Instant) and DynamoDB attribute value types.
+ * use.  It does this by converting Java types into DynamoDB types.
+ *
+ * <p>
+ * For example, the client makes it possible to persist a Book object in DynamoDB, without needing to manually convert the fields
+ * (e.g. {@code List<Author>}) into DynamoDB-specific types (e.g. {@code List<Map<String, AttributeValue>>}).
  *
  * <p>
  * This can be created using the static {@link #builder()} or {@link #create()} methods. The client must be {@link #close()}d
  * when it is done being used.
  *
  * <p>
- * A {@code DynamoDbEnhancedClient} is thread-safe and relatively expensive to create. It's strongly advised to create a single
+ * A {@code DynamoDbEnhancedClient} is thread-safe and relatively expensive to create. We strongly advise you to create a single
  * {@code DynamoDbEnhancedClient} instance that is reused throughout your whole application.
  *
  * <p>
@@ -64,7 +68,7 @@ public interface DynamoDbEnhancedClient extends ToCopyableBuilder<DynamoDbEnhanc
      * Create a {@link DynamoDbEnhancedClient} with default configuration.
      *
      * <p>
-     * The credentials and region will be loaded automatically, using the same semantics as {@link DynamoDbClient#create()}.
+     * The credentials and AWS Region will be loaded automatically, using the same semantics as {@link DynamoDbClient#create()}.
      *
      * <p>
      * Equivalent to {@code DynamoDbEnhancedClient.builder().build()}.
@@ -90,8 +94,8 @@ public interface DynamoDbEnhancedClient extends ToCopyableBuilder<DynamoDbEnhanc
      * configuration.
      *
      * <p>
-     * The credentials and region will be loaded from the configured {@link DynamoDbClient} (or {@link DynamoDbClient#create()}
-     * if one is not configured).
+     * The credentials and AWS Region will be loaded from the configured {@link DynamoDbClient} (or
+     * {@link DynamoDbClient#create()} if one is not configured).
      *
      * <p>
      * Sensible defaults will be used for any values not directly configured.
@@ -148,7 +152,7 @@ public interface DynamoDbEnhancedClient extends ToCopyableBuilder<DynamoDbEnhanc
      * This can be created using the static {@link DynamoDbEnhancedClient#builder()} method.
      *
      * <p>
-     * Multiple clients can be created by the same builder, but unlike clients the builder <b>is not thread safe</b> and
+     * Multiple clients can be created by the same builder, but unlike clients the builder <b>is not thread-safe</b> and
      * should not be used from multiple threads at the same time.
      *
      * <p>
@@ -167,7 +171,7 @@ public interface DynamoDbEnhancedClient extends ToCopyableBuilder<DynamoDbEnhanc
     interface Builder extends CopyableBuilder<Builder, DynamoDbEnhancedClient>, ConverterAware.Builder {
         /**
          * Configure a generated client to be used by the enhanced client to interact with DynamoDB. The enhanced client
-         * will use the credentials and region of the provided generated client.
+         * will use the credentials and AWS Region of the provided generated client.
          *
          * <p>
          * The provided client <b>will not be closed</b> when {@link DynamoDbEnhancedClient#close()} is invoked, and <b>must</b>

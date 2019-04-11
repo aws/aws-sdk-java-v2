@@ -105,7 +105,7 @@ public class TypeToken<T> {
     /**
      * Retrieve the {@link Class} object that this type token represents.
      *
-     * Eg. For {@code TypeToken<String>}, this would return {@code String.class}.
+     * e.g. For {@code TypeToken<String>}, this would return {@code String.class}.
      */
     public Class<T> rawClass() {
         return rawClass;
@@ -115,7 +115,7 @@ public class TypeToken<T> {
      * Retrieve the {@link Class} objects of any type parameters for the class that this type token represents.
      *
      * <p>
-     * Eg. For {@code TypeToken<List<String>>}, this would return {@code String.class}, and {@link #rawClass()} would
+     * e.g. For {@code TypeToken<List<String>>}, this would return {@code String.class}, and {@link #rawClass()} would
      * return {@code List.class}.
      *
      * <p>
