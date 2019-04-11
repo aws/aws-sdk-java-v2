@@ -74,5 +74,10 @@ public final class ProfileProperty {
      */
     public static final String ENDPOINT_DISCOVERY_ENABLED = "aws_endpoint_discovery_enabled";
 
+    /**
+     * An external process that should be invoked to load credentials.
+     */
+    public static final String CREDENTIAL_PROCESS = "credential_process";
+
     private ProfileProperty() {}
 }

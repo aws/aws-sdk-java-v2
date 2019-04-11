@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
+import software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -90,6 +91,10 @@ public final class ProfileCredentialsUtils {
             return Optional.ofNullable(roleBasedProfileCredentialsProvider(children));
         }
 
+        if (properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)) {
+            return Optional.ofNullable(credentialProcessCredentialsProvider());
+        }
+
         if (properties.containsKey(ProfileProperty.AWS_SESSION_TOKEN)) {
             return Optional.of(sessionProfileCredentialsProvider());
         }
@@ -123,6 +128,14 @@ public final class ProfileCredentialsUtils {
                                                                   properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY),
                                                                   properties.get(ProfileProperty.AWS_SESSION_TOKEN));
         return StaticCredentialsProvider.create(credentials);
+    }
+
+    private AwsCredentialsProvider credentialProcessCredentialsProvider() {
+        requireProperties(ProfileProperty.CREDENTIAL_PROCESS);
+
+        return ProcessCredentialsProvider.builder()
+                                         .command(properties.get(ProfileProperty.CREDENTIAL_PROCESS))
+                                         .build();
     }
 
     /**
