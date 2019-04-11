@@ -17,15 +17,33 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.ProcessCredentialsProviderTest;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class ProfileCredentialsUtilsTest {
+    private static String scriptLocation;
+
+    @BeforeClass
+    public static void setup()  {
+        scriptLocation = ProcessCredentialsProviderTest.copyProcessCredentialsScript();
+    }
+
+    @AfterClass
+    public static void teardown() {
+        if (scriptLocation != null && !new File(scriptLocation).delete()) {
+            throw new IllegalStateException("Failed to delete file: " + scriptLocation);
+        }
+    }
 
     @Test
     public void roleProfileCanInheritFromAnotherFile() {
@@ -119,6 +137,21 @@ public class ProfileCredentialsUtilsTest {
     }
 
     @Test
+    public void profileFileWithProcessCredentialsLoadsCorrectly() {
+        ProfileFile profileFile = allTypesProfile();
+        assertThat(profileFile.profile("profile-credential-process")).hasValueSatisfying(profile -> {
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
+            assertThat(new ProfileCredentialsUtils(profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
+                    assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+                    assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+                    assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+                });
+            });
+        });
+    }
+
+    @Test
     public void profileFileWithAssumeRoleThrowsExceptionWhenRetrievingCredentialsProvider() {
         ProfileFile profileFile = allTypesProfile();
         assertThat(profileFile.profile("profile-with-assume-role")).hasValueSatisfying(profile -> {
@@ -181,7 +214,10 @@ public class ProfileCredentialsUtilsTest {
                           "\n" +
                           "[profile profile-with-assume-role]\n" +
                           "source_profile=default\n" +
-                          "role_arn=arn:aws:iam::123456789012:role/testRole\n");
+                          "role_arn=arn:aws:iam::123456789012:role/testRole\n" +
+                          "\n" +
+                          "[profile profile-credential-process]\n" +
+                          "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey\n");
     }
 
     private ProfileFile configFile(String configFile) {
