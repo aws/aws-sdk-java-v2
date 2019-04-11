@@ -26,11 +26,16 @@
     <artifactId>dynamodb-enhanced</artifactId>
     <version>preview-SNAPSHOT</version>
     <name>AWS Java SDK :: DynamoDB :: Enhanced Client</name>
-    <description>The enhanced DynamoDB client replaces the generated DynamoDB client with
-        one that is easier for a Java customer to use. It does this by
-        supporting conversions between Java objects and DynamoDB items, as well
-        as converting between Java built-in types (eg. java.time.Instant) and
-        DynamoDB attribute value types.</description>
+    <description>
+        The enhanced Amazon DynamoDB client replaces the generated DynamoDB
+        client with one that is easier for a Java customer to use. It does this
+        by converting Java types into DynamoDB types.
+
+        For example, the client makes it possible to persist a Book object in
+        DynamoDB, without needing to manually convert the fields (e.g.
+        List&gt;Author&lt;) into DynamoDB-specific types (e.g. List&gt;Map&gt;String,
+        AttributeValue&lt;&lt;).
+    </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <properties>

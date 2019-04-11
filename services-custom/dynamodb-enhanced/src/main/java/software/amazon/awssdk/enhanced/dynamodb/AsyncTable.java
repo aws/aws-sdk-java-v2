@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
  *
  * <p>
  * This provides facilities for writing {@link RequestItem}s to a table and reading {@link ResponseItem}s from a table. All
- * operations are non-blocking, returning a {@link CompletableFuture} for the result, instead of the result itself.
+ * operations are nonblocking, returning a {@link CompletableFuture} for the result, instead of the result itself.
  *
  * <p>
  * Supported operations:
@@ -81,7 +81,7 @@ public interface AsyncTable {
      *                                           .putAttribute("title", "The Hitchhiker's Guide to the Galaxy")
      *                                           .build());
      *
-     *     // Log when the book is done being written
+     *     // Log when the book is done being written.
      *     CompletableFuture<Void> resultLoggedFuture = serviceCallCompleteFuture.thenAccept(() -> {
      *         System.out.println("Book was successfully written!");
      *     });
@@ -120,7 +120,7 @@ public interface AsyncTable {
      *             booksTable.putItem(item -> item.putAttribute("isbn", "0-330-25864-8")
      *                                            .putAttribute("title", "The Hitchhiker's Guide to the Galaxy"));
      *
-     *     // Log when the book is done being written
+     *     // Log when the book is done being written.
      *     CompletableFuture<Void> resultLoggedFuture = serviceCallCompleteFuture.thenAccept(ignored -> {
      *         System.out.println("Book was successfully written!");
      *     });
