@@ -24,6 +24,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.auth.BasicScheme;
@@ -59,8 +60,34 @@ public final class ApacheUtils {
     public static HttpClientContext newClientContext(ProxyConfiguration proxyConfiguration) {
         HttpClientContext clientContext = new HttpClientContext();
         addPreemptiveAuthenticationProxy(clientContext, proxyConfiguration);
+
+        RequestConfig.Builder builder = RequestConfig.custom();
+        disableNormalizeUri(builder);
+
+        clientContext.setRequestConfig(builder.build());
         return clientContext;
 
+    }
+
+    /**
+     * From Apache v4.5.8, normalization should be disabled or AWS requests with special characters in URI path will fail
+     * with Signature Errors.
+     * <p>
+     *    setNormalizeUri is added only in 4.5.8, so customers using the latest version of SDK with old versions (4.5.6 or less)
+     *    of Apache httpclient will see NoSuchMethodError. Hence this method will suppress the error.
+     *
+     *    Do not use Apache version 4.5.7 as it breaks URI paths with special characters and there is no option
+     *    to disable normalization.
+     * </p>
+     *
+     * For more information, See https://github.com/aws/aws-sdk-java/issues/1919
+     */
+    public static void disableNormalizeUri(RequestConfig.Builder requestConfigBuilder) {
+        try {
+            requestConfigBuilder.setNormalizeUri(false);
+        } catch (NoSuchMethodError error) {
+            // setNormalizeUri method was added in httpclient 4.5.8
+        }
     }
 
     /**
