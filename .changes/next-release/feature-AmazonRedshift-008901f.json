@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Redshift", 
-    "type": "feature", 
-    "description": "DescribeResize can now return percent of data transferred from source cluster to target cluster for a classic resize."
-}

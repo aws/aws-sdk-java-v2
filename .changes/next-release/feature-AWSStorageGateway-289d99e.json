@@ -1,5 +1,0 @@
-{
-    "category": "AWS Storage Gateway", 
-    "type": "feature", 
-    "description": "This change allows you to select either a weekly or monthly maintenance window for your volume or tape gateway. It also allows you to tag your tape and volume resources on creation by adding a Tag value on calls to the respective api endpoints."
-}
