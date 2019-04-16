@@ -1,0 +1,5 @@
+{
+    "category": "AmazonMQ", 
+    "type": "feature", 
+    "description": "This release adds the ability to retrieve information about broker engines and broker instance options. See Broker Engine Types and Broker Instance Options in the Amazon MQ REST API Reference."
+}
