@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.util.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -73,8 +74,32 @@ public final class JacksonUtils {
         }
     }
 
+    /**
+     * Returns the deserialized object from the given json string and target
+     * class; or null if the given json string is null. Clears the JSON location in the event of an error
+     */
+    public static <T> T fromSensitiveJsonString(String json, Class<T> clazz) {
+        if (json == null) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, clazz);
+        } catch (Exception e) {
+            // If underlying exception is a json parsing issue, clear out the location so that the exception message
+            // does not contain the raw json
+            if (e instanceof JsonParseException) {
+                ((JsonParseException) e).clearLocation();
+            }
+            throw SdkClientException.builder().message("Unable to parse Json String.").cause(e).build();
+        }
+    }
+
     public static JsonNode jsonNodeOf(String json) {
         return fromJsonString(json, JsonNode.class);
+    }
+
+    public static JsonNode sensitiveJsonNodeOf(String json) {
+        return fromSensitiveJsonString(json, JsonNode.class);
     }
 
     public static JsonGenerator jsonGeneratorOf(Writer writer) throws IOException {

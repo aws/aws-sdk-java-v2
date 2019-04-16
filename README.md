@@ -11,6 +11,7 @@ artifact source.
 
 * [SDK Homepage][sdk-website]
 * [1.11 to 2.0 Changelog](docs/LaunchChangelog.md)
+* [Best Practices](docs/BestPractices.md)
 * [Sample Code](#sample-code)
 * [API Docs][docs-api]
 * [Developer Guide][docs-guide] ([source][docs-guide-source])
@@ -44,7 +45,7 @@ You can import the whole SDK into your project (includes all services) as follow
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.5.25</version>
+  <version>2.5.26</version>
 </dependency>
 ```
 
@@ -56,12 +57,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.5.25</version>
+  <version>2.5.26</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.5.25</version>
+  <version>2.5.26</version>
 </dependency>
 ```
 
@@ -75,7 +76,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.5.25</version>
+      <version>2.5.26</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
