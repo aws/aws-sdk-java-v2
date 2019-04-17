@@ -119,7 +119,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                                             .roleArn(ROLE_ARN)
                                                             .roleSessionName("Test")))
               .ignoringException(StsException.class)
-              .orFailAfter(Duration.ofMinutes(2));
+              .orFailAfter(Duration.ofMinutes(5));
     }
 
     @AfterClass
