@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic Compute Cloud", 
-    "type": "feature", 
-    "description": "This release adds support for requester-managed Interface VPC Endpoints (powered by AWS PrivateLink). The feature prevents VPC endpoint owners from accidentally deleting or otherwise mismanaging the VPC endpoints of some AWS VPC endpoint services."
-}
