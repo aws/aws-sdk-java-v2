@@ -109,6 +109,14 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
                 System.arraycopy(buf, bufChecksumOffset, streamChecksum, streamChecksumOffset, cksumBytes);
                 if (buf.length > cksumBytesSoFar) {
                     wrapped.onNext(ByteBuffer.wrap(Arrays.copyOfRange(buf, 0, buf.length - cksumBytesSoFar)));
+                } else {
+                    // Always be sure to satisfy the wrapped publisher's demand.
+                    wrapped.onNext(ByteBuffer.allocate(0));
+
+                    // TODO: The most efficient implementation would request more from the upstream publisher instead of relying
+                    //  on the downstream publisher to do that, but that's much more complicated: it requires tracking
+                    //  outstanding demand from the downstream publisher. Long-term we should migrate to an RxJava publisher
+                    //  implementation to reduce how error-prone our publisher implementations are.
                 }
             } else {
                 // Incoming buffer totally excludes the checksum
