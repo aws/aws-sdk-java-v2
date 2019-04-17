@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Http Client", 
-    "type": "bugfix", 
-    "description": "Update `UnusedChannelExceptionHandler` to check the cause of the exception so that it does emit warn logs if the cause is netty io exception. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)"
-}
