@@ -25,18 +25,27 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
-@SdkInternalApi
-abstract class BytesWrapper {
+/**
+ * A base class for {@link SdkBytes} and {@link ResponseBytes} that enables retrieving an underlying byte array as multiple
+ * different types, like a byte buffer (via {@link #asByteBuffer()}, or a string (via {@link #asUtf8String()}.
+ */
+@SdkPublicApi
+public abstract class BytesWrapper {
+    private static final byte[] EMPTY_BYTES = new byte[0];
+
     private final byte[] bytes;
 
     // Needed for serialization
+    @SdkInternalApi
     BytesWrapper() {
-        this(null);
+        this(EMPTY_BYTES);
     }
 
+    @SdkInternalApi
     BytesWrapper(byte[] bytes) {
         this.bytes = Validate.paramNotNull(bytes, "bytes");
     }
