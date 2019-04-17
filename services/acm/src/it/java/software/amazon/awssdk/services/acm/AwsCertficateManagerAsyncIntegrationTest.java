@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.acm;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,31 +26,30 @@ import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesResponse;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
-public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase {
-
-    private static AcmClient client;
+public class AwsCertficateManagerAsyncIntegrationTest extends AwsIntegrationTestBase {
+    private static AcmAsyncClient client;
 
     @BeforeClass
     public static void setUp() {
-        client = AcmClient.builder().credentialsProvider(getCredentialsProvider()).build();
+        client = AcmAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
     }
 
     @Test
     public void list_certificates() {
-        ListCertificatesResponse result = client.listCertificates(ListCertificatesRequest.builder().build());
+        ListCertificatesResponse result = client.listCertificates(ListCertificatesRequest.builder().build())
+                                                .join();
         Assert.assertTrue(result.certificateSummaryList().size() >= 0);
     }
 
-    /**
-     * Ideally the service must be throwing a Invalid Arn exception
-     * instead of SdkServiceException. Have reported this to service to
-     * fix it.
-     *  TODO Change the expected when service fix this.
-     */
-    @Test(expected = AcmException.class)
+    @Test
     public void get_certificate_fake_arn_throws_exception() {
-        client.getCertificate(GetCertificateRequest.builder().certificateArn("arn:aws:acm:us-east-1:123456789:fakecert").build());
+        assertThatThrownBy(() -> client.getCertificate(getCertificateRequest()).join())
+            .hasCauseInstanceOf(AcmException.class);
     }
 
-
+    private GetCertificateRequest getCertificateRequest() {
+        return GetCertificateRequest.builder()
+                                    .certificateArn("arn:aws:acm:us-east-1:123456789:fakecert")
+                                    .build();
+    }
 }

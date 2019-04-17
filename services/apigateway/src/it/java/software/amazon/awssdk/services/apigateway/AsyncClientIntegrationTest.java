@@ -47,19 +47,19 @@ import software.amazon.awssdk.services.apigateway.model.UpdateApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateResourceRequest;
 import software.amazon.awssdk.services.apigateway.model.UpdateRestApiRequest;
 
-public class ServiceIntegrationTest extends IntegrationTestBase {
+public class AsyncClientIntegrationTest extends IntegrationTestBase {
 
-    private static final String NAME = "java-sdk-integration-"
-                                       + System.currentTimeMillis();
+    private static final String NAME = "java-sdk-apig-integration-" + System.currentTimeMillis();
     private static final String DESCRIPTION = "fooDesc";
 
     private static String restApiId = null;
 
     @BeforeClass
     public static void createRestApi() {
-        CreateRestApiResponse createRestApiResult = apiGateway.createRestApi(
-                CreateRestApiRequest.builder().name(NAME)
-                                          .description(DESCRIPTION).build());
+        CreateRestApiResponse createRestApiResult = asyncClient.createRestApi(CreateRestApiRequest.builder().name(NAME)
+                                                                                                  .description(DESCRIPTION)
+                                                                                                  .build())
+                                                               .join();
 
         Assert.assertNotNull(createRestApiResult);
         Assert.assertNotNull(createRestApiResult.description());
@@ -75,19 +75,22 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     @AfterClass
     public static void deleteRestApiKey() {
         if (restApiId != null) {
-            apiGateway.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build());
+            asyncClient.deleteRestApi(DeleteRestApiRequest.builder().restApiId(restApiId).build()).join();
         }
     }
 
     @Test
     public void testUpdateRetrieveRestApi() {
         PatchOperation patch = PatchOperation.builder().op(Op.REPLACE)
-                                                   .path("/description").value("updatedDesc").build();
-        apiGateway.updateRestApi(UpdateRestApiRequest.builder().restApiId(restApiId)
-                                                           .patchOperations(patch).build());
+                                             .path("/description").value("updatedDesc").build();
+        asyncClient.updateRestApi(UpdateRestApiRequest.builder()
+                                                      .restApiId(restApiId)
+                                                      .patchOperations(patch)
+                                                      .build())
+                   .join();
 
-        GetRestApiResponse getRestApiResult = apiGateway
-                .getRestApi(GetRestApiRequest.builder().restApiId(restApiId).build());
+        GetRestApiResponse getRestApiResult = asyncClient.getRestApi(GetRestApiRequest.builder().restApiId(restApiId).build())
+                                                         .join();
 
         Assert.assertNotNull(getRestApiResult);
         Assert.assertNotNull(getRestApiResult.description());
@@ -100,9 +103,9 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void testCreateUpdateRetrieveApiKey() {
-        CreateApiKeyResponse createApiKeyResult = apiGateway
-                .createApiKey(CreateApiKeyRequest.builder().name(NAME)
-                                                       .description(DESCRIPTION).build());
+        CreateApiKeyResponse createApiKeyResult = asyncClient.createApiKey(CreateApiKeyRequest.builder().name(NAME)
+                                                                                              .description(DESCRIPTION).build())
+                                                             .join();
 
         Assert.assertNotNull(createApiKeyResult);
         Assert.assertNotNull(createApiKeyResult.description());
@@ -118,12 +121,12 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals(createApiKeyResult.description(), DESCRIPTION);
 
         PatchOperation patch = PatchOperation.builder().op(Op.REPLACE)
-                                                   .path("/description").value("updatedDesc").build();
-        apiGateway.updateApiKey(UpdateApiKeyRequest.builder().apiKey(apiKeyId)
-                                                         .patchOperations(patch).build());
+                                             .path("/description").value("updatedDesc").build();
+        asyncClient.updateApiKey(UpdateApiKeyRequest.builder().apiKey(apiKeyId)
+                                                   .patchOperations(patch).build())
+                   .join();
 
-        GetApiKeyResponse getApiKeyResult = apiGateway
-                .getApiKey(GetApiKeyRequest.builder().apiKey(apiKeyId).build());
+        GetApiKeyResponse getApiKeyResult = asyncClient.getApiKey(GetApiKeyRequest.builder().apiKey(apiKeyId).build()).join();
 
         Assert.assertNotNull(getApiKeyResult);
         Assert.assertNotNull(getApiKeyResult.description());
@@ -140,9 +143,11 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void testResourceOperations() {
-        GetResourcesResponse resourcesResult = apiGateway
-                .getResources(GetResourcesRequest.builder()
-                                      .restApiId(restApiId).build());
+        GetResourcesResponse resourcesResult = asyncClient.getResources(GetResourcesRequest.builder()
+                                                                                           .restApiId(restApiId)
+                                                                                           .build())
+                                                          .join();
+
         List<Resource> resources = resourcesResult.items();
         Assert.assertEquals(resources.size(), 1);
         Resource rootResource = resources.get(0);
@@ -150,11 +155,12 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals(rootResource.path(), "/");
         String rootResourceId = rootResource.id();
 
-        CreateResourceResponse createResourceResult = apiGateway
-                .createResource(CreateResourceRequest.builder()
-                                        .restApiId(restApiId)
-                                        .pathPart("fooPath")
-                                        .parentId(rootResourceId).build());
+        CreateResourceResponse createResourceResult = asyncClient
+            .createResource(CreateResourceRequest.builder()
+                                                 .restApiId(restApiId)
+                                                 .pathPart("fooPath")
+                                                 .parentId(rootResourceId).build())
+            .join();
         Assert.assertNotNull(createResourceResult);
         Assert.assertNotNull(createResourceResult.id());
         Assert.assertNotNull(createResourceResult.parentId());
@@ -164,16 +170,18 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals(createResourceResult.parentId(), rootResourceId);
 
         PatchOperation patch = PatchOperation.builder().op(Op.REPLACE)
-                                                   .path("/pathPart").value("updatedPath").build();
-        apiGateway.updateResource(UpdateResourceRequest.builder()
-                                          .restApiId(restApiId)
-                                          .resourceId(createResourceResult.id())
-                                          .patchOperations(patch).build());
+                                             .path("/pathPart").value("updatedPath").build();
+        asyncClient.updateResource(UpdateResourceRequest.builder()
+                                                       .restApiId(restApiId)
+                                                       .resourceId(createResourceResult.id())
+                                                       .patchOperations(patch).build())
+                   .join();
 
-        GetResourceResponse getResourceResult = apiGateway
-                .getResource(GetResourceRequest.builder()
-                                     .restApiId(restApiId)
-                                     .resourceId(createResourceResult.id()).build());
+        GetResourceResponse getResourceResult = asyncClient
+            .getResource(GetResourceRequest.builder()
+                                           .restApiId(restApiId)
+                                           .resourceId(createResourceResult.id()).build())
+            .join();
         Assert.assertNotNull(getResourceResult);
         Assert.assertNotNull(getResourceResult.id());
         Assert.assertNotNull(getResourceResult.parentId());
@@ -182,10 +190,10 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals(getResourceResult.pathPart(), "updatedPath");
         Assert.assertEquals(getResourceResult.parentId(), rootResourceId);
 
-        PutMethodResponse putMethodResult = apiGateway
-                .putMethod(PutMethodRequest.builder().restApiId(restApiId)
-                                                 .resourceId(createResourceResult.id())
-                                                 .authorizationType("AWS_IAM").httpMethod("PUT").build());
+        PutMethodResponse putMethodResult = asyncClient
+            .putMethod(PutMethodRequest.builder().restApiId(restApiId)
+                                       .resourceId(createResourceResult.id())
+                                       .authorizationType("AWS_IAM").httpMethod("PUT").build()).join();
         Assert.assertNotNull(putMethodResult);
         Assert.assertNotNull(putMethodResult.authorizationType());
         Assert.assertNotNull(putMethodResult.apiKeyRequired());
@@ -193,13 +201,14 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals(putMethodResult.authorizationType(), "AWS_IAM");
         Assert.assertEquals(putMethodResult.httpMethod(), "PUT");
 
-        PutIntegrationResponse putIntegrationResult = apiGateway
-                .putIntegration(PutIntegrationRequest.builder()
-                                        .restApiId(restApiId)
-                                        .resourceId(createResourceResult.id())
-                                        .httpMethod("PUT").type(IntegrationType.MOCK)
-                                        .uri("http://foo.bar")
-                                        .integrationHttpMethod("GET").build());
+        PutIntegrationResponse putIntegrationResult = asyncClient
+            .putIntegration(PutIntegrationRequest.builder()
+                                                 .restApiId(restApiId)
+                                                 .resourceId(createResourceResult.id())
+                                                 .httpMethod("PUT").type(IntegrationType.MOCK)
+                                                 .uri("http://foo.bar")
+                                                 .integrationHttpMethod("GET").build())
+            .join();
         Assert.assertNotNull(putIntegrationResult);
         Assert.assertNotNull(putIntegrationResult.cacheNamespace());
         Assert.assertNotNull(putIntegrationResult.type());
