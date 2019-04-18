@@ -1,0 +1,5 @@
+{
+    "category": "AWS Organizations", 
+    "type": "feature", 
+    "description": "AWS Organizations is now available in the AWS GovCloud (US) Regions, and we added a new API action for creating accounts in those Regions. For more information, see CreateGovCloudAccount in the AWS Organizations API Reference."
+}
