@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Relational Database Service", 
-    "type": "feature", 
-    "description": "This release adds the TimeoutAction parameter to the ScalingConfiguration of an Aurora Serverless DB cluster. You can now configure the behavior when an auto-scaling capacity change can't find a scaling point."
-}

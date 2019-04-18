@@ -1,5 +1,0 @@
-{
-    "category": "Amazon WorkLink", 
-    "type": "feature", 
-    "description": "Amazon WorkLink is a fully managed, cloud-based service that enables secure, one-click access to internal websites and web apps from mobile phones. This release introduces new APIs to link and manage internal websites and web apps with Amazon WorkLink fleets."
-}

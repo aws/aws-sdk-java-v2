@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "Reduced the frequency of 'server failed to send complete response' exceptions when using S3AsyncClient."
-}
