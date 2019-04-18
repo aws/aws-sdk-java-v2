@@ -23,13 +23,10 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class IntegrationTestBase extends AwsTestBase {
 
     protected static ApiGatewayClient apiGateway;
-    protected static ApiGatewayAsyncClient asyncClient;
 
     @BeforeClass
     public static void setUp() throws IOException {
         apiGateway = ApiGatewayClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
-        asyncClient = ApiGatewayAsyncClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                           .build();
     }
 
 }
