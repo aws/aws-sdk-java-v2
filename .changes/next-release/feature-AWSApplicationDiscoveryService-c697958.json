@@ -1,0 +1,5 @@
+{
+    "category": "AWS Application Discovery Service", 
+    "type": "feature", 
+    "description": "The Application Discovery Service's DescribeImportTasks and BatchDeleteImportData APIs now return additional statuses for error reporting."
+}
