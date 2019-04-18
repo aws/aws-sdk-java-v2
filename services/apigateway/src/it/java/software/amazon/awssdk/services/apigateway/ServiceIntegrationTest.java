@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services.apigateway;
 
 import java.util.List;
-import junit.framework.Assert;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.services.apigateway.model.CreateApiKeyRequest;
