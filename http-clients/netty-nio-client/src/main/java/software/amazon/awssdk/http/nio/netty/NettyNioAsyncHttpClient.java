@@ -62,6 +62,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.CancellableAcquireChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.HealthCheckedChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.HonorCloseOnReleaseChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
@@ -219,6 +220,10 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
         channelPool = new ReleaseOnceChannelPool(channelPool);
+
+        // Wrap the channel pool to guarantee all channels checked out are healthy, and all unhealthy channels checked in are
+        // closed.
+        channelPool = new HealthCheckedChannelPool(bootstrap.config().group(), configuration, channelPool);
 
         // Wrap the channel pool such that if the Promise given to acquire(Promise) is done when the channel is acquired
         // from the underlying pool, the channel is closed and released.
