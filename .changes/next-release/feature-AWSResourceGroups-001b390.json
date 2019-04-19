@@ -1,0 +1,5 @@
+{
+    "category": "AWS Resource Groups", 
+    "type": "feature", 
+    "description": "The AWS Resource Groups service increased the query size limit to 4096 bytes."
+}
