@@ -1,3 +1,142 @@
+# __2.5.29__ __2019-04-19__
+## __AWS Resource Groups__
+  - ### Features
+    - The AWS Resource Groups service increased the query size limit to 4096 bytes.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe - support transcriptions from audio sources in Spanish Spanish (es-ES).
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added a new reserved field.
+
+# __2.5.28__ __2019-04-18__
+## __AWS Application Discovery Service__
+  - ### Features
+    - The Application Discovery Service's DescribeImportTasks and BatchDeleteImportData APIs now return additional statuses for error reporting.
+
+## __AWS Organizations__
+  - ### Features
+    - AWS Organizations is now available in the AWS GovCloud (US) Regions, and we added a new API action for creating accounts in those Regions. For more information, see CreateGovCloudAccount in the AWS Organizations API Reference.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Document updates for Amazon Cognito Identity Provider.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the TimeoutAction parameter to the ScalingConfiguration of an Aurora Serverless DB cluster. You can now configure the behavior when an auto-scaling capacity change can't find a scaling point.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Reduced the frequency of 'server failed to send complete response' exceptions when using S3AsyncClient.
+
+## __Amazon WorkLink__
+  - ### Features
+    - Amazon WorkLink is a fully managed, cloud-based service that enables secure, one-click access to internal websites and web apps from mobile phones. This release introduces new APIs to link and manage internal websites and web apps with Amazon WorkLink fleets.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for workspaces
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon Kafka - Added tagging APIs
+
+# __2.5.27__ __2019-04-17__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for requester-managed Interface VPC Endpoints (powered by AWS PrivateLink). The feature prevents VPC endpoint owners from accidentally deleting or otherwise mismanaging the VPC endpoints of some AWS VPC endpoint services.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds Arabic language support with new female voice - "Zeina"
+
+# __2.5.26__ __2019-04-16__
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Enable support for credential_process in an AWS credential profile
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This change allows you to select either a weekly or monthly maintenance window for your volume or tape gateway. It also allows you to tag your tape and volume resources on creation by adding a Tag value on calls to the respective api endpoints.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Documentation updates for monitoring
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds support for the new email configuration in Amazon Cognito User Pools. You can now specify whether Amazon Cognito emails your users by using its built-in email functionality or your Amazon SES email configuration.
+
+## __Amazon Redshift__
+  - ### Features
+    - DescribeResize can now return percent of data transferred from source cluster to target cluster for a classic resize.
+
+## __AmazonMQ__
+  - ### Features
+    - This release adds the ability to retrieve information about broker engines and broker instance options. See Broker Engine Types and Broker Instance Options in the Amazon MQ REST API Reference.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Update `UnusedChannelExceptionHandler` to check the cause of the exception so that it does emit warn logs if the cause is netty io exception. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)
+
+# __2.5.25__ __2019-04-05__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Rectify incorrect modelling of DisassociateCertificate method
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Today AWS Elemental MediaLive (https://aws.amazon.com/medialive/) adds the option to create "Single Pipeline" channels, which offers a lower-cost option compared to Standard channels. MediaLive Single Pipeline channels have a single encoding pipeline rather than the redundant dual Availability Zone (AZ) pipelines that MediaLive provides with a "Standard" channel.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports workerType choices in the CreateJob, UpdateJob, and StartJobRun APIs, to be used for memory-intensive jobs.
+
+## __AWS IoT 1-Click Devices Service__
+  - ### Features
+    - Documentation updates for 1-Click: improved descriptions of resource tagging APIs.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Lazily initialize `ApiCallTimeoutException` and `ApiCallAttemptTimeoutException`. This change would improve performance of async api calls.
+
+## __AWS Transcribe Streaming__
+  - ### Features
+    - Amazon Transcribe now supports GB English, CA French and FR French which expands upon the existing language support for US English and US Spanish.
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend provides confusion matrix for custom document classifier.
+
+# __2.5.24__ __2019-04-04__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for iam
+
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Added support to enable or disable publishing Kubernetes cluster logs in AWS CloudWatch
+
+# __2.5.23__ __2019-04-03__
+## __AWS Batch__
+  - ### Features
+    - Support for GPU resource requirement in RegisterJobDefinition and SubmitJob
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend adds tagging support for document-classifiers and entity-recognizers.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where SNI was not enabled in Netty NIO Async Client for TLS and caused the requests to fail of handshake_failure in some services. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)
+
 # __2.5.22__ __2019-04-02__
 ## __AWS Certificate Manager__
   - ### Features

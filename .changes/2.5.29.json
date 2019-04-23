@@ -1,0 +1,21 @@
+{
+    "date": "2019-04-19",
+    "version": "2.5.29",
+    "entries": [
+        {
+            "category": "AWS Resource Groups",
+            "type": "feature",
+            "description": "The AWS Resource Groups service increased the query size limit to 4096 bytes."
+        },
+        {
+            "category": "Amazon Transcribe Service",
+            "type": "feature",
+            "description": "Amazon Transcribe - support transcriptions from audio sources in Spanish Spanish (es-ES)."
+        },
+        {
+            "category": "Amazon WorkSpaces",
+            "type": "feature",
+            "description": "Added a new reserved field."
+        }
+    ]
+}

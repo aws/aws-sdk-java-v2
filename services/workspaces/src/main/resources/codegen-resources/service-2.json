@@ -301,7 +301,8 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"OperationNotSupportedException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValuesException"}
       ],
       "documentation":"<p>Imports the specified Windows 7 or Windows 10 bring your own license (BYOL) image into Amazon WorkSpaces. The image must be an already licensed EC2 image that is in your AWS account, and you must own the image. </p>"
     },
@@ -516,6 +517,7 @@
       "type":"list",
       "member":{"shape":"AccountModification"}
     },
+    "AdditionalInfo":{"type":"string"},
     "Alias":{"type":"string"},
     "AssociateIpGroupsRequest":{
       "type":"structure",
@@ -1546,6 +1548,10 @@
         "RebuildWorkspaceRequests":{
           "shape":"RebuildWorkspaceRequests",
           "documentation":"<p>The WorkSpace to rebuild. You can specify a single WorkSpace.</p>"
+        },
+        "AdditionalInfo":{
+          "shape":"AdditionalInfo",
+          "documentation":"<p>Reserved.</p>"
         }
       }
     },

@@ -16,8 +16,9 @@
 package software.amazon.awssdk.core.internal.http.timers;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -28,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class AsyncTimeoutTask implements TimeoutTask {
     private static final Logger log = Logger.loggerFor(AsyncTimeoutTask.class);
-    private final SdkException exception;
+    private final Supplier<SdkClientException> exception;
     private volatile boolean hasExecuted;
 
     private final CompletableFuture<?> completableFuture;
@@ -37,18 +38,18 @@ public final class AsyncTimeoutTask implements TimeoutTask {
      * Constructs a new {@link AsyncTimeoutTask}.
      *
      * @param completableFuture the {@link CompletableFuture} to fail
-     * @param exception the exception to thrown
+     * @param exceptionSupplier the exceptionSupplier to thrown
      */
-    public AsyncTimeoutTask(CompletableFuture<?> completableFuture, SdkException exception) {
+    public AsyncTimeoutTask(CompletableFuture<?> completableFuture, Supplier<SdkClientException> exceptionSupplier) {
         this.completableFuture = Validate.paramNotNull(completableFuture, "completableFuture");
-        this.exception = Validate.paramNotNull(exception, "exception");
+        this.exception = Validate.paramNotNull(exceptionSupplier, "exceptionSupplier");
     }
 
     @Override
     public void run() {
         hasExecuted = true;
         if (!completableFuture.isDone()) {
-            completableFuture.completeExceptionally(exception);
+            completableFuture.completeExceptionally(exception.get());
         }
     }
 
