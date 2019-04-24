@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Simple Systems Manager (SSM)", 
+    "type": "feature", 
+    "description": "This release updates AWS Systems Manager APIs to allow customers to configure parameters to use either the standard-parameter tier (the default tier) or the advanced-parameter tier. It allows customers to create parameters with larger values and attach parameter policies to an Advanced Parameter."
+}
