@@ -1,5 +1,0 @@
-{
-    "category": "AWS MediaTailor", 
-    "type": "feature", 
-    "description": "AWS Elemental MediaTailor SDK now includes a new parameter to support origin servers that produce single-period DASH manifests."
-}
