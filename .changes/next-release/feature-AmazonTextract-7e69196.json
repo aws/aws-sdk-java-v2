@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Textract", 
-    "type": "feature", 
-    "description": "This release adds support for checkbox also known as SELECTION_ELEMENT in Amazon Textract."
-}

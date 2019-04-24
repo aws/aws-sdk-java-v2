@@ -1,5 +1,0 @@
-{
-    "category": "AWS MediaConnect", 
-    "type": "feature", 
-    "description": "Adds support for ListEntitlements pagination."
-}

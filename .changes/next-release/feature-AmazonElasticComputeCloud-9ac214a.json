@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic Compute Cloud", 
-    "type": "feature", 
-    "description": "You can now launch the new Amazon EC2 general purpose burstable instance types T3a that feature AMD EPYC processors."
-}
