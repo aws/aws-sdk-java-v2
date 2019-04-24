@@ -1,0 +1,5 @@
+{
+    "category": "AWS Storage Gateway", 
+    "type": "feature", 
+    "description": "AWS Storage Gateway now supports Access Control Lists (ACLs) on File Gateway SMB shares, enabling you to apply fine grained access controls for Active Directory users and groups."
+}
