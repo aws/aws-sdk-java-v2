@@ -1,0 +1,5 @@
+{
+    "category": "Alexa For Business", 
+    "type": "feature", 
+    "description": "This release adds support for the Alexa for Business gateway and gateway group APIs."
+}
