@@ -48,14 +48,14 @@ public abstract class IntegrationTestBase extends AwsIntegrationTestBase {
      * tests to use.
      */
     @BeforeClass
-    public static void setUp() throws FileNotFoundException, IOException {
+    public static void setUp() {
         sns = SnsClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
+                .credentialsProvider(getCredentialsProvider())
                 .region(Region.US_WEST_2)
                 .build();
 
         sqs = SqsClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
+                .credentialsProvider(getCredentialsProvider())
                 .region(Region.US_WEST_2)
                 .build();
     }

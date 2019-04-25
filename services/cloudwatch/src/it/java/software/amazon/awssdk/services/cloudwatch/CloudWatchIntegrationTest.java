@@ -28,7 +28,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidSdkServiceException;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -38,7 +37,6 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
@@ -69,6 +67,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
 
     private static final int ONE_WEEK_IN_MILLISECONDS = 1000 * 60 * 60 * 24 * 7;
     private static final int ONE_HOUR_IN_MILLISECONDS = 1000 * 60 * 60;
+
     /** The CloudWatch client for all tests to use. */
     private static CloudWatchClient cloudwatch;
 
@@ -77,7 +76,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      * CloudWatch client for tests to use.
      */
     @BeforeClass
-    public static void setUp() throws IOException {
+    public static void setUp() {
         cloudwatch = CloudWatchClient.builder()
                                      .credentialsProvider(getCredentialsProvider())
                                      .region(Region.US_WEST_2)
@@ -110,8 +109,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
 
     @Test
-    public void put_get_metricdata_list_metric_returns_success() throws
-                                                                 InterruptedException {
+    public void put_get_metricdata_list_metric_returns_success() {
         String measureName = this.getClass().getName() + System.currentTimeMillis();
 
         MetricDatum datum = MetricDatum.builder().dimensions(
@@ -314,7 +312,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      * into an SdkServiceException object.
      */
     @Test
-    public void testExceptionHandling() throws Exception {
+    public void testExceptionHandling() {
         try {
             cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder()
                                                    .namespace("fake-namespace").build());
@@ -334,7 +332,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         SdkGlobalTime.setGlobalTimeOffset(3600);
 
         CloudWatchClient cloudwatch = CloudWatchClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
+                .credentialsProvider(getCredentialsProvider())
                 .build();
         cloudwatch.listMetrics(ListMetricsRequest.builder().build());
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() < 3600);

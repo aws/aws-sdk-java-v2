@@ -43,15 +43,6 @@ public abstract class AwsIntegrationTestBase {
     private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
 
     /**
-     * @return AWSCredentials to use during tests. Setup by base fixture
-     * @deprecated by {@link #getCredentialsProvider()}
-     */
-    @Deprecated
-    protected static AwsCredentials getCredentials() {
-        return CREDENTIALS;
-    }
-
-    /**
      * @return AwsCredentialsProvider to use during tests. Setup by base fixture
      */
     protected static AwsCredentialsProvider getCredentialsProvider() {

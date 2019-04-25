@@ -115,8 +115,8 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
      * Search client used for different test case executions.
      */
     @BeforeClass
-    public static void setUp() throws Exception {
-        cloudSearch = CloudSearchClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
+    public static void setUp() {
+        cloudSearch = CloudSearchClient.builder().credentialsProvider(getCredentialsProvider()).build();
     }
 
     /**
