@@ -1,0 +1,5 @@
+{
+    "category": "Amazon GameLift", 
+    "type": "feature", 
+    "description": "This release introduces the new Realtime Servers feature, giving game developers a lightweight yet flexible solution that eliminates the need to build a fully custom game server. The AWS SDK updates provide support for scripts, which are used to configure and customize Realtime Servers."
+}
