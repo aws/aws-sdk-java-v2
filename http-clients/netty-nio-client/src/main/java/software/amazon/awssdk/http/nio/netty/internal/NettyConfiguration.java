@@ -32,6 +32,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 public final class NettyConfiguration {
 
+    public static final int CHANNEL_POOL_CLOSE_TIMEOUT_SECONDS = 5;
     public static final int EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS = 2;
     public static final int EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS = 15;
     public static final int EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS = 16;

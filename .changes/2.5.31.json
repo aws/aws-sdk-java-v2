@@ -1,0 +1,41 @@
+{
+    "date": "2019-04-25",
+    "version": "2.5.31",
+    "entries": [
+        {
+            "category": "Amazon DynamoDB",
+            "type": "feature",
+            "description": "This update allows you to tag Amazon DynamoDB tables when you create them. Tags are labels you can attach to AWS resources to make them easier to manage, search, and filter."
+        },
+        {
+            "category": "Amazon WorkSpaces",
+            "type": "feature",
+            "description": "Documentation updates for workspaces"
+        },
+        {
+            "category": "Netty NIO Async Http Client",
+            "type": "bugfix",
+            "description": "Add workaround to await channel pools to be closed before shutting down EventLoopGroup to avoid the race condition between `channelPool.close` and `eventLoopGroup.shutdown`. See [#1109](https://github.com/aws/aws-sdk-java-v2/issues/1109)."
+        },
+        {
+            "category": "Amazon GameLift",
+            "type": "feature",
+            "description": "This release introduces the new Realtime Servers feature, giving game developers a lightweight yet flexible solution that eliminates the need to build a fully custom game server. The AWS SDK updates provide support for scripts, which are used to configure and customize Realtime Servers."
+        },
+        {
+            "category": "AWS Batch",
+            "type": "feature",
+            "description": "Documentation updates for AWS Batch."
+        },
+        {
+            "category": "Amazon Inspector",
+            "type": "feature",
+            "description": "AWS Inspector - Improve the ListFindings API response time and decreases the maximum number of agentIDs from 500 to 99."
+        },
+        {
+            "category": "AWS Lambda",
+            "type": "feature",
+            "description": "AWS Lambda now supports the GetLayerVersionByArn API."
+        }
+    ]
+}
