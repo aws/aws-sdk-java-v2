@@ -15,12 +15,16 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
 
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -53,6 +57,7 @@ public class S3WithUrlHttpClientIntegrationTest {
                      .region(REGION)
                      .httpClient(UrlConnectionHttpClient.builder().build())
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                     .overrideConfiguration(o -> o.addExecutionInterceptor(new UserAgentVerifyingInterceptor()))
                      .build();
 
         createBucket(BUCKET_NAME, REGION);
@@ -69,14 +74,14 @@ public class S3WithUrlHttpClientIntegrationTest {
 
     @Test
     public void verifyPutObject() {
-        Assertions.assertThat(objectCount(BUCKET_NAME)).isEqualTo(0);
+        assertThat(objectCount(BUCKET_NAME)).isEqualTo(0);
 
         // Put Object
         s3.putObject(PutObjectRequest.builder().bucket(BUCKET_NAME).key(KEY).build(),
                      RequestBody.fromString("foobar"));
 
 
-        Assertions.assertThat(objectCount(BUCKET_NAME)).isEqualTo(1);
+        assertThat(objectCount(BUCKET_NAME)).isEqualTo(1);
     }
 
 
@@ -107,5 +112,14 @@ public class S3WithUrlHttpClientIntegrationTest {
                                                            .build();
 
         return s3.listObjectsV2(listReq).keyCount();
+    }
+
+    private static final class UserAgentVerifyingInterceptor implements ExecutionInterceptor {
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("io/sync");
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("http/UrlConnection");
+        }
     }
 }

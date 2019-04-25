@@ -15,14 +15,20 @@
 
 package software.amazon.awssdk.services.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.BeforeClass;
+import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for S3 integration tests. Loads AWS credentials from a properties
@@ -51,13 +57,17 @@ public class S3IntegrationTestBase extends AwsTestBase {
     protected static S3ClientBuilder s3ClientBuilder() {
         return S3Client.builder()
                        .region(DEFAULT_REGION)
-                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .overrideConfiguration(o -> o.addExecutionInterceptor(
+                           new UserAgentVerifyingExecutionInterceptor("Apache", ClientType.SYNC)));
     }
 
     protected static S3AsyncClientBuilder s3AsyncClientBuilder() {
         return S3AsyncClient.builder()
                             .region(DEFAULT_REGION)
-                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
+                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                            .overrideConfiguration(o -> o.addExecutionInterceptor(
+                                new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)));
     }
 
     protected static void createBucket(String bucketName) {
@@ -67,13 +77,13 @@ public class S3IntegrationTestBase extends AwsTestBase {
     private static void createBucket(String bucketName, int retryCount) {
         try {
             s3.createBucket(
-                    CreateBucketRequest.builder()
-                                       .bucket(bucketName)
-                                       .createBucketConfiguration(
-                                               CreateBucketConfiguration.builder()
-                                                                        .locationConstraint(BucketLocationConstraint.US_WEST_2)
-                                                                        .build())
-                                       .build());
+                CreateBucketRequest.builder()
+                                   .bucket(bucketName)
+                                   .createBucketConfiguration(
+                                       CreateBucketConfiguration.builder()
+                                                                .locationConstraint(BucketLocationConstraint.US_WEST_2)
+                                                                .build())
+                                   .build());
         } catch (S3Exception e) {
             System.err.println("Error attempting to create bucket: " + bucketName);
             if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
@@ -95,5 +105,22 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static void deleteBucketAndAllContents(String bucketName) {
         S3TestUtils.deleteBucketAndAllContents(s3, bucketName);
+    }
+
+    private static class UserAgentVerifyingExecutionInterceptor implements ExecutionInterceptor {
+
+        private final String clientName;
+        private final ClientType clientType;
+
+        public UserAgentVerifyingExecutionInterceptor(String clientName, ClientType clientType) {
+            this.clientName = clientName;
+            this.clientType = clientType;
+        }
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("io/" + clientType.name());
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("http/" + clientName);
+        }
     }
 }
