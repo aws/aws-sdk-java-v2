@@ -69,6 +69,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
+
+    private static final String CLIENT_NAME = "NettyNio";
+
     private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
     private static final long MAX_STREAMS_ALLOWED = 4294967295L; // unsigned 32-bit, 2^32 -1
 
@@ -161,6 +164,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             log.error(String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
                                     EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS));
         }
+    }
+
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
     }
 
     /**

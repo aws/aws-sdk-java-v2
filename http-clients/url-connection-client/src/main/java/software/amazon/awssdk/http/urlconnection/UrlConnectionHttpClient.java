@@ -64,6 +64,8 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkPublicApi
 public final class UrlConnectionHttpClient implements SdkHttpClient {
 
+    private static final String CLIENT_NAME = "UrlConnection";
+
     private final AttributeMap options;
     private final UrlConnectionFactory connectionFactory;
 
@@ -110,6 +112,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     @Override
     public void close() {
         // Nothing to close. The connections will be closed by closing the InputStreams.
+    }
+
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
     }
 
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
