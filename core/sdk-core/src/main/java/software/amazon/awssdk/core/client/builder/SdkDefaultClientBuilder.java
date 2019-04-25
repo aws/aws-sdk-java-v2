@@ -390,6 +390,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         public void close() {
             // Do nothing, this client is managed by the customer.
         }
+
+        @Override
+        public String clientName() {
+            return delegate.clientName();
+        }
     }
 
     /**

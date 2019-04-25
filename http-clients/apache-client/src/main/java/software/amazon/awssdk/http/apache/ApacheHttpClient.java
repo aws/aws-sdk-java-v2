@@ -100,6 +100,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class ApacheHttpClient implements SdkHttpClient {
+
+    public static final String CLIENT_NAME = "Apache";
+
     private static final Logger log = Logger.loggerFor(ApacheHttpClient.class);
 
     private final ApacheHttpRequestFactory apacheHttpRequestFactory = new ApacheHttpRequestFactory();
@@ -281,6 +284,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                       .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
                                                                      .orElse(DefaultConfiguration.EXPECT_CONTINUE_ENABLED))
                                       .build();
+    }
+
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
     }
 
     /**

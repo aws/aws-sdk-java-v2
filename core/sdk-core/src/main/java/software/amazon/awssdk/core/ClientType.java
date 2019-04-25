@@ -24,7 +24,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public enum ClientType {
 
     ASYNC("Async"),
-    SYNC("Sync");
+    SYNC("Sync"),
+    UNKNOWN("Unknown");
 
     private final String clientType;
 
