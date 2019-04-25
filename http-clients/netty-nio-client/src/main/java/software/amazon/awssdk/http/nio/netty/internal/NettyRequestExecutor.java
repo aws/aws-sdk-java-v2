@@ -130,8 +130,9 @@ public final class NettyRequestExecutor {
         if (channelFuture.isSuccess()) {
             channel = channelFuture.getNow();
             configureChannel();
-            configurePipeline();
-            makeRequest();
+            if (tryConfigurePipeline()) {
+                makeRequest();
+            }
         } else {
             handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
@@ -146,7 +147,7 @@ public final class NettyRequestExecutor {
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
-    private void configurePipeline() {
+    private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
         if (HTTP2.equals(protocol)) {
@@ -156,10 +157,23 @@ public final class NettyRequestExecutor {
             String errorMsg = "Unknown protocol: " + protocol;
             closeAndRelease(channel);
             handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-            return;
+            return false;
         }
+
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
+
+        // It's possible that the channel could become inactive between checking it out from the pool, and adding our response
+        // handler (which will monitor for it going inactive from now on).
+        // Make sure it's active here, or the request will never complete: https://github.com/aws/aws-sdk-java-v2/issues/1207
+        if (!channel.isActive()) {
+            String errorMessage = "Channel was closed before it could be written to.";
+            closeAndRelease(channel);
+            handleFailure(() -> errorMessage, new IOException(errorMessage));
+            return false;
+        }
+
+        return true;
     }
 
     private void makeRequest() {

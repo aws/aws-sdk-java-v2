@@ -1,0 +1,71 @@
+{
+    "date": "2019-04-24",
+    "version": "2.5.30",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Support for `credential_source` property in profiles."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Make `BytesWrapper`, parent of `SdkBytes` and `ResponseBytes`, public. Fixes [#1208](https://github.com/aws/aws-sdk-java-v2/issues/1208)."
+        },
+        {
+            "category": "Amazon Relational Database Service",
+            "type": "feature",
+            "description": "A new parameter \"feature-name\" is added to the add-role and remove-role db cluster APIs. The value for the parameter is optional for Aurora MySQL compatible database clusters, but mandatory for Aurora PostgresQL. You can find the valid list of values using describe db engine versions API."
+        },
+        {
+            "category": "AWS Storage Gateway",
+            "type": "feature",
+            "description": "AWS Storage Gateway now supports Access Control Lists (ACLs) on File Gateway SMB shares, enabling you to apply fine grained access controls for Active Directory users and groups."
+        },
+        {
+            "category": "Amazon Textract",
+            "type": "feature",
+            "description": "This release adds support for checkbox also known as SELECTION_ELEMENT in Amazon Textract."
+        },
+        {
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "type": "feature",
+            "description": "This release updates AWS Systems Manager APIs to allow customers to configure parameters to use either the standard-parameter tier (the default tier) or the advanced-parameter tier. It allows customers to create parameters with larger values and attach parameter policies to an Advanced Parameter."
+        },
+        {
+            "category": "Amazon Route 53",
+            "type": "feature",
+            "description": "Amazon Route 53 now supports the Asia Pacific (Hong Kong) Region (ap-east-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+        },
+        {
+            "category": "Alexa For Business",
+            "type": "feature",
+            "description": "This release adds support for the Alexa for Business gateway and gateway group APIs."
+        },
+        {
+            "category": "AWS MediaConnect",
+            "type": "feature",
+            "description": "Adds support for ListEntitlements pagination."
+        },
+        {
+            "category": "AWS CloudFormation",
+            "type": "feature",
+            "description": "Documentation updates for cloudformation"
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "You can now launch the new Amazon EC2 general purpose burstable instance types T3a that feature AMD EPYC processors."
+        },
+        {
+            "category": "AWS MediaTailor",
+            "type": "feature",
+            "description": "AWS Elemental MediaTailor SDK now includes a new parameter to support origin servers that produce single-period DASH manifests."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed a bug in asynchronous clients, where a service closing a connection between when a channel is acquired and handlers are attached could lead to response futures never being completed. Fixes [#1207](https://github.com/aws/aws-sdk-java-v2/issues/1207)."
+        }
+    ]
+}

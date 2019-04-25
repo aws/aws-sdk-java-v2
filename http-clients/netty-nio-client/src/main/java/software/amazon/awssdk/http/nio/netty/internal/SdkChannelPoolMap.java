@@ -20,6 +20,8 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import java.io.Closeable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,8 +89,12 @@ public abstract class SdkChannelPoolMap<K, P extends ChannelPool>
     protected abstract P newPool(K key);
 
     @Override
-    public final void close() {
+    public void close() {
         map.keySet().forEach(this::remove);
+    }
+
+    public final Map<K, P> pools() {
+        return Collections.unmodifiableMap(new HashMap<>(map));
     }
 
     /**
