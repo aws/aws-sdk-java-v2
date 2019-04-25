@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Inspector", 
+    "type": "feature", 
+    "description": "AWS Inspector - Improve the ListFindings API response time and decreases the maximum number of agentIDs from 500 to 99."
+}
