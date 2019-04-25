@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Async Http Client", 
-    "type": "bugfix", 
-    "description": "Add workaround to await channel pools to be closed before shutting down EventLoopGroup to avoid the race condition between `channelPool.close` and `eventLoopGroup.shutdown`. See [#1109](https://github.com/aws/aws-sdk-java-v2/issues/1109)."
-}

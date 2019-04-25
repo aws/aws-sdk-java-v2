@@ -1,3 +1,32 @@
+# __2.5.31__ __2019-04-25__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch.
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports the GetLayerVersionByArn API.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This update allows you to tag Amazon DynamoDB tables when you create them. Tags are labels you can attach to AWS resources to make them easier to manage, search, and filter.
+
+## __Amazon GameLift__
+  - ### Features
+    - This release introduces the new Realtime Servers feature, giving game developers a lightweight yet flexible solution that eliminates the need to build a fully custom game server. The AWS SDK updates provide support for scripts, which are used to configure and customize Realtime Servers.
+
+## __Amazon Inspector__
+  - ### Features
+    - AWS Inspector - Improve the ListFindings API response time and decreases the maximum number of agentIDs from 500 to 99.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for workspaces
+
+## __Netty NIO Async Http Client__
+  - ### Bugfixes
+    - Add workaround to await channel pools to be closed before shutting down EventLoopGroup to avoid the race condition between `channelPool.close` and `eventLoopGroup.shutdown`. See [#1109](https://github.com/aws/aws-sdk-java-v2/issues/1109).
+
 # __2.5.30__ __2019-04-24__
 ## __AWS CloudFormation__
   - ### Features
