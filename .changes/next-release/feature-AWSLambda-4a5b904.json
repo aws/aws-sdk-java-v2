@@ -1,0 +1,5 @@
+{
+    "category": "AWS Lambda", 
+    "type": "feature", 
+    "description": "AWS Lambda now supports the GetLayerVersionByArn API."
+}
