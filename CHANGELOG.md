@@ -1,3 +1,16 @@
+# __2.5.32__ __2019-04-26__
+## __AWS Identity and Access Management__
+  - ### Features
+    - AWS Security Token Service (STS) enables you to request session tokens from the global STS endpoint that work in all AWS Regions. You can configure the global STS endpoint to vend session tokens that are compatible with all AWS Regions using the new IAM SetSecurityTokenServicePreferences API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in ChecksumValidatingSubscriber which results in NPE if checksum validation fails.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - With this release AWS SNS adds tagging support for Topics.
+
 # __2.5.31__ __2019-04-25__
 ## __AWS Batch__
   - ### Features
