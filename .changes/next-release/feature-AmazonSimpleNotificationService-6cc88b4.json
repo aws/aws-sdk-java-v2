@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Simple Notification Service", 
+    "type": "feature", 
+    "description": "With this release AWS SNS adds tagging support for Topics."
+}
