@@ -18,12 +18,14 @@ package software.amazon.awssdk.utils.async;
 import java.util.ArrayList;
 import java.util.List;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public class BufferingSubscriber<T> extends DelegatingSubscriber<T, List<T>> {
     private final int bufferSize;
     private List<T> currentBuffer;
+    private Subscription subscription;
 
     public BufferingSubscriber(Subscriber<? super List<T>> subscriber, int bufferSize) {
         super(subscriber);
@@ -32,11 +34,19 @@ public class BufferingSubscriber<T> extends DelegatingSubscriber<T, List<T>> {
     }
 
     @Override
+    public void onSubscribe(Subscription subscription) {
+        this.subscription = subscription;
+        super.onSubscribe(subscription);
+    }
+
+    @Override
     public void onNext(T t) {
         currentBuffer.add(t);
         if (currentBuffer.size() == bufferSize) {
             subscriber.onNext(currentBuffer);
             currentBuffer.clear();
+        } else {
+            subscription.request(1);
         }
     }
 
