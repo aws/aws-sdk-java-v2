@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Fix bug in ChecksumValidatingSubscriber which results in NPE if checksum validation fails."
-}
