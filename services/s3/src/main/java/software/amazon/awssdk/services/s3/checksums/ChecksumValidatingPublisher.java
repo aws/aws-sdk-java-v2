@@ -138,6 +138,7 @@ public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffe
                     onError(SdkClientException.create(
                         String.format("Data read has a different checksum than expected. Was %d, but expected %d",
                                       computedChecksumInt, streamChecksumInt)));
+                    return; // Return after onError and not call onComplete below
                 }
             }
             wrapped.onComplete();
