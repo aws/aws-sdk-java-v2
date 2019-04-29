@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic Compute Cloud", 
+    "type": "feature", 
+    "description": "Adds support for Elastic Fabric Adapter (EFA) ENIs."
+}
