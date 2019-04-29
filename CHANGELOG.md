@@ -1,3 +1,12 @@
+# __2.5.33__ __2019-04-29__
+## __AWS Transfer for SFTP__
+  - ### Features
+    - This release adds support for per-server host-key management. You can now specify the SSH RSA private key used by your SFTP server.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for Elastic Fabric Adapter (EFA) ENIs.
+
 # __2.5.32__ __2019-04-26__
 ## __AWS Identity and Access Management__
   - ### Features
