@@ -1,0 +1,5 @@
+{
+    "category": "AWS Transfer for SFTP", 
+    "type": "feature", 
+    "description": "This release adds support for per-server host-key management. You can now specify the SSH RSA private key used by your SFTP server."
+}
