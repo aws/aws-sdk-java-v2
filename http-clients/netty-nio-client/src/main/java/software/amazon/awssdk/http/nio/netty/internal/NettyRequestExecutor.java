@@ -47,6 +47,7 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -210,8 +211,8 @@ public final class NettyRequestExecutor {
 
             // Should only add an one-time ReadTimeoutHandler to 100 Continue request.
             if (is100ContinueExpected()) {
-                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(context.configuration().readTimeoutMillis(),
-                                                                          TimeUnit.MILLISECONDS));
+                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(Duration.ofMillis(context.configuration()
+                        .readTimeoutMillis())));
             } else {
                 channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                    TimeUnit.MILLISECONDS));
