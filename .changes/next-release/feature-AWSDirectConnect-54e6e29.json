@@ -1,5 +1,0 @@
-{
-    "category": "AWS Direct Connect", 
-    "type": "feature", 
-    "description": "This release adds support for AWS Direct Connect customers to use AWS Transit Gateway with AWS Direct Connect gateway to route traffic between on-premise networks and their VPCs."
-}

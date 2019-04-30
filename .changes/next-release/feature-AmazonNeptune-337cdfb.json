@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Neptune", 
-    "type": "feature", 
-    "description": "Adds a feature to allow customers to specify a custom parameter group when restoring a database cluster."
-}

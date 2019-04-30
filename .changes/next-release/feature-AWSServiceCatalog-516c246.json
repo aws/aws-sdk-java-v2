@@ -1,5 +1,0 @@
-{
-    "category": "AWS Service Catalog", 
-    "type": "feature", 
-    "description": "Admin users can now associate/disassociate aws budgets with a portfolio or product in Service Catalog. End users can see the association by listing it or as part of the describe portfolio/product output. A new optional boolean parameter, \"DisableTemplateValidation\", is added to ProvisioningArtifactProperties data type. The purpose of the parameter is to enable or disable the CloudFormation template validtion when creating a product or a provisioning artifact."
-}

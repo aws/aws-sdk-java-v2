@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodePipeline", 
-    "type": "feature", 
-    "description": "This release contains an update to the PipelineContext object that includes the Pipeline ARN, and the Pipeline Execution Id. The ActionContext object is also updated to include the Action Execution Id."
-}
