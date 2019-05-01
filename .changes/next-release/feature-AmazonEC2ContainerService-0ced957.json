@@ -1,5 +1,0 @@
-{
-    "category": "Amazon EC2 Container Service", 
-    "type": "feature", 
-    "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces additional task definition parameters that enable you to define secret options for Docker log configuration, a per-container list contains secrets stored in AWS Systems Manager Parameter Store or AWS Secrets Manager."
-}
