@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.checksums;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,13 +25,11 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import software.amazon.awssdk.core.checksums.Md5Checksum;
 
 /**
@@ -66,6 +65,7 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnComplete();
 
     assertTrue(s.hasCompleted());
+    assertFalse(s.isOnErrorCalled());
   }
 
   @Test
@@ -81,6 +81,7 @@ public class ChecksumValidatingPublisherTest {
       driver.doOnComplete();
 
       assertTrue(s.hasCompleted());
+      assertFalse(s.isOnErrorCalled());
     }
   }
 
@@ -100,6 +101,7 @@ public class ChecksumValidatingPublisherTest {
       driver.doOnComplete();
 
       assertTrue(s.hasCompleted());
+      assertFalse(s.isOnErrorCalled());
     }
   }
 
@@ -121,12 +123,29 @@ public class ChecksumValidatingPublisherTest {
     driver.doOnComplete();
 
     assertTrue(s.hasCompleted());
+    assertFalse(s.isOnErrorCalled());
+  }
+
+  @Test
+  public void checksumValidationFailure_throwsSdkClientException_NotNPE() {
+    final byte[] incorrectData = new byte[0];
+    final TestPublisher driver = new TestPublisher();
+    final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(incorrectData, 0, TEST_DATA_SIZE));
+    final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, new Md5Checksum(), TEST_DATA_SIZE + CHECKSUM_SIZE);
+    p.subscribe(s);
+
+    driver.doOnNext(ByteBuffer.wrap(incorrectData));
+    driver.doOnComplete();
+
+    assertTrue(s.isOnErrorCalled());
+    assertFalse(s.hasCompleted());
   }
 
   private class TestSubscriber implements Subscriber<ByteBuffer> {
     final byte[] expected;
     final List<ByteBuffer> received;
     boolean completed;
+    boolean onErrorCalled;
 
     TestSubscriber(byte[] expected) {
       this.expected = expected;
@@ -148,9 +167,8 @@ public class ChecksumValidatingPublisherTest {
 
     @Override
     public void onError(Throwable t) {
-      fail("Test failed");
+      onErrorCalled = true;
     }
-
 
     @Override
     public void onComplete() {
@@ -167,6 +185,10 @@ public class ChecksumValidatingPublisherTest {
 
     public boolean hasCompleted() {
       return completed;
+    }
+
+    public boolean isOnErrorCalled() {
+      return onErrorCalled;
     }
   }
 

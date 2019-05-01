@@ -18,6 +18,8 @@ package software.amazon.awssdk.auth.credentials.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -163,6 +165,24 @@ public class ProfileCredentialsUtilsTest {
     }
 
     @Test
+    public void profileFileWithCredentialSourceThrowsExceptionWhenRetrievingCredentialsProvider() {
+        ProfileFile profileFile = allTypesProfile();
+        List<String> profiles = Arrays.asList(
+            "profile-with-container-credential-source",
+            "profile-with-instance-credential-source",
+            "profile-with-environment-credential-source"
+        );
+        profiles.forEach(profileName -> {
+            assertThat(profileFile.profile(profileName)).hasValueSatisfying(profile -> {
+                assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
+
+                ProfileCredentialsUtils profileCredentialsUtils = new ProfileCredentialsUtils(profile, profileFile::profile);
+                Assertions.assertThatThrownBy(profileCredentialsUtils::credentialsProvider).isInstanceOf(IllegalStateException.class);
+            });
+        });
+    }
+
+    @Test
     public void profileFileWithCircularDependencyThrowsExceptionWhenResolvingCredentials() {
         ProfileFile configFile = configFile("[profile source]\n" +
                                        "aws_access_key_id=defaultAccessKey\n" +
@@ -183,6 +203,33 @@ public class ProfileCredentialsUtilsTest {
             .credentialsProvider())
                   .isInstanceOf(IllegalStateException.class)
                   .hasMessageContaining("Invalid profile file: Circular relationship detected with profiles");
+    }
+
+    @Test
+    public void profileWithBothCredentialSourceAndSourceProfileThrowsException() {
+        ProfileFile configFile = configFile("[profile test]\n" +
+                                            "source_profile=source\n" +
+                                            "credential_source=Environment\n" +
+                                            "role_arn=arn:aws:iam::123456789012:role/testRole3\n" +
+                                            "\n" +
+                                            "[profile source]\n" +
+                                            "aws_access_key_id=defaultAccessKey\n" +
+                                            "aws_secret_access_key=defaultSecretAccessKey");
+        Assertions.assertThatThrownBy(() -> new ProfileCredentialsUtils(configFile.profile("test").get(), configFile::profile)
+            .credentialsProvider())
+                  .isInstanceOf(IllegalStateException.class)
+                  .hasMessageContaining("Invalid profile file: profile has both source_profile and credential_source.");
+    }
+
+    @Test
+    public void profileWithInvalidCredentialSourceThrowsException() {
+        ProfileFile configFile = configFile("[profile test]\n" +
+                                            "credential_source=foobar\n" +
+                                            "role_arn=arn:aws:iam::123456789012:role/testRole3");
+        Assertions.assertThatThrownBy(() -> new ProfileCredentialsUtils(configFile.profile("test").get(), configFile::profile)
+            .credentialsProvider())
+                  .isInstanceOf(IllegalArgumentException.class)
+                  .hasMessageContaining("foobar is not a valid credential_source");
     }
 
     private ProfileFile credentialFile(String credentialFile) {
@@ -217,7 +264,19 @@ public class ProfileCredentialsUtilsTest {
                           "role_arn=arn:aws:iam::123456789012:role/testRole\n" +
                           "\n" +
                           "[profile profile-credential-process]\n" +
-                          "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey\n");
+                          "credential_process=" + scriptLocation +" defaultAccessKey defaultSecretAccessKey\n" +
+                          "\n" +
+                          "[profile profile-with-container-credential-source]\n" +
+                          "credential_source=ecscontainer\n" +
+                          "role_arn=arn:aws:iam::123456789012:role/testRole\n" +
+                          "\n" +
+                          "[profile profile-with-instance-credential-source]\n" +
+                          "credential_source=ec2instancemetadata\n" +
+                          "role_arn=arn:aws:iam::123456789012:role/testRole\n" +
+                          "\n" +
+                          "[profile profile-with-environment-credential-source]\n" +
+                          "credential_source=environment\n" +
+                          "role_arn=arn:aws:iam::123456789012:role/testRole\n");
     }
 
     private ProfileFile configFile(String configFile) {

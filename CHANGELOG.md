@@ -1,3 +1,137 @@
+# __2.5.35__ __2019-05-01__
+## __AWS X-Ray__
+  - ### Features
+    - AWS X-Ray now includes Analytics, an interactive approach to analyzing user request paths (i.e., traces). Analytics will allow you to easily understand how your application and its underlying services are performing. With X-Ray Analytics, you can quickly detect application issues, pinpoint the root cause of the issue, determine the severity of the issues, and identify which end users were impacted. With AWS X-Ray Analytics you can explore, analyze, and visualize traces, allowing you to find increases in response time to user requests or increases in error rates. Metadata around peak periods, including frequency and actual times of occurrence, can be investigated by applying filters with a few clicks. You can then drill down on specific errors, faults, and response time root causes and view the associated traces.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces additional task definition parameters that enable you to define secret options for Docker log configuration, a per-container list contains secrets stored in AWS Systems Manager Parameter Store or AWS Secrets Manager.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an API for the modification of a VPN Connection, enabling migration from a Virtual Private Gateway (VGW) to a Transit Gateway (TGW), while preserving the VPN endpoint IP addresses on the AWS side as well as the tunnel options.
+
+# __2.5.34__ __2019-04-30__
+## __AWS CodePipeline__
+  - ### Features
+    - This release contains an update to the PipelineContext object that includes the Pipeline ARN, and the Pipeline Execution Id. The ActionContext object is also updated to include the Action Execution Id.
+
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds support for AWS Direct Connect customers to use AWS Transit Gateway with AWS Direct Connect gateway to route traffic between on-premise networks and their VPCs.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Admin users can now associate/disassociate aws budgets with a portfolio or product in Service Catalog. End users can see the association by listing it or as part of the describe portfolio/product output. A new optional boolean parameter, "DisableTemplateValidation", is added to ProvisioningArtifactProperties data type. The purpose of the parameter is to enable or disable the CloudFormation template validtion when creating a product or a provisioning artifact.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - (New Service) Amazon Managed Blockchain is a fully managed service that makes it easy to create and manage scalable blockchain networks using popular open source frameworks.
+
+## __Amazon Neptune__
+  - ### Features
+    - Adds a feature to allow customers to specify a custom parameter group when restoring a database cluster.
+
+# __2.5.33__ __2019-04-29__
+## __AWS Transfer for SFTP__
+  - ### Features
+    - This release adds support for per-server host-key management. You can now specify the SSH RSA private key used by your SFTP server.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for Elastic Fabric Adapter (EFA) ENIs.
+
+# __2.5.32__ __2019-04-26__
+## __AWS Identity and Access Management__
+  - ### Features
+    - AWS Security Token Service (STS) enables you to request session tokens from the global STS endpoint that work in all AWS Regions. You can configure the global STS endpoint to vend session tokens that are compatible with all AWS Regions using the new IAM SetSecurityTokenServicePreferences API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in ChecksumValidatingSubscriber which results in NPE if checksum validation fails.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - With this release AWS SNS adds tagging support for Topics.
+
+# __2.5.31__ __2019-04-25__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch.
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports the GetLayerVersionByArn API.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This update allows you to tag Amazon DynamoDB tables when you create them. Tags are labels you can attach to AWS resources to make them easier to manage, search, and filter.
+
+## __Amazon GameLift__
+  - ### Features
+    - This release introduces the new Realtime Servers feature, giving game developers a lightweight yet flexible solution that eliminates the need to build a fully custom game server. The AWS SDK updates provide support for scripts, which are used to configure and customize Realtime Servers.
+
+## __Amazon Inspector__
+  - ### Features
+    - AWS Inspector - Improve the ListFindings API response time and decreases the maximum number of agentIDs from 500 to 99.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for workspaces
+
+## __Netty NIO Async Http Client__
+  - ### Bugfixes
+    - Add workaround to await channel pools to be closed before shutting down EventLoopGroup to avoid the race condition between `channelPool.close` and `eventLoopGroup.shutdown`. See [#1109](https://github.com/aws/aws-sdk-java-v2/issues/1109).
+
+# __2.5.30__ __2019-04-24__
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation updates for cloudformation
+
+## __AWS MediaConnect__
+  - ### Features
+    - Adds support for ListEntitlements pagination.
+
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor SDK now includes a new parameter to support origin servers that produce single-period DASH manifests.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Make `BytesWrapper`, parent of `SdkBytes` and `ResponseBytes`, public. Fixes [#1208](https://github.com/aws/aws-sdk-java-v2/issues/1208).
+    - Support for `credential_source` property in profiles.
+
+  - ### Bugfixes
+    - Fixed a bug in asynchronous clients, where a service closing a connection between when a channel is acquired and handlers are attached could lead to response futures never being completed. Fixes [#1207](https://github.com/aws/aws-sdk-java-v2/issues/1207).
+
+## __AWS Storage Gateway__
+  - ### Features
+    - AWS Storage Gateway now supports Access Control Lists (ACLs) on File Gateway SMB shares, enabling you to apply fine grained access controls for Active Directory users and groups.
+
+## __Alexa For Business__
+  - ### Features
+    - This release adds support for the Alexa for Business gateway and gateway group APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now launch the new Amazon EC2 general purpose burstable instance types T3a that feature AMD EPYC processors.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - A new parameter "feature-name" is added to the add-role and remove-role db cluster APIs. The value for the parameter is optional for Aurora MySQL compatible database clusters, but mandatory for Aurora PostgresQL. You can find the valid list of values using describe db engine versions API.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Hong Kong) Region (ap-east-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release updates AWS Systems Manager APIs to allow customers to configure parameters to use either the standard-parameter tier (the default tier) or the advanced-parameter tier. It allows customers to create parameters with larger values and attach parameter policies to an Advanced Parameter.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for checkbox also known as SELECTION_ELEMENT in Amazon Textract.
+
 # __2.5.29__ __2019-04-19__
 ## __AWS Resource Groups__
   - ### Features
