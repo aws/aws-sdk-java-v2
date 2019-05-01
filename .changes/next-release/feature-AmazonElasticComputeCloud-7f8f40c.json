@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic Compute Cloud", 
+    "type": "feature", 
+    "description": "This release adds an API for the modification of a VPN Connection, enabling migration from a Virtual Private Gateway (VGW) to a Transit Gateway (TGW), while preserving the VPN endpoint IP addresses on the AWS side as well as the tunnel options."
+}
