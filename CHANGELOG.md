@@ -1,3 +1,16 @@
+# __2.5.36__ __2019-05-02__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS Key Management Service (KMS) can return an INTERNAL_ERROR connection error code if it cannot connect a custom key store to its AWS CloudHSM cluster. INTERNAL_ERROR is one of several connection error codes that help you to diagnose and fix a problem with your custom key store.
+
+## __Alexa For Business__
+  - ### Features
+    - This release allows developers and customers to send text and audio announcements to rooms.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug in the Netty client where the read timeout isn't applied correctly for some requests.
+
 # __2.5.35__ __2019-05-01__
 ## __AWS X-Ray__
   - ### Features
