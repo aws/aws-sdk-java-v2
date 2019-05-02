@@ -154,7 +154,7 @@
         <!-- Sonar -->
         <root.offset>..</root.offset>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.jacoco.reportPath>${basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
@@ -413,7 +413,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
-                    <destFile>${basedir}/target/jacoco.exec</destFile>
+                    <destFile>${sonar.jacoco.reportPath}</destFile>
                 </configuration>
                 <executions>
                     <execution>
