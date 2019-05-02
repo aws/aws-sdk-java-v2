@@ -1,4 +1,4 @@
-#  AWS Java SDK 2.x Best Practices
+##  AWS Java SDK 2.x Best Practices
 
 Here are the best practices of using AWS Java SDK 2.x.
 

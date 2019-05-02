@@ -1,3 +1,5 @@
+**Design:** New Feature, **Status:** [Proposed](../../../README.md)
+
 # Event Stream Alternate Syntax
 
 Event streaming allows long-running bi-directional communication between
