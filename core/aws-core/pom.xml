@@ -53,8 +53,8 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>software.amazon</groupId>
-            <artifactId>flow</artifactId>
+            <groupId>software.amazon.eventstream</groupId>
+            <artifactId>eventstream</artifactId>
         </dependency>
 
         <dependency>
@@ -146,5 +146,5 @@
         </plugins>
     </build>
 
-    
+
 </project>
