@@ -3,8 +3,8 @@
 Event streaming allows long-running bi-directional communication between
 customers and AWS services over HTTP/2 connections.
 
-The [current syntax for event streaming APIs](CurrentState.java) is
-adequate for power users, but has a few disadvantages:
+The current syntax for event streaming APIs is adequate for power users,
+but has a few disadvantages:
 
 1. Customers must use reactive streams APIs, even for relatively simple
    use-cases. Reactive streams APIs are powerful, but difficult to use
@@ -124,6 +124,7 @@ try (TranscribeStreamingAsyncClient client = TranscribeStreamingAsyncClient.crea
             client.startStreamTranscription(r -> r.languageCode(LanguageCode.EN_US)
                                                   .mediaEncoding(MediaEncoding.PCM)
                                                   .mediaSampleRateHertz(16_000))) {
+    
     // Asynchronously log response transcription events, as we receive them
     transcription.readAll(TranscriptEvent.class, e -> System.out.println(e.transcript().results()));
 
