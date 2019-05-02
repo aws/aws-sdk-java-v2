@@ -1,3 +1,5 @@
+**Design:** Convention, **Status:** [Complete](README.md)
+
 ## Use of CompletableFuture
 
 Operations on the asynchronous clients return [`CompleteableFuture<T>`][1] where `T` is the response type for the operation. This is somewhat curious in that [`CompleteableFuture`][1] is a concrete implementation rather than an interface. The alternative to returning a [`CompleteableFuture`][1] would be to return a [`CompletionStage`][2], an interface intended to allow chaining of asynchronous operations.
