@@ -52,8 +52,8 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
-            <groupId>software.amazon</groupId>
-            <artifactId>flow</artifactId>
+            <groupId>software.amazon.eventstream</groupId>
+            <artifactId>eventstream</artifactId>
         </dependency>
 
         <dependency>
