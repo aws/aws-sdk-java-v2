@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elemental MediaConvert", 
+    "type": "feature", 
+    "description": "DASH output groups using DRM encryption can now enable a playback device compatibility mode to correct problems with playback on older devices."
+}
