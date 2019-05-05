@@ -31,7 +31,7 @@ public class ElasticBeanstalkIntegrationTest extends ElasticBeanstalkIntegration
 
     /** Tests that we can describe the available solution stacks. */
     @Test
-    public void testListAvailableSolutionStacks() throws Exception {
+    public void testListAvailableSolutionStacks() {
         List<String> solutionStacks =
                 elasticbeanstalk.listAvailableSolutionStacks(ListAvailableSolutionStacksRequest.builder().build())
                                 .solutionStacks();

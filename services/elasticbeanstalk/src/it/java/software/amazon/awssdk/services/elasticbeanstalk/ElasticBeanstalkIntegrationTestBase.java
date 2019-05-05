@@ -15,15 +15,14 @@
 
 package software.amazon.awssdk.services.elasticbeanstalk;
 
-import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.testutils.service.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * Base class for ElasticBeanstalk integration tests; responsible for loading AWS account info for
  * running the tests, and instantiating clients for tests to use.
  */
-public abstract class ElasticBeanstalkIntegrationTestBase extends AwsTestBase {
+public abstract class ElasticBeanstalkIntegrationTestBase extends AwsIntegrationTestBase {
 
     protected static ElasticBeanstalkClient elasticbeanstalk;
 
@@ -31,11 +30,9 @@ public abstract class ElasticBeanstalkIntegrationTestBase extends AwsTestBase {
      * Loads the AWS account info for the integration tests and creates an clients for tests to use.
      */
     @BeforeClass
-    public static void setUp() throws IOException {
-        setUpCredentials();
-
+    public static void setUp() {
         elasticbeanstalk = ElasticBeanstalkClient.builder()
-                                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                 .credentialsProvider(getCredentialsProvider())
                                                  .build();
     }
 

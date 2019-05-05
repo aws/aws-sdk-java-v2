@@ -22,55 +22,25 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.cloudsearch.model.AccessPoliciesStatus;
-import software.amazon.awssdk.services.cloudsearch.model.AnalysisScheme;
-import software.amazon.awssdk.services.cloudsearch.model.AnalysisSchemeLanguage;
-import software.amazon.awssdk.services.cloudsearch.model.AnalysisSchemeStatus;
-import software.amazon.awssdk.services.cloudsearch.model.BuildSuggestersRequest;
 import software.amazon.awssdk.services.cloudsearch.model.CreateDomainRequest;
 import software.amazon.awssdk.services.cloudsearch.model.CreateDomainResponse;
-import software.amazon.awssdk.services.cloudsearch.model.DefineAnalysisSchemeRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DefineExpressionRequest;
 import software.amazon.awssdk.services.cloudsearch.model.DefineIndexFieldRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DefineSuggesterRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DefineSuggesterResponse;
 import software.amazon.awssdk.services.cloudsearch.model.DeleteDomainRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeAnalysisSchemesRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeAnalysisSchemesResponse;
 import software.amazon.awssdk.services.cloudsearch.model.DescribeDomainsRequest;
 import software.amazon.awssdk.services.cloudsearch.model.DescribeDomainsResponse;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeExpressionsRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeExpressionsResponse;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeIndexFieldsRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeIndexFieldsResponse;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeScalingParametersRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeScalingParametersResponse;
 import software.amazon.awssdk.services.cloudsearch.model.DescribeServiceAccessPoliciesRequest;
 import software.amazon.awssdk.services.cloudsearch.model.DescribeServiceAccessPoliciesResponse;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeSuggestersRequest;
-import software.amazon.awssdk.services.cloudsearch.model.DescribeSuggestersResponse;
-import software.amazon.awssdk.services.cloudsearch.model.DocumentSuggesterOptions;
 import software.amazon.awssdk.services.cloudsearch.model.DomainStatus;
-import software.amazon.awssdk.services.cloudsearch.model.Expression;
-import software.amazon.awssdk.services.cloudsearch.model.ExpressionStatus;
 import software.amazon.awssdk.services.cloudsearch.model.IndexDocumentsRequest;
 import software.amazon.awssdk.services.cloudsearch.model.IndexField;
-import software.amazon.awssdk.services.cloudsearch.model.IndexFieldStatus;
 import software.amazon.awssdk.services.cloudsearch.model.IndexFieldType;
 import software.amazon.awssdk.services.cloudsearch.model.ListDomainNamesRequest;
 import software.amazon.awssdk.services.cloudsearch.model.ListDomainNamesResponse;
-import software.amazon.awssdk.services.cloudsearch.model.PartitionInstanceType;
-import software.amazon.awssdk.services.cloudsearch.model.ScalingParameters;
-import software.amazon.awssdk.services.cloudsearch.model.Suggester;
-import software.amazon.awssdk.services.cloudsearch.model.SuggesterStatus;
-import software.amazon.awssdk.services.cloudsearch.model.TextOptions;
-import software.amazon.awssdk.services.cloudsearch.model.UpdateScalingParametersRequest;
 import software.amazon.awssdk.services.cloudsearch.model.UpdateServiceAccessPoliciesRequest;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
@@ -252,221 +222,4 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
         assertNotNull(accessPoliciesStatus.status().state());
 
     }
-
-    /**
-     * Test the Define Index Fields API. Asserts that the list of index fields
-     * initially in the domain is ZERO. Creates a new index field for every
-     * index field type mentioned in the enum
-     * <code>com.amazonaws.services.cloudsearch.model.IndexFieldType<code>.
-     *
-     * Asserts that the number of index fields created is same as the number of the enum type mentioned.
-     */
-    @Test
-    public void testIndexFields() {
-
-        String indexFieldName = null;
-        DescribeIndexFieldsRequest describeIndexFieldRequest = DescribeIndexFieldsRequest.builder()
-                                                                                         .domainName(testDomainName).build();
-
-        DescribeIndexFieldsResponse result = cloudSearch.describeIndexFields(describeIndexFieldRequest);
-
-        assertTrue(result.indexFields().size() == 0);
-
-        IndexField field = null;
-        DefineIndexFieldRequest.Builder defineIndexFieldRequest = DefineIndexFieldRequest.builder()
-                                                                                         .domainName(testDomainName);
-        for (IndexFieldType type : IndexFieldType.knownValues()) {
-            indexFieldName = type.toString();
-            indexFieldName = indexFieldName.replaceAll("-", "");
-            field = IndexField.builder().indexFieldType(type)
-                              .indexFieldName(indexFieldName + "indexfield").build();
-            defineIndexFieldRequest.indexField(field);
-            cloudSearch.defineIndexField(defineIndexFieldRequest.build());
-        }
-
-        result = cloudSearch.describeIndexFields(describeIndexFieldRequest.toBuilder().deployed(false).build());
-        List<IndexFieldStatus> indexFieldStatusList = result.indexFields();
-        assertTrue(indexFieldStatusList.size() == IndexFieldType.knownValues().size());
-    }
-
-    /**
-     * Tests the Define Expressions API. Asserts that the list of expressions in
-     * the domain is ZERO. Creates a new Expression. Asserts that the Describe
-     * Expression API returns the Expression created.
-     */
-    @Test
-    public void testExpressions() {
-        DescribeExpressionsRequest describeExpressionRequest = DescribeExpressionsRequest.builder()
-                                                                                         .domainName(testDomainName).build();
-
-        DescribeExpressionsResponse describeExpressionResult = cloudSearch
-                .describeExpressions(describeExpressionRequest);
-
-        assertTrue(describeExpressionResult.expressions().size() == 0);
-
-        Expression expression = Expression.builder().expressionName(
-                testExpressionName).expressionValue("1").build();
-        cloudSearch.defineExpression(DefineExpressionRequest.builder()
-                                                            .domainName(testDomainName).expression(expression).build());
-
-        describeExpressionResult = cloudSearch
-                .describeExpressions(describeExpressionRequest);
-        List<ExpressionStatus> expressionStatus = describeExpressionResult
-                .expressions();
-        assertTrue(expressionStatus.size() == 1);
-
-        Expression expressionRetrieved = expressionStatus.get(0).options();
-        assertEquals(expression.expressionName(),
-                     expressionRetrieved.expressionName());
-        assertEquals(expression.expressionValue(),
-                     expressionRetrieved.expressionValue());
-    }
-
-    /**
-     * Tests the Define Suggesters API. Asserts that the number of suggesters is
-     * ZERO initially in the domain. Creates a suggester for an text field and
-     * asserts if the number of suggesters is 1 after creation. Builds the
-     * suggesters into the domain and asserts that the domain status is in
-     * "Processing" state.
-     */
-    @Test
-    public void testSuggestors() {
-        DescribeSuggestersRequest describeSuggesterRequest = DescribeSuggestersRequest.builder()
-                                                                                      .domainName(testDomainName).build();
-        DescribeSuggestersResponse describeSuggesterResult = cloudSearch
-                .describeSuggesters(describeSuggesterRequest);
-
-        assertTrue(describeSuggesterResult.suggesters().size() == 0);
-
-        DefineIndexFieldRequest defineIndexFieldRequest = DefineIndexFieldRequest.builder()
-                                                                                 .domainName(testDomainName)
-                                                                                 .indexField(
-                                                                                         IndexField.builder()
-                                                                                                   .indexFieldName(testIndexName)
-                                                                                                   .indexFieldType(
-                                                                                                           IndexFieldType.TEXT)
-                                                                                                   .textOptions(
-                                                                                                           TextOptions.builder()
-                                                                                                                      .analysisScheme(
-                                                                                                                              "_en_default_")
-                                                                                                                      .build())
-                                                                                                   .build()).build();
-        cloudSearch.defineIndexField(defineIndexFieldRequest);
-
-        DocumentSuggesterOptions suggesterOptions = DocumentSuggesterOptions.builder()
-                                                                            .sourceField(testIndexName).sortExpression("1")
-                                                                            .build();
-        Suggester suggester = Suggester.builder().suggesterName(
-                testSuggesterName).documentSuggesterOptions(
-                suggesterOptions).build();
-        DefineSuggesterRequest defineSuggesterRequest = DefineSuggesterRequest.builder()
-                                                                              .domainName(testDomainName).suggester(suggester)
-                                                                              .build();
-        DefineSuggesterResponse defineSuggesterResult = cloudSearch
-                .defineSuggester(defineSuggesterRequest);
-        SuggesterStatus status = defineSuggesterResult.suggester();
-        assertNotNull(status);
-        assertNotNull(status.options());
-        assertEquals(status.options().suggesterName(), testSuggesterName);
-
-        describeSuggesterResult = cloudSearch
-                .describeSuggesters(describeSuggesterRequest);
-        assertTrue(describeSuggesterResult.suggesters().size() == 1);
-
-        cloudSearch.buildSuggesters(BuildSuggestersRequest.builder()
-                                                          .domainName(testDomainName).build());
-        DescribeDomainsResponse describeDomainsResult = cloudSearch
-                .describeDomains(DescribeDomainsRequest.builder()
-                                                       .domainNames(testDomainName).build());
-        DomainStatus domainStatus = describeDomainsResult.domainStatusList()
-                                                         .get(0);
-        assertTrue(domainStatus.processing());
-    }
-
-    /**
-     * Tests the Define Analysis Scheme API. Asserts that the number of analysis
-     * scheme in a newly created domain is ZERO. Creates an new analysis scheme
-     * for the domain. Creates a new index field and associates the analysis
-     * scheme with the field. Asserts that the number of analysis scheme is ONE
-     * and the matches the analysis scheme retrieved with the one created. Also
-     * asserts if the describe index field API returns the index field that has
-     * the analysis scheme linked.
-     */
-    @Test
-    public void testAnalysisSchemes() {
-        DescribeAnalysisSchemesRequest describeAnalysisSchemesRequest = DescribeAnalysisSchemesRequest.builder()
-                                                                                                      .domainName(testDomainName)
-                                                                                                      .build();
-        DescribeAnalysisSchemesResponse describeAnalysisSchemesResult = cloudSearch
-                .describeAnalysisSchemes(describeAnalysisSchemesRequest);
-        assertTrue(describeAnalysisSchemesResult.analysisSchemes().size() == 0);
-
-        AnalysisScheme analysisScheme = AnalysisScheme.builder()
-                                                      .analysisSchemeName(testAnalysisSchemeName)
-                                                      .analysisSchemeLanguage(AnalysisSchemeLanguage.AR).build();
-        cloudSearch.defineAnalysisScheme(DefineAnalysisSchemeRequest.builder()
-                                                                    .domainName(testDomainName).analysisScheme(
-                        analysisScheme).build());
-
-        ;
-
-        DefineIndexFieldRequest defineIndexFieldRequest =
-                DefineIndexFieldRequest.builder()
-                                       .domainName(testDomainName)
-                                       .indexField(IndexField.builder()
-                                                             .indexFieldName(testIndexName)
-                                                             .indexFieldType(IndexFieldType.TEXT)
-                                                             .textOptions(TextOptions.builder()
-                                                                                     .analysisScheme(testAnalysisSchemeName)
-                                                                                     .build()).build()).build();
-        cloudSearch.defineIndexField(defineIndexFieldRequest);
-
-        describeAnalysisSchemesResult = cloudSearch.describeAnalysisSchemes(describeAnalysisSchemesRequest);
-        assertTrue(describeAnalysisSchemesResult.analysisSchemes().size() == 1);
-
-        AnalysisSchemeStatus schemeStatus = describeAnalysisSchemesResult
-                .analysisSchemes().get(0);
-        assertEquals(schemeStatus.options().analysisSchemeName(),
-                     testAnalysisSchemeName);
-        assertEquals(schemeStatus.options().analysisSchemeLanguage(),
-                     AnalysisSchemeLanguage.AR);
-
-        DescribeIndexFieldsResponse describeIndexFieldsResult = cloudSearch
-                .describeIndexFields(DescribeIndexFieldsRequest.builder()
-                                                               .domainName(testDomainName).fieldNames(
-                                testIndexName).build());
-        IndexFieldStatus status = describeIndexFieldsResult.indexFields()
-                                                           .get(0);
-        TextOptions textOptions = status.options().textOptions();
-        assertEquals(textOptions.analysisScheme(), testAnalysisSchemeName);
-
-    }
-
-    /**
-     * Tests the Scaling Parameters API. Updates the scaling parameters for the
-     * domain. Retrieves the scaling parameters and checks if it is the same.
-     */
-    @Test
-    public void testScalingParameters() {
-        ScalingParameters scalingParameters = ScalingParameters.builder()
-                                                               .desiredInstanceType(PartitionInstanceType.SEARCH_M1_SMALL)
-                                                               .desiredReplicationCount(5)
-                                                               .desiredPartitionCount(5).build();
-        cloudSearch.updateScalingParameters(UpdateScalingParametersRequest.builder()
-                                                                          .domainName(testDomainName)
-                                                                          .scalingParameters(scalingParameters).build());
-
-        DescribeScalingParametersResponse describeScalingParametersResult = cloudSearch
-                .describeScalingParameters(DescribeScalingParametersRequest.builder()
-                                                                           .domainName(testDomainName).build());
-        ScalingParameters retrievedScalingParameters = describeScalingParametersResult
-                .scalingParameters().options();
-        assertEquals(retrievedScalingParameters.desiredInstanceType(),
-                     scalingParameters.desiredInstanceType());
-        assertEquals(retrievedScalingParameters.desiredReplicationCount(),
-                     scalingParameters.desiredReplicationCount());
-        assertEquals(retrievedScalingParameters.desiredPartitionCount(),
-                     scalingParameters.desiredPartitionCount());
-    }
-
 }

@@ -17,13 +17,14 @@ package software.amazon.awssdk.services.cloudformation;
 
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for CloudFormation integration tests. Loads AWS credentials from a properties file and
  * creates a client for callers to use.
  */
-public class CloudFormationIntegrationTestBase extends AwsTestBase {
+public class CloudFormationIntegrationTestBase extends AwsIntegrationTestBase {
 
     protected static CloudFormationClient cf;
 
@@ -32,9 +33,9 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
      * use.
      */
     @BeforeClass
-    public static void setUp() throws Exception {
+    public static void setUp() {
         cf = CloudFormationClient.builder()
-                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                 .credentialsProvider(getCredentialsProvider())
                                  .region(Region.AP_NORTHEAST_1)
                                  .build();
     }

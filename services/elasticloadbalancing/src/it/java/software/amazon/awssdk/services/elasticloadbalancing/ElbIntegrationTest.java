@@ -118,17 +118,17 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
      * client for tests to use.
      */
     @BeforeClass
-    public static void setUp() throws IOException {
+    public static void setUp() {
         elb = ElasticLoadBalancingClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                .credentialsProvider(getCredentialsProvider())
                 .region(REGION)
                 .build();
         ec2 = Ec2Client.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                .credentialsProvider(getCredentialsProvider())
                 .region(REGION)
                 .build();
         iam = IamClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                .credentialsProvider(getCredentialsProvider())
                 .region(Region.AWS_GLOBAL)
                 .build();
 
@@ -162,7 +162,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
 
     /** Release any resources created by this test. */
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (loadBalancerName != null) {
             try {
                 elb.deleteLoadBalancer(DeleteLoadBalancerRequest.builder()
@@ -185,7 +185,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
      * Tests the ELB operations that require a real EC2 instance.
      */
     @Test
-    public void testLoadBalancerInstanceOperations() throws Exception {
+    public void testLoadBalancerInstanceOperations() {
         String ebs_hvm_ami_id = findEbsBackedPublicHvmAmiId();
 
         // Start up an EC2 instance to register with our LB

@@ -49,7 +49,7 @@ public class ParameterGroupsIntegrationTest extends ElastiCacheIntegrationTestBa
 
     /** Releases all resources created by tests. */
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (cacheParameterGroupName != null) {
             try {
                 elasticache.deleteCacheParameterGroup(
@@ -62,7 +62,7 @@ public class ParameterGroupsIntegrationTest extends ElastiCacheIntegrationTestBa
 
     /** Tests that we can call the parameter group operations in the ElastiCache API. */
     @Test
-    public void testParameterGroupOperations() throws Exception {
+    public void testParameterGroupOperations() {
 
         // Describe Engine Default Parameters
         EngineDefaults engineDefaults = elasticache

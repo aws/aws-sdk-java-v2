@@ -16,18 +16,15 @@
 package software.amazon.awssdk.services.elasticache;
 
 import org.junit.BeforeClass;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
-public class ElastiCacheIntegrationTestBase extends AwsTestBase {
-
-    protected static final String MEMCACHED_ENGINE = "memcached";
-    protected static final String REDIS_ENGINE = "redis";
+public class ElastiCacheIntegrationTestBase extends AwsIntegrationTestBase {
 
     protected static ElastiCacheClient elasticache;
 
     @BeforeClass
-    public static void setUp() throws Exception {
-        setUpCredentials();
-        elasticache = ElastiCacheClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+    public static void setUp() {
+        elasticache = ElastiCacheClient.builder().credentialsProvider(getCredentialsProvider()).build();
     }
 }

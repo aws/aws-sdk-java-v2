@@ -32,7 +32,7 @@ public class ClockSkewIntegrationTest extends CloudFormationIntegrationTestBase 
         SdkGlobalTime.setGlobalTimeOffset(3600);
         // Need to create a new client to have the time offset take affect
         CloudFormationClient clockSkewClient = CloudFormationClient.builder()
-                                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+                                                                   .credentialsProvider(getCredentialsProvider()).build();
         clockSkewClient.describeStacks(DescribeStacksRequest.builder().build());
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() < 60);
     }
