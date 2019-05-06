@@ -38,6 +38,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     public static String DESTINATION;
     public static String SOURCE;
     protected static SesClient email;
+    protected static SesAsyncClient emailAsync;
 
     /**
      * Loads the AWS account info for the integration tests and creates client objects for tests to
@@ -54,6 +55,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
         }
 
         email = SesClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        emailAsync = SesAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     protected static void sendVerificationEmail() {

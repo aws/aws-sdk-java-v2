@@ -21,22 +21,36 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
-public class ServiceIntegrationTest extends AwsTestBase {
+public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     protected IamClient iam;
+
+    protected IamAsyncClient iamAsync;
 
     @Before
     public void setUp() {
         iam = IamClient.builder()
-                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .credentialsProvider(getCredentialsProvider())
+                       .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
+                       .region(Region.AWS_GLOBAL)
+                       .build();
+
+        iamAsync = IamAsyncClient.builder()
+                       .credentialsProvider(getCredentialsProvider())
                        .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
                        .region(Region.AWS_GLOBAL)
                        .build();
     }
 
     @Test
-    public void smokeTest() {
+    public void listUsers_ReturnsSuccess() {
         assertThat(iam.listUsers().users()).isNotNull();
+    }
+
+    @Test
+    public void listUsers_Async_ReturnsSuccess() {
+        assertThat(iamAsync.listUsers().join().users()).isNotNull();
     }
 }

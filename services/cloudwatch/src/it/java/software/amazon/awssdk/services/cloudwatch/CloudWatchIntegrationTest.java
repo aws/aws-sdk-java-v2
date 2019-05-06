@@ -68,8 +68,9 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
     private static final int ONE_WEEK_IN_MILLISECONDS = 1000 * 60 * 60 * 24 * 7;
     private static final int ONE_HOUR_IN_MILLISECONDS = 1000 * 60 * 60;
 
-    /** The CloudWatch client for all tests to use. */
     private static CloudWatchClient cloudwatch;
+
+    private static CloudWatchAsyncClient asyncClient;
 
     /**
      * Loads the AWS account info for the integration tests and creates a
@@ -78,6 +79,11 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
     @BeforeClass
     public static void setUp() {
         cloudwatch = CloudWatchClient.builder()
+                                     .credentialsProvider(getCredentialsProvider())
+                                     .region(Region.US_WEST_2)
+                                     .build();
+
+        asyncClient = CloudWatchAsyncClient.builder()
                                      .credentialsProvider(getCredentialsProvider())
                                      .region(Region.US_WEST_2)
                                      .build();
@@ -215,6 +221,31 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         //check the state history has been recorded
         rqs.stream().map(alarm -> cloudwatch.describeAlarmHistory(r -> r.alarmName(alarm.alarmName())
                                                                         .historyItemType(HistoryItemType.STATE_UPDATE)))
+           .forEach(history -> assertThat(history.alarmHistoryItems(), hasSize(greaterThan(0))));
+    }
+
+    @Test
+    public void describe_alarms_returns_values_set_asyncClient() {
+        String metricName = this.getClass().getName() + System.currentTimeMillis();
+
+        List<PutMetricAlarmRequest> rqs = createTwoNewAlarms(metricName);
+
+        rqs.forEach(rq -> asyncClient.setAlarmState(r -> r.alarmName(rq.alarmName()).stateValue("ALARM").stateReason("manual")).join());
+
+        DescribeAlarmsForMetricResponse describeResult = describeAlarmsForMetric(rqs);
+
+        assertThat(describeResult.metricAlarms(), hasSize(2));
+
+        //check the state is correct
+        describeResult.metricAlarms().forEach(alarm -> {
+            assertThat(alarm.alarmName(), isIn(rqs.stream().map(PutMetricAlarmRequest::alarmName).collect(toList())));
+            assertThat(alarm.stateValue(), equalTo(StateValue.ALARM));
+            assertThat(alarm.stateReason(), equalTo("manual"));
+        });
+
+        //check the state history has been recorded
+        rqs.stream().map(alarm -> asyncClient.describeAlarmHistory(r -> r.alarmName(alarm.alarmName())
+                                                                        .historyItemType(HistoryItemType.STATE_UPDATE)).join())
            .forEach(history -> assertThat(history.alarmHistoryItems(), hasSize(greaterThan(0))));
     }
 

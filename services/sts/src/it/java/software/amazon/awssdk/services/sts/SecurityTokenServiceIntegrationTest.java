@@ -35,7 +35,7 @@ public class SecurityTokenServiceIntegrationTest extends IntegrationTestBase {
 
     /** Tests that we can call GetSession to start a session. */
     @Test
-    public void testGetSessionToken() throws Exception {
+    public void testGetSessionToken() {
         if (CREDENTIALS_PROVIDER_CHAIN.resolveCredentials() instanceof AwsSessionCredentials) {
             log.warn(() -> "testGetSessionToken() skipped due to the current credentials being session credentials. " +
                            "Session credentials cannot be used to get other session tokens.");
@@ -51,9 +51,26 @@ public class SecurityTokenServiceIntegrationTest extends IntegrationTestBase {
         assertNotNull(result.credentials().sessionToken());
     }
 
+    @Test
+    public void testGetSessionTokenAsync() {
+        if (CREDENTIALS_PROVIDER_CHAIN.resolveCredentials() instanceof AwsSessionCredentials) {
+            log.warn(() -> "testGetSessionToken() skipped due to the current credentials being session credentials. " +
+                           "Session credentials cannot be used to get other session tokens.");
+            return;
+        }
+
+        GetSessionTokenRequest request = GetSessionTokenRequest.builder().durationSeconds(SESSION_DURATION).build();
+        GetSessionTokenResponse result = stsAsync.getSessionToken(request).join();
+
+        assertNotNull(result.credentials().accessKeyId());
+        assertNotNull(result.credentials().expiration());
+        assertNotNull(result.credentials().secretAccessKey());
+        assertNotNull(result.credentials().sessionToken());
+    }
+
     /** Tests that we can call GetFederatedSession to start a federated session. */
     @Test
-    public void testGetFederatedSessionToken() throws Exception {
+    public void testGetFederatedSessionToken() {
         if (CREDENTIALS_PROVIDER_CHAIN.resolveCredentials() instanceof AwsSessionCredentials) {
             log.warn(() -> "testGetFederatedSessionToken() skipped due to the current credentials being session credentials. " +
                            "Session credentials cannot be used to get federation tokens.");

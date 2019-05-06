@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.ec2.Ec2AsyncClient;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.Filter;
@@ -94,7 +95,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
     private static ElasticLoadBalancingClient elb;
 
     /** The EC2 client used to start an instance for the tests requiring one. */
-    private static Ec2Client ec2;
+    private static Ec2AsyncClient ec2;
 
     /** IAM client used to retrieve certificateArn. */
     private static IamClient iam;
@@ -123,7 +124,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
                 .credentialsProvider(getCredentialsProvider())
                 .region(REGION)
                 .build();
-        ec2 = Ec2Client.builder()
+        ec2 = Ec2AsyncClient.builder()
                 .credentialsProvider(getCredentialsProvider())
                 .region(REGION)
                 .build();
@@ -174,7 +175,9 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
         if (instanceId != null) {
             try {
                 ec2.terminateInstances(TerminateInstancesRequest.builder()
-                                               .instanceIds(instanceId).build());
+                                                                .instanceIds(instanceId)
+                                                                .build())
+                   .join();
             } catch (Exception e) {
                 // Ignored or expected.
             }
@@ -194,8 +197,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
                         Placement.builder()
                                 .availabilityZone(AVAILABILITY_ZONE_1).build())
                 .imageId(ebs_hvm_ami_id).minCount(1).maxCount(1).build();
-        instanceId = ec2.runInstances(runInstancesRequest)
-                        .instances().get(0).instanceId();
+        instanceId = ec2.runInstances(runInstancesRequest).join().instances().get(0).instanceId();
 
         // Register it with our load balancer
         List<Instance> instances = elb.registerInstancesWithLoadBalancer(
@@ -498,7 +500,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
                          Filter.builder().name("is-public").values("true").build(),
                          Filter.builder().name("root-device-type").values("ebs").build(),
                          Filter.builder().name("name").values("ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64*").build())
-                .build()).images();
+                .build()).join().images();
 
         assertTrue("Cannot find a public HVM AMI.", hvmImages.size() > 0);
 

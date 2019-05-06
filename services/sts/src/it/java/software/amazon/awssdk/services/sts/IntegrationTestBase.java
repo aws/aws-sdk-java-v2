@@ -30,6 +30,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
 
     /** The shared STS client for all tests to use. */
     protected static StsClient sts;
+    protected static StsAsyncClient stsAsync;
 
     @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
@@ -38,5 +39,10 @@ public abstract class IntegrationTestBase extends AwsTestBase {
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .region(Region.US_EAST_1)
                        .build();
+
+        stsAsync = StsAsyncClient.builder()
+                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                 .region(Region.US_EAST_1)
+                                 .build();
     }
 }

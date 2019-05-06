@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
@@ -46,7 +47,8 @@ public class WafIntegrationTest extends AwsTestBase {
 
     private static final String IP_SET_NAME = "java-sdk-ipset-" + System.currentTimeMillis();
     private static final String IP_ADDRESS_RANGE = "192.0.2.0/24";
-    private static WafClient client = null;
+    private static WafClient client;
+    private static WafAsyncClient asyncClient;
     private static String ipSetId = null;
 
     @BeforeClass
@@ -58,6 +60,14 @@ public class WafIntegrationTest extends AwsTestBase {
                           .region(Region.AWS_GLOBAL)
                           .overrideConfiguration(cfg -> cfg.retryPolicy(r -> r.backoffStrategy(fixedBackoffStrategy)))
                           .build();
+
+        asyncClient = WafAsyncClient.builder()
+                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                    .region(Region.AWS_GLOBAL)
+                                    .overrideConfiguration(cfg -> cfg.retryPolicy(r -> r.backoffStrategy(fixedBackoffStrategy)))
+                                    .build();
+
+        ipSetId = testCreateIpSet();
     }
 
     @AfterClass
@@ -66,6 +76,23 @@ public class WafIntegrationTest extends AwsTestBase {
 
             deleteIpSet();
         }
+    }
+
+    private static String testCreateIpSet() {
+        final String changeToken = newChangeToken();
+        CreateIpSetResponse createResult = client.createIPSet(CreateIpSetRequest.builder()
+                                                                                .changeToken(changeToken)
+                                                                                .name(IP_SET_NAME).build());
+
+        Assert.assertEquals(changeToken, createResult.changeToken());
+
+        final IPSet ipSet = createResult.ipSet();
+        Assert.assertNotNull(ipSet);
+        Assert.assertEquals(IP_SET_NAME, ipSet.name());
+        Assert.assertTrue(ipSet.ipSetDescriptors().isEmpty());
+        Assert.assertNotNull(ipSet.ipSetId());
+
+        return ipSet.ipSetId();
     }
 
     private static void deleteIpSet() {
@@ -84,31 +111,7 @@ public class WafIntegrationTest extends AwsTestBase {
     }
 
     @Test
-    public void testOperations() throws InterruptedException {
-
-        ipSetId = testCreateIpSet();
-        testGetIpSet();
-        testUpdateIpSet();
-    }
-
-    private String testCreateIpSet() {
-        final String changeToken = newChangeToken();
-        CreateIpSetResponse createResult = client.createIPSet(CreateIpSetRequest.builder()
-                                                                                .changeToken(changeToken)
-                                                                                .name(IP_SET_NAME).build());
-
-        Assert.assertEquals(changeToken, createResult.changeToken());
-
-        final IPSet ipSet = createResult.ipSet();
-        Assert.assertNotNull(ipSet);
-        Assert.assertEquals(IP_SET_NAME, ipSet.name());
-        Assert.assertTrue(ipSet.ipSetDescriptors().isEmpty());
-        Assert.assertNotNull(ipSet.ipSetId());
-
-        return ipSet.ipSetId();
-    }
-
-    private void testGetIpSet() {
+    public void testGetIpSet() {
         GetIpSetResponse getResult = client.getIPSet(GetIpSetRequest.builder()
                 .ipSetId(ipSetId)
                 .build());
@@ -126,7 +129,30 @@ public class WafIntegrationTest extends AwsTestBase {
         Assert.assertFalse(listResult.ipSets().isEmpty());
     }
 
-    private void testUpdateIpSet() {
+    @Test
+    public void testGetIpSetAsync() {
+        GetIpSetResponse getResult = asyncClient.getIPSet(GetIpSetRequest.builder()
+                                                                         .ipSetId(ipSetId)
+                                                                         .build())
+                                                .join();
+
+        IPSet ipSet = getResult.ipSet();
+        Assert.assertNotNull(ipSet);
+        Assert.assertEquals(IP_SET_NAME, ipSet.name());
+        Assert.assertTrue(ipSet.ipSetDescriptors().isEmpty());
+        Assert.assertNotNull(ipSet.ipSetId());
+        Assert.assertEquals(ipSetId, ipSet.ipSetId());
+
+        ListIpSetsResponse listResult = asyncClient.listIPSets(ListIpSetsRequest.builder()
+                                                                                .limit(1)
+                                                                                .build())
+                                                   .join();
+        Assert.assertNotNull(listResult.ipSets());
+        Assert.assertFalse(listResult.ipSets().isEmpty());
+    }
+
+    @Test
+    public void testUpdateIpSet() {
         final IPSetDescriptor ipSetDescriptor = IPSetDescriptor.builder()
                 .type(IPSetDescriptorType.IPV4)
                 .value(IP_ADDRESS_RANGE)

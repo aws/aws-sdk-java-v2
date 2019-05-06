@@ -34,6 +34,8 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private GlacierClient client;
 
+    private GlacierAsyncClient asyncClient;
+
     private CapturingExecutionInterceptor capturingExecutionInterceptor = new CapturingExecutionInterceptor();
 
     @Before
@@ -45,6 +47,14 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                                                              .addExecutionInterceptor(capturingExecutionInterceptor)
                                                              .build())
                               .build();
+
+        asyncClient = GlacierAsyncClient.builder()
+                                        .credentialsProvider(getCredentialsProvider())
+                                        .overrideConfiguration(ClientOverrideConfiguration
+                                                             .builder()
+                                                             .addExecutionInterceptor(capturingExecutionInterceptor)
+                                                             .build())
+                                        .build();
     }
 
     /**
@@ -61,12 +71,28 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                                     "Glacier API version is present in header"));
     }
 
+    @Test
+    public void listVaultsAsync_SendsApiVersion() {
+        asyncClient.listVaults(ListVaultsRequest.builder().build()).join();
+        assertThat(capturingExecutionInterceptor.beforeTransmission)
+                .is(new Condition<>(r -> r.firstMatchingHeader("x-amz-glacier-version")
+                                          .orElseThrow(() -> new AssertionError("x-amz-glacier-version header not found"))
+                                          .equals("2012-06-01"),
+                                    "Glacier API version is present in header"));
+    }
+
     /**
      * Glacier has a custom field name for it's error code so we make sure that works here.
      */
     @Test
     public void modeledException_IsUnmarshalledCorrectly() {
         assertThatThrownBy(() -> client.describeVault(r -> r.vaultName("nope")))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    public void modeledException_IsUnmarshalledCorrectly_AsyncClient() {
+        assertThatThrownBy(() -> asyncClient.describeVault(r -> r.vaultName("nope")).join())
             .isInstanceOf(ResourceNotFoundException.class);
     }
 

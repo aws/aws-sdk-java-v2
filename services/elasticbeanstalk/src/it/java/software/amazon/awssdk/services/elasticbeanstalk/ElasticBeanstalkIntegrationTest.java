@@ -42,4 +42,17 @@ public class ElasticBeanstalkIntegrationTest extends ElasticBeanstalkIntegration
         }
     }
 
+    @Test
+    public void testListAvailableSolutionStacksAsync() {
+        List<String> solutionStacks =
+                elasticBeanstalkAsync.listAvailableSolutionStacks(ListAvailableSolutionStacksRequest.builder().build())
+                                     .join()
+                                     .solutionStacks();
+        assertNotNull(solutionStacks);
+        assertTrue(solutionStacks.size() > 1);
+        for (String stack : solutionStacks) {
+            assertNotEmpty(stack);
+        }
+    }
+
 }

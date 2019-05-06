@@ -26,6 +26,8 @@ public abstract class ElasticBeanstalkIntegrationTestBase extends AwsIntegration
 
     protected static ElasticBeanstalkClient elasticbeanstalk;
 
+    protected static ElasticBeanstalkAsyncClient elasticBeanstalkAsync;
+
     /**
      * Loads the AWS account info for the integration tests and creates an clients for tests to use.
      */
@@ -34,6 +36,10 @@ public abstract class ElasticBeanstalkIntegrationTestBase extends AwsIntegration
         elasticbeanstalk = ElasticBeanstalkClient.builder()
                                                  .credentialsProvider(getCredentialsProvider())
                                                  .build();
+
+        elasticBeanstalkAsync = ElasticBeanstalkAsyncClient.builder()
+                                                           .credentialsProvider(getCredentialsProvider())
+                                                           .build();
     }
 
 }

@@ -74,9 +74,24 @@ public class EmailIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    public void getSendQuotaAsync_ReturnsNonZeroQuotas() {
+        GetSendQuotaResponse result = emailAsync.getSendQuota(GetSendQuotaRequest.builder().build()).join();
+        assertThat(result.max24HourSend(), greaterThan(0.0));
+        assertThat(result.maxSendRate(), greaterThan(0.0));
+    }
+
+    @Test
     public void listIdentities_WithNonVerifiedIdentity_ReturnsIdentityInList() {
         // Don't need to actually verify for it to show up in listIdentities
         List<String> identities = email.listIdentities(ListIdentitiesRequest.builder().build()).identities();
+        assertThat(identities, hasItem(EMAIL));
+        assertThat(identities, hasItem(DOMAIN));
+    }
+
+    @Test
+    public void listIdentitiesAsync_WithNonVerifiedIdentity_ReturnsIdentityInList() {
+        // Don't need to actually verify for it to show up in listIdentities
+        List<String> identities = emailAsync.listIdentities(ListIdentitiesRequest.builder().build()).join().identities();
         assertThat(identities, hasItem(EMAIL));
         assertThat(identities, hasItem(DOMAIN));
     }
@@ -117,6 +132,16 @@ public class EmailIntegrationTest extends IntegrationTestBase {
     public void getIdentityVerificationAttributes_ForNonVerifiedEmail_ReturnsPendingVerificatonStatus() {
         GetIdentityVerificationAttributesResponse result = email
                 .getIdentityVerificationAttributes(GetIdentityVerificationAttributesRequest.builder().identities(EMAIL).build());
+        IdentityVerificationAttributes identityVerificationAttributes = result.verificationAttributes().get(EMAIL);
+        assertEquals(VerificationStatus.PENDING, identityVerificationAttributes.verificationStatus());
+        // Verificaton token not applicable for email identities
+        assertNull(identityVerificationAttributes.verificationToken());
+    }
+
+    @Test
+    public void getIdentityVerificationAttributesAsync_ForNonVerifiedEmail_ReturnsPendingVerificatonStatus() {
+        GetIdentityVerificationAttributesResponse result = emailAsync
+                .getIdentityVerificationAttributes(GetIdentityVerificationAttributesRequest.builder().identities(EMAIL).build()).join();
         IdentityVerificationAttributes identityVerificationAttributes = result.verificationAttributes().get(EMAIL);
         assertEquals(VerificationStatus.PENDING, identityVerificationAttributes.verificationStatus());
         // Verificaton token not applicable for email identities
