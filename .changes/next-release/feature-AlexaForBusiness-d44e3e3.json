@@ -1,0 +1,5 @@
+{
+    "category": "Alexa For Business", 
+    "type": "feature", 
+    "description": "This release adds an API allowing authorized users to delete a shared device's history of voice recordings and associated response data."
+}
