@@ -1,0 +1,5 @@
+{
+    "category": "AWS AppSync", 
+    "type": "feature", 
+    "description": "AWS AppSync now supports the ability to add additional authentication providers to your AWS AppSync GraphQL API as well as the ability to retrieve directives configured against fields or object type definitions during schema introspection."
+}
