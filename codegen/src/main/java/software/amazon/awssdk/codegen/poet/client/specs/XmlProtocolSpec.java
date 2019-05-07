@@ -30,7 +30,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
     public XmlProtocolSpec(IntermediateModel model,
                            PoetExtensions poetExtensions) {
-        super(poetExtensions);
+        super(model, poetExtensions);
         this.model = model;
     }
 

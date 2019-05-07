@@ -86,7 +86,7 @@ public class ExecutionInterceptorChain {
 
             SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
             if (!result.requestBody().isPresent() && sdkHttpFullRequest.contentStreamProvider().isPresent()) {
-                int contentLength = Integer.parseInt(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
+                long contentLength = Long.parseLong(sdkHttpFullRequest.firstMatchingHeader("Content-Length").orElse("0"));
                 String contentType = sdkHttpFullRequest.firstMatchingHeader("Content-Type").orElse("");
                 RequestBody requestBody = RequestBody.fromContentProvider(sdkHttpFullRequest.contentStreamProvider().get(),
                                                                           contentLength,

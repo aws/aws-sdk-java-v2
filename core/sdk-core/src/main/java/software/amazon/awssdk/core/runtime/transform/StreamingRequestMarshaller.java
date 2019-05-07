@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
-import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
-import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.internal.transform.AbstractStreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
@@ -30,23 +30,22 @@ import software.amazon.awssdk.utils.StringUtils;
  * @param <T> Type of POJO being marshalled.
  */
 @SdkProtectedApi
-public final class StreamingRequestMarshaller<T> implements Marshaller<T> {
+public final class StreamingRequestMarshaller<T> extends AbstractStreamingRequestMarshaller<T> {
 
-    private final Marshaller<T> delegate;
     private final RequestBody requestBody;
 
-    /**
-     * @param delegate    POJO marshaller (for path/query/header members).
-     * @param requestBody {@link RequestBody} representing HTTP contents.
-     */
-    public StreamingRequestMarshaller(Marshaller<T> delegate, RequestBody requestBody) {
-        this.delegate = paramNotNull(delegate, "delegate");
-        this.requestBody = paramNotNull(requestBody, "requestBody");
+    private StreamingRequestMarshaller(Builder builder) {
+        super(builder);
+        this.requestBody = builder.requestBody;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
     public SdkHttpFullRequest marshall(T in) {
-        SdkHttpFullRequest.Builder marshalled = delegate.marshall(in).toBuilder();
+        SdkHttpFullRequest.Builder marshalled = delegateMarshaller.marshall(in).toBuilder();
         marshalled.contentStreamProvider(requestBody.contentStreamProvider());
         String contentType = marshalled.firstMatchingHeader(CONTENT_TYPE)
                                        .orElse(null);
@@ -54,7 +53,31 @@ public final class StreamingRequestMarshaller<T> implements Marshaller<T> {
             marshalled.putHeader(CONTENT_TYPE, requestBody.contentType());
         }
 
-        marshalled.putHeader(CONTENT_LENGTH, String.valueOf(requestBody.contentLength()));
+        // Currently, SDK always require content length in RequestBody. So we always
+        // send Content-Length header for sync APIs
+        // This change will be useful if SDK relaxes the content-length requirement in RequestBody
+        addHeaders(marshalled, Optional.of(requestBody.contentLength()), requiresLength, transferEncoding, useHttp2);
+
         return marshalled.build();
+    }
+
+    /**
+     * Builder class to build {@link StreamingRequestMarshaller} object.
+     */
+    public static final class Builder extends AbstractStreamingRequestMarshaller.Builder<Builder> {
+        private RequestBody requestBody;
+
+        /**
+         * @param requestBody {@link RequestBody} representing the HTTP payload
+         * @return This object for method chaining
+         */
+        public Builder requestBody(RequestBody requestBody) {
+            this.requestBody = requestBody;
+            return this;
+        }
+
+        public <T> StreamingRequestMarshaller<T> build() {
+            return new StreamingRequestMarshaller<>(this);
+        }
     }
 }

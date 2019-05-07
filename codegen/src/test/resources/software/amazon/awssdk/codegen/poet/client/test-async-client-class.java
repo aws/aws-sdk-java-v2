@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
+import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
@@ -435,7 +436,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             return CompletableFutureUtils.failedFuture(t);
         }
     }
-    
+
     /**
      * <p>
      * Performs a post operation to the query service and has no output
@@ -551,7 +552,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
@@ -561,19 +562,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
@@ -669,7 +670,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * The following are few ways to use the response class:
      * </p>
      * 1) Using the subscribe helper method
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
@@ -679,19 +680,19 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </pre>
      *
      * 2) Using a custom subscriber
-     * 
+     *
      * <pre>
      * {@code
      * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
      * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
-     * 
+     *
      * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
-     * 
-     * 
+     *
+     *
      * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
      * });}
      * </pre>
-     * 
+     *
      * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
      * <p>
      * <b>Note: If you prefer to have control on service calls, use the
@@ -761,9 +762,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
                     .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                             .withOperationName("StreamingInputOperation")
-                            .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+                            .withMarshaller(
+                                AsyncStreamingRequestMarshaller.builder()
+                                                               .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                                               .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
+                            .withErrorResponseHandler(errorResponseHandler).withAsyncRequestBody(requestBody)
+                            .withInput(streamingInputOperationRequest));
             return executeFuture;
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
@@ -818,7 +822,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                     new ClientExecutionParams<StreamingInputOutputOperationRequest, StreamingInputOutputOperationResponse>()
                             .withOperationName("StreamingInputOutputOperation")
-                            .withMarshaller(new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                            .withMarshaller(
+                                AsyncStreamingRequestMarshaller
+                                    .builder()
+                                    .delegateMarshaller(
+                                        new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                                    .asyncRequestBody(requestBody).transferEncoding(true).build())
                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                             .withAsyncRequestBody(requestBody).withInput(streamingInputOutputOperationRequest),
                     asyncResponseTransformer);
