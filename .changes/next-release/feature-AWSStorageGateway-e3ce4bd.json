@@ -1,5 +1,0 @@
-{
-    "category": "AWS Storage Gateway", 
-    "type": "feature", 
-    "description": "Add optional field AdminUserList to CreateSMBFileShare and UpdateSMBFileShare APIs."
-}
