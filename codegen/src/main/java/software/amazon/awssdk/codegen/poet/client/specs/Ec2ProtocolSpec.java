@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.protocols.query.AwsEc2ProtocolFactory;
 
 public class Ec2ProtocolSpec extends QueryProtocolSpec {
 
-    public Ec2ProtocolSpec(PoetExtensions poetExtensions) {
-        super(poetExtensions);
+    public Ec2ProtocolSpec(IntermediateModel model, PoetExtensions poetExtensions) {
+        super(model, poetExtensions);
     }
 
     @Override

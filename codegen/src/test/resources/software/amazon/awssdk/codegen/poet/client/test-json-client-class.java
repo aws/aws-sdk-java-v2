@@ -472,8 +472,9 @@ final class DefaultJsonClient implements JsonClient {
                                          .withInput(streamingInputOperationRequest)
                                          .withRequestBody(requestBody)
                                          .withMarshaller(
-                                             new StreamingRequestMarshaller<StreamingInputOperationRequest>(
-                                                 new StreamingInputOperationRequestMarshaller(protocolFactory), requestBody)));
+                                             StreamingRequestMarshaller.builder()
+                                                                       .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                                                       .requestBody(requestBody).build()));
     }
 
     /**
@@ -534,9 +535,9 @@ final class DefaultJsonClient implements JsonClient {
                 .withInput(streamingInputOutputOperationRequest)
                 .withRequestBody(requestBody)
                 .withMarshaller(
-                    new StreamingRequestMarshaller<StreamingInputOutputOperationRequest>(
-                        new StreamingInputOutputOperationRequestMarshaller(protocolFactory), requestBody)),
-            responseTransformer);
+                    StreamingRequestMarshaller.builder()
+                                              .delegateMarshaller(new StreamingInputOutputOperationRequestMarshaller(protocolFactory))
+                                              .requestBody(requestBody).transferEncoding(true).build()), responseTransformer);
     }
 
     /**

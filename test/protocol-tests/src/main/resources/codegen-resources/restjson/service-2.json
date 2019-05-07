@@ -690,7 +690,8 @@
     },
     "StreamType":{
       "type":"blob",
-      "streaming":true
+      "streaming":true,
+      "requiresLength":true
     },
     "String":{"type":"string"},
     "StructWithNestedBlobType":{
