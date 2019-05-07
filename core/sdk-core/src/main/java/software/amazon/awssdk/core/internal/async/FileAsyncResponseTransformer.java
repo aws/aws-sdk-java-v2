@@ -78,7 +78,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     @Override
     public void exceptionOccurred(Throwable throwable) {
         try {
-            invokeSafely(fileChannel::close);
+            if (fileChannel != null) {
+                invokeSafely(fileChannel::close);
+            }
         } finally {
             invokeSafely(() -> Files.deleteIfExists(path));
         }
