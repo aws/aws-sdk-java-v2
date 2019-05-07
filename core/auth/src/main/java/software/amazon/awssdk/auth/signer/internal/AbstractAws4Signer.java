@@ -70,7 +70,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         }
 
         addHostHeader(mutableRequest);
-        addDateHeader(mutableRequest, requestParams.getFormattedSigningDateTime());
+        addDateHeader(mutableRequest, requestParams.getFormattedRequestSigningDateTime());
 
         String contentSha256 = calculateContentHash(mutableRequest, signingParams);
         mutableRequest.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
@@ -112,7 +112,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         }
 
         // Add the important parameters for v4 signing
-        String timeStamp = requestParams.getFormattedSigningDateTime();
+        String timeStamp = requestParams.getFormattedRequestSigningDateTime();
 
         addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, requestParams, timeStamp, expirationInSeconds);
 
@@ -166,7 +166,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected byte[] deriveSigningKey(AwsCredentials credentials, Aws4SignerRequestParams signerRequestParams) {
 
         String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
-        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
+        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getRequestSigningDateTimeMilli());
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
@@ -177,7 +177,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
             TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
         byte[] signingKey = newSigningKey(credentials,
-            signerRequestParams.getFormattedSigningDate(),
+            signerRequestParams.getFormattedRequestSigningDate(),
             signerRequestParams.getRegionName(),
             signerRequestParams.getServiceSigningName());
         SIGNER_CACHE.add(cacheKey, new SignerKey(daysSinceEpochSigningDate, signingKey));
@@ -221,7 +221,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         String stringToSign = requestParams.getSigningAlgorithm() +
                                     SignerConstant.LINE_SEPARATOR +
-                                    requestParams.getFormattedSigningDateTime() +
+                                    requestParams.getFormattedRequestSigningDateTime() +
                                     SignerConstant.LINE_SEPARATOR +
                                     requestParams.getScope() +
                                     SignerConstant.LINE_SEPARATOR +
