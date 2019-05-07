@@ -1,0 +1,26 @@
+{
+    "date": "2019-05-06",
+    "version": "2.5.38",
+    "entries": [
+        {
+            "category": "AWS Security Token Service",
+            "type": "feature",
+            "description": "Documentation updates for sts"
+        },
+        {
+            "category": "AWS CodePipeline",
+            "type": "feature",
+            "description": "Documentation updates for codepipeline"
+        },
+        {
+            "category": "AWS Identity and Access Management",
+            "type": "feature",
+            "description": "Documentation updates for iam"
+        },
+        {
+            "category": "AWS Config",
+            "type": "feature",
+            "description": "AWS Config now supports tagging on PutConfigRule, PutConfigurationAggregator and PutAggregationAuthorization APIs."
+        }
+    ]
+}
