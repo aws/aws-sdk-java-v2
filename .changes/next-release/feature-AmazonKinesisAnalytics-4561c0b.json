@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Kinesis Analytics", 
+    "type": "feature", 
+    "description": "Kinesis Data Analytics APIs now support tagging on applications."
+}
