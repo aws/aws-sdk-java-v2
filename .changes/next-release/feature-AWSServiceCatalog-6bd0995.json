@@ -1,0 +1,5 @@
+{
+    "category": "AWS Service Catalog", 
+    "type": "feature", 
+    "description": "Adds \"Parameters\" field in UpdateConstraint API, which will allow Admin user to update \"Parameters\" in created Constraints."
+}
