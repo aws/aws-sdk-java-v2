@@ -1,5 +1,0 @@
-{
-    "category": "Amazon SageMaker Service", 
-    "type": "feature", 
-    "description": "Workteams now supports notification configurations. Neo now supports Jetson Nano as a target device and NumberOfHumanWorkersPerDataObject is now included in the ListLabelingJobsForWorkteam response."
-}

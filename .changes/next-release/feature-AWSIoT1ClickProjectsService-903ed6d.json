@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT 1-Click Projects Service", 
-    "type": "feature", 
-    "description": "Added automatic pagination support for ListProjects and ListPlacements APIs."
-}
