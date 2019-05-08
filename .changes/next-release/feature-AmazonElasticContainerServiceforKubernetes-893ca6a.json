@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic Container Service for Kubernetes", 
+    "type": "feature", 
+    "description": "Documentation update for Amazon EKS to clarify allowed parameters in update-cluster-config."
+}
