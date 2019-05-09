@@ -128,9 +128,8 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                  * Signing Date
                  */
                 Map<String, HeaderValue> nonSignatureHeaders = new HashMap<>();
-                long signingEpochMilliSec = requestParams.getSigningDateTimeMilli();
-                Instant signingInstant = Instant.ofEpochMilli(signingEpochMilliSec);
-                String signingDate = Aws4SignerUtils.formatTimestamp(signingEpochMilliSec);
+                Instant signingInstant = requestParams.getSigningClock().instant();
+                String signingDate = Aws4SignerUtils.formatTimestamp(signingInstant);
                 nonSignatureHeaders.put(EVENT_STREAM_DATE, HeaderValue.fromTimestamp(signingInstant));
 
                 /**
@@ -144,9 +143,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                 /**
                  * Add signing layer event-stream headers
                  */
-                Map<String, HeaderValue> headers = new HashMap<>();
-                //Non-signature header
-                headers.putAll(nonSignatureHeaders);
+                Map<String, HeaderValue> headers = new HashMap<>(nonSignatureHeaders);
                 //Signature headers
                 headers.put(EVENT_STREAM_SIGNATURE, HeaderValue.fromByteArray(signatureBytes));
 
