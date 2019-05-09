@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ResponseItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * An asynchronous way of interacting with a DynamoDB table. This is usually created via
@@ -52,6 +53,9 @@ public interface AsyncTable {
     /**
      * Retrieve the name of the DynamoDB table. This does not make a service call, and does not guarantee that the DynamoDB table
      * actually exists.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     default String name() {
         throw new UnsupportedOperationException();
@@ -90,6 +94,18 @@ public interface AsyncTable {
      *     resultLoggedFuture.join();
      * }
      * </code>
+     *
+     * <p>
+     * This call should never throw an {@link Exception}. All exceptions will be returned via the produced
+     * {@link CompletableFuture}.
+     *
+     * <p>
+     * Reasons this may complete the future with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The item cannot be converted to a DynamoDB request.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     * </ol>
      */
     default CompletableFuture<Void> putItem(RequestItem item) {
         throw new UnsupportedOperationException();
@@ -129,11 +145,27 @@ public interface AsyncTable {
      *     resultLoggedFuture.join();
      * }
      * </code>
+     *
+     * <p>
+     * This call should never throw an {@link Exception}. All exceptions will be returned via the produced
+     * {@link CompletableFuture}.
+     *
+     * <p>
+     * Reasons this may complete the future with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The item cannot be converted to a DynamoDB request.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     * </ol>
      */
     default CompletableFuture<Void> putItem(Consumer<RequestItem.Builder> item) {
-        RequestItem.Builder itemBuilder = RequestItem.builder();
-        item.accept(itemBuilder);
-        return putItem(itemBuilder.build());
+        try {
+            RequestItem.Builder itemBuilder = RequestItem.builder();
+            item.accept(itemBuilder);
+            return putItem(itemBuilder.build());
+        } catch (RuntimeException e) {
+            return CompletableFutureUtils.failedFuture(e);
+        }
     }
 
     /**
@@ -167,6 +199,19 @@ public interface AsyncTable {
      *     resultLoggedFuture.join();
      * }
      * </code>
+     *
+     * <p>
+     * This call should never throw an {@link Exception}. All exceptions will be returned via the produced
+     * {@link CompletableFuture}.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     *     <li>The request item cannot be converted to a DynamoDB request.</li>
+     *     <li>The DynamoDB Response cannot be converted to an item.</li>
+     * </ol>
      */
     default CompletableFuture<ResponseItem> getItem(RequestItem key) {
         throw new UnsupportedOperationException();
@@ -204,10 +249,27 @@ public interface AsyncTable {
      *     resultLoggedFuture.join();
      * }
      * </code>
+     *
+     * <p>
+     * This call should never throw an {@link Exception}. All exceptions will be returned via the produced
+     * {@link CompletableFuture}.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     *     <li>The request item cannot be converted to a DynamoDB request.</li>
+     *     <li>The DynamoDB Response cannot be converted to an item.</li>
+     * </ol>
      */
     default CompletableFuture<ResponseItem> getItem(Consumer<RequestItem.Builder> key) {
-        RequestItem.Builder itemBuilder = RequestItem.builder();
-        key.accept(itemBuilder);
-        return getItem(itemBuilder.build());
+        try {
+            RequestItem.Builder itemBuilder = RequestItem.builder();
+            key.accept(itemBuilder);
+            return getItem(itemBuilder.build());
+        } catch (RuntimeException e) {
+            return CompletableFutureUtils.failedFuture(e);
+        }
     }
 }

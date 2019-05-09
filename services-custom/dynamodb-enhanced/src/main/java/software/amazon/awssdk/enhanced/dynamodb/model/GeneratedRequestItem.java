@@ -37,6 +37,9 @@ public interface GeneratedRequestItem extends AttributeAware<AttributeValue>,
                                               ToCopyableBuilder<GeneratedRequestItem.Builder, GeneratedRequestItem> {
     /**
      * Create a builder for configuring and creating a {@link GeneratedRequestItem}.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     static Builder builder() {
         return DefaultGeneratedRequestItem.builder();
@@ -59,6 +62,16 @@ public interface GeneratedRequestItem extends AttributeAware<AttributeValue>,
         @Override
         Builder clearAttributes();
 
+        /**
+         * Build a {@link GeneratedRequestItem} from the provided configuration. This method can be invoked multiple times to
+         * create multiple {@code GeneratedRequestItem} instances.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>If any mutating methods are called in parallel with this one. This class is not thread safe.</li>
+         * </ol>
+         */
         GeneratedRequestItem build();
     }
 }

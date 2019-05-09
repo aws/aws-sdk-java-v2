@@ -29,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ConverterAware;
 import software.amazon.awssdk.enhanced.dynamodb.model.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.model.TypeToken;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A chain of converters, invoking the underlying converters based on the precedence defined in the
@@ -169,12 +170,15 @@ public final class ItemAttributeValueConverterChain implements ItemAttributeValu
 
         @Override
         public Builder addConverters(Collection<? extends ItemAttributeValueConverter> converters) {
+            Validate.paramNotNull(converters, "converters");
+            Validate.noNullElements(converters, "Converters must not contain null members.");
             this.converters.addAll(converters);
             return this;
         }
 
         @Override
         public Builder addConverter(ItemAttributeValueConverter converter) {
+            Validate.paramNotNull(converter, "converter");
             this.converters.add(converter);
             return this;
         }
@@ -186,6 +190,7 @@ public final class ItemAttributeValueConverterChain implements ItemAttributeValu
         }
 
         public Builder parent(ItemAttributeValueConverter parent) {
+            Validate.paramNotNull(parent, "parent");
             this.parent = parent;
             return this;
         }

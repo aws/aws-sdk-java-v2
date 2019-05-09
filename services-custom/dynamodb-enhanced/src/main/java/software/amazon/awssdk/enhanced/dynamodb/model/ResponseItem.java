@@ -43,6 +43,9 @@ public interface ResponseItem extends AttributeAware<ConvertableItemAttributeVal
                                       ToCopyableBuilder<ResponseItem.Builder, ResponseItem> {
     /**
      * Create a builder that can be used for configuring and creating a {@link ResponseItem}.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     static Builder builder() {
         return DefaultResponseItem.builder();
@@ -65,6 +68,16 @@ public interface ResponseItem extends AttributeAware<ConvertableItemAttributeVal
         @Override
         Builder clearAttributes();
 
+        /**
+         * Build a {@link ResponseItem} from the provided configuration. This method can be invoked multiple times to
+         * create multiple {@code ResponseItem} instances.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>If any mutating methods are called in parallel with this one. This class is not thread safe.</li>
+         * </ol>
+         */
         @Override
         ResponseItem build();
     }

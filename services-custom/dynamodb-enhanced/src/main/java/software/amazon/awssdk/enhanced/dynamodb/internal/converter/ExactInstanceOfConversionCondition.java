@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.converter.ConversionCondition;
 import software.amazon.awssdk.enhanced.dynamodb.converter.DefaultConverterChain;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This is created by {@link ConversionCondition#isExactInstanceOf(Class)}. The parent is just a marker interface, so
@@ -33,6 +34,7 @@ public class ExactInstanceOfConversionCondition implements ConversionCondition {
     private final Class<?> clazz;
 
     public ExactInstanceOfConversionCondition(Class<?> clazz) {
+        Validate.paramNotNull(clazz, "clazz");
         this.clazz = clazz;
     }
 

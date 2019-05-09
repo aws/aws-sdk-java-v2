@@ -128,6 +128,9 @@ public interface ItemAttributeValueConverter {
     /**
      * The default condition under which this converter will be used. The converter can still be invoked directly, regardless
      * of this condition, but an exception may be thrown.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     ConversionCondition defaultConversionCondition();
 
@@ -137,6 +140,13 @@ public interface ItemAttributeValueConverter {
      * <p>
      * This input object was usually specified as part of a request, such as in
      * {@link RequestItem.Builder#putAttribute(String, Object)}.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided value cannot be converted by this converter.</li>
+     *     <li>If the context is null.</li>
+     * </ol>
      */
     ItemAttributeValue toAttributeValue(Object input, ConversionContext context);
 
@@ -149,6 +159,15 @@ public interface ItemAttributeValueConverter {
      *
      * <p>
      * The desired type is usually specified by the customer, such as in {@link ConvertableItemAttributeValue#as(Class)}.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided item attribute value cannot be converted by this converter.</li>
+     *     <li>If the desired type is not supported by this converter.</li>
+     *     <li>If the desired type is null.</li>
+     *     <li>If the context is null.</li>
+     * </ol>
      */
     Object fromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context);
 }

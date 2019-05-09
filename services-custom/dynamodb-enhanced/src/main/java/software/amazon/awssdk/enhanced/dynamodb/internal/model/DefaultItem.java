@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.ItemAttributeValueConv
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ItemAttributeValueConverterChain;
 import software.amazon.awssdk.enhanced.dynamodb.model.AttributeAware;
 import software.amazon.awssdk.enhanced.dynamodb.model.ConverterAware;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A base class from which {@link DefaultGeneratedRequestItem}, {@link DefaultGeneratedResponseItem},
@@ -53,6 +54,7 @@ public abstract class DefaultItem<AttributeT> implements ConverterAware,
 
     @Override
     public AttributeT attribute(String attributeKey) {
+        Validate.paramNotNull(attributeKey, "attributeKey");
         return attributes.get(attributeKey);
     }
 
@@ -97,18 +99,22 @@ public abstract class DefaultItem<AttributeT> implements ConverterAware,
 
         @Override
         public BuilderT putAttributes(Map<String, AttributeT> attributeValues) {
+            Validate.paramNotNull(attributeValues, "attributeValues");
+            Validate.noNullElements(attributeValues.keySet(), "Attribute keys must not be null.");
             this.attributes.putAll(attributeValues);
             return (BuilderT) this;
         }
 
         @Override
         public BuilderT putAttribute(String attributeKey, AttributeT attributeValue) {
+            Validate.paramNotNull(attributeKey, "attributeKey");
             this.attributes.put(attributeKey, attributeValue);
             return (BuilderT) this;
         }
 
         @Override
         public BuilderT removeAttribute(String attributeKey) {
+            Validate.paramNotNull(attributeKey, "attributeKey");
             this.attributes.remove(attributeKey);
             return (BuilderT) this;
         }
@@ -121,12 +127,15 @@ public abstract class DefaultItem<AttributeT> implements ConverterAware,
 
         @Override
         public BuilderT addConverters(Collection<? extends ItemAttributeValueConverter> converters) {
+            Validate.paramNotNull(converters, "converters");
+            Validate.noNullElements(converters, "Converters must not contain null members.");
             this.converters.addAll(converters);
             return (BuilderT) this;
         }
 
         @Override
         public BuilderT addConverter(ItemAttributeValueConverter converter) {
+            Validate.paramNotNull(converter, "converter");
             this.converters.add(converter);
             return (BuilderT) this;
         }

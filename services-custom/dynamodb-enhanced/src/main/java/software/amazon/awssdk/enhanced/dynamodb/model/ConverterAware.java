@@ -38,6 +38,9 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.ItemAttributeValueConv
 public interface ConverterAware {
     /**
      * Retrieve all converters that were directly configured on this object.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     List<ItemAttributeValueConverter> converters();
 
@@ -47,6 +50,9 @@ public interface ConverterAware {
      * <p>
      * See {@link ItemAttributeValueConverter} for a detailed explanation of how the enhanced client converts between Java types
      * and DynamoDB types.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     @NotThreadSafe
     interface Builder {
@@ -64,6 +70,14 @@ public interface ConverterAware {
          * <p>
          * Converters configured in {@link DynamoDbEnhancedClient.Builder} always take precedence over the ones provided by the
          * {@link DefaultConverterChain}.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>The provided converter collection or one of its members is null.</li>
+         *     <li>If this or any other {@code converter}-modifying method is called in parallel with this one.
+         *     This method is not thread safe.</li>
+         * </ol>
          *
          * @see ItemAttributeValueConverter
          */
@@ -83,6 +97,14 @@ public interface ConverterAware {
          * <p>
          * Converters configured in {@link DynamoDbEnhancedClient.Builder} always take precedence over the ones provided by the
          * {@link DefaultConverterChain}.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>The provided converter is null.</li>
+         *     <li>If this or any other {@code converter}-modifying method is called in parallel from multiple threads.
+         *     This method is not thread safe.</li>
+         * </ol>
          */
         Builder addConverter(ItemAttributeValueConverter converter);
 
@@ -93,6 +115,13 @@ public interface ConverterAware {
          * <p>
          * This <b>does not</b> reset converters configured elsewhere. Converters configured in other locations, such as in the
          * {@link DefaultConverterChain}, will still be used.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>If this or any other {@code converter}-modifying method is called in parallel from multiple threads.
+         *     This method is not thread safe.</li>
+         * </ol>
          */
         Builder clearConverters();
     }

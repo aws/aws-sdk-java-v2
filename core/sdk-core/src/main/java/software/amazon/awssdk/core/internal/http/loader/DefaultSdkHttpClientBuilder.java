@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.loader;
 
+import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -22,7 +23,15 @@ import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * Utility to load the default HTTP client factory and create an instance of {@link SdkHttpClient}.
+ * Utility that looks for an HTTP client that implements {@link SdkHttpClient}.
+ *
+ * It does this by looking for an implementation of {@link SdkHttpService} in this order:
+ * <ol>
+ *   <li>Java System Properties - {@code software.amazon.awssdk.http.service.impl}</code></li>
+ *   <li>Environment Variables - {@code SYNC_HTTP_SERVICE_IMPL}</li>
+ *   <li>Class Path - Uses {@link ServiceLoader#load(Class)} to find an implementation of
+ *   {@link SdkHttpService}</li>
+ * </ol>
  */
 @SdkInternalApi
 public final class DefaultSdkHttpClientBuilder implements SdkHttpClient.Builder {

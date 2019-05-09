@@ -44,6 +44,7 @@ public final class DefaultConvertableItemAttributeValue implements ConvertableIt
 
     @Override
     public <T> T as(Class<T> type) {
+        Validate.paramNotNull(type, "type");
         Object result = conversionContext.converter()
                                          .fromAttributeValue(attributeValue, TypeToken.from(type), conversionContext);
         return validateConverterOutput(type, result);
@@ -51,6 +52,7 @@ public final class DefaultConvertableItemAttributeValue implements ConvertableIt
 
     @Override
     public <T> T as(TypeToken<T> type) {
+        Validate.paramNotNull(type, "type");
         Object result = conversionContext.converter()
                                          .fromAttributeValue(attributeValue, type, conversionContext);
         return validateConverterOutput(type.rawClass(), result);

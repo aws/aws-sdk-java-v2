@@ -37,6 +37,9 @@ public interface GeneratedResponseItem extends AttributeAware<AttributeValue>,
                                                ToCopyableBuilder<GeneratedResponseItem.Builder, GeneratedResponseItem> {
     /**
      * Create a builder for configuring and creating a {@link GeneratedResponseItem}.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     static Builder builder() {
         return DefaultGeneratedResponseItem.builder();
@@ -48,6 +51,12 @@ public interface GeneratedResponseItem extends AttributeAware<AttributeValue>,
      * <p>
      * This will not use the default converter chain or any converters associated with the client unless they were explicitly
      * added via {@link Builder#addConverter(ItemAttributeValueConverter)} (or similar methods).
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>The configured converter chain does not support converting a {@link ResponseItem}.</li>
+     * </ol>
      */
     ResponseItem toResponseItem();
 
@@ -78,6 +87,16 @@ public interface GeneratedResponseItem extends AttributeAware<AttributeValue>,
         @Override
         Builder clearConverters();
 
+        /**
+         * Build a {@link GeneratedResponseItem} from the provided configuration. This method can be invoked multiple times to
+         * create multiple {@code GeneratedResponseItem} instances.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>If any mutating methods are called in parallel with this one. This class is not thread safe.</li>
+         * </ol>
+         */
         @Override
         GeneratedResponseItem build();
     }

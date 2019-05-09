@@ -49,6 +49,9 @@ public interface Table {
     /**
      * Retrieve the name of the DynamoDB table. This does not make a service call, and does not guarantee that the DynamoDB table
      * actually exists.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     default String name() {
         throw new UnsupportedOperationException();
@@ -75,6 +78,14 @@ public interface Table {
      *                                   .build());
      * }
      * </code>
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The item cannot be converted to a DynamoDB request.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     * </ol>
      */
     default void putItem(RequestItem item) {
         throw new UnsupportedOperationException();
@@ -102,6 +113,14 @@ public interface Table {
      *                                    .putAttribute("title", "The Hitchhiker's Guide to the Galaxy"));
      * }
      * </code>
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     *     <li>The item cannot be converted to a DynamoDB request.</li>
+     * </ol>
      */
     default void putItem(Consumer<RequestItem.Builder> item) {
         RequestItem.Builder itemBuilder = RequestItem.builder();
@@ -130,6 +149,15 @@ public interface Table {
      *     System.out.println(book.getAttribute("title").asString());
      * }
      * </code>
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     *     <li>The request item cannot be converted to a DynamoDB request.</li>
+     *     <li>The DynamoDB Response cannot be converted to an item.</li>
+     * </ol>
      */
     default ResponseItem getItem(RequestItem key) {
         throw new UnsupportedOperationException();
@@ -158,6 +186,15 @@ public interface Table {
      *     System.out.println(book.getAttribute("title").asString());
      * }
      * </code>
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This table may not exist.</li>
+     *     <li>The call to DynamoDB failed.</li>
+     *     <li>The request item cannot be converted to a DynamoDB request.</li>
+     *     <li>The DynamoDB Response cannot be converted to an item.</li>
+     * </ol>
      */
     default ResponseItem getItem(Consumer<RequestItem.Builder> key) {
         RequestItem.Builder itemBuilder = RequestItem.builder();

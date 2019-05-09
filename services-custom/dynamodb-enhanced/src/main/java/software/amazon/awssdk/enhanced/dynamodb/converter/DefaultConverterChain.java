@@ -103,6 +103,9 @@ public final class DefaultConverterChain implements ItemAttributeValueConverter 
 
     /**
      * Create a default convert chain that contains all of the converters built into the SDK.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public static DefaultConverterChain create() {
         return new DefaultConverterChain();

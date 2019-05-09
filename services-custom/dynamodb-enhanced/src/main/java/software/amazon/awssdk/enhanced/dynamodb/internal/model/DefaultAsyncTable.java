@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GeneratedResponseItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.RequestItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.ResponseItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
@@ -56,38 +57,46 @@ public class DefaultAsyncTable implements AsyncTable {
 
     @Override
     public CompletableFuture<ResponseItem> getItem(RequestItem key) {
-        ItemAttributeValueConverter itemConverterChain = getConverter(key);
-        key = key.toBuilder()
-                 .clearConverters()
-                 .addConverter(itemConverterChain)
-                 .build();
+        try {
+            ItemAttributeValueConverter itemConverterChain = getConverter(key);
+            key = key.toBuilder()
+                     .clearConverters()
+                     .addConverter(itemConverterChain)
+                     .build();
 
-        GeneratedRequestItem generatedKey = key.toGeneratedRequestItem();
+            GeneratedRequestItem generatedKey = key.toGeneratedRequestItem();
 
-        return client.getItem(r -> r.tableName(tableName)
-                                    .key(generatedKey.attributes()))
-                     .thenApply(response -> {
-                         GeneratedResponseItem generatedResponse = GeneratedResponseItem.builder()
-                                                                                        .putAttributes(response.item())
-                                                                                        .addConverter(itemConverterChain)
-                                                                                        .build();
-                         return generatedResponse.toResponseItem();
-                     });
+            return client.getItem(r -> r.tableName(tableName)
+                                        .key(generatedKey.attributes()))
+                         .thenApply(response -> {
+                             GeneratedResponseItem generatedResponse = GeneratedResponseItem.builder()
+                                                                                            .putAttributes(response.item())
+                                                                                            .addConverter(itemConverterChain)
+                                                                                            .build();
+                             return generatedResponse.toResponseItem();
+                         });
+        } catch (Exception e) {
+            return CompletableFutureUtils.failedFuture(e);
+        }
 
     }
 
     @Override
     public CompletableFuture<Void> putItem(RequestItem item) {
-        item = item.toBuilder()
-                   .clearConverters()
-                   .addConverter(getConverter(item))
-                   .build();
+        try {
+            item = item.toBuilder()
+                       .clearConverters()
+                       .addConverter(getConverter(item))
+                       .build();
 
-        GeneratedRequestItem generatedRequest = item.toGeneratedRequestItem();
+            GeneratedRequestItem generatedRequest = item.toGeneratedRequestItem();
 
-        return client.putItem(r -> r.tableName(tableName)
-                                    .item(generatedRequest.attributes()))
-                     .thenApply(r -> null);
+            return client.putItem(r -> r.tableName(tableName)
+                                        .item(generatedRequest.attributes()))
+                         .thenApply(r -> null);
+        } catch (Exception e) {
+            return CompletableFutureUtils.failedFuture(e);
+        }
     }
 
     private ItemAttributeValueConverter getConverter(ConverterAware item) {

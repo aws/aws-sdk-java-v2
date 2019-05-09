@@ -96,8 +96,7 @@ public final class StringConverter extends ExactInstanceOfConverter<String> {
         public String convertSetOfBytes(List<SdkBytes> value) {
             return value.stream()
                         .map(this::convertBytes)
-                        .collect(toList())
-                        .toString();
+                        .collect(Collectors.joining(",", "[", "]"));
         }
 
         @Override

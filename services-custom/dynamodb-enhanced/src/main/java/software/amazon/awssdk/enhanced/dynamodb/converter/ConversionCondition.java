@@ -45,6 +45,9 @@ public interface ConversionCondition {
      * For example a {@code ConversionCondition.isExactInstanceOf(HashMap.class)} {@link ItemAttributeValueConverter} will only
      * be invoked when the customer requests or provides a {@link HashMap}. Subtypes like {@link LinkedHashMap} will not be
      * handled by this converter.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided type is null.
      */
     static ConversionCondition isExactInstanceOf(Class<?> clazz) {
         return new ExactInstanceOfConversionCondition(clazz);
@@ -56,6 +59,9 @@ public interface ConversionCondition {
      * <p>
      * For example a {@code ConversionCondition.isInstanceOf(Map.class)} {@link ItemAttributeValueConverter} will
      * be invoked when the customer requests or provides any implementation of {@link Map}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided type is null.
      */
     static ConversionCondition isInstanceOf(Class<?> clazz) {
         return new InstanceOfConversionCondition(clazz);

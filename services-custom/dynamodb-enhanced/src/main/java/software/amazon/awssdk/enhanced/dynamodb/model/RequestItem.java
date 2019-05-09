@@ -47,6 +47,9 @@ public interface RequestItem extends ConverterAware,
                                      ToCopyableBuilder<RequestItem.Builder, RequestItem> {
     /**
      * Create a builder that can be used for configuring and creating a {@link RequestItem}.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     static Builder builder() {
         return DefaultRequestItem.builder();
@@ -57,6 +60,13 @@ public interface RequestItem extends ConverterAware,
      *
      * This will not use the default converter chain or any converters associated with the client unless they were explicitly
      * added via {@link Builder#addConverter(ItemAttributeValueConverter)} (or similar methods).
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>The configured converter chain does not support converting a {@link GeneratedRequestItem}.</li>
+     *     <li>The configured converter chain failed to convert an attribute.</li>
+     * </ol>
      */
     GeneratedRequestItem toGeneratedRequestItem();
 
@@ -93,6 +103,14 @@ public interface RequestItem extends ConverterAware,
          *     requestItem.putAttribute("countryCodes", c -> c.putAttribute("US", "United States of America")
          *                                                    .putAttribute("GB", "United Kingdom"));
          * </code>
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>The attribute key is null.</li>
+         *     <li>If this or any other {@code attribute}-modifying method is called in parallel with this one.
+         *     This method is not thread safe.</li>
+         * </ol>
          */
         default Builder putAttribute(String attributeKey, Consumer<RequestItem.Builder> subItemAttribute) {
             RequestItem.Builder requestItemBuilder = RequestItem.builder();
@@ -106,6 +124,16 @@ public interface RequestItem extends ConverterAware,
         @Override
         Builder clearAttributes();
 
+        /**
+         * Build a {@link RequestItem} from the provided configuration. This method can be invoked multiple times to
+         * create multiple {@code RequestItem} instances.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>If any mutating methods are called in parallel with this one. This class is not thread safe.</li>
+         * </ol>
+         */
         @Override
         RequestItem build();
     }

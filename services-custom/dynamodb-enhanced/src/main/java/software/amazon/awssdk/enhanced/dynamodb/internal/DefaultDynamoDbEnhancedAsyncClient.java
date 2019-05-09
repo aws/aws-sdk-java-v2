@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.ItemAttributeValueConv
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ItemAttributeValueConverterChain;
 import software.amazon.awssdk.enhanced.dynamodb.internal.model.DefaultAsyncTable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * The default implementation of {@link DynamoDbEnhancedAsyncClient}.
@@ -89,12 +90,15 @@ public class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhancedAsync
 
         @Override
         public Builder addConverters(Collection<? extends ItemAttributeValueConverter> converters) {
+            Validate.paramNotNull(converters, "converters");
+            Validate.noNullElements(converters, "Converters must not contain null members.");
             converterChain.addConverters(converters);
             return this;
         }
 
         @Override
         public Builder addConverter(ItemAttributeValueConverter converter) {
+            Validate.paramNotNull(converter, "converter");
             converterChain.addConverter(converter);
             return this;
         }

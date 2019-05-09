@@ -41,6 +41,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public interface ConversionContext extends ToCopyableBuilder<ConversionContext.Builder, ConversionContext> {
     /**
      * Create a builder that can be used for defining and creating a {@link ConversionContext}.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     static Builder builder() {
         return DefaultConversionContext.builder();
@@ -57,6 +60,9 @@ public interface ConversionContext extends ToCopyableBuilder<ConversionContext.B
      *     <li>For list members, this will be the name of the list.</li>
      *     <li>For map keys and values, this will be the name of the map.</li>
      * </ul>
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     Optional<String> attributeName();
 
@@ -66,6 +72,9 @@ public interface ConversionContext extends ToCopyableBuilder<ConversionContext.B
      * <p>
      * This is useful for implementing container types, where the original conversion chain is needed to convert sub-members.
      * For example, a list converter would likely use this converter for each of the members in the list.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     ItemAttributeValueConverter converter();
 
@@ -78,6 +87,9 @@ public interface ConversionContext extends ToCopyableBuilder<ConversionContext.B
         /**
          * Specify the name of the attribute being converted. This value is not required.
          *
+         * <p>
+         * This call should never fail with an {@link Exception}.
+         *
          * @see #attributeName()
          */
         Builder attributeName(String attributeName);
@@ -85,8 +97,24 @@ public interface ConversionContext extends ToCopyableBuilder<ConversionContext.B
         /**
          * Specify the conversion chain associated with the item being converted.
          *
+         * <p>
+         * This call should never fail with an {@link Exception}.
+         *
          * @see #converter()
          */
         Builder converter(ItemAttributeValueConverter converter);
+
+        /**
+         * Build a {@link ConversionContext} from the provided configuration. This method can be invoked multiple times to
+         * create multiple {@code ConversionContext} instances.
+         *
+         * <p>
+         * Reasons this call may fail with a {@link RuntimeException}:
+         * <ol>
+         *     <li>If any mutating methods are called in parallel with this one. This class is not thread safe.</li>
+         * </ol>
+         */
+        @Override
+        ConversionContext build();
     }
 }

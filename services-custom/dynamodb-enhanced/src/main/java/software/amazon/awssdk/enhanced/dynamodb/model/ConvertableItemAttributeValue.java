@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.Table;
 import software.amazon.awssdk.enhanced.dynamodb.converter.ItemAttributeValueConverter;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An {@link ItemAttributeValue} that can be converted into any Java type.
@@ -48,6 +49,9 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.ItemAttributeValueConv
 public interface ConvertableItemAttributeValue {
     /**
      * Retrieve the {@link ItemAttributeValue} exactly as it was returned by DynamoDB.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     ItemAttributeValue attributeValue();
 
@@ -56,6 +60,14 @@ public interface ConvertableItemAttributeValue {
      *
      * <p>
      * For parameterized types, use {@link #as(TypeToken)}.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>The provided class is null.</li>
+     *     <li>A converter does not exist for the requested type.</li>
+     *     <li>This attribute value cannot be converted to the requested type.</li>
+     * </ol>
      */
     <T> T as(Class<T> type);
 
@@ -69,11 +81,25 @@ public interface ConvertableItemAttributeValue {
      * <p>
      * When creating a {@link TypeToken}, you must create an anonymous sub-class, e.g.
      * {@code new TypeToken<Collection<String>>()&#123;&#125;} (note the extra {}).
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>The provided token is null.</li>
+     *     <li>A converter does not exist for the provided type.</li>
+     *     <li>This attribute value cannot be converted to the requested type.</li>
+     * </ol>
      */
     <T> T as(TypeToken<T> type);
 
     /**
      * Convert this attribute value into a {@link String} using the {@link ItemAttributeValueConverter}s configured in the SDK.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This attribute value cannot be converted to a String.</li>
+     * </ol>
      */
     default String asString() {
         return as(String.class);
@@ -81,6 +107,12 @@ public interface ConvertableItemAttributeValue {
 
     /**
      * Convert this attribute value into an {@link Integer} using the {@link ItemAttributeValueConverter}s configured in the SDK.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This attribute value cannot be converted to an Integer.</li>
+     * </ol>
      */
     default Integer asInteger() {
         return as(Integer.class);
@@ -88,6 +120,12 @@ public interface ConvertableItemAttributeValue {
 
     /**
      * Convert this attribute value into an {@link Integer} using the {@link ItemAttributeValueConverter}s configured in the SDK.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>This attribute value cannot be converted to an Instant.</li>
+     * </ol>
      */
     default Instant asInstant() {
         return as(Instant.class);
@@ -96,16 +134,33 @@ public interface ConvertableItemAttributeValue {
     /**
      * Convert this attribute value into a {@link List}, parameterized with the provided class. This uses the
      * {@link ItemAttributeValueConverter}s configured in the SDK.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>The provided type is null.</li>
+     *     <li>This attribute value cannot be converted to a List of the requested type.</li>
+     * </ol>
      */
     default <T> List<T> asList(Class<T> listParameterType) {
+        Validate.paramNotNull(listParameterType, "listParameterType");
         return as(TypeToken.listOf(listParameterType));
     }
 
     /**
      * Convert this attribute value into a {@link Map}, parameterized with the provided classes. This uses the
      * {@link ItemAttributeValueConverter}s configured in the SDK.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>The provided key or value type is null.</li>
+     *     <li>This attribute value cannot be converted to a Map of the requested types.</li>
+     * </ol>
      */
     default <K, V> Map<K, V> asMap(Class<K> keyType, Class<V> valueType) {
+        Validate.paramNotNull(keyType, "keyType");
+        Validate.paramNotNull(valueType, "valueType");
         return as(TypeToken.mapOf(keyType, valueType));
     }
 }

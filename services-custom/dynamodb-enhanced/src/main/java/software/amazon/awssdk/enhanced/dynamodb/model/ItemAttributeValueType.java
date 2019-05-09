@@ -28,14 +28,53 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @ThreadSafe
 @Immutable
 public enum ItemAttributeValueType {
+    /**
+     * @see AttributeValue#m()
+     */
     MAP,
+
+    /**
+     * @see AttributeValue#s()
+     */
     STRING,
+
+    /**
+     * @see AttributeValue#n()
+     */
     NUMBER,
+
+    /**
+     * @see AttributeValue#b()
+     */
     BYTES,
+
+    /**
+     * @see AttributeValue#bool()
+     */
     BOOLEAN,
+
+    /**
+     * @see AttributeValue#nul()
+     */
     NULL,
+
+    /**
+     * @see AttributeValue#ss()
+     */
     SET_OF_STRINGS,
+
+    /**
+     * @see AttributeValue#ns()
+     */
     SET_OF_NUMBERS,
+
+    /**
+     * @see AttributeValue#bs()
+     */
     SET_OF_BYTES,
+
+    /**
+     * @see AttributeValue#l()
+     */
     LIST_OF_ATTRIBUTE_VALUES
 }

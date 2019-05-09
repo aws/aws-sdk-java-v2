@@ -21,6 +21,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.converter.ItemAttributeValueConverter;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A visitor across all possible types of a {@link ItemAttributeValue}.
@@ -39,6 +40,12 @@ public abstract class TypeConvertingVisitor<T> {
     /**
      * Called by subclasses to provide enhanced logging when a specific type isn't handled.
      *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided type is null.</li>
+     * </ol>
+     *
      * @param targetType The type to which this visitor is converting.
      */
     protected TypeConvertingVisitor(Class<?> targetType) {
@@ -48,17 +55,30 @@ public abstract class TypeConvertingVisitor<T> {
     /**
      * Called by subclasses to provide enhanced logging when a specific type isn't handled.
      *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided type is null.</li>
+     * </ol>
+     *
      * @param targetType The type to which this visitor is converting.
-     * @param converterClass The converter implementation that is creating this visitor.
+     * @param converterClass The converter implementation that is creating this visitor. This may be null.
      */
     protected TypeConvertingVisitor(Class<?> targetType,
                                     Class<? extends ItemAttributeValueConverter> converterClass) {
-        this.converterClass = converterClass;
+        Validate.paramNotNull(targetType, "targetType");
         this.targetType = targetType;
+        this.converterClass = converterClass;
     }
 
     /**
      * Convert the provided value into the target type.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the value cannot be converted by this visitor.</li>
+     * </ol>
      */
     public final T convert(ItemAttributeValue value) {
         switch (value.type()) {

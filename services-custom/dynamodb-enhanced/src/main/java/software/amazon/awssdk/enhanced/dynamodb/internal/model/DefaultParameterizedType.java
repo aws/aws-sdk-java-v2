@@ -31,8 +31,8 @@ public final class DefaultParameterizedType implements ParameterizedType {
     private final Type[] arguments;
 
     private DefaultParameterizedType(Class<?> rawType, Type... arguments) {
-        Validate.notEmpty(arguments, "Arguments must not be empty.");
-        Validate.noNullElements(arguments, "Arguments cannot contain null values.");
+        Validate.notEmpty(arguments, "Type arguments must not be empty.");
+        Validate.noNullElements(arguments, "Type arguments cannot contain null values.");
         this.rawType = Validate.paramNotNull(rawType, "rawType");
         this.arguments = arguments;
 

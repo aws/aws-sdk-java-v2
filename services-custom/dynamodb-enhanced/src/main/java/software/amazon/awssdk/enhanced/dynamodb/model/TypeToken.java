@@ -74,6 +74,12 @@ public class TypeToken<T> {
 
     /**
      * Create a type token for the provided non-parameterized class.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided type is null.</li>
+     * </ol>
      */
     public static <T> TypeToken<T> from(Class<T> type) {
         return new TypeToken<>(validateIsSupportedType(type));
@@ -81,6 +87,12 @@ public class TypeToken<T> {
 
     /**
      * Create a type token for a list, with the provided value type class.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided type is null.</li>
+     * </ol>
      */
     public static <T> TypeToken<List<T>> listOf(Class<T> valueType) {
         return new TypeToken<>(DefaultParameterizedType.parameterizedType(List.class, valueType));
@@ -88,6 +100,12 @@ public class TypeToken<T> {
 
     /**
      * Create a type token for a map, with the provided key and value type classes.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided types are null.</li>
+     * </ol>
      */
     public static <T, U> TypeToken<Map<T, U>> mapOf(Class<T> keyType, Class<U> valueType) {
         return new TypeToken<>(DefaultParameterizedType.parameterizedType(Map.class, keyType, valueType));

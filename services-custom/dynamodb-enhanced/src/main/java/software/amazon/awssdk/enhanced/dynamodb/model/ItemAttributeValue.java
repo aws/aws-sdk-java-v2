@@ -101,6 +101,9 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().nul(true).build())}
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public static ItemAttributeValue nullValue() {
         return new InternalBuilder().isNull().build();
@@ -111,8 +114,13 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().m(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided map is null or has null keys.
      */
     public static ItemAttributeValue fromMap(Map<String, ItemAttributeValue> mapValue) {
+        Validate.paramNotNull(mapValue, "mapValue");
+        Validate.noNullElements(mapValue.keySet(), "Map must not have null keys.");
         return new InternalBuilder().mapValue(mapValue).build();
     }
 
@@ -121,8 +129,13 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().s(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
+     * null values.
      */
     public static ItemAttributeValue fromString(String stringValue) {
+        Validate.paramNotNull(stringValue, "stringValue");
         return new InternalBuilder().stringValue(stringValue).build();
     }
 
@@ -134,8 +147,13 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().n(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
+     * null values.
      */
     public static ItemAttributeValue fromNumber(String numberValue) {
+        Validate.paramNotNull(numberValue, "numberValue");
         return new InternalBuilder().numberValue(numberValue).build();
     }
 
@@ -144,8 +162,13 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().b(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
+     * null values.
      */
     public static ItemAttributeValue fromBytes(SdkBytes bytesValue) {
+        Validate.paramNotNull(bytesValue, "bytesValue");
         return new InternalBuilder().bytesValue(bytesValue).build();
     }
 
@@ -155,8 +178,13 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bool(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
+     * null values.
      */
     public static ItemAttributeValue fromBoolean(Boolean booleanValue) {
+        Validate.paramNotNull(booleanValue, "booleanValue");
         return new InternalBuilder().booleanValue(booleanValue).build();
     }
 
@@ -165,8 +193,15 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ss(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
+     * duplicate values.
      */
     public static ItemAttributeValue fromSetOfStrings(Collection<String> setOfStringsValue) {
+        Validate.paramNotNull(setOfStringsValue, "setOfStringsValue");
+        Validate.noNullElements(setOfStringsValue, "Set must not have null values.");
         return new InternalBuilder().setOfStringsValue(setOfStringsValue).build();
     }
 
@@ -175,8 +210,15 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ns(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
+     * duplicate values.
      */
     public static ItemAttributeValue fromSetOfNumbers(Collection<String> setOfNumbersValue) {
+        Validate.paramNotNull(setOfNumbersValue, "setOfNumbersValue");
+        Validate.noNullElements(setOfNumbersValue, "Set must not have null values.");
         return new InternalBuilder().setOfNumbersValue(setOfNumbersValue).build();
     }
 
@@ -185,8 +227,15 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bs(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
+     * duplicate values.
      */
     public static ItemAttributeValue fromSetOfBytes(Collection<SdkBytes> setOfBytesValue) {
+        Validate.paramNotNull(setOfBytesValue, "setOfBytesValue");
+        Validate.noNullElements(setOfBytesValue, "Set must not have null values.");
         return new InternalBuilder().setOfBytesValue(setOfBytesValue).build();
     }
 
@@ -195,24 +244,43 @@ public final class ItemAttributeValue {
      *
      * <p>
      * Equivalent to: {@code ItemAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().l(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #nullValue()} for null values.
      */
     public static ItemAttributeValue fromListOfAttributeValues(List<ItemAttributeValue> listOfAttributeValuesValue) {
+        Validate.paramNotNull(listOfAttributeValuesValue, "listOfAttributeValuesValue");
+        Validate.noNullElements(listOfAttributeValuesValue, "List must not have null values.");
         return new InternalBuilder().listOfAttributeValuesValue(listOfAttributeValuesValue).build();
     }
 
     /**
      * Create an {@link ItemAttributeValue} from a generated {@code Map<String, AttributeValue>}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided map is null or contains a null key or value. Use
+     * {@link AttributeValue#nul()} for null values.
      */
     public static ItemAttributeValue fromGeneratedItem(Map<String, AttributeValue> attributeValues) {
+        Validate.paramNotNull(attributeValues, "attributeValues");
         Map<String, ItemAttributeValue> result = new LinkedHashMap<>();
-        attributeValues.forEach((k, v) -> result.put(k, fromGeneratedAttributeValue(v)));
+        attributeValues.forEach((key, value) -> {
+            Validate.notNull(key, "Generated item must not contain null keys.");
+            result.put(key, fromGeneratedAttributeValue(value));
+        });
         return ItemAttributeValue.fromMap(result);
     }
 
     /**
      * Create an {@link ItemAttributeValue} from a generated {@link AttributeValue}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null ({@link AttributeValue#nul()} is okay).
      */
     public static ItemAttributeValue fromGeneratedAttributeValue(AttributeValue attributeValue) {
+        Validate.notNull(attributeValue, "Generated attribute value must not contain null values. " +
+                                         "Use AttributeValue#nul() instead.");
         if (attributeValue.s() != null) {
             return ItemAttributeValue.fromString(attributeValue.s());
         }
@@ -253,6 +321,9 @@ public final class ItemAttributeValue {
 
     /**
      * Retrieve the underlying DynamoDB type of this value, such as String (s) or Number (n).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public ItemAttributeValueType type() {
         return type;
@@ -261,13 +332,24 @@ public final class ItemAttributeValue {
     /**
      * Apply the provided visitor to this item attribute value, converting it into a specific type. This is useful in
      * {@link ItemAttributeValueConverter} implementations, without having to write a switch statement on the {@link #type()}.
+     *
+     * <p>
+     * Reasons this call may fail with a {@link RuntimeException}:
+     * <ol>
+     *     <li>If the provided visitor is null.</li>
+     *     <li>If the value cannot be converted by this visitor.</li>
+     * </ol>
      */
     public <T> T convert(TypeConvertingVisitor<T> convertingVisitor) {
+        Validate.paramNotNull(convertingVisitor, "convertingVisitor");
         return convertingVisitor.convert(this);
     }
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a Map (m).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isMap() {
         return mapValue != null;
@@ -275,6 +357,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a String (s).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isString() {
         return stringValue != null;
@@ -282,6 +367,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a Number (n).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isNumber() {
         return numberValue != null;
@@ -289,6 +377,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is Bytes (b).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isBytes() {
         return bytesValue != null;
@@ -296,6 +387,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a Boolean (bool).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isBoolean() {
         return booleanValue != null;
@@ -303,6 +397,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a Set of Strings (ss).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isSetOfStrings() {
         return setOfStringsValue != null;
@@ -310,6 +407,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a Set of Numbers (ns).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isSetOfNumbers() {
         return setOfNumbersValue != null;
@@ -317,6 +417,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a Set of Bytes (bs).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isSetOfBytes() {
         return setOfBytesValue != null;
@@ -324,6 +427,9 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is a List of AttributeValues (l).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isListOfAttributeValues() {
         return listOfAttributeValuesValue != null;
@@ -331,13 +437,19 @@ public final class ItemAttributeValue {
 
     /**
      * Returns true if the underlying DynamoDB type of this value is Null (null).
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public boolean isNull() {
         return isNull;
     }
 
     /**
-     * Retrieve this value as a map. This will throw an exception if {@link #isMap()} is false.
+     * Retrieve this value as a map.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isMap()} is false.
      */
     public Map<String, ItemAttributeValue> asMap() {
         Validate.isTrue(isMap(), "Value is not a map.");
@@ -345,7 +457,10 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a string. This will throw an exception if {@link #isString()} is false.
+     * Retrieve this value as a string.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isString()} is false.
      */
     public String asString() {
         Validate.isTrue(isString(), "Value is not a string.");
@@ -353,10 +468,13 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a number. This will throw an exception if {@link #isNumber()} is false.
+     * Retrieve this value as a number.
      *
      * Note: This returns a {@code String} (instead of a {@code Number}), because that's the generated type from
      * DynamoDB: {@link AttributeValue#n()}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isNumber()} is false.
      */
     public String asNumber() {
         Validate.isTrue(isNumber(), "Value is not a number.");
@@ -364,7 +482,10 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as bytes. This will throw an exception if {@link #isBytes()} is false.
+     * Retrieve this value as bytes.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isBytes()} is false.
      */
     public SdkBytes asBytes() {
         Validate.isTrue(isBytes(), "Value is not bytes.");
@@ -372,7 +493,10 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a boolean. This will throw an exception if {@link #isBoolean()} is false.
+     * Retrieve this value as a boolean.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isBoolean()} is false.
      */
     public Boolean asBoolean() {
         Validate.isTrue(isBoolean(), "Value is not a boolean.");
@@ -380,11 +504,14 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a set of strings. This will throw an exception if {@link #isSetOfStrings()} is false.
+     * Retrieve this value as a set of strings.
      *
      * <p>
      * Note: This returns a {@code List} (instead of a {@code Set}), because that's the generated type from
      * DynamoDB: {@link AttributeValue#ss()}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isSetOfStrings()} is false.
      */
     public List<String> asSetOfStrings() {
         Validate.isTrue(isSetOfStrings(), "Value is not a list of strings.");
@@ -392,11 +519,14 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a set of numbers. This will throw an exception if {@link #isSetOfNumbers()} is false.
+     * Retrieve this value as a set of numbers.
      *
      * <p>
      * Note: This returns a {@code List<String>} (instead of a {@code Set<Number>}), because that's the generated type from
      * DynamoDB: {@link AttributeValue#ns()}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isSetOfNumbers()} is false.
      */
     public List<String> asSetOfNumbers() {
         Validate.isTrue(isSetOfNumbers(), "Value is not a list of numbers.");
@@ -404,11 +534,14 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a set of bytes. This will throw an exception if {@link #isSetOfBytes()} is false.
+     * Retrieve this value as a set of bytes.
      *
      * <p>
      * Note: This returns a {@code List} (instead of a {@code Set}), because that's the generated type from
      * DynamoDB: {@link AttributeValue#bs()}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isSetOfBytes()} is false.
      */
     public List<SdkBytes> asSetOfBytes() {
         Validate.isTrue(isSetOfBytes(), "Value is not a list of bytes.");
@@ -416,8 +549,10 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Retrieve this value as a list of attribute values. This will throw an exception if {@link #isListOfAttributeValues()} is
-     * false.
+     * Retrieve this value as a list of attribute values.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isListOfAttributeValues()} is false.
      */
     public List<ItemAttributeValue> asListOfAttributeValues() {
         Validate.isTrue(isListOfAttributeValues(), "Value is not a list of attribute values.");
@@ -425,8 +560,10 @@ public final class ItemAttributeValue {
     }
 
     /**
-     * Convert this {@link ItemAttributeValue} into a generated {@code Map<String, AttributeValue>}. This will throw an exception
-     * if {@link #isMap()} is false.
+     * Convert this {@link ItemAttributeValue} into a generated {@code Map<String, AttributeValue>}.
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if {@link #isMap()} is false.
      */
     public Map<String, AttributeValue> toGeneratedItem() {
         Validate.validState(isMap(), "Cannot convert an attribute value of type %s to a generated item. Must be %s.",
@@ -441,6 +578,9 @@ public final class ItemAttributeValue {
 
     /**
      * Convert this {@link ItemAttributeValue} into a generated {@link AttributeValue}.
+     *
+     * <p>
+     * This call should never fail with an {@link Exception}.
      */
     public AttributeValue toGeneratedAttributeValue() {
         return convert(ToGeneratedAttributeValueVisitor.INSTANCE);
@@ -591,47 +731,7 @@ public final class ItemAttributeValue {
         }
 
         @Override
-        public Object convertMap(Map<String, ItemAttributeValue> value) {
-            return value;
-        }
-
-        @Override
-        public Object convertString(String value) {
-            return value;
-        }
-
-        @Override
-        public Object convertNumber(String value) {
-            return value;
-        }
-
-        @Override
-        public Object convertBytes(SdkBytes value) {
-            return value;
-        }
-
-        @Override
-        public Object convertBoolean(Boolean value) {
-            return value;
-        }
-
-        @Override
-        public Object convertSetOfStrings(List<String> value) {
-            return value;
-        }
-
-        @Override
-        public Object convertSetOfNumbers(List<String> value) {
-            return value;
-        }
-
-        @Override
-        public Object convertSetOfBytes(List<SdkBytes> value) {
-            return value;
-        }
-
-        @Override
-        public Object convertListOfAttributeValues(Collection<ItemAttributeValue> value) {
+        public Object defaultConvert(ItemAttributeValueType type, Object value) {
             return value;
         }
     }
