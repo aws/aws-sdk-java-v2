@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.5.36-SNAPSHOT</version>
+    <version>2.5.41-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -62,6 +62,9 @@
         <module>bundle</module>
         <module>build-tools</module>
         <module>release-scripts</module>
+        <module>utils</module>
+        <module>codegen-lite</module>
+        <module>codegen-lite-maven-plugin</module>
         <module>test/dynamodbdocument-v1</module>
         <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
@@ -72,9 +75,7 @@
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
         <module>test/module-path-tests</module>
-        <module>utils</module>
-        <module>codegen-lite</module>
-        <module>codegen-lite-maven-plugin</module>
+        <module>test/tests-coverage-reporting</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
@@ -429,6 +430,24 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
+                    <!--
+                        Prepares the property pointing to the JaCoCo runtime agent which
+                        is passed as VM argument when Maven the Failsafe plugin is executed.
+                    -->
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -521,6 +540,8 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
+                                    <!-- Sets the VM argument line used when integration tests are run. -->
+                                    <argLine>${argLine}</argLine>
                                     <includes>
                                         <include>**/*IntegrationTest.java</include>
                                         <include>**/*IntegrationTests.java</include>
