@@ -1,3 +1,16 @@
+# __2.5.41__ __2019-05-10__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports specifying existing catalog tables for a crawler to examine as a data source. A new parameter CatalogTargets is added to the CrawlerTargets data type.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug where events in an event stream were being signed with the request date, and not with the current system time.
+
+## __AWS Security Token Service__
+  - ### Features
+    - AWS Security Token Service (STS) now supports passing IAM Managed Policy ARNs as session policies when you programmatically create temporary sessions for a role or federated user. The Managed Policy ARNs can be passed via the PolicyArns parameter, which is now available in the AssumeRole, AssumeRoleWithWebIdentity, AssumeRoleWithSAML, and GetFederationToken APIs. The session policies referenced by the PolicyArn parameter will only further restrict the existing permissions of an IAM User or Role for individual sessions.
+
 # __2.5.40__ __2019-05-08__
 ## __AWS IoT 1-Click Projects Service__
   - ### Features
