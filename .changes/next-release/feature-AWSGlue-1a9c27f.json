@@ -1,0 +1,5 @@
+{
+    "category": "AWS Glue", 
+    "type": "feature", 
+    "description": "AWS Glue now supports specifying existing catalog tables for a crawler to examine as a data source. A new parameter CatalogTargets is added to the CrawlerTargets data type."
+}
