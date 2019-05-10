@@ -15,6 +15,18 @@
 
 package software.amazon.awssdk.benchmark.stats;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import software.amazon.awssdk.core.util.VersionInfo;
@@ -34,6 +46,10 @@ public class SdkBenchmarkParams {
 
     private Mode mode;
 
+    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    private LocalDateTime date;
+
     public SdkBenchmarkParams() {
     }
 
@@ -43,6 +59,7 @@ public class SdkBenchmarkParams {
         this.jvmName = benchmarkParams.getVmName();
         this.jvmVersion = benchmarkParams.getVmVersion();
         this.mode = benchmarkParams.getMode();
+        this.date = LocalDateTime.now();
     }
 
     public String getSdkVersion() {
@@ -77,6 +94,14 @@ public class SdkBenchmarkParams {
         this.jvmVersion = jvmVersion;
     }
 
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
     public Mode getMode() {
         return mode;
     }
@@ -85,4 +110,18 @@ public class SdkBenchmarkParams {
         this.mode = mode;
     }
 
+    private static class LocalDateSerializer extends JsonSerializer<LocalDateTime> {
+
+        @Override
+        public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeString(value.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        }
+    }
+
+    private static class LocalDateDeserializer extends JsonDeserializer<LocalDateTime> {
+        @Override
+        public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            return LocalDateTime.parse(p.readValueAs(String.class));
+        }
+    }
 }
