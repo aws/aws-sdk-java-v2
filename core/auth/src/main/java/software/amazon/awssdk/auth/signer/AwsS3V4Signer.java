@@ -155,7 +155,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         return new AwsChunkedEncodingInputStream(
                 inputStream,
                 signingKey,
-                signerRequestParams.getFormattedSigningDateTime(),
+                signerRequestParams.getFormattedRequestSigningDateTime(),
                 signerRequestParams.getScope(),
                 BinaryUtils.toHex(signature), this);
     }

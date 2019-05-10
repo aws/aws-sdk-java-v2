@@ -29,6 +29,10 @@ public final class Header {
 
     public static final String CONTENT_MD5 = "Content-MD5";
 
+    public static final String TRANSFER_ENCODING = "Transfer-Encoding";
+
+    public static final String CHUNKED = "chunked";
+
     private Header() {
     }
 

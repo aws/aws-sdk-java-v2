@@ -19,7 +19,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer.EVENT_STREAM_DATE;
 import static software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer.EVENT_STREAM_SIGNATURE;
 
@@ -28,25 +27,25 @@ import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Function;
 import io.reactivex.subscribers.TestSubscriber;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.assertj.core.util.Lists;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -63,25 +62,7 @@ import software.amazon.eventstream.MessageDecoder;
 /**
  * Unit tests for the {@link EventStreamAws4Signer}.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class Aws4EventStreamSignerTest {
-
-    EventStreamAws4Signer signer = EventStreamAws4Signer.create();
-
-
-    @Mock
-    private Clock signingOverrideClock;
-
-    @Before
-    public void setupCase() {
-        mockClock();
-    }
-
-    private void mockClock() {
-        OffsetDateTime time =
-            OffsetDateTime.of(1981, 1, 16, 6, 30, 0, 0, ZoneOffset.UTC);
-        when(signingOverrideClock.millis()).thenReturn(time.toInstant().toEpochMilli());
-    }
 
     interface TestVector {
         SdkHttpFullRequest.Builder httpFullRequest();
@@ -93,86 +74,28 @@ public class Aws4EventStreamSignerTest {
         Flowable<Message> expectedMessagePublisher();
     }
 
-    TestVector generatetestVector() {
-        return new TestVector() {
-            List<String> requestBody = Lists.newArrayList("A", "B", "C");
+    private static final List<Instant> SIGNING_INSTANTS = Stream.of(
+            // Note: This first Instant is used for signing the request not an event
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 0, 0, ZoneOffset.UTC).toInstant(),
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 1, 0, ZoneOffset.UTC).toInstant(),
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 2, 0, ZoneOffset.UTC).toInstant(),
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 3, 0, ZoneOffset.UTC).toInstant(),
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 4, 0, ZoneOffset.UTC).toInstant()
+    ).collect(Collectors.toList());
 
-            @Override
-            public List<String> requestBody() {
-                return requestBody;
-            }
-
-            @Override
-            public SdkHttpFullRequest.Builder httpFullRequest() {
-                //Header signature: "79f246d8652f08dd3cfaf84cc0d8b4fcce032332c78d43ea1ed6f4f6586ab59d";
-                //Signing key: "29dc0a760fed568677d74136ad02d315a07d31b8f321f5c43350f284dac892c";
-                return SdkHttpFullRequest.builder()
-                                         .method(SdkHttpMethod.POST)
-                                         .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                                         .putHeader("content-encoding", "application/vnd.amazon.eventstream")
-                                         .putHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-EVENTS")
-                                         .encodedPath("/streaming")
-                                         .protocol("https")
-                                         .host("demo.us-east-1.amazonaws.com");
-            }
-
-            @Override
-            public AsyncRequestBody requestBodyPublisher() {
-                return new AsyncRequestBody() {
-                    @Override
-                    public void subscribe(Subscriber<? super ByteBuffer> s) {
-                        Flowable.fromIterable(requestBody)
-                                .map(str -> ByteBuffer.wrap(str.getBytes()))
-                                .subscribe(s);
-                    }
-
-                    @Override
-                    public Optional<Long> contentLength() {
-                        return Optional.empty();
-                    }
-                };
-            }
-
-            @Override
-            public Flowable<Message> expectedMessagePublisher() {
-                Flowable<String> sigsHex = Flowable.just(
-                    "2f9960bccd20df6e58d04242ee7854f614e5cee4ffe8ed6dcf12d68da44c7f1b",
-                    "6929cce63a306c74ff8f4d00acf21e184e93b58309043f0e8fd81ef8fe6e147c",
-                    "de5df3242a48957cc48e9e2d6a379c9fa00c7ba21f9ba058dd3dcdd586da0142",
-                    "9388cce58ce5fc6d178984036b99ada22dc1852285289fb5e042b44551b75291");
-
-                // The Last data frame is empty
-                Flowable<String> payloads = Flowable.fromIterable(requestBody).concatWith(Flowable.just(""));
-
-                return sigsHex.zipWith(payloads, new BiFunction<String, String, Message>() {
-                                           Instant signingInstant = Instant.ofEpochMilli(signingOverrideClock.millis());
-
-                                           @Override
-                                           public Message apply(String sig, String payload) throws Exception {
-                                               Map<String, HeaderValue> headers = new HashMap<>();
-                                               headers.put(EVENT_STREAM_DATE, HeaderValue.fromTimestamp(signingInstant));
-                                               headers.put(EVENT_STREAM_SIGNATURE,
-                                                           HeaderValue.fromByteArray(BinaryUtils.fromHex(sig)));
-                                               return new Message(headers, payload.getBytes());
-                                           }
-                                       }
-                );
-            }
-        };
-
-    }
+    private EventStreamAws4Signer signer = EventStreamAws4Signer.create();
 
     @Test
     public void testEventStreamSigning() {
-        TestVector testVector = generatetestVector();
+        TestVector testVector = generateTestVector();
         SdkHttpFullRequest.Builder request = testVector.httpFullRequest();
         AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         SdkHttpFullRequest signedRequest =
-            SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+            SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingClock(), "us-east-1");
 
         AsyncRequestBody transformedPublisher =
             SignerTestUtils.signAsyncRequest(signer, signedRequest, testVector.requestBodyPublisher(),
-                                             credentials, "demo", signingOverrideClock, "us-east-1");
+                                             credentials, "demo", signingClock(), "us-east-1");
 
         TestSubscriber testSubscriber = TestSubscriber.create();
 
@@ -204,15 +127,15 @@ public class Aws4EventStreamSignerTest {
      */
     @Test
     public void testBackPressure() {
-        TestVector testVector = generatetestVector();
+        TestVector testVector = generateTestVector();
         SdkHttpFullRequest.Builder request = testVector.httpFullRequest();
         AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         SdkHttpFullRequest signedRequest =
-            SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
+            SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingClock(), "us-east-1");
 
         AsyncRequestBody transformedPublisher =
             SignerTestUtils.signAsyncRequest(signer, signedRequest, testVector.requestBodyPublisher(),
-                                             credentials, "demo", signingOverrideClock, "us-east-1");
+                                             credentials, "demo", signingClock(), "us-east-1");
 
 
         Subscriber<Object> subscriber = Mockito.spy(new Subscriber<Object>() {
@@ -263,5 +186,99 @@ public class Aws4EventStreamSignerTest {
         // subscriber is not terminated (no onError/onComplete) since trailing empty frame is not delivered yet
         verify(subscriber, never()).onError(any());
         verify(subscriber, never()).onComplete();
+    }
+
+    TestVector generateTestVector() {
+        return new TestVector() {
+            List<String> requestBody = Lists.newArrayList("A", "B", "C");
+
+            @Override
+            public List<String> requestBody() {
+                return requestBody;
+            }
+
+            @Override
+            public SdkHttpFullRequest.Builder httpFullRequest() {
+                //Header signature: "79f246d8652f08dd3cfaf84cc0d8b4fcce032332c78d43ea1ed6f4f6586ab59d";
+                //Signing key: "29dc0a760fed568677d74136ad02d315a07d31b8f321f5c43350f284dac892c";
+                return SdkHttpFullRequest.builder()
+                        .method(SdkHttpMethod.POST)
+                        .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                        .putHeader("content-encoding", "application/vnd.amazon.eventstream")
+                        .putHeader("x-amz-content-sha256", "STREAMING-AWS4-HMAC-SHA256-EVENTS")
+                        .encodedPath("/streaming")
+                        .protocol("https")
+                        .host("demo.us-east-1.amazonaws.com");
+            }
+
+            @Override
+            public AsyncRequestBody requestBodyPublisher() {
+                List<ByteBuffer> bodyBytes = requestBody.stream()
+                        .map(s -> ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8)))
+                        .collect(Collectors.toList());
+
+                Publisher<ByteBuffer> bodyPublisher = Flowable.fromIterable(bodyBytes);
+
+                return AsyncRequestBody.fromPublisher(bodyPublisher);
+            }
+
+            @Override
+            public Flowable<Message> expectedMessagePublisher() {
+                Flowable<String> sigsHex = Flowable.just(
+                        "7aabf85b765e6a4d0d500b6e968657b14726fa3e1eb7e839302728ffd77629a5",
+                        "f72aa9642f571d24a6e1ae42f10f073ad9448d8a028b6bcd82da081335adda02",
+                        "632af120435b57ec241d8bfbb12e496dfd5e2730a1a02ac0ab6eaa230ae02e9a",
+                        "c6f679ddb3af68f5e82f0cf6761244cb2338cf11e7d01a24130aea1b7c17e53e");
+
+                // The Last data frame is empty
+                Flowable<String> payloads = Flowable.fromIterable(requestBody).concatWith(Flowable.just(""));
+
+                return sigsHex.zipWith(payloads, new BiFunction<String, String, Message>() {
+                            // The first Instant was used to sign the request
+                            private int idx = 1;
+
+                            @Override
+                            public Message apply(String sig, String payload) throws Exception {
+                                Map<String, HeaderValue> headers = new HashMap<>();
+                                headers.put(EVENT_STREAM_DATE, HeaderValue.fromTimestamp(SIGNING_INSTANTS.get(idx++)));
+                                headers.put(EVENT_STREAM_SIGNATURE,
+                                        HeaderValue.fromByteArray(BinaryUtils.fromHex(sig)));
+                                return new Message(headers, payload.getBytes(StandardCharsets.UTF_8));
+                            }
+                        }
+                );
+            }
+        };
+    }
+
+    /**
+     * @return A clock that returns the values from {@link #SIGNING_INSTANTS} in order.
+     * @throws IllegalStateException When there are no more instants to return.
+     */
+    private static Clock signingClock() {
+        return new Clock() {
+            private AtomicInteger timeIndex = new AtomicInteger(0);
+
+            @Override
+            public Instant instant() {
+                int idx;
+                // Note: we use an atomic because Clock must be threadsafe,
+                // though probably not necessary for our tests
+                if ((idx = timeIndex.getAndIncrement()) >= SIGNING_INSTANTS.size()) {
+                    throw new IllegalStateException("Clock ran out of Instants to return! " + idx);
+                }
+                return SIGNING_INSTANTS.get(idx);
+            }
+
+            @Override
+            public ZoneId getZone() {
+                return ZoneOffset.UTC;
+            }
+
+            @Override
+            public Clock withZone(ZoneId zone) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }

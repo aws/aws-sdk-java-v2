@@ -50,6 +50,14 @@
         "shape":"QueryTypesInput",
         "resultWrapper":"QueryTypesResult"
       }
+    },
+    "StreamingInputOperation":{
+      "name":"StreamingInputOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StructureWithStreamingMember"}
     }
   },
   "shapes":{
@@ -224,6 +232,18 @@
       },
       "exception":true
     },
-    "Timestamp":{"type":"timestamp"}
+    "Timestamp":{"type":"timestamp"},
+    "StructureWithStreamingMember":{
+      "type":"structure",
+      "members":{
+        "StreamingMember":{"shape":"StreamType"}
+      },
+      "payload":"StreamingMember"
+    },
+    "StreamType":{
+      "type":"blob",
+      "streaming":true,
+      "requiresLength":true
+    }
   }
 }

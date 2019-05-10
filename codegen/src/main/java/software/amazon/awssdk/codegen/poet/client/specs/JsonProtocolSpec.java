@@ -45,7 +45,6 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
 import software.amazon.awssdk.protocols.ion.AwsIonProtocolFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
@@ -180,9 +179,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
-                     .add(".withMarshaller(new $T(new $T(protocolFactory), requestBody))",
-                          ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
-                          marshaller);
+                     .add(".withMarshaller($L)", syncStreamingMarshaller(model, opModel, marshaller));
         } else {
             codeBlock.add(".withMarshaller(new $T(protocolFactory))", marshaller);
         }
@@ -237,7 +234,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n" +
                     ".withOperationName(\"$N\")\n" +
-                    ".withMarshaller(new $T($L))\n" +
+                    ".withMarshaller($L)\n" +
                     "$L" +
                     "$L" +
                     ".withResponseHandler($L)\n" +
@@ -252,8 +249,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     requestType,
                     responseType,
                     opModel.getOperationName(),
-                    marshaller,
-                    protocolFactory,
+                    asyncMarshaller(model, opModel, marshaller, protocolFactory),
                     opModel.hasEventStreamInput() ? CodeBlock.builder()
                                                              .add(".withAsyncRequestBody($T.fromPublisher(adapted))",
                                                                   AsyncRequestBody.class)
