@@ -1,0 +1,5 @@
+{
+    "category": "AWS DataSync", 
+    "type": "feature", 
+    "description": "AWS DataSync now enables exclude and include filters to control what files and directories will be copied as part of a task execution."
+}
