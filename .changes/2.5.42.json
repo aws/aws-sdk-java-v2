@@ -1,0 +1,21 @@
+{
+    "date": "2019-05-13",
+    "version": "2.5.42",
+    "entries": [
+        {
+            "category": "AWS IoT Analytics",
+            "type": "feature",
+            "description": "ContentDeliveryRule to support sending dataset to S3 and glue"
+        },
+        {
+            "category": "AWS Lambda",
+            "type": "feature",
+            "description": "AWS Lambda now supports Node.js v10"
+        },
+        {
+            "category": "AWS DataSync",
+            "type": "feature",
+            "description": "AWS DataSync now enables exclude and include filters to control what files and directories will be copied as part of a task execution."
+        }
+    ]
+}

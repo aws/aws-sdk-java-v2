@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT Analytics", 
-    "type": "feature", 
-    "description": "ContentDeliveryRule to support sending dataset to S3 and glue"
-}

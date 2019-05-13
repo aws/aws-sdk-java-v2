@@ -1,5 +1,0 @@
-{
-    "category": "AWS Lambda", 
-    "type": "feature", 
-    "description": "AWS Lambda now supports Node.js v10"
-}
