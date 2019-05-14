@@ -1,6 +1,7 @@
 language: java
 jdk:
   - oraclejdk8
+  - openjdk11
 sudo: true
 dist: precise
 install: /bin/true
@@ -10,7 +11,7 @@ notifications:
 script: mvn -q install
 
 after_success:
-    - bash <(curl -s https://codecov.io/bash)
+    - bash <(curl -s https://codecov.io/bash) -F unittests
 
 branches:
   only:

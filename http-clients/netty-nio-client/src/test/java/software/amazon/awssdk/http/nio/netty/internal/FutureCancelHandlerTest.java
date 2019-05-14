@@ -23,6 +23,8 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.DefaultAttributeMap;
 import java.io.IOException;
@@ -58,11 +60,15 @@ public class FutureCancelHandlerTest {
     @Mock
     private SdkAsyncHttpResponseHandler responseHandler;
 
+    @Mock
+    private EventLoopGroup eventLoopGroup;
+
     @Before
     public void methodSetup() {
         requestContext = new RequestContext(channelPool,
+                                            eventLoopGroup,
                                             AsyncExecuteRequest.builder().responseHandler(responseHandler).build(),
-                                null);
+                                            null);
 
         DefaultAttributeMap attrMap = new DefaultAttributeMap();
         attrMap.attr(EXECUTION_ID_KEY).set(1L);

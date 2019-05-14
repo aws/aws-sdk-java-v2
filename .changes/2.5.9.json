@@ -1,0 +1,21 @@
+{
+    "date": "2019-03-13",
+    "version": "2.5.9",
+    "entries": [
+        {
+            "category": "Amazon CloudWatch Logs",
+            "type": "feature",
+            "description": "Documentation updates for logs"
+        },
+        {
+            "category": "AWS Config",
+            "type": "feature",
+            "description": "Config released Remediation APIs allowing Remediation of Config Rules"
+        },
+        {
+            "category": "Netty Nio HTTP Client",
+            "type": "bugfix",
+            "description": "Update `SslCompletionEventHandler` to close channel for `SslCloseCompletionEvent` only if the channel is not currently in use. This would fix the race condition in the async clients causing incorrect IOException to be thrown when the service returns error response and closes the connection. See [#1076](https://github.com/aws/aws-sdk-java-v2/issues/1076)"
+        }
+    ]
+}

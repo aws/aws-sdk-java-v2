@@ -78,7 +78,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     @Override
     public void exceptionOccurred(Throwable throwable) {
         try {
-            invokeSafely(fileChannel::close);
+            if (fileChannel != null) {
+                invokeSafely(fileChannel::close);
+            }
         } finally {
             invokeSafely(() -> Files.deleteIfExists(path));
         }
@@ -121,13 +123,21 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
             if (byteBuffer == null) {
                 throw new NullPointerException("Element must not be null");
             }
-            
+
+            performWrite(byteBuffer);
+        }
+
+        private void performWrite(ByteBuffer byteBuffer) {
             writeInProgress = true;
+
             fileChannel.write(byteBuffer, position.get(), byteBuffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
-                    if (result > 0) {
-                        position.addAndGet(result);
+                    position.addAndGet(result);
+
+                    if (byteBuffer.hasRemaining()) {
+                        performWrite(byteBuffer);
+                    } else {
                         synchronized (FileSubscriber.this) {
                             if (closeOnLastWrite) {
                                 close();
@@ -145,7 +155,6 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                     future.completeExceptionally(exc);
                 }
             });
-
         }
 
         @Override

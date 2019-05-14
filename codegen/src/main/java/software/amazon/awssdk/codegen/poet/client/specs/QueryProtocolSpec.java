@@ -29,14 +29,15 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 
 public class QueryProtocolSpec implements ProtocolSpec {
 
     protected final PoetExtensions poetExtensions;
+    private final IntermediateModel intermediateModel;
 
-    public QueryProtocolSpec(PoetExtensions poetExtensions) {
+    public QueryProtocolSpec(IntermediateModel intermediateModel, PoetExtensions poetExtensions) {
+        this.intermediateModel = intermediateModel;
         this.poetExtensions = poetExtensions;
     }
 
@@ -111,9 +112,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                  opModel.getInput().getVariableName());
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
-                            .add(".withMarshaller(new $T(new $T(protocolFactory), requestBody)));",
-                                 ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
-                                 marshaller)
+                            .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
                             .build();
         }
         return codeBlock.add(".withMarshaller(new $T(protocolFactory)) $L);", marshaller,
@@ -130,7 +129,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                                               : "";
         return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                                        ".withOperationName(\"$N\")\n" +
-                                       ".withMarshaller(new $T(protocolFactory))" +
+                                       ".withMarshaller($L)" +
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
                                        hostPrefixExpression(opModel) +
@@ -140,7 +139,7 @@ public class QueryProtocolSpec implements ProtocolSpec {
                                        requestType,
                                        pojoResponseType,
                                        opModel.getOperationName(),
-                                       marshaller,
+                                       asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"),
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
                                        opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")

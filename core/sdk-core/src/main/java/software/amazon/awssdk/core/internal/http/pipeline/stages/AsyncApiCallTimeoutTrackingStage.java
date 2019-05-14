@@ -20,15 +20,18 @@ import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.timeAs
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
 public class AsyncApiCallTimeoutTrackingStage<OutputT>
@@ -51,13 +54,15 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
         long apiCallTimeoutInMillis = resolveTimeoutInMillis(() -> context.requestConfig().apiCallTimeout(),
                                                              clientConfig.option(SdkClientOption.API_CALL_TIMEOUT));
 
+        Supplier<SdkClientException> exceptionSupplier = () -> ApiCallTimeoutException.create(apiCallTimeoutInMillis);
         TimeoutTracker timeoutTracker = timeAsyncTaskIfNeeded(future,
                                                               scheduledExecutor,
-                                                              ApiCallTimeoutException.create(apiCallTimeoutInMillis),
+                                                              exceptionSupplier,
                                                               apiCallTimeoutInMillis);
         context.apiCallTimeoutTracker(timeoutTracker);
 
-        requestPipeline.execute(input, context).whenComplete((r, t) -> {
+        CompletableFuture<OutputT> executeFuture = requestPipeline.execute(input, context);
+        executeFuture.whenComplete((r, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
             } else {
@@ -65,6 +70,6 @@ public class AsyncApiCallTimeoutTrackingStage<OutputT>
             }
         });
 
-        return future;
+        return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
     }
 }

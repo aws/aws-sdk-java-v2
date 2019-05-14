@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+
 import java.io.ByteArrayInputStream;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -42,10 +45,15 @@ public class CreateMultipartUploadRequestInterceptor implements ExecutionInterce
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
         if (context.request() instanceof CreateMultipartUploadRequest) {
-            return context.httpRequest()
-                          .toBuilder()
-                          .putHeader("Content-Length", String.valueOf(0))
-                          .build();
+            SdkHttpRequest.Builder builder = context.httpRequest()
+                                                    .toBuilder()
+                                                    .putHeader(CONTENT_LENGTH, String.valueOf(0));
+
+            if (!context.httpRequest().firstMatchingHeader(CONTENT_TYPE).isPresent()) {
+                builder.putHeader(CONTENT_TYPE, "binary/octet-stream");
+            }
+
+            return builder.build();
         }
 
         return context.httpRequest();

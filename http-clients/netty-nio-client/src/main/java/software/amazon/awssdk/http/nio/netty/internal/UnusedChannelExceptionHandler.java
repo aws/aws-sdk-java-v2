@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.getAttribute;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
+import io.netty.handler.timeout.TimeoutException;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -45,14 +46,14 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        boolean channelInUse = getAttribute(ctx, ChannelAttributeKey.IN_USE).orElse(false);
+        boolean channelInUse = getAttribute(ctx.channel(), ChannelAttributeKey.IN_USE).orElse(false);
 
         if (channelInUse) {
             ctx.fireExceptionCaught(cause);
         } else {
             ctx.close();
 
-            Optional<CompletableFuture<Void>> executeFuture = getAttribute(ctx, ChannelAttributeKey.EXECUTE_FUTURE_KEY);
+            Optional<CompletableFuture<Void>> executeFuture = getAttribute(ctx.channel(), ChannelAttributeKey.EXECUTE_FUTURE_KEY);
 
             if (executeFuture.isPresent() && !executeFuture.get().isDone()) {
                 log.error(() -> "An exception occurred on an channel (" + ctx.channel().id() + ") that was not in use, " +
@@ -60,8 +61,7 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
                                 "Java SDK, where a future was not completed while the channel was in use. The channel has " +
                                 "been closed, and the future will be completed to prevent any ongoing issues.", cause);
                 executeFuture.get().completeExceptionally(cause);
-
-            } else if (cause instanceof IOException) {
+            } else if (isNettyIoException(cause) || hasNettyIoExceptionCause(cause)) {
                 log.debug(() -> "An I/O exception (" + cause.getMessage() + ") occurred on a channel (" + ctx.channel().id() +
                                 ") that was not in use. The channel has been closed. This is usually normal.");
 
@@ -76,9 +76,11 @@ public final class UnusedChannelExceptionHandler extends ChannelHandlerAdapter {
         return INSTANCE;
     }
 
-    private <T> Optional<T> getAttribute(ChannelHandlerContext ctx, AttributeKey<T> key) {
-        return Optional.ofNullable(ctx.channel().attr(key))
-                       .map(Attribute::get);
+    private boolean isNettyIoException(Throwable cause) {
+        return cause instanceof IOException || cause instanceof TimeoutException;
     }
 
+    private boolean hasNettyIoExceptionCause(Throwable cause) {
+        return cause.getCause() != null && isNettyIoException(cause.getCause());
+    }
 }

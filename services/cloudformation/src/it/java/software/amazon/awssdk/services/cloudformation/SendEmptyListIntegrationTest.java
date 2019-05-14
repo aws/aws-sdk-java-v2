@@ -113,7 +113,7 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
         Waiter.run(() -> cf.describeStacks(r -> r.stackName(stackName)))
               .until(r -> r.stacks().size() == 1 && r.stacks().get(0).stackStatus() == expectedStatus)
               .failOn(r -> r.stacks().size() == 1 && r.stacks().get(0).stackStatus() == StackStatus.ROLLBACK_IN_PROGRESS)
-              .orFailAfter(Duration.ofMinutes(2));
+              .orFailAfter(Duration.ofMinutes(5));
     }
 
     private List<Tag> getTagsForStack(String stackName) {

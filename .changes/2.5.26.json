@@ -1,0 +1,46 @@
+{
+    "date": "2019-04-16",
+    "version": "2.5.26",
+    "entries": [
+        {
+            "category": "Netty NIO Http Client",
+            "type": "bugfix",
+            "description": "Update `UnusedChannelExceptionHandler` to check the cause of the exception so that it does emit warn logs if the cause is netty io exception. See [#1171](https://github.com/aws/aws-sdk-java-v2/issues/1171)"
+        },
+        {
+            "category": "Amazon Redshift",
+            "type": "feature",
+            "description": "DescribeResize can now return percent of data transferred from source cluster to target cluster for a classic resize."
+        },
+        {
+            "category": "Amazon CloudWatch",
+            "type": "feature",
+            "description": "Documentation updates for monitoring"
+        },
+        {
+            "category": "AWS Storage Gateway",
+            "type": "feature",
+            "description": "This change allows you to select either a weekly or monthly maintenance window for your volume or tape gateway. It also allows you to tag your tape and volume resources on creation by adding a Tag value on calls to the respective api endpoints."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Enable support for credential_process in an AWS credential profile"
+        },
+        {
+            "category": "AmazonMQ",
+            "type": "feature",
+            "description": "This release adds the ability to retrieve information about broker engines and broker instance options. See Broker Engine Types and Broker Instance Options in the Amazon MQ REST API Reference."
+        },
+        {
+            "category": "AWS Organizations",
+            "type": "feature",
+            "description": "Documentation updates for organizations"
+        },
+        {
+            "category": "Amazon Cognito Identity Provider",
+            "type": "feature",
+            "description": "This release adds support for the new email configuration in Amazon Cognito User Pools. You can now specify whether Amazon Cognito emails your users by using its built-in email functionality or your Amazon SES email configuration."
+        }
+    ]
+}

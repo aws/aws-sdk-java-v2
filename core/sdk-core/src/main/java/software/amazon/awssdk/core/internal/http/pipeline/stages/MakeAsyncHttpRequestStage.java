@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -160,14 +162,16 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             return false;
         }
 
-        return Optional.ofNullable(requestProvider).map(SdkHttpContentPublisher::contentLength).isPresent();
+        return Optional.ofNullable(requestProvider).flatMap(SdkHttpContentPublisher::contentLength).isPresent();
     }
 
     private TimeoutTracker setupAttemptTimer(CompletableFuture<Response<OutputT>> executeFuture, RequestExecutionContext ctx) {
         long timeoutMillis = resolveTimeoutInMillis(ctx.requestConfig()::apiCallAttemptTimeout, apiCallAttemptTimeout);
+        Supplier<SdkClientException> exceptionSupplier = () -> ApiCallAttemptTimeoutException.create(timeoutMillis);
+
         return TimerUtils.timeAsyncTaskIfNeeded(executeFuture,
                                                 timeoutExecutor,
-                                                ApiCallAttemptTimeoutException.create(timeoutMillis),
+                                                exceptionSupplier,
                                                 timeoutMillis);
     }
 
@@ -207,9 +211,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         /**
          * @param responseFuture the response future to be returned from
-         * {@link #executeHttpRequest(SdkHttpFullRequest, RequestExecutionContext)}
-         * @param transformFuture the transformFuture returned from {@link #responseHandler#prepare()}
-         * @param errorTransformFuture the error transform future returned from {@link #errorResponseHandler#prepare()}
+         * {@link MakeAsyncHttpRequestStage#executeHttpRequest(SdkHttpFullRequest, RequestExecutionContext)}
+         * @param transformFuture the transformFuture returned from {@link MakeAsyncHttpRequestStage#responseHandler#prepare()}
+         * @param errorTransformFuture the error transform future returned from
+         * {@link MakeAsyncHttpRequestStage#errorResponseHandler#prepare()}
          */
         ResponseHandler(CompletableFuture<Response<OutputT>> responseFuture,
                         CompletableFuture<OutputT> transformFuture,

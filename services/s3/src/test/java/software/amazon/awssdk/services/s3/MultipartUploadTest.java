@@ -20,9 +20,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
@@ -65,6 +67,7 @@ public class MultipartUploadTest {
         s3Client.createMultipartUpload(b -> b.key("key").bucket("bucket"));
 
         verify(anyRequestedFor(anyUrl()).withQueryParam("uploads", containing("")));
+        verify(anyRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("binary/octet-stream")));
     }
 
     @Test
@@ -74,5 +77,19 @@ public class MultipartUploadTest {
         s3AsyncClient.createMultipartUpload(b -> b.key("key").bucket("bucket")).join();
 
         verify(anyRequestedFor(anyUrl()).withQueryParam("uploads", containing("")));
+        verify(anyRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("binary/octet-stream")));
+    }
+
+    @Test
+    public void createMultipartUpload_overrideContentType() {
+        String overrideContentType = "application/html";
+        stubFor(any(urlMatching(".*"))
+                    .willReturn(aResponse().withStatus(200).withBody("<xml></xml>")));
+        s3Client.createMultipartUpload(b -> b.key("key")
+                                             .bucket("bucket")
+                                             .overrideConfiguration(c -> c.putHeader(CONTENT_TYPE, overrideContentType)));
+
+        verify(anyRequestedFor(anyUrl()).withQueryParam("uploads", containing("")));
+        verify(anyRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(overrideContentType)));
     }
 }

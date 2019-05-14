@@ -157,6 +157,7 @@ final class AddOperations {
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
+            operationModel.setAuthType(op.getAuthType());
             operationModel.setPaginated(isPaginated(op));
             operationModel.setEndpointOperation(op.isEndpointOperation());
             operationModel.setEndpointDiscovery(op.getEndpointDiscovery());

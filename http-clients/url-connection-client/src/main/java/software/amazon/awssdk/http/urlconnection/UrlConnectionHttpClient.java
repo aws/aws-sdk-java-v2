@@ -26,10 +26,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -53,6 +63,8 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @SdkPublicApi
 public final class UrlConnectionHttpClient implements SdkHttpClient {
+
+    private static final String CLIENT_NAME = "UrlConnection";
 
     private final AttributeMap options;
     private final UrlConnectionFactory connectionFactory;
@@ -102,6 +114,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         // Nothing to close. The connections will be closed by closing the InputStreams.
     }
 
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
+    }
+
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
         HttpURLConnection connection = connectionFactory.createConnection(request.httpRequest().getUri());
         request.httpRequest()
@@ -120,10 +137,34 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private HttpURLConnection createDefaultConnection(URI uri) {
+
+        if (options.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
+            trustAllCertificates();
+        }
+
         HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) uri.toURL().openConnection());
         connection.setConnectTimeout(saturatedCast(options.get(CONNECTION_TIMEOUT).toMillis()));
         connection.setReadTimeout(saturatedCast(options.get(READ_TIMEOUT).toMillis()));
         return connection;
+    }
+
+    /**
+     * Should only be used in testing
+     */
+    private static void trustAllCertificates() {
+        HttpsURLConnection.setDefaultHostnameVerifier(NoOpHostNameVerifier.INSTANCE);
+
+        TrustManager[] trustManagers = new TrustManager[]{TrustAllManager.INSTANCE};
+        SSLContext context;
+
+        try {
+            context = SSLContext.getInstance("TLS");
+            context.init(null, trustManagers, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+
+        HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
     }
 
     private static class RequestCallable implements ExecutableHttpRequest {
@@ -249,6 +290,39 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                                               .merge(serviceDefaults)
                                                               .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
                                                null);
+        }
+    }
+
+    private static class NoOpHostNameVerifier implements HostnameVerifier {
+
+        static final NoOpHostNameVerifier INSTANCE = new NoOpHostNameVerifier();
+
+        @Override
+        public boolean verify(String s, SSLSession sslSession) {
+            return true;
+        }
+    }
+
+    /**
+     * Insecure trust manager to trust all certs. Should only be used for testing.
+     */
+    private static class TrustAllManager implements X509TrustManager {
+
+        private static final TrustAllManager INSTANCE = new TrustAllManager();
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // no op
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // no op
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
         }
     }
 }

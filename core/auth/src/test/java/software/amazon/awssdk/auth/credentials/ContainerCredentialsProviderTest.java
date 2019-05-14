@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -93,6 +95,7 @@ public class ContainerCredentialsProviderTest {
     private void stubForSuccessResponse() {
         stubFor(
             get(urlPathEqualTo(CREDENTIALS_PATH))
+                .withHeader("User-Agent", equalTo(UserAgentUtils.getUserAgent()))
                 .willReturn(aResponse()
                                 .withStatus(200)
                                 .withHeader("Content-Type", "application/json")

@@ -400,9 +400,9 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 | `getObjectAsString` | `getObjectAsBytes().asUtf8String` |
 | `getObjectMetadata` | `headObject` |
 | `getObjectTagging` | `getObjectTagging` |
-| `getResourceUrl` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/860) |
+| `getResourceUrl` | [S3Utilities#getUrl](https://github.com/aws/aws-sdk-java-v2/blob/7428f629753c603f96dd700ca686a7b169fc4cd4/services/s3/src/main/java/software/amazon/awssdk/services/s3/S3Utilities.java#L140) |
 | `getS3AccountOwner` | `listBuckets` |
-| `getUrl` | [Not Supported](https://github.com/aws/aws-sdk-java-v2/issues/860) |
+| `getUrl` | [S3Utilities#getUrl](https://github.com/aws/aws-sdk-java-v2/blob/7428f629753c603f96dd700ca686a7b169fc4cd4/services/s3/src/main/java/software/amazon/awssdk/services/s3/S3Utilities.java#L140) |
 | `headBucket` | `headBucket` |
 | `initiateMultipartUpload` | `createMultipartUpload` |
 | `isRequesterPaysEnabled` | `getBucketRequestPayment` |

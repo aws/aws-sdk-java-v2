@@ -153,6 +153,16 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
             .satisfies(e -> assertThat(((NoSuchBucketException) (e.getCause())).statusCode()).isEqualTo(404));
     }
 
+    @Test
+    public void asyncHeadBucketWrongRegion() {
+        assertThatThrownBy(() -> {
+            try (S3AsyncClient s3AsyncClient = s3AsyncClientBuilder().region(Region.EU_CENTRAL_1).build()) {
+                s3AsyncClient.headBucket(b -> b.bucket(BUCKET)).join();
+            }
+        }).hasCauseInstanceOf(S3Exception.class)
+          .satisfies(e -> assertThat(((S3Exception) (e.getCause())).statusCode()).isEqualTo(301));
+    }
+
     private void assertMetadata(S3Exception e, String expectedErrorCode) {
         assertThat(e.awsErrorDetails()).satisfies(
             errorDetails -> {

@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -42,15 +43,18 @@ import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -78,7 +82,8 @@ public final class NettyRequestExecutor {
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<Void> execute() {
-        Future<Channel> channelFuture = context.channelPool().acquire();
+        Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
+        context.channelPool().acquire(channelFuture);
         executeFuture = createExecuteFuture(channelFuture);
         channelFuture.addListener((GenericFutureListener) this::makeRequestListener);
         return executeFuture;
@@ -87,11 +92,11 @@ public final class NettyRequestExecutor {
     /**
      * Convenience method to create the execution future and set up the cancellation logic.
      *
-     * @param channelFuture The Netty future holding the channel.
+     * @param channelPromise The Netty future holding the channel.
      *
      * @return The created execution future.
      */
-    private CompletableFuture<Void> createExecuteFuture(Future<Channel> channelFuture) {
+    private CompletableFuture<Void> createExecuteFuture(Promise<Channel> channelPromise) {
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         future.whenComplete((r, t) -> {
@@ -99,18 +104,24 @@ public final class NettyRequestExecutor {
                 return;
             }
 
-            channelFuture.addListener((Future<Channel> f) -> {
-                if (!f.isSuccess()) {
+            if (!channelPromise.tryFailure(t)) {
+                // Couldn't fail promise, it's already done
+                if (!channelPromise.isSuccess()) {
                     return;
                 }
-
-                Channel ch = f.getNow();
-                ch.eventLoop().submit(() -> {
-                    if (ch.attr(IN_USE).get()) {
-                        ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
-                    }
-                });
-            });
+                Channel ch = channelPromise.getNow();
+                try {
+                    ch.eventLoop().submit(() -> {
+                        if (ch.attr(IN_USE).get()) {
+                            ch.pipeline().fireExceptionCaught(new FutureCancelledException(executionId, t));
+                        } else {
+                            ch.close().addListener(closeFuture -> context.channelPool().release(ch));
+                        }
+                    });
+                } catch (Throwable exc) {
+                    log.warn("Unable to add a task to cancel the request to channel's EventLoop", exc);
+                }
+            }
         });
 
         return future;
@@ -120,8 +131,9 @@ public final class NettyRequestExecutor {
         if (channelFuture.isSuccess()) {
             channel = channelFuture.getNow();
             configureChannel();
-            configurePipeline();
-            makeRequest();
+            if (tryConfigurePipeline()) {
+                makeRequest();
+            }
         } else {
             handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
@@ -136,7 +148,7 @@ public final class NettyRequestExecutor {
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
-    private void configurePipeline() {
+    private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
         if (HTTP2.equals(protocol)) {
@@ -146,10 +158,23 @@ public final class NettyRequestExecutor {
             String errorMsg = "Unknown protocol: " + protocol;
             closeAndRelease(channel);
             handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-            return;
+            return false;
         }
+
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
+
+        // It's possible that the channel could become inactive between checking it out from the pool, and adding our response
+        // handler (which will monitor for it going inactive from now on).
+        // Make sure it's active here, or the request will never complete: https://github.com/aws/aws-sdk-java-v2/issues/1207
+        if (!channel.isActive()) {
+            String errorMessage = "Channel was closed before it could be written to.";
+            closeAndRelease(channel);
+            handleFailure(() -> errorMessage, new IOException(errorMessage));
+            return false;
+        }
+
+        return true;
     }
 
     private void makeRequest() {
@@ -161,8 +186,7 @@ public final class NettyRequestExecutor {
         channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
                                                             TimeUnit.MILLISECONDS));
         StreamedRequest streamedRequest = new StreamedRequest(request,
-                                                              context.executeRequest().requestContentPublisher(),
-                                                              channel);
+                                                              context.executeRequest().requestContentPublisher());
         channel.writeAndFlush(streamedRequest)
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
@@ -187,8 +211,8 @@ public final class NettyRequestExecutor {
 
             // Should only add an one-time ReadTimeoutHandler to 100 Continue request.
             if (is100ContinueExpected()) {
-                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(context.configuration().readTimeoutMillis(),
-                                                                          TimeUnit.MILLISECONDS));
+                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(Duration.ofMillis(context.configuration()
+                        .readTimeoutMillis())));
             } else {
                 channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                    TimeUnit.MILLISECONDS));
@@ -244,11 +268,16 @@ public final class NettyRequestExecutor {
     }
 
     private boolean isAcquireTimeoutException(Throwable originalCause) {
-        return originalCause instanceof TimeoutException && originalCause.getMessage().contains("Acquire operation took longer");
+        String message = originalCause.getMessage();
+        return originalCause instanceof TimeoutException &&
+                message != null &&
+                message.contains("Acquire operation took longer");
     }
 
     private boolean isTooManyPendingAcquiresException(Throwable originalCause) {
+        String message = originalCause.getMessage();
         return originalCause instanceof IllegalStateException &&
+               message != null &&
                originalCause.getMessage().contains("Too many outstanding acquire operations");
     }
 
@@ -298,7 +327,8 @@ public final class NettyRequestExecutor {
      */
     private void closeAndRelease(Channel channel) {
         log.trace("closing and releasing channel {}", channel.id().asLongText());
-        channel.close().addListener(ignored -> context.channelPool().release(channel));
+        channel.close();
+        context.channelPool().release(channel);
     }
 
     /**
@@ -395,16 +425,14 @@ public final class NettyRequestExecutor {
     private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
 
         private final Publisher<ByteBuffer> publisher;
-        private final Channel channel;
         private final Optional<Long> requestContentLength;
         private long written = 0L;
         private boolean done;
         private Subscription subscription;
 
-        StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher, Channel channel) {
+        StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher) {
             super(request);
             this.publisher = publisher;
-            this.channel = channel;
             this.requestContentLength = contentLength(request);
         }
 
@@ -418,24 +446,27 @@ public final class NettyRequestExecutor {
                 }
 
                 @Override
-                public void onNext(ByteBuffer byteBuffer) {
+                public void onNext(ByteBuffer contentBytes) {
                     if (done) {
                         return;
                     }
 
-                    int newLimit = clampedBufferLimit(byteBuffer.remaining());
-                    byteBuffer.limit(newLimit);
-                    ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
-                    buffer.writeBytes(byteBuffer);
-                    HttpContent content = new DefaultHttpContent(buffer);
+                    try {
+                        int newLimit = clampedBufferLimit(contentBytes.remaining());
+                        contentBytes.limit(newLimit);
+                        ByteBuf contentByteBuf = Unpooled.wrappedBuffer(contentBytes);
+                        HttpContent content = new DefaultHttpContent(contentByteBuf);
 
-                    subscriber.onNext(content);
-                    written += newLimit;
+                        subscriber.onNext(content);
+                        written += newLimit;
 
-                    if (!shouldContinuePublishing()) {
-                        done = true;
-                        subscription.cancel();
-                        subscriber.onComplete();
+                        if (!shouldContinuePublishing()) {
+                            done = true;
+                            subscription.cancel();
+                            subscriber.onComplete();
+                        }
+                    } catch (Throwable t) {
+                        onError(t);
                     }
                 }
 
@@ -443,6 +474,7 @@ public final class NettyRequestExecutor {
                 public void onError(Throwable t) {
                     if (!done) {
                         done = true;
+                        subscription.cancel();
                         subscriber.onError(t);
                     }
                 }

@@ -1,0 +1,26 @@
+{
+    "date": "2019-03-06",
+    "version": "2.5.4",
+    "entries": [
+        {
+            "category": "AWS Direct Connect",
+            "type": "feature",
+            "description": "Exposed a new available port speeds field in the DescribeLocation api call."
+        },
+        {
+            "category": "Amazon Elastic File System",
+            "type": "feature",
+            "description": "Documentation updates for elasticfilesystem adding new examples for EFS Lifecycle Management feature."
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "This release adds pagination support for ec2.DescribeVpcs, ec2.DescribeInternetGateways and ec2.DescribeNetworkAcls APIs"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix the generated ServiceMetadata classes for services that have PARTITION_OVERRIDDEN_ENDPOINTS"
+        }
+    ]
+}

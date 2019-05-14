@@ -30,25 +30,17 @@ import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.SimpleChannelPool;
-import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SupportedCipherSuiteFilter;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.TrustManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -58,18 +50,14 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
-import software.amazon.awssdk.http.nio.netty.internal.HandlerRemovingChannelPool;
-import software.amazon.awssdk.http.nio.netty.internal.HonorCloseOnReleaseChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.AwaitCloseChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
-import software.amazon.awssdk.http.nio.netty.internal.ReleaseOnceChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
-import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
@@ -81,36 +69,38 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
+
+    private static final String CLIENT_NAME = "NettyNio";
+
     private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
     private static final long MAX_STREAMS_ALLOWED = 4294967295L; // unsigned 32-bit, 2^32 -1
 
     private final SdkEventLoopGroup sdkEventLoopGroup;
-    private final SdkChannelPoolMap<URI, ChannelPool> pools;
-    private final SdkChannelOptions sdkChannelOptions;
+    private final SdkChannelPoolMap<URI, ? extends ChannelPool> pools;
     private final NettyConfiguration configuration;
-    private final long maxStreams;
-    private Protocol protocol;
 
-    NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
+    private NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
-        this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
-        this.maxStreams = builder.maxHttp2Streams == null ? MAX_STREAMS_ALLOWED : builder.maxHttp2Streams;
+        Protocol protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
+        long maxStreams = builder.maxHttp2Streams == null ? MAX_STREAMS_ALLOWED : builder.maxHttp2Streams;
         this.sdkEventLoopGroup = eventLoopGroup(builder);
-        this.pools = createChannelPoolMap();
-        this.sdkChannelOptions = channelOptions(builder);
+        this.pools = AwaitCloseChannelPoolMap.builder()
+                                             .sdkChannelOptions(builder.sdkChannelOptions)
+                                             .configuration(configuration)
+                                             .protocol(protocol)
+                                             .maxStreams(maxStreams)
+                                             .sdkEventLoopGroup(sdkEventLoopGroup)
+                                             .sslProvider(resolveSslProvider(builder))
+                                             .build();
     }
 
     @SdkTestInternalApi
     NettyNioAsyncHttpClient(SdkEventLoopGroup sdkEventLoopGroup,
-                            SdkChannelPoolMap<URI, ChannelPool> pools,
-                            SdkChannelOptions sdkChannelOptions,
-                            NettyConfiguration configuration,
-                            long maxStreams) {
+                            SdkChannelPoolMap<URI, ? extends ChannelPool> pools,
+                            NettyConfiguration configuration) {
         this.sdkEventLoopGroup = sdkEventLoopGroup;
         this.pools = pools;
-        this.sdkChannelOptions = sdkChannelOptions;
         this.configuration = configuration;
-        this.maxStreams = maxStreams;
     }
 
     @Override
@@ -123,21 +113,17 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         return new DefaultBuilder();
     }
 
-    private SdkChannelOptions channelOptions(DefaultBuilder builder) {
-        return builder.sdkChannelOptions;
-    }
-
     private RequestContext createRequestContext(AsyncExecuteRequest request) {
         ChannelPool pool = pools.get(poolKey(request.request()));
-        return new RequestContext(pool, request, configuration);
+        return new RequestContext(pool, sdkEventLoopGroup.eventLoopGroup(), request, configuration);
     }
 
     private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
         Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
-                "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
+                        "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
         return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupBuilder)
-                .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
-                .orElseGet(SharedSdkEventLoopGroup::get);
+                     .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
+                     .orElseGet(SharedSdkEventLoopGroup::get);
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
@@ -145,69 +131,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                           sdkRequest.port(), null, null, null));
     }
 
-    private SslContext sslContext(String protocol) {
-        if (!protocol.equalsIgnoreCase("https")) {
-            return null;
+    private SslProvider resolveSslProvider(DefaultBuilder builder) {
+        if (builder.sslProvider != null) {
+            return builder.sslProvider;
         }
-        try {
-            return SslContextBuilder.forClient()
-                                    .sslProvider(SslContext.defaultClientProvider())
-                                    .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                                    .trustManager(getTrustManager())
-                                    .build();
-        } catch (SSLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    private TrustManagerFactory getTrustManager() {
-        return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
-    }
-
-    private SdkChannelPoolMap<URI, ChannelPool> createChannelPoolMap() {
-        return new SdkChannelPoolMap<URI, ChannelPool>() {
-            @Override
-            protected ChannelPool newPool(URI key) {
-                SslContext sslContext = sslContext(key.getScheme());
-                Bootstrap bootstrap =
-                    new Bootstrap()
-                        .group(sdkEventLoopGroup.eventLoopGroup())
-                        .channelFactory(sdkEventLoopGroup.channelFactory())
-                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
-                        // TODO run some performance tests with and without this.
-                        .remoteAddress(key.getHost(), key.getPort());
-                sdkChannelOptions.channelOptions().forEach(bootstrap::option);
-
-                AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
-                ChannelPipelineInitializer handler =
-                    new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration);
-                channelPoolRef.set(createChannelPool(bootstrap, handler));
-                return channelPoolRef.get();
-            }
-        };
-    }
-
-    private ChannelPool createChannelPool(Bootstrap bootstrap, ChannelPipelineInitializer handler) {
-        // Create a simple channel pool for pooling raw TCP connections to the service.
-        ChannelPool channelPool = new SimpleChannelPool(bootstrap, handler);
-
-        // Wrap the channel pool such that the ChannelAttributeKey.CLOSE_ON_RELEASE flag is honored.
-        channelPool = new HonorCloseOnReleaseChannelPool(channelPool);
-
-        // Wrap the channel pool such that HTTP 2 channels won't be released to the underlying pool while they're still in use.
-        channelPool = new HttpOrHttp2ChannelPool(channelPool,
-                                                 bootstrap,
-                                                 configuration.maxConnections(),
-                                                 configuration);
-
-
-        // Wrap the channel pool such that we remove request-specific handlers with each request.
-        channelPool = new HandlerRemovingChannelPool(channelPool);
-
-        // Wrap the channel pool such that an individual channel can only be released to the underlying pool once.
-        channelPool = new ReleaseOnceChannelPool(channelPool);
-
-        return channelPool;
+        return SslContext.defaultClientProvider();
     }
 
     private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
@@ -232,9 +161,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
-            throw new RuntimeException(String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
-                                                     EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS));
+            log.error(String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
+                                    EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS));
         }
+    }
+
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
     }
 
     /**
@@ -394,6 +328,19 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return This builder for method chaining.
          */
         Builder maxHttp2Streams(Integer maxHttp2Streams);
+
+        /**
+         * Sets the {@link SslProvider} to be used in the Netty client.
+         *
+         * <p>If not configured, {@link SslContext#defaultClientProvider()} will be used to determine the SslProvider.
+         *
+         * <p>Note that you might need to add other dependencies if not using JDK's default Ssl Provider.
+         * See https://netty.io/wiki/requirements-for-4.x.html#transport-security-tls
+         *
+         * @param sslProvider the SslProvider
+         * @return the builder of the method chaining.
+         */
+        Builder sslProvider(SslProvider sslProvider);
     }
 
     /**
@@ -409,6 +356,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private SdkEventLoopGroup eventLoopGroup;
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
         private Integer maxHttp2Streams;
+        private SslProvider sslProvider;
 
         private DefaultBuilder() {
         }
@@ -553,6 +501,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setMaxHttp2Streams(Integer maxHttp2Streams) {
             maxHttp2Streams(maxHttp2Streams);
+        }
+
+        @Override
+        public Builder sslProvider(SslProvider sslProvider) {
+            this.sslProvider = sslProvider;
+            return this;
+        }
+
+        public void setSslProvider(SslProvider sslProvider) {
+            sslProvider(sslProvider);
         }
 
         @Override

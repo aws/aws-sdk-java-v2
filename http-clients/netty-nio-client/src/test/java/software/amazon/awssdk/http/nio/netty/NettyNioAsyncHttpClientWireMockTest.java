@@ -41,14 +41,18 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.SslProvider;
+import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
@@ -86,7 +90,6 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
-import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -126,6 +129,27 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
+    }
+
+    @Test
+    public void openSslBeingUsed() throws Exception {
+        try (SdkAsyncHttpClient customClient =
+                 NettyNioAsyncHttpClient.builder()
+                                        .sslProvider(SslProvider.OPENSSL)
+                                        .build()) {
+            makeSimpleRequest(customClient);
+        }
+    }
+
+    @Test
+    public void defaultJdkSslProvider() throws Exception {
+        try (SdkAsyncHttpClient customClient =
+                 NettyNioAsyncHttpClient.builder()
+                                        .sslProvider(SslProvider.JDK)
+                                        .build()) {
+            makeSimpleRequest(customClient);
+            customClient.close();
+        }
     }
 
     @Test
@@ -212,17 +236,120 @@ public class NettyNioAsyncHttpClientWireMockTest {
         };
 
         sdkChannelPoolMap.get(URI.create("http://blah"));
-        SdkChannelOptions channelOptions = new SdkChannelOptions();
         NettyConfiguration nettyConfiguration = new NettyConfiguration(AttributeMap.empty());
 
         SdkAsyncHttpClient customerClient =
-            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, channelOptions, nettyConfiguration, 1);
+            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, nettyConfiguration);
 
         customerClient.close();
         assertThat(eventLoopGroup.eventLoopGroup().isShuttingDown()).isTrue();
         assertThat(eventLoopGroup.eventLoopGroup().isTerminated()).isTrue();
         assertThat(sdkChannelPoolMap).isEmpty();
         Mockito.verify(channelPool).close();
+    }
+
+    @Test
+    public void responseConnectionReused_shouldReleaseChannel() throws Exception {
+
+        ChannelFactory channelFactory = mock(ChannelFactory.class);
+        EventLoopGroup customEventLoopGroup = new NioEventLoopGroup(1);
+        NioSocketChannel channel = new NioSocketChannel();
+
+        when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> channel);
+        SdkEventLoopGroup eventLoopGroup = SdkEventLoopGroup.create(customEventLoopGroup, channelFactory);
+
+        NettyNioAsyncHttpClient customClient =
+            (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                             .eventLoopGroup(eventLoopGroup)
+                                                             .maxConcurrency(1)
+                                                             .build();
+
+        makeSimpleRequest(customClient);
+        verifyChannelRelease(channel);
+        assertThat(channel.isShutdown()).isFalse();
+
+        customClient.close();
+        eventLoopGroup.eventLoopGroup().shutdownGracefully().awaitUninterruptibly();
+    }
+
+    @Test
+    public void connectionInactive_shouldReleaseChannel() throws Exception {
+
+        ChannelFactory channelFactory = mock(ChannelFactory.class);
+        EventLoopGroup customEventLoopGroup = new NioEventLoopGroup(1);
+        NioSocketChannel channel = new NioSocketChannel();
+
+        when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> channel);
+        SdkEventLoopGroup eventLoopGroup = SdkEventLoopGroup.create(customEventLoopGroup, channelFactory);
+
+        NettyNioAsyncHttpClient customClient =
+            (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                             .eventLoopGroup(eventLoopGroup)
+                                                             .maxConcurrency(1)
+                                                             .build();
+
+
+        String body = randomAlphabetic(10);
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+        SdkHttpRequest request = createRequest(uri);
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+
+
+        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)
+                                                               .withStatus(500)
+                                                               .withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+
+        customClient.execute(AsyncExecuteRequest.builder()
+                                                .request(request)
+                                                .requestContentPublisher(createProvider(""))
+                                                .responseHandler(recorder).build());
+
+        verifyChannelRelease(channel);
+        assertThat(channel.isShutdown()).isTrue();
+
+        customClient.close();
+        eventLoopGroup.eventLoopGroup().shutdownGracefully().awaitUninterruptibly();
+    }
+
+    @Test
+    public void responseConnectionClosed_shouldCloseAndReleaseChannel() throws Exception {
+
+        ChannelFactory channelFactory = mock(ChannelFactory.class);
+        EventLoopGroup customEventLoopGroup = new NioEventLoopGroup(1);
+        NioSocketChannel channel = new NioSocketChannel();
+
+        when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> channel);
+
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+        SdkHttpRequest request = createRequest(uri);
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+
+        SdkEventLoopGroup eventLoopGroup = SdkEventLoopGroup.create(customEventLoopGroup, channelFactory);
+
+        NettyNioAsyncHttpClient customClient =
+            (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                             .eventLoopGroup(eventLoopGroup)
+                                                             .maxConcurrency(1)
+                                                             .build();
+
+        String body = randomAlphabetic(10);
+
+        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)
+                                                               .withStatus(500)
+                                                               .withHeader("Connection", "close")
+        ));
+
+        customClient.execute(AsyncExecuteRequest.builder()
+                                                .request(request)
+                                                .requestContentPublisher(createProvider(""))
+                                                .responseHandler(recorder).build());
+        recorder.completeFuture.get(5, TimeUnit.SECONDS);
+
+        verifyChannelRelease(channel);
+        assertThat(channel.isShutdown()).isTrue();
+
+        customClient.close();
+        eventLoopGroup.eventLoopGroup().shutdownGracefully().awaitUninterruptibly();
     }
 
     /**
@@ -489,6 +616,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
             .hasMessageContaining(expectedErrorMsg);
 
         customClient.close();
+    }
+
+    private void verifyChannelRelease(Channel channel) throws InterruptedException {
+        Thread.sleep(1000);
+        assertThat(channel.attr(AttributeKey.valueOf("channelPool")).get()).isNull();
     }
 
     private RecordingResponseHandler makeSimpleRequestAndReturnResponseHandler(SdkAsyncHttpClient client) throws Exception {

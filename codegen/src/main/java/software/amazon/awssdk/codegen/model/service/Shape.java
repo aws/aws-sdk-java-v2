@@ -40,6 +40,8 @@ public class Shape {
 
     private boolean streaming;
 
+    private boolean requiresLength;
+
     private boolean wrapper;
 
     private Member listMember;
@@ -201,6 +203,14 @@ public class Shape {
 
     public void setStreaming(boolean streaming) {
         this.streaming = streaming;
+    }
+
+    public boolean isRequiresLength() {
+        return requiresLength;
+    }
+
+    public void setRequiresLength(boolean requiresLength) {
+        this.requiresLength = requiresLength;
     }
 
     public boolean isWrapper() {

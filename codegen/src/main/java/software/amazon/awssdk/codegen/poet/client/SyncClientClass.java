@@ -34,6 +34,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -97,6 +98,10 @@ public class SyncClientClass implements ClassSpec {
 
         if (model.containsRequestSigners()) {
             classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
+        }
+
+        if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
+            classBuilder.addMethod(utilitiesMethod());
         }
 
         model.getEndpointOperation().ifPresent(
@@ -219,15 +224,29 @@ public class SyncClientClass implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec utilitiesMethod() {
+        UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
+        ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
+
+        return MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addStatement("return $T.create($L)",
+                                       returnType,
+                                       config.getCreateMethodParams().stream().collect(Collectors.joining(",")))
+                         .build();
+    }
+
     static ProtocolSpec getProtocolSpecs(PoetExtensions poetExtensions, IntermediateModel model) {
         Protocol protocol = model.getMetadata().getProtocol();
         switch (protocol) {
             case QUERY:
-                return new QueryProtocolSpec(poetExtensions);
+                return new QueryProtocolSpec(model, poetExtensions);
             case REST_XML:
                 return new XmlProtocolSpec(model, poetExtensions);
             case EC2:
-                return new Ec2ProtocolSpec(poetExtensions);
+                return new Ec2ProtocolSpec(model, poetExtensions);
             case AWS_JSON:
             case REST_JSON:
             case CBOR:

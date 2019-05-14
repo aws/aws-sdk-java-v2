@@ -43,12 +43,10 @@
                   default="checkstyle-suppressions.xml"/>
     </module>
 
-    <!-- Allow suppressing rules via comments. -->
-    <module name="SuppressionCommentFilter"/>
-
     <module name="TreeWalker">
-        <!-- Make the file contents available to the tree walker, so that we can check comments for rule suppression. -->
-        <module name="FileContentsHolder"/>
+
+        <!-- Allow suppressing rules via comments. -->
+        <module name="SuppressionCommentFilter"/>
 
         <!-- Class names must match the file name in which they are defined. -->
         <module name="OuterTypeFilename"/>
@@ -88,11 +86,6 @@
 
         <!-- Braces must be used for all blocks. -->
         <module name="NeedBraces"/>
-
-        <!-- Left curly braces cannot be placed on the next line. -->
-        <module name="LeftCurly">
-            <property name="maxLineLength" value="130"/>
-        </module>
 
         <!-- Braces must not be empty for most language constructs. -->
         <module name="EmptyBlock">
@@ -314,14 +307,6 @@
         <!-- There must be no space between a method name and its parameter list. -->
         <module name="ParenPad"/>
 
-        <!--&lt;!&ndash; Operators in multi-line statements must be placed at the beginning, not end, of the lines. &ndash;&gt;-->
-        <!--<module name="OperatorWrap">-->
-        <!--<property name="option" value="NL"/>-->
-        <!--<property name="tokens"-->
-        <!--value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR, METHOD_REF "/>-->
-        <!--<property name="severity" value="warning"/> &lt;!&ndash; TODO: Make error. &ndash;&gt;-->
-        <!--</module>-->
-
         <!-- Non-field annotations must be on separate lines, or in the case of single parameterless annotation can be
              placed on the same line as the signature. -->
         <module name="AnnotationLocation">
@@ -334,45 +319,6 @@
             <property name="id" value="AnnotationLocationVariables"/>
             <property name="tokens" value="VARIABLE_DEF"/>
             <property name="allowSamelineMultipleAnnotations" value="true"/>
-        </module>
-
-        <!-- Javadoc @param, @return, etc. must not be empty (but may be excluded). -->
-        <module name="NonEmptyAtclauseDescription"/>
-
-        <!--&lt;!&ndash; Javadoc summaries must be a complete sentence, and must not say things like "This X" or "A X"... &ndash;&gt;-->
-        <!--<module name="SummaryJavadoc">-->
-        <!--<property name="forbiddenSummaryFragments"-->
-        <!--value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )"/>-->
-        <!--<property name="severity" value="warning"/> &lt;!&ndash; TODO: Make error. &ndash;&gt;-->
-        <!--</module>-->
-
-        <!--&lt;!&ndash; One blank line must exist between each javadoc paragraph, and each paragraph <p> must occur on the same-->
-        <!--line as the text. &ndash;&gt;-->
-        <!--<module name="JavadocParagraph">-->
-        <!--<property name="severity" value="warning"/> &lt;!&ndash; TODO: Make error. &ndash;&gt;-->
-        <!--</module>-->
-
-        <!-- Javadoc @param, etc. must follow a specific order. -->
-        <module name="AtclauseOrder">
-            <property name="tagOrder" value="@param, @return, @throws, @deprecated"/>
-            <property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
-        </module>
-
-        <!--&lt;!&ndash; Javadoc must be specified for all public methods and follow a specific pattern. &ndash;&gt;-->
-        <!--<module name="JavadocMethod">-->
-        <!--<property name="scope" value="public"/>-->
-        <!--<property name="allowMissingParamTags" value="true"/>-->
-        <!--<property name="allowMissingThrowsTags" value="true"/>-->
-        <!--<property name="allowMissingReturnTag" value="true"/>-->
-        <!--<property name="minLineCount" value="2"/>-->
-        <!--<property name="allowedAnnotations" value="Override, Test"/>-->
-        <!--<property name="allowThrowsTagsForSubclasses" value="true"/>-->
-        <!--<property name="severity" value="warning"/> &lt;!&ndash; TODO: Make error. &ndash;&gt;-->
-        <!--</module>-->
-
-        <!-- Single-line style javadoc may be used. -->
-        <module name="SingleLineJavadoc">
-            <property name="ignoreInlineTags" value="false"/>
         </module>
 
         <!-- Catch blocks must not be empty without a comment. -->

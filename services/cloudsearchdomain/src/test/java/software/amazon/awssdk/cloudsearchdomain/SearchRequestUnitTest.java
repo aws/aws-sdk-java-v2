@@ -71,6 +71,7 @@ public class SearchRequestUnitTest {
         searchClient.search(SearchRequest.builder().query("Lord of the Rings").build());
 
         verify(postRequestedFor(urlEqualTo("/2013-01-01/search"))
-                   .withRequestBody(equalTo("format=sdk&pretty=true&q=Lord+of+the+Rings")));
+                   .withRequestBody(equalTo("format=sdk&pretty=true&q=Lord+of+the+Rings"))
+                   .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded")));
     }
 }

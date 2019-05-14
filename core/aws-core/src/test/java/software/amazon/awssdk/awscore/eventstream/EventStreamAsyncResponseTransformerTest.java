@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -180,6 +181,42 @@ public class EventStreamAsyncResponseTransformerTest {
 
         assertThat(cf1.isCompletedExceptionally()).isTrue();
         assertThat(transformer.prepare()).isNotEqualTo(cf1);
+    }
+
+    @Test(timeout = 2000)
+    public void prepareResetsSubscriberRef() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(2);
+        AtomicBoolean exceptionThrown = new AtomicBoolean(false);
+
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+                EventStreamAsyncResponseTransformer.builder()
+                        .eventStreamResponseHandler(
+                                onEventStream(p -> {
+                                    try {
+                                        p.subscribe(e -> {});
+                                    } catch (Throwable t) {
+                                        exceptionThrown.set(true);
+                                    } finally {
+                                        latch.countDown();
+                                    }
+                                }))
+                        .eventResponseHandler((r, e) -> null)
+                        .executor(Executors.newFixedThreadPool(2))
+                        .future(new CompletableFuture<>())
+                        .build();
+
+        Flowable<ByteBuffer> bytePublisher = Flowable.empty();
+
+        CompletableFuture<Void> transformFuture = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+        transformFuture.join();
+
+        transformFuture = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+        transformFuture.join();
+
+        latch.await();
+        assertThat(exceptionThrown).isFalse();
     }
 
     @Test
