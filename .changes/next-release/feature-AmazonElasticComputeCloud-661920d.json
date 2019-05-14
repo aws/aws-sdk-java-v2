@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic Compute Cloud", 
+    "type": "feature", 
+    "description": "Pagination support for ec2.DescribeSubnets, ec2.DescribeDhcpOptions"
+}
