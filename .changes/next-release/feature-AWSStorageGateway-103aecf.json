@@ -1,0 +1,5 @@
+{
+    "category": "AWS Storage Gateway", 
+    "type": "feature", 
+    "description": "Add Tags parameter to CreateSnapshot and UpdateSnapshotSchedule APIs, used for creating tags on create for one off snapshots and scheduled snapshots."
+}
