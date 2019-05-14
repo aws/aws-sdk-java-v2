@@ -3,12 +3,12 @@ version: 0.2
 phases:
   build:
     commands:
-      - mvn clean install -D maven.wagon.httpconnectionManager.maxPerRoute=2
+      - mvn clean install -T1C -Dmaven.wagon.http.pool=false
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
       - |
         if [ "$JAVA_VERSION" -ge "9" ]; then
           cd test/module-path-tests
-          mvn package
+          mvn package -Dmaven.wagon.http.pool=false
           mvn exec:exec -P mock-tests
         fi
