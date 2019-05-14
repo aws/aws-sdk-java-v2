@@ -1,3 +1,20 @@
+# __2.5.43__ __2019-05-14__
+## __AWS Storage Gateway__
+  - ### Features
+    - Add Tags parameter to CreateSnapshot and UpdateSnapshotSchedule APIs, used for creating tags on create for one off snapshots and scheduled snapshots.
+
+## __Amazon Chime__
+  - ### Features
+    - Amazon Chime private bots GA release.
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend now supports Virtual Private Cloud for Asynchronous Batch Processing jobs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Pagination support for ec2.DescribeSubnets, ec2.DescribeDhcpOptions
+
 # __2.5.42__ __2019-05-13__
 ## __AWS DataSync__
   - ### Features
