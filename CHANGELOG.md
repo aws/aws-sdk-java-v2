@@ -1,3 +1,216 @@
+# __2.5.43__ __2019-05-14__
+## __AWS Storage Gateway__
+  - ### Features
+    - Add Tags parameter to CreateSnapshot and UpdateSnapshotSchedule APIs, used for creating tags on create for one off snapshots and scheduled snapshots.
+
+## __Amazon Chime__
+  - ### Features
+    - Amazon Chime private bots GA release.
+
+## __Amazon Comprehend__
+  - ### Features
+    - With this release AWS Comprehend now supports Virtual Private Cloud for Asynchronous Batch Processing jobs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Pagination support for ec2.DescribeSubnets, ec2.DescribeDhcpOptions
+
+# __2.5.42__ __2019-05-13__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now enables exclude and include filters to control what files and directories will be copied as part of a task execution.
+
+## __AWS IoT Analytics__
+  - ### Features
+    - ContentDeliveryRule to support sending dataset to S3 and glue
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports Node.js v10
+
+# __2.5.41__ __2019-05-10__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports specifying existing catalog tables for a crawler to examine as a data source. A new parameter CatalogTargets is added to the CrawlerTargets data type.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug where events in an event stream were being signed with the request date, and not with the current system time.
+
+## __AWS Security Token Service__
+  - ### Features
+    - AWS Security Token Service (STS) now supports passing IAM Managed Policy ARNs as session policies when you programmatically create temporary sessions for a role or federated user. The Managed Policy ARNs can be passed via the PolicyArns parameter, which is now available in the AssumeRole, AssumeRoleWithWebIdentity, AssumeRoleWithSAML, and GetFederationToken APIs. The session policies referenced by the PolicyArn parameter will only further restrict the existing permissions of an IAM User or Role for individual sessions.
+
+# __2.5.40__ __2019-05-08__
+## __AWS IoT 1-Click Projects Service__
+  - ### Features
+    - Added automatic pagination support for ListProjects and ListPlacements APIs.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Adds "Parameters" field in UpdateConstraint API, which will allow Admin user to update "Parameters" in created Constraints.
+
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Documentation update for Amazon EKS to clarify allowed parameters in update-cluster-config.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Kinesis Data Analytics APIs now support tagging on applications.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Workteams now supports notification configurations. Neo now supports Jetson Nano as a target device and NumberOfHumanWorkersPerDataObject is now included in the ListLabelingJobsForWorkteam response.
+
+# __2.5.39__ __2019-05-07__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync now supports the ability to add additional authentication providers to your AWS AppSync GraphQL API as well as the ability to retrieve directives configured against fields or object type definitions during schema introspection.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Add optional field AdminUserList to CreateSMBFileShare and UpdateSMBFileShare APIs.
+
+## __Alexa For Business__
+  - ### Features
+    - This release adds an API allowing authorized users to delete a shared device's history of voice recordings and associated response data.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Patch Manager adds support for Microsoft Application Patching.
+
+# __2.5.38__ __2019-05-06__
+## __AWS CodePipeline__
+  - ### Features
+    - Documentation updates for codepipeline
+
+## __AWS Config__
+  - ### Features
+    - AWS Config now supports tagging on PutConfigRule, PutConfigurationAggregator and PutAggregationAuthorization APIs.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for iam
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for sts
+
+# __2.5.37__ __2019-05-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - DASH output groups using DRM encryption can now enable a playback device compatibility mode to correct problems with playback on older devices.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - You can now switch the channel mode of your channels from standard to single pipeline and from single pipeline to standard. In order to switch a channel from single pipeline to standard all inputs attached to the channel must support two encoder pipelines.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release of Amazon Cognito User Pools introduces the new AdminSetUserPassword API that allows administrators of a user pool to change a user's password. The new password can be temporary or permanent.
+
+## __Amazon WorkMail__
+  - ### Features
+    - Amazon WorkMail is releasing two new actions: 'GetMailboxDetails' and 'UpdateMailboxQuota'. They add insight into how much space is used by a given mailbox (size) and what its limit is (quota). A mailbox quota can be updated, but lowering the value will not influence WorkMail per user charges. For a closer look at the actions please visit https://docs.aws.amazon.com/workmail/latest/APIReference/API_Operations.html
+
+# __2.5.36__ __2019-05-02__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS Key Management Service (KMS) can return an INTERNAL_ERROR connection error code if it cannot connect a custom key store to its AWS CloudHSM cluster. INTERNAL_ERROR is one of several connection error codes that help you to diagnose and fix a problem with your custom key store.
+
+## __Alexa For Business__
+  - ### Features
+    - This release allows developers and customers to send text and audio announcements to rooms.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug in the Netty client where the read timeout isn't applied correctly for some requests.
+
+# __2.5.35__ __2019-05-01__
+## __AWS X-Ray__
+  - ### Features
+    - AWS X-Ray now includes Analytics, an interactive approach to analyzing user request paths (i.e., traces). Analytics will allow you to easily understand how your application and its underlying services are performing. With X-Ray Analytics, you can quickly detect application issues, pinpoint the root cause of the issue, determine the severity of the issues, and identify which end users were impacted. With AWS X-Ray Analytics you can explore, analyze, and visualize traces, allowing you to find increases in response time to user requests or increases in error rates. Metadata around peak periods, including frequency and actual times of occurrence, can be investigated by applying filters with a few clicks. You can then drill down on specific errors, faults, and response time root causes and view the associated traces.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces additional task definition parameters that enable you to define secret options for Docker log configuration, a per-container list contains secrets stored in AWS Systems Manager Parameter Store or AWS Secrets Manager.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an API for the modification of a VPN Connection, enabling migration from a Virtual Private Gateway (VGW) to a Transit Gateway (TGW), while preserving the VPN endpoint IP addresses on the AWS side as well as the tunnel options.
+
+# __2.5.34__ __2019-04-30__
+## __AWS CodePipeline__
+  - ### Features
+    - This release contains an update to the PipelineContext object that includes the Pipeline ARN, and the Pipeline Execution Id. The ActionContext object is also updated to include the Action Execution Id.
+
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds support for AWS Direct Connect customers to use AWS Transit Gateway with AWS Direct Connect gateway to route traffic between on-premise networks and their VPCs.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Admin users can now associate/disassociate aws budgets with a portfolio or product in Service Catalog. End users can see the association by listing it or as part of the describe portfolio/product output. A new optional boolean parameter, "DisableTemplateValidation", is added to ProvisioningArtifactProperties data type. The purpose of the parameter is to enable or disable the CloudFormation template validtion when creating a product or a provisioning artifact.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - (New Service) Amazon Managed Blockchain is a fully managed service that makes it easy to create and manage scalable blockchain networks using popular open source frameworks.
+
+## __Amazon Neptune__
+  - ### Features
+    - Adds a feature to allow customers to specify a custom parameter group when restoring a database cluster.
+
+# __2.5.33__ __2019-04-29__
+## __AWS Transfer for SFTP__
+  - ### Features
+    - This release adds support for per-server host-key management. You can now specify the SSH RSA private key used by your SFTP server.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for Elastic Fabric Adapter (EFA) ENIs.
+
+# __2.5.32__ __2019-04-26__
+## __AWS Identity and Access Management__
+  - ### Features
+    - AWS Security Token Service (STS) enables you to request session tokens from the global STS endpoint that work in all AWS Regions. You can configure the global STS endpoint to vend session tokens that are compatible with all AWS Regions using the new IAM SetSecurityTokenServicePreferences API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in ChecksumValidatingSubscriber which results in NPE if checksum validation fails.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - With this release AWS SNS adds tagging support for Topics.
+
+# __2.5.31__ __2019-04-25__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch.
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports the GetLayerVersionByArn API.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This update allows you to tag Amazon DynamoDB tables when you create them. Tags are labels you can attach to AWS resources to make them easier to manage, search, and filter.
+
+## __Amazon GameLift__
+  - ### Features
+    - This release introduces the new Realtime Servers feature, giving game developers a lightweight yet flexible solution that eliminates the need to build a fully custom game server. The AWS SDK updates provide support for scripts, which are used to configure and customize Realtime Servers.
+
+## __Amazon Inspector__
+  - ### Features
+    - AWS Inspector - Improve the ListFindings API response time and decreases the maximum number of agentIDs from 500 to 99.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for workspaces
+
+## __Netty NIO Async Http Client__
+  - ### Bugfixes
+    - Add workaround to await channel pools to be closed before shutting down EventLoopGroup to avoid the race condition between `channelPool.close` and `eventLoopGroup.shutdown`. See [#1109](https://github.com/aws/aws-sdk-java-v2/issues/1109).
+
 # __2.5.30__ __2019-04-24__
 ## __AWS CloudFormation__
   - ### Features

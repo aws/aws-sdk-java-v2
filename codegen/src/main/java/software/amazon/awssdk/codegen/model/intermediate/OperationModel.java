@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.OperationDocs;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 
 public class OperationModel extends DocumentationModel {
@@ -42,6 +43,8 @@ public class OperationModel extends DocumentationModel {
     private boolean hasBlobMemberAsPayload;
 
     private boolean isAuthenticated = true;
+
+    private AuthType authType;
 
     private boolean isPaginated;
 
@@ -101,6 +104,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setIsAuthenticated(boolean isAuthenticated) {
         this.isAuthenticated = isAuthenticated;
+    }
+
+    public AuthType getAuthType() {
+        return authType;
+    }
+
+    public void setAuthType(AuthType authType) {
+        this.authType = authType;
     }
 
     public ShapeModel getInputShape() {
@@ -238,6 +249,10 @@ public class OperationModel extends DocumentationModel {
      */
     public boolean hasEventStreamInput() {
         return containsEventStream(inputShape);
+    }
+
+    public boolean hasRequiresLengthInInput() {
+        return inputShape != null && inputShape.isHasRequiresLengthMember();
     }
 
     private boolean containsEventStream(ShapeModel shapeModel) {

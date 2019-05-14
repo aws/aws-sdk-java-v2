@@ -1,0 +1,21 @@
+{
+    "date": "2019-05-02",
+    "version": "2.5.36",
+    "entries": [
+        {
+            "category": "Netty NIO HTTP Client",
+            "type": "bugfix",
+            "description": "Fix a bug in the Netty client where the read timeout isn't applied correctly for some requests."
+        },
+        {
+            "category": "AWS Key Management Service",
+            "type": "feature",
+            "description": "AWS Key Management Service (KMS) can return an INTERNAL_ERROR connection error code if it cannot connect a custom key store to its AWS CloudHSM cluster. INTERNAL_ERROR is one of several connection error codes that help you to diagnose and fix a problem with your custom key store."
+        },
+        {
+            "category": "Alexa For Business",
+            "type": "feature",
+            "description": "This release allows developers and customers to send text and audio announcements to rooms."
+        }
+    ]
+}

@@ -185,6 +185,7 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     @Override
     public CompletableFuture<Void> prepare() {
         transformFuture = new CompletableFuture<>();
+        subscriberRef.set(null);
         isDone = false;
         return transformFuture;
     }

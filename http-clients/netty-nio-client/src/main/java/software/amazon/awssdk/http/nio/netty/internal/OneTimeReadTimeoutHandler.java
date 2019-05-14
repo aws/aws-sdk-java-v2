@@ -16,34 +16,24 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.util.ReferenceCountUtil;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Handler to add an one-time {@link ReadTimeoutHandler} to the pipeline and remove it afterwards.
+ * A one-time read timeout handler that removes itself from the pipeline after
+ * the next successful read.
  */
 @SdkInternalApi
-public final class OneTimeReadTimeoutHandler extends SimpleChannelInboundHandler {
-
-    private static final String READ_TIMEOUT_HANDLER_NAME = "RemoveAfterReadTimeoutHandler";
-    private final long readTimeoutMillis;
-    private final TimeUnit timeUnit;
-
-    OneTimeReadTimeoutHandler(long readTimeoutMillis, TimeUnit timeUnit) {
-        this.readTimeoutMillis = readTimeoutMillis;
-        this.timeUnit = timeUnit;
+public final class OneTimeReadTimeoutHandler extends ReadTimeoutHandler {
+    OneTimeReadTimeoutHandler(Duration timeout) {
+        super(timeout.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, Object msg) {
-        ReferenceCountUtil.retain(msg);
-        ctx.pipeline().addFirst(READ_TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(readTimeoutMillis, timeUnit));
-        ctx.fireChannelRead(msg);
-
-        ctx.pipeline().remove(READ_TIMEOUT_HANDLER_NAME);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         ctx.pipeline().remove(this);
+        super.channelRead(ctx, msg);
     }
 }

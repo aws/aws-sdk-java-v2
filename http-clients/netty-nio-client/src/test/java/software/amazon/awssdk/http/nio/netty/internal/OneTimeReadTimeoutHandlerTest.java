@@ -15,19 +15,17 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -48,29 +46,16 @@ public class OneTimeReadTimeoutHandlerTest {
 
     @BeforeClass
     public static void setup() {
-        handler = new OneTimeReadTimeoutHandler(TIMEOUT_IN_MILLIS, TimeUnit.MILLISECONDS);
+        handler = new OneTimeReadTimeoutHandler(Duration.ofMillis(TIMEOUT_IN_MILLIS));
     }
 
     @Test
-    public void channelRead_shouldAddReadTimeoutHandlerBeforeRead() {
-        ArgumentCaptor<ReadTimeoutHandler> argumentCaptor = ArgumentCaptor.forClass(ReadTimeoutHandler.class);
-        ArgumentCaptor<String> handlerNameCaptor = ArgumentCaptor.forClass(String.class);
-
+    public void channelRead_removesSelf() throws Exception {
         when(context.pipeline()).thenReturn(channelPipeline);
 
-        handler.channelRead0(context, object);
+        handler.channelRead(context, object);
 
-        verify(channelPipeline, times(1)).addFirst(handlerNameCaptor.capture(),
-                                                   argumentCaptor.capture());
-
+        verify(channelPipeline, times(1)).remove(eq(handler));
         verify(context, times(1)).fireChannelRead(object);
-
-        ReadTimeoutHandler readTimeoutHandler = argumentCaptor.getValue();
-        assertThat(readTimeoutHandler.getReaderIdleTimeInMillis()).isEqualTo(TIMEOUT_IN_MILLIS);
-
-        verify(channelPipeline, times(1)).remove(handlerNameCaptor.getValue());
-
-        verify(channelPipeline, times(1)).remove(handler);
-
     }
 }

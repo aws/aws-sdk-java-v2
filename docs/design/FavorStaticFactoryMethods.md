@@ -1,3 +1,5 @@
+**Design:** Convention, **Status:** [Complete](README.md)
+
 ## Favor Static Factory Methods Over Constructors
 
 This page describes the structures and conventions used to initialize a class.

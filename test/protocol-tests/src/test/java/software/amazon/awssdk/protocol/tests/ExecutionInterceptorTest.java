@@ -65,6 +65,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
@@ -134,6 +135,8 @@ public class ExecutionInterceptorTest {
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor, false);
         assertThat(beforeTransmissionArg.requestBody().get().contentStreamProvider().newStream().read()).isEqualTo(0);
+        assertThat(beforeTransmissionArg.httpRequest().firstMatchingHeader(Header.CONTENT_LENGTH).get())
+            .contains(Long.toString(1L));
     }
 
     @Test
@@ -156,6 +159,8 @@ public class ExecutionInterceptorTest {
         // the MoveParametersToBodyStage, but we can move the logic from there into the query marshallers (why the hack exists)
         // and then everything should be good for JSON.
         assertThat(beforeTransmissionArg.requestBody().get().contentStreamProvider().newStream().read()).isEqualTo(-1);
+        assertThat(beforeTransmissionArg.httpRequest().firstMatchingHeader(Header.CONTENT_LENGTH).get())
+            .contains(Long.toString(0L));
     }
 
     @Test

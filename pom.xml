@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.5.31-SNAPSHOT</version>
+    <version>2.5.44-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -62,6 +62,9 @@
         <module>bundle</module>
         <module>build-tools</module>
         <module>release-scripts</module>
+        <module>utils</module>
+        <module>codegen-lite</module>
+        <module>codegen-lite-maven-plugin</module>
         <module>test/dynamodbdocument-v1</module>
         <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
@@ -72,18 +75,16 @@
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
         <module>test/module-path-tests</module>
-        <module>utils</module>
-        <module>codegen-lite</module>
-        <module>codegen-lite-maven-plugin</module>
+        <module>test/tests-coverage-reporting</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <flow.version>1.7</flow.version>
         <jackson.version>2.9.8</jackson.version>
         <jackson.annotations.version>2.9.0</jackson.annotations.version>
+        <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.4</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
@@ -154,7 +155,7 @@
         <!-- Sonar -->
         <root.offset>..</root.offset>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.jacoco.reportPath>${basedir}/target/jacoco.exec</sonar.jacoco.reportPath>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
@@ -413,7 +414,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
-                    <destFile>${basedir}/target/jacoco.exec</destFile>
+                    <destFile>${sonar.jacoco.reportPath}</destFile>
                 </configuration>
                 <executions>
                     <execution>
@@ -425,6 +426,24 @@
                     <execution>
                         <id>jacoco-site</id>
                         <phase>package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <!--
+                        Prepares the property pointing to the JaCoCo runtime agent which
+                        is passed as VM argument when Maven the Failsafe plugin is executed.
+                    -->
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>post-integration-test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
@@ -521,6 +540,8 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
+                                    <!-- Sets the VM argument line used when integration tests are run. -->
+                                    <argLine>${argLine}</argLine>
                                     <includes>
                                         <include>**/*IntegrationTest.java</include>
                                         <include>**/*IntegrationTests.java</include>
@@ -590,7 +611,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <minmemory>128m</minmemory>
-                            <maxmemory>4g</maxmemory>
+                            <maxmemory>8g</maxmemory>
                             <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
