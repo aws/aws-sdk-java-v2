@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaPackage", 
-    "type": "feature", 
-    "description": "Adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, rather than Number or Time with SegmentTimeline."
-}

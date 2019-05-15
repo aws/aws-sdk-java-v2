@@ -1,0 +1,36 @@
+{
+    "date": "2019-05-15",
+    "version": "2.5.44",
+    "entries": [
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "Adding tagging support for VPC Endpoints and VPC Endpoint Services."
+        },
+        {
+            "category": "AWS Elemental MediaPackage",
+            "type": "feature",
+            "description": "Adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, rather than Number or Time with SegmentTimeline."
+        },
+        {
+            "category": "AWS CodePipeline",
+            "type": "feature",
+            "description": "This feature includes new APIs to add, edit, remove and view tags for pipeline, custom action type and webhook resources. You can also add tags while creating these resources."
+        },
+        {
+            "category": "Amazon Transcribe Service",
+            "type": "feature",
+            "description": "Amazon Transcribe - support transcriptions from audio sources in Indian English (en-IN) and Hindi (hi-IN)."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix a bug in `EventStreamAsyncResponseTransformer` where the reference to the current stream `Subscriber` is not reset in `prepare`, causing an `IllegalStateException` to be thrown when attemping to subscribe to the event stream upon a retry."
+        },
+        {
+            "category": "Amazon Relational Database Service",
+            "type": "feature",
+            "description": "In the RDS API and CLI documentation, corrections to the descriptions for Boolean parameters to avoid references to TRUE and FALSE. The RDS CLI does not allow TRUE and FALSE values values for Boolean parameters."
+        }
+    ]
+}

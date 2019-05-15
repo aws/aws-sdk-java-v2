@@ -1,3 +1,28 @@
+# __2.5.44__ __2019-05-15__
+## __AWS CodePipeline__
+  - ### Features
+    - This feature includes new APIs to add, edit, remove and view tags for pipeline, custom action type and webhook resources. You can also add tags while creating these resources.
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, rather than Number or Time with SegmentTimeline.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in `EventStreamAsyncResponseTransformer` where the reference to the current stream `Subscriber` is not reset in `prepare`, causing an `IllegalStateException` to be thrown when attemping to subscribe to the event stream upon a retry.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding tagging support for VPC Endpoints and VPC Endpoint Services.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - In the RDS API and CLI documentation, corrections to the descriptions for Boolean parameters to avoid references to TRUE and FALSE. The RDS CLI does not allow TRUE and FALSE values values for Boolean parameters.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe - support transcriptions from audio sources in Indian English (en-IN) and Hindi (hi-IN).
+
 # __2.5.43__ __2019-05-14__
 ## __AWS Storage Gateway__
   - ### Features

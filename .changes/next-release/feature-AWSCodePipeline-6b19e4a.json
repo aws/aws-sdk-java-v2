@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodePipeline", 
-    "type": "feature", 
-    "description": "This feature includes new APIs to add, edit, remove and view tags for pipeline, custom action type and webhook resources. You can also add tags while creating these resources."
-}
