@@ -38,18 +38,6 @@ section of the developer guide.
 
 The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. 
 
-#### Whole SDK ####
-
-You can import the whole SDK into your project (includes all services) as follows:
-
-```xml
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>aws-sdk-java</artifactId>
-  <version>2.5.44</version>
-</dependency>
-```
-
 #### Individual Services ####
 
 Alternatively you can add dependencies for the specific services you use only:
