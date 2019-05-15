@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic Compute Cloud", 
+    "type": "feature", 
+    "description": "Adding tagging support for VPC Endpoints and VPC Endpoint Services."
+}
