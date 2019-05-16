@@ -1,0 +1,5 @@
+{
+    "category": "AWS Elemental MediaLive", 
+    "type": "feature", 
+    "description": "Added channel state waiters to MediaLive."
+}
