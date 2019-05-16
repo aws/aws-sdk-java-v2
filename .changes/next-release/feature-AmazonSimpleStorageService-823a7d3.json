@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Simple Storage Service", 
+    "type": "feature", 
+    "description": "This release updates the Amazon S3 PUT Bucket replication API to include a new optional field named token, which allows you to add a replication configuration to an S3 bucket that has Object Lock enabled."
+}
