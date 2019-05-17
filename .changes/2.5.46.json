@@ -1,0 +1,11 @@
+{
+    "date": "2019-05-17",
+    "version": "2.5.46",
+    "entries": [
+        {
+            "category": "Amazon AppStream",
+            "type": "feature",
+            "description": "Includes APIs for managing subscriptions to AppStream 2.0 usage reports and configuring idle disconnect timeouts on AppStream 2.0 fleets."
+        }
+    ]
+}

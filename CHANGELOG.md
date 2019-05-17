@@ -1,3 +1,8 @@
+# __2.5.46__ __2019-05-17__
+## __Amazon AppStream__
+  - ### Features
+    - Includes APIs for managing subscriptions to AppStream 2.0 usage reports and configuring idle disconnect timeouts on AppStream 2.0 fleets.
+
 # __2.5.45__ __2019-05-16__
 ## __AWS Elemental MediaLive__
   - ### Features
