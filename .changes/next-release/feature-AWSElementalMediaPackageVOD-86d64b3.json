@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaPackage VOD", 
-    "type": "feature", 
-    "description": "AWS Elemental MediaPackage now supports Video-on-Demand (VOD) workflows. These new features allow you to easily deliver a vast library of source video Assets stored in your own S3 buckets using a small set of simple to set up Packaging Configurations and Packaging Groups."
-}
