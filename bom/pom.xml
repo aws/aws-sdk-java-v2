@@ -4,7 +4,7 @@
 <parent>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>aws-sdk-java-pom</artifactId>
-<version>2.5.46</version>
+<version>2.5.47</version>
 <relativePath>../pom.xml</relativePath>
 </parent>
 <artifactId>bom</artifactId>
@@ -648,6 +648,11 @@
 <dependency>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>managedblockchain</artifactId>
+<version>${awsjavasdk.version}</version>
+</dependency>
+<dependency>
+<groupId>software.amazon.awssdk</groupId>
+<artifactId>mediapackagevod</artifactId>
 <version>${awsjavasdk.version}</version>
 </dependency>
 </dependencies>
