@@ -1,0 +1,5 @@
+{
+    "category": "Managed Streaming for Kafka", 
+    "type": "feature", 
+    "description": "Updated APIs for the Managed Streaming for Kafka service that let customers create clusters with custom Kafka configuration."
+}
