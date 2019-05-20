@@ -182,6 +182,7 @@
 <module>worklink</module>
 <module>textract</module>
 <module>managedblockchain</module>
+<module>mediapackagevod</module>
 </modules>
 <description>The AWS Java SDK services</description>
 <url>https://aws.amazon.com/sdkforjava</url>
