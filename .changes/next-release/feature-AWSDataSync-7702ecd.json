@@ -1,0 +1,5 @@
+{
+    "category": "AWS DataSync", 
+    "type": "feature", 
+    "description": "Documentation update and refine pagination token on Datasync List API's"
+}
