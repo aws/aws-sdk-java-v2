@@ -1,0 +1,5 @@
+{
+    "category": "Alexa For Business", 
+    "type": "feature", 
+    "description": "This release contains API changes to allow customers to create and manage Network Profiles for their Shared devices"
+}
