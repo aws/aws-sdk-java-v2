@@ -1,3 +1,12 @@
+# __2.5.48__ __2019-05-21__
+## __AWS DataSync__
+  - ### Features
+    - Documentation update and refine pagination token on Datasync List API's
+
+## __Alexa For Business__
+  - ### Features
+    - This release contains API changes to allow customers to create and manage Network Profiles for their Shared devices
+
 # __2.5.47__ __2019-05-20__
 ## __AWS Elemental MediaPackage VOD__
   - ### Features

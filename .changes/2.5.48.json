@@ -1,0 +1,16 @@
+{
+    "date": "2019-05-21",
+    "version": "2.5.48",
+    "entries": [
+        {
+            "category": "AWS DataSync",
+            "type": "feature",
+            "description": "Documentation update and refine pagination token on Datasync List API's"
+        },
+        {
+            "category": "Alexa For Business",
+            "type": "feature",
+            "description": "This release contains API changes to allow customers to create and manage Network Profiles for their Shared devices"
+        }
+    ]
+}
