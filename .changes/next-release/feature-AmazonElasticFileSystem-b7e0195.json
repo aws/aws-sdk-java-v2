@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Elastic File System", 
+    "type": "feature", 
+    "description": "AWS EFS documentation updated to reflect the minimum required value for ProvisionedThroughputInMibps is 1 from the previously documented 0. The service has always required a minimum value of 1, therefor service behavior is not changed."
+}
