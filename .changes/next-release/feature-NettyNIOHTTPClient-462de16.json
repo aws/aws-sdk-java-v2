@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "type": "feature", 
+    "description": "Improved error messaging when a connection is closed. Fixes [#1260](https://github.com/aws/aws-sdk-java-v2/issues/1260)."
+}
