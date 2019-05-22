@@ -1,0 +1,5 @@
+{
+    "category": "Amazon API Gateway", 
+    "type": "feature", 
+    "description": "This release adds support for tagging of Amazon API Gateway resources."
+}
