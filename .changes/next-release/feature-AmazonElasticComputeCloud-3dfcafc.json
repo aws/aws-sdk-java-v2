@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Elastic Compute Cloud", 
-    "type": "feature", 
-    "description": "This release adds idempotency support for associate, create route and authorization APIs for AWS Client VPN Endpoints."
-}

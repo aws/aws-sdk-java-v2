@@ -1,5 +1,0 @@
-{
-    "category": "AWS Budgets", 
-    "type": "feature", 
-    "description": "Added new datatype PlannedBudgetLimits to Budget model, and updated examples for AWS Budgets API for UpdateBudget, CreateBudget, DescribeBudget, and DescribeBudgets"
-}
