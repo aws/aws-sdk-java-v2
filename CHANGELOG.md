@@ -1,3 +1,16 @@
+# __2.5.50__ __2019-05-23__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Updated aws-java-sdk and bom modules to include ALL service modules.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Documentation updates for waf-regional
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New APIs to enable EBS encryption by default feature. Once EBS encryption by default is enabled in a region within the account, all new EBS volumes and snapshot copies are always encrypted
+
 # __2.5.49__ __2019-05-22__
 ## __AWS Budgets__
   - ### Features
