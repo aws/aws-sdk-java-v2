@@ -1,3 +1,110 @@
+# __2.5.50__ __2019-05-23__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Updated aws-java-sdk and bom modules to include ALL service modules.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Documentation updates for waf-regional
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New APIs to enable EBS encryption by default feature. Once EBS encryption by default is enabled in a region within the account, all new EBS volumes and snapshot copies are always encrypted
+
+# __2.5.49__ __2019-05-22__
+## __AWS Budgets__
+  - ### Features
+    - Added new datatype PlannedBudgetLimits to Budget model, and updated examples for AWS Budgets API for UpdateBudget, CreateBudget, DescribeBudget, and DescribeBudgets
+
+## __AWS Device Farm__
+  - ### Features
+    - This release introduces support for tagging, tag-based access control, and resource-based access control.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Service Catalog UpdateProvisionedProductProperties API enables customers to manage provisioned product ownership. Administrators can now update the user associated to a provisioned product to another user within the same account allowing the new user to describe, update, terminate and execute service actions in that Service Catalog resource. New owner will also be able to list and describe all past records executed for that provisioned product.
+
+## __Amazon API Gateway__
+  - ### Features
+    - This release adds support for tagging of Amazon API Gateway resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds idempotency support for associate, create route and authorization APIs for AWS Client VPN Endpoints.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - AWS EFS documentation updated to reflect the minimum required value for ProvisionedThroughputInMibps is 1 from the previously documented 0. The service has always required a minimum value of 1, therefor service behavior is not changed.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for rds
+
+## __Amazon WorkLink__
+  - ### Features
+    - Amazon WorkLink is a fully managed, cloud-based service that enables secure, one-click access to internal websites and web apps from mobile phones. This release introduces new APIs to associate and manage website authorization providers with Amazon WorkLink fleets.
+
+# __2.5.48__ __2019-05-21__
+## __AWS DataSync__
+  - ### Features
+    - Documentation update and refine pagination token on Datasync List API's
+
+## __Alexa For Business__
+  - ### Features
+    - This release contains API changes to allow customers to create and manage Network Profiles for their Shared devices
+
+# __2.5.47__ __2019-05-20__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - AWS Elemental MediaPackage now supports Video-on-Demand (VOD) workflows. These new features allow you to easily deliver a vast library of source video Assets stored in your own S3 buckets using a small set of simple to set up Packaging Configurations and Packaging Groups.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Documentation updates for meteringmarketplace
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Updated APIs for the Managed Streaming for Kafka service that let customers create clusters with custom Kafka configuration.
+
+# __2.5.46__ __2019-05-17__
+## __Amazon AppStream__
+  - ### Features
+    - Includes APIs for managing subscriptions to AppStream 2.0 usage reports and configuring idle disconnect timeouts on AppStream 2.0 fleets.
+
+# __2.5.45__ __2019-05-16__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added channel state waiters to MediaLive.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release updates the Amazon S3 PUT Bucket replication API to include a new optional field named token, which allows you to add a replication configuration to an S3 bucket that has Object Lock enabled.
+
+# __2.5.44__ __2019-05-15__
+## __AWS CodePipeline__
+  - ### Features
+    - This feature includes new APIs to add, edit, remove and view tags for pipeline, custom action type and webhook resources. You can also add tags while creating these resources.
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, rather than Number or Time with SegmentTimeline.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in `EventStreamAsyncResponseTransformer` where the reference to the current stream `Subscriber` is not reset in `prepare`, causing an `IllegalStateException` to be thrown when attemping to subscribe to the event stream upon a retry.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding tagging support for VPC Endpoints and VPC Endpoint Services.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - In the RDS API and CLI documentation, corrections to the descriptions for Boolean parameters to avoid references to TRUE and FALSE. The RDS CLI does not allow TRUE and FALSE values values for Boolean parameters.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe - support transcriptions from audio sources in Indian English (en-IN) and Hindi (hi-IN).
+
 # __2.5.43__ __2019-05-14__
 ## __AWS Storage Gateway__
   - ### Features
