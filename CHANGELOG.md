@@ -1,3 +1,16 @@
+# __2.5.51__ __2019-05-24__
+## __AWS CodeDeploy__
+  - ### Features
+    - AWS CodeDeploy now supports tagging for the application and deployment group resources.
+
+## __AWS Elemental MediaStore Data Plane__
+  - ### Features
+    - MediaStore - This release adds support for chunked transfer of objects, which reduces latency by making an object available for downloading while it is still being uploaded.
+
+## __AWS OpsWorks for Chef Automate__
+  - ### Features
+    - Documentation updates for OpsWorks for Chef Automate; attribute values updated for Chef Automate 2.0 release.
+
 # __2.5.50__ __2019-05-23__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
