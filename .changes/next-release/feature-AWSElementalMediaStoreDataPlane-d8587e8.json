@@ -1,5 +1,0 @@
-{
-    "category": "AWS Elemental MediaStore Data Plane", 
-    "type": "feature", 
-    "description": "MediaStore - This release adds support for chunked transfer of objects, which reduces latency by making an object available for downloading while it is still being uploaded."
-}

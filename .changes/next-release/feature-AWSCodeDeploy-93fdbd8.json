@@ -1,5 +1,0 @@
-{
-    "category": "AWS CodeDeploy", 
-    "type": "feature", 
-    "description": "AWS CodeDeploy now supports tagging for the application and deployment group resources."
-}

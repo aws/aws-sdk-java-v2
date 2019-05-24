@@ -1,0 +1,21 @@
+{
+    "date": "2019-05-24",
+    "version": "2.5.51",
+    "entries": [
+        {
+            "category": "AWS OpsWorks for Chef Automate",
+            "type": "feature",
+            "description": "Documentation updates for OpsWorks for Chef Automate; attribute values updated for Chef Automate 2.0 release."
+        },
+        {
+            "category": "AWS Elemental MediaStore Data Plane",
+            "type": "feature",
+            "description": "MediaStore - This release adds support for chunked transfer of objects, which reduces latency by making an object available for downloading while it is still being uploaded."
+        },
+        {
+            "category": "AWS CodeDeploy",
+            "type": "feature",
+            "description": "AWS CodeDeploy now supports tagging for the application and deployment group resources."
+        }
+    ]
+}
