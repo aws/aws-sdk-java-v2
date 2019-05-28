@@ -1,5 +1,0 @@
-{
-    "category": "AWS Storage Gateway", 
-    "type": "feature", 
-    "description": "Introduce AssignTapePool operation to allow customers to migrate tapes between pools."
-}
