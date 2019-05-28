@@ -82,7 +82,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <jackson.annotations.version>2.9.0</jackson.annotations.version>
         <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
