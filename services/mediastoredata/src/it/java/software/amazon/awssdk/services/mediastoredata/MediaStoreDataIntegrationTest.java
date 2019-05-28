@@ -24,7 +24,6 @@ import java.time.Instant;
 import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncRequestBody;
@@ -39,11 +38,9 @@ import software.amazon.awssdk.services.mediastoredata.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
-//TODO deleteContainer fails with ContainerInUseException with no error message. Needs investigation
-// The test cases work fine.
-@Ignore
 public class MediaStoreDataIntegrationTest extends AwsIntegrationTestBase {
     private static final String CONTAINER_NAME = "java-sdk-test-" + Instant.now().toEpochMilli();
+    private static final String PATH = "/foo/bar";
 
     private static MediaStoreClient mediaStoreClient;
     private static MediaStoreDataClient syncClientWithApache;
@@ -81,15 +78,16 @@ public class MediaStoreDataIntegrationTest extends AwsIntegrationTestBase {
 
         putObjectRequest = PutObjectRequest.builder()
                                            .contentType("application/octet-stream")
-                                           .path("/foo")
+                                           .path(PATH)
                                            .build();
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         waitContainerToBeActive();
-        // Randomly this method is throwing ContainerInUseException
-        Thread.sleep(2000);
+
+        syncClientWithApache.deleteObject(b -> b.path(PATH));
+
         mediaStoreClient.deleteContainer(r -> r.containerName(CONTAINER_NAME));
     }
 
