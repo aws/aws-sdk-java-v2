@@ -73,7 +73,7 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
         try {
             String credentialsResponse = HttpResourcesUtils.instance().readResource(getCredentialsEndpointProvider());
 
-            JsonNode node = JacksonUtils.jsonNodeOf(credentialsResponse);
+            JsonNode node = JacksonUtils.sensitiveJsonNodeOf(credentialsResponse);
             JsonNode accessKey = node.get("AccessKeyId");
             JsonNode secretKey = node.get("SecretAccessKey");
             JsonNode token = node.get("Token");
