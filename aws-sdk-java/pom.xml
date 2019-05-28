@@ -4,7 +4,7 @@
 <parent>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>aws-sdk-java-pom</artifactId>
-<version>2.5.51</version>
+<version>2.5.52</version>
 <relativePath>../pom.xml</relativePath>
 </parent>
 <artifactId>aws-sdk-java</artifactId>
@@ -863,6 +863,11 @@ Amazon AutoScaling, etc).</description>
 <dependency>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>xray</artifactId>
+<version>${awsjavasdk.version}</version>
+</dependency>
+<dependency>
+<groupId>software.amazon.awssdk</groupId>
+<artifactId>groundstation</artifactId>
 <version>${awsjavasdk.version}</version>
 </dependency>
 </dependencies>
