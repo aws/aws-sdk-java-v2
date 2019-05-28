@@ -1,0 +1,5 @@
+{
+    "category": "AWS RoboMaker", 
+    "type": "feature", 
+    "description": "Added support for an additional robot software suite (Gazebo 9) and for cancelling deployment jobs."
+}
