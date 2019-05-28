@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
+
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -122,6 +125,10 @@ public final class RequestExecutionContext {
      */
     public void requestProvider(AsyncRequestBody publisher) {
         requestProvider = publisher;
+    }
+
+    public CompletableFuture asyncResponseTransformerFuture() {
+        return executionAttributes().getAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE);
     }
 
     /**
