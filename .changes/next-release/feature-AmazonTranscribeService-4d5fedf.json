@@ -1,0 +1,5 @@
+{
+    "category": "Amazon Transcribe Service", 
+    "type": "feature", 
+    "description": "Amazon Transcribe - support transcriptions from audio sources in Modern Standard Arabic (ar-SA)."
+}
