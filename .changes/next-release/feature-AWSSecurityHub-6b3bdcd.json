@@ -1,5 +1,0 @@
-{
-    "category": "AWS SecurityHub", 
-    "type": "feature", 
-    "description": "This update adds the ListProductSubscribers API, DescribeProducts API, removes CONTAINS as a comparison value for the StringFilter, and only allows use of EQUALS instead of CONTAINS in MapFilter."
-}
