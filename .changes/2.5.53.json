@@ -1,0 +1,41 @@
+{
+    "date": "2019-05-29",
+    "version": "2.5.53",
+    "entries": [
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Allows S3 to be used with object keys that have a leading slash \"/myKey\""
+        },
+        {
+            "category": "AWS IoT Things Graph",
+            "type": "feature",
+            "description": "Initial release."
+        },
+        {
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "type": "feature",
+            "description": "Systems Manager - Documentation updates"
+        },
+        {
+            "category": "Amazon Data Lifecycle Manager",
+            "type": "feature",
+            "description": "Customers can now simultaneously take snapshots of multiple EBS volumes attached to an EC2 instance. With this new capability, snapshots guarantee crash-consistency across multiple volumes by preserving the order of IO operations. This new feature is fully integrated with Amazon Data Lifecycle Manager (DLM) allowing customers to automatically manage snapshots by creating lifecycle policies."
+        },
+        {
+            "category": "Amazon Relational Database Service",
+            "type": "feature",
+            "description": "Documentation updates for rds"
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "Customers can now simultaneously take snapshots of multiple EBS volumes attached to an EC2 instance. With this new capability, snapshots guarantee crash-consistency across multiple volumes by preserving the order of IO operations. This new feature is fully integrated with Amazon Data Lifecycle Manager (DLM) allowing customers to automatically manage snapshots by creating lifecycle policies."
+        },
+        {
+            "category": "AWS SecurityHub",
+            "type": "feature",
+            "description": "This update adds the ListProductSubscribers API, DescribeProducts API, removes CONTAINS as a comparison value for the StringFilter, and only allows use of EQUALS instead of CONTAINS in MapFilter."
+        }
+    ]
+}
