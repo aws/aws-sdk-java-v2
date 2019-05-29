@@ -4,7 +4,7 @@
 <parent>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>aws-sdk-java-pom</artifactId>
-<version>2.5.52</version>
+<version>2.5.53</version>
 <relativePath>../pom.xml</relativePath>
 </parent>
 <artifactId>bom</artifactId>
@@ -978,6 +978,11 @@
 <dependency>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>groundstation</artifactId>
+<version>${awsjavasdk.version}</version>
+</dependency>
+<dependency>
+<groupId>software.amazon.awssdk</groupId>
+<artifactId>iotthingsgraph</artifactId>
 <version>${awsjavasdk.version}</version>
 </dependency>
 </dependencies>
