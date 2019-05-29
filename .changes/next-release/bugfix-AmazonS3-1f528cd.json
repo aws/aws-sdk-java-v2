@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "bugfix", 
+    "description": "Allows S3 to be used with object keys that have a leading slash \"/myKey\""
+}

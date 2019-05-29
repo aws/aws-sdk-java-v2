@@ -53,11 +53,25 @@ public class ApacheHttpRequestFactory {
 
     public HttpRequestBase create(final HttpExecuteRequest request, final ApacheHttpRequestConfig requestConfig) {
         URI uri = request.httpRequest().getUri();
-        HttpRequestBase base = createApacheRequest(request, uri.toString());
+
+        HttpRequestBase base = createApacheRequest(request, sanitizeUri(uri));
         addHeadersToRequest(base, request.httpRequest());
         addRequestConfig(base, request.httpRequest(), requestConfig);
 
         return base;
+    }
+
+    /**
+     * The Apache HTTP client doesn't allow consecutive slashes in the URI. For S3
+     * and other AWS services, this is allowed and required. This methods replaces
+     * any occurrence of "//" in the URI path with "/%2F".
+     *
+     * @param uri The existing URI with double slashes not sanitized for Apache.
+     * @return a new String containing the modified URI
+     */
+    private String sanitizeUri(URI uri) {
+        String newPath = uri.getPath().replace("//", "/%2F");
+        return uri.toString().replace(uri.getPath(), newPath);
     }
 
     private void addRequestConfig(final HttpRequestBase base,

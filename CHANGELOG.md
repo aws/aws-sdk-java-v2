@@ -1,3 +1,66 @@
+# __2.5.52__ __2019-05-28__
+## __AWS Ground Station__
+  - ### Features
+    - AWS Ground Station is a fully managed service that enables you to control satellite communications, downlink and process satellite data, and scale your satellite operations efficiently and cost-effectively without having to build or manage your own ground station infrastructure.
+
+## __AWS RoboMaker__
+  - ### Features
+    - Added support for an additional robot software suite (Gazebo 9) and for cancelling deployment jobs.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for iam
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Introduce AssignTapePool operation to allow customers to migrate tapes between pools.
+
+## __AWS WAF__
+  - ### Features
+    - Documentation updates for waf
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds the ability to search and order toll free phone numbers for Voice Connectors.
+
+## __Amazon Pinpoint Email Service__
+  - ### Features
+    - This release adds support for programmatic access to Deliverability dashboard subscriptions and the deliverability data provided by the Deliverability dashboard for domains and IP addresses. The data includes placement metrics for campaigns that use subscribed domains to send email.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add a new output field Status to DBEngineVersion which shows the status of the engine version (either available or deprecated). Add a new parameter IncludeAll to DescribeDBEngineVersions to make it possible to return both available and deprecated engine versions. These changes enable a user to create a Read Replica of an DB instance on a deprecated engine version.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe - support transcriptions from audio sources in Modern Standard Arabic (ar-SA).
+
+# __2.5.51__ __2019-05-24__
+## __AWS CodeDeploy__
+  - ### Features
+    - AWS CodeDeploy now supports tagging for the application and deployment group resources.
+
+## __AWS Elemental MediaStore Data Plane__
+  - ### Features
+    - MediaStore - This release adds support for chunked transfer of objects, which reduces latency by making an object available for downloading while it is still being uploaded.
+
+## __AWS OpsWorks for Chef Automate__
+  - ### Features
+    - Documentation updates for OpsWorks for Chef Automate; attribute values updated for Chef Automate 2.0 release.
+
+# __2.5.50__ __2019-05-23__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Updated aws-java-sdk and bom modules to include ALL service modules.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Documentation updates for waf-regional
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New APIs to enable EBS encryption by default feature. Once EBS encryption by default is enabled in a region within the account, all new EBS volumes and snapshot copies are always encrypted
+
 # __2.5.49__ __2019-05-22__
 ## __AWS Budgets__
   - ### Features
