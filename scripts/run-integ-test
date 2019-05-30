@@ -61,7 +61,7 @@ def run_tests(modules):
     modules_to_include = modules_to_include[:-1]
 
     # build necessary dependencies first
-    check_call(["mvn", "clean", "install", "-pl", modules_to_include, "-P", "quick", "--am", "-Dmaven.wagon.httpconnectionManager.maxPerRoute=2"])
+    check_call(["mvn", "clean", "install", "-pl", modules_to_include, "-P", "quick", "--am"])
     check_call(["mvn", "verify", "-pl", modules_to_include, "-P", "integration-tests", "-Dfailsafe.rerunFailingTestsCount=1"])
 
 if __name__ == "__main__":
