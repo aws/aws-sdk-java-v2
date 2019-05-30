@@ -4,7 +4,7 @@
 <parent>
 <groupId>software.amazon.awssdk</groupId>
 <artifactId>aws-sdk-java-pom</artifactId>
-<version>2.5.53</version>
+<version>2.5.54</version>
 </parent>
 <artifactId>services</artifactId>
 <name>AWS Java SDK :: Services</name>
@@ -185,6 +185,8 @@
 <module>mediapackagevod</module>
 <module>groundstation</module>
 <module>iotthingsgraph</module>
+<module>iotevents</module>
+<module>ioteventsdata</module>
 </modules>
 <description>The AWS Java SDK services</description>
 <url>https://aws.amazon.com/sdkforjava</url>
