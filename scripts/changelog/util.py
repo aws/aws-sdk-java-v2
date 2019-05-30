@@ -2,7 +2,7 @@ import json
 import os
 from datetime import date
 
-from model import ReleaseChanges, ChangelogEntry, Version
+from changelog.model import ReleaseChanges, ChangelogEntry, Version
 
 
 def version_cmp(a,b):
