@@ -875,6 +875,11 @@ Amazon AutoScaling, etc).</description>
 <artifactId>iotthingsgraph</artifactId>
 <version>${awsjavasdk.version}</version>
 </dependency>
+<dependency>
+<groupId>software.amazon.awssdk</groupId>
+<artifactId>iotevents</artifactId>
+<version>${awsjavasdk.version}</version>
+</dependency>
 </dependencies>
 <build>
 <finalName>${project.artifactId}-${project.version}</finalName>
