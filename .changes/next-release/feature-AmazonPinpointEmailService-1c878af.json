@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Pinpoint Email Service", 
-    "type": "feature", 
-    "description": "You can now specify whether the Amazon Pinpoint Email service must deliver email over a connection that is encrypted using Transport Layer Security (TLS)."
-}

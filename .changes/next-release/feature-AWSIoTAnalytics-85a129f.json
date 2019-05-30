@@ -1,5 +1,0 @@
-{
-    "category": "AWS IoT Analytics", 
-    "type": "feature", 
-    "description": "IoT Analytics adds the option to use your own S3 bucket to store channel and data store resources. Previously, only service-managed storage was used."
-}

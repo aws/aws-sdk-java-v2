@@ -1,5 +1,0 @@
-{
-    "category": "Amazon Relational Database Service", 
-    "type": "feature", 
-    "description": "This release adds support for Activity Streams for database clusters."
-}
