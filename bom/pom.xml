@@ -990,6 +990,11 @@
 <artifactId>iotevents</artifactId>
 <version>${awsjavasdk.version}</version>
 </dependency>
+<dependency>
+<groupId>software.amazon.awssdk</groupId>
+<artifactId>ioteventsdata</artifactId>
+<version>${awsjavasdk.version}</version>
+</dependency>
 </dependencies>
 </dependencyManagement>
 </project>
