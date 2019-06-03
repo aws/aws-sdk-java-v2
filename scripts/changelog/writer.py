@@ -1,6 +1,6 @@
-from git import stage_file
-from util import load_all_released_changes, load_unreleased_changes, version_cmp
-
+from changelog.git import stage_file
+from changelog.util import load_all_released_changes, load_unreleased_changes, version_cmp
+from functools import cmp_to_key
 
 class ChangelogWriter(object):
     """
@@ -48,10 +48,7 @@ class ChangelogWriter(object):
             self.categories.add(e.category)
 
     def get_sorted_categories(self):
-        def category_cmp(a,b):
-            return cmp(a,b)
-
-        return sorted(list(self.categories), cmp=category_cmp)
+        return sorted(list(self.categories))
 
     def is_service_category(self,s):
         return s.lower() not in NON_SERVICE_CATEGORIES
@@ -106,7 +103,7 @@ class ChangelogWriter(object):
 def write_changelog():
     unreleased = load_unreleased_changes(".changes/next-release")
     released = load_all_released_changes(".changes")
-    released = sorted(released, key=lambda c: c.version, cmp=version_cmp)
+    released = sorted(released, key=lambda c: [c.version.major, c.version.minor, c.version.patch, c.version.prerelease_version_number()], reverse=True)
 
     if unreleased is not None:
         all_changes = [unreleased] + released
