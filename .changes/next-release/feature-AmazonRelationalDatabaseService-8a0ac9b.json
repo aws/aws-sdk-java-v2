@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "Amazon RDS Data API is generally available. Removing beta notes in the documentation."
+}
