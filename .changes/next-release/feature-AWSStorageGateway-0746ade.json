@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "description": "AWS Storage Gateway now supports AWS PrivateLink, enabling you to administer and use gateways without needing to use public IP addresses or a NAT/Internet Gateway, while avoiding traffic from going over the internet."
+}
