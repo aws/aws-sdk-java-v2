@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "description": "This release adds validation for policy path field. This field is now restricted to be max 512 characters."
-}
