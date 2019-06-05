@@ -1,3 +1,8 @@
+# __2.5.57__ __2019-06-05__
+## __AWS Glue__
+  - ### Features
+    - Support specifying python version for Python shell jobs. A new parameter PythonVersion is added to the JobCommand data type.
+
 # __2.5.56__ __2019-06-04__
 ## __AWS Identity and Access Management__
   - ### Features
