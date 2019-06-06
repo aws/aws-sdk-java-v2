@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "description": "Improve FindingCriteria Condition field names, support long-typed conditions and deprecate old Condition field names."
+}
