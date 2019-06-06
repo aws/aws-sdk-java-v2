@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Organizations",
+    "description": "You can tag and untag accounts in your organization and view tags on an account in your organization."
+}
