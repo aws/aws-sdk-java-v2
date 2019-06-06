@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "description": "You can now specify whether the Amazon Simple Email Service must deliver email over a connection that is encrypted using Transport Layer Security (TLS)."
+}
