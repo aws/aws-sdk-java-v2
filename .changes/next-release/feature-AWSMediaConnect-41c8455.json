@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaConnect",
-    "description": "This release adds support for encrypting entitlements using Secure Packager and Encoder Key Exchange (SPEKE)."
-}
