@@ -1,3 +1,12 @@
+# __2.5.59__ __2019-06-07__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Allow customers to disable read and write timeout by setting `Duration.ZERO` to `readTimeout` and `writeTimeout`. See [#1281](https://github.com/aws/aws-sdk-java-v2/issues/1281)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds DNS entries and NLB ARNs to describe-vpc-endpoint-connections API response. Adds owner ID to describe-vpc-endpoints and create-vpc-endpoint API responses.
+
 # __2.5.58__ __2019-06-06__
 ## __AWS MediaConnect__
   - ### Features
