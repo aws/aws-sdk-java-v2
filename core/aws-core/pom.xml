@@ -7,7 +7,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.5.58</version>
+        <version>2.5.59</version>
     </parent>
 
     <artifactId>aws-core</artifactId>
