@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.handlers;
+package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -27,10 +27,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AsyncResponseTransformerTest {
+public class AsyncResponseTransformerIntegrationTest {
 
     @Mock
     private AsyncResponseTransformer asyncResponseTransformer;
