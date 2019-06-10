@@ -27,6 +27,10 @@
     <artifactId>java-nio-client</artifactId>
     <name>AWS Java SDK :: HTTP Clients :: Java Non-Blocking I/O</name>
 
+    <properties>
+        <jre.version>11</jre.version>
+    </properties>
+
 
     <dependencies>
         <!--SDK dependencies-->
@@ -46,7 +50,6 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
 
-
         <!--org.reactivestreams dependencies-->
         <dependency>
             <groupId>org.reactivestreams</groupId>
@@ -57,25 +60,81 @@
             <artifactId>reactive-streams-flow-adapters</artifactId>
             <version>1.0.2</version>
         </dependency>
-
         <dependency>
             <groupId>io.reactivex.rxjava3</groupId>
             <artifactId>rxjava</artifactId>
             <version>3.0.0-RC0</version>
         </dependency>
 
-
+        <!--Test dependencies-->
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8</artifactId>
+            <version>2.23.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>regions</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Disabling because it does not support analyzing Java 11 compiled classes -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.java.nio.netty</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.http.nio.java</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

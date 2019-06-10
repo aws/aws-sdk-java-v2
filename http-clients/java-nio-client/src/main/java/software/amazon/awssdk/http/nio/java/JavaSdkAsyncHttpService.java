@@ -27,7 +27,7 @@ public class JavaSdkAsyncHttpService implements SdkAsyncHttpService {
 
     @Override
     public SdkAsyncHttpClient.Builder createAsyncHttpClientFactory() {
-        return JavaNioAsyncHttpClient.builder();
+        return JavaHttpClientNioAsyncHttpClient.builder();
     }
 
 }

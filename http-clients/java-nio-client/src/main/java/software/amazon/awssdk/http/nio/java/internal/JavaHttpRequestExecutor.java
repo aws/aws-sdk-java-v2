@@ -18,52 +18,57 @@ package software.amazon.awssdk.http.nio.java.internal;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import org.reactivestreams.FlowAdapters;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-
-
+import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkPublicApi
 public final class JavaHttpRequestExecutor {
 
+    private JavaHttpRequestFactory javaHttpRequestFactory;
     private HttpRequest javaHttpRequest;
     private HttpClient javaHttpClient;
-    private AsyncExecuteRequest asyncExecuteRequest;
+    private HttpResponse.BodyHandler<Void> javaHttpClientBodyHandler;
+    private ListToByteBufferProcessor listToByteBufferProcessor = new ListToByteBufferProcessor();
 
-    public JavaHttpRequestExecutor(HttpClient javaHttpClient, AsyncExecuteRequest asyncExecuteRequest) {
-        this.asyncExecuteRequest = asyncExecuteRequest;
-        this.javaHttpRequest = new JavaHttpRequestFactory(asyncExecuteRequest).createJavaHttpRequest();
+    public JavaHttpRequestExecutor(HttpClient javaHttpClient, AttributeMap serviceDefaultsMap) {
         this.javaHttpClient = javaHttpClient;
+        this.javaHttpRequestFactory = new JavaHttpRequestFactory(serviceDefaultsMap);
     }
 
-    private void assignBodyPublisher(Publisher<ByteBuffer> stream) {
-        asyncExecuteRequest.responseHandler().onStream(stream);
+    public CompletableFuture<Void> requestExecution(AsyncExecuteRequest asyncExecuteRequest) {
+        this.javaHttpRequest = javaHttpRequestFactory.createJavaHttpRequest(asyncExecuteRequest);
+        SdkAsyncHttpResponseHandler sdkAsyncHttpResponseHandler = asyncExecuteRequest.responseHandler();
+        this.javaHttpClientBodyHandler = new JavaHttpResponseBodyHandler(sdkAsyncHttpResponseHandler,
+                                                                                    listToByteBufferProcessor);
+        return execute(sdkAsyncHttpResponseHandler);
     }
 
     /**
      * Creates the {@link ListToByteBufferProcessor} and pass the Publisher and Subscriber to
      * SdkAsyncHttpResponseHandler and HttpResponse.BodyHandler respectively to connect these two ends.
+     * Then execute the request asynchronously.
      *
-     * @return CompletableFuture&lt;Void&gt; The CompletableFuture object that indicates whether the
+     * @return The CompletableFuture object that indicates whether the
      *         request has been execute successfully
      */
-    public CompletableFuture<Void> execute() {
-        ListToByteBufferProcessor listToByteBufferProcessor = new ListToByteBufferProcessor();
-        HttpResponse.BodyHandler<Void> javaHttpClientBodyHandler = HttpResponse.BodyHandlers
-                .fromSubscriber(FlowAdapters.toFlowSubscriber(listToByteBufferProcessor));
+    private CompletableFuture<Void> execute(SdkAsyncHttpResponseHandler sdkAsyncHttpResponseHandler) {
+        CompletableFuture<HttpResponse<Void>> future = javaHttpClient.sendAsync(javaHttpRequest, javaHttpClientBodyHandler);
 
-        assignBodyPublisher(listToByteBufferProcessor.getPublisherToSdk());
-
-        javaHttpClient.sendAsync(javaHttpRequest, javaHttpClientBodyHandler);
+        future.whenComplete((r, t) -> {
+            if (t != null) {
+                future.completeExceptionally(t);
+                sdkAsyncHttpResponseHandler.onError(t); // Handle errors of HttpResponse
+            }
+        });
 
         CompletableFuture<Void> terminated = listToByteBufferProcessor.getTerminated();
         terminated.whenComplete((r, t) -> {
             if (t != null) {
                 terminated.completeExceptionally(t);
+                sdkAsyncHttpResponseHandler.onError(t); // Handle errors of listToByteBufferProcessor
             }
         });
         return terminated;

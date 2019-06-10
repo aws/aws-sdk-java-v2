@@ -98,7 +98,7 @@ public class AsyncClientHandlerExceptionTest {
                 .thenReturn(VoidSdkResponse.builder().build());
 
         when(asyncHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
-            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
             handler.onHeaders(SdkHttpFullResponse.builder()
                     .statusCode(200)
                     .build());

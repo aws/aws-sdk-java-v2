@@ -59,12 +59,13 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
                         @Override
                         public void request(long n) {
+                            if (done) {
+                                return;
+                            }
                             if (n > 0) {
-                                if (!done) {
-                                    s.onNext(ByteBuffer.wrap(bytes));
-                                    done = true;
-                                    s.onComplete();
-                                }
+                                done = true;
+                                s.onNext(ByteBuffer.wrap(bytes));
+                                s.onComplete();
                             } else {
                                 s.onError(new IllegalArgumentException("§3.9: non-positive requests are not allowed!"));
                             }
@@ -72,6 +73,11 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
                         @Override
                         public void cancel() {
+                            synchronized (this) {
+                                if (!done) {
+                                    done = true;
+                                }
+                            }
                         }
                     }
             );

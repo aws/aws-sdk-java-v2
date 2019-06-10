@@ -15,54 +15,45 @@
 
 package software.amazon.awssdk.http.nio.java.internal;
 
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Flow;
 import org.reactivestreams.FlowAdapters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
 final class JavaHttpRequestFactory {
 
-    private final AsyncExecuteRequest asyncExecuteRequest;
-    private final SdkHttpRequest request;
+    private Duration responseTimeout;
 
-    JavaHttpRequestFactory(AsyncExecuteRequest asyncExecuteRequest) {
-        this.asyncExecuteRequest = asyncExecuteRequest;
-        this.request = asyncExecuteRequest.request();
+    JavaHttpRequestFactory(AttributeMap serviceDefaultsMap) {
+        responseTimeout = serviceDefaultsMap.get(SdkHttpConfigurationOption.RESPONSE_TIMEOUT);
     }
-
-    /**
-     * @return The AsyncExecuteRequest.
-     */
-    public AsyncExecuteRequest getAsyncExecuteRequest() {
-        return asyncExecuteRequest;
-    }
-
-    /**
-     * @return The SdkHttpRequest
-     */
-    public SdkHttpRequest getSdkHttpRequest() {
-        return request;
-    }
-
 
     private String getRequestMethod(SdkHttpMethod sdkhttpmethod) {
         return sdkhttpmethod.name();
     }
 
     private HttpRequest.BodyPublisher createBodyPublisher(SdkHttpContentPublisher sdkHttpContentPublisher) {
-        Optional<Long> contentLength = sdkHttpContentPublisher.contentLength();
+        // TODO: Address the issue of actual content is longer than the content length
+        Optional<Long> contentlength = sdkHttpContentPublisher.contentLength();
         Flow.Publisher<ByteBuffer> flowPublisher = FlowAdapters.toFlowPublisher(sdkHttpContentPublisher);
-        return contentLength.map(aLong -> BodyPublishers.fromPublisher(flowPublisher,
+        if (contentlength.isEmpty() || contentlength.get() == 0) {
+            HttpRequest.BodyPublisher bodyPublisher = BodyPublishers.noBody();
+            return bodyPublisher;
+        } else {
+            return contentlength.map(aLong -> BodyPublishers.fromPublisher(flowPublisher,
                 aLong)).orElseGet(() -> BodyPublishers.fromPublisher(flowPublisher));
+        }
     }
 
 
@@ -71,13 +62,20 @@ final class JavaHttpRequestFactory {
      * the configurations in the AsyncExecuteRequest
      * @return HttpRequest object
      */
-    HttpRequest createJavaHttpRequest() {
+    HttpRequest createJavaHttpRequest(AsyncExecuteRequest asyncExecuteRequest) {
+        SdkHttpRequest request = asyncExecuteRequest.request();
         HttpRequest.Builder httpRequestBuilder = HttpRequest.newBuilder();
         httpRequestBuilder.uri(request.getUri());
-        httpRequestBuilder.version(HttpClient.Version.valueOf(request.protocol()));
         httpRequestBuilder.method(getRequestMethod(request.method()),
                 createBodyPublisher(asyncExecuteRequest.requestContentPublisher()));
-        request.headers().forEach((name, values) -> httpRequestBuilder.header(name, String.join(",", values)));
+        // TODO: Check the restricted types of headers
+        // In Jdk 11, these headers filtered below are restricted and not allowed to be customized
+        request.headers().forEach((name, values) -> {
+            if (!name.equals("Host") && !name.equals("Content-Length") && !name.equals("Expect")) {
+                httpRequestBuilder.setHeader(name, String.join(",", values));
+            }
+        });
+        httpRequestBuilder.timeout(responseTimeout);
 
         return httpRequestBuilder.build();
     }
