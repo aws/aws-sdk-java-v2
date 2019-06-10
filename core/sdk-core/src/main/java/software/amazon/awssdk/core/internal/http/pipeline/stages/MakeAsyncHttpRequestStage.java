@@ -91,7 +91,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) {
 
-        CompletableFuture<OutputT> preparedTransformFuture = responseHandler.prepare();
+        CompletableFuture<OutputT> preparedTransformFuture =
+            context.asyncResponseTransformerFuture() != null ? context.asyncResponseTransformerFuture()
+                                                             : responseHandler.prepare();
+
         CompletableFuture<? extends SdkException> preparedErrorTransformFuture = errorResponseHandler == null ? null :
                                                                                  errorResponseHandler.prepare();
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();

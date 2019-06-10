@@ -1,3 +1,28 @@
+# __2.5.60__ __2019-06-10__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild adds support for source version on project level.
+
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds two merge strategies for merging pull requests: squash and three-way. It also adds functionality for resolving merge conflicts, testing merge outcomes, and for merging branches using one of the three supported merge strategies.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix NPE for streaming APIs in async client if there is a failure before AsyncResponseTransformer#prepare is called for first time. See https://github.com/aws/aws-sdk-java-v2/issues/1268
+
+## __Amazon Personalize__
+  - ### Features
+    - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Introducing Amazon Personalize - a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
 # __2.5.59__ __2019-06-07__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
