@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "description": "AWS CodeBuild adds support for source version on project level."
-}
