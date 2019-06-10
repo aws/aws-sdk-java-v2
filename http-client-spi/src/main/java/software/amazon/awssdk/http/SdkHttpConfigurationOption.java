@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http;
 
 import java.time.Duration;
+import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -97,6 +98,19 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Boolean> REAP_IDLE_CONNECTIONS =
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
 
+    /**
+     * SSLParameters of the SSLSocket, could be set in HttpClient.
+     */
+    public static final SdkHttpConfigurationOption<SSLParameters> SSL_PARAMETERS =
+            new SdkHttpConfigurationOption<>("SslParameters", SSLParameters.class);
+
+    /**
+     * Timeout for waiting for a response.
+     */
+    public static final SdkHttpConfigurationOption<Duration> RESPONSE_TIMEOUT =
+            new SdkHttpConfigurationOption<>("ResponseTimeout", Duration.class);
+
+
     private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
@@ -107,6 +121,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
+    private static final SSLParameters DEFAULT_SSL_PARAMETERS = new SSLParameters();
+    private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(30);
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
 
@@ -123,6 +139,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
+            .put(SSL_PARAMETERS, DEFAULT_SSL_PARAMETERS)
+            .put(RESPONSE_TIMEOUT, DEFAULT_RESPONSE_TIMEOUT)
             .build();
 
     private final String name;

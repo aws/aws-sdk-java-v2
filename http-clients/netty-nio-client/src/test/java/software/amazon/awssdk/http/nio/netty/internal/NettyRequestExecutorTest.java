@@ -1,11 +1,15 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,14 +17,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.utils.AttributeMap;
-
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class NettyRequestExecutorTest {
 
@@ -54,7 +50,7 @@ public class NettyRequestExecutorTest {
     public void cancelExecuteFuture_channelNotAcquired_failsAcquirePromise() {
         ArgumentCaptor<Promise> acquireCaptor = ArgumentCaptor.forClass(Promise.class);
         when(mockChannelPool.acquire(acquireCaptor.capture())).thenAnswer((Answer<Promise>) invocationOnMock -> {
-            return invocationOnMock.getArgumentAt(0, Promise.class);
+            return invocationOnMock.getArgument(0, Promise.class);
         });
 
         CompletableFuture<Void> executeFuture = nettyRequestExecutor.execute();
@@ -72,7 +68,7 @@ public class NettyRequestExecutorTest {
         when(mockChannel.eventLoop()).thenReturn(mockEventLoop);
 
         when(mockChannelPool.acquire(any(Promise.class))).thenAnswer((Answer<Promise>) invocationOnMock -> {
-            Promise p = invocationOnMock.getArgumentAt(0, Promise.class);
+            Promise p = invocationOnMock.getArgument(0, Promise.class);
             p.setSuccess(mockChannel);
             return p;
         });

@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -30,12 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link CancellableAcquireChannelPool}.
@@ -77,7 +76,7 @@ public class CancellableAcquireChannelPoolTest {
         acquireFuture.setFailure(new RuntimeException("Changed my mind!"));
 
         when(mockDelegatePool.acquire(any(Promise.class))).thenAnswer((Answer<Promise>) invocationOnMock -> {
-            Promise p = invocationOnMock.getArgumentAt(0, Promise.class);
+            Promise p = invocationOnMock.getArgument(0, Promise.class);
             p.setSuccess(channel);
             return p;
         });

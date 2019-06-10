@@ -176,7 +176,7 @@ public class HealthCheckedChannelPoolTest {
         OngoingStubbing<Future<Channel>> stubbing = Mockito.when(downstreamChannelPool.acquire(any()));
         for (boolean shouldAcquireBeHealthy : acquireHealthySequence) {
             stubbing = stubbing.thenAnswer(invocation -> {
-                Promise<Channel> promise = invocation.getArgumentAt(0, Promise.class);
+                Promise<Channel> promise = invocation.getArgument(0, Promise.class);
                 Channel channel = Mockito.mock(Channel.class);
                 Mockito.when(channel.isActive()).thenReturn(shouldAcquireBeHealthy);
                 channels.add(channel);
@@ -188,14 +188,14 @@ public class HealthCheckedChannelPoolTest {
 
     public void stubBadDownstreamAcquire() {
         Mockito.when(downstreamChannelPool.acquire(any())).thenAnswer(invocation -> {
-            Promise<Channel> promise = invocation.getArgumentAt(0, Promise.class);
+            Promise<Channel> promise = invocation.getArgument(0, Promise.class);
             promise.setFailure(new IOException());
             return promise;
         });
     }
 
     public void stubIncompleteDownstreamAcquire() {
-        Mockito.when(downstreamChannelPool.acquire(any())).thenAnswer(invocation -> invocation.getArgumentAt(0, Promise.class));
+        Mockito.when(downstreamChannelPool.acquire(any())).thenAnswer(invocation -> invocation.getArgument(0, Promise.class));
     }
 
     public void stubForIgnoredTimeout() {

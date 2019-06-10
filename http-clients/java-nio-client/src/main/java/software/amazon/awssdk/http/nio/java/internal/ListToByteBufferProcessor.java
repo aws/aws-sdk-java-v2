@@ -39,15 +39,17 @@ public final class ListToByteBufferProcessor implements Subscriber<List<ByteBuff
 
     private final CompletableFuture<Void> terminated = new CompletableFuture<>();
 
+    public ListToByteBufferProcessor() {
+        this.processor = PublishProcessor.create();
+        this.publisherToSdk = processor.map(ListToByteBufferProcessor::convertListToByteBuffer);
+    }
 
-    ListToByteBufferProcessor() {
-        processor = PublishProcessor.create();
-        publisherToSdk = processor.map(list -> {
-            int bodyPartSize = list.stream().mapToInt(Buffer::remaining).sum();
-            ByteBuffer processedByteBuffer = ByteBuffer.allocate(bodyPartSize);
-            list.forEach(processedByteBuffer::put);
-            return processedByteBuffer;
-        });
+    public static ByteBuffer convertListToByteBuffer(List<ByteBuffer> list) {
+        int bodyPartSize = list.stream().mapToInt(Buffer::remaining).sum();
+        ByteBuffer processedByteBuffer = ByteBuffer.allocate(bodyPartSize);
+        list.forEach(processedByteBuffer::put);
+        processedByteBuffer.flip();
+        return processedByteBuffer;
     }
 
     @Override

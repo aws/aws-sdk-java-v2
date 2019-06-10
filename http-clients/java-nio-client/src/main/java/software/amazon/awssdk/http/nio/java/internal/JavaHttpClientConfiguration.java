@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.http.nio.java.internal;
 
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -27,19 +27,22 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 public final class JavaHttpClientConfiguration {
 
-    private final AttributeMap configuration;
+    private final AttributeMap sdkConfiguration;
 
-
-    public JavaHttpClientConfiguration(AttributeMap configuration) {
-        this.configuration = configuration;
+    public JavaHttpClientConfiguration(AttributeMap sdkConfiguration) {
+        this.sdkConfiguration = sdkConfiguration;
     }
 
     public <T> T attribute(AttributeMap.Key<T> key) {
-        return configuration.get(key);
+        return sdkConfiguration.get(key);
     }
 
     public int connectionTimeoutMillis() {
-        return saturatedCast(configuration.get(CONNECTION_TIMEOUT).toMillis());
+        return saturatedCast(sdkConfiguration.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis());
+    }
+
+    public int responseTimeoutMillis() {
+        return saturatedCast(sdkConfiguration.get(SdkHttpConfigurationOption.RESPONSE_TIMEOUT).toMillis());
     }
 
 }

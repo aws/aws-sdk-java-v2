@@ -28,42 +28,42 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.java.internal.JavaHttpRequestExecutor;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Validate;
 
 
 /**
- * An implementation of {@link SdkAsyncHttpClient} that uses a Java HTTP Client to communicate with the service.
+ * An implementation of {@link SdkAsyncHttpClient} that uses a Java HTTP Client.
  *
  * <p>This can be created via {@link @builder()}</p>
  */
 @SdkPublicApi
-public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
+public final class JavaHttpClientNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private static final String CLIENT_NAME = "JavaNio";
     private final HttpClient javaHttpClient;
+    /*private final JavaHttpClientConfiguration configuration;*/
+    private final AttributeMap serviceDefaultsMap;
 
-    private JavaNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
-        /* JavaHttpClientConfiguration configuration = new JavaHttpClientConfiguration(serviceDefaultsMap); */
-        javaHttpClient = createHttpClient();
+    private JavaHttpClientNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
+        /*this.configuration = new JavaHttpClientConfiguration(serviceDefaultsMap);*/
+        this.javaHttpClient = HttpClient.newBuilder()
+                        .connectTimeout(serviceDefaultsMap.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
+                        .version(convertProtocolIntoVersion(serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL)))
+                        .sslParameters(serviceDefaultsMap.get(SdkHttpConfigurationOption.SSL_PARAMETERS))
+                        .build();
+        this.serviceDefaultsMap = serviceDefaultsMap;
+    }
+
+    protected HttpClient getHttpClient() {
+        return javaHttpClient;
     }
 
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
-        return new JavaHttpRequestExecutor(javaHttpClient, request).execute();
+        // TODO: Change the implementation into handle single executor for a certain HttpClient
+        JavaHttpRequestExecutor javaHttpRequestExecutor = new JavaHttpRequestExecutor(javaHttpClient, serviceDefaultsMap);
+        return javaHttpRequestExecutor.requestExecution(request);
     }
-
-
-    /**
-     * Create the internal HttpClient inside JavaNioAsyncHttpClient
-     *
-     * @return  HttpClient object
-     */
-    private HttpClient createHttpClient() {
-        return HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
-                .connectTimeout(Duration.ofSeconds(20))
-                .build();
-    }
-
 
     public static Builder builder() {
         return new DefaultBuilder();
@@ -71,6 +71,10 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
 
 
     public void close() {
+    }
+
+    private HttpClient.Version convertProtocolIntoVersion(Protocol protocol) {
+        return protocol == Protocol.HTTP1_1 ? HttpClient.Version.HTTP_1_1 : HttpClient.Version.HTTP_2;
     }
 
     @Override
@@ -83,22 +87,7 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
      * Builder that allows configuration of the Java NIO HTTP implementation. Use {@link #builder()} to configure
      * and construct a Java Http Client.
      */
-    public interface Builder extends SdkAsyncHttpClient.Builder<JavaNioAsyncHttpClient.Builder> {
-
-        /**
-         * Maximum number of allowed concurrent requests.
-         *
-         * <p>
-         * If the maximum number of concurrent requests is exceeded they may queued in the HTTP Client and can
-         * cause latencies. If the client is overloaded enough such that the pending requests queue fills up,
-         * then subsequent requests may be rejected or time out.
-         * </p>
-         *
-         * @param maxConcurrency New value for max concurrency.
-         * @return This builder for method chaining.
-         */
-        Builder maxConcurrency(Integer maxConcurrency);
-
+    public interface Builder extends SdkAsyncHttpClient.Builder<JavaHttpClientNioAsyncHttpClient.Builder> {
 
         /**
          * The amount of time to wait for a connection before an exeception is thrown.
@@ -127,29 +116,12 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder configureSsl(SSLParameters sslParameter);
 
         /**
-         * Sets the proxy related configurations (e.g. URI, port number etc.).
-         *
-         * @param proxyConfiguration ProxyConfiguration object.
-         * @return This builder for method chaining.
-         */
-        Builder proxyConfig(ProxyConfiguration proxyConfiguration);
-
-        /**
          * Sets the amount of time to wait for a response before timeout.
          *
          * @param responseTimeout timeout duration.
          * @return This builder for method chaining.
          */
         Builder responseTimeout(Duration responseTimeout);
-
-
-        /**
-         * Sets the numberOfThreads that the executor can hold in the threads pool.
-         *
-         * @param numberOfThreads an integer as the number of threads will be used in the executor.
-         * @return This builder for method chaining.
-         */
-        Builder numberOfThreads(Integer numberOfThreads);
 
         /**
          * Sets the executor in the HTTP Client as the executor created by users.
@@ -164,26 +136,14 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
 
-        /* private SSLParameters sslParameters; */
-
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder maxConcurrency(Integer maxConcurrency) {
-            return null;
-        }
-
-        /**
-         * Setter to set the MaxConcurrency directly.
-         *
-         * @param maxConcurrency New value for max concurrency.
-         */
-        public void setMaxConcurrency(Integer maxConcurrency) {}
-
-        @Override
         public Builder connectionTimeout(Duration connectionTimeout) {
-            return null;
+            Validate.isPositive(connectionTimeout, "connectionTimeout");
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
+            return this;
         }
 
         /**
@@ -191,11 +151,14 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * @param connectionTimeout timeout duration.
          */
-        public void setConnectionTimeout(Duration connectionTimeout) {}
+        public void setConnectionTimeout(Duration connectionTimeout) {
+            connectionTimeout(connectionTimeout);
+        }
 
         @Override
         public Builder protocol(Protocol protocol) {
-            return null;
+            standardOptions.put(SdkHttpConfigurationOption.PROTOCOL, protocol);
+            return this;
         }
 
         /**
@@ -203,29 +166,20 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * @param protocol Protocol to use.
          */
-        public void setProtocol(Protocol protocol) {}
+        public void setProtocol(Protocol protocol) {
+            protocol(protocol);
+        }
 
         @Override
         public Builder configureSsl(SSLParameters sslParameters) {
-            return null;
-        }
-
-        @Override
-        public Builder proxyConfig(ProxyConfiguration proxyconfiguration) {
-            return null;
-        }
-
-        /**
-         * Setter to pass the ProxyConfiguration object to Builder.
-         *
-         * @param proxyConfiguration ProxyConfiguration object.
-         */
-        public void setProxyConfig(ProxyConfiguration proxyConfiguration) {
+            standardOptions.put(SdkHttpConfigurationOption.SSL_PARAMETERS, sslParameters);
+            return this;
         }
 
         @Override
         public Builder responseTimeout(Duration responseTimeout) {
-            return null;
+            standardOptions.put(SdkHttpConfigurationOption.RESPONSE_TIMEOUT, responseTimeout);
+            return this;
         }
 
         /**
@@ -233,31 +187,26 @@ public final class JavaNioAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * @param responseTimeout timeout duration.
          */
-        public void setResponseTimeout(Duration responseTimeout) {}
-
-        @Override
-        public Builder numberOfThreads(Integer numberOfThreads) {
-            return null;
+        public void setResponseTimeout(Duration responseTimeout) {
+            responseTimeout(responseTimeout);
         }
 
         /**
-         * Setter to set the number of threads in executor, configuring how many threads should the executor hold.
-         *
-         * @param numberOfThreads an integer as the number of threads will be used in the executor.
-         * @param javaHttpRequestExecutor The executor of this HTTP Client that executes HTTP Requests.
+         * If customers use this method then we should not close the executor when the
+         * client is closed.
+         * @param executor a customized executor created by user
+         * @return
          */
-        public void setNumberOfThreads(Integer numberOfThreads, JavaHttpRequestExecutor javaHttpRequestExecutor) {}
-
         @Override
         public Builder requestExecutor(Executor executor) {
-            return null;
+            return this;
         }
 
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
-            return new JavaNioAsyncHttpClient(this, standardOptions.build()
-                    .merge(serviceDefaults)
-                    .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+            return new JavaHttpClientNioAsyncHttpClient(this, standardOptions.build()
+                                                                        .merge(serviceDefaults)
+                                                                        .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
     }
 }

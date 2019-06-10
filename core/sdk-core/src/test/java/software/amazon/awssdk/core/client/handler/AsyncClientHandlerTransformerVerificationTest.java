@@ -174,7 +174,7 @@ public class AsyncClientHandlerTransformerVerificationTest {
 
     private void mockSuccessfulResponse() {
         Answer<CompletableFuture<Void>> executeAnswer = invocationOnMock -> {
-            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
             handler.onHeaders(SdkHttpFullResponse.builder()
                     .statusCode(200)
                     .build());
@@ -191,7 +191,7 @@ public class AsyncClientHandlerTransformerVerificationTest {
      */
     private void mockSuccessfulResponse_NonSignalingStream() {
         Answer<CompletableFuture<Void>> executeAnswer = invocationOnMock -> {
-            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+            SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
             handler.onHeaders(SdkHttpFullResponse.builder()
                     .statusCode(200)
                     .build());

@@ -119,7 +119,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
         Answer<CompletableFuture<Void>> prepareRequestAnswer;
         if (hook != Hook.ON_EXECUTION_FAILURE) {
             prepareRequestAnswer = invocationOnMock -> {
-                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
                 handler.onHeaders(SdkHttpFullResponse.builder()
                         .statusCode(200)
                         .build());
@@ -128,7 +128,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
             };
         } else {
             prepareRequestAnswer = invocationOnMock -> {
-                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
                 RuntimeException error = new RuntimeException("Something went horribly wrong!");
                 handler.onError(error);
                 return CompletableFutureUtils.failedFuture(error);
