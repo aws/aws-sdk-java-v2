@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
+
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -200,6 +202,14 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
             // Before each attempt, Modify the context to use original request body provider
             context.requestProvider(originalRequestBody);
+
+            // For streaming requests, future from the execution attributes (set in BaseAsyncClientHandler#execute method)
+            // should be used on first attempt. For all retry attempts, clear the value so that prepare() method is
+            // called (in MakeAsyncHttpRequestStage) to get a new future
+            if (requestCount > 1 && context.asyncResponseTransformerFuture() != null) {
+                context.executionAttributes().putAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE, null);
+            }
+
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
     }
