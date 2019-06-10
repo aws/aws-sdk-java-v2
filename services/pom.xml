@@ -189,6 +189,7 @@
         <module>ioteventsdata</module>
         <module>personalizeruntime</module>
         <module>personalize</module>
+        <module>personalizeevents</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
