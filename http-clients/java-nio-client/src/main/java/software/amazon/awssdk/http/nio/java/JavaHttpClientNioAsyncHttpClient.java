@@ -47,10 +47,12 @@ public final class JavaHttpClientNioAsyncHttpClient implements SdkAsyncHttpClien
     private JavaHttpClientNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         /*this.configuration = new JavaHttpClientConfiguration(serviceDefaultsMap);*/
         this.javaHttpClient = HttpClient.newBuilder()
-                        .connectTimeout(serviceDefaultsMap.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
-                        .version(convertProtocolIntoVersion(serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL)))
-                        .sslParameters(serviceDefaultsMap.get(SdkHttpConfigurationOption.SSL_PARAMETERS))
-                        .build();
+                .connectTimeout(serviceDefaultsMap.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
+                .version(convertProtocolIntoVersion(serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL)))
+                .sslParameters(serviceDefaultsMap.get(SdkHttpConfigurationOption.SSL_PARAMETERS))
+                .proxy(builder.sdkProxyConfig.getProxySelector())
+                .authenticator(builder.sdkProxyConfig.getAuthenticator())
+                .build();
         this.serviceDefaultsMap = serviceDefaultsMap;
     }
 
@@ -116,6 +118,14 @@ public final class JavaHttpClientNioAsyncHttpClient implements SdkAsyncHttpClien
         Builder configureSsl(SSLParameters sslParameter);
 
         /**
+         * Sets the proxy related configurations (e.g. URI, port number etc.).
+         *
+         * @param sdkProxyConfig  object.
+         * @return This builder for method chaining.
+         */
+        Builder proxyConfig(SdkProxyConfig sdkProxyConfig);
+
+        /**
          * Sets the amount of time to wait for a response before timeout.
          *
          * @param responseTimeout timeout duration.
@@ -135,6 +145,7 @@ public final class JavaHttpClientNioAsyncHttpClient implements SdkAsyncHttpClien
     private static final class DefaultBuilder implements Builder {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+        private SdkProxyConfig sdkProxyConfig = SdkProxyConfig.builder().build();
 
         private DefaultBuilder() {
         }
@@ -174,6 +185,21 @@ public final class JavaHttpClientNioAsyncHttpClient implements SdkAsyncHttpClien
         public Builder configureSsl(SSLParameters sslParameters) {
             standardOptions.put(SdkHttpConfigurationOption.SSL_PARAMETERS, sslParameters);
             return this;
+        }
+
+        @Override
+        public Builder proxyConfig(SdkProxyConfig sdkProxyConfig) {
+            this.sdkProxyConfig = sdkProxyConfig;
+            return this;
+        }
+
+        /**
+         * Setter to pass the sdkProxyConfig object to Builder.
+         *
+         * @param sdkProxyConfig sdkProxyConfig object.
+         */
+        public void setProxyConfig(SdkProxyConfig sdkProxyConfig) {
+            proxyConfig(sdkProxyConfig);
         }
 
         @Override

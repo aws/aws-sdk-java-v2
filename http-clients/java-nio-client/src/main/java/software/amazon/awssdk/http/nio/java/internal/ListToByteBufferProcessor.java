@@ -60,7 +60,6 @@ public final class ListToByteBufferProcessor implements Subscriber<List<ByteBuff
     @Override
     public void onNext(List<ByteBuffer> byteBufferList) {
         processor.onNext(byteBufferList);
-
     }
 
     @Override
