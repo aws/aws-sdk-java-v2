@@ -31,9 +31,10 @@ public final class JavaHttpRequestExecutor {
     private HttpRequest javaHttpRequest;
     private HttpClient javaHttpClient;
     private HttpResponse.BodyHandler<Void> javaHttpClientBodyHandler;
-    private ListToByteBufferProcessor listToByteBufferProcessor = new ListToByteBufferProcessor();
+    private ListToByteBufferProcessor listToByteBufferProcessor;
 
     public JavaHttpRequestExecutor(HttpClient javaHttpClient, AttributeMap serviceDefaultsMap) {
+        this.listToByteBufferProcessor = new ListToByteBufferProcessor();
         this.javaHttpClient = javaHttpClient;
         this.javaHttpRequestFactory = new JavaHttpRequestFactory(serviceDefaultsMap);
     }
