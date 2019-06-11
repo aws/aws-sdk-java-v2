@@ -37,6 +37,7 @@
         <module>apache-client</module>
         <module>netty-nio-client</module>
         <module>url-connection-client</module>
+        <module>java-nio-client</module>
     </modules>
 
     <dependencyManagement>
