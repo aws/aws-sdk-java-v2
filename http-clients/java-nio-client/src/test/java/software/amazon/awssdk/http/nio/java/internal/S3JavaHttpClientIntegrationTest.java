@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.*;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class S3JavaHttpClientIntegratedTest {
+public class S3JavaHttpClientIntegrationTest {
 
     private static final String BUCKET = "zhouquas3testbucketjava";
     private static final String KEY = "smalltestkey";

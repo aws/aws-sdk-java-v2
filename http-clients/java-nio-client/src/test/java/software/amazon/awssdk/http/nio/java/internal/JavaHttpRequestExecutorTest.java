@@ -101,7 +101,7 @@ public class JavaHttpRequestExecutorTest {
         URI uri = URI.create("http://localhost:" + 8080);
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("foo", Collections.singletonList("bar"));
-        SdkHttpRequest request = createRequest(uri, "", body, method, emptyMap(), headers);
+        SdkHttpFullRequest request = createRequest(uri, "", body, method, emptyMap(), headers);
         RecordingResponseHandler recorder = new RecordingResponseHandler();
 
         // Mock the HttpClient to capture the request flows into this client

@@ -177,7 +177,7 @@ public class SubscribeToShardUnmarshallingTest {
     private void stubResponse(SdkHttpFullResponse response) {
         when(sdkHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
             CompletableFuture<Void> cf = new CompletableFuture<>();
-            AsyncExecuteRequest req = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class);
+            AsyncExecuteRequest req = invocationOnMock.getArgument(0, AsyncExecuteRequest.class);
             SdkAsyncHttpResponseHandler value = req.responseHandler();
             value.onHeaders(response);
             value.onStream(subscriber -> subscriber.onSubscribe(new Subscription() {

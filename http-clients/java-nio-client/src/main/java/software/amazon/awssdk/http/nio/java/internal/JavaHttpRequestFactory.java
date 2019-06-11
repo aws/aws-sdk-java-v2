@@ -43,11 +43,12 @@ final class JavaHttpRequestFactory {
         return sdkhttpmethod.name();
     }
 
-    private HttpRequest.BodyPublisher createBodyPublisher(SdkHttpContentPublisher sdkHttpContentPublisher) {
+    static HttpRequest.BodyPublisher createBodyPublisher(AsyncExecuteRequest asyncExecuteRequest) {
         // TODO: Address the issue of actual content is longer than the content length
+        SdkHttpContentPublisher sdkHttpContentPublisher = asyncExecuteRequest.requestContentPublisher();
         Optional<Long> contentlength = sdkHttpContentPublisher.contentLength();
         Flow.Publisher<ByteBuffer> flowPublisher = FlowAdapters.toFlowPublisher(sdkHttpContentPublisher);
-        if (contentlength.isEmpty() || contentlength.get() == 0) {
+        if (!asyncExecuteRequest.fullDuplex() && (contentlength.isEmpty() || contentlength.get() == 0)) {
             HttpRequest.BodyPublisher bodyPublisher = BodyPublishers.noBody();
             return bodyPublisher;
         } else {
@@ -67,8 +68,9 @@ final class JavaHttpRequestFactory {
         HttpRequest.Builder httpRequestBuilder = HttpRequest.newBuilder();
         httpRequestBuilder.uri(request.getUri());
         httpRequestBuilder.method(getRequestMethod(request.method()),
-                createBodyPublisher(asyncExecuteRequest.requestContentPublisher()));
-        // TODO: Check the restricted types of headers
+                createBodyPublisher(asyncExecuteRequest));
+        //TODO: Check the restricted types of headers
+
         // In Jdk 11, these headers filtered below are restricted and not allowed to be customized
         request.headers().forEach((name, values) -> {
             if (!name.equals("Host") && !name.equals("Content-Length") && !name.equals("Expect")) {
