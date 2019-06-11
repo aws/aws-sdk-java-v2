@@ -79,6 +79,7 @@ public class EventStreamVisitorBuilderImplSpec extends EventStreamVisitorBuilder
         @Override
         protected TypeSpec.Builder createTypeSpec() {
             return PoetUtils.createClassBuilder(className())
+                            .addModifiers(Modifier.STATIC)
                             .addField(consumerType(eventStreamBaseClass), "onDefault", Modifier.PRIVATE, Modifier.FINAL)
                             .addSuperinterface(visitorType);
         }
