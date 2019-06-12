@@ -1,0 +1,16 @@
+{
+    "version": "2.5.62",
+    "date": "2019-06-12",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix a bug in the code generator causing event headers to be incorrectly marshalled and unmarshalled to and from the payload."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "This release adds a new field named Guidance to update provisioning artifact, this field can be set by the administrator to provide guidance to end users about which provisioning artifacts to use."
+        }
+    ]
+}

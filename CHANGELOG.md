@@ -1,3 +1,12 @@
+# __2.5.62__ __2019-06-12__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in the code generator causing event headers to be incorrectly marshalled and unmarshalled to and from the payload.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds a new field named Guidance to update provisioning artifact, this field can be set by the administrator to provide guidance to end users about which provisioning artifacts to use.
+
 # __2.5.61__ __2019-06-11__
 ## __Amazon SageMaker Service__
   - ### Features
