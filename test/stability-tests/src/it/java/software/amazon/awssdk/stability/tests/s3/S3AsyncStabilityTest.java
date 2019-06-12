@@ -16,24 +16,20 @@
 package software.amazon.awssdk.stability.tests.s3;
 
 
-import static software.amazon.awssdk.stability.tests.utils.StabilityTestUtils.runAsyncTests;
-
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Logger;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     private static final Logger LOGGER = Logger.loggerFor(S3AsyncStabilityTest.class);
     private static String bucketName = "s3asyncstabilitytests" + System.currentTimeMillis();
@@ -49,8 +45,13 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     }
 
     @Test
-    @Order(1)
-    public void putObject() {
+    @Override
+    public void putObject_getObject() {
+        putObject();
+        getObject();
+    }
+
+    private void putObject() {
         LOGGER.info(() -> "Starting to test putObject");
         byte[] bytes = RandomStringUtils.randomAlphanumeric(10_000).getBytes();
 
@@ -60,12 +61,16 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
                                         AsyncRequestBody.fromBytes(bytes));
         };
 
-        runAsyncTests(future, TOTAL_REQUEST_NUMBER, "S3AsyncStabilityTest.putObject");
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.putObject")
+                           .futureFactory(future)
+                           .requestCountPerRun(CONCURRENCY)
+                           .totalRuns(TOTAL_RUNS)
+                           .delaysBetweenEachRun(Duration.ofMillis(100))
+                           .run();
     }
 
-    @Test
-    @Order(2)
-    public void getObject() {
+    private void getObject() {
         LOGGER.info(() -> "Starting to test getObject");
         IntFunction<CompletableFuture<?>> future = i -> {
             String keyName = computeKeyName(i);
@@ -73,6 +78,12 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
             return s3NettyClient.getObject(b -> b.bucket(bucketName).key(keyName), AsyncResponseTransformer.toFile(path));
         };
 
-        runAsyncTests(future, TOTAL_REQUEST_NUMBER, "S3AsyncStabilityTest.getObject");
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.getObject")
+                           .futureFactory(future)
+                           .requestCountPerRun(CONCURRENCY)
+                           .totalRuns(TOTAL_RUNS)
+                           .delaysBetweenEachRun(Duration.ofMillis(100))
+                           .run();
     }
 }
