@@ -592,8 +592,7 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
-                                    <!-- Sets the VM argument line used when integration tests are run. -->
-                                    <argLine>${argLine}</argLine>
+                                    <argLine>-Dio.netty.leakDetection.level=advanced</argLine>
                                     <includes>
                                         <include>**/*StabilityTest.java</include>
                                         <include>**/*StabilityTests.java</include>
