@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS App Mesh",
+    "description": "This release adds support for AWS Cloud Map as a service discovery method for virtual nodes."
+}
