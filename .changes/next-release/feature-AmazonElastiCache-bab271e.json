@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "description": "This release is to add support for reader endpoint for cluster-mode disabled Amazon ElastiCache for Redis clusters."
+}
