@@ -27,6 +27,7 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyClientH1NonTlsBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1UsingEpollBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.UrlConnectionHttpClientBenchmark;
@@ -70,10 +71,12 @@ public class BenchmarkRunner {
 
     public static void main(String... args) throws RunnerException, JsonProcessingException {
         List<String> benchmarksToRun = new ArrayList<>();
-        benchmarksToRun.addAll(SYNC_BENCHMARKS);
-        benchmarksToRun.addAll(ASYNC_BENCHMARKS);
-        benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
-        benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        //benchmarksToRun.addAll(SYNC_BENCHMARKS);
+        //benchmarksToRun.addAll(ASYNC_BENCHMARKS);
+        //benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
+        //benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        benchmarksToRun.add(NettyHttpClientH1Benchmark.class.getSimpleName());
+        benchmarksToRun.add(NettyHttpClientH1UsingEpollBenchmark.class.getSimpleName());
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun);
 

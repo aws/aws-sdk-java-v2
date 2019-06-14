@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.benchmark.apicall.httpclient.async;
 
-import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.DEFAULT_JDK_SSL_PROVIDER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OPEN_SSL_PROVIDER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getSslProvider;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
 
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.handler.ssl.SslProvider;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -53,13 +53,15 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class NettyHttpClientH1Benchmark extends BaseNettyBenchmark {
+public class NettyHttpClientH1UsingEpollBenchmark extends BaseNettyBenchmark {
 
     private MockServer mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
 
     @Param({OPEN_SSL_PROVIDER})
     private String sslProviderValue;
+    private SdkEventLoopGroup sdkEventLoopGroup;
+
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
@@ -67,9 +69,11 @@ public class NettyHttpClientH1Benchmark extends BaseNettyBenchmark {
         mockServer.start();
 
         SslProvider sslProvider = getSslProvider(sslProviderValue);
+        sdkEventLoopGroup = SdkEventLoopGroup.create(new EpollEventLoopGroup());
 
         sdkHttpClient = NettyNioAsyncHttpClient.builder()
                                                .sslProvider(sslProvider)
+                                               .eventLoopGroup(sdkEventLoopGroup)
                                                .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonAsyncClient.builder()
                                             .endpointOverride(mockServer.getHttpsUri())
@@ -83,13 +87,14 @@ public class NettyHttpClientH1Benchmark extends BaseNettyBenchmark {
     @TearDown(Level.Trial)
     public void tearDown() throws Exception {
         mockServer.stop();
+        sdkEventLoopGroup.eventLoopGroup().shutdownGracefully();
         sdkHttpClient.close();
         client.close();
     }
 
     public static void main(String... args) throws Exception {
         Options opt = new OptionsBuilder()
-            .include(NettyHttpClientH1Benchmark.class.getSimpleName())
+            .include(NettyHttpClientH1UsingEpollBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
