@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon AppStream",
+    "description": "Added 2 new values(WINDOWS_SERVER_2016, WINDOWS_SERVER_2019) for PlatformType enum."
+}
