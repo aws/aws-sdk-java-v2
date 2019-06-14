@@ -101,6 +101,9 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ExecutionContext executionContext,
         HttpResponseHandler<ReturnT> responseHandler) {
 
+        // Initialize metrics registry and register some constant metrics
+        initializeMetrics(executionContext);
+
         InputT inputT = (InputT) finalizeSdkRequest(executionContext).request();
 
         InterceptorContext sdkHttpFullRequestContext = finalizeSdkHttpFullRequest(executionParams,

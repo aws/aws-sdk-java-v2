@@ -19,6 +19,8 @@ import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.METRIC_CONFIGURATION_PROVIDER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.METRIC_PUBLISHER_CONFIGURATION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
@@ -57,12 +59,15 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.internal.metrics.MetricsExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.provider.DefaultMetricConfigurationProviderChain;
+import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -297,7 +302,15 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private List<ExecutionInterceptor> resolveExecutionInterceptors(SdkClientConfiguration config) {
         List<ExecutionInterceptor> globalInterceptors = new ClasspathInterceptorChainFactory().getGlobalInterceptors();
+        addMetricsInterceptor(globalInterceptors);
         return mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
+    }
+
+    /**
+     * Add metrics execution interceptor to the list of resolved interceptors
+     */
+    private void addMetricsInterceptor(List<ExecutionInterceptor> interceptors) {
+        interceptors.add(new MetricsExecutionInterceptor());
     }
 
     @Override
@@ -333,7 +346,21 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(API_CALL_ATTEMPT_TIMEOUT, overrideConfig.apiCallAttemptTimeout().orElse(null));
         clientConfiguration.option(DISABLE_HOST_PREFIX_INJECTION,
                                    overrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
+        clientConfiguration.option(METRIC_CONFIGURATION_PROVIDER,
+                                   overrideConfig.metricConfigurationProvider()
+                                                 .orElse(new DefaultMetricConfigurationProviderChain()));
+        clientConfiguration.option(METRIC_PUBLISHER_CONFIGURATION,
+                                   overrideConfig.metricPublisherConfiguration().orElse(loadDefaultMetricPublisher()));
+
         return thisBuilder();
+    }
+
+    // TODO
+    // Create an instance of Cloudwatch publisher from classloader and set is using addPublisher() method
+    private MetricPublisherConfiguration loadDefaultMetricPublisher() {
+        return MetricPublisherConfiguration.builder()
+                                           //.addPublisher()
+                                           .build();
     }
 
     public final void setOverrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {

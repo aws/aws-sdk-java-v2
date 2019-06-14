@@ -98,6 +98,9 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         try {
 
+            // Initialize metrics registry and register some constant metrics
+            initializeMetrics(executionContext);
+
             // Running beforeExecution interceptors and modifyRequest interceptors.
             InterceptorContext finalizeSdkRequestContext = finalizeSdkRequest(executionContext);
             InputT inputT = (InputT) finalizeSdkRequestContext.request();

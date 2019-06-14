@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.ATTEMPT_METRIC_REGISTRY;
+import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_REGISTRY;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +37,8 @@ import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.SdkMetrics;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -82,6 +87,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         public Response<OutputT> execute() throws Exception {
             while (true) {
                 try {
+                    initializeAttemptMetricRegistry();
                     beforeExecute();
                     Response<OutputT> response = doExecute();
                     if (response.isSuccess()) {
@@ -94,6 +100,15 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                     retryHandler.setLastRetriedException(handleThrownException(e));
                 }
             }
+        }
+
+        private void initializeAttemptMetricRegistry() {
+            MetricRegistry apiCallMR = context.executionAttributes().getAttribute(METRIC_REGISTRY);
+            apiCallMR.counter(SdkMetrics.ApiCallAttemptCount.name()).increment();
+
+            // From now on, downstream calls should use this attempt metric registry to record metrics
+            MetricRegistry attemptMR = apiCallMR.registerApiCallAttemptMetrics();
+            context.executionAttributes().putAttribute(ATTEMPT_METRIC_REGISTRY, attemptMR);
         }
 
         private void beforeExecute() throws InterruptedException {

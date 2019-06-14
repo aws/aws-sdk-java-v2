@@ -17,6 +17,8 @@ package software.amazon.awssdk.core.client.config;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
+import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 
 
 /**
@@ -30,6 +32,7 @@ import software.amazon.awssdk.core.signer.Signer;
  */
 @SdkPublicApi
 public class SdkAdvancedClientOption<T> extends ClientOption<T> {
+
     /**
      * Set the prefix of the user agent that is sent with each request to AWS.
      */
@@ -54,6 +57,19 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
      */
     public static final SdkAdvancedClientOption<Boolean> DISABLE_HOST_PREFIX_INJECTION =
         new SdkAdvancedClientOption<>(Boolean.class);
+
+    /**
+     * Set the client option to configure {@link MetricConfigurationProvider}
+     */
+    public static final SdkAdvancedClientOption<MetricConfigurationProvider> METRIC_CONFIGURATION_PROVIDER =
+        new SdkAdvancedClientOption<>(MetricConfigurationProvider.class);
+
+    /**
+     * Set the client option to configure {@link MetricPublisherConfiguration}
+     */
+    public static final SdkAdvancedClientOption<MetricPublisherConfiguration> METRIC_PUBLISHER_CONFIGURATION =
+        new SdkAdvancedClientOption<>(MetricPublisherConfiguration.class);
+
 
     protected SdkAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

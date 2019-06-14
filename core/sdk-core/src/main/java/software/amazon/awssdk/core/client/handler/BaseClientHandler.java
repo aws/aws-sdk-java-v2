@@ -27,8 +27,16 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.SdkMetrics;
+import software.amazon.awssdk.metrics.meter.ConstantGauge;
+import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
+import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkProtectedApi
@@ -60,7 +68,13 @@ public abstract class BaseClientHandler {
         SdkClientConfiguration clientConfiguration) {
 
         runBeforeMarshallingInterceptors(executionContext);
-        SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
+
+        MetricRegistry metricRegistry = executionContext.executionAttributes()
+                                                        .getAttribute(MetricExecutionAttribute.METRIC_REGISTRY);
+        Timer marshallTimer = metricRegistry.timer(SdkMetrics.MarshallingLatency.name());
+
+        SdkHttpFullRequest request = marshallTimer.record(() -> executionParams.getMarshaller().marshall(inputT));
+
         request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
 
         addHttpRequest(executionContext, request);
@@ -184,5 +198,32 @@ public abstract class BaseClientHandler {
         HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
         return new AttachHttpMetadataResponseHandler<>(interceptorCallingResponseHandler);
+    }
+
+    /**
+     * Sets the metrics registry instance in execution attributes.
+     * Register some constant metrics regarding the client and the API
+     */
+    protected void initializeMetrics(ExecutionContext executionContext) {
+        MetricRegistry metricRegistry = null;
+        MetricConfigurationProvider metricProvider =
+            executionContext.executionAttributes()
+                            .getAttribute(MetricExecutionAttribute.METRIC_CONFIGURATION_PROVIDER);
+
+        if (metricProvider.enabled()) {
+            metricRegistry = DefaultMetricRegistry.create();
+        } else {
+            metricRegistry = NoOpMetricRegistry.getInstance();
+        }
+
+        executionContext.executionAttributes()
+                        .putAttribute(MetricExecutionAttribute.METRIC_REGISTRY, metricRegistry);
+
+        metricRegistry.register(SdkMetrics.Service.name(),
+                                ConstantGauge.create(executionContext.executionAttributes()
+                                                                     .getAttribute(SdkExecutionAttribute.SERVICE_NAME)));
+        metricRegistry.register(SdkMetrics.Api.name(),
+                                ConstantGauge.create(executionContext.executionAttributes()
+                                                                     .getAttribute(SdkExecutionAttribute.OPERATION_NAME)));
     }
 }
