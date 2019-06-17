@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune",
+    "description": "This release adds a feature to configure Amazon Neptune to publish audit logs to Amazon CloudWatch Logs."
+}
