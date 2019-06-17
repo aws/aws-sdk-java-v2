@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "description": "Add the ServiceUnavailableException (503) into CreateSimulationJob API."
+}
