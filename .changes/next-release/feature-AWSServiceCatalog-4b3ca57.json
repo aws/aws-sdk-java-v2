@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog",
-    "description": "Restrict concurrent calls by a single customer account for CreatePortfolioShare and DeletePortfolioShare when sharing/unsharing to an Organization."
-}

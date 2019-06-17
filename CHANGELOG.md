@@ -1,3 +1,16 @@
+# __2.5.65__ __2019-06-17__
+## __AWS RoboMaker__
+  - ### Features
+    - Add the ServiceUnavailableException (503) into CreateSimulationJob API.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Restrict concurrent calls by a single customer account for CreatePortfolioShare and DeletePortfolioShare when sharing/unsharing to an Organization.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds a feature to configure Amazon Neptune to publish audit logs to Amazon CloudWatch Logs.
+
 # __2.5.64__ __2019-06-14__
 ## __Amazon AppStream__
   - ### Features
