@@ -488,24 +488,6 @@
       }
   },
   {
-      "description": "Input with greedy label in path, leading slash removed",
-      "given": {
-	  "input": {
-	      "NonGreedyPathParam": "pathParamValue",
-	      "GreedyPathParam": "/foo/bar/baz"
-	  }
-      },
-      "when": {
-	  "action": "marshall",
-	  "operation": "OperationWithGreedyLabel"
-      },
-      "then": {
-	  "serializedAs": {
-	      "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue/foo/bar/baz"
-	  }
-      }
-  },
-  {
     "description": "Operation with null members that have the idempotent trait are autofilled.",
     "when": {
       "action": "marshall",

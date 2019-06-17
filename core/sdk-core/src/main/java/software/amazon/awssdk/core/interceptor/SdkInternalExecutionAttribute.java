@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 
 /**
  * Attributes that can be applied to all sdk requests. Only SDK is allowed to set these values.
@@ -29,6 +31,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * at the same time.
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
+
+    /**
+     * The key to store the {@link CompletableFuture} returned by {@link AsyncResponseTransformer#prepare()} method
+     * in the first attempt of a request. This is used only for async streaming requests
+     */
+    public static final ExecutionAttribute<CompletableFuture<?>> ASYNC_RESPONSE_TRANSFORMER_FUTURE =
+        new ExecutionAttribute<>("AsyncResponseTransformerFuture");
 
     private SdkInternalExecutionAttribute() {
     }

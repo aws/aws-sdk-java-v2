@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.client.handler;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -73,7 +75,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
+        // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
+        // See https://github.com/aws/aws-sdk-java-v2/issues/1268
+        CompletableFuture<ReturnT> asyncTransformerFuture = asyncResponseTransformer.prepare();
+
         ExecutionContext context = createExecutionContext(executionParams);
+        context.executionAttributes().putAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE, asyncTransformerFuture);
 
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), context);

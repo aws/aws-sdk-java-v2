@@ -17,3 +17,4 @@ target/
 **/dependency-reduced-pom.xml
 
 *.pyc
+*.swp

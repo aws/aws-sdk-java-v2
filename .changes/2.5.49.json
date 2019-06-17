@@ -1,0 +1,46 @@
+{
+    "date": "2019-05-22",
+    "version": "2.5.49",
+    "entries": [
+        {
+            "category": "AWS Budgets",
+            "type": "feature",
+            "description": "Added new datatype PlannedBudgetLimits to Budget model, and updated examples for AWS Budgets API for UpdateBudget, CreateBudget, DescribeBudget, and DescribeBudgets"
+        },
+        {
+            "category": "Amazon Elastic File System",
+            "type": "feature",
+            "description": "AWS EFS documentation updated to reflect the minimum required value for ProvisionedThroughputInMibps is 1 from the previously documented 0. The service has always required a minimum value of 1, therefor service behavior is not changed."
+        },
+        {
+            "category": "AWS Service Catalog",
+            "type": "feature",
+            "description": "Service Catalog UpdateProvisionedProductProperties API enables customers to manage provisioned product ownership. Administrators can now update the user associated to a provisioned product to another user within the same account allowing the new user to describe, update, terminate and execute service actions in that Service Catalog resource. New owner will also be able to list and describe all past records executed for that provisioned product."
+        },
+        {
+            "category": "Amazon Relational Database Service",
+            "type": "feature",
+            "description": "Documentation updates for rds"
+        },
+        {
+            "category": "Amazon API Gateway",
+            "type": "feature",
+            "description": "This release adds support for tagging of Amazon API Gateway resources."
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "This release adds idempotency support for associate, create route and authorization APIs for AWS Client VPN Endpoints."
+        },
+        {
+            "category": "Amazon WorkLink",
+            "type": "feature",
+            "description": "Amazon WorkLink is a fully managed, cloud-based service that enables secure, one-click access to internal websites and web apps from mobile phones. This release introduces new APIs to associate and manage website authorization providers with Amazon WorkLink fleets."
+        },
+        {
+            "category": "AWS Device Farm",
+            "type": "feature",
+            "description": "This release introduces support for tagging, tag-based access control, and resource-based access control."
+        }
+    ]
+}

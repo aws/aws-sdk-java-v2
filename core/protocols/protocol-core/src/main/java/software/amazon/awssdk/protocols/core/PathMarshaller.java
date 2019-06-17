@@ -32,6 +32,12 @@ public abstract class PathMarshaller {
      */
     public static final PathMarshaller GREEDY = new GreedyPathMarshaller();
 
+    /**
+     * Marshaller for greedy path labels that allows leading slahes. Value is not URL encoded and
+     * replaced in the request URI.
+     */
+    public static final PathMarshaller GREEDY_WITH_SLASHES = new GreedyLeadingSlashPathMarshaller();
+
     private PathMarshaller() {
     }
 
@@ -65,6 +71,16 @@ public abstract class PathMarshaller {
             Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
             return resourcePath.replace(String.format("{%s+}", paramName),
                                         SdkHttpUtils.urlEncodeIgnoreSlashes(trimLeadingSlash(pathValue)));
+        }
+    }
+
+    private static class GreedyLeadingSlashPathMarshaller extends PathMarshaller {
+
+        @Override
+        public String marshall(String resourcePath, String paramName, String pathValue) {
+            Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
+            return resourcePath.replace(String.format("{%s+}", paramName),
+                                        SdkHttpUtils.urlEncodeIgnoreSlashes(pathValue));
         }
     }
 

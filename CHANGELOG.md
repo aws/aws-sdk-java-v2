@@ -1,3 +1,393 @@
+# __2.5.65__ __2019-06-17__
+## __AWS RoboMaker__
+  - ### Features
+    - Add the ServiceUnavailableException (503) into CreateSimulationJob API.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Restrict concurrent calls by a single customer account for CreatePortfolioShare and DeletePortfolioShare when sharing/unsharing to an Organization.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds a feature to configure Amazon Neptune to publish audit logs to Amazon CloudWatch Logs.
+
+# __2.5.64__ __2019-06-14__
+## __Amazon AppStream__
+  - ### Features
+    - Added 2 new values(WINDOWS_SERVER_2016, WINDOWS_SERVER_2019) for PlatformType enum.
+
+## __Amazon CloudFront__
+  - ### Features
+    - A new datatype in the CloudFront API, AliasICPRecordal, provides the ICP recordal status for CNAMEs associated with distributions. AWS services in China customers must file for an Internet Content Provider (ICP) recordal if they want to serve content publicly on an alternate domain name, also known as a CNAME, that they have added to CloudFront. The status value is returned in the CloudFront response; you cannot configure it yourself. The status is set to APPROVED for all CNAMEs (aliases) in regions outside of China.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Correction to enumerations in EC2 client.
+
+## __Amazon Personalize__
+  - ### Features
+    - Documentation updates for Amazon Personalize.
+
+# __2.5.63__ __2019-06-13__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds support for AWS Cloud Map as a service discovery method for virtual nodes.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release is to add support for reader endpoint for cluster-mode disabled Amazon ElastiCache for Redis clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - G4 instances are Amazon EC2 instances based on NVIDIA T4 GPUs and are designed to provide cost-effective machine learning inference for applications, like image classification, object detection, recommender systems, automated speech recognition, and language translation. G4 instances are also a cost-effective platform for building and running graphics-intensive applications, such as remote graphics workstations, video transcoding, photo-realistic design, and game streaming in the cloud. To get started with G4 instances visit https://aws.amazon.com/ec2/instance-types/g4.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Support for tagging functionality in Create and Get operations for Detector, IP Set, Threat Intel Set, and Finding Filter resources and 3 new tagging APIs: ListTagsForResource, TagResource, and UntagResource.
+
+# __2.5.62__ __2019-06-12__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in the code generator causing event headers to be incorrectly marshalled and unmarshalled to and from the payload.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds a new field named Guidance to update provisioning artifact, this field can be set by the administrator to provide guidance to end users about which provisioning artifacts to use.
+
+# __2.5.61__ __2019-06-11__
+## __Amazon SageMaker Service__
+  - ### Features
+    - The default TaskTimeLimitInSeconds of labeling job is increased to 8 hours. Batch Transform introduces a new DataProcessing field which supports input and output filtering and data joining. Training job increases the max allowed input channels from 8 to 20.
+
+# __2.5.60__ __2019-06-10__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild adds support for source version on project level.
+
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds two merge strategies for merging pull requests: squash and three-way. It also adds functionality for resolving merge conflicts, testing merge outcomes, and for merging branches using one of the three supported merge strategies.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix NPE for streaming APIs in async client if there is a failure before AsyncResponseTransformer#prepare is called for first time. See https://github.com/aws/aws-sdk-java-v2/issues/1268
+
+## __Amazon Personalize__
+  - ### Features
+    - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Introducing Amazon Personalize - a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+# __2.5.59__ __2019-06-07__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Allow customers to disable read and write timeout by setting `Duration.ZERO` to `readTimeout` and `writeTimeout`. See [#1281](https://github.com/aws/aws-sdk-java-v2/issues/1281)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds DNS entries and NLB ARNs to describe-vpc-endpoint-connections API response. Adds owner ID to describe-vpc-endpoints and create-vpc-endpoint API responses.
+
+# __2.5.58__ __2019-06-06__
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for encrypting entitlements using Secure Packager and Encoder Key Exchange (SPEKE).
+
+## __AWS Organizations__
+  - ### Features
+    - You can tag and untag accounts in your organization and view tags on an account in your organization.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation updates for logs
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for dynamodb
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces support for launching container instances using supported Amazon EC2 instance types that have increased elastic network interface density. Using these instance types and opting in to the awsvpcTrunking account setting provides increased elastic network interface (ENI) density on newly launched container instances which allows you to place more tasks on each container instance.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Improve FindingCriteria Condition field names, support long-typed conditions and deprecate old Condition field names.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - You can now specify whether the Amazon Simple Email Service must deliver email over a connection that is encrypted using Transport Layer Security (TLS).
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - OpsCenter is a new Systems Manager capability that allows you to view, diagnose, and remediate, operational issues, aka OpsItems, related to various AWS resources by bringing together contextually relevant investigation information. New APIs to create, update, describe, and get OpsItems as well as OpsItems summary API.
+
+# __2.5.57__ __2019-06-05__
+## __AWS Glue__
+  - ### Features
+    - Support specifying python version for Python shell jobs. A new parameter PythonVersion is added to the JobCommand data type.
+
+# __2.5.56__ __2019-06-04__
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release adds validation for policy path field. This field is now restricted to be max 512 characters.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - AWS Storage Gateway now supports AWS PrivateLink, enabling you to administer and use gateways without needing to use public IP addresses or a NAT/Internet Gateway, while avoiding traffic from going over the internet.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now allows you to apply available service updates on demand. Features included: (1) Access to the list of applicable service updates and their priorities. (2) Service update monitoring and regular status updates. (3) Recommended apply-by-dates for scheduling the service updates, which is critical if your cluster is in ElastiCache-supported compliance programs. (4) Ability to stop and later re-apply updates. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Self-Service-Updates.html
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Host Recovery feature which automatically restarts instances on to a new replacement host if failures are detected on Dedicated Host.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for s3
+
+# __2.5.55__ __2019-06-03__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 I3en instances are the new storage-optimized instances offering up to 60 TB NVMe SSD instance storage and up to 100 Gbps of network bandwidth.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS Data API is generally available. Removing beta notes in the documentation.
+
+# __2.5.54__ __2019-05-30__
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds APIs that allow adding and removing tags to a repository, and viewing tags for a repository. It also enables adding tags when creating a repository.
+
+## __AWS IoT Analytics__
+  - ### Features
+    - IoT Analytics adds the option to use your own S3 bucket to store channel and data store resources. Previously, only service-managed storage was used.
+
+## __AWS IoT Events__
+  - ### Features
+    - The AWS IoT Events service allows customers to monitor their IoT devices and sensors to detect failures or changes in operation and to trigger actions when these events occur
+
+## __AWS IoT Events Data__
+  - ### Features
+    - The AWS IoT Events service allows customers to monitor their IoT devices and sensors to detect failures or changes in operation and to trigger actions when these events occur
+
+## __AWS RDS DataService__
+  - ### Features
+    - The RDS Data API is generally available for the MySQL-compatible edition of Amazon Aurora Serverless in the US East (N. Virginia and Ohio), US West (Oregon), EU (Ireland), and Asia Pacific (Tokyo) regions. This service enables you to easily access Aurora Serverless clusters with web services-based applications including AWS Lambda and AWS AppSync. The new APIs included in this SDK release are ExecuteStatement, BatchExecuteStatement, BeginTransaction, CommitTransaction, and RollbackTransaction. The ExecuteSql API is deprecated; instead use ExecuteStatement which provides additional functionality including transaction support.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improved exception messages in credential providers to exclude detailed parse errors that may contain sensitive information.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Service Catalog ListStackInstancesForProvisionedProduct API enables customers to get details of a provisioned product with type "CFN_STACKSET". By passing the provisioned product id, the API will list account, region and status of each stack instances that are associated with this provisioned product.
+
+## __Amazon Pinpoint Email Service__
+  - ### Features
+    - You can now specify whether the Amazon Pinpoint Email service must deliver email over a connection that is encrypted using Transport Layer Security (TLS).
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Activity Streams for database clusters.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Updated APIs for Amazon MSK to enable new features such as encryption in transit, client authentication, and scaling storage.
+
+# __2.5.53__ __2019-05-29__
+## __AWS IoT Things Graph__
+  - ### Features
+    - Initial release.
+
+## __AWS SecurityHub__
+  - ### Features
+    - This update adds the ListProductSubscribers API, DescribeProducts API, removes CONTAINS as a comparison value for the StringFilter, and only allows use of EQUALS instead of CONTAINS in MapFilter.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Customers can now simultaneously take snapshots of multiple EBS volumes attached to an EC2 instance. With this new capability, snapshots guarantee crash-consistency across multiple volumes by preserving the order of IO operations. This new feature is fully integrated with Amazon Data Lifecycle Manager (DLM) allowing customers to automatically manage snapshots by creating lifecycle policies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Customers can now simultaneously take snapshots of multiple EBS volumes attached to an EC2 instance. With this new capability, snapshots guarantee crash-consistency across multiple volumes by preserving the order of IO operations. This new feature is fully integrated with Amazon Data Lifecycle Manager (DLM) allowing customers to automatically manage snapshots by creating lifecycle policies.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for rds
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Allows S3 to be used with object keys that have a leading slash "/myKey"
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager - Documentation updates
+
+# __2.5.52__ __2019-05-28__
+## __AWS Ground Station__
+  - ### Features
+    - AWS Ground Station is a fully managed service that enables you to control satellite communications, downlink and process satellite data, and scale your satellite operations efficiently and cost-effectively without having to build or manage your own ground station infrastructure.
+
+## __AWS RoboMaker__
+  - ### Features
+    - Added support for an additional robot software suite (Gazebo 9) and for cancelling deployment jobs.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for iam
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Introduce AssignTapePool operation to allow customers to migrate tapes between pools.
+
+## __AWS WAF__
+  - ### Features
+    - Documentation updates for waf
+
+## __Amazon Chime__
+  - ### Features
+    - This release adds the ability to search and order toll free phone numbers for Voice Connectors.
+
+## __Amazon Pinpoint Email Service__
+  - ### Features
+    - This release adds support for programmatic access to Deliverability dashboard subscriptions and the deliverability data provided by the Deliverability dashboard for domains and IP addresses. The data includes placement metrics for campaigns that use subscribed domains to send email.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add a new output field Status to DBEngineVersion which shows the status of the engine version (either available or deprecated). Add a new parameter IncludeAll to DescribeDBEngineVersions to make it possible to return both available and deprecated engine versions. These changes enable a user to create a Read Replica of an DB instance on a deprecated engine version.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe - support transcriptions from audio sources in Modern Standard Arabic (ar-SA).
+
+# __2.5.51__ __2019-05-24__
+## __AWS CodeDeploy__
+  - ### Features
+    - AWS CodeDeploy now supports tagging for the application and deployment group resources.
+
+## __AWS Elemental MediaStore Data Plane__
+  - ### Features
+    - MediaStore - This release adds support for chunked transfer of objects, which reduces latency by making an object available for downloading while it is still being uploaded.
+
+## __AWS OpsWorks for Chef Automate__
+  - ### Features
+    - Documentation updates for OpsWorks for Chef Automate; attribute values updated for Chef Automate 2.0 release.
+
+# __2.5.50__ __2019-05-23__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Updated aws-java-sdk and bom modules to include ALL service modules.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Documentation updates for waf-regional
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New APIs to enable EBS encryption by default feature. Once EBS encryption by default is enabled in a region within the account, all new EBS volumes and snapshot copies are always encrypted
+
+# __2.5.49__ __2019-05-22__
+## __AWS Budgets__
+  - ### Features
+    - Added new datatype PlannedBudgetLimits to Budget model, and updated examples for AWS Budgets API for UpdateBudget, CreateBudget, DescribeBudget, and DescribeBudgets
+
+## __AWS Device Farm__
+  - ### Features
+    - This release introduces support for tagging, tag-based access control, and resource-based access control.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Service Catalog UpdateProvisionedProductProperties API enables customers to manage provisioned product ownership. Administrators can now update the user associated to a provisioned product to another user within the same account allowing the new user to describe, update, terminate and execute service actions in that Service Catalog resource. New owner will also be able to list and describe all past records executed for that provisioned product.
+
+## __Amazon API Gateway__
+  - ### Features
+    - This release adds support for tagging of Amazon API Gateway resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds idempotency support for associate, create route and authorization APIs for AWS Client VPN Endpoints.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - AWS EFS documentation updated to reflect the minimum required value for ProvisionedThroughputInMibps is 1 from the previously documented 0. The service has always required a minimum value of 1, therefor service behavior is not changed.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for rds
+
+## __Amazon WorkLink__
+  - ### Features
+    - Amazon WorkLink is a fully managed, cloud-based service that enables secure, one-click access to internal websites and web apps from mobile phones. This release introduces new APIs to associate and manage website authorization providers with Amazon WorkLink fleets.
+
+# __2.5.48__ __2019-05-21__
+## __AWS DataSync__
+  - ### Features
+    - Documentation update and refine pagination token on Datasync List API's
+
+## __Alexa For Business__
+  - ### Features
+    - This release contains API changes to allow customers to create and manage Network Profiles for their Shared devices
+
+# __2.5.47__ __2019-05-20__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - AWS Elemental MediaPackage now supports Video-on-Demand (VOD) workflows. These new features allow you to easily deliver a vast library of source video Assets stored in your own S3 buckets using a small set of simple to set up Packaging Configurations and Packaging Groups.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Documentation updates for meteringmarketplace
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Updated APIs for the Managed Streaming for Kafka service that let customers create clusters with custom Kafka configuration.
+
+# __2.5.46__ __2019-05-17__
+## __Amazon AppStream__
+  - ### Features
+    - Includes APIs for managing subscriptions to AppStream 2.0 usage reports and configuring idle disconnect timeouts on AppStream 2.0 fleets.
+
+# __2.5.45__ __2019-05-16__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added channel state waiters to MediaLive.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release updates the Amazon S3 PUT Bucket replication API to include a new optional field named token, which allows you to add a replication configuration to an S3 bucket that has Object Lock enabled.
+
+# __2.5.44__ __2019-05-15__
+## __AWS CodePipeline__
+  - ### Features
+    - This feature includes new APIs to add, edit, remove and view tags for pipeline, custom action type and webhook resources. You can also add tags while creating these resources.
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, rather than Number or Time with SegmentTimeline.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in `EventStreamAsyncResponseTransformer` where the reference to the current stream `Subscriber` is not reset in `prepare`, causing an `IllegalStateException` to be thrown when attemping to subscribe to the event stream upon a retry.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding tagging support for VPC Endpoints and VPC Endpoint Services.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - In the RDS API and CLI documentation, corrections to the descriptions for Boolean parameters to avoid references to TRUE and FALSE. The RDS CLI does not allow TRUE and FALSE values values for Boolean parameters.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe - support transcriptions from audio sources in Indian English (en-IN) and Hindi (hi-IN).
+
 # __2.5.43__ __2019-05-14__
 ## __AWS Storage Gateway__
   - ### Features
