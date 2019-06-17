@@ -1,342 +1,348 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-<modelVersion>4.0.0</modelVersion>
-<parent>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>aws-sdk-java-pom</artifactId>
-<version>2.5.53-SNAPSHOT</version>
-</parent>
-<artifactId>services</artifactId>
-<name>AWS Java SDK :: Services</name>
-<packaging>pom</packaging>
-<properties>
-<root.offset>../..</root.offset>
-</properties>
-<modules>
-<module>acm</module>
-<module>apigateway</module>
-<module>applicationautoscaling</module>
-<module>appstream</module>
-<module>athena</module>
-<module>autoscaling</module>
-<module>batch</module>
-<module>budgets</module>
-<module>clouddirectory</module>
-<module>cloudformation</module>
-<module>cloudfront</module>
-<module>cloudhsm</module>
-<module>cloudsearch</module>
-<module>cloudsearchdomain</module>
-<module>cloudtrail</module>
-<module>cloudwatch</module>
-<module>codebuild</module>
-<module>codecommit</module>
-<module>codedeploy</module>
-<module>codepipeline</module>
-<module>codestar</module>
-<module>cognitoidentity</module>
-<module>cognitoidentityprovider</module>
-<module>cognitosync</module>
-<module>config</module>
-<module>costandusagereport</module>
-<module>datapipeline</module>
-<module>dax</module>
-<module>devicefarm</module>
-<module>directconnect</module>
-<module>directory</module>
-<module>applicationdiscovery</module>
-<module>databasemigration</module>
-<module>dynamodb</module>
-<module>ec2</module>
-<module>ecr</module>
-<module>ecs</module>
-<module>efs</module>
-<module>elasticache</module>
-<module>elasticbeanstalk</module>
-<module>elasticloadbalancing</module>
-<module>elasticloadbalancingv2</module>
-<module>elasticsearch</module>
-<module>elastictranscoder</module>
-<module>emr</module>
-<module>cloudwatchevents</module>
-<module>gamelift</module>
-<module>glacier</module>
-<module>greengrass</module>
-<module>health</module>
-<module>iam</module>
-<module>inspector</module>
-<module>iot</module>
-<module>iotdataplane</module>
-<module>kinesis</module>
-<module>kinesisanalytics</module>
-<module>firehose</module>
-<module>kms</module>
-<module>lambda</module>
-<module>lightsail</module>
-<module>lexruntime</module>
-<module>lexmodelbuilding</module>
-<module>cloudwatchlogs</module>
-<module>machinelearning</module>
-<module>marketplacecommerceanalytics</module>
-<module>marketplaceentitlement</module>
-<module>marketplacemetering</module>
-<module>mturk</module>
-<module>opsworks</module>
-<module>opsworkscm</module>
-<module>organizations</module>
-<module>pinpoint</module>
-<module>polly</module>
-<module>rds</module>
-<module>redshift</module>
-<module>rekognition</module>
-<module>resourcegroupstaggingapi</module>
-<module>route53</module>
-<module>route53domains</module>
-<module>s3</module>
-<module>sms</module>
-<module>servicecatalog</module>
-<module>ses</module>
-<module>shield</module>
-<module>swf</module>
-<module>snowball</module>
-<module>sns</module>
-<module>sqs</module>
-<module>ssm</module>
-<module>sfn</module>
-<module>storagegateway</module>
-<module>sts</module>
-<module>support</module>
-<module>waf</module>
-<module>workdocs</module>
-<module>workspaces</module>
-<module>xray</module>
-<module>appsync</module>
-<module>alexaforbusiness</module>
-<module>migrationhub</module>
-<module>costexplorer</module>
-<module>cloud9</module>
-<module>cloudhsmv2</module>
-<module>comprehend</module>
-<module>glue</module>
-<module>guardduty</module>
-<module>kinesisvideo</module>
-<module>mediaconvert</module>
-<module>medialive</module>
-<module>mediapackage</module>
-<module>mediastore</module>
-<module>mediastoredata</module>
-<module>mobile</module>
-<module>mq</module>
-<module>pricing</module>
-<module>resourcegroups</module>
-<module>sagemaker</module>
-<module>serverlessapplicationrepository</module>
-<module>servicediscovery</module>
-<module>translate</module>
-<module>transcribestreaming</module>
-<module>workmail</module>
-<module>secretsmanager</module>
-<module>chime</module>
-<module>acmpca</module>
-<module>autoscalingplans</module>
-<module>connect</module>
-<module>dlm</module>
-<module>eks</module>
-<module>iotjobsdataplane</module>
-<module>iot1clickdevices</module>
-<module>iot1clickprojects</module>
-<module>iotanalytics</module>
-<module>kinesisvideoarchivedmedia</module>
-<module>kinesisvideomedia</module>
-<module>macie</module>
-<module>mediatailor</module>
-<module>pi</module>
-<module>pinpointemail</module>
-<module>ram</module>
-<module>sagemakerruntime</module>
-<module>signer</module>
-<module>pinpointsmsvoice</module>
-<module>transcribe</module>
-<module>route53resolver</module>
-<module>fms</module>
-<module>amplify</module>
-<module>datasync</module>
-<module>neptune</module>
-<module>quicksight</module>
-<module>rdsdata</module>
-<module>robomaker</module>
-<module>transfer</module>
-<module>globalaccelerator</module>
-<module>comprehendmedical</module>
-<module>fsx</module>
-<module>kinesisanalyticsv2</module>
-<module>mediaconnect</module>
-<module>securityhub</module>
-<module>appmesh</module>
-<module>licensemanager</module>
-<module>kafka</module>
-<module>apigatewaymanagementapi</module>
-<module>apigatewayv2</module>
-<module>docdb</module>
-<module>backup</module>
-<module>worklink</module>
-<module>textract</module>
-<module>managedblockchain</module>
-<module>mediapackagevod</module>
-<module>groundstation</module>
-</modules>
-<description>The AWS Java SDK services</description>
-<url>https://aws.amazon.com/sdkforjava</url>
-<dependencyManagement>
-<dependencies>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>bom-internal</artifactId>
-<version>${project.version}</version>
-<type>pom</type>
-<scope>import</scope>
-</dependency>
-</dependencies>
-</dependencyManagement>
-<dependencies>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>sdk-core</artifactId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>auth</artifactId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>http-client-spi</artifactId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>regions</artifactId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>annotations</artifactId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>utils</artifactId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<artifactId>aws-core</artifactId>
-<groupId>software.amazon.awssdk</groupId>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<artifactId>apache-client</artifactId>
-<groupId>software.amazon.awssdk</groupId>
-<version>${awsjavasdk.version}</version>
-<scope>runtime</scope>
-</dependency>
-<dependency>
-<artifactId>netty-nio-client</artifactId>
-<groupId>software.amazon.awssdk</groupId>
-<version>${awsjavasdk.version}</version>
-<scope>runtime</scope>
-</dependency>
-<dependency>
-<artifactId>service-test-utils</artifactId>
-<groupId>software.amazon.awssdk</groupId>
-<scope>test</scope>
-<version>${awsjavasdk.version}</version>
-</dependency>
-<dependency>
-<groupId>log4j</groupId>
-<artifactId>log4j</artifactId>
-<scope>test</scope>
-</dependency>
-<dependency>
-<groupId>org.slf4j</groupId>
-<artifactId>slf4j-log4j12</artifactId>
-<scope>test</scope>
-</dependency>
-<dependency>
-<groupId>io.reactivex.rxjava2</groupId>
-<artifactId>rxjava</artifactId>
-<scope>test</scope>
-</dependency>
-<dependency>
-<groupId>org.assertj</groupId>
-<artifactId>assertj-core</artifactId>
-<scope>test</scope>
-</dependency>
-<dependency>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>test-utils</artifactId>
-<version>${awsjavasdk.version}</version>
-<scope>test</scope>
-</dependency>
-<dependency>
-<groupId>org.hamcrest</groupId>
-<artifactId>hamcrest-all</artifactId>
-<scope>test</scope>
-</dependency>
-<dependency>
-<artifactId>wiremock</artifactId>
-<groupId>com.github.tomakehurst</groupId>
-<scope>test</scope>
-</dependency>
-<dependency>
-<artifactId>mockito-core</artifactId>
-<groupId>org.mockito</groupId>
-<scope>test</scope>
-</dependency>
-</dependencies>
-<build>
-<pluginManagement>
-<plugins>
-<plugin>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>codegen-maven-plugin</artifactId>
-<version>${awsjavasdk.version}</version>
-<executions>
-<execution>
-<phase>generate-sources</phase>
-<goals>
-<goal>generate</goal>
-</goals>
-</execution>
-</executions>
-</plugin>
-<plugin>
-<groupId>com.github.spotbugs</groupId>
-<artifactId>spotbugs-maven-plugin</artifactId>
-<configuration>
-<skip>true</skip>
-</configuration>
-</plugin>
-</plugins>
-</pluginManagement>
-</build>
-<profiles>
-<!-- Build steps executed for services with models -->
-<profile>
-<id>generated-service</id>
-<activation>
-<file>
-<exists>src/main/resources/codegen-resources</exists>
-</file>
-</activation>
-<build>
-<plugins>
-<plugin>
-<groupId>software.amazon.awssdk</groupId>
-<artifactId>codegen-maven-plugin</artifactId>
-</plugin>
-</plugins>
-</build>
-</profile>
-</profiles>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>2.5.66-SNAPSHOT</version>
+    </parent>
+    <artifactId>services</artifactId>
+    <name>AWS Java SDK :: Services</name>
+    <packaging>pom</packaging>
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
+    <modules>
+        <module>acm</module>
+        <module>apigateway</module>
+        <module>applicationautoscaling</module>
+        <module>appstream</module>
+        <module>athena</module>
+        <module>autoscaling</module>
+        <module>batch</module>
+        <module>budgets</module>
+        <module>clouddirectory</module>
+        <module>cloudformation</module>
+        <module>cloudfront</module>
+        <module>cloudhsm</module>
+        <module>cloudsearch</module>
+        <module>cloudsearchdomain</module>
+        <module>cloudtrail</module>
+        <module>cloudwatch</module>
+        <module>codebuild</module>
+        <module>codecommit</module>
+        <module>codedeploy</module>
+        <module>codepipeline</module>
+        <module>codestar</module>
+        <module>cognitoidentity</module>
+        <module>cognitoidentityprovider</module>
+        <module>cognitosync</module>
+        <module>config</module>
+        <module>costandusagereport</module>
+        <module>datapipeline</module>
+        <module>dax</module>
+        <module>devicefarm</module>
+        <module>directconnect</module>
+        <module>directory</module>
+        <module>applicationdiscovery</module>
+        <module>databasemigration</module>
+        <module>dynamodb</module>
+        <module>ec2</module>
+        <module>ecr</module>
+        <module>ecs</module>
+        <module>efs</module>
+        <module>elasticache</module>
+        <module>elasticbeanstalk</module>
+        <module>elasticloadbalancing</module>
+        <module>elasticloadbalancingv2</module>
+        <module>elasticsearch</module>
+        <module>elastictranscoder</module>
+        <module>emr</module>
+        <module>cloudwatchevents</module>
+        <module>gamelift</module>
+        <module>glacier</module>
+        <module>greengrass</module>
+        <module>health</module>
+        <module>iam</module>
+        <module>inspector</module>
+        <module>iot</module>
+        <module>iotdataplane</module>
+        <module>kinesis</module>
+        <module>kinesisanalytics</module>
+        <module>firehose</module>
+        <module>kms</module>
+        <module>lambda</module>
+        <module>lightsail</module>
+        <module>lexruntime</module>
+        <module>lexmodelbuilding</module>
+        <module>cloudwatchlogs</module>
+        <module>machinelearning</module>
+        <module>marketplacecommerceanalytics</module>
+        <module>marketplaceentitlement</module>
+        <module>marketplacemetering</module>
+        <module>mturk</module>
+        <module>opsworks</module>
+        <module>opsworkscm</module>
+        <module>organizations</module>
+        <module>pinpoint</module>
+        <module>polly</module>
+        <module>rds</module>
+        <module>redshift</module>
+        <module>rekognition</module>
+        <module>resourcegroupstaggingapi</module>
+        <module>route53</module>
+        <module>route53domains</module>
+        <module>s3</module>
+        <module>sms</module>
+        <module>servicecatalog</module>
+        <module>ses</module>
+        <module>shield</module>
+        <module>swf</module>
+        <module>snowball</module>
+        <module>sns</module>
+        <module>sqs</module>
+        <module>ssm</module>
+        <module>sfn</module>
+        <module>storagegateway</module>
+        <module>sts</module>
+        <module>support</module>
+        <module>waf</module>
+        <module>workdocs</module>
+        <module>workspaces</module>
+        <module>xray</module>
+        <module>appsync</module>
+        <module>alexaforbusiness</module>
+        <module>migrationhub</module>
+        <module>costexplorer</module>
+        <module>cloud9</module>
+        <module>cloudhsmv2</module>
+        <module>comprehend</module>
+        <module>glue</module>
+        <module>guardduty</module>
+        <module>kinesisvideo</module>
+        <module>mediaconvert</module>
+        <module>medialive</module>
+        <module>mediapackage</module>
+        <module>mediastore</module>
+        <module>mediastoredata</module>
+        <module>mobile</module>
+        <module>mq</module>
+        <module>pricing</module>
+        <module>resourcegroups</module>
+        <module>sagemaker</module>
+        <module>serverlessapplicationrepository</module>
+        <module>servicediscovery</module>
+        <module>translate</module>
+        <module>transcribestreaming</module>
+        <module>workmail</module>
+        <module>secretsmanager</module>
+        <module>chime</module>
+        <module>acmpca</module>
+        <module>autoscalingplans</module>
+        <module>connect</module>
+        <module>dlm</module>
+        <module>eks</module>
+        <module>iotjobsdataplane</module>
+        <module>iot1clickdevices</module>
+        <module>iot1clickprojects</module>
+        <module>iotanalytics</module>
+        <module>kinesisvideoarchivedmedia</module>
+        <module>kinesisvideomedia</module>
+        <module>macie</module>
+        <module>mediatailor</module>
+        <module>pi</module>
+        <module>pinpointemail</module>
+        <module>ram</module>
+        <module>sagemakerruntime</module>
+        <module>signer</module>
+        <module>pinpointsmsvoice</module>
+        <module>transcribe</module>
+        <module>route53resolver</module>
+        <module>fms</module>
+        <module>amplify</module>
+        <module>datasync</module>
+        <module>neptune</module>
+        <module>quicksight</module>
+        <module>rdsdata</module>
+        <module>robomaker</module>
+        <module>transfer</module>
+        <module>globalaccelerator</module>
+        <module>comprehendmedical</module>
+        <module>fsx</module>
+        <module>kinesisanalyticsv2</module>
+        <module>mediaconnect</module>
+        <module>securityhub</module>
+        <module>appmesh</module>
+        <module>licensemanager</module>
+        <module>kafka</module>
+        <module>apigatewaymanagementapi</module>
+        <module>apigatewayv2</module>
+        <module>docdb</module>
+        <module>backup</module>
+        <module>worklink</module>
+        <module>textract</module>
+        <module>managedblockchain</module>
+        <module>mediapackagevod</module>
+        <module>groundstation</module>
+        <module>iotthingsgraph</module>
+        <module>iotevents</module>
+        <module>ioteventsdata</module>
+        <module>personalizeruntime</module>
+        <module>personalize</module>
+        <module>personalizeevents</module>
+    </modules>
+    <description>The AWS Java SDK services</description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom-internal</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sdk-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-client-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>regions</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>aws-core</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>apache-client</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <artifactId>netty-nio-client</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <artifactId>service-test-utils</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <scope>test</scope>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>test-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <artifactId>wiremock</artifactId>
+            <groupId>com.github.tomakehurst</groupId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <artifactId>mockito-core</artifactId>
+            <groupId>org.mockito</groupId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>codegen-maven-plugin</artifactId>
+                    <version>${awsjavasdk.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <profiles>
+        <!-- Build steps executed for services with models -->
+        <profile>
+            <id>generated-service</id>
+            <activation>
+                <file>
+                    <exists>src/main/resources/codegen-resources</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>software.amazon.awssdk</groupId>
+                        <artifactId>codegen-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

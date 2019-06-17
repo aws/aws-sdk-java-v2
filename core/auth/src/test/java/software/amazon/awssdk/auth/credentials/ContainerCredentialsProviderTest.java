@@ -21,11 +21,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -92,18 +94,47 @@ public class ContainerCredentialsProviderTest {
         assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
     }
 
+    /**
+     * Tests that the getCredentials won't leak credentials data if the response from ECS is corrupted.
+     */
+    @Test
+    public void getCredentialsWithCorruptResponseDoesNotIncludeCredentialsInExceptionMessage() {
+        helper.set(AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, "");
+
+        stubForCorruptedSuccessResponse();
+
+        assertThatThrownBy(credentialsProvider::resolveCredentials).satisfies(t -> {
+            String stackTrace = ExceptionUtils.getStackTrace(t);
+            assertThat(stackTrace).doesNotContain("ACCESS_KEY_ID");
+            assertThat(stackTrace).doesNotContain("SECRET_ACCESS_KEY");
+            assertThat(stackTrace).doesNotContain("TOKEN_TOKEN_TOKEN");
+        });
+    }
+
     private void stubForSuccessResponse() {
-        stubFor(
-            get(urlPathEqualTo(CREDENTIALS_PATH))
-                .withHeader("User-Agent", equalTo(UserAgentUtils.getUserAgent()))
-                .willReturn(aResponse()
-                                .withStatus(200)
-                                .withHeader("Content-Type", "application/json")
-                                .withHeader("charset", "utf-8")
-                                .withBody("{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
-                                          "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
-                                          "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
-                                          "\"Expiration\":\"3000-05-03T04:55:54Z\"}")));
+        stubFor200Response(getSuccessfulBody());
+    }
+
+    private void stubForCorruptedSuccessResponse() {
+        String body = getSuccessfulBody();
+        stubFor200Response(body.substring(0, body.length() - 2));
+    }
+
+    private void stubFor200Response(String body) {
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                        .withHeader("User-Agent", equalTo(UserAgentUtils.getUserAgent()))
+                        .willReturn(aResponse()
+                                            .withStatus(200)
+                                            .withHeader("Content-Type", "application/json")
+                                            .withHeader("charset", "utf-8")
+                                            .withBody(body)));
+    }
+
+    private String getSuccessfulBody() {
+        return "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
+               "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
+               "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
+               "\"Expiration\":\"3000-05-03T04:55:54Z\"}";
     }
 
     /**
