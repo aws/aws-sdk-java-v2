@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Groups Tagging API",
+    "description": "You can use tag policies to help standardize on tags across your organization's resources."
+}
