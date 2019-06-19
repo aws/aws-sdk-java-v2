@@ -1,3 +1,8 @@
+# __2.5.67__ __2019-06-19__
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service.
+
 # __2.5.66__ __2019-06-18__
 ## __AWS Resource Groups Tagging API__
   - ### Features
