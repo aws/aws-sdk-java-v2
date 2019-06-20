@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.5.64-SNAPSHOT</version>
+    <version>2.5.68-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -592,8 +592,7 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
-                                    <!-- Sets the VM argument line used when integration tests are run. -->
-                                    <argLine>${argLine}</argLine>
+                                    <argLine>-Dio.netty.leakDetection.level=advanced</argLine>
                                     <includes>
                                         <include>**/*StabilityTest.java</include>
                                         <include>**/*StabilityTests.java</include>
