@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Events Data",
-    "description": "\"The colon character ':' is now permitted in Detector Model 'key' parameter values."
-}
