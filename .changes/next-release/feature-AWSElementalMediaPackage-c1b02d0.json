@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage",
+    "description": "Added two new origin endpoint fields for configuring which SCTE-35 messages are treated as advertisements."
+}
