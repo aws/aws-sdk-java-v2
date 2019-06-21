@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.converter.bundled;
+package software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,31 +26,45 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.enhanced.dynamodb.converter.ConversionContext;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ExactInstanceOfConverter;
+import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ConversionContext;
+import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.BooleanStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.ByteArrayStringConverter;
 import software.amazon.awssdk.enhanced.dynamodb.model.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.model.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.model.TypeToken;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * A converter between {@link String} and {@link ItemAttributeValue}.
+ *
+ * <p>
+ * This stores values in DynamoDB as a string.
+ *
+ * <p>
+ * This supports reading any DynamoDB attribute type into a string type, so it is very useful for logging information stored in
+ * DynamoDB.
  */
 @SdkPublicApi
 @ThreadSafe
 @Immutable
-public final class StringConverter extends ExactInstanceOfConverter<String> {
-    public StringConverter() {
-        super(String.class);
+public final class StringAttributeConverter implements AttributeConverter<String> {
+    public static StringAttributeConverter create() {
+        return new StringAttributeConverter();
     }
 
     @Override
-    protected ItemAttributeValue convertToAttributeValue(String input, ConversionContext context) {
+    public TypeToken<String> type() {
+        return TypeToken.of(String.class);
+    }
+
+    @Override
+    public ItemAttributeValue toAttributeValue(String input, ConversionContext context) {
         return ItemAttributeValue.fromString(input);
     }
 
     @Override
-    protected String convertFromAttributeValue(ItemAttributeValue input, TypeToken<?> desiredType, ConversionContext context) {
+    public String fromAttributeValue(ItemAttributeValue input,
+                                     ConversionContext context) {
         return input.convert(Visitor.INSTANCE);
     }
 
@@ -59,7 +72,7 @@ public final class StringConverter extends ExactInstanceOfConverter<String> {
         private static final Visitor INSTANCE = new Visitor();
 
         private Visitor() {
-            super(String.class, StringConverter.class);
+            super(String.class, StringAttributeConverter.class);
         }
 
         @Override
@@ -74,12 +87,12 @@ public final class StringConverter extends ExactInstanceOfConverter<String> {
 
         @Override
         public String convertBytes(SdkBytes value) {
-            return "0x" + BinaryUtils.toHex(value.asByteArray());
+            return ByteArrayStringConverter.create().toString(value.asByteArray());
         }
 
         @Override
         public String convertBoolean(Boolean value) {
-            return value.toString();
+            return BooleanStringConverter.create().toString(value);
         }
 
         @Override
@@ -96,8 +109,7 @@ public final class StringConverter extends ExactInstanceOfConverter<String> {
         public String convertSetOfBytes(List<SdkBytes> value) {
             return value.stream()
                         .map(this::convertBytes)
-                        .collect(toList())
-                        .toString();
+                        .collect(Collectors.joining(",", "[", "]"));
         }
 
         @Override
@@ -114,7 +126,7 @@ public final class StringConverter extends ExactInstanceOfConverter<String> {
         }
 
         @Override
-        public String convertListOfAttributeValues(Collection<ItemAttributeValue> value) {
+        public String convertListOfAttributeValues(List<ItemAttributeValue> value) {
             return value.stream()
                         .map(this::convert)
                         .collect(toList())
