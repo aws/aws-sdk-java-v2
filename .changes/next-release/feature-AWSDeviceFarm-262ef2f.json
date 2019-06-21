@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Device Farm",
-    "description": "This release includes updated documentation about the default timeout value for test runs and remote access sessions. This release also includes miscellaneous bug fixes for the documentation."
-}
