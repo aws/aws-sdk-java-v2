@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "description": "We are making it easier for you to manage your permission guardrails i.e. service control policies by enabling you to retrieve the last timestamp when an AWS service was accessed within an account or AWS Organizations entity."
+}
