@@ -339,6 +339,9 @@
         },
         "EventTwo": {
           "shape": "EventTwo"
+        },
+        "EventThree": {
+          "shape": "EventThree"
         }
       },
       "eventstream": true
@@ -355,6 +358,19 @@
     "EventTwo": {
       "type": "structure",
       "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventThree": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String",
+          "eventheader": true
+        },
         "Bar": {
           "shape": "String"
         }

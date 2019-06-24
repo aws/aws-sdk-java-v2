@@ -1,3 +1,182 @@
+# __2.5.70__ __2019-06-24__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Updated service APIs and documentation.
+
+## __AWS SecurityHub__
+  - ### Features
+    - This release includes a new Tags parameter for the EnableSecurityHub operation, and the following new operations: DescribeHub, CreateActionTarget, DeleteActionTarget, DescribeActionTargets, UpdateActionTarget, TagResource, UntagResource, and ListTagsforResource. It removes the operation ListProductSubscribers, and makes Title and Description required attributes of AwsSecurityFinding.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Customers can pick different security policies (TLS version + cipher suite) for custom domains in API Gateway
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - CloudWatch Application Insights detects errors and exceptions from logs, including .NET custom application logs, SQL Server logs, IIS logs, and more, and uses a combination of built-in rules and machine learning, such as dynamic baselining, to identify common problems. You can then easily drill into specific issues with CloudWatch Automatic Dashboards that are dynamically generated. These dashboards contain the most recent alarms, a summary of relevant metrics, and log snippets to help you identify root cause.
+
+## __Amazon FSx__
+  - ### Features
+    - Starting today, you can join your Amazon FSx for Windows File Server file systems to your organization's self-managed Microsoft Active Directory while creating the file system. You can also perform in-place updates of file systems to keep your Active Directory configuration up to date.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager now supports deleting a specific version of a SSM Document.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Customers can get information about security policies set on custom domain resources in API Gateway
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for UDP on Network Load Balancers
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas enables you to view and manage your quotas for AWS services from a central location.
+
+# __2.5.69__ __2019-06-21__
+## __AWS Device Farm__
+  - ### Features
+    - This release includes updated documentation about the default timeout value for test runs and remote access sessions. This release also includes miscellaneous bug fixes for the documentation.
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Added two new origin endpoint fields for configuring which SCTE-35 messages are treated as advertisements.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - We are making it easier for you to manage your permission guardrails i.e. service control policies by enabling you to retrieve the last timestamp when an AWS service was accessed within an account or AWS Organizations entity.
+
+## __Amazon Kinesis Video Streams Media__
+  - ### Features
+    - Documentation updates for Amazon Kinesis Video Streams.
+
+# __2.5.68__ __2019-06-20__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - ACM Private CA is launching Root CAs and hierarchy management, a new feature that expands the scope of ACM Private CA from supporting only subordinate issuing CAs, to now include a full CA hierarchy that includes root CAs - the cryptographic root of trust for an organization.
+
+## __AWS Glue__
+  - ### Features
+    - Starting today, you can now use workflows in AWS Glue to author directed acyclic graphs (DAGs) of Glue triggers, crawlers and jobs. Workflows enable orchestration of your ETL workloads by building dependencies between Glue entities (triggers, crawlers and jobs). You can visually track status of the different nodes in the workflows on the console making it easier to monitor progress and troubleshoot issues. Also, you can share parameters across entities in the workflow.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - API improvements for the AWS Health service.
+
+## __AWS IoT Events Data__
+  - ### Features
+    - "The colon character ':' is now permitted in Detector Model 'key' parameter values.
+
+## __AWS OpsWorks__
+  - ### Features
+    - Documentation updates for OpsWorks Stacks.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for RDS storage autoscaling
+
+# __2.5.67__ __2019-06-19__
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service.
+
+# __2.5.66__ __2019-06-18__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - You can use tag policies to help standardize on tags across your organization's resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now launch new 12xlarge, 24xlarge, and metal instance sizes on the Amazon EC2 compute optimized C5 instance types featuring 2nd Gen Intel Xeon Scalable Processors.
+
+# __2.5.65__ __2019-06-17__
+## __AWS RoboMaker__
+  - ### Features
+    - Add the ServiceUnavailableException (503) into CreateSimulationJob API.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Restrict concurrent calls by a single customer account for CreatePortfolioShare and DeletePortfolioShare when sharing/unsharing to an Organization.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds a feature to configure Amazon Neptune to publish audit logs to Amazon CloudWatch Logs.
+
+# __2.5.64__ __2019-06-14__
+## __Amazon AppStream__
+  - ### Features
+    - Added 2 new values(WINDOWS_SERVER_2016, WINDOWS_SERVER_2019) for PlatformType enum.
+
+## __Amazon CloudFront__
+  - ### Features
+    - A new datatype in the CloudFront API, AliasICPRecordal, provides the ICP recordal status for CNAMEs associated with distributions. AWS services in China customers must file for an Internet Content Provider (ICP) recordal if they want to serve content publicly on an alternate domain name, also known as a CNAME, that they have added to CloudFront. The status value is returned in the CloudFront response; you cannot configure it yourself. The status is set to APPROVED for all CNAMEs (aliases) in regions outside of China.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Correction to enumerations in EC2 client.
+
+## __Amazon Personalize__
+  - ### Features
+    - Documentation updates for Amazon Personalize.
+
+# __2.5.63__ __2019-06-13__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds support for AWS Cloud Map as a service discovery method for virtual nodes.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release is to add support for reader endpoint for cluster-mode disabled Amazon ElastiCache for Redis clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - G4 instances are Amazon EC2 instances based on NVIDIA T4 GPUs and are designed to provide cost-effective machine learning inference for applications, like image classification, object detection, recommender systems, automated speech recognition, and language translation. G4 instances are also a cost-effective platform for building and running graphics-intensive applications, such as remote graphics workstations, video transcoding, photo-realistic design, and game streaming in the cloud. To get started with G4 instances visit https://aws.amazon.com/ec2/instance-types/g4.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Support for tagging functionality in Create and Get operations for Detector, IP Set, Threat Intel Set, and Finding Filter resources and 3 new tagging APIs: ListTagsForResource, TagResource, and UntagResource.
+
+# __2.5.62__ __2019-06-12__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in the code generator causing event headers to be incorrectly marshalled and unmarshalled to and from the payload.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds a new field named Guidance to update provisioning artifact, this field can be set by the administrator to provide guidance to end users about which provisioning artifacts to use.
+
+# __2.5.61__ __2019-06-11__
+## __Amazon SageMaker Service__
+  - ### Features
+    - The default TaskTimeLimitInSeconds of labeling job is increased to 8 hours. Batch Transform introduces a new DataProcessing field which supports input and output filtering and data joining. Training job increases the max allowed input channels from 8 to 20.
+
+# __2.5.60__ __2019-06-10__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild adds support for source version on project level.
+
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds two merge strategies for merging pull requests: squash and three-way. It also adds functionality for resolving merge conflicts, testing merge outcomes, and for merging branches using one of the three supported merge strategies.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix NPE for streaming APIs in async client if there is a failure before AsyncResponseTransformer#prepare is called for first time. See https://github.com/aws/aws-sdk-java-v2/issues/1268
+
+## __Amazon Personalize__
+  - ### Features
+    - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Introducing Amazon Personalize - a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications.
+
 # __2.5.59__ __2019-06-07__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
