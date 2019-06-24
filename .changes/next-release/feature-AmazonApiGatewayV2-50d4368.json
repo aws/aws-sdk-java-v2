@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AmazonApiGatewayV2",
+    "description": "Customers can get information about security policies set on custom domain resources in API Gateway"
+}
