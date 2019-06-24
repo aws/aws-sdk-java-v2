@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "AWS Systems Manager now supports deleting a specific version of a SSM Document."
-}

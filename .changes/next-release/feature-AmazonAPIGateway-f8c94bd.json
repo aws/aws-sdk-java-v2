@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon API Gateway",
-    "description": "Customers can pick different security policies (TLS version + cipher suite) for custom domains in API Gateway"
-}
