@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class EnumModel {
 
     /** The value for the enum field.*/
-    private final String value;
+    private String value;
     /** The name of the enum field. */
     private String name;
 
@@ -40,6 +40,10 @@ public class EnumModel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 
     public String getValue() {
