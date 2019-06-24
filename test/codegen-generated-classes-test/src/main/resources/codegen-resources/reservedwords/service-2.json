@@ -36,6 +36,7 @@
         "create":{"shape":"String"},
         "int":{"shape":"String"},
         "return":{"shape":"String"},
+        "Long":{"shape":"String"},
         "overrideConfiguration":{"shape":"String"},
         "toBuilder":{"shape":"String"},
         "innerStructure":{"shape":"BadNamesStructure"}
