@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO Http Client", 
+    "type": "bugfix", 
+    "description": "Completes the response normally when subscription is cancelled from the subscriber and not invoke `SdkAsyncHttpResponseHandler#onError` from the publisher."
+}
