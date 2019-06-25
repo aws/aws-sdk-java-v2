@@ -1,3 +1,20 @@
+# __2.5.71__ __2019-06-25__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Only allows a single execution interceptor with the same class name to be included in loaded execution interceptors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Starting today, you can use Traffic Mirroring to copy network traffic from an elastic network interface of Amazon EC2 instances and then send it to out-of-band security and monitoring appliances for content inspection, threat monitoring, and troubleshooting. These appliances can be deployed as individual instances, or as a fleet of instances behind a Network Load Balancer with a User Datagram Protocol (UDP) listener. Traffic Mirroring supports filters and packet truncation, so that you only extract the traffic of interest to monitor by using monitoring tools of your choice.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes [#1196](https://github.com/aws/aws-sdk-java-v2/issues/1196) by changing S3 FilterRule enums to correctly model each enum as capitalized
+
 # __2.5.70__ __2019-06-24__
 ## __AWS Resource Groups Tagging API__
   - ### Features
