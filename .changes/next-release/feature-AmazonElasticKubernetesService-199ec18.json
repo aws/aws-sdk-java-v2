@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "description": "Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service."
+}
