@@ -1,0 +1,11 @@
+{
+    "version": "2.5.67",
+    "date": "2019-06-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Service for Kubernetes",
+            "description": "Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service."
+        }
+    ]
+}

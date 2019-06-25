@@ -23,3 +23,12 @@ You can run the tests directly from your IDE or from command line:
 mvn clean install -P stability-tests -pl :stability-tests
 ```
 
+## Adding New Tests
+
+- The tests are built using [JUnit 5](https://junit.org/junit5/). Make sure you are using the correct APIs and mixing of
+Junit 4 and Junit 5 APIs on the same test can have unexpected results.
+
+- All tests should have the suffix of `StabilityTests`, eg: `S3StabilityTests`
+
+
+

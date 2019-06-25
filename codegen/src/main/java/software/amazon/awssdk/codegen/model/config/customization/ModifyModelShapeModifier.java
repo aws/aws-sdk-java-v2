@@ -26,6 +26,12 @@ public class ModifyModelShapeModifier {
     private String emitEnumName;
 
     /**
+     * The value for the enum to be used in the java class. This overrides the
+     * values computed by the code generator for the enum.
+     */
+    private String emitEnumValue;
+
+    /**
      * Emit as a different primitive type. Used by AWS Budget Service to change string
      * to BigDecimal (see API-433).
      */
@@ -49,6 +55,14 @@ public class ModifyModelShapeModifier {
 
     public void setEmitEnumName(String emitEnumName) {
         this.emitEnumName = emitEnumName;
+    }
+
+    public String getEmitEnumValue() {
+        return emitEnumValue;
+    }
+
+    public void setEmitEnumValue(String emitEnumValue) {
+        this.emitEnumValue = emitEnumValue;
     }
 
     public String getMarshallLocationName() {

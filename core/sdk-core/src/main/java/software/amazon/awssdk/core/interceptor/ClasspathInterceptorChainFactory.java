@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -47,19 +48,20 @@ public final class ClasspathInterceptorChainFactory {
      * @return A list of request handlers based on the handlers referenced in the specified resource.
      */
     public List<ExecutionInterceptor> getInterceptors(String resource) {
-        return createExecutionInterceptorsFromClasspath(resource);
+        return new ArrayList<>(createExecutionInterceptorsFromClasspath(resource));
     }
 
     /**
      * Load the global handlers by reading the global execution interceptors resource.
      */
     public List<ExecutionInterceptor> getGlobalInterceptors() {
-        return createExecutionInterceptorsFromClasspath(GLOBAL_INTERCEPTOR_PATH);
+        return new ArrayList<>(createExecutionInterceptorsFromClasspath(GLOBAL_INTERCEPTOR_PATH));
     }
 
-    private List<ExecutionInterceptor> createExecutionInterceptorsFromClasspath(String path) {
+    private Collection<ExecutionInterceptor> createExecutionInterceptorsFromClasspath(String path) {
         try {
-            return createExecutionInterceptorsFromResources(classLoader().getResources(path)).collect(Collectors.toList());
+            return createExecutionInterceptorsFromResources(classLoader().getResources(path))
+                .collect(Collectors.toMap(p -> p.getClass().getSimpleName(), p -> p, (p1, p2) -> p1)).values();
         } catch (IOException e) {
             throw SdkClientException.builder()
                                     .message("Unable to instantiate execution interceptor chain.")
