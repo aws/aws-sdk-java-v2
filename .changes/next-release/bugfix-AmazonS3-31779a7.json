@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "bugfix", 
+    "description": "Modify the types of Part#size and ObjectVersion#size from Integer to Long. This is a breaking change for customers who are using the size() method."
+}
