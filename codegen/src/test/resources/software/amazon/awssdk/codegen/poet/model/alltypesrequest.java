@@ -920,6 +920,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     @Override
     public int hashCode() {
         int hashCode = 1;
+        hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(stringMember());
         hashCode = 31 * hashCode + Objects.hashCode(integerMember());
         hashCode = 31 * hashCode + Objects.hashCode(booleanMember());
@@ -955,6 +956,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     @Override
     public boolean equals(Object obj) {
+        return super.equals(obj) && equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }

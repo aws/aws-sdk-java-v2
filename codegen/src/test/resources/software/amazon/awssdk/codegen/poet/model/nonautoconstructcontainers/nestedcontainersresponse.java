@@ -189,6 +189,7 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
     @Override
     public int hashCode() {
         int hashCode = 1;
+        hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(listOfListOfStrings());
         hashCode = 31 * hashCode + Objects.hashCode(listOfListOfListOfStrings());
         hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToListOfListOfStrings());
@@ -197,6 +198,11 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
 
     @Override
     public boolean equals(Object obj) {
+        return super.equals(obj) && equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
