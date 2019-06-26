@@ -1,3 +1,20 @@
+# __2.6.0__ __2019-06-26__
+## __AWS CodeCommit__
+  - ### Features
+    - This release supports better exception handling for merges.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Modify the types of Part#size and ObjectVersion#size from Integer to Long. This is a breaking change for customers who are using the size() method.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - You can now perform tag operations on ApiGatewayV2 Resources (typically associated with WebSocket APIs)
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Completes the response normally when subscription is cancelled from the subscriber and not invoke `SdkAsyncHttpResponseHandler#onError` from the publisher.
+
 # __2.5.71__ __2019-06-25__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
