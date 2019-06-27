@@ -1,3 +1,12 @@
+# __2.6.1__ __2019-06-26__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed issue where specifying a custom presigning time causes a runtime exception.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for dynamodb
+
 # __2.6.0__ __2019-06-26__
 ## __AWS CodeCommit__
   - ### Features

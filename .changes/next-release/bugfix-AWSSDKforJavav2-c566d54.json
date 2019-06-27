@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Fixed issue where specifying a custom presigning time causes a runtime exception."
-}
