@@ -192,6 +192,7 @@
         <module>personalizeevents</module>
         <module>servicequotas</module>
         <module>applicationinsights</module>
+        <module>ec2instanceconnect</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
