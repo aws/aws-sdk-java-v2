@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Direct Connect",
+    "description": "Tags will now be included in the API responses of all supported resources (Virtual interfaces, Connections, Interconnects and LAGs). You can also add tags while creating these resources."
+}
