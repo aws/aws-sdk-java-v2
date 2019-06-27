@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "description": "Added support for the WorkSpaces restore feature and copying WorkSpaces Images across AWS Regions."
-}
