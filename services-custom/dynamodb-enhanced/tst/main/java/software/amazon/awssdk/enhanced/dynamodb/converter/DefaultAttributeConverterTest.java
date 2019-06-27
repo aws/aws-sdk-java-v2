@@ -28,13 +28,15 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ConversionContext;
+import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled.DefaultAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.model.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.model.RequestItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.ResponseItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.TypeToken;
 
-public class DefaultConverterChainTest {
-    private static final DefaultConverterChain CHAIN = DefaultConverterChain.create();
+public class DefaultAttributeConverterTest {
+    private static final DefaultAttributeConverter CHAIN = DefaultAttributeConverter.create();
 
     @Test
     public void fromStringConversionWorks() {
@@ -284,11 +286,11 @@ public class DefaultConverterChainTest {
     }
 
     private <T> T fromAttributeValue(Class<T> targetType, ItemAttributeValue value) {
-        return fromAttributeValue(TypeToken.from(targetType), value);
+        return fromAttributeValue(TypeToken.of(targetType), value);
     }
 
     private <T> T fromAttributeValue(TypeToken<T> targetType, ItemAttributeValue value) {
-        ConversionContext context = ConversionContext.builder().converter(CHAIN).build();
+        ConversionContext context = ConversionContext.builder().attributeConverter(CHAIN).build();
         return targetType.rawClass().cast(CHAIN.fromAttributeValue(value, targetType, context));
     }
 
@@ -301,7 +303,7 @@ public class DefaultConverterChainTest {
     }
 
     private void assertFromAttributeValueFails(Class<?> targetType, ItemAttributeValue value, Class<?> exceptionType) {
-        assertFromAttributeValueFails(TypeToken.from(targetType), value, exceptionType);
+        assertFromAttributeValueFails(TypeToken.of(targetType), value, exceptionType);
     }
 
     private void assertFromAttributeValueFails(TypeToken<?> targetType, ItemAttributeValue value, Class<?> exceptionType) {
@@ -309,7 +311,7 @@ public class DefaultConverterChainTest {
     }
 
     private ItemAttributeValue toAttributeValue(Object input) {
-        ConversionContext context = ConversionContext.builder().converter(CHAIN).build();
+        ConversionContext context = ConversionContext.builder().attributeConverter(CHAIN).build();
         return CHAIN.toAttributeValue(input, context);
     }
 

@@ -154,7 +154,6 @@ public final class CollectionSubtypeAttributeConverter implements SubtypeAttribu
     public <U extends Collection<?>> U fromAttributeValue(ItemAttributeValue input,
                                                           TypeToken<U> collectionType,
                                                           ConversionContext context) {
-
         return input.convert(new TypeConvertingVisitor<U>(collectionType.rawClass(), CollectionSubtypeAttributeConverter.class) {
             @Override
             public U convertSetOfStrings(List<String> value) {
