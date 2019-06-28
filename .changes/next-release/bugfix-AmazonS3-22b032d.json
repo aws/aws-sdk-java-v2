@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "Update `ChecksumCalculatingStreamProvider` to comply with `ContentStreamProvider` contract."
-}

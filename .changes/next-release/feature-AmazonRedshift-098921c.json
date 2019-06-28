@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "description": "ClusterAvailabilityStatus: The availability status of the cluster for queries. Possible values are the following: Available, Unavailable, Maintenance, Modifying, Failed."
-}
