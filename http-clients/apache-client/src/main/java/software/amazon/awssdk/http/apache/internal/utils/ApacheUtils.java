@@ -32,9 +32,11 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class ApacheUtils {
+    private static final Logger logger = Logger.loggerFor(ApacheUtils.class);
 
     private ApacheUtils() {
     }
@@ -87,6 +89,11 @@ public final class ApacheUtils {
             requestConfigBuilder.setNormalizeUri(false);
         } catch (NoSuchMethodError error) {
             // setNormalizeUri method was added in httpclient 4.5.8
+            logger.warn(() -> "NoSuchMethodError was thrown when disabling normalizeUri. This indicates you are using an old "
+                              + "version (< 4.5.8) of Apache http "
+                              + "client. It is recommended to use http client version >= 4.5.9 to avoid the breaking change "
+                              + "introduced in apache client 4.5.7 and the latency in exception handling. "
+                              + "See https://github.com/aws/aws-sdk-java/issues/1919 for more information");
         }
     }
 
