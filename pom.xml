@@ -398,6 +398,8 @@
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.mockito:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.junit.platform:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.opentest4j:*</ignoredUsedUndeclaredDependency>
 
                         <!-- TODO: fix this once we start to generate pom.xml for individual services -->
                         <ignoredUsedUndeclaredDependency>org.reactivestreams:reactive-streams</ignoredUsedUndeclaredDependency>
