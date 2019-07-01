@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "description": "Specifying the tag key and tag value is required for tagging requests."
-}
