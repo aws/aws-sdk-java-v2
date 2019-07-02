@@ -1,3 +1,16 @@
+# __2.6.5__ __2019-07-02__
+## __AWS Elemental MediaStore__
+  - ### Features
+    - This release adds support for tagging, untagging, and listing tags for AWS Elemental MediaStore containers.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in `FileAsyncResponseTransformer` that causes the future from `prepare()` to not be completed if `onError` is called on its `Subscriber` wile consuming the response stream. Fixes [#1279](https://github.com/aws/aws-sdk-java-v2/issues/1279)
+
+## __Amazon AppStream__
+  - ### Features
+    - Adding ImageBuilderName in Fleet API and Documentation updates for AppStream.
+
 # __2.6.4__ __2019-07-01__
 ## __AWS Organizations__
   - ### Features

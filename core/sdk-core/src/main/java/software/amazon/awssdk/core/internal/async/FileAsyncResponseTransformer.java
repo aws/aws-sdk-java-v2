@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -72,7 +73,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         // onStream may be called multiple times so reset the file channel every time
         this.fileChannel = invokeSafely(() -> createChannel(path));
-        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf));
+        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred));
     }
 
     @Override
@@ -96,15 +97,18 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         private final AsynchronousFileChannel fileChannel;
         private final Path path;
         private final CompletableFuture<Void> future;
+        private final Consumer<Throwable> onErrorMethod;
 
         private volatile boolean writeInProgress = false;
         private volatile boolean closeOnLastWrite = false;
         private Subscription subscription;
 
-        FileSubscriber(AsynchronousFileChannel fileChannel, Path path, CompletableFuture<Void> future) {
+        FileSubscriber(AsynchronousFileChannel fileChannel, Path path, CompletableFuture<Void> future,
+                       Consumer<Throwable> onErrorMethod) {
             this.fileChannel = fileChannel;
             this.path = path;
             this.future = future;
+            this.onErrorMethod = onErrorMethod;
         }
 
         @Override
@@ -159,7 +163,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
         @Override
         public void onError(Throwable t) {
-            // Error handled by response handler
+            onErrorMethod.accept(t);
         }
 
         @Override
