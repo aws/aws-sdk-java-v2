@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Workflow Service",
+    "description": "This release adds APIs that allow adding and removing tags to a SWF domain, and viewing tags for a domain. It also enables adding tags when creating a domain."
+}
