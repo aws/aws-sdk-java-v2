@@ -1,3 +1,28 @@
+# __2.7.0__ __2019-07-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Apache http client version to `4.5.9`.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AssignPrivateIpAddresses response includes two new fields: AssignedPrivateIpAddresses, NetworkInterfaceId
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release supports Cross-Account Cloning for Amazon Aurora clusters.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add S3 x-amz-server-side-encryption-context support.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds APIs that allow adding and removing tags to a SWF domain, and viewing tags for a domain. It also enables adding tags when creating a domain.
+
+## __Apache Http Client__
+  - ### Bugfixes
+    - Disable apache normalization to handle breaking change introduced in apache httpclient `4.5.7`. See [aws/aws-sdk-java[#1919](https://github.com/aws/aws-sdk-java-v2/issues/1919)](https://github.com/aws/aws-sdk-java/issues/1919) for more information.
+
 # __2.6.5__ __2019-07-02__
 ## __AWS Elemental MediaStore__
   - ### Features

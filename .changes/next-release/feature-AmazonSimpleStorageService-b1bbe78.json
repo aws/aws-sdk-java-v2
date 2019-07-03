@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "description": "Add S3 x-amz-server-side-encryption-context support."
-}
