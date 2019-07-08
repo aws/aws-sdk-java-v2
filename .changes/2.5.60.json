@@ -1,0 +1,36 @@
+{
+    "version": "2.5.60",
+    "date": "2019-06-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "AWS CodeBuild adds support for source version on project level."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeCommit",
+            "description": "This release adds two merge strategies for merging pull requests: squash and three-way. It also adds functionality for resolving merge conflicts, testing merge outcomes, and for merging branches using one of the three supported merge strategies."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "description": "Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Events",
+            "description": "Introducing Amazon Personalize - a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix NPE for streaming APIs in async client if there is a failure before AsyncResponseTransformer#prepare is called for first time. See https://github.com/aws/aws-sdk-java-v2/issues/1268"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "description": "Amazon Personalize is a machine learning service that makes it easy for developers to create individualized recommendations for customers using their applications."
+        }
+    ]
+}

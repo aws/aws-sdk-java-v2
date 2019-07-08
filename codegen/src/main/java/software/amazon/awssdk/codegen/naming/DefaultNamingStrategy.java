@@ -216,7 +216,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
     public String getVariableName(String name) {
         // Exclude keywords because they will not compile, and exclude reserved method names because they're frequently
         // used for local variable names.
-        if (RESERVED_KEYWORDS.contains(name) ||
+        if (isJavaKeyword(name) ||
             RESERVED_STRUCTURE_METHOD_NAMES.contains(name) ||
             RESERVED_EXCEPTION_METHOD_NAMES.contains(name)) {
             return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
