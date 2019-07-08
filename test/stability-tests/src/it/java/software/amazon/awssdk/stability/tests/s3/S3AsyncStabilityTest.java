@@ -23,9 +23,10 @@ import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
+import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Logger;
@@ -44,7 +45,7 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
         deleteBucketAndAllContents(bucketName);
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     @Override
     public void putObject_getObject() {
         putObject();

@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.7.0</version>
+    <version>2.7.1</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -398,6 +398,8 @@
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.mockito:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.junit.platform:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.opentest4j:*</ignoredUsedUndeclaredDependency>
 
                         <!-- TODO: fix this once we start to generate pom.xml for individual services -->
                         <ignoredUsedUndeclaredDependency>org.reactivestreams:reactive-streams</ignoredUsedUndeclaredDependency>
