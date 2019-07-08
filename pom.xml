@@ -146,7 +146,7 @@
 
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.9</httpcomponents.httpclient.version>
-        <httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
+        <httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->
         <unitils.version>3.3</unitils.version>
