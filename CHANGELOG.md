@@ -1,3 +1,8 @@
+# __2.7.1__ __2019-07-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces a new operation called GetUsageForecast, which allows you to programmatically access AWS Cost Explorer's forecasting engine on usage data (running hours, data transfer, etc).
+
 # __2.7.0__ __2019-07-03__
 ## __AWS SDK for Java v2__
   - ### Features
