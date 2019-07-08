@@ -86,6 +86,8 @@ public class ApacheHttpRequestFactory {
                 .setSocketTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()))
                 .setLocalAddress(requestConfig.localAddress());
 
+        ApacheUtils.disableNormalizeUri(requestConfigBuilder);
+
         /*
          * Enable 100-continue support for PUT operations, since this is
          * where we're potentially uploading large amounts of data and want

@@ -111,7 +111,8 @@ public interface SdkPublisher<T> extends Publisher<T> {
 
     /**
      * Limit the number of published events and cancel the subscription after that limit has been reached. The limit
-     * may never be reached if the downstream publisher doesn't have many events to publish.
+     * may never be reached if the downstream publisher doesn't have many events to publish. Once it reaches the limit,
+     * subsequent requests will be ignored.
      *
      * @param limit Number of events to publish.
      * @return New publisher that will only publish up to the specified number of events.

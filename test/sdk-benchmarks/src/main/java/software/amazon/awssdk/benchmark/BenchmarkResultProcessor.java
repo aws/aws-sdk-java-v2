@@ -18,6 +18,7 @@ package software.amazon.awssdk.benchmark;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OBJECT_MAPPER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.compare;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.utils.Logger;
 class BenchmarkResultProcessor {
 
     private static final Logger log = Logger.loggerFor(BenchmarkResultProcessor.class);
+    private static final double TOLERANCE_LEVEL = 0.05;
 
     private Map<String, SdkBenchmarkResult> baseline;
 
@@ -55,7 +57,7 @@ class BenchmarkResultProcessor {
 
             baseline = baselineResults.stream().collect(Collectors.toMap(SdkBenchmarkResult::getId, b -> b));
         } catch (Exception e) {
-            log.warn(() -> "Not able to retrieve baseline result. Skipping regression validation ", e);
+            throw new RuntimeException("Not able to retrieve baseline result.", e);
         }
     }
 
@@ -66,6 +68,7 @@ class BenchmarkResultProcessor {
      * @return the benchmark Id that failed the regression
      */
     List<String> processBenchmarkResult(Collection<RunResult> results) {
+        List<SdkBenchmarkResult> currentData = new ArrayList<>();
         for (RunResult result : results) {
             String benchmarkId = getBenchmarkId(result.getParams());
 
@@ -77,10 +80,14 @@ class BenchmarkResultProcessor {
                 continue;
             }
 
-            if (!validateBenchmarkResult(baselineResult, sdkBenchmarkData)) {
+            currentData.add(sdkBenchmarkData);
+
+            if (!validateBenchmarkResult(sdkBenchmarkData, baselineResult)) {
                 failedBenchmarkIds.add(benchmarkId);
             }
         }
+
+        log.info(() -> "Current result: " + serializeResult(currentData));
         return failedBenchmarkIds;
     }
 
@@ -114,17 +121,28 @@ class BenchmarkResultProcessor {
 
         switch (currentResult.getParams().getMode()) {
             case Throughput:
-                return comparison >= 0;
+                if (comparison <= 0) {
+                    return true;
+                }
+                return withinTolerance(currentResult.getStatistics().getMean(), baseline.getStatistics().getMean());
             case SampleTime:
-                return comparison <= 0;
             case AverageTime:
-                return comparison <= 0;
             case SingleShotTime:
-                return comparison <= 0;
+                if (comparison >= 0) {
+                    return true;
+                }
+                return withinTolerance(currentResult.getStatistics().getMean(), baseline.getStatistics().getMean());
             default:
                 log.warn(() -> "Unsupported mode, skipping " + currentResult.getId());
                 return true;
         }
+    }
+
+    private boolean withinTolerance(double current, double baseline) {
+        boolean positive = Math.abs(current - baseline) / baseline < TOLERANCE_LEVEL;
+        log.info(() -> "current: " + current + " baseline: " + baseline +
+                       "The relative difference is within tolerance? " + positive);
+        return positive;
     }
 
     private String getBenchmarkId(BenchmarkParams params) {
@@ -133,9 +151,20 @@ class BenchmarkResultProcessor {
 
     private boolean validateBenchmarkParams(SdkBenchmarkParams current, SdkBenchmarkParams baseline) {
         if (!Objects.equals(current.getJdkVersion(), baseline.getJdkVersion())) {
-            return false;
+            log.warn(() -> "The current benchmark result was generated from a different Jdk version than the one of the "
+                           + "baseline, so the results might not be comparable");
+            return true;
         }
 
         return Objects.equals(current.getMode(), baseline.getMode());
+    }
+
+    private String serializeResult(List<SdkBenchmarkResult> currentData) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(currentData);
+        } catch (JsonProcessingException e) {
+            log.error(() -> "Failed to serialize current result", e);
+        }
+        return null;
     }
 }

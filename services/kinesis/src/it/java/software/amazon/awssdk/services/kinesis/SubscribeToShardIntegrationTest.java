@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -114,61 +115,59 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     }
 
     @Test
-    public void cancelledSubscription_DoesNotCallTerminalMethods() {
-        AtomicBoolean terminalCalled = new AtomicBoolean(false);
-        AtomicReference<Throwable> exceptionOccurredThrowable = new AtomicReference<>();
-        try {
-            asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
-                                               .shardId(shardId)
-                                               .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
-                                         new SubscribeToShardResponseHandler() {
-                                             @Override
-                                             public void responseReceived(SubscribeToShardResponse response) {
-                                                 verifyHttpMetadata(response);
-                                             }
+    public void cancelledSubscription_doesNotCallTerminalMethods() {
+        AtomicBoolean terminalMethodsCalled = new AtomicBoolean(false);
+        AtomicBoolean errorOccurred = new AtomicBoolean(false);
+        List<SubscribeToShardEventStream> events = new ArrayList<>();
+        asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                                           .shardId(shardId)
+                                           .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                                     new SubscribeToShardResponseHandler() {
+                                         @Override
+                                         public void responseReceived(SubscribeToShardResponse response) {
+                                             verifyHttpMetadata(response);
+                                         }
 
-                                             @Override
-                                             public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
-                                                 publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
-                                                     @Override
-                                                     public void onSubscribe(Subscription subscription) {
-                                                         subscription.request(10);
-                                                     }
+                                         @Override
+                                         public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
+                                             publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
+                                                 @Override
+                                                 public void onSubscribe(Subscription subscription) {
+                                                     subscription.request(10);
+                                                 }
 
-                                                     @Override
-                                                     public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
-                                                     }
+                                                 @Override
+                                                 public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
+                                                     events.add(subscribeToShardEventStream);
+                                                 }
 
-                                                     @Override
-                                                     public void onError(Throwable throwable) {
-                                                         terminalCalled.set(true);
-                                                     }
+                                                 @Override
+                                                 public void onError(Throwable throwable) {
+                                                     errorOccurred.set(true);
+                                                 }
 
-                                                     @Override
-                                                     public void onComplete() {
-                                                         terminalCalled.set(true);
-                                                     }
-                                                 });
-                                             }
+                                                 @Override
+                                                 public void onComplete() {
+                                                     terminalMethodsCalled.set(true);
+                                                 }
+                                             });
+                                         }
 
-                                             @Override
-                                             public void exceptionOccurred(Throwable throwable) {
-                                                 // Expected to be called
-                                                 exceptionOccurredThrowable.set(throwable);
-                                             }
+                                         @Override
+                                         public void exceptionOccurred(Throwable throwable) {
+                                             errorOccurred.set(true);
+                                         }
 
-                                             @Override
-                                             public void complete() {
-                                                 terminalCalled.set(true);
-                                             }
-                                         }).join();
-            fail("Expected exception");
-        } catch (CompletionException e) {
-            assertThat(e.getCause().getCause()).isInstanceOf(SdkCancellationException.class);
-            assertThat(exceptionOccurredThrowable.get().getCause().getCause()).isInstanceOf(SdkCancellationException.class);
-            assertThat(terminalCalled).as("complete or onComplete was called when it shouldn't have been")
-                                      .isFalse();
-        }
+                                         @Override
+                                         public void complete() {
+                                             terminalMethodsCalled.set(true);
+                                         }
+                                     }).join();
+
+        assertThat(terminalMethodsCalled).isFalse();
+        assertThat(errorOccurred).isFalse();
+        assertThat(events.size()).isEqualTo(3);
+
     }
 
     private static void waitForConsumerToBeActive() throws InterruptedException {

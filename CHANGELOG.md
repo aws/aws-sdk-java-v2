@@ -1,3 +1,237 @@
+# __2.7.1__ __2019-07-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces a new operation called GetUsageForecast, which allows you to programmatically access AWS Cost Explorer's forecasting engine on usage data (running hours, data transfer, etc).
+
+# __2.7.0__ __2019-07-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Apache http client version to `4.5.9`.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AssignPrivateIpAddresses response includes two new fields: AssignedPrivateIpAddresses, NetworkInterfaceId
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release supports Cross-Account Cloning for Amazon Aurora clusters.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add S3 x-amz-server-side-encryption-context support.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds APIs that allow adding and removing tags to a SWF domain, and viewing tags for a domain. It also enables adding tags when creating a domain.
+
+## __Apache Http Client__
+  - ### Bugfixes
+    - Disable apache normalization to handle breaking change introduced in apache httpclient `4.5.7`. See [aws/aws-sdk-java[#1919](https://github.com/aws/aws-sdk-java-v2/issues/1919)](https://github.com/aws/aws-sdk-java/issues/1919) for more information.
+
+# __2.6.5__ __2019-07-02__
+## __AWS Elemental MediaStore__
+  - ### Features
+    - This release adds support for tagging, untagging, and listing tags for AWS Elemental MediaStore containers.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix a bug in `FileAsyncResponseTransformer` that causes the future from `prepare()` to not be completed if `onError` is called on its `Subscriber` wile consuming the response stream. Fixes [#1279](https://github.com/aws/aws-sdk-java-v2/issues/1279)
+
+## __Amazon AppStream__
+  - ### Features
+    - Adding ImageBuilderName in Fleet API and Documentation updates for AppStream.
+
+# __2.6.4__ __2019-07-01__
+## __AWS Organizations__
+  - ### Features
+    - Specifying the tag key and tag value is required for tagging requests.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release provides support for cluster delete protection and the ability to stop and start clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for specifying a maximum hourly price for all On-Demand and Spot instances in both Spot Fleet and EC2 Fleet.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for RDS DB Cluster major version upgrade
+
+# __2.6.3__ __2019-06-28__
+## __Alexa For Business__
+  - ### Features
+    - This release allows developers and customers to add SIP addresses and international phone numbers to contacts.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now launch 8xlarge and 16xlarge instance sizes on the general purpose M5 and memory optimized R5 instance types.
+
+## __Amazon Redshift__
+  - ### Features
+    - ClusterAvailabilityStatus: The availability status of the cluster for queries. Possible values are the following: Available, Unavailable, Maintenance, Modifying, Failed.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Update `ChecksumCalculatingStreamProvider` to comply with `ContentStreamProvider` contract.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Minor API fixes for WorkSpaces.
+
+# __2.6.2__ __2019-06-27__
+## __AWS Direct Connect__
+  - ### Features
+    - Tags will now be included in the API responses of all supported resources (Virtual interfaces, Connections, Interconnects and LAGs). You can also add tags while creating these resources.
+
+## __AWS EC2 Instance Connect__
+  - ### Features
+    - Amazon EC2 Instance Connect is a simple and secure way to connect to your instances using Secure Shell (SSH). With EC2 Instance Connect, you can control SSH access to your instances using AWS Identity and Access Management (IAM) policies as well as audit connection requests with AWS CloudTrail events. In addition, you can leverage your existing SSH keys or further enhance your security posture by generating one-time use SSH keys each time an authorized user connects.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release includes editorial updates for the Amazon Pinpoint API documentation.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for the WorkSpaces restore feature and copying WorkSpaces Images across AWS Regions.
+
+# __2.6.1__ __2019-06-26__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed issue where specifying a custom presigning time causes a runtime exception.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for dynamodb
+
+# __2.6.0__ __2019-06-26__
+## __AWS CodeCommit__
+  - ### Features
+    - This release supports better exception handling for merges.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Modify the types of Part#size and ObjectVersion#size from Integer to Long. This is a breaking change for customers who are using the size() method.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - You can now perform tag operations on ApiGatewayV2 Resources (typically associated with WebSocket APIs)
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Completes the response normally when subscription is cancelled from the subscriber and not invoke `SdkAsyncHttpResponseHandler#onError` from the publisher.
+
+# __2.5.71__ __2019-06-25__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Only allows a single execution interceptor with the same class name to be included in loaded execution interceptors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Starting today, you can use Traffic Mirroring to copy network traffic from an elastic network interface of Amazon EC2 instances and then send it to out-of-band security and monitoring appliances for content inspection, threat monitoring, and troubleshooting. These appliances can be deployed as individual instances, or as a fleet of instances behind a Network Load Balancer with a User Datagram Protocol (UDP) listener. Traffic Mirroring supports filters and packet truncation, so that you only extract the traffic of interest to monitor by using monitoring tools of your choice.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes [#1196](https://github.com/aws/aws-sdk-java-v2/issues/1196) by changing S3 FilterRule enums to correctly model each enum as capitalized
+
+# __2.5.70__ __2019-06-24__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Updated service APIs and documentation.
+
+## __AWS SecurityHub__
+  - ### Features
+    - This release includes a new Tags parameter for the EnableSecurityHub operation, and the following new operations: DescribeHub, CreateActionTarget, DeleteActionTarget, DescribeActionTargets, UpdateActionTarget, TagResource, UntagResource, and ListTagsforResource. It removes the operation ListProductSubscribers, and makes Title and Description required attributes of AwsSecurityFinding.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Customers can pick different security policies (TLS version + cipher suite) for custom domains in API Gateway
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - CloudWatch Application Insights detects errors and exceptions from logs, including .NET custom application logs, SQL Server logs, IIS logs, and more, and uses a combination of built-in rules and machine learning, such as dynamic baselining, to identify common problems. You can then easily drill into specific issues with CloudWatch Automatic Dashboards that are dynamically generated. These dashboards contain the most recent alarms, a summary of relevant metrics, and log snippets to help you identify root cause.
+
+## __Amazon FSx__
+  - ### Features
+    - Starting today, you can join your Amazon FSx for Windows File Server file systems to your organization's self-managed Microsoft Active Directory while creating the file system. You can also perform in-place updates of file systems to keep your Active Directory configuration up to date.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager now supports deleting a specific version of a SSM Document.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Customers can get information about security policies set on custom domain resources in API Gateway
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for UDP on Network Load Balancers
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas enables you to view and manage your quotas for AWS services from a central location.
+
+# __2.5.69__ __2019-06-21__
+## __AWS Device Farm__
+  - ### Features
+    - This release includes updated documentation about the default timeout value for test runs and remote access sessions. This release also includes miscellaneous bug fixes for the documentation.
+
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - Added two new origin endpoint fields for configuring which SCTE-35 messages are treated as advertisements.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - We are making it easier for you to manage your permission guardrails i.e. service control policies by enabling you to retrieve the last timestamp when an AWS service was accessed within an account or AWS Organizations entity.
+
+## __Amazon Kinesis Video Streams Media__
+  - ### Features
+    - Documentation updates for Amazon Kinesis Video Streams.
+
+# __2.5.68__ __2019-06-20__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - ACM Private CA is launching Root CAs and hierarchy management, a new feature that expands the scope of ACM Private CA from supporting only subordinate issuing CAs, to now include a full CA hierarchy that includes root CAs - the cryptographic root of trust for an organization.
+
+## __AWS Glue__
+  - ### Features
+    - Starting today, you can now use workflows in AWS Glue to author directed acyclic graphs (DAGs) of Glue triggers, crawlers and jobs. Workflows enable orchestration of your ETL workloads by building dependencies between Glue entities (triggers, crawlers and jobs). You can visually track status of the different nodes in the workflows on the console making it easier to monitor progress and troubleshoot issues. Also, you can share parameters across entities in the workflow.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - API improvements for the AWS Health service.
+
+## __AWS IoT Events Data__
+  - ### Features
+    - "The colon character ':' is now permitted in Detector Model 'key' parameter values.
+
+## __AWS OpsWorks__
+  - ### Features
+    - Documentation updates for OpsWorks Stacks.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for RDS storage autoscaling
+
+# __2.5.67__ __2019-06-19__
+## __Amazon Elastic Container Service for Kubernetes__
+  - ### Features
+    - Changing Amazon EKS full service name to Amazon Elastic Kubernetes Service.
+
+# __2.5.66__ __2019-06-18__
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - You can use tag policies to help standardize on tags across your organization's resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now launch new 12xlarge, 24xlarge, and metal instance sizes on the Amazon EC2 compute optimized C5 instance types featuring 2nd Gen Intel Xeon Scalable Processors.
+
 # __2.5.65__ __2019-06-17__
 ## __AWS RoboMaker__
   - ### Features
