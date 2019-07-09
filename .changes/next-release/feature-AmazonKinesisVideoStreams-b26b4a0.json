@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Video Streams",
+    "description": "Add \"GET_DASH_STREAMING_SESSION_URL\" as an API name to the GetDataEndpoint API."
+}
