@@ -47,6 +47,7 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -262,6 +263,8 @@ public final class NettyRequestExecutor {
             return new IOException("Read timed out", originalCause);
         } else if (originalCause instanceof WriteTimeoutException) {
             return new IOException("Write timed out", originalCause);
+        } else if (originalCause instanceof ClosedChannelException) {
+            return new IOException(getMessageForClosedChannel(), originalCause);
         }
 
         return originalCause;
@@ -318,6 +321,12 @@ public final class NettyRequestExecutor {
                 + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
                 + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
                 + "AWS, or by increasing the number of hosts sending requests.";
+    }
+
+    private String getMessageForClosedChannel() {
+        return "The channel was closed. This may have been done by the client (e.g. because the request was aborted), " +
+               "by the service (e.g. because the request took too long or the client tried to write on a read-only socket), " +
+               "or by an intermediary party (e.g. because the channel was idle for too long).";
     }
 
     /**
