@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS WAF",
+    "description": "Updated SDK APIs to add tags to WAF Resources: WebACL, Rule, Rulegroup and RateBasedRule. Tags can also be added during creation of these resources."
+}
