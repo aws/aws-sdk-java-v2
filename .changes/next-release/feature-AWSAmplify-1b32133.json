@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "description": "This release adds webhook APIs and manual deployment APIs for AWS Amplify Console."
+}
