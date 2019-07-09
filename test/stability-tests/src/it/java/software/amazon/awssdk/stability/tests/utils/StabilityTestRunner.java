@@ -18,6 +18,7 @@ package software.amazon.awssdk.stability.tests.utils;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -91,6 +92,11 @@ public class StabilityTestRunner {
 
     public StabilityTestRunner futures(List<CompletableFuture<?>> futures) {
         this.futures = futures;
+        return this;
+    }
+
+    public StabilityTestRunner futures(CompletableFuture<?>... futures) {
+        this.futures = Arrays.asList(futures);
         return this;
     }
 

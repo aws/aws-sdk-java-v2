@@ -142,6 +142,11 @@
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

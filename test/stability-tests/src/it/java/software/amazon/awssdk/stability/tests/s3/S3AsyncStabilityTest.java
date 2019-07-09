@@ -16,6 +16,8 @@
 package software.amazon.awssdk.stability.tests.s3;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -50,6 +52,18 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     public void putObject_getObject() {
         putObject();
         getObject();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void getLargeObject() throws IOException {
+        LOGGER.info(() -> "Starting to test getLargeObject");
+        verifyObjectExist(LARGE_KEY_BUCKET_NAME, LARGE_KEY_NAME, (long) 2e+9);
+        File randomTempFile = RandomTempFile.randomUncreatedFile();
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.getObject")
+                           .futures(s3NettyClient.getObject(b -> b.bucket(LARGE_KEY_BUCKET_NAME).key(LARGE_KEY_NAME),
+                                                            AsyncResponseTransformer.toFile(randomTempFile)))
+                           .run();
     }
 
     private void putObject() {
