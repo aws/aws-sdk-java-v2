@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GameLift",
+    "description": "GameLift FlexMatch now supports matchmaking of up to 200 players per game session, and FlexMatch can now automatically backfill your game sessions whenever there is an open slot."
+}
