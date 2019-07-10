@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog",
-    "description": "This release adds support for Parameters in ExecuteProvisionedProductServiceAction and adds functionality to get the default parameter values for a Self-Service Action execution against a Provisioned Product via DescribeServiceActionExecutionParameters"
-}

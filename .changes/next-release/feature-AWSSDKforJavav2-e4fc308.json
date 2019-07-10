@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Automatically retry on CRC32 checksum validation failures when the service returns a CRC32 checksum that differs from the one the SDK calculated. Previously this would just throw an exception."
-}
