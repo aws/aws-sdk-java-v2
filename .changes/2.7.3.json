@@ -1,0 +1,26 @@
+{
+    "version": "2.7.3",
+    "date": "2019-07-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Glacier",
+            "description": "Documentation updates for glacier"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Amazon QuickSight now supports embedding dashboards for all non-federated QuickSight users. This includes IAM users, AD users and users from the QuickSight user pool. The get-dashboard-embed-url API accepts QUICKSIGHT as identity type with a user ARN to authenticate the embeddable dashboard viewer as a non-federated user."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Automatically retry on CRC32 checksum validation failures when the service returns a CRC32 checksum that differs from the one the SDK calculated. Previously this would just throw an exception."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "description": "This release adds support for Parameters in ExecuteProvisionedProductServiceAction and adds functionality to get the default parameter values for a Self-Service Action execution against a Provisioned Product via DescribeServiceActionExecutionParameters"
+        }
+    ]
+}

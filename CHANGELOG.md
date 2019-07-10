@@ -1,3 +1,20 @@
+# __2.7.3__ __2019-07-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Automatically retry on CRC32 checksum validation failures when the service returns a CRC32 checksum that differs from the one the SDK calculated. Previously this would just throw an exception.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds support for Parameters in ExecuteProvisionedProductServiceAction and adds functionality to get the default parameter values for a Self-Service Action execution against a Provisioned Product via DescribeServiceActionExecutionParameters
+
+## __Amazon Glacier__
+  - ### Features
+    - Documentation updates for glacier
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight now supports embedding dashboards for all non-federated QuickSight users. This includes IAM users, AD users and users from the QuickSight user pool. The get-dashboard-embed-url API accepts QUICKSIGHT as identity type with a user ARN to authenticate the embeddable dashboard viewer as a non-federated user.
+
 # __2.7.2__ __2019-07-09__
 ## __AWS Amplify__
   - ### Features
