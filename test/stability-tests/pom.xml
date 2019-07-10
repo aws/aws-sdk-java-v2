@@ -170,4 +170,47 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>test-jar</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+            </properties>
+            <build>
+                <finalName>stability-tests</finalName>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/it/assembly/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-assembly</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <archive>
+                                        <manifest>
+                                            <addClasspath>true</addClasspath>
+                                            <mainClass>software.amazon.awssdk.stability.tests.TestRunner</mainClass>
+                                        </manifest>
+                                    </archive>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

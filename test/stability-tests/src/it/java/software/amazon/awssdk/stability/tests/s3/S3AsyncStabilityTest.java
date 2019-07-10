@@ -25,7 +25,6 @@ import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
@@ -50,22 +49,43 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     @Override
-    public void putObject_getObject() {
+    public void putObject_getObject_highConcurrency() {
         putObject();
         getObject();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
-    @Disabled // Test needs to be fixed so that it doesn't rely on static bucket/key
-    public void getLargeObject() throws IOException {
-        LOGGER.info(() -> "Starting to test getLargeObject");
-        verifyObjectExist(LARGE_KEY_BUCKET_NAME, LARGE_KEY_NAME, (long) 2e+9);
+    public void largeObject_put_get_usingFile() {
+        uploadLargeObjectFromFile();
+        downloadLargeObjectToFile();
+    }
+
+    private void downloadLargeObjectToFile() {
         File randomTempFile = RandomTempFile.randomUncreatedFile();
         StabilityTestRunner.newRunner()
-                           .testName("S3AsyncStabilityTest.getObject")
-                           .futures(s3NettyClient.getObject(b -> b.bucket(LARGE_KEY_BUCKET_NAME).key(LARGE_KEY_NAME),
+                           .testName("S3AsyncStabilityTest.downloadLargeObjectToFile")
+                           .futures(s3NettyClient.getObject(b -> b.bucket(bucketName).key(LARGE_KEY_NAME),
                                                             AsyncResponseTransformer.toFile(randomTempFile)))
                            .run();
+        randomTempFile.delete();
+    }
+
+    private void uploadLargeObjectFromFile() {
+        RandomTempFile file = null;
+        try {
+            file = new RandomTempFile((long) 2e+9);
+            StabilityTestRunner.newRunner()
+                               .testName("S3AsyncStabilityTest.uploadLargeObjectFromFile")
+                               .futures(s3NettyClient.putObject(b -> b.bucket(bucketName).key(LARGE_KEY_NAME),
+                                                                AsyncRequestBody.fromFile(file)))
+                               .run();
+        } catch (IOException e) {
+            throw new RuntimeException("fail to create test file", e);
+        } finally {
+            if (file != null) {
+                file.delete();
+            }
+        }
     }
 
     private void putObject() {
