@@ -19,6 +19,8 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -138,5 +140,41 @@ public interface ProtocolSpec {
         builder.add(".build()");
 
         return builder.build();
+    }
+
+
+    /**
+     * Need to notify the response handler/response transformer if the future is completed exceptionally.
+     *
+     * @param responseHandlerName Variable name of response handler customer passed in.
+     * @return whenComplete to append to future.
+     */
+    default String streamingOutputWhenComplete(String responseHandlerName) {
+        return String.format(".whenComplete((r, e) -> {%n"
+                             + "     if (e != null) {%n"
+                             + "         runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\", () "
+                             + "-> %s.exceptionOccurred(e));%n"
+                             + "     }%n"
+                             + "})", responseHandlerName);
+
+    }
+
+    default TypeName executeFutureValueType(OperationModel opModel, PoetExtensions poetExtensions) {
+        if (opModel.hasEventStreamOutput()) {
+            return ClassName.get(Void.class);
+        } else if (opModel.hasStreamingOutput()) {
+            return TypeVariableName.get("ReturnT");
+        } else {
+            return getPojoResponseType(opModel, poetExtensions);
+        }
+    }
+
+    /**
+     * Gets the POJO response type for the operation.
+     *
+     * @param opModel Operation to get response type for.
+     */
+    default TypeName getPojoResponseType(OperationModel opModel, PoetExtensions poetExtensions) {
+        return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
     }
 }

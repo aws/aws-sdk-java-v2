@@ -22,6 +22,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -127,23 +128,33 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                                                               : "";
-        return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
-                                       ".withOperationName(\"$N\")\n" +
-                                       ".withMarshaller($L)" +
-                                       ".withResponseHandler(responseHandler)" +
-                                       ".withErrorResponseHandler($N)\n" +
-                                       hostPrefixExpression(opModel) +
-                                       asyncRequestBody +
-                                       ".withInput($L) $L);",
-                                       ClientExecutionParams.class,
-                                       requestType,
-                                       pojoResponseType,
-                                       opModel.getOperationName(),
-                                       asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"),
-                                       "errorResponseHandler",
-                                       opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
-                        .build();
+        TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
+        CodeBlock.Builder builder = CodeBlock.builder().add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()"
+                                                            + "\n" +
+                                                            ".withOperationName(\"$N\")\n" +
+                                                            ".withMarshaller($L)" +
+                                                            ".withResponseHandler(responseHandler)" +
+                                                            ".withErrorResponseHandler($N)\n" +
+                                                            hostPrefixExpression(opModel) +
+                                                            asyncRequestBody +
+                                                            ".withInput($L) $L);",
+                                                            CompletableFuture.class,
+                                                            executeFutureValueType,
+                                                            ClientExecutionParams.class,
+                                                            requestType,
+                                                            pojoResponseType,
+                                                            opModel.getOperationName(),
+                                                            asyncMarshaller(intermediateModel, opModel, marshaller,
+                                                                            "protocolFactory"),
+                                                            "errorResponseHandler",
+                                                            opModel.getInput().getVariableName(),
+                                                            opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "");
+
+        if (opModel.hasStreamingOutput()) {
+            builder.add("executeFuture$L;", streamingOutputWhenComplete("asyncResponseTransformer"));
+        }
+        builder.addStatement("return executeFuture");
+        return builder.build();
     }
 
     @Override
