@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Events",
-    "description": "Adds APIs for partner event sources, partner event buses, and custom event buses. These new features are managed in the EventBridge service."
-}
