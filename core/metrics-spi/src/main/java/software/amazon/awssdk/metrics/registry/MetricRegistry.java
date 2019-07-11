@@ -62,7 +62,7 @@ public interface MetricRegistry {
      * the {@link #apiCallAttemptMetrics()} method and getting the last element in the output list.
      *
      * If the Api Call finishes in the first attempt, this method is only called once.
-     * If the Api Call finishes after n retry attmpts, this method is called n + 1 times
+     * If the Api Call finishes after n retry attempts, this method is called n + 1 times
      * (1 time for initial attempt, n times for n retries)
      *
      * @return a instance of {@link MetricRegistry} to record metrics for a ApiCall Attempt
@@ -101,27 +101,30 @@ public interface MetricRegistry {
      * If there is none registered already, create and register a new {@link Counter}.
      *
      * @param name name of the metric
+     * @param metricBuilderParams parameters that can be used to construct the metric
      * @return a new or pre-existing {@link Counter}
      */
-    Counter counter(String name);
+    Counter counter(String name, MetricBuilderParams metricBuilderParams);
 
     /**
      * Return the {@link Timer} registered under this name.
      * If there is none registered already, create and register a new {@link Timer}.
      *
      * @param name name of the metric
+     * @param metricBuilderParams parameters that can be used to construct the metric
      * @return a new or pre-existing {@link Timer}
      */
-    Timer timer(String name);
+    Timer timer(String name, MetricBuilderParams metricBuilderParams);
 
     /**
      * Return a {@link Gauge} registered under this name and updates its value with #value.
      * If there is none registered already, create and register a new {@link Gauge} with the given initial #value.
      *
+     * @param <T> type of the value
      * @param name name of the metric
      * @param value initial value of the guage
-     * @param <T> type of the value
+     * @param metricBuilderParams parameters that can be used to construct the metric
      * @return a new or pre-existing {@link Gauge} with updated value
      */
-    <T> Gauge<T> gauge(String name, T value);
+    <T> Gauge<T> gauge(String name, T value, MetricBuilderParams metricBuilderParams);
 }

@@ -21,19 +21,14 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * A NoOp implementation of the {@link Gauge} metric
  */
 @SdkPublicApi
-public final class NoOpGauge implements Gauge {
+public enum NoOpGauge implements Gauge {
+    /** Singleton instance **/
+    INSTANCE;
 
     private static final Object EMPTY_OBJECT = new Object();
 
     @Override
     public Object value() {
         return EMPTY_OBJECT;
-    }
-
-    private NoOpGauge() {
-    }
-
-    public static NoOpGauge create() {
-        return new NoOpGauge();
     }
 }

@@ -15,8 +15,13 @@
 
 package software.amazon.awssdk.metrics.meter;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A basic implementation of {@link Gauge} that has ability to set, update and return a single value.
@@ -27,19 +32,12 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public final class DefaultGauge<TypeT> implements Gauge<TypeT> {
 
     private final AtomicReference<TypeT> atomicReference;
+    private final Set<MetricCategory> categories;
 
-    private DefaultGauge(TypeT initialValue) {
-        this.atomicReference = new AtomicReference<>(initialValue);
-    }
-
-    /**
-     *
-     * @param initialValue the value to stored in the gauge instance when its created
-     * @param <T> type of the value
-     * @return An instance of {@link DefaultGauge} with the given #initialValue stored in the gauge.
-     */
-    public static <T> DefaultGauge<T> create(T initialValue) {
-        return new DefaultGauge<>(initialValue);
+    private DefaultGauge(Builder<TypeT> builder) {
+        Validate.notNull(builder.value, "Value cannot be null");
+        this.atomicReference = new AtomicReference<>(builder.value);
+        this.categories = Collections.unmodifiableSet(builder.categories);
     }
 
     /**
@@ -53,5 +51,61 @@ public final class DefaultGauge<TypeT> implements Gauge<TypeT> {
     @Override
     public TypeT value() {
         return atomicReference.get();
+    }
+
+    @Override
+    public Set<MetricCategory> categories() {
+        return categories;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * @param initialValue the value to stored in the gauge instance when its created
+     * @param <T> type of the value
+     * @return A new instance of {@link DefaultGauge} with the given #initialValue stored in the gauge.
+     */
+    public static <T> DefaultGauge<T> create(T initialValue) {
+        return builder().value(initialValue).build();
+    }
+
+    public static final class Builder<BuilderT> {
+        private BuilderT value;
+        private final Set<MetricCategory> categories = new HashSet<>();
+
+        /**
+         * @param value the initial value to store in the gauge
+         * @return This object for method chaining
+         */
+        public Builder<BuilderT> value(BuilderT value) {
+            this.value = value;
+            return this;
+        }
+
+        /**
+         * Register the given categories in this metric
+         * @param categories the set of {@link MetricCategory} this metric belongs to
+         * @return This object for method chaining
+         */
+        public Builder<BuilderT> categories(Set<MetricCategory> categories) {
+            this.categories.addAll(categories);
+            return this;
+        }
+
+        /**
+         * Register the given {@link MetricCategory} in this metric
+         * @param category the {@link MetricCategory} to tag the metric with
+         * @return This object for method chaining
+         */
+        public Builder<BuilderT> addCategory(MetricCategory category) {
+            this.categories.add(category);
+            return this;
+        }
+
+        public DefaultGauge<BuilderT> build() {
+            return new DefaultGauge(this);
+        }
     }
 }

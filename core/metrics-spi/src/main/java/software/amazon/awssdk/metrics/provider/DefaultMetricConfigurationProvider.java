@@ -13,73 +13,68 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.meter;
+package software.amazon.awssdk.metrics.provider;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.LongAdder;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 
 /**
- * A {@link Counter} implementation that stores {@link Long} values.
+ * The default implementation of {@link MetricConfigurationProvider} interface.
  */
 @SdkPublicApi
-public final class LongCounter implements Counter<Long> {
+public final class DefaultMetricConfigurationProvider implements MetricConfigurationProvider {
 
-    private final LongAdder count;
-    private final Set<MetricCategory> categories;
+    private final boolean enabled;
+    private final Set<MetricCategory> metricCategories;
 
-    private LongCounter(Builder builder) {
-        this.count = new LongAdder();
-        this.categories = Collections.unmodifiableSet(builder.categories);
+    private DefaultMetricConfigurationProvider(Builder builder) {
+        this.enabled = builder.enabled;
+        this.metricCategories = Collections.unmodifiableSet(resolveCategories(builder.categories));
     }
 
     @Override
-    public void increment() {
-        increment(1L);
+    public boolean enabled() {
+        return enabled;
     }
 
     @Override
-    public void increment(Long value) {
-        count.add(value);
+    public Set<MetricCategory> metricCategories() {
+        return metricCategories;
     }
 
-    @Override
-    public void decrement() {
-        decrement(1L);
-    }
-
-    @Override
-    public void decrement(Long value) {
-        count.add(-value);
-    }
-
-    @Override
-    public Long count() {
-        return count.sum();
-    }
-
-    @Override
-    public Set<MetricCategory> categories() {
-        return categories;
-    }
-
+    /**
+     * @return a new {@link Builder} instance
+     */
     public static Builder builder() {
         return new Builder();
     }
 
-    public static LongCounter create() {
-        return builder().build();
+    private Set<MetricCategory> resolveCategories(Set<MetricCategory> categories) {
+        if (categories == null || categories.isEmpty()) {
+            return new HashSet<>(Arrays.asList(MetricCategory.Default));
+        }
+
+        return categories;
     }
 
-    /**
-     * Builder class to create instances of {@link LongCounter}
-     */
     public static final class Builder {
+        // Metrics are disabled by default
+        private boolean enabled = false;
 
         private final Set<MetricCategory> categories = new HashSet<>();
+
+        /**
+         * @param enabled set true to enable metrics. Set to false by default
+         * @return
+         */
+        public Builder enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
 
         /**
          * Register the given categories in this metric
@@ -101,8 +96,8 @@ public final class LongCounter implements Counter<Long> {
             return this;
         }
 
-        public LongCounter build() {
-            return new LongCounter(this);
+        public DefaultMetricConfigurationProvider build() {
+            return new DefaultMetricConfigurationProvider(this);
         }
     }
 }

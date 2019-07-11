@@ -26,6 +26,7 @@ import software.amazon.awssdk.metrics.MetricCategory;
  * This gives flexibility for metrics feature to be enabled/disabled at runtime and configuration changes
  * can be picked up at runtime without need for deploying the application (depending on the implementation).
  *
+ * @see DefaultMetricConfigurationProvider
  * @see SystemSettingsMetricConfigurationProvider
  */
 @SdkPublicApi

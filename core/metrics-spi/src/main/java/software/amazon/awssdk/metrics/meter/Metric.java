@@ -27,9 +27,9 @@ import software.amazon.awssdk.metrics.MetricCategory;
 public interface Metric {
 
     /**
-     * @return a set of different {@link MetricCategory} that this metric is tagged with
+     * @return the set of {@link MetricCategory} that this metric belongs to
      */
-    default Set<MetricCategory> tags() {
+    default Set<MetricCategory> categories() {
         return Collections.emptySet();
     }
 }

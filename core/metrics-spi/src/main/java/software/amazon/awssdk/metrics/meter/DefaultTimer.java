@@ -18,27 +18,31 @@ package software.amazon.awssdk.metrics.meter;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A default implementation of {@link Timer} metric interface.
  */
 @SdkPublicApi
-public final class DefaultTimer implements Timer, ToCopyableBuilder<DefaultTimer.Builder, DefaultTimer> {
+public final class DefaultTimer implements Timer {
 
     private final Clock clock;
     private Instant startTime;
     private Instant endTime;
+    private final Set<MetricCategory> categories;
 
     private DefaultTimer(Builder builder) {
         this.clock = Validate.notNull(builder.clock, "Clock");
         this.startTime = clock.instant();
-        this.endTime = null;
+        this.endTime = clock.instant();
+        this.categories = Collections.unmodifiableSet(builder.categories);
     }
 
     @Override
@@ -89,6 +93,11 @@ public final class DefaultTimer implements Timer, ToCopyableBuilder<DefaultTimer
         return Duration.between(startTime, endTime);
     }
 
+    @Override
+    public Set<MetricCategory> categories() {
+        return categories;
+    }
+
     private void validateEndTime() {
         if (endTime == null) {
             throw new IllegalStateException("End time was never updated. You need to call one of the "
@@ -103,23 +112,19 @@ public final class DefaultTimer implements Timer, ToCopyableBuilder<DefaultTimer
         return new Builder();
     }
 
-    @Override
-    public Builder toBuilder() {
-        return builder().clock(clock);
-    }
-
     /**
-     * Builder to configure the params for construction
+     * Builder class to create instances of {@link DefaultTimer}
      */
-    public static final class Builder implements CopyableBuilder<Builder, DefaultTimer> {
+    public static final class Builder {
 
-        private Clock clock;
+        private Clock clock = Clock.systemUTC();
+        private final Set<MetricCategory> categories = new HashSet<>();
 
         private Builder() {
         }
 
         /**
-         * Sets the {@link Clock} implementation the timer should use
+         * Sets the {@link Clock} implementation the timer should use. The default value is {@link Clock#systemUTC()}
          *
          * @param clock the {@link Clock} implementation used by the time
          * @return This object for method chaining
@@ -129,7 +134,26 @@ public final class DefaultTimer implements Timer, ToCopyableBuilder<DefaultTimer
             return this;
         }
 
-        @Override
+        /**
+         * Register the given categories in this metric
+         * @param categories the set of {@link MetricCategory} this metric belongs to
+         * @return This object for method chaining
+         */
+        public Builder categories(Set<MetricCategory> categories) {
+            this.categories.addAll(categories);
+            return this;
+        }
+
+        /**
+         * Register the given {@link MetricCategory} in this metric
+         * @param category the {@link MetricCategory} to tag the metric with
+         * @return This object for method chaining
+         */
+        public Builder addCategory(MetricCategory category) {
+            this.categories.add(category);
+            return this;
+        }
+
         public DefaultTimer build() {
             return new DefaultTimer(this);
         }

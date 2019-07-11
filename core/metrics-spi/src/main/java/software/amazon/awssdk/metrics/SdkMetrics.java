@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -40,9 +41,9 @@ public enum SdkMetrics implements Metric {
     Api("Api", MetricCategory.Default),
 
     /**
-     * The http status code returned in the response
+     * The total time taken to finish (success or fail) a request (inclusive of all retries)
      */
-    HttpStatusCode("HttpStatusCode", MetricCategory.Default),
+    ApiCallLatency("ApiCallLatency", MetricCategory.Default),
 
     /**
      * The time taken to marshall the request
@@ -56,6 +57,41 @@ public enum SdkMetrics implements Metric {
     ApiCallAttemptCount("ApiCallAttemptCount", MetricCategory.Default),
 
     /**
+     * The time taken to sign the request
+     */
+    SigningLatency("SigningLatency", MetricCategory.Default),
+
+    /**
+     * The time taken by the underlying http client to start the Api call attempt and return the response
+     */
+    HttpRequestRoundTripLatency("HttpRequestRoundTripLatency", MetricCategory.Default),
+
+    /**
+     * The time taken to unmarshall the response (either successful and failed response)
+     */
+    UnmarshallingLatency("UnmarshallingLatency", MetricCategory.Default),
+
+    /**
+     * The total time taken for an Api call attempt
+     */
+    ApiCallAttemptLatency("ApiCallAttemptLatency", MetricCategory.Default),
+
+    /**
+     * The http status code returned in the response
+     */
+    HttpStatusCode("HttpStatusCode", MetricCategory.Default),
+
+    /**
+     * The request Id for the request. Represented by x-amz-request-id header in response
+     */
+    AwsRequestId("AwsRequestId", MetricCategory.Default),
+
+    /**
+     * The extended request Id for the request. Represented by x-amz-id-2 header in response
+     */
+    ExtendedRequestId("ExtendedRequestId", MetricCategory.Default),
+
+    /**
      * Maximum number of streams allowed on a http2 connection
      */
     MaxStreamCount("MaxStreamCount", MetricCategory.Default, MetricCategory.HttpClient)
@@ -64,11 +100,11 @@ public enum SdkMetrics implements Metric {
 
     private final String value;
 
-    private final Set<MetricCategory> tags;
+    private final Set<MetricCategory> categories;
 
-    SdkMetrics(String value, MetricCategory... tags) {
+    SdkMetrics(String value, MetricCategory... categories) {
         this.value = value;
-        this.tags = new HashSet<>(Arrays.asList(tags));
+        this.categories = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(categories)));
     }
 
     public String value() {
@@ -76,15 +112,15 @@ public enum SdkMetrics implements Metric {
     }
 
     @Override
-    public Set<MetricCategory> tags() {
-        return tags;
+    public Set<MetricCategory> categories() {
+        return categories;
     }
 
     @Override
     public String toString() {
         return "{" +
                "value='" + value + '\'' +
-               ", tags=" + tags +
+               ", categories=" + categories +
                '}';
     }
 }

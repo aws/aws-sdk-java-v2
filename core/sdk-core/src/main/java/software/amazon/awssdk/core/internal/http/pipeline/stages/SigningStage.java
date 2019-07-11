@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.metrics.SdkMetrics.SigningLatency;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -24,9 +26,11 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.meter.Timer;
 
 /**
  * Sign the marshalled request (if applicable).
@@ -46,7 +50,9 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        return signRequest(request, context);
+
+        Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SigningLatency);
+        return timer.record(() -> signRequest(request, context));
     }
 
     /**

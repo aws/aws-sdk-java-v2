@@ -15,7 +15,12 @@
 
 package software.amazon.awssdk.metrics.meter;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A {@link Gauge} implementation that stores a constant value for a metric.
@@ -27,9 +32,25 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public final class ConstantGauge<TypeT> implements Gauge<TypeT> {
 
     private final TypeT value;
+    private final Set<MetricCategory> categories;
 
-    private ConstantGauge(TypeT value) {
-        this.value = value;
+    private ConstantGauge(Builder<TypeT> builder) {
+        this.value = Validate.notNull(builder.value, "Value cannot be null");
+        this.categories = Collections.unmodifiableSet(builder.categories);
+    }
+
+    @Override
+    public TypeT value() {
+        return value;
+    }
+
+    @Override
+    public Set<MetricCategory> categories() {
+        return categories;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -38,11 +59,44 @@ public final class ConstantGauge<TypeT> implements Gauge<TypeT> {
      * @return An instance of {@link ConstantGauge} with the given {@link #value} stored in the gauge.
      */
     public static <T> ConstantGauge<T> create(T value) {
-        return new ConstantGauge<>(value);
+        return builder().value(value).build();
     }
 
-    @Override
-    public TypeT value() {
-        return value;
+    public static final class Builder<BuilderT> {
+        private BuilderT value;
+        private final Set<MetricCategory> categories = new HashSet<>();
+
+        /**
+         * @param value the value to store in the gauge
+         * @return This object for method chaining
+         */
+        public Builder<BuilderT> value(BuilderT value) {
+            this.value = value;
+            return this;
+        }
+
+        /**
+         * Register the given categories in this metric
+         * @param categories the set of {@link MetricCategory} this metric belongs to
+         * @return This object for method chaining
+         */
+        public Builder<BuilderT> categories(Set<MetricCategory> categories) {
+            this.categories.addAll(categories);
+            return this;
+        }
+
+        /**
+         * Register the given {@link MetricCategory} in this metric
+         * @param category the {@link MetricCategory} to tag the metric with
+         * @return This object for method chaining
+         */
+        public Builder<BuilderT> addCategory(MetricCategory category) {
+            this.categories.add(category);
+            return this;
+        }
+
+        public ConstantGauge<BuilderT> build() {
+            return new ConstantGauge(this);
+        }
     }
 }

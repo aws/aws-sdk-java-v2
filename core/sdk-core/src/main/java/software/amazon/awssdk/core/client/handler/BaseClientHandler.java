@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.client.handler;
 
+import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_REGISTRY;
+
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
@@ -29,12 +31,15 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.SdkMetrics;
 import software.amazon.awssdk.metrics.meter.ConstantGauge;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
+import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
+import software.amazon.awssdk.metrics.registry.MetricCategoryAwareRegistry;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
 import software.amazon.awssdk.utils.StringUtils;
@@ -69,9 +74,8 @@ public abstract class BaseClientHandler {
 
         runBeforeMarshallingInterceptors(executionContext);
 
-        MetricRegistry metricRegistry = executionContext.executionAttributes()
-                                                        .getAttribute(MetricExecutionAttribute.METRIC_REGISTRY);
-        Timer marshallTimer = metricRegistry.timer(SdkMetrics.MarshallingLatency.name());
+        Timer marshallTimer = MetricUtils.timer(executionContext.executionAttributes().getAttribute(METRIC_REGISTRY),
+                                                SdkMetrics.MarshallingLatency);
 
         SdkHttpFullRequest request = marshallTimer.record(() -> executionParams.getMarshaller().marshall(inputT));
 
@@ -211,19 +215,24 @@ public abstract class BaseClientHandler {
                             .getAttribute(MetricExecutionAttribute.METRIC_CONFIGURATION_PROVIDER);
 
         if (metricProvider.enabled()) {
-            metricRegistry = DefaultMetricRegistry.create();
+            metricRegistry = MetricCategoryAwareRegistry.builder()
+                                                        .metricRegistry(DefaultMetricRegistry.create())
+                                                        .categories(metricProvider.metricCategories())
+                                                        .build();
         } else {
             metricRegistry = NoOpMetricRegistry.getInstance();
         }
 
         executionContext.executionAttributes()
-                        .putAttribute(MetricExecutionAttribute.METRIC_REGISTRY, metricRegistry);
+                        .putAttribute(METRIC_REGISTRY, metricRegistry);
 
-        metricRegistry.register(SdkMetrics.Service.name(),
-                                ConstantGauge.create(executionContext.executionAttributes()
-                                                                     .getAttribute(SdkExecutionAttribute.SERVICE_NAME)));
-        metricRegistry.register(SdkMetrics.Api.name(),
-                                ConstantGauge.create(executionContext.executionAttributes()
-                                                                     .getAttribute(SdkExecutionAttribute.OPERATION_NAME)));
+
+        MetricUtils.registerConstantGauge(executionContext.getAttribute(SdkExecutionAttribute.SERVICE_NAME),
+                                          metricRegistry,
+                                          SdkMetrics.Service);
+
+        MetricUtils.registerConstantGauge(executionContext.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
+                                          metricRegistry,
+                                          SdkMetrics.Api);
     }
 }

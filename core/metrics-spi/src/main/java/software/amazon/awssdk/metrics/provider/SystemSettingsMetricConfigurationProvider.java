@@ -64,7 +64,7 @@ public final class SystemSettingsMetricConfigurationProvider implements MetricCo
 
         String category = MetricSystemSetting.AWS_JAVA_SDK_METRICS_CATEGORY
             .getStringValue()
-            .orElseThrow(() -> new IllegalArgumentException("Metrics category cannot be null"));
+            .orElse("default");
 
         String[] list = category.trim().split(",");
         for (String entry : list) {

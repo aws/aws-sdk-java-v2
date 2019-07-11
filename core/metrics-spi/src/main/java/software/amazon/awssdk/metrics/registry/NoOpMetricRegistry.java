@@ -35,9 +35,6 @@ import software.amazon.awssdk.metrics.meter.Timer;
 public final class NoOpMetricRegistry implements MetricRegistry {
 
     private static final NoOpMetricRegistry INSTANCE = new NoOpMetricRegistry();
-    private static final Counter NOOP_COUNTER = NoOpCounter.create();
-    private static final Gauge NOOP_GAUGE = NoOpGauge.create();
-    private static final Timer NOOP_TIMER = NoOpTimer.create();
 
     /**
      * @return A singleton instance of the {@link NoOpMetricRegistry}.
@@ -77,17 +74,17 @@ public final class NoOpMetricRegistry implements MetricRegistry {
     }
 
     @Override
-    public Counter counter(String name) {
-        return NOOP_COUNTER;
+    public Counter counter(String name, MetricBuilderParams metricBuilderParams) {
+        return NoOpCounter.INSTANCE;
     }
 
     @Override
-    public Timer timer(String name) {
-        return NOOP_TIMER;
+    public Timer timer(String name, MetricBuilderParams metricBuilderParams) {
+        return NoOpTimer.INSTANCE;
     }
 
     @Override
-    public <T> Gauge<T> gauge(String name, T value) {
-        return NOOP_GAUGE;
+    public <T> Gauge<T> gauge(String name, T value, MetricBuilderParams metricBuilderParams) {
+        return NoOpGauge.INSTANCE;
     }
 }

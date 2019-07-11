@@ -27,14 +27,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * Always returns {@link Duration#ZERO} as the total duration.
  */
 @SdkPublicApi
-public final class NoOpTimer implements Timer {
-
-    private NoOpTimer() {
-    }
-
-    public static NoOpTimer create() {
-        return new NoOpTimer();
-    }
+public enum  NoOpTimer implements Timer {
+    /** Singleton instance **/
+    INSTANCE;
 
     @Override
     public void record(long duration, TimeUnit timeUnit) {

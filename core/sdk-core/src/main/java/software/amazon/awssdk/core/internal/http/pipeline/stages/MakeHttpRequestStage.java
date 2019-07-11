@@ -21,12 +21,15 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.SdkMetrics;
+import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -63,6 +66,9 @@ public class MakeHttpRequestStage
 
         context.apiCallTimeoutTracker().abortable(requestCallable);
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
-        return requestCallable.call();
+
+
+        Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkMetrics.HttpRequestRoundTripLatency);
+        return timer.record(() -> requestCallable.call());
     }
 }

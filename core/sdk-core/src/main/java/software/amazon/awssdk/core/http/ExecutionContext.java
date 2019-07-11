@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.http;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
@@ -64,6 +65,10 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
 
     public ExecutionAttributes executionAttributes() {
         return executionAttributes;
+    }
+
+    public <T> T getAttribute(ExecutionAttribute<T> attribute) {
+        return executionAttributes.getAttribute(attribute);
     }
 
     public Signer signer() {

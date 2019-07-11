@@ -21,14 +21,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * A NoOp implementation of the {@link Counter} metric
  */
 @SdkPublicApi
-public final class NoOpCounter implements Counter<Number> {
-
-    private NoOpCounter() {
-    }
-
-    public static NoOpCounter create() {
-        return new NoOpCounter();
-    }
+public enum NoOpCounter implements Counter<Number> {
+    /** Singleton instance **/
+    INSTANCE;
 
     @Override
     public void increment() {

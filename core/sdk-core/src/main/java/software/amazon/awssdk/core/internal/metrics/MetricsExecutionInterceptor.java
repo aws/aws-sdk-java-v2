@@ -19,10 +19,12 @@ import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.M
 import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_PUBLISHER_CONFIGURATION;
 import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_REGISTRY;
 
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.metrics.meter.Metric;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
@@ -35,17 +37,23 @@ public final class MetricsExecutionInterceptor implements ExecutionInterceptor {
 
     @Override
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
+        System.out.println("MetricsExecutionInterceptor afterExecution");
         afterFinalApiCall(executionAttributes);
     }
 
     @Override
     public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
+        System.out.println("MetricsExecutionInterceptor onExecutionFailure");
         afterFinalApiCall(executionAttributes);
     }
 
     // Handle logic to report event after finishing the request execution (including retries)
     private void afterFinalApiCall(ExecutionAttributes executionAttributes) {
         MetricRegistry registry = executionAttributes.getAttribute(METRIC_REGISTRY);
+        printMetrics(registry);
+        for (MetricRegistry mr : registry.apiCallAttemptMetrics()) {
+            printMetrics(mr);
+        }
 
         MetricConfigurationProvider configurationProvider = executionAttributes.getAttribute(METRIC_CONFIGURATION_PROVIDER);
         MetricPublisherConfiguration publisherConfiguration = executionAttributes.getAttribute(METRIC_PUBLISHER_CONFIGURATION);
@@ -53,5 +61,10 @@ public final class MetricsExecutionInterceptor implements ExecutionInterceptor {
         if (configurationProvider.enabled()) {
             publisherConfiguration.publishers().forEach(p -> p.registerMetrics(registry));
         }
+    }
+
+    private void printMetrics(MetricRegistry registry) {
+        System.out.println("=====================");
+        registry.getMetrics().keySet().forEach(System.out::println);
     }
 }

@@ -26,9 +26,11 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -129,6 +131,13 @@ public final class RequestExecutionContext {
 
     public CompletableFuture asyncResponseTransformerFuture() {
         return executionAttributes().getAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE);
+    }
+
+    /**
+     * @return the per attempt metric registry stored by {@link MetricExecutionAttribute#ATTEMPT_METRIC_REGISTRY}
+     */
+    public MetricRegistry attemptMetricRegistry() {
+        return executionAttributes().getAttribute(MetricExecutionAttribute.ATTEMPT_METRIC_REGISTRY);
     }
 
     /**

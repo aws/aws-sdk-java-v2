@@ -32,7 +32,7 @@ import software.amazon.awssdk.metrics.meter.Metric;
 import software.amazon.awssdk.metrics.meter.Timer;
 
 /**
- * Default implemenation of {@link MetricRegistry} used by the SDk
+ * Default implementation of {@link MetricRegistry} used by the SDk
  */
 @SdkProtectedApi
 public final class DefaultMetricRegistry implements MetricRegistry {
@@ -77,7 +77,7 @@ public final class DefaultMetricRegistry implements MetricRegistry {
             throw new IllegalArgumentException("A metric with name " + name + " already exists in the registry");
         }
 
-        return existing;
+        return metric;
     }
 
     @Override
@@ -92,29 +92,29 @@ public final class DefaultMetricRegistry implements MetricRegistry {
     }
 
     @Override
-    public Counter counter(String name) {
-        return getOrAdd(name, MetricBuilder.COUNTERS);
+    public Counter counter(String name, MetricBuilderParams metricBuilderParams) {
+        return getOrAdd(name, MetricBuilder.COUNTERS, metricBuilderParams);
     }
 
     @Override
-    public Timer timer(String name) {
-        return getOrAdd(name, MetricBuilder.TIMERS);
+    public Timer timer(String name, MetricBuilderParams metricBuilderParams) {
+        return getOrAdd(name, MetricBuilder.TIMERS, metricBuilderParams);
     }
 
     @Override
-    public <T> Gauge<T> gauge(String name, T value) {
-        DefaultGauge<T> gauge = (DefaultGauge) getOrAdd(name, MetricBuilder.GAUGES);
+    public <T> Gauge<T> gauge(String name, T value, MetricBuilderParams metricBuilderParams) {
+        DefaultGauge<T> gauge = (DefaultGauge) getOrAdd(name, MetricBuilder.GAUGES, metricBuilderParams);
         gauge.value(value);
         return gauge;
     }
 
-    private <T extends Metric> T getOrAdd(String name, MetricBuilder<T> builder) {
+    private <T extends Metric> T getOrAdd(String name, MetricBuilder<T> builder, MetricBuilderParams metricBuilderParams) {
         Metric metric = metrics.get(name);
         if (builder.isInstance(metric)) {
             return (T) metric;
         } else if (metric == null) {
             try {
-                return (T) register(name, builder.newMetric());
+                return (T) register(name, builder.newMetric(metricBuilderParams));
             } catch (IllegalArgumentException e) {
                 Metric added = metrics.get(name);
                 if (builder.isInstance(added)) {
@@ -130,8 +130,9 @@ public final class DefaultMetricRegistry implements MetricRegistry {
     private interface MetricBuilder<T extends Metric> {
         /**
          * @return a new metric instance of type T
+         * @param metricBuilderParams Optional parameters that can be used for constructing a new metric
          */
-        T newMetric();
+        T newMetric(MetricBuilderParams metricBuilderParams);
 
         /**
          * @return true if given #metric is instance of type T. Otherwise false.
@@ -140,8 +141,10 @@ public final class DefaultMetricRegistry implements MetricRegistry {
 
         MetricBuilder<Counter> COUNTERS = new MetricBuilder<Counter>() {
             @Override
-            public Counter newMetric() {
-                return LongCounter.create();
+            public Counter newMetric(MetricBuilderParams metricBuilderParams) {
+                return LongCounter.builder()
+                                  .categories(metricBuilderParams.categories())
+                                  .build();
             }
 
             @Override
@@ -152,8 +155,10 @@ public final class DefaultMetricRegistry implements MetricRegistry {
 
         MetricBuilder<Timer> TIMERS = new MetricBuilder<Timer>() {
             @Override
-            public Timer newMetric() {
-                return DefaultTimer.builder().build();
+            public Timer newMetric(MetricBuilderParams metricBuilderParams) {
+                return DefaultTimer.builder()
+                                   .categories(metricBuilderParams.categories())
+                                   .build();
             }
 
             @Override
@@ -164,8 +169,10 @@ public final class DefaultMetricRegistry implements MetricRegistry {
 
         MetricBuilder<Gauge> GAUGES = new MetricBuilder<Gauge>() {
             @Override
-            public Gauge newMetric() {
-                return DefaultGauge.create(null);
+            public Gauge newMetric(MetricBuilderParams metricBuilderParams) {
+                return DefaultGauge.builder()
+                                   .categories(metricBuilderParams.categories())
+                                   .build();
             }
 
             @Override

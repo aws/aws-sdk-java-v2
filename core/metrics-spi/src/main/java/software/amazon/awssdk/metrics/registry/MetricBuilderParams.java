@@ -13,78 +13,49 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.meter;
+package software.amazon.awssdk.metrics.registry;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.LongAdder;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 
 /**
- * A {@link Counter} implementation that stores {@link Long} values.
+ * Optional common parameters that can be applied to all metric types. These parameters are used to build a metric instance.
  */
 @SdkPublicApi
-public final class LongCounter implements Counter<Long> {
+public final class MetricBuilderParams {
 
-    private final LongAdder count;
     private final Set<MetricCategory> categories;
 
-    private LongCounter(Builder builder) {
-        this.count = new LongAdder();
+    private MetricBuilderParams(Builder builder) {
         this.categories = Collections.unmodifiableSet(builder.categories);
     }
 
-    @Override
-    public void increment() {
-        increment(1L);
-    }
-
-    @Override
-    public void increment(Long value) {
-        count.add(value);
-    }
-
-    @Override
-    public void decrement() {
-        decrement(1L);
-    }
-
-    @Override
-    public void decrement(Long value) {
-        count.add(-value);
-    }
-
-    @Override
-    public Long count() {
-        return count.sum();
-    }
-
-    @Override
     public Set<MetricCategory> categories() {
         return categories;
     }
 
+    /**
+     * @return a new {@link Builder} instance
+     */
     public static Builder builder() {
         return new Builder();
     }
 
-    public static LongCounter create() {
-        return builder().build();
-    }
-
     /**
-     * Builder class to create instances of {@link LongCounter}
+     * Builder class to create instances of {@link MetricBuilderParams}
      */
     public static final class Builder {
 
         private final Set<MetricCategory> categories = new HashSet<>();
 
+        private Builder() {
+        }
+
         /**
-         * Register the given categories in this metric
-         * @param categories the set of {@link MetricCategory} this metric belongs to
-         * @return This object for method chaining
+         * Set the set of {@link MetricCategory} to add to the metric
          */
         public Builder categories(Set<MetricCategory> categories) {
             this.categories.addAll(categories);
@@ -92,17 +63,15 @@ public final class LongCounter implements Counter<Long> {
         }
 
         /**
-         * Register the given {@link MetricCategory} in this metric
-         * @param category the {@link MetricCategory} to tag the metric with
-         * @return This object for method chaining
+         * Set the {@link MetricCategory} to add to the metric
          */
         public Builder addCategory(MetricCategory category) {
             this.categories.add(category);
             return this;
         }
 
-        public LongCounter build() {
-            return new LongCounter(this);
+        public MetricBuilderParams build() {
+            return new MetricBuilderParams(this);
         }
     }
 }
