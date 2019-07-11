@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -55,6 +56,7 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    @Ignore // Test needs to be fixed so that it doesn't rely on static bucket/key
     public void getLargeObject() throws IOException {
         LOGGER.info(() -> "Starting to test getLargeObject");
         verifyObjectExist(LARGE_KEY_BUCKET_NAME, LARGE_KEY_NAME, (long) 2e+9);
