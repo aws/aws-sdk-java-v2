@@ -1,3 +1,16 @@
+# __2.7.4__ __2019-07-11__
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Adds APIs for partner event sources, partner event buses, and custom event buses. These new features are managed in the EventBridge service.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Amazon EventBridge is a serverless event bus service that makes it easy to connect your applications with data from a variety of sources, including AWS services, partner applications, and your own applications.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix the issue where the SDK can invoke `channel#read` twice per request and buffer content aggressively before the subscriber is able to consume the data. This should fix [#1122](https://github.com/aws/aws-sdk-java-v2/issues/1122).
+
 # __2.7.3__ __2019-07-10__
 ## __AWS SDK for Java v2__
   - ### Features
