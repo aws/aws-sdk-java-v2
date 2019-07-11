@@ -155,6 +155,11 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
 
     @Override
     public boolean equals(Object obj) {
+        return equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }

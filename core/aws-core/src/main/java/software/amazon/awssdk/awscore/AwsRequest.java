@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -38,6 +39,23 @@ public abstract class AwsRequest extends SdkRequest {
 
     @Override
     public abstract Builder toBuilder();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AwsRequest that = (AwsRequest) o;
+        return Objects.equals(requestOverrideConfig, that.requestOverrideConfig);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(requestOverrideConfig);
+    }
 
     public interface Builder extends SdkRequest.Builder {
         @Override

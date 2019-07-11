@@ -20,6 +20,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 
 /**
  * Extension and convenience methods to Poet that use the intermediate model.
@@ -143,5 +144,13 @@ public class PoetExtensions {
      */
     public ClassName getModelClassFromShape(ShapeModel shapeModel) {
         return getModelClass(shapeModel.getShapeName());
+    }
+
+    public boolean isResponse(ShapeModel shapeModel) {
+        return shapeModel.getShapeType() == ShapeType.Response;
+    }
+
+    public boolean isRequest(ShapeModel shapeModel) {
+        return shapeModel.getShapeType() == ShapeType.Request;
     }
 }
