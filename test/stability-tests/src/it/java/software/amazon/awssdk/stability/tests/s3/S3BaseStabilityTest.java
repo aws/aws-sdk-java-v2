@@ -36,7 +36,6 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
     private static final Logger log = Logger.loggerFor(S3BaseStabilityTest.class);
     protected static final int CONCURRENCY = 100;
     protected static final int TOTAL_RUNS = 50;
-    protected static final String LARGE_KEY_BUCKET_NAME = "java-testing-transfermanager";
     protected static final String LARGE_KEY_NAME = "2GB";
 
     protected static S3AsyncClient s3NettyClient;
@@ -99,5 +98,7 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         }
     }
 
-    public abstract void putObject_getObject();
+    public abstract void putObject_getObject_highConcurrency();
+
+    public abstract void largeObject_put_get_usingFile();
 }
