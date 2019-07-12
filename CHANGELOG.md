@@ -1,3 +1,79 @@
+# __2.7.4__ __2019-07-11__
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Adds APIs for partner event sources, partner event buses, and custom event buses. These new features are managed in the EventBridge service.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Amazon EventBridge is a serverless event bus service that makes it easy to connect your applications with data from a variety of sources, including AWS services, partner applications, and your own applications.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix the issue where the SDK can invoke `channel#read` twice per request and buffer content aggressively before the subscriber is able to consume the data. This should fix [#1122](https://github.com/aws/aws-sdk-java-v2/issues/1122).
+
+# __2.7.3__ __2019-07-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Automatically retry on CRC32 checksum validation failures when the service returns a CRC32 checksum that differs from the one the SDK calculated. Previously this would just throw an exception.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release adds support for Parameters in ExecuteProvisionedProductServiceAction and adds functionality to get the default parameter values for a Self-Service Action execution against a Provisioned Product via DescribeServiceActionExecutionParameters
+
+## __Amazon Glacier__
+  - ### Features
+    - Documentation updates for glacier
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight now supports embedding dashboards for all non-federated QuickSight users. This includes IAM users, AD users and users from the QuickSight user pool. The get-dashboard-embed-url API accepts QUICKSIGHT as identity type with a user ARN to authenticate the embeddable dashboard viewer as a non-federated user.
+
+# __2.7.2__ __2019-07-09__
+## __AWS Amplify__
+  - ### Features
+    - This release adds webhook APIs and manual deployment APIs for AWS Amplify Console.
+
+## __AWS Config__
+  - ### Features
+    - AWS Config now supports a new set of APIs to manage AWS Config rules across your organization in AWS Organizations. Using this capability, you can centrally create, update, and delete AWS Config rules across all accounts in your organization. This capability is particularly useful if you have a need to deploy a common set of AWS Config rules across all accounts. You can also specify accounts where AWS Config rules should not be created. In addition, you can use these APIs from the master account in AWS Organizations to enforce governance by ensuring that the underlying AWS Config rules are not modifiable by your organization member accounts.These APIs work for both managed and custom AWS Config rules. For more information, see Enabling AWS Config Rules Across all Accounts in Your Organization in the AWS Config Developer Guide.The new APIs are available in all commercial AWS Regions where AWS Config and AWS Organizations are supported. For the full list of supported Regions, see AWS Regions and Endpoints in the AWS General Reference. To learn more about AWS Config, visit the AWS Config webpage. To learn more about AWS Organizations, visit the AWS Organizations webpage.
+
+## __AWS WAF__
+  - ### Features
+    - Updated SDK APIs to add tags to WAF Resources: WebACL, Rule, Rulegroup and RateBasedRule. Tags can also be added during creation of these resources.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Updated SDK APIs to add tags to WAF Resources: WebACL, Rule, Rulegroup and RateBasedRule. Tags can also be added during creation of these resources.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds three new APIs (PutAnomalyDetector, DeleteAnomalyDetector, and DescribeAnomalyDetectors) to support the new feature, CloudWatch Anomaly Detection. In addition, PutMetricAlarm and DescribeAlarms APIs are updated to support management of Anomaly Detection based alarms.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS customers can now enable Lifecycle Management for all file systems. You can also now select from one of four Lifecycle Management policies (14, 30, 60 and 90 days), to automatically move files that have not been accessed for the period of time defined by the policy, from the EFS Standard storage class to the EFS Infrequent Access (IA) storage class. EFS IA provides price/performance that is cost-optimized for files that are not accessed every day.
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift FlexMatch now supports matchmaking of up to 200 players per game session, and FlexMatch can now automatically backfill your game sessions whenever there is an open slot.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Add "GET_DASH_STREAMING_SESSION_URL" as an API name to the GetDataEndpoint API.
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Adds support for the GetDASHStreamingSessionURL API. Also adds support for the Live Replay playback mode of the GetHLSStreamingSessionURL API.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Improved error messaging when a connection is closed. Fixes [#1260](https://github.com/aws/aws-sdk-java-v2/issues/1260).
+
+# __2.7.1__ __2019-07-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces a new operation called GetUsageForecast, which allows you to programmatically access AWS Cost Explorer's forecasting engine on usage data (running hours, data transfer, etc).
+
 # __2.7.0__ __2019-07-03__
 ## __AWS SDK for Java v2__
   - ### Features

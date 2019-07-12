@@ -26,16 +26,16 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<InputEvent.Builder, InputEvent>,
-                                         InputEventStream {
+        InputEventStream {
     private static final SdkField<SdkBytes> EXPLICIT_PAYLOAD_MEMBER_FIELD = SdkField
-        .<SdkBytes> builder(MarshallingType.SDK_BYTES)
-        .getter(getter(InputEvent::explicitPayloadMember))
-        .setter(setter(Builder::explicitPayloadMember))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build(),
-                PayloadTrait.create()).build();
+            .<SdkBytes> builder(MarshallingType.SDK_BYTES)
+            .getter(getter(InputEvent::explicitPayloadMember))
+            .setter(setter(Builder::explicitPayloadMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build(),
+                    PayloadTrait.create()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections
-        .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));
+            .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));
 
     private static final long serialVersionUID = 1L;
 
@@ -47,7 +47,7 @@ public final class InputEvent implements SdkPojo, Serializable, ToCopyableBuilde
 
     /**
      * Returns the value of the ExplicitPayloadMember property for this object.
-     *
+     * 
      * @return The value of the ExplicitPayloadMember property for this object.
      */
     public SdkBytes explicitPayloadMember() {
@@ -76,6 +76,11 @@ public final class InputEvent implements SdkPojo, Serializable, ToCopyableBuilde
 
     @Override
     public boolean equals(Object obj) {
+        return equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -100,10 +105,10 @@ public final class InputEvent implements SdkPojo, Serializable, ToCopyableBuilde
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "ExplicitPayloadMember":
-                return Optional.ofNullable(clazz.cast(explicitPayloadMember()));
-            default:
-                return Optional.empty();
+        case "ExplicitPayloadMember":
+            return Optional.ofNullable(clazz.cast(explicitPayloadMember()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -166,4 +171,3 @@ public final class InputEvent implements SdkPojo, Serializable, ToCopyableBuilde
         }
     }
 }
-

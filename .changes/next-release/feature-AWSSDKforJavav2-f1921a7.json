@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Introduce a new method `equalsBySdkFields` to compare only non-inherited fields for model classes."
+}
