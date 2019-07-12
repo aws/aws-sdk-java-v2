@@ -29,8 +29,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
@@ -67,17 +67,17 @@ public class KinesisStabilityTest extends AwsTestBase {
     private static final int MAX_CONCURRENCY = CONCURRENCY + 10;
 
     public static final String CONSUMER_PREFIX = "kinesisstabilitytestconsumer_";
-    private static List<String> consumerArns;
-    private static List<String> shardIds;
-    private static List<SdkBytes> producedData;
-    private static KinesisAsyncClient asyncClient;
-    private static String streamName;
-    private static String streamARN;
-    private static ExecutorService waiterExecutorService;
-    private static ScheduledExecutorService producer;
+    private List<String> consumerArns;
+    private List<String> shardIds;
+    private List<SdkBytes> producedData;
+    private KinesisAsyncClient asyncClient;
+    private String streamName;
+    private String streamARN;
+    private ExecutorService waiterExecutorService;
+    private ScheduledExecutorService producer;
 
-    @BeforeAll
-    public static void setup() {
+    @BeforeEach
+    public void setup() {
         streamName = "kinesisstabilitytest" + System.currentTimeMillis();
         consumerArns = new ArrayList<>(CONSUMER_COUNT);
         shardIds = new ArrayList<>(SHARD_COUNT);
@@ -106,11 +106,12 @@ public class KinesisStabilityTest extends AwsTestBase {
         waitForConsumersToBeActive();
     }
 
-    @AfterAll
-    public static void tearDown() {
+    @AfterEach
+    public void tearDown() {
         asyncClient.deleteStream(b -> b.streamName(streamName).enforceConsumerDeletion(true)).join();
         waiterExecutorService.shutdown();
         producer.shutdown();
+        asyncClient.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
@@ -131,7 +132,7 @@ public class KinesisStabilityTest extends AwsTestBase {
                            .run();
     }
 
-    private static void registerStreamConsumers() {
+    private void registerStreamConsumers() {
         log.info(() -> "Starting to register stream consumer " + streamARN);
         IntFunction<CompletableFuture<?>> futureFunction = i -> asyncClient.registerStreamConsumer(r -> r.streamARN(streamARN)
                                                                                                          .consumerName(CONSUMER_PREFIX + i))
@@ -147,7 +148,7 @@ public class KinesisStabilityTest extends AwsTestBase {
 
     private void putRecords() {
         log.info(() -> "Starting to test putRecord");
-        producedData.clear();
+        producedData = new ArrayList<>();
         SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(20));
         IntFunction<CompletableFuture<?>> futureFunction =
             i -> asyncClient.putRecord(PutRecordRequest.builder()
@@ -181,22 +182,27 @@ public class KinesisStabilityTest extends AwsTestBase {
                                                        .consumerARN(consumerArns.get(consumerIndex))
                                                        .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
                                                  responseHandler)
-                               .thenAccept(b -> assertThat(producedData).as(responseHandler.id + " has not received all events"
-                                                                            + ".").containsSequence(responseHandler.receivedData));
+                               .thenAccept(b -> {
+                                   // Only verify data if all events have been received.
+                                   if (responseHandler.allEventsReceived) {
+                                       assertThat(producedData).as(responseHandler.id + " has not received all events"
+                                                                   + ".").containsSequence(responseHandler.receivedData);
+                                   }
+                               });
                 completableFutures.add(completableFuture);
             }
         }
         return completableFutures;
     }
 
-    private static void waitForStreamToBeActive() {
+    private void waitForStreamToBeActive() {
         Waiter.run(() -> asyncClient.describeStream(r -> r.streamName(streamName))
                                     .join())
               .until(b -> b.streamDescription().streamStatus().equals(StreamStatus.ACTIVE))
               .orFailAfter(Duration.ofMinutes(5));
     }
 
-    private static void waitForConsumersToBeActive() {
+    private void waitForConsumersToBeActive() {
         CompletableFuture<?>[] completableFutures =
             consumerArns.stream()
                         .map(a -> CompletableFuture.supplyAsync(() -> Waiter.run(() -> asyncClient.describeStreamConsumer(b -> b.consumerARN(a))
@@ -212,6 +218,7 @@ public class KinesisStabilityTest extends AwsTestBase {
         , SubscribeToShardEventStream> implements SubscribeToShardResponseHandler {
         private final List<SdkBytes> receivedData = new ArrayList<>();
         private final String id;
+        private boolean allEventsReceived = false;
 
         TestSubscribeToShardResponseHandler(int consumerIndex, int shardIndex) {
             id = "consumer_" + consumerIndex + "_shard_" + shardIndex;
@@ -233,6 +240,7 @@ public class KinesisStabilityTest extends AwsTestBase {
 
         @Override
         public void complete() {
+            allEventsReceived = true;
             log.info(() -> "All events stream successfully " + id);
         }
     }

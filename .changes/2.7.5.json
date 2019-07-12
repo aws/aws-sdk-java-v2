@@ -1,0 +1,41 @@
+{
+    "version": "2.7.5",
+    "date": "2019-07-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Introduce a new method `equalsBySdkFields` to compare only non-inherited fields for model classes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "description": "Added Melodic as a supported Robot Software Suite Version"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "description": "Bug fix (Add tags field to Update Stage , Api and DomainName Responses )"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix the bug where `equals` and `hashCode` methods in the AWS service request and response classes were not calling super."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "description": "Removed exception that was indicated but never thrown for IAM GetAccessKeyLastUsed API"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix `AwsSessionCredentials#equals` to not compare super because the super is an interface."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "description": "Amazon Elasticsearch Service now supports M5, C5, and R5 instance types."
+        }
+    ]
+}
