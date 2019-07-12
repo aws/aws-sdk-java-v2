@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -124,6 +125,35 @@ public abstract class RequestOverrideConfiguration {
      */
     public Optional<Signer> signer() {
         return Optional.ofNullable(signer);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RequestOverrideConfiguration that = (RequestOverrideConfiguration) o;
+        return Objects.equals(headers, that.headers) &&
+               Objects.equals(rawQueryParameters, that.rawQueryParameters) &&
+               Objects.equals(apiNames, that.apiNames) &&
+               Objects.equals(apiCallTimeout, that.apiCallTimeout) &&
+               Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
+               Objects.equals(signer, that.signer);
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + Objects.hashCode(headers);
+        hashCode = 31 * hashCode + Objects.hashCode(rawQueryParameters);
+        hashCode = 31 * hashCode + Objects.hashCode(apiNames);
+        hashCode = 31 * hashCode + Objects.hashCode(apiCallTimeout);
+        hashCode = 31 * hashCode + Objects.hashCode(apiCallAttemptTimeout);
+        hashCode = 31 * hashCode + Objects.hashCode(signer);
+        return hashCode;
     }
 
     /**

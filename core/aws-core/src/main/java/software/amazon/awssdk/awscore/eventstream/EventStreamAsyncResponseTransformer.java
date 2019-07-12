@@ -431,6 +431,11 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                     @Override
                     public void cancel() {
                         dataSubscription.cancel();
+
+                        // Need to complete the futures, otherwise the downstream subscriber will never
+                        // get notified
+                        future.complete(null);
+                        transformFuture.complete(null);
                     }
                 });
             } else {

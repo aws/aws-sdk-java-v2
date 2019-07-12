@@ -1,0 +1,16 @@
+{
+    "version": "2.6.1",
+    "date": "2019-06-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "description": "Documentation updates for dynamodb"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed issue where specifying a custom presigning time causes a runtime exception."
+        }
+    ]
+}

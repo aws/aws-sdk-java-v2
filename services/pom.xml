@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.5.66-SNAPSHOT</version>
+        <version>2.7.6-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -190,6 +190,10 @@
         <module>personalizeruntime</module>
         <module>personalize</module>
         <module>personalizeevents</module>
+        <module>servicequotas</module>
+        <module>applicationinsights</module>
+        <module>ec2instanceconnect</module>
+        <module>eventbridge</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
