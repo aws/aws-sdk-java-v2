@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "description": "Added Melodic as a supported Robot Software Suite Version"
+}
