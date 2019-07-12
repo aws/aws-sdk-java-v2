@@ -2,7 +2,7 @@
 ### Metric
 * A representation of data collected
 * Metric can be one of the following types: Counter, Gauge, Timer
-* Metric can have tags. A Tag represent the category it belongs to (like Default, HttpClient, Streaming etc)
+* Metric can be associated to a category. Some of the metric categories are Default, HttpClient, Streaming etc
 
 ### MetricRegistry
 
@@ -185,6 +185,12 @@ another class to filter metric categories that are not set in MetricConfiguratio
 * If upstream modules want to report additional metrics using the registered publishers, they would need to create MetricRegistry instances and explicitly call the methods on the Publishers.
 * It would be useful to get the low-level API metrics in these modules, so SDK will expose APIs to get an immutable version of the 
 MetricRegistry object so that upstream classes can use that information in  their metric calculation.
+
+### Reporting
+* Collected metrics are reported to the configured publishers at the end of each Api Call by calling `registerMetrics(MetricRegistry)` method on MetricPublisher.
+* The MetricRegistry argument in the registerMetrics method will have data on the entire Api Call including retries.
+* This reporting is done in `MetricsExecutionInterceptor` via `afterExecution()` and `onExecutionFailure()` methods.
+* `MetricsExecutionInterceptor` will always be the last configured ExecutionInterceptor in the interceptor chain
 
 
 ## Testing
