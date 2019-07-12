@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonApiGatewayV2",
-    "description": "Bug fix (Add tags field to Update Stage , Api and DomainName Responses )"
-}

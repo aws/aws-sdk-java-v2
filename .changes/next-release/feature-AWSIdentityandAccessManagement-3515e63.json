@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "description": "Removed exception that was indicated but never thrown for IAM GetAccessKeyLastUsed API"
-}

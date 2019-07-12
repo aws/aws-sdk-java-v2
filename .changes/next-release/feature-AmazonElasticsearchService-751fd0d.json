@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elasticsearch Service",
-    "description": "Amazon Elasticsearch Service now supports M5, C5, and R5 instance types."
-}
