@@ -43,7 +43,7 @@ import software.amazon.awssdk.utils.Logger;
 class BenchmarkResultProcessor {
 
     private static final Logger log = Logger.loggerFor(BenchmarkResultProcessor.class);
-    private static final double TOLERANCE_LEVEL = 0.05;
+    private static final double TOLERANCE_LEVEL = 0.07;
 
     private Map<String, SdkBenchmarkResult> baseline;
 
