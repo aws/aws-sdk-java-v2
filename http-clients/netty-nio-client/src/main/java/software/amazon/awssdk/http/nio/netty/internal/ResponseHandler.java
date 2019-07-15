@@ -70,7 +70,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      * {@link AttributeKey} to keep track of whether we should close the connection after this request
      * has completed.
      */
-    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("KeepAlive");
+    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
