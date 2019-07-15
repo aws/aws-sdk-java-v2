@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.ResponseHandler.KEEP_ALIVE;
 
 import com.typesafe.netty.http.DefaultStreamedHttpResponse;
 import com.typesafe.netty.http.StreamedHttpResponse;
@@ -33,10 +32,15 @@ import io.netty.buffer.EmptyByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.AttributeKey;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -73,22 +77,31 @@ public class PublisherAdapterTest {
     private RequestContext requestContext;
 
     private CompletableFuture<Void> executeFuture;
+    private ResponseHandler nettyResponseHandler;
 
     @Before
     public void setUp() throws Exception {
         executeFuture = new CompletableFuture<>();
         fullHttpResponse = mock(DefaultHttpContent.class);
+
         when(fullHttpResponse.content()).thenReturn(new EmptyByteBuf(ByteBufAllocator.DEFAULT));
         requestContext = new RequestContext(channelPool,
                                             eventLoopGroup,
                                             AsyncExecuteRequest.builder().responseHandler(responseHandler).build(),
                                             null);
+
         channel = new MockChannel();
         channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(Protocol.HTTP1_1));
         channel.attr(REQUEST_CONTEXT_KEY).set(requestContext);
         channel.attr(EXECUTE_FUTURE_KEY).set(executeFuture);
-        channel.attr(KEEP_ALIVE).set(true);
         when(ctx.channel()).thenReturn(channel);
+
+        nettyResponseHandler = ResponseHandler.getInstance();
+        DefaultHttpResponse defaultFullHttpResponse = mock(DefaultHttpResponse.class);
+        when(defaultFullHttpResponse.headers()).thenReturn(EmptyHttpHeaders.INSTANCE);
+        when(defaultFullHttpResponse.status()).thenReturn(HttpResponseStatus.CREATED);
+        when(defaultFullHttpResponse.protocolVersion()).thenReturn(HttpVersion.HTTP_1_1);
+        nettyResponseHandler.channelRead0(ctx, defaultFullHttpResponse);
     }
 
     @Test
