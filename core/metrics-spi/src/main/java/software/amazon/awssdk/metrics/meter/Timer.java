@@ -54,6 +54,17 @@ public interface Timer extends Metric {
     <T> T record(Callable<T> task);
 
     /**
+     * Record the current time to indicate start of an action. This affects the {@link #startTime()} in the timer.
+     */
+    void start();
+
+    /**
+     * Record the current time to indicate the end of a previously started action.
+     * This affects the {@link #endTime()} ()} in the timer.
+     */
+    void end();
+
+    /**
      * @return the start time recorded in the Timer
      */
     Instant startTime();

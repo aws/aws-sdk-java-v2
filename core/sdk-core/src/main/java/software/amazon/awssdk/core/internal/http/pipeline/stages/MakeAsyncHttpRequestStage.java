@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -52,6 +53,8 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
+import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -119,7 +122,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                                 .fullDuplex(isFullDuplex(context.executionAttributes()))
                                                                 .build();
 
+        Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkMetric.HttpRequestRoundTripLatency);
+        timer.start();
+
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+        httpClientFuture.whenComplete((r, t) -> timer.end());
 
         TimeoutTracker timeoutTracker = setupAttemptTimer(responseFuture, context);
         context.apiCallAttemptTimeoutTracker(timeoutTracker);

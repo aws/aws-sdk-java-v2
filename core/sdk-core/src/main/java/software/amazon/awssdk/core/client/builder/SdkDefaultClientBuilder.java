@@ -37,6 +37,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -58,8 +59,8 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.internal.metrics.MetricsExecutionInterceptor;
+import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -302,15 +303,16 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private List<ExecutionInterceptor> resolveExecutionInterceptors(SdkClientConfiguration config) {
         List<ExecutionInterceptor> globalInterceptors = new ClasspathInterceptorChainFactory().getGlobalInterceptors();
-        addMetricsInterceptor(globalInterceptors);
-        return mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
+        List<ExecutionInterceptor> resolved = mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
+        return mergeLists(resolved, metricsInterceptor());
     }
 
     /**
-     * Add metrics execution interceptor to the list of resolved interceptors
+     * Return a singleton list containing the metrics interceptor. This will always be the
+     * last interceptor in the interceptor chain.
      */
-    private void addMetricsInterceptor(List<ExecutionInterceptor> interceptors) {
-        interceptors.add(new MetricsExecutionInterceptor());
+    private List<ExecutionInterceptor> metricsInterceptor() {
+        return Collections.singletonList(new MetricsExecutionInterceptor());
     }
 
     @Override

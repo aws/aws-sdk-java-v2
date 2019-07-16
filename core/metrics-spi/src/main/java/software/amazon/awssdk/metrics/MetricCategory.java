@@ -16,24 +16,43 @@
 package software.amazon.awssdk.metrics;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 
 /**
  * A enum class representing the different types of metric categories in the SDK.
  *
  * A metric can be tagged with multiple categories. Clients can enable/disable metric collection
- * at {@link MetricCategory} level.
+ * at a {@link MetricCategory} level.
+ *
+ * @see SdkMetric
  */
 @SdkPublicApi
 public enum MetricCategory {
-    None("none"),
 
-    Default("default"),
+    /**
+     * All metrics defined by the SDK are classified under this category at a minimum. If the metrics feature is enabled
+     * but the category to collect is not, only metrics that are classified under this category are collected by the SDK
+     */
+    DEFAULT("default"),
 
-    HttpClient("httpclient"),
+    /**
+     * Metrics collected at the http client level are classified under this category.
+     */
+    HTTP_CLIENT("httpclient"),
 
-    Streaming("streaming"),
+    /**
+     * Metrics specific to streaming, eventStream APIs are classified under this category.
+     */
+    STREAMING("streaming"),
 
-    All("all")
+    /**
+     * This is an umbrella category (provided for convenience) that records metrics belonging to every category
+     * defined in this enum. Clients who wish to collect lot of SDK metrics data should use this.
+     *
+     * Note: Enabling this option is verbose and can be expensive based on the platform the metrics are uploaded to.
+     * Please make sure you need all this data before using this category.
+     */
+    ALL("all")
 
     ;
 

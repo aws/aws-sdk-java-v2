@@ -53,7 +53,7 @@ public final class DefaultMetricRegistry implements MetricRegistry {
     }
 
     @Override
-    public Map<String, Metric> getMetrics() {
+    public Map<String, Metric> metrics() {
         return Collections.unmodifiableMap(metrics);
     }
 
@@ -106,6 +106,17 @@ public final class DefaultMetricRegistry implements MetricRegistry {
         DefaultGauge<T> gauge = (DefaultGauge) getOrAdd(name, MetricBuilder.GAUGES, metricBuilderParams);
         gauge.value(value);
         return gauge;
+    }
+
+    @Override
+    public void clear() {
+        if (metrics != null) {
+            metrics.clear();
+        }
+
+        for (MetricRegistry mr : attemptMetrics) {
+            mr.clear();
+        }
     }
 
     private <T extends Metric> T getOrAdd(String name, MetricBuilder<T> builder, MetricBuilderParams metricBuilderParams) {

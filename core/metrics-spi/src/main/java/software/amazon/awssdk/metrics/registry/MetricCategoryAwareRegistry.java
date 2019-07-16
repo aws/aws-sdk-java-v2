@@ -48,8 +48,8 @@ public class MetricCategoryAwareRegistry implements MetricRegistry {
     }
 
     @Override
-    public Map<String, Metric> getMetrics() {
-        return delegate.getMetrics();
+    public Map<String, Metric> metrics() {
+        return delegate.metrics();
     }
 
     @Override
@@ -105,6 +105,11 @@ public class MetricCategoryAwareRegistry implements MetricRegistry {
         }
 
         return NoOpGauge.INSTANCE;
+    }
+
+    @Override
+    public void clear() {
+        delegate.clear();
     }
 
     /**

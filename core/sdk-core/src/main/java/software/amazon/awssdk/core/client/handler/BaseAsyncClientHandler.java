@@ -137,6 +137,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                              successResponseHandler,
                                                              errorHandler);
 
+
             CompletableFuture<ReturnT> exceptionTranslatedFuture = invokeFuture.handle((resp, err) -> {
                 if (err != null) {
                     throw ThrowableUtils.failure(err);

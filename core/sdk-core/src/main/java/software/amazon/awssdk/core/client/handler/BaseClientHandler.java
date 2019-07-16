@@ -33,12 +33,10 @@ import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.metrics.SdkMetrics;
-import software.amazon.awssdk.metrics.meter.ConstantGauge;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
 import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
-import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
 import software.amazon.awssdk.metrics.registry.MetricCategoryAwareRegistry;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
@@ -75,7 +73,7 @@ public abstract class BaseClientHandler {
         runBeforeMarshallingInterceptors(executionContext);
 
         Timer marshallTimer = MetricUtils.timer(executionContext.executionAttributes().getAttribute(METRIC_REGISTRY),
-                                                SdkMetrics.MarshallingLatency);
+                                                SdkMetric.MarshallingLatency);
 
         SdkHttpFullRequest request = marshallTimer.record(() -> executionParams.getMarshaller().marshall(inputT));
 
@@ -229,10 +227,12 @@ public abstract class BaseClientHandler {
 
         MetricUtils.registerConstantGauge(executionContext.getAttribute(SdkExecutionAttribute.SERVICE_NAME),
                                           metricRegistry,
-                                          SdkMetrics.Service);
+                                          SdkMetric.Service);
 
         MetricUtils.registerConstantGauge(executionContext.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
                                           metricRegistry,
-                                          SdkMetrics.Api);
+                                          SdkMetric.Operation);
+
+        MetricUtils.timer(metricRegistry, SdkMetric.ApiCallLatency);
     }
 }

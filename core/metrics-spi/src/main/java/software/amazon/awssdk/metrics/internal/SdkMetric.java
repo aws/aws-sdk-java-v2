@@ -13,13 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics;
+package software.amazon.awssdk.metrics.internal;
+
+import static software.amazon.awssdk.metrics.MetricCategory.DEFAULT;
+import static software.amazon.awssdk.metrics.MetricCategory.HTTP_CLIENT;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.meter.Metric;
 
 /**
@@ -27,74 +31,74 @@ import software.amazon.awssdk.metrics.meter.Metric;
  * enum class along with the metric's corresponding {@link MetricCategory}.
  */
 // TODO List is not complete
-@SdkProtectedApi
-public enum SdkMetrics implements Metric {
+@SdkInternalApi
+public enum SdkMetric implements Metric {
 
     /**
      * Service ID of the AWS service that the API request is made against
      */
-    Service("Service", MetricCategory.Default),
+    Service("Service", DEFAULT),
 
     /**
      * The name of the AWS operation the request is made to
      */
-    Api("Api", MetricCategory.Default),
+    Operation("Operation", DEFAULT),
 
     /**
      * The total time taken to finish (success or fail) a request (inclusive of all retries)
      */
-    ApiCallLatency("ApiCallLatency", MetricCategory.Default),
+    ApiCallLatency("ApiCallLatency", DEFAULT),
 
     /**
      * The time taken to marshall the request
      */
-    MarshallingLatency("MarshallingLatency", MetricCategory.Default),
+    MarshallingLatency("MarshallingLatency", DEFAULT),
 
     /**
      * Total number of attempts that were made by the service client to fulfill this request before succeeding or failing.
      * (This value would be 1 if there are no retries)
      */
-    ApiCallAttemptCount("ApiCallAttemptCount", MetricCategory.Default),
+    ApiCallAttemptCount("ApiCallAttemptCount", DEFAULT),
 
     /**
      * The time taken to sign the request
      */
-    SigningLatency("SigningLatency", MetricCategory.Default),
+    SigningLatency("SigningLatency", DEFAULT),
 
     /**
-     * The time taken by the underlying http client to start the Api call attempt and return the response
+     * The time taken by the underlying http client to start the Operation call attempt and return the response
      */
-    HttpRequestRoundTripLatency("HttpRequestRoundTripLatency", MetricCategory.Default),
+    HttpRequestRoundTripLatency("HttpRequestRoundTripLatency", DEFAULT),
 
     /**
      * The time taken to unmarshall the response (either successful and failed response)
      */
-    UnmarshallingLatency("UnmarshallingLatency", MetricCategory.Default),
+    UnmarshallingLatency("UnmarshallingLatency", DEFAULT),
 
     /**
-     * The total time taken for an Api call attempt
+     * The total time taken for an Operation call attempt
      */
-    ApiCallAttemptLatency("ApiCallAttemptLatency", MetricCategory.Default),
+    ApiCallAttemptLatency("ApiCallAttemptLatency", DEFAULT),
 
     /**
      * The http status code returned in the response
      */
-    HttpStatusCode("HttpStatusCode", MetricCategory.Default),
+    HttpStatusCode("HttpStatusCode", DEFAULT),
 
     /**
      * The request Id for the request. Represented by x-amz-request-id header in response
      */
-    AwsRequestId("AwsRequestId", MetricCategory.Default),
+    AwsRequestId("AwsRequestId", DEFAULT),
 
     /**
      * The extended request Id for the request. Represented by x-amz-id-2 header in response
      */
-    ExtendedRequestId("ExtendedRequestId", MetricCategory.Default),
+    ExtendedRequestId("ExtendedRequestId", DEFAULT),
 
     /**
      * Maximum number of streams allowed on a http2 connection
      */
-    MaxStreamCount("MaxStreamCount", MetricCategory.Default, MetricCategory.HttpClient)
+    MaxStreamCount("MaxStreamCount", DEFAULT, HTTP_CLIENT)
 
     ;
 
@@ -102,7 +106,7 @@ public enum SdkMetrics implements Metric {
 
     private final Set<MetricCategory> categories;
 
-    SdkMetrics(String value, MetricCategory... categories) {
+    SdkMetric(String value, MetricCategory... categories) {
         this.value = value;
         this.categories = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(categories)));
     }

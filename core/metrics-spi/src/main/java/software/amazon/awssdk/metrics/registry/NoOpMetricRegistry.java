@@ -44,7 +44,7 @@ public final class NoOpMetricRegistry implements MetricRegistry {
     }
 
     @Override
-    public Map<String, Metric> getMetrics() {
+    public Map<String, Metric> metrics() {
         return Collections.unmodifiableMap(Collections.EMPTY_MAP);
     }
 
@@ -86,5 +86,10 @@ public final class NoOpMetricRegistry implements MetricRegistry {
     @Override
     public <T> Gauge<T> gauge(String name, T value, MetricBuilderParams metricBuilderParams) {
         return NoOpGauge.INSTANCE;
+    }
+
+    @Override
+    public void clear() {
+
     }
 }

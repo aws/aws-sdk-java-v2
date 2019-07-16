@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * A basic implementation of {@link Gauge} that has ability to set, update and return a single value.
@@ -35,7 +34,6 @@ public final class DefaultGauge<TypeT> implements Gauge<TypeT> {
     private final Set<MetricCategory> categories;
 
     private DefaultGauge(Builder<TypeT> builder) {
-        Validate.notNull(builder.value, "Value cannot be null");
         this.atomicReference = new AtomicReference<>(builder.value);
         this.categories = Collections.unmodifiableSet(builder.categories);
     }

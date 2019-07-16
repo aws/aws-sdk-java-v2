@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.metrics.SdkMetrics;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.utils.Pair;
 
@@ -68,7 +68,7 @@ public class MakeHttpRequestStage
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
 
 
-        Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkMetrics.HttpRequestRoundTripLatency);
+        Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkMetric.HttpRequestRoundTripLatency);
         return timer.record(() -> requestCallable.call());
     }
 }

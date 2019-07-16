@@ -38,7 +38,7 @@ public interface MetricRegistry {
      * The method does not return the Api Call Attempt metrics. For metrics recorded separately for each attempt,
      * see {@link #apiCallAttemptMetrics()}.
      */
-    Map<String, Metric> getMetrics();
+    Map<String, Metric> metrics();
 
 
     /**
@@ -127,4 +127,9 @@ public interface MetricRegistry {
      * @return a new or pre-existing {@link Gauge} with updated value
      */
     <T> Gauge<T> gauge(String name, T value, MetricBuilderParams metricBuilderParams);
+
+    /**
+     * Clear all metrics stored in this registry including the metrics stored by apiCallAttemptMetrics
+     */
+    void clear();
 }

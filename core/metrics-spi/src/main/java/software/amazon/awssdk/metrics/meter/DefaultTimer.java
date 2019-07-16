@@ -77,6 +77,16 @@ public final class DefaultTimer implements Timer {
     }
 
     @Override
+    public void start() {
+        startTime = clock.instant();
+    }
+
+    @Override
+    public void end() {
+        endTime = clock.instant();
+    }
+
+    @Override
     public Instant startTime() {
         return startTime;
     }
@@ -126,7 +136,7 @@ public final class DefaultTimer implements Timer {
         /**
          * Sets the {@link Clock} implementation the timer should use. The default value is {@link Clock#systemUTC()}
          *
-         * @param clock the {@link Clock} implementation used by the time
+         * @param clock the {@link Clock} implementation used by the timer
          * @return This object for method chaining
          */
         Builder clock(Clock clock) {

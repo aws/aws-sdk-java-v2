@@ -26,6 +26,9 @@
 
     <artifactId>cloudwatch-publisher</artifactId>
     <name>AWS Java SDK :: CloudWatch Publisher</name>
+    <description>
+        This module contains the publisher implementation that uploads metrics to Amazon CloudWatch.
+    </description>
 
     <dependencies>
         <dependency>

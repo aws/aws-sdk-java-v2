@@ -16,36 +16,52 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.metrics.SdkMetrics;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.ConstantGauge;
 import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 
+/**
+ * Helper class to register metrics in the {@link MetricRegistry} instances.
+ */
 @SdkInternalApi
 public final class MetricUtils {
 
     private MetricUtils() {
     }
 
-    public static Timer timer(MetricRegistry metricRegistry, SdkMetrics metric) {
-        return metricRegistry
-                      .timer(metric.name(), MetricBuilderParams.builder()
-                                                               .categories(metric.categories())
-                                                               .build());
+    /**
+     * Register a {@link Timer} in the #metricRegistry using the information in given {@link SdkMetric}.
+     * If there is already a metric registered with {@link SdkMetric#name()}, the existing {@link Timer} instance is returned.
+     */
+    public static Timer timer(MetricRegistry metricRegistry, SdkMetric metric) {
+        return metricRegistry.timer(metric.name(), metricBuilderParams(metric));
     }
 
-    public static Counter counter(MetricRegistry metricRegistry, SdkMetrics metric) {
-        return metricRegistry.counter(metric.name(), MetricBuilderParams.builder()
-                                                                        .categories(metric.categories())
-                                                                        .build());
+    /**
+     * Register a {@link Counter} in the #metricRegistry using the information in given {@link SdkMetric}.
+     * If there is already a metric registered with {@link SdkMetric#name()}, the existing {@link Counter} instance is returned.
+     */
+    public static Counter counter(MetricRegistry metricRegistry, SdkMetric metric) {
+        return metricRegistry.counter(metric.name(), metricBuilderParams(metric));
     }
 
-    public static <T> ConstantGauge<T> registerConstantGauge(T value, MetricRegistry metricRegistry, SdkMetrics metric) {
+    /**
+     * Register a {@link ConstantGauge} in the #metricRegistry. Throws an error if there is already a metric registered with
+     * same {@link SdkMetric#name()}.
+     */
+    public static <T> ConstantGauge<T> registerConstantGauge(T value, MetricRegistry metricRegistry, SdkMetric metric) {
         return (ConstantGauge<T>) metricRegistry.register(metric.name(), ConstantGauge.builder()
                                                                                       .value(value)
                                                                                       .categories(metric.categories())
                                                                                       .build());
+    }
+
+    private static MetricBuilderParams metricBuilderParams(SdkMetric metric) {
+        return MetricBuilderParams.builder()
+                                  .categories(metric.categories())
+                                  .build();
     }
 }

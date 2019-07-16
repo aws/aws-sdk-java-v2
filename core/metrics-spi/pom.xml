@@ -11,6 +11,9 @@
 
     <artifactId>metrics-spi</artifactId>
     <name>AWS Java SDK :: Metrics SPI</name>
+    <description> This is the base module for SDK metrics feature. It contains the interfaces used for metrics feature
+        that are used by other modules in the library.
+    </description>
 
     <dependencies>
         <dependency>
@@ -53,11 +56,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>utils</artifactId>
-            <version>2.2.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

@@ -28,9 +28,7 @@ import software.amazon.awssdk.metrics.registry.MetricRegistry;
  * <p>
  *     As metrics are not part of the business logic, failures caused by metrics features should not fail the application.
  *     So SDK publisher implementations suppress all errors during the metrics publishing and log them.
- * </p>
  *
- * <p>
  *     In certain situations (high throttling errors, metrics are reported faster than publishing etc), storing all the metrics
  *     might take up lot of memory and can crash the application. In these cases, it is recommended to have a max limit on
  *     number of metrics stored or memory used for metrics and drop the metrics when the limit is breached.
@@ -42,9 +40,10 @@ public interface MetricPublisher extends AutoCloseable {
     /**
      * Registers the metric information supplied in MetricsRegistry. The reported metrics can be transformed and
      * stored in a format the publisher uses to publish the metrics.
-     *
-     * This method is called at the end of each request execution to report all the metrics collected
-     * for that request (including retry attempt metrics)
+     * <p>
+     *     This method is called at the end of each request execution to report all the metrics collected
+     *     for that request (including retry attempt metrics)
+     * </p>
      */
     void registerMetrics(MetricRegistry metricsRegistry);
 
@@ -52,6 +51,7 @@ public interface MetricPublisher extends AutoCloseable {
      * Publish all metrics stored in the publisher. If all available metrics cannot be published in a single call,
      * multiple calls will be made to publish the metrics.
      *
+     * <p>
      * It is recommended to publish the metrics in a non-blocking way. As it is common to publish metrics to an external
      * source which involves network calls, the method is intended to be implemented in a non-blocking way and thus
      * returns a {@link CompletableFuture}.
@@ -63,6 +63,7 @@ public interface MetricPublisher extends AutoCloseable {
      *
      * Implementations can also call publish method for every reported metric. But this can be expensive and
      * is not recommended.
+     * </p>
      */
-    CompletableFuture<Void> publish();
+    <T> CompletableFuture<T> publish();
 }

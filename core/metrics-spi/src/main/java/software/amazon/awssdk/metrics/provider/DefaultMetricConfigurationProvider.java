@@ -55,7 +55,7 @@ public final class DefaultMetricConfigurationProvider implements MetricConfigura
 
     private Set<MetricCategory> resolveCategories(Set<MetricCategory> categories) {
         if (categories == null || categories.isEmpty()) {
-            return new HashSet<>(Arrays.asList(MetricCategory.Default));
+            return new HashSet<>(Arrays.asList(MetricCategory.DEFAULT));
         }
 
         return categories;

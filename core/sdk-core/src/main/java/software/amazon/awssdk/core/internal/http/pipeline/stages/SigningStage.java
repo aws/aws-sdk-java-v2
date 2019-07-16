@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.metrics.SdkMetrics.SigningLatency;
+import static software.amazon.awssdk.metrics.internal.SdkMetric.SigningLatency;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;

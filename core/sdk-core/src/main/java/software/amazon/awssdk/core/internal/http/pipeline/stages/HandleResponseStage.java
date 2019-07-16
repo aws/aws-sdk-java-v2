@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.metrics.SdkMetrics;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.IoUtils;
@@ -63,7 +63,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         boolean didRequestFail = true;
         try {
             recordResponseMetrics(httpResponse, context.attemptMetricRegistry());
-            Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkMetrics.UnmarshallingLatency);
+            Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkMetric.UnmarshallingLatency);
 
             Response<OutputT> response = timer.record(() -> handleResponse(httpResponse, context));
             didRequestFail = response.isFailure();
@@ -149,12 +149,12 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
     }
 
     private void recordResponseMetrics(SdkHttpFullResponse httpResponse, MetricRegistry metricRegistry) {
-        MetricUtils.registerConstantGauge(httpResponse.statusCode(), metricRegistry, SdkMetrics.HttpStatusCode);
+        MetricUtils.registerConstantGauge(httpResponse.statusCode(), metricRegistry, SdkMetric.HttpStatusCode);
 
         httpResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
-                    .ifPresent(id ->  MetricUtils.registerConstantGauge(id, metricRegistry, SdkMetrics.AwsRequestId));
+                    .ifPresent(id ->  MetricUtils.registerConstantGauge(id, metricRegistry, SdkMetric.AwsRequestId));
 
         httpResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
-                    .ifPresent(id2 ->  MetricUtils.registerConstantGauge(id2, metricRegistry, SdkMetrics.ExtendedRequestId));
+                    .ifPresent(id2 ->  MetricUtils.registerConstantGauge(id2, metricRegistry, SdkMetric.ExtendedRequestId));
     }
 }

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.M
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkStandardLogger;
@@ -39,10 +38,8 @@ import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.metrics.SdkMetrics;
-import software.amazon.awssdk.metrics.meter.Metric;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Timer;
-import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.Logger;
 
@@ -69,7 +66,13 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
     }
 
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        return new RetryExecutor(request, context).execute();
+        try {
+            return new RetryExecutor(request, context).execute();
+        } finally {
+            MetricUtils.timer(context.executionContext().getAttribute(METRIC_REGISTRY),
+                              SdkMetric.ApiCallLatency)
+                       .end();
+        }
     }
 
     /**
@@ -93,8 +96,8 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             while (true) {
 
                 MetricRegistry attemptRegistry = initializeAttemptMetricRegistry();
-                Timer apiCallAttemptTimer = MetricUtils.timer(attemptRegistry, SdkMetrics.ApiCallAttemptLatency);
-                Instant startTime = Instant.now();
+                Timer apiCallAttemptTimer = MetricUtils.timer(attemptRegistry, SdkMetric.ApiCallAttemptLatency);
+                apiCallAttemptTimer.start();
 
                 try {
                     beforeExecute();
@@ -108,14 +111,14 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                 } catch (SdkClientException | IOException e) {
                     retryHandler.setLastRetriedException(handleThrownException(e));
                 } finally {
-                    apiCallAttemptTimer.record(Duration.between(startTime, Instant.now()).toNanos(), TimeUnit.NANOSECONDS);
+                    apiCallAttemptTimer.end();
                 }
             }
         }
 
         private MetricRegistry initializeAttemptMetricRegistry() {
             MetricRegistry apiCallMR = context.executionAttributes().getAttribute(METRIC_REGISTRY);
-            MetricUtils.counter(apiCallMR, SdkMetrics.ApiCallAttemptCount)
+            MetricUtils.counter(apiCallMR, SdkMetric.ApiCallAttemptCount)
                        .increment();
 
             // From now on, downstream calls should use this attempt metric registry to record metrics

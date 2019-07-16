@@ -26,9 +26,8 @@ import software.amazon.awssdk.utils.SystemSetting;
 public enum MetricSystemSetting implements SystemSetting {
 
     /**
-     * Enable the Java SDK Metrics by setting this property.
-     *
-     * Metrics feature is disabled if this feature is not specified or specified to anything other than "true"
+     * Enable the Java SDK Metrics by setting this property. Metrics feature is disabled if this feature is not specified or
+     * specified to anything other than "true"
      */
     AWS_JAVA_SDK_METRICS_ENABLED("aws.javasdk2x.metrics.enabled", null),
 
@@ -36,8 +35,10 @@ public enum MetricSystemSetting implements SystemSetting {
      * Specify comma separated {@link MetricCategory} values to enable the categories for metrics collection.
      * Only metrics belonging to these categories are collected by the SDK.
      *
-     * This value is defaulted to {@link MetricCategory#Default}. If this property is not set but metrics are enabled,
-     * then metrics belonging to {@link MetricCategory#Default} category are collected.
+     * <p>
+     * This value is defaulted to {@link MetricCategory#DEFAULT}. If this property is not set but metrics are enabled,
+     * then metrics belonging to {@link MetricCategory#DEFAULT} category are collected.
+     * </p>
      */
     AWS_JAVA_SDK_METRICS_CATEGORY("aws.javasdk2x.metrics.category", "Default")
 
