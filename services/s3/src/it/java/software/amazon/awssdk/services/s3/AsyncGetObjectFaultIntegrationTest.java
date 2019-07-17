@@ -70,6 +70,7 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         assertThatThrownBy(() -> s3ClientWithTimeout.getObject(getObjectRequest(), handler).join())
                 .hasCauseInstanceOf(ApiCallTimeoutException.class);
         assertThat(handler.currentCallCount()).isEqualTo(1);
+        assertThat(handler.exceptionOccurred).isEqualTo(true);
     }
 
     private GetObjectRequest getObjectRequest() {
@@ -87,6 +88,7 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
         private final AtomicInteger callCount = new AtomicInteger(0);
         private final AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> delegate;
+        private boolean exceptionOccurred = false;
 
         private SlowResponseTransformer() {
             this.delegate = AsyncResponseTransformer.toBytes();
@@ -95,6 +97,7 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         public int currentCallCount() {
             return callCount.get();
         }
+
 
         @Override
         public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
@@ -123,6 +126,7 @@ public class AsyncGetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         @Override
         public void exceptionOccurred(Throwable throwable) {
             delegate.exceptionOccurred(throwable);
+            exceptionOccurred = true;
         }
     }
 }
