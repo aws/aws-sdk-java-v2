@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "description": "This release adds more granularity to the status of an OrganizationConfigRule by adding a new status. It also adds an exception when organization access is denied."
-}

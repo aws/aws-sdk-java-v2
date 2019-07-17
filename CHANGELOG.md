@@ -1,3 +1,20 @@
+# __2.7.6__ __2019-07-17__
+## __AWS Config__
+  - ### Features
+    - This release adds more granularity to the status of an OrganizationConfigRule by adding a new status. It also adds an exception when organization access is denied.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - S3 endpoint settings update: 1) Option to append operation column to full-load files. 2) Option to add a commit timestamp column to full-load and cdc files. Updated DescribeAccountAttributes to include UniqueAccountIdentifier.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Notify error by invoking `AsyncResponseTransformer#exceptionOccurred` for streaming operations for services using xml protocol such as S3 when the request fails and is not retriable.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for autoscaling
+
 # __2.7.5__ __2019-07-12__
 ## __AWS Identity and Access Management__
   - ### Features
