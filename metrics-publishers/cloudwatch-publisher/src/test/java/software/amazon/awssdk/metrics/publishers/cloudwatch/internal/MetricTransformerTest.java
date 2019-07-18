@@ -27,7 +27,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.Timer;
@@ -39,6 +41,9 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetricTransformerTest {
+
+    private static final String SERVICE = "myawesomeservice";
+    private static final String OPERATION = "superoperation";
 
     private static final Duration ONE_HOUR = Duration.ofHours(1);
     private static final Double COUNT = 5.0;
@@ -69,6 +74,7 @@ public class MetricTransformerTest {
         String gaugeName = "gauge";
 
         MetricRegistry registry = DefaultMetricRegistry.create();
+        addRequiredDimensions(registry);
         registry.register(timer1, timer);
         registry.register(timer2, timer);
         registry.register(counterName, counter);
@@ -93,19 +99,27 @@ public class MetricTransformerTest {
         assertThat(values).containsExactlyInAnyOrder(Double.valueOf(ONE_HOUR.toMillis()), 0.0, COUNT, VALUE);
         assertThat(units).containsExactlyInAnyOrder(StandardUnit.MILLISECONDS, StandardUnit.MILLISECONDS,
                                                     StandardUnit.COUNT, StandardUnit.COUNT);
-        assertThat(dimensions.size()).isEqualTo(1);
-        Dimension dimension = dimensions.get(0);
-        assertThat(dimension.name()).isEqualTo("MetricCategory");
-        assertThat(dimension.value()).isEqualTo(MetricCategory.DEFAULT.name());
+
+        assertThat(dimensions.stream().map(d -> d.name()))
+            .containsOnly("MetricCategory", SdkMetric.Service.name(), SdkMetric.Operation.name());
+        assertThat(dimensions.stream().map(d -> d.value()))
+            .containsOnly(MetricCategory.DEFAULT.name(), SERVICE, OPERATION);
     }
 
     @Test
     public void transform_DoesNot_Convert_AttemptMetrics() {
         MetricRegistry registry = DefaultMetricRegistry.create();
+        addRequiredDimensions(registry);
+
         MetricRegistry attemptMR = registry.registerApiCallAttemptMetrics();
         attemptMR.register("counter", counter);
 
         List<MetricDatum> datums = transformer.transform(registry);
         assertThat(datums).isEmpty();
+    }
+
+    private void addRequiredDimensions(MetricRegistry registry) {
+        MetricUtils.registerConstantGauge(SERVICE, registry, SdkMetric.Service);
+        MetricUtils.registerConstantGauge(OPERATION, registry, SdkMetric.Operation);
     }
 }

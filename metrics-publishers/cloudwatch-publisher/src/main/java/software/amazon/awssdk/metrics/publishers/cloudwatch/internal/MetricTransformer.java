@@ -18,7 +18,9 @@ package software.amazon.awssdk.metrics.publishers.cloudwatch.internal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.Metric;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Helper class to transform the {@link MetricRegistry} instances into a list
@@ -34,7 +37,7 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
  */
 @SdkInternalApi
 public class MetricTransformer {
-
+    private static final Logger log = Logger.loggerFor(MetricTransformer.class);
     private static final MetricTransformer INSTANCE = new MetricTransformer();
 
     private MetricTransformer() {
@@ -50,11 +53,14 @@ public class MetricTransformer {
     public List<MetricDatum> transform(MetricRegistry metricRegistry) {
         List<MetricDatum> results = new ArrayList<>();
 
+        Optional<String> service = getValueFromGauge(metricRegistry, SdkMetric.Service);
+        Optional<String> operation = getValueFromGauge(metricRegistry, SdkMetric.Operation);
+
         for (Map.Entry<String, Metric> entry : metricRegistry.metrics().entrySet()) {
             Metric metric = entry.getValue();
             MetricDatum.Builder builder = MetricDatum.builder()
                                                      .metricName(entry.getKey())
-                                                     .dimensions(dimensions(metric));
+                                                     .dimensions(dimensions(metric, service, operation));
 
             if (metric instanceof Timer) {
                 metricDatum((Timer) metric, builder);
@@ -72,12 +78,32 @@ public class MetricTransformer {
             results.add(builder.build());
         }
 
+
         return results;
     }
 
-    // TODO Add service and Operation from the MetricRegistry as dimensions
-    private List<Dimension> dimensions(Metric metric) {
+    private Optional<String> getValueFromGauge(MetricRegistry registry, SdkMetric sdkMetric) {
+        return registry.metric(sdkMetric.name())
+                       .filter(metric -> metric instanceof Gauge)
+                       .map(metric -> (String) ((Gauge) metric).value());
+    }
+
+    private List<Dimension> dimensions(Metric metric, Optional<String> service, Optional<String> operation) {
         List<Dimension> dimensions = new ArrayList<>();
+
+        if (service.isPresent()) {
+            dimensions.add(Dimension.builder()
+                                    .name(SdkMetric.Service.name())
+                                    .value(service.get())
+                                    .build());
+        }
+
+        if (operation.isPresent()) {
+            dimensions.add(Dimension.builder()
+                                    .name(SdkMetric.Operation.name())
+                                    .value(operation.get())
+                                    .build());
+        }
 
         metric.categories().stream()
               .map(c -> Dimension.builder()

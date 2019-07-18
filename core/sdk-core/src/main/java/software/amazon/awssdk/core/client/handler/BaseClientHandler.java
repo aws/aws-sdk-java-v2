@@ -212,7 +212,7 @@ public abstract class BaseClientHandler {
             executionContext.executionAttributes()
                             .getAttribute(MetricExecutionAttribute.METRIC_CONFIGURATION_PROVIDER);
 
-        if (metricProvider.enabled()) {
+        if (metricProvider != null && metricProvider.enabled()) {
             metricRegistry = MetricCategoryAwareRegistry.builder()
                                                         .metricRegistry(DefaultMetricRegistry.create())
                                                         .categories(metricProvider.metricCategories())

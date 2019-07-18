@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataResponse;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -32,6 +33,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class Consumer implements Callable<CompletableFuture<PutMetricDataResponse>> {
+
+    private static final Logger log = Logger.loggerFor(Consumer.class);
+
     /**
      * CloudWatch limits number of {@link MetricDatum} to 20 per {@link PutMetricDataRequest}.
      */
@@ -52,15 +56,21 @@ public class Consumer implements Callable<CompletableFuture<PutMetricDataRespons
      */
     @Override
     public CompletableFuture<PutMetricDataResponse> call() throws Exception {
-        PutMetricDataRequest request = putMetricDataRequest();
-        if (request.metricData().isEmpty()) {
+        List<MetricDatum> metricDatums = metricDatums();
+        if (metricDatums.isEmpty()) {
             return CompletableFuture.completedFuture(null);
         }
 
-        return client.putMetricData(putMetricDataRequest());
+        PutMetricDataRequest request = PutMetricDataRequest.builder()
+                                                           .namespace(namespace)
+                                                           .metricData(metricDatums)
+                                                           .build();
+
+        log.debug(() -> "Call putMetricData API to upload metrics to CloudWatch");
+        return client.putMetricData(request);
     }
 
-    private PutMetricDataRequest putMetricDataRequest() {
+    private List<MetricDatum> metricDatums() {
         List<MetricDatum> metricDatums = new ArrayList<>();
         while (metricDatums.size() <= MAX_METRIC_PER_REQUEST) {
             MetricDatum datum = queue.poll();
@@ -71,10 +81,7 @@ public class Consumer implements Callable<CompletableFuture<PutMetricDataRespons
             }
         }
 
-        return PutMetricDataRequest.builder()
-                                    .namespace(namespace)
-                                    .metricData(metricDatums)
-                                    .build();
+        return metricDatums;
     }
 
     public static Builder builder() {

@@ -47,19 +47,22 @@ public class Producer {
      * @param metricRegistry
      */
     public void addMetrics(MetricRegistry metricRegistry) {
-        List<MetricDatum> results = new ArrayList<>();
-
-        results.addAll(metricTransformer.transform(metricRegistry));
-
-        for (MetricRegistry mr : metricRegistry.apiCallAttemptMetrics()) {
-            results.addAll(metricTransformer.transform(mr));
-        }
-
         try {
+            List<MetricDatum> results = new ArrayList<>();
+
+            results.addAll(metricTransformer.transform(metricRegistry));
+
+            for (MetricRegistry mr : metricRegistry.apiCallAttemptMetrics()) {
+                results.addAll(metricTransformer.transform(mr));
+            }
+
             queue.addAll(results);
+            log.debug(() -> "Number of metrics added to queue: " + results.size());
         } catch (IllegalStateException exception) {
             log.debug(() -> "Due to capacity restrictions, some items from the metric registry are not added to the queue.",
                       exception);
+        } catch (Exception e) {
+            log.debug(() -> "Some error adding metrics to queue", e);
         }
     }
 

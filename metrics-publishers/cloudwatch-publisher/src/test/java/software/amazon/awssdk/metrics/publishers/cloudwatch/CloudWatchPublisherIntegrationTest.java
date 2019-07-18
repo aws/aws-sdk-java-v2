@@ -16,7 +16,7 @@
 package software.amazon.awssdk.metrics.publishers.cloudwatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.atLeast;
 
 import java.time.Duration;
 import java.util.List;
@@ -69,7 +69,7 @@ public class CloudWatchPublisherIntegrationTest extends AwsIntegrationTestBase {
         Thread.sleep(Duration.ofSeconds(PERIOD * 2).toMillis());
 
         ArgumentCaptor<PutMetricDataRequest> captor = ArgumentCaptor.forClass(PutMetricDataRequest.class);
-        Mockito.verify(client, times(3)).putMetricData(captor.capture());
+        Mockito.verify(client, atLeast(1)).putMetricData(captor.capture());
         assertThat(captor.getAllValues()).isNotEmpty();
 
         PutMetricDataRequest captured = captor.getAllValues().get(0);

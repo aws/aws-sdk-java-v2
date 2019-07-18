@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.metrics.publisher;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -37,7 +38,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class MetricPublisherConfiguration implements
                                     ToCopyableBuilder<MetricPublisherConfiguration.Builder, MetricPublisherConfiguration> {
 
-    private final List<MetricPublisher> publishers = Collections.emptyList();
+    private final List<MetricPublisher> publishers = new ArrayList<>();
 
     public MetricPublisherConfiguration(Builder builder) {
         this.publishers.addAll(builder.publishers);
@@ -64,7 +65,7 @@ public final class MetricPublisherConfiguration implements
 
     public static final class Builder implements CopyableBuilder<Builder, MetricPublisherConfiguration> {
 
-        private final List<MetricPublisher> publishers = Collections.emptyList();
+        private final List<MetricPublisher> publishers = new ArrayList<>();
 
         private Builder() {
         }

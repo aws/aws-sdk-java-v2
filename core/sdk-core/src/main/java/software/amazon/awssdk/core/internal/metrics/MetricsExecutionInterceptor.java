@@ -50,7 +50,7 @@ public final class MetricsExecutionInterceptor implements ExecutionInterceptor {
         MetricConfigurationProvider configurationProvider = executionAttributes.getAttribute(METRIC_CONFIGURATION_PROVIDER);
         MetricPublisherConfiguration publisherConfiguration = executionAttributes.getAttribute(METRIC_PUBLISHER_CONFIGURATION);
 
-        if (configurationProvider.enabled()) {
+        if (configurationProvider != null && configurationProvider.enabled()) {
             publisherConfiguration.publishers().forEach(p -> p.registerMetrics(registry));
         }
     }

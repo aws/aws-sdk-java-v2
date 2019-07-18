@@ -62,6 +62,8 @@ public final class CloudWatchPublisher implements MetricPublisher {
     private final ScheduledExecutorService consumerExecutorService;
     private final AtomicBoolean publishStarted = new AtomicBoolean(false);
 
+    private final List<CompletableFuture<Void>> publishFutures = new ArrayList<>();
+
     private CloudWatchPublisher(Builder builder) {
         this.client = resolveClient(builder.client);
         this.publishFrequency = Validate.notNull(builder.publishFrequency, "Publish frequency cannot be null.");
@@ -114,24 +116,33 @@ public final class CloudWatchPublisher implements MetricPublisher {
             log.debug(() -> "An error occurred when uploading metrics to CloudWatch.", throwable);
         }
 
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+        CompletableFuture<Void> finalFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+        publishFutures.add(finalFuture);
+        finalFuture.whenComplete((r, t) -> publishFutures.remove(finalFuture));
+
+        return finalFuture;
     }
 
     @Override
     public void close() throws Exception {
-        if (producerExecutorService != null) {
-            producerExecutorService.shutdown();
-        }
+        try {
+            if (producerExecutorService != null) {
+                producerExecutorService.shutdown();
+            }
 
-        if (client != null) {
-            client.close();
-        }
+            if (client != null) {
+                client.close();
+            }
 
-        if (consumerExecutorService != null) {
-            consumerExecutorService.shutdown();
+            if (consumerExecutorService != null) {
+                consumerExecutorService.shutdown();
+            }
+        } catch (Throwable t) {
+            log.debug(() -> "An error occurred when closing the cloudwatch publisher", t);
         }
     }
 
+    // TODO pass the region and credentials from the service client and use them to create CloudWatchAsyncClient
     private CloudWatchAsyncClient resolveClient(CloudWatchAsyncClient builderClient) {
         return builderClient != null ? builderClient : CloudWatchAsyncClient.create();
     }
@@ -155,7 +166,7 @@ public final class CloudWatchPublisher implements MetricPublisher {
      */
     public static final class Builder {
         private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2x";
-        private static final int QUEUE_SIZE = 100;
+        private static final int QUEUE_SIZE = 1000;
         private static final Duration DEFAULT_PUBLISH_FREQUENCY = Duration.ofMinutes(1);
 
         private CloudWatchAsyncClient client;
@@ -167,7 +178,7 @@ public final class CloudWatchPublisher implements MetricPublisher {
          * @param client async client to use for uploads metrics to Amazon CloudWatch
          * @return This object for method chaining
          */
-        Builder cloudWatchClient(CloudWatchAsyncClient client) {
+        public Builder cloudWatchClient(CloudWatchAsyncClient client) {
             this.client = client;
             return this;
         }
@@ -176,7 +187,7 @@ public final class CloudWatchPublisher implements MetricPublisher {
          * @param publishFrequency the timeout between consecutive {@link CloudWatchPublisher#publish()} calls
          * @return This object for method chaining
          */
-        Builder publishFrequency(Duration publishFrequency) {
+        public Builder publishFrequency(Duration publishFrequency) {
             this.publishFrequency = publishFrequency;
             return this;
         }
@@ -185,7 +196,7 @@ public final class CloudWatchPublisher implements MetricPublisher {
          * @param metricQueueSize max number of metrics to store in queue. If the queue is full, new metrics are dropped
          * @return This object for method chaining
          */
-        Builder metricQueueSize(int metricQueueSize) {
+        public Builder metricQueueSize(int metricQueueSize) {
             this.metricQueueSize = metricQueueSize;
             return this;
         }
@@ -194,7 +205,7 @@ public final class CloudWatchPublisher implements MetricPublisher {
          * @param namespace The CloudWatch namespace for the metric data
          * @return This object for method chaining
          */
-        Builder namespace(String namespace) {
+        public Builder namespace(String namespace) {
             this.namespace = namespace;
             return this;
         }
@@ -202,7 +213,7 @@ public final class CloudWatchPublisher implements MetricPublisher {
         /**
          * @return an instance of {@link CloudWatchPublisher}
          */
-        CloudWatchPublisher build() {
+        public CloudWatchPublisher build() {
             return new CloudWatchPublisher(this);
         }
     }
