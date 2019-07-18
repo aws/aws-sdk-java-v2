@@ -193,10 +193,18 @@ MetricRegistry object so that upstream classes can use that information in  thei
 * `MetricsExecutionInterceptor` will always be the last configured ExecutionInterceptor in the interceptor chain
 
 
+## Performance
+One of the main tenet for metrics is “Enabling default metrics should have minimal impact on the application performance". The following design choices are made to ensure 
+enabling metrics does not effect performance significantly.
+* When collecting metrics, a NoOpRegistry is used if metrics are disabled. All methods in this registry are no-op and return immediately. 
+This also has the additional benefit of avoid metricsEnabled check at each metric collection point.
+* Metric publisher implementations can involve network calls and impact latency if done in blocking way. So all SDK publisher implementation
+will process the metrics asynchronously and does not block the actual request.
+
+
 ## Testing
 
-One of the main tenet for metrics is “Enabling default metrics should have minimal impact on the application performance.“ 
-To ensure this, performance tests should be written and a baseline for overhead should be created. 
+To ensure performance is not impacted due to metrics, tests should be written with various scenarios and a baseline for overhead should be created. 
 These tests should be run regularly to catch regressions.
 
 ### Test Cases
