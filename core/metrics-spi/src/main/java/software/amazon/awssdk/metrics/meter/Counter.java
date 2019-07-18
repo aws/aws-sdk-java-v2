@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> type of the stored value
  */
 @SdkPublicApi
-public interface Counter<T> extends Metric, Counting<T> {
+public interface Counter<T extends Number> extends Metric, Counting<T> {
 
     /**
      * Increment the metric value by 1 unit

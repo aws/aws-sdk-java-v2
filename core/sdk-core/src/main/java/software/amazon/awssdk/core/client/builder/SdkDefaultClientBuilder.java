@@ -68,9 +68,11 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.provider.DefaultMetricConfigurationProviderChain;
+import software.amazon.awssdk.metrics.publisher.MetricPublisher;
 import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
@@ -93,6 +95,9 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkProtectedApi
 public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, C> implements SdkClientBuilder<B, C> {
+    private static final String CLOUDWATCH_PUBLISHER_PATH =
+        "software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchPublisher";
+    private static final Logger log = Logger.loggerFor(SdkDefaultClientBuilder.class);
 
     private static final SdkHttpClient.Builder DEFAULT_HTTP_CLIENT_BUILDER = new DefaultSdkHttpClientBuilder();
     private static final SdkAsyncHttpClient.Builder DEFAULT_ASYNC_HTTP_CLIENT_BUILDER = new DefaultSdkAsyncHttpClientBuilder();
@@ -357,12 +362,18 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return thisBuilder();
     }
 
-    // TODO
-    // Create an instance of Cloudwatch publisher from classloader and set is using addPublisher() method
     private MetricPublisherConfiguration loadDefaultMetricPublisher() {
-        return MetricPublisherConfiguration.builder()
-                                           //.addPublisher()
-                                           .build();
+        MetricPublisherConfiguration.Builder config = MetricPublisherConfiguration.builder();
+
+        try {
+            Class<?> clazz = Class.forName(CLOUDWATCH_PUBLISHER_PATH);
+            MetricPublisher publisher = (MetricPublisher) clazz.getMethod("create").invoke(null);
+            config.addPublisher(publisher);
+        } catch (Exception e) {
+            log.debug(() -> "Failed to create the default CloudWatch metric publisher", e);
+        }
+
+        return config.build();
     }
 
     public final void setOverrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {

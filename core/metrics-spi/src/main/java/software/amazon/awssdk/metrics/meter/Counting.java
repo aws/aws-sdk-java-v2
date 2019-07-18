@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> type of the count value
  */
 @SdkPublicApi
-public interface Counting<T> {
+public interface Counting<T extends Number> {
 
     /**
      * Returns the current count.
