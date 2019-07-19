@@ -1,0 +1,16 @@
+{
+    "version": "2.7.8",
+    "date": "2019-07-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "Adds support for IoT Events, Lambda, SQS and Kinesis Firehose actions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "description": "This release updates the information about the availability of FIFO queues and includes miscellaneous fixes."
+        }
+    ]
+}

@@ -1,3 +1,29 @@
+# __2.7.8__ __2019-07-19__
+## __AWS IoT Events__
+  - ### Features
+    - Adds support for IoT Events, Lambda, SQS and Kinesis Firehose actions.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release updates the information about the availability of FIFO queues and includes miscellaneous fixes.
+
+# __2.7.7__ __2019-07-18__
+## __AWS CodeDeploy__
+  - ### Features
+    - Documentation updates for codedeploy
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports multiple entities for custom entity recognition
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces support for cluster settings. Cluster settings specify whether CloudWatch Container Insights is enabled or disabled for the cluster.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Updates for Elasticache
+
 # __2.7.6__ __2019-07-17__
 ## __AWS Config__
   - ### Features
