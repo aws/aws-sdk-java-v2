@@ -1,3 +1,12 @@
+# __2.7.8__ __2019-07-19__
+## __AWS IoT Events__
+  - ### Features
+    - Adds support for IoT Events, Lambda, SQS and Kinesis Firehose actions.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release updates the information about the availability of FIFO queues and includes miscellaneous fixes.
+
 # __2.7.7__ __2019-07-18__
 ## __AWS CodeDeploy__
   - ### Features
