@@ -1,3 +1,16 @@
+# __2.7.9__ __2019-07-22__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix model builder enum fluent setters to check null before calling `toString` to avoid NPE.
+
+## __AWS Shield__
+  - ### Features
+    - Adding new VectorType (HTTP_Reflection) and related top contributor types to describe WordPress Pingback DDoS attacks.
+
+## __AmazonMQ__
+  - ### Features
+    - Adds support for AWS Key Management Service (KMS) to offer server-side encryption. You can now select your own customer managed CMK, or use an AWS managed CMK in your KMS account.
+
 # __2.7.8__ __2019-07-19__
 ## __AWS IoT Events__
   - ### Features

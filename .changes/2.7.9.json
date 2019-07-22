@@ -1,0 +1,21 @@
+{
+    "version": "2.7.9",
+    "date": "2019-07-22",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix model builder enum fluent setters to check null before calling `toString` to avoid NPE."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Shield",
+            "description": "Adding new VectorType (HTTP_Reflection) and related top contributor types to describe WordPress Pingback DDoS attacks."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMQ",
+            "description": "Adds support for AWS Key Management Service (KMS) to offer server-side encryption. You can now select your own customer managed CMK, or use an AWS managed CMK in your KMS account."
+        }
+    ]
+}
