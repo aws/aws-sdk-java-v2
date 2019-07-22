@@ -30,6 +30,8 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -40,6 +42,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public final class FileAsyncRequestBody implements AsyncRequestBody {
+    private static final Logger log = Logger.loggerFor(FileAsyncRequestBody.class);
 
     /**
      * Default size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
@@ -56,9 +59,12 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
      */
     private final int chunkSizeInBytes;
 
+    private final long position;
+
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
+        this.position = builder.position == null ? 0 : Validate.isNotNegative(builder.position, "position");
     }
 
     @Override
@@ -78,7 +84,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
-            Subscription subscription = new FileSubscription(channel, s, chunkSizeInBytes);
+            Subscription subscription = new FileSubscription(channel, s, chunkSizeInBytes, position);
             synchronized (subscription) {
                 s.onSubscribe(subscription);
             }
@@ -122,12 +128,21 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
          */
         Builder chunkSizeInBytes(Integer chunkSize);
 
+        /**
+         * Sets the file position at which the request body begins.
+         *
+         * @param position the position of the file
+         * @return The builder for method chaining.
+         */
+        Builder position(Long position);
+
     }
 
     private static final class DefaultBuilder implements Builder {
 
         private Path path;
         private Integer chunkSizeInBytes;
+        private Long position;
 
         @Override
         public Builder path(Path path) {
@@ -149,6 +164,17 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             chunkSizeInBytes(chunkSizeInBytes);
         }
 
+
+        @Override
+        public Builder position(Long position) {
+            this.position = position;
+            return this;
+        }
+
+        public void setPosition(Long position) {
+            position(position);
+        }
+
         @Override
         public FileAsyncRequestBody build() {
             return new FileAsyncRequestBody(this);
@@ -163,15 +189,19 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private final Subscriber<? super ByteBuffer> subscriber;
         private final int chunkSize;
 
-        private long position = 0;
+        private long position;
         private AtomicLong outstandingDemand = new AtomicLong(0);
         private boolean writeInProgress = false;
         private volatile boolean done = false;
 
-        private FileSubscription(AsynchronousFileChannel inputChannel, Subscriber<? super ByteBuffer> subscriber, int chunkSize) {
+        private FileSubscription(AsynchronousFileChannel inputChannel,
+                                 Subscriber<? super ByteBuffer> subscriber,
+                                 int chunkSize,
+                                 long position) {
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
             this.chunkSize = chunkSize;
+            this.position = position;
         }
 
         @Override

@@ -17,8 +17,8 @@ package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * The context object for the upload of an object part to S3.
@@ -26,15 +26,21 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 @SdkInternalApi
 public final class MultipartUploadContext {
     private final UploadRequest uploadRequest;
-    private final CreateMultipartUploadRequest createMultipartRequest;
+    private final Integer partNumber;
     private final UploadPartRequest uploadPartRequest;
     private final long partOffset;
+    private final boolean isLastPart;
 
     private MultipartUploadContext(BuilderImpl builder) {
         this.uploadRequest = builder.uploadRequest;
-        this.createMultipartRequest = builder.createMultipartRequest;
+        this.partNumber = builder.partNumber;
         this.uploadPartRequest = builder.uploadPartRequest;
         this.partOffset = builder.partOffset;
+        this.isLastPart = builder.isLastPart;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     /**
@@ -47,8 +53,8 @@ public final class MultipartUploadContext {
     /**
      * The request sent to S3 to initiate the multipart upload.
      */
-    public CreateMultipartUploadRequest createMultipartRequest() {
-        return createMultipartRequest;
+    public Integer partNumber() {
+        return partNumber;
     }
 
     /**
@@ -63,6 +69,24 @@ public final class MultipartUploadContext {
      */
     public long partOffset() {
         return partOffset;
+    }
+
+    /**
+     * @return if the part is the last part
+     */
+    public boolean isLastPart() {
+        return isLastPart;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("MultipartUploadContext")
+                       .add("uploadRequest", uploadRequest)
+                       .add("partNumber", partNumber)
+                       .add("uploadPartRequest", uploadPartRequest)
+                       .add("partOffset", partOffset)
+                       .add("isLastPart", isLastPart)
+                       .build();
     }
 
     public interface Builder {
@@ -80,7 +104,7 @@ public final class MultipartUploadContext {
          * @param createMultipartRequest The request.
          * @return This object for method chaining.
          */
-        Builder createMultipartRequest(CreateMultipartUploadRequest createMultipartRequest);
+        Builder partNumber(Integer createMultipartRequest);
 
         /**
          * Set the upload request to be sent to S3 for this part.
@@ -100,16 +124,28 @@ public final class MultipartUploadContext {
         Builder partOffset(long partOffset);
 
         /**
+         * Set whether this is the last part of the object.
+         *
+         * @param isLastPart Whether this is the last part.
+         * @return This object for method chaining.
+         */
+        Builder isLastPart(boolean isLastPart);
+
+        /**
          * @return the built context.
          */
         MultipartUploadContext build();
     }
 
     private static final class BuilderImpl implements Builder {
+        private Integer partNumber;
         private UploadRequest uploadRequest;
-        private CreateMultipartUploadRequest createMultipartRequest;
         private UploadPartRequest uploadPartRequest;
         private long partOffset;
+        private boolean isLastPart;
+
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder uploadRequest(UploadRequest uploadRequest) {
@@ -118,8 +154,8 @@ public final class MultipartUploadContext {
         }
 
         @Override
-        public Builder createMultipartRequest(CreateMultipartUploadRequest createMultipartRequest) {
-            this.createMultipartRequest = createMultipartRequest;
+        public Builder partNumber(Integer partNumber) {
+            this.partNumber = partNumber;
             return this;
         }
 
@@ -132,6 +168,12 @@ public final class MultipartUploadContext {
         @Override
         public Builder partOffset(long partOffset) {
             this.partOffset = partOffset;
+            return this;
+        }
+
+        @Override
+        public Builder isLastPart(boolean isLastPart) {
+            this.isLastPart = isLastPart;
             return this;
         }
 

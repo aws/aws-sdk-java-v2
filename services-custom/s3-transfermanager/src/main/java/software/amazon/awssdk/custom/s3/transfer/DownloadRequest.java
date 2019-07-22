@@ -17,6 +17,7 @@ package software.amazon.awssdk.custom.s3.transfer;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -47,8 +48,8 @@ public final class DownloadRequest extends TransferObjectRequest {
      * downloads are enabled, this allows the Transfer Manager to omit a call
      * to S3 to get the object size.
      */
-    public Long size() {
-        return size;
+    public Optional<Long> size() {
+        return Optional.ofNullable(size);
     }
 
     @Override

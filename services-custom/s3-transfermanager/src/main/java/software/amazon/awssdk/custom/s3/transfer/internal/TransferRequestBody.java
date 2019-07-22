@@ -15,19 +15,26 @@
 
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
-import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
+import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 
 /**
  * A factory capable of creating the streams for individual parts of a given
  * object to be uploaded to S3.
  * <p>
- * There is no ordering guaranatee for when {@link
+ * There is no ordering guarantee for when {@link
  * #requestBodyForPart(MultipartUploadContext)} is called.
  */
 @SdkInternalApi
 public interface TransferRequestBody {
+
+    static TransferRequestBody fromFile(Path file) {
+        return new FileTransferRequestBody(file);
+    }
+
+    long contentLength();
+
     /**
      * Return the stream for the object part described by given {@link
      * MultipartUploadContext}.
@@ -35,10 +42,10 @@ public interface TransferRequestBody {
      * @param context The context describing the part to be uploaded.
      * @return The part stream.
      */
-    Publisher<ByteBuffer> requestBodyForPart(MultipartUploadContext context);
+    AsyncRequestBody requestBodyForPart(MultipartUploadContext context);
 
     /**
      * Return the stream for a entire object to be uploaded as a single part.
      */
-    Publisher<ByteBuffer> requestBodyForObject(SinglePartUploadContext context);
+    AsyncRequestBody requestBodyForObject(SinglePartUploadContext context);
 }

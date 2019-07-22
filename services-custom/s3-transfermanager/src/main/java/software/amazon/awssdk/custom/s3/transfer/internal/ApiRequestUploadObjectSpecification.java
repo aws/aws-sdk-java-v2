@@ -13,9 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.custom.s3.transfer;
+package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.custom.s3.transfer.UploadObjectSpecification;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -23,11 +24,14 @@ import software.amazon.awssdk.utils.Validate;
  * Implementation for {@link UploadObjectSpecification} for {@link PutObjectRequest}.
  */
 @SdkInternalApi
-final class ApiRequestUploadObjectSpecification extends UploadObjectSpecification {
+public final class ApiRequestUploadObjectSpecification extends UploadObjectSpecification {
     private final PutObjectRequest apiRequest;
 
-    ApiRequestUploadObjectSpecification(PutObjectRequest apiRequest) {
-        this.apiRequest = Validate.notNull(apiRequest, "apiRequest must not be null");
+    public ApiRequestUploadObjectSpecification(PutObjectRequest apiRequest) {
+        Validate.notNull(apiRequest, "apiRequest must not be null");
+        this.apiRequest = apiRequest.toBuilder()
+                                    .overrideConfiguration(b -> b.addApiName(TransferManagerUtilities.apiName()))
+                                    .build();
     }
 
     @Override

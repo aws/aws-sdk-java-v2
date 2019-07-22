@@ -15,32 +15,15 @@
 
 package software.amazon.awssdk.custom.s3.transfer;
 
-import java.net.URL;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.custom.s3.transfer.internal.ApiRequestUploadObjectSpecification;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * Union of the various ways to specify how to upload an object from S3.
  */
-@SdkPublicApi
-public abstract class UploadObjectSpecification {
-
-    UploadObjectSpecification() {
-    }
-
-    /**
-     * @return {@code true} if this is an API request, {@code false} otherwise.
-     */
-    public boolean isApiRequest() {
-        return false;
-    }
-
-    /**
-     * @return {@code true} if this is a presigned URL, {@code false} otherwise.
-     */
-    public boolean isPresignedUrl() {
-        return false;
-    }
+@SdkProtectedApi
+public abstract class UploadObjectSpecification implements TransferSpecification {
 
     /**
      * @return This specification as an API request.
@@ -48,14 +31,6 @@ public abstract class UploadObjectSpecification {
      */
     public PutObjectRequest asApiRequest() {
         throw new IllegalStateException("Not an API request");
-    }
-
-    /**
-     * @return This specification as a presigned URL.
-     * @throws IllegalStateException If this is not a presigned URL.
-     */
-    public URL asPresignedUrl() {
-        throw new IllegalStateException("Not a presigned URL");
     }
 
     /**

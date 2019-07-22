@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.custom.s3.transfer;
 
-import java.net.URL;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
@@ -23,32 +22,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
  * Union of the various ways to specify how to download an object from S3.
  */
 @SdkPublicApi
-public abstract class DownloadObjectSpecification {
-
-    DownloadObjectSpecification() {
-    }
-
-    /**
-     * @return {@code true} if this is a presigned URL, {@code false} otherwise.
-     */
-    public boolean isPresignedUrl() {
-        return false;
-    }
-
-    /**
-     * @return {@code true} if this is an API request, {@code false} otherwise.
-     */
-    public boolean isApiRequest() {
-        return false;
-    }
-
-    /**
-     * @return This specification as a presigned URL.
-     * @throws IllegalStateException If this is not a presigned URL.
-     */
-    public URL asPresignedUrl() {
-        throw new IllegalStateException("Not a presigned URL");
-    }
+public abstract class DownloadObjectSpecification implements TransferSpecification {
 
     /**
      * @return This specification as an API request.

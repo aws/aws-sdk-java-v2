@@ -16,8 +16,16 @@
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 /**
  * Utility class for converting between similar S3 requests. E.g. GetObjectRequest -> HeadObjectRequest.
@@ -33,19 +41,105 @@ final class RequestConversionUtils {
      */
     static HeadObjectRequest toHeadObjectRequest(GetObjectRequest getObjectRequest) {
         return HeadObjectRequest.builder()
-                .bucket(getObjectRequest.bucket())
-                .ifMatch(getObjectRequest.ifMatch())
-                .ifModifiedSince(getObjectRequest.ifModifiedSince())
-                .ifNoneMatch(getObjectRequest.ifNoneMatch())
-                .ifUnmodifiedSince(getObjectRequest.ifUnmodifiedSince())
-                .key(getObjectRequest.key())
-                .partNumber(getObjectRequest.partNumber())
-                .range(getObjectRequest.range())
-                .requestPayer(getObjectRequest.requestPayerAsString())
-                .sseCustomerAlgorithm(getObjectRequest.sseCustomerAlgorithm())
-                .sseCustomerKey(getObjectRequest.sseCustomerKey())
-                .sseCustomerKeyMD5(getObjectRequest.sseCustomerKeyMD5())
-                .versionId(getObjectRequest.versionId())
-                .build();
+                                .bucket(getObjectRequest.bucket())
+                                .ifMatch(getObjectRequest.ifMatch())
+                                .ifModifiedSince(getObjectRequest.ifModifiedSince())
+                                .ifNoneMatch(getObjectRequest.ifNoneMatch())
+                                .ifUnmodifiedSince(getObjectRequest.ifUnmodifiedSince())
+                                .key(getObjectRequest.key())
+                                .partNumber(getObjectRequest.partNumber())
+                                .range(getObjectRequest.range())
+                                .requestPayer(getObjectRequest.requestPayerAsString())
+                                .sseCustomerAlgorithm(getObjectRequest.sseCustomerAlgorithm())
+                                .sseCustomerKey(getObjectRequest.sseCustomerKey())
+                                .sseCustomerKeyMD5(getObjectRequest.sseCustomerKeyMD5())
+                                .versionId(getObjectRequest.versionId())
+                                .build();
+    }
+
+
+    static CreateMultipartUploadRequest toCreateMultipartUploadRequest(PutObjectRequest putObjectRequest) {
+
+        return CreateMultipartUploadRequest.builder()
+                                           .bucket(putObjectRequest.bucket())
+                                           .key(putObjectRequest.key())
+                                           .sseCustomerAlgorithm(putObjectRequest.sseCustomerAlgorithm())
+                                           .sseCustomerKey(putObjectRequest.sseCustomerKey())
+                                           .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
+                                           //TODO: uncomment this once #1352 is merged
+                                           //.requestPayer(putObjectRequest.requestPayer())
+                                           //.acl(putObjectRequest.acl())
+                                           .cacheControl(putObjectRequest.cacheControl())
+                                           .metadata(putObjectRequest.metadata())
+                                           .contentDisposition(putObjectRequest.contentDisposition())
+                                           .contentEncoding(putObjectRequest.contentEncoding())
+                                           .contentType(putObjectRequest.contentType())
+                                           .contentLanguage(putObjectRequest.contentLanguage())
+                                           .grantFullControl(putObjectRequest.grantFullControl())
+                                           .expires(putObjectRequest.expires())
+                                           .grantRead(putObjectRequest.grantRead())
+                                           .grantFullControl(putObjectRequest.grantFullControl())
+                                           .grantReadACP(putObjectRequest.grantReadACP())
+                                           .grantWriteACP(putObjectRequest.grantWriteACP())
+                                           //.overrideConfiguration(putObjectRequest.overrideConfiguration())
+                                           .build();
+    }
+
+    static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest,
+                                                 long size,
+                                                 String uploadId,
+                                                 Integer partNumber) {
+
+        return UploadPartRequest.builder()
+                                .bucket(putObjectRequest.bucket())
+                                .key(putObjectRequest.key())
+                                .contentLength(size)
+                                .sseCustomerAlgorithm(putObjectRequest.sseCustomerAlgorithm())
+                                .sseCustomerKey(putObjectRequest.sseCustomerKey())
+                                .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
+                                .uploadId(uploadId)
+                                .partNumber(partNumber)
+                                //.requestPayer(putObjectRequest.requestPayer())
+                                //.overrideConfiguration(putObjectRequest.overrideConfiguration())
+                                .build();
+    }
+
+    static CompleteMultipartUploadRequest toCompleteMultipartUploadRequest(PutObjectRequest putObjectRequest,
+                                                                           String uploadId,
+                                                                           CompletedPart... parts) {
+        return CompleteMultipartUploadRequest.builder()
+                                             .bucket(putObjectRequest.bucket())
+                                             .key(putObjectRequest.key())
+                                             .multipartUpload(CompletedMultipartUpload.builder()
+                                                                                      .parts(parts)
+                                                                                      .build())
+                                             //.requestPayer(putObjectRequest.requestPayer())
+                                             .uploadId(uploadId)
+                                             .build();
+
+    }
+
+    static ListPartsRequest toListPartsRequest(PutObjectRequest putObjectRequest,
+                                               String uploadId) {
+        return ListPartsRequest.builder()
+                               .bucket(putObjectRequest.bucket())
+                               .key(putObjectRequest.key())
+                               .uploadId(uploadId)
+                               //.partNumberMarker()
+                               //.requestPayer(putObjectRequest.requestPayer())
+                               .build();
+
+    }
+
+    static AbortMultipartUploadRequest toAbortPartRequest(PutObjectRequest putObjectRequest,
+                                                          String uploadId) {
+        return AbortMultipartUploadRequest.builder()
+                                          .bucket(putObjectRequest.bucket())
+                                          .key(putObjectRequest.key())
+                                          .uploadId(uploadId)
+                                          //.partNumberMarker()
+                                          //.requestPayer(putObjectRequest.requestPayer())
+                                          .build();
+
     }
 }

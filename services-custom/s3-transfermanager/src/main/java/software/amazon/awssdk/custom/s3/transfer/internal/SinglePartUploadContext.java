@@ -16,7 +16,52 @@
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @SdkInternalApi
-public interface SinglePartUploadContext {
+public final class SinglePartUploadContext {
+
+    private final UploadRequest uploadRequest;
+    private final PutObjectRequest putObjectRequest;
+
+    private SinglePartUploadContext(Builder builder) {
+        this.uploadRequest = builder.uploadRequest;
+        this.putObjectRequest = builder.putObjectRequest;
+    }
+
+    public UploadRequest uploadRequest() {
+        return uploadRequest;
+    }
+
+    public PutObjectRequest putObjectRequest() {
+        return putObjectRequest;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private UploadRequest uploadRequest;
+
+        private PutObjectRequest putObjectRequest;
+
+        private Builder() {
+        }
+
+        public Builder uploadRequest(UploadRequest uploadRequest) {
+            this.uploadRequest = uploadRequest;
+            return this;
+        }
+
+        public Builder putObjectRequest(PutObjectRequest request) {
+            this.putObjectRequest = request;
+            return this;
+        }
+
+        public SinglePartUploadContext build() {
+            return new SinglePartUploadContext(this);
+        }
+    }
 }

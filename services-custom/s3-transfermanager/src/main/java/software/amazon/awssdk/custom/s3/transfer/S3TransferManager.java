@@ -18,6 +18,7 @@ package software.amazon.awssdk.custom.s3.transfer;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.custom.s3.transfer.internal.DefaultS3TransferManager;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -245,9 +246,28 @@ public interface S3TransferManager extends ToCopyableBuilder<S3TransferManager.B
         Builder multipartDownloadConfiguration(MultipartDownloadConfiguration multipartDownloadConfiguration);
 
         /**
+         *  This is a convenience which creates an instance of the {@link MultipartDownloadConfiguration.Builder} avoiding
+         * the need to create one manually via {@link MultipartDownloadConfiguration#builder()}
+         */
+        default Builder multipartDownloadConfiguration(Consumer<MultipartDownloadConfiguration.Builder> configuration) {
+            return multipartDownloadConfiguration(MultipartDownloadConfiguration.builder()
+                                                                                .applyMutation(configuration)
+                                                                                .build());
+        }
+
+        /**
          * The multipart upload configuration.
          */
         Builder multipartUploadConfiguration(MultipartUploadConfiguration multipartUploadConfiguration);
+
+        /**
+         * The multipart upload configuration.
+         */
+        default Builder multipartUploadConfiguration(Consumer<MultipartUploadConfiguration.Builder> configuration) {
+            return multipartUploadConfiguration(MultipartUploadConfiguration.builder()
+                                                                            .applyMutation(configuration)
+                                                                            .build());
+        }
 
         /**
          * Add a progress listener to the currently configured list of
