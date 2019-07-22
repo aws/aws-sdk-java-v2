@@ -50,6 +50,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     private final List<TransferProgressListener> progressListeners;
 
     private final DownloadManager downloadManager;
+    private final UploadManager uploadManager;
 
     private DefaultS3TransferManager(BuilderImpl builder) {
         if (builder.s3Client != null) {
@@ -67,7 +68,12 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         this.multipartUploadConfiguration = resolveMultipartUploadConfiguration(builder.multipartUploadConfiguration);
         this.progressListeners = resolveProgressListeners(builder.progressListeners);
 
+        //TODO should we use builder pattern in DownloadManager too?
         this.downloadManager = new DownloadManager(this.s3Client, this.multipartDownloadConfiguration);
+        this.uploadManager = UploadManager.builder()
+                                          .configuration(this.multipartUploadConfiguration)
+                                          .s3Client(this.s3Client)
+                                          .build();
     }
 
     @Override
@@ -87,7 +93,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     @Override
     public Upload upload(UploadRequest request, Path file) {
-        throw new UnsupportedOperationException();
+        return upload(request, TransferRequestBody.fromFile(file));
     }
 
     @Override
@@ -114,6 +120,10 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+    private Upload upload(UploadRequest request, TransferRequestBody requestBody) {
+        return uploadManager.uploadObject(request, requestBody);
     }
 
     private Download download(DownloadRequest request, TransferResponseTransformer responseTransformer) {

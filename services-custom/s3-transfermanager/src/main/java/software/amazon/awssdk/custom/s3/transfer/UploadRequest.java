@@ -17,6 +17,7 @@ package software.amazon.awssdk.custom.s3.transfer;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -43,8 +44,8 @@ public final class UploadRequest extends TransferRequest {
     /**
      * @return The size of the object to be uploaded.
      */
-    public Long size() {
-        return size;
+    public Optional<Long> size() {
+        return Optional.ofNullable(size);
     }
 
     public static Builder builder() {
@@ -107,9 +108,12 @@ public final class UploadRequest extends TransferRequest {
         UploadRequest build();
     }
 
-    private static class BuilderImpl extends TransferRequest.BuilderImpl implements Builder {
+    private static final class BuilderImpl extends TransferRequest.BuilderImpl implements Builder {
         private UploadObjectSpecification uploadSpecification;
         private Long size;
+
+        private BuilderImpl() {
+        }
 
         @Override
         public Builder uploadSpecification(UploadObjectSpecification uploadSpecification) {

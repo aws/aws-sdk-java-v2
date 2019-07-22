@@ -22,25 +22,29 @@ import static software.amazon.awssdk.custom.s3.transfer.TransferManagerTestUtils
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.custom.s3.transfer.util.SizeConstant;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.S3BucketUtils;
 
 /**
- * Integration test for TransferManager downloads.
+ * Integration test for TransferManager uploads.
  */
-public class DownloadIntegrationTest extends S3TransferManagerIntegrationTestBase {
-    private static final String BUCKET = S3BucketUtils.temporaryBucketName(DownloadIntegrationTest.class);
+public class UploadIntegrationTest extends S3TransferManagerIntegrationTestBase {
+    private static S3TransferManager transferManager;
+    private static final String BUCKET = S3BucketUtils.temporaryBucketName(UploadIntegrationTest.class);
     private static final String KEY_8KiB = "8kb_test_file.dat";
     private static final String KEY_16MiB = "16mb_test_file.dat";
-    private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir"));
+    private static Path testFile8KiB;
+    private static Path testFile16MiB;
     private static final MessageDigest MD5_DIGEST;
+    private static String testFile8KiBDigest;
+    private static String testFile16MiBDigest;
 
     static {
         try {
@@ -50,25 +54,15 @@ public class DownloadIntegrationTest extends S3TransferManagerIntegrationTestBas
         }
     }
 
-    private static S3TransferManager transferManager;
-
-    private static Path testFile8KiB;
-    private static Path testFile16MiB;
-
-    private static String testFile8KiBDigest;
-    private static String testFile16MiBDigest;
-
     @BeforeClass
     public static void setup() throws Exception {
         S3TransferManagerIntegrationTestBase.setUp();
 
         transferManager = S3TransferManager.builder()
-                .s3client(s3Async)
-                .multipartDownloadConfiguration(MultipartDownloadConfiguration.defaultConfig()
-                        .toBuilder()
-                        .multipartDownloadThreshold(16 * SizeConstant.MiB - 1)
-                        .build())
-                .build();
+                                           .s3client(s3Async)
+                                           .multipartUploadConfiguration(b -> b.enableMultipartUploads(true)
+                                           .multipartUploadThreshold(16 * SizeConstant.MiB - 1))
+                                           .build();
 
         testFile8KiB = new RandomTempFile(8 * SizeConstant.KiB).toPath();
         testFile16MiB = new RandomTempFile(16 * SizeConstant.MiB).toPath();
@@ -77,8 +71,6 @@ public class DownloadIntegrationTest extends S3TransferManagerIntegrationTestBas
         testFile16MiBDigest = computeMd5(testFile16MiB, MD5_DIGEST);
 
         createBucket(BUCKET);
-        putFile(KEY_8KiB, testFile8KiB);
-        putFile(KEY_16MiB, testFile16MiB);
     }
 
     @AfterClass
@@ -88,33 +80,26 @@ public class DownloadIntegrationTest extends S3TransferManagerIntegrationTestBas
     }
 
     @Test
-    public void singlePartDownload() throws IOException {
-        downloadTest(KEY_8KiB, testFile8KiBDigest);
+    public void singlePartUpload_apiRequest() throws IOException {
+        transferManager.upload(BUCKET, KEY_8KiB, testFile8KiB).completionFuture().join();
+        verify(KEY_8KiB, testFile8KiBDigest);
     }
+
 
     @Test
-    public void multipartDownload() throws IOException {
-        downloadTest(KEY_16MiB, testFile16MiBDigest);
+    public void multiPartUpload_apiRequest() throws IOException {
+        transferManager.upload(BUCKET, KEY_16MiB, testFile16MiB).completionFuture().join();
+        verify(KEY_16MiB, testFile16MiBDigest);
     }
 
-    private static void putFile(String key, Path file) {
-        s3.putObject(r -> r.bucket(BUCKET).key(key), file);
-    }
-
-    private static void downloadTest(String key, String expectedMd5) throws IOException {
-        Path tempFile = createTempPath();
+    private static void verify(String key, String expectedMd5) throws IOException {
+        Path tempFile = RandomTempFile.randomUncreatedFile().toPath();
         try {
-            transferManager.download(BUCKET, key, tempFile).completionFuture().join();
+            s3Async.getObject(b -> b.bucket(BUCKET).key(key), AsyncResponseTransformer.toFile(tempFile)).join();
             String downloadedFileMd5 = computeMd5(tempFile, MD5_DIGEST);
             assertThat(downloadedFileMd5).isEqualTo(expectedMd5);
         } finally {
             Files.deleteIfExists(tempFile);
         }
     }
-
-    private static Path createTempPath() {
-        return TMP_DIR.resolve(DownloadIntegrationTest.class.getSimpleName() + "-" + System.currentTimeMillis());
-    }
-
-
 }

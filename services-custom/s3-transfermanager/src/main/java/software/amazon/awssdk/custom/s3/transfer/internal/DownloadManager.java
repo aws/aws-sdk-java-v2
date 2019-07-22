@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.custom.s3.transfer.internal;
 
+import static software.amazon.awssdk.utils.CompletableFutureUtils.allOfCancelForwarded;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -104,7 +107,6 @@ final class DownloadManager {
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
-
     }
 
     private CompletableFuture<Void> doMultipartDownload(DownloadRequest downloadRequest,
@@ -193,10 +195,10 @@ final class DownloadManager {
      */
     // TODO: How do we want to deal with a request or presigned URL that has the Range header set?
     private CompletableFuture<Long> determineObjectSize(DownloadRequest downloadRequest) {
-        Long providedSize = downloadRequest.size();
+        Optional<Long> providedSize = downloadRequest.size();
 
-        if (providedSize != null) {
-            return CompletableFuture.completedFuture(providedSize);
+        if (providedSize.isPresent()) {
+            return CompletableFuture.completedFuture(providedSize.get());
         }
 
         DownloadObjectSpecification spec = downloadRequest.downloadSpecification();
@@ -250,28 +252,5 @@ final class DownloadManager {
             this.transformer = transformer;
             this.context = context;
         }
-    }
-
-    /**
-     * Similar to {@link CompletableFuture#allOf(CompletableFuture[])}, but
-     * when the returned future is completed exceptionally, forwards the
-     * cancel to the individual futures.
-     *
-     * @param futures The futures.
-     * @return The new future that is completed when all the futures in {@code
-     * futures} are.
-     */
-    private static CompletableFuture<Void> allOfCancelForwarded(CompletableFuture[] futures) {
-        CompletableFuture[] futuresCopy = new CompletableFuture[futures.length];
-        System.arraycopy(futures, 0, futuresCopy, 0, futures.length);
-        CompletableFuture<Void> allOfFuture = CompletableFuture.allOf(futuresCopy);
-        allOfFuture.whenComplete((r, e) -> {
-            if (e != null) {
-                for (CompletableFuture cf : futuresCopy) {
-                    cf.completeExceptionally(e);
-                }
-            }
-        });
-        return allOfFuture;
     }
 }
