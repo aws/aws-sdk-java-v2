@@ -159,12 +159,13 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
         SdkHttpRequest request = createRequest(URI.create("http://localhost:" + mockServer.port()));
 
-        client.execute(AsyncExecuteRequest.builder()
+        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
                 .responseHandler(handler)
                 .requestContentPublisher(new EmptyPublisher())
                 .build());
 
+        future.get(60, TimeUnit.SECONDS);
         assertThat(streamReceived.get(1, TimeUnit.SECONDS)).isTrue();
         assertThat(response.get() != null).isTrue();
         assertThat(response.get().statusCode() == 204).isTrue();
@@ -206,12 +207,13 @@ public class AwsCrtHttpClientSpiVerificationTest {
         URI uri = URI.create("http://localhost:" + mockServer.port());
         SdkHttpRequest request = createRequest(uri, path, null, SdkHttpMethod.GET, emptyMap());
 
-        client.execute(AsyncExecuteRequest.builder()
+        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
                 .responseHandler(handler)
                 .requestContentPublisher(new EmptyPublisher())
                 .build());
 
+        future.get(60, TimeUnit.SECONDS);
         assertThat(error.get()).isNull();
         assertThat(streamReceived.get(1, TimeUnit.SECONDS)).isTrue();
         assertThat(bodySha256Subscriber.getFuture().get(60, TimeUnit.SECONDS)).isEqualTo(expectedBodyHash);
@@ -244,12 +246,12 @@ public class AwsCrtHttpClientSpiVerificationTest {
         URI uri = URI.create("http://localhost:" + mockServer.port());
         SdkHttpRequest request = createRequest(uri, path, reqBody, SdkHttpMethod.PUT, emptyMap());
 
-        client.execute(AsyncExecuteRequest.builder()
-                .request(request)
-                .responseHandler(handler)
-                .requestContentPublisher(new SdkTestHttpContentPublisher(reqBody))
-                .build());
-
+        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
+                                            .request(request)
+                                            .responseHandler(handler)
+                                            .requestContentPublisher(new SdkTestHttpContentPublisher(reqBody))
+                                            .build());
+        future.get(60, TimeUnit.SECONDS);
         assertThat(error.get()).isNull();
         assertThat(streamReceived.get(60, TimeUnit.SECONDS)).isTrue();
         assertThat(response.get().statusCode()).isEqualTo(expectedStatus);
