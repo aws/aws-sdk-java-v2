@@ -20,6 +20,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -37,7 +38,13 @@ public final class ChannelUtils {
     public static void removeIfExists(ChannelPipeline pipeline, Class<? extends ChannelHandler>... handlers) {
         for (Class<? extends ChannelHandler> handler : handlers) {
             if (pipeline.get(handler) != null) {
-                pipeline.remove(handler);
+                try {
+                    pipeline.remove(handler);
+                } catch (NoSuchElementException exception) {
+                    // There could still be race condition when channel gets
+                    // closed right after removeIfExists is invoked. Ignoring
+                    // NoSuchElementException for that edge case.
+                }
             }
         }
     }
