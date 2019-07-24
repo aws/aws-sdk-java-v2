@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "description": "This release adds support for programmatic access to many of the same campaign metrics that are displayed on the Amazon Pinpoint console. You can now use the Amazon Pinpoint API to monitor and assess performance data for campaigns, and integrate metrics data with other reporting tools. We update the metrics data continuously, resulting in a data latency timeframe that is limited to approximately two hours."
+}
