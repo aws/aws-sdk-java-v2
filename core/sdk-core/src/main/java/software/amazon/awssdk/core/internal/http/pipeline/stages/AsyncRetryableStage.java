@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_REGISTRY;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
 
 import java.time.Duration;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
@@ -42,6 +44,9 @@ import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
@@ -74,7 +79,13 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
     @Override
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws
                                                                                                                      Exception {
-        return new RetryExecutor(request, context).execute();
+        CompletableFuture<Response<OutputT>> responseFuture = new RetryExecutor(request, context).execute();
+        responseFuture.whenComplete((resp, err) -> MetricUtils.timer(context.executionContext()
+                                                                            .executionAttributes()
+                                                                            .getAttribute(METRIC_REGISTRY),
+                                                                     SdkDefaultMetric.API_CALL)
+                                                              .end());
+        return responseFuture;
     }
 
     /**
@@ -102,9 +113,17 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public CompletableFuture<Response<OutputT>> execute(CompletableFuture<Response<OutputT>> future) throws Exception {
+            MetricRegistry attemptRegistry = MetricUtils.newRegistry(context.executionAttributes());
+            Timer apiCallAttemptTimer = MetricUtils.timer(attemptRegistry, SdkDefaultMetric.API_CALL_ATTEMPT_LATENCY);
+            apiCallAttemptTimer.start();
+
             beforeExecute();
+
             CompletableFuture<Response<OutputT>> executeFuture = doExecute();
-            executeFuture.whenComplete((resp, err) -> retryIfNeeded(future, resp, err));
+            executeFuture.whenComplete((resp, err) -> {
+                apiCallAttemptTimer.end();
+                retryIfNeeded(future, resp, err);
+            });
             return CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
         }
 

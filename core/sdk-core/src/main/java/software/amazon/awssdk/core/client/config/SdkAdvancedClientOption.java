@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.client.config;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
 
-
 /**
  * A collection of advanced options that can be configured on an AWS client via
  * {@link ClientOverrideConfiguration.Builder#putAdvancedOption(SdkAdvancedClientOption, Object)}.

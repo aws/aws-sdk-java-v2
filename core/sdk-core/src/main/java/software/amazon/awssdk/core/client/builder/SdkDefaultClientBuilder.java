@@ -28,6 +28,8 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_CONFIGURATION_PROVIDER;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHER_CONFIGURATION;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
@@ -35,6 +37,7 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +59,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.core.internal.metrics.MetricsExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -63,6 +67,8 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.provider.DefaultMetricConfigurationProviderChain;
+import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
@@ -142,6 +148,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         // Apply defaults
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
+        configuration = mergeMetricDefaults(configuration);
 
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
@@ -165,6 +172,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         // Apply defaults
         configuration = mergeChildDefaults(configuration);
         configuration = mergeGlobalDefaults(configuration);
+        configuration = mergeMetricDefaults(configuration);
 
         // Create additional configuration from the default-applied configuration
         configuration = finalizeChildConfiguration(configuration);
@@ -192,6 +200,29 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                          .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
                                          .option(USER_AGENT_SUFFIX, "")
                                          .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+    }
+
+    /**
+     * Add metric configuration defaults if not present already in the configuration.
+     */
+    private SdkClientConfiguration mergeMetricDefaults(SdkClientConfiguration configuration) {
+        SdkClientConfiguration.Builder defaults = SdkClientConfiguration.builder();
+        if (configuration.option(METRIC_CONFIGURATION_PROVIDER) == null) {
+            defaults.option(METRIC_CONFIGURATION_PROVIDER, new DefaultMetricConfigurationProviderChain());
+        }
+        if (configuration.option(METRIC_PUBLISHER_CONFIGURATION) == null) {
+            defaults.option(METRIC_PUBLISHER_CONFIGURATION, loadDefaultMetricPublisher());
+        }
+
+        return configuration.merge(defaults.build());
+    }
+
+    // TODO
+    // Create an instance of Cloudwatch publisher from classloader and set is using addPublisher() method
+    private MetricPublisherConfiguration loadDefaultMetricPublisher() {
+        return MetricPublisherConfiguration.builder()
+                                           //.addPublisher()
+                                           .build();
     }
 
     /**
@@ -297,7 +328,16 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private List<ExecutionInterceptor> resolveExecutionInterceptors(SdkClientConfiguration config) {
         List<ExecutionInterceptor> globalInterceptors = new ClasspathInterceptorChainFactory().getGlobalInterceptors();
-        return mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
+        List<ExecutionInterceptor> resolved = mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
+        return mergeLists(resolved, metricsInterceptor());
+    }
+
+    /**
+     * Return a singleton list containing the metrics interceptor. This will always be the
+     * last interceptor in the interceptor chain.
+     */
+    private List<ExecutionInterceptor> metricsInterceptor() {
+        return Collections.singletonList(new MetricsExecutionInterceptor());
     }
 
     @Override
@@ -333,6 +373,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientConfiguration.option(API_CALL_ATTEMPT_TIMEOUT, overrideConfig.apiCallAttemptTimeout().orElse(null));
         clientConfiguration.option(DISABLE_HOST_PREFIX_INJECTION,
                                    overrideConfig.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
+        clientConfiguration.option(METRIC_CONFIGURATION_PROVIDER, overrideConfig.metricConfigurationProvider().orElse(null));
+        clientConfiguration.option(METRIC_PUBLISHER_CONFIGURATION, overrideConfig.metricPublisherConfiguration().orElse(null));
+
         return thisBuilder();
     }
 
