@@ -28,6 +28,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
+import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -50,6 +52,8 @@ public final class ClientOverrideConfiguration
     private final AttributeMap advancedOptions;
     private final Duration apiCallAttemptTimeout;
     private final Duration apiCallTimeout;
+    private final MetricConfigurationProvider metricConfigurationProvider;
+    private final MetricPublisherConfiguration metricPublisherConfiguration;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -61,6 +65,8 @@ public final class ClientOverrideConfiguration
         this.advancedOptions = builder.advancedOptions();
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
         this.apiCallAttemptTimeout = Validate.isPositiveOrNull(builder.apiCallAttemptTimeout(), "apiCallAttemptTimeout");
+        this.metricConfigurationProvider = builder.metricConfigurationProvider();
+        this.metricPublisherConfiguration = builder.metricPublisherConfiguration();
     }
 
     @Override
@@ -99,6 +105,20 @@ public final class ClientOverrideConfiguration
      */
     public Optional<RetryPolicy> retryPolicy() {
         return Optional.ofNullable(retryPolicy);
+    }
+
+    /**
+     * @return The optional {@link MetricConfigurationProvider} used to configure metrics feature
+     */
+    public Optional<MetricConfigurationProvider> metricConfigurationProvider() {
+        return Optional.ofNullable(metricConfigurationProvider);
+    }
+
+    /**
+     * @return The optional {@link MetricPublisherConfiguration} used to configure metrics publishers
+     */
+    public Optional<MetricPublisherConfiguration> metricPublisherConfiguration() {
+        return Optional.ofNullable(metricPublisherConfiguration);
     }
 
     /**
@@ -233,6 +253,31 @@ public final class ClientOverrideConfiguration
         }
 
         /**
+         * Configure the provider with options to control the metrics feature
+         *
+         * @return This object for method chaining
+         */
+        Builder metricConfigurationProvider(MetricConfigurationProvider metricConfigurationProvider);
+
+        /**
+         * @return the provider with options to control the metrics feature
+         */
+        MetricConfigurationProvider metricConfigurationProvider();
+
+        /**
+         * Configure the configuration for metric publishers
+         *
+         * @param metricPublisherConfiguration
+         * @return This object for method chaining
+         */
+        Builder metricPublisherConfiguration(MetricPublisherConfiguration metricPublisherConfiguration);
+
+        /**
+         * @return the configuration for metric publishers
+         */
+        MetricPublisherConfiguration metricPublisherConfiguration();
+
+        /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
          * they are processed by the SDK. These will replace any interceptors configured previously with this method or
          * {@link #addExecutionInterceptor(ExecutionInterceptor)}.
@@ -333,6 +378,8 @@ public final class ClientOverrideConfiguration
     private static final class DefaultClientOverrideConfigurationBuilder implements Builder {
         private Map<String, List<String>> headers = new HashMap<>();
         private RetryPolicy retryPolicy;
+        private MetricConfigurationProvider metricConfigurationProvider;
+        private MetricPublisherConfiguration metricPublisherConfiguration;
         private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
         private Duration apiCallTimeout;
@@ -375,6 +422,28 @@ public final class ClientOverrideConfiguration
         @Override
         public RetryPolicy retryPolicy() {
             return retryPolicy;
+        }
+
+        @Override
+        public Builder metricConfigurationProvider(MetricConfigurationProvider metricConfigurationProvider) {
+            this.metricConfigurationProvider = metricConfigurationProvider;
+            return this;
+        }
+
+        @Override
+        public MetricConfigurationProvider metricConfigurationProvider() {
+            return metricConfigurationProvider;
+        }
+
+        @Override
+        public Builder metricPublisherConfiguration(MetricPublisherConfiguration metricPublisherConfiguration) {
+            this.metricPublisherConfiguration = metricPublisherConfiguration;
+            return this;
+        }
+
+        @Override
+        public MetricPublisherConfiguration metricPublisherConfiguration() {
+            return metricPublisherConfiguration;
         }
 
         @Override

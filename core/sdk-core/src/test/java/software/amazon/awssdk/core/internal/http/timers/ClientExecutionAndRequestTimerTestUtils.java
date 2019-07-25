@@ -26,12 +26,14 @@ import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
 
 /**
  * Useful asserts and utilities for verifying behavior or the client execution timeout and request
@@ -112,7 +114,11 @@ public class ClientExecutionAndRequestTimerTestUtils {
         return ExecutionContext.builder()
                                .signer(new NoOpSigner())
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
-                               .executionAttributes(new ExecutionAttributes())
+                               .executionAttributes(new ExecutionAttributes()
+                                                        .putAttribute(MetricExecutionAttribute.METRIC_REGISTRY,
+                                                                      NoOpMetricRegistry.getInstance())
+                                                        .putAttribute(MetricExecutionAttribute.ATTEMPT_METRIC_REGISTRY,
+                                                                      NoOpMetricRegistry.getInstance()))
                                .interceptorContext(incerceptorContext)
                                .build();
     }

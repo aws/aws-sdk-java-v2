@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
+
 import java.io.IOException;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -28,7 +31,11 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -55,7 +62,11 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
     public Response<OutputT> execute(SdkHttpFullResponse httpResponse, RequestExecutionContext context) throws Exception {
         boolean didRequestFail = true;
         try {
-            Response<OutputT> response = handleResponse(httpResponse, context);
+            recordResponseMetrics(httpResponse, context.attemptMetricRegistry());
+
+            Timer timer = MetricUtils.timer(context.attemptMetricRegistry(), SdkDefaultMetric.UnmarshallingLatency);
+            Response<OutputT> response = timer.record(() -> handleResponse(httpResponse, context));
+
             didRequestFail = response.isFailure();
             return response;
         } finally {
@@ -136,5 +147,19 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
                     .flatMap(SdkHttpFullResponse::content) // If no content, no need to close
                     .ifPresent(s -> IoUtils.closeQuietly(s, log));
         }
+    }
+
+    private void recordResponseMetrics(SdkHttpFullResponse httpResponse, MetricRegistry metricRegistry) {
+        MetricUtils.registerConstantGauge(httpResponse.statusCode(), metricRegistry, SdkDefaultMetric.HttpStatusCode);
+
+        httpResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
+                    .ifPresent(id ->  MetricUtils.registerConstantGauge(id,
+                                                                        metricRegistry,
+                                                                        SdkDefaultMetric.AwsRequestId));
+
+        httpResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
+                    .ifPresent(id2 ->  MetricUtils.registerConstantGauge(id2,
+                                                                         metricRegistry,
+                                                                         SdkDefaultMetric.ExtendedRequestId));
     }
 }

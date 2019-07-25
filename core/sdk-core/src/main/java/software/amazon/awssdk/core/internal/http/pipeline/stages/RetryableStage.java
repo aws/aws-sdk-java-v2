@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_REGISTRY;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -29,11 +31,16 @@ import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
+import software.amazon.awssdk.core.internal.metrics.MetricUtil;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -59,7 +66,14 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
     }
 
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        return new RetryExecutor(request, context).execute();
+        try {
+            return new RetryExecutor(request, context).execute();
+        } finally {
+            MetricUtils.timer(context.executionContext().executionAttributes()
+                                     .getAttribute(METRIC_REGISTRY),
+                              SdkDefaultMetric.ApiCallLatency)
+                       .end();
+        }
     }
 
     /**
@@ -81,6 +95,11 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
 
         public Response<OutputT> execute() throws Exception {
             while (true) {
+
+                MetricRegistry attemptRegistry = MetricUtil.newRegistry(context.executionAttributes());
+                Timer apiCallAttemptTimer = MetricUtils.timer(attemptRegistry, SdkDefaultMetric.ApiCallAttemptLatency);
+                apiCallAttemptTimer.start();
+
                 try {
                     beforeExecute();
                     Response<OutputT> response = doExecute();
@@ -92,6 +111,8 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
                     }
                 } catch (SdkClientException | IOException e) {
                     retryHandler.setLastRetriedException(handleThrownException(e));
+                } finally {
+                    apiCallAttemptTimer.end();
                 }
             }
         }

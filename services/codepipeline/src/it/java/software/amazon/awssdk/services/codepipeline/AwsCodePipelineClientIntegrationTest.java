@@ -19,9 +19,15 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.metrics.MetricCategory;
+import software.amazon.awssdk.metrics.provider.DefaultMetricConfigurationProvider;
+import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 import software.amazon.awssdk.services.codepipeline.model.ActionCategory;
 import software.amazon.awssdk.services.codepipeline.model.ActionOwner;
 import software.amazon.awssdk.services.codepipeline.model.ActionType;
@@ -33,6 +39,7 @@ import software.amazon.awssdk.services.codepipeline.model.InvalidNextTokenExcept
 import software.amazon.awssdk.services.codepipeline.model.ListActionTypesRequest;
 import software.amazon.awssdk.services.codepipeline.model.ListActionTypesResponse;
 import software.amazon.awssdk.services.codepipeline.model.ListPipelinesRequest;
+import software.amazon.awssdk.services.codepipeline.model.PipelineSummary;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -45,7 +52,46 @@ public class AwsCodePipelineClientIntegrationTest extends AwsTestBase {
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        client = CodePipelineClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+
+        ClientOverrideConfiguration configuration = ClientOverrideConfiguration
+            .builder()
+            .metricConfigurationProvider(DefaultMetricConfigurationProvider.builder()
+                                                                           .enabled(true)
+                                                                           .build())
+            .metricPublisherConfiguration(MetricPublisherConfiguration.builder().build())
+            .build();
+
+        client = CodePipelineClient.builder()
+                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                 //  .overrideConfiguration(configuration)
+                                   .build();
+    }
+
+    @Test
+    public void listActionTypes_WithNoFilter_ReturnsNonEmptyList() {
+        List<PipelineSummary> summaries  = client.listPipelines().pipelines();
+
+        System.out.println(summaries.size());
+    }
+
+    @Test
+    public void async() throws Exception {
+        ClientOverrideConfiguration configuration = ClientOverrideConfiguration
+            .builder()
+            .metricConfigurationProvider(DefaultMetricConfigurationProvider.builder()
+                                                                           .enabled(true)
+                                                                           .build())
+            .metricPublisherConfiguration(MetricPublisherConfiguration.builder().build())
+            .build();
+
+        CodePipelineAsyncClient asyncClient = CodePipelineAsyncClient.builder()
+                                                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                                     .overrideConfiguration(configuration)
+                                                                     .build();
+
+        List<PipelineSummary> summaries  = asyncClient.listPipelines().get().pipelines();
+
+        System.out.println(summaries.size());
     }
 
     /**
@@ -71,10 +117,6 @@ public class AwsCodePipelineClientIntegrationTest extends AwsTestBase {
         client.listPipelines(ListPipelinesRequest.builder().nextToken("invalid_next_token").build());
     }
 
-    @Test
-    public void listActionTypes_WithNoFilter_ReturnsNonEmptyList() {
-        assertThat(client.listActionTypes(ListActionTypesRequest.builder().build()).actionTypes().size(), greaterThan(0));
-    }
 
     /**
      * Simple smoke test to create a custom action, make sure it was persisted, and then
@@ -83,28 +125,28 @@ public class AwsCodePipelineClientIntegrationTest extends AwsTestBase {
     @Test
     public void createFindDelete_ActionType() {
         ActionTypeId actionTypeId = ActionTypeId.builder()
-                .category(ActionCategory.BUILD)
-                .provider("test-provider")
-                .version("1")
-                .owner(ActionOwner.CUSTOM)
-                .build();
+                                                .category(ActionCategory.BUILD)
+                                                .provider("test-provider")
+                                                .version("1")
+                                                .owner(ActionOwner.CUSTOM)
+                                                .build();
         ArtifactDetails artifactDetails = ArtifactDetails.builder()
-                .maximumCount(1)
-                .minimumCount(1)
-                .build();
+                                                         .maximumCount(1)
+                                                         .minimumCount(1)
+                                                         .build();
         client.createCustomActionType(CreateCustomActionTypeRequest.builder()
-                .category(actionTypeId.category())
-                .provider(actionTypeId.provider())
-                .version(actionTypeId.version())
-                .inputArtifactDetails(artifactDetails)
-                .outputArtifactDetails(artifactDetails)
-                .build());
+                                                                   .category(actionTypeId.category())
+                                                                   .provider(actionTypeId.provider())
+                                                                   .version(actionTypeId.version())
+                                                                   .inputArtifactDetails(artifactDetails)
+                                                                   .outputArtifactDetails(artifactDetails)
+                                                                   .build());
         final ListActionTypesResponse actionTypes = client.listActionTypes(ListActionTypesRequest.builder().build());
         assertTrue(containsActionTypeId(actionTypes.actionTypes(), actionTypeId));
         client.deleteCustomActionType(DeleteCustomActionTypeRequest.builder()
-                .category(actionTypeId.category())
-                .provider(actionTypeId.provider())
-                .version(actionTypeId.version()).build());
+                                                                   .category(actionTypeId.category())
+                                                                   .provider(actionTypeId.provider())
+                                                                   .version(actionTypeId.version()).build());
     }
 
 }

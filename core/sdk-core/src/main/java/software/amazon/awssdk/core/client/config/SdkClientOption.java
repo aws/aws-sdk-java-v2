@@ -28,6 +28,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
+import software.amazon.awssdk.metrics.publisher.MetricPublisherConfiguration;
 
 /**
  * A set of internal options required by the SDK via {@link SdkClientConfiguration}.
@@ -111,6 +113,18 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * Whether or not endpoint discovery is enabled for this client.
      */
     public static final SdkClientOption<Boolean> ENDPOINT_DISCOVERY_ENABLED = new SdkClientOption<>(Boolean.class);
+
+    /**
+     * Set the client option to configure {@link MetricConfigurationProvider}
+     */
+    public static final SdkAdvancedClientOption<MetricConfigurationProvider> METRIC_CONFIGURATION_PROVIDER =
+        new SdkAdvancedClientOption<>(MetricConfigurationProvider.class);
+
+    /**
+     * Set the client option to configure {@link MetricPublisherConfiguration}
+     */
+    public static final SdkAdvancedClientOption<MetricPublisherConfiguration> METRIC_PUBLISHER_CONFIGURATION =
+        new SdkAdvancedClientOption<>(MetricPublisherConfiguration.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
