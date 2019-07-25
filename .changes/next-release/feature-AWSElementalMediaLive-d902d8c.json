@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "description": "AWS Elemental MediaLive is adding Input Clipping, Immediate Mode Input Switching, and Dynamic Inputs."
+}
