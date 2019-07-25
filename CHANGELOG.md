@@ -1,3 +1,16 @@
+# __2.7.12__ __2019-07-25__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert has added several features including support for: audio normalization using ITU BS.1770-3, 1770-4 algorithms, extension of job progress indicators, input cropping rectangle & output position rectangle filters per input, and dual SCC caption mapping to additional codecs and containers.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive is adding Input Clipping, Immediate Mode Input Switching, and Dynamic Inputs.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for immutable image tags.
+
 # __2.7.11__ __2019-07-24__
 ## __AWS Glue__
   - ### Features
