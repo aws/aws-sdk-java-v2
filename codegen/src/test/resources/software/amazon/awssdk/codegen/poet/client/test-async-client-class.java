@@ -833,8 +833,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     asyncResponseTransformer);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
-                    runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> asyncResponseTransformer.exceptionOccurred(e));
+                    asyncResponseTransformer.exceptionOccurred(e);
                 }
             });
             return executeFuture;
@@ -891,8 +890,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
             executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
-                    runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                                   () -> asyncResponseTransformer.exceptionOccurred(e));
+                    asyncResponseTransformer.exceptionOccurred(e);
                 }
             });
             return executeFuture;

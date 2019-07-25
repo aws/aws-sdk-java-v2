@@ -99,9 +99,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void onStream(SdkPublisher<ByteBuffer> publisher);
 
     /**
-     * Called when an error is encountered while making the request or receiving the response.
-     * Implementations should free up any resources in this method. This method may be called
-     * multiple times during the lifecycle of a request if automatic retries are enabled.
+     * Called when a error is encountered while making the request or receiving the response.
      *
      * @param error Error that occurred.
      */

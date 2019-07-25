@@ -541,8 +541,7 @@
         "VersionIdsToStages":{
           "shape":"SecretVersionsToStagesMapType",
           "documentation":"<p>A list of all of the currently assigned <code>VersionStage</code> staging labels and the <code>VersionId</code> that each is attached to. Staging labels are used to keep track of the different versions during the rotation process.</p> <note> <p>A version that does not have any staging labels attached is considered deprecated and subject to deletion. Such versions are not included in this list.</p> </note>"
-        },
-        "OwningService":{"shape":"OwningServiceType"}
+        }
       }
     },
     "DescriptionType":{
@@ -846,12 +845,7 @@
     },
     "NonEmptyResourcePolicyType":{
       "type":"string",
-      "max":20480,
-      "min":1
-    },
-    "OwningServiceType":{
-      "type":"string",
-      "max":128,
+      "max":4096,
       "min":1
     },
     "PasswordLengthType":{
@@ -948,8 +942,7 @@
     "RandomPasswordType":{
       "type":"string",
       "max":4096,
-      "min":0,
-      "sensitive":true
+      "min":0
     },
     "RecoveryWindowInDaysType":{"type":"long"},
     "RequireEachIncludedTypeType":{"type":"boolean"},
@@ -1057,7 +1050,7 @@
     },
     "SecretBinaryType":{
       "type":"blob",
-      "max":10240,
+      "max":7168,
       "min":0,
       "sensitive":true
     },
@@ -1124,8 +1117,7 @@
         "SecretVersionsToStages":{
           "shape":"SecretVersionsToStagesMapType",
           "documentation":"<p>A list of all of the currently assigned <code>SecretVersionStage</code> staging labels and the <code>SecretVersionId</code> that each is attached to. Staging labels are used to keep track of the different versions during the rotation process.</p> <note> <p>A version that does not have any <code>SecretVersionStage</code> is considered deprecated and subject to deletion. Such versions are not included in this list.</p> </note>"
-        },
-        "OwningService":{"shape":"OwningServiceType"}
+        }
       },
       "documentation":"<p>A structure that contains the details about a secret. It does not include the encrypted <code>SecretString</code> and <code>SecretBinary</code> values. To get those values, use the <a>GetSecretValue</a> operation.</p>"
     },
@@ -1140,7 +1132,7 @@
     },
     "SecretStringType":{
       "type":"string",
-      "max":10240,
+      "max":7168,
       "min":0,
       "sensitive":true
     },

@@ -327,7 +327,6 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(serializableBuilderClass());
                 methodSpecs.add(modelMethodOverrides.hashCodeMethod(shapeModel));
                 methodSpecs.add(modelMethodOverrides.equalsMethod(shapeModel));
-                methodSpecs.add(modelMethodOverrides.equalsBySdkFieldsMethod(shapeModel));
                 methodSpecs.add(modelMethodOverrides.toStringMethod(shapeModel));
                 methodSpecs.add(getValueForField());
                 break;

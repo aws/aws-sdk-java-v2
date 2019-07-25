@@ -36,3 +36,4 @@ public interface EventStream extends SdkPojo {
      */
     void accept(EventStreamOperationResponseHandler.Visitor visitor);
 }
+

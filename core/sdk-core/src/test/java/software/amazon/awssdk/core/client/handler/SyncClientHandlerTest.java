@@ -162,7 +162,7 @@ public class SyncClientHandlerTest {
     }
 
     @Test
-    public void responseTransformerThrowsOtherException_shouldWrapWithNonRetryableException() throws Exception {
+    public void responseTransformerThrowsOtherException_shouldWrappWithNonRetryableException() throws Exception {
         mockSuccessfulApiCall();
         when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class))).thenThrow(
             new RuntimeException());

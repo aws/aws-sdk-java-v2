@@ -17,24 +17,10 @@ Any other error type, such as SdkClientException will fail the test.
 
 ## How to run
 
-- Run from your IDE
-
-- Run from maven command line
+You can run the tests directly from your IDE or from command line:
 
 ```
 mvn clean install -P stability-tests -pl :stability-tests
-```
-
-- Build JAR and use the executable JAR
-
-First add tests to TestRunner Class, then run the following command.
-
-```
-mvn clean install -pl :stability-tests --am -P quick
-mvn clean install -pl :bom-inernal
-cd test/stability-tests
-mvn package -P test-jar
-java -jar target/stability-tests-uber.jar
 ```
 
 ## Adding New Tests

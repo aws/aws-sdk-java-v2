@@ -37,9 +37,9 @@ public class ModelMethodOverrides {
         this.poetExtensions = poetExtensions;
     }
 
-    public MethodSpec equalsBySdkFieldsMethod(ShapeModel shapeModel) {
+    public MethodSpec equalsMethod(ShapeModel shapeModel) {
         ClassName className = poetExtensions.getModelClass(shapeModel.getShapeName());
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equalsBySdkFields")
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equals")
                                                      .returns(boolean.class)
                                                      .addAnnotation(Override.class)
                                                      .addModifiers(Modifier.PUBLIC)
@@ -74,25 +74,6 @@ public class ModelMethodOverrides {
             memberEqualsStmt.add(";");
         }
 
-        return methodBuilder.addCode(memberEqualsStmt.build()).build();
-    }
-
-    public MethodSpec equalsMethod(ShapeModel shapeModel) {
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equals")
-                                                     .returns(boolean.class)
-                                                     .addAnnotation(Override.class)
-                                                     .addModifiers(Modifier.PUBLIC)
-                                                     .addParameter(Object.class, "obj");
-
-
-        CodeBlock.Builder memberEqualsStmt = CodeBlock.builder();
-        memberEqualsStmt.add("return ");
-
-        if (poetExtensions.isRequest(shapeModel) || poetExtensions.isResponse(shapeModel)) {
-            memberEqualsStmt.add("super.equals(obj) && ");
-        }
-
-        memberEqualsStmt.add("equalsBySdkFields(obj);");
         return methodBuilder.addCode(memberEqualsStmt.build()).build();
     }
 
@@ -133,11 +114,6 @@ public class ModelMethodOverrides {
                                                      .addAnnotation(Override.class)
                                                      .addModifiers(Modifier.PUBLIC)
                                                      .addStatement("int hashCode = 1");
-
-
-        if (poetExtensions.isRequest(shapeModel) || poetExtensions.isResponse(shapeModel)) {
-            methodBuilder.addStatement("hashCode = 31 * hashCode + super.hashCode()");
-        }
 
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> methodBuilder.addStatement(

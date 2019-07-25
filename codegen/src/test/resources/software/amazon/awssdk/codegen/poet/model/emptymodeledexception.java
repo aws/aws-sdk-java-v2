@@ -14,7 +14,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class EmptyModeledException extends JsonProtocolTestsException implements
-        ToCopyableBuilder<EmptyModeledException.Builder, EmptyModeledException> {
+                                                                            ToCopyableBuilder<EmptyModeledException.Builder, EmptyModeledException> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private static final long serialVersionUID = 1L;
@@ -107,3 +107,4 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
         }
     }
 }
+

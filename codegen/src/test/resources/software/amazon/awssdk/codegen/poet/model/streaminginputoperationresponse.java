@@ -13,7 +13,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public final class StreamingInputOperationResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
+                                                                                     ToCopyableBuilder<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private StreamingInputOperationResponse(BuilderImpl builder) {
@@ -36,17 +36,11 @@ public final class StreamingInputOperationResponse extends JsonProtocolTestsResp
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + super.hashCode();
         return hashCode;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj) && equalsBySdkFields(obj);
-    }
-
-    @Override
-    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -78,7 +72,7 @@ public final class StreamingInputOperationResponse extends JsonProtocolTestsResp
     }
 
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
-            CopyableBuilder<Builder, StreamingInputOperationResponse> {
+                                     CopyableBuilder<Builder, StreamingInputOperationResponse> {
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
@@ -100,3 +94,4 @@ public final class StreamingInputOperationResponse extends JsonProtocolTestsResp
         }
     }
 }
+

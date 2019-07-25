@@ -23,8 +23,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventTwo.Builder, EventTwo>, EventStream {
     private static final SdkField<String> BAR_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
+        .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BAR_FIELD));
 
@@ -38,7 +38,7 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
 
     /**
      * Returns the value of the Bar property for this object.
-     * 
+     *
      * @return The value of the Bar property for this object.
      */
     public String bar() {
@@ -67,11 +67,6 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
 
     @Override
     public boolean equals(Object obj) {
-        return equalsBySdkFields(obj);
-    }
-
-    @Override
-    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -96,10 +91,10 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "Bar":
-            return Optional.ofNullable(clazz.cast(bar()));
-        default:
-            return Optional.empty();
+            case "Bar":
+                return Optional.ofNullable(clazz.cast(bar()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -173,3 +168,4 @@ public final class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<
         }
     }
 }
+

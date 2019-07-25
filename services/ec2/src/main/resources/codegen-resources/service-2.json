@@ -109,7 +109,6 @@
         "requestUri":"/"
       },
       "input":{"shape":"AssignPrivateIpAddressesRequest"},
-      "output":{"shape":"AssignPrivateIpAddressesResult"},
       "documentation":"<p>Assigns one or more secondary private IP addresses to the specified network interface.</p> <p>You can specify one or more specific secondary IP addresses, or you can specify the number of secondary IP addresses to be automatically assigned within the subnet's CIDR block range. The number of secondary IP addresses that you can assign to an instance varies by instance type. For information about instance types, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html\">Instance Types</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>. For more information about Elastic IP addresses, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>When you move a secondary private IP address to another network interface, any Elastic IP address that is associated with the IP address is also moved.</p> <p>Remapping an IP address is an asynchronous operation. When you move an IP address from one network interface to another, check <code>network/interfaces/macs/mac/local-ipv4s</code> in the instance metadata to confirm that the remapping is complete.</p>"
     },
     "AssociateAddress":{
@@ -464,7 +463,7 @@
       },
       "input":{"shape":"CreateDhcpOptionsRequest"},
       "output":{"shape":"CreateDhcpOptionsResult"},
-      "documentation":"<p>Creates a set of DHCP options for your VPC. After creating the set, you must associate it with the VPC, causing all existing and new instances that you launch in the VPC to use this set of DHCP options. The following are the individual DHCP options you can specify. For more information about the options, see <a href=\"http://www.ietf.org/rfc/rfc2132.txt\">RFC 2132</a>.</p> <ul> <li> <p> <code>domain-name-servers</code> - The IP addresses of up to four domain name servers, or AmazonProvidedDNS. The default DHCP option set specifies AmazonProvidedDNS. If specifying more than one domain name server, specify the IP addresses in a single parameter, separated by commas. To have your instance receive a custom DNS hostname as specified in <code>domain-name</code>, you must set <code>domain-name-servers</code> to a custom DNS server.</p> </li> <li> <p> <code>domain-name</code> - If you're using AmazonProvidedDNS in <code>us-east-1</code>, specify <code>ec2.internal</code>. If you're using AmazonProvidedDNS in another Region, specify <code>region.compute.internal</code> (for example, <code>ap-northeast-1.compute.internal</code>). Otherwise, specify a domain name (for example, <code>MyCompany.com</code>). This value is used to complete unqualified DNS hostnames. <b>Important</b>: Some Linux operating systems accept multiple domain names separated by spaces. However, Windows and other Linux operating systems treat the value as a single domain, which results in unexpected behavior. If your DHCP options set is associated with a VPC that has instances with multiple operating systems, specify only one domain name.</p> </li> <li> <p> <code>ntp-servers</code> - The IP addresses of up to four Network Time Protocol (NTP) servers.</p> </li> <li> <p> <code>netbios-name-servers</code> - The IP addresses of up to four NetBIOS name servers.</p> </li> <li> <p> <code>netbios-node-type</code> - The NetBIOS node type (1, 2, 4, or 8). We recommend that you specify 2 (broadcast and multicast are not currently supported). For more information about these node types, see <a href=\"http://www.ietf.org/rfc/rfc2132.txt\">RFC 2132</a>.</p> </li> </ul> <p>Your VPC automatically starts out with a set of DHCP options that includes only a DNS server that we provide (AmazonProvidedDNS). If you create a set of options, and if your VPC has an internet gateway, make sure to set the <code>domain-name-servers</code> option either to <code>AmazonProvidedDNS</code> or to a domain name server of your choice. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html\">DHCP Options Sets</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+      "documentation":"<p>Creates a set of DHCP options for your VPC. After creating the set, you must associate it with the VPC, causing all existing and new instances that you launch in the VPC to use this set of DHCP options. The following are the individual DHCP options you can specify. For more information about the options, see <a href=\"http://www.ietf.org/rfc/rfc2132.txt\">RFC 2132</a>.</p> <ul> <li> <p> <code>domain-name-servers</code> - The IP addresses of up to four domain name servers, or AmazonProvidedDNS. The default DHCP option set specifies AmazonProvidedDNS. If specifying more than one domain name server, specify the IP addresses in a single parameter, separated by commas. ITo have your instance to receive a custom DNS hostname as specified in <code>domain-name</code>, you must set <code>domain-name-servers</code> to a custom DNS server.</p> </li> <li> <p> <code>domain-name</code> - If you're using AmazonProvidedDNS in <code>us-east-1</code>, specify <code>ec2.internal</code>. If you're using AmazonProvidedDNS in another Region, specify <code>region.compute.internal</code> (for example, <code>ap-northeast-1.compute.internal</code>). Otherwise, specify a domain name (for example, <code>MyCompany.com</code>). This value is used to complete unqualified DNS hostnames. <b>Important</b>: Some Linux operating systems accept multiple domain names separated by spaces. However, Windows and other Linux operating systems treat the value as a single domain, which results in unexpected behavior. If your DHCP options set is associated with a VPC that has instances with multiple operating systems, specify only one domain name.</p> </li> <li> <p> <code>ntp-servers</code> - The IP addresses of up to four Network Time Protocol (NTP) servers.</p> </li> <li> <p> <code>netbios-name-servers</code> - The IP addresses of up to four NetBIOS name servers.</p> </li> <li> <p> <code>netbios-node-type</code> - The NetBIOS node type (1, 2, 4, or 8). We recommend that you specify 2 (broadcast and multicast are not currently supported). For more information about these node types, see <a href=\"http://www.ietf.org/rfc/rfc2132.txt\">RFC 2132</a>.</p> </li> </ul> <p>Your VPC automatically starts out with a set of DHCP options that includes only a DNS server that we provide (AmazonProvidedDNS). If you create a set of options, and if your VPC has an internet gateway, make sure to set the <code>domain-name-servers</code> option either to <code>AmazonProvidedDNS</code> or to a domain name server of your choice. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html\">DHCP Options Sets</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
     },
     "CreateEgressOnlyInternetGateway":{
       "name":"CreateEgressOnlyInternetGateway",
@@ -1689,7 +1688,7 @@
       },
       "input":{"shape":"DescribeInstancesRequest"},
       "output":{"shape":"DescribeInstancesResult"},
-      "documentation":"<p>Describes the specified instances or all of AWS account's instances.</p> <p>If you specify one or more instance IDs, Amazon EC2 returns information for those instances. If you do not specify instance IDs, Amazon EC2 returns information for all relevant instances. If you specify an instance ID that is not valid, an error is returned. If you specify an instance that you do not own, it is not included in the returned results.</p> <p>Recently terminated instances might appear in the returned results. This interval is usually less than one hour.</p> <p>If you describe instances in the rare case where an Availability Zone is experiencing a service disruption and you specify instance IDs that are in the affected zone, or do not specify any instance IDs at all, the call fails. If you describe instances and specify only instance IDs that are in an unaffected zone, the call works normally.</p>"
+      "documentation":"<p>Describes the specified instances or all of your instances.</p> <p>If you specify one or more instance IDs, Amazon EC2 returns information for those instances. If you do not specify instance IDs, Amazon EC2 returns information for all relevant instances. If you specify an instance ID that is not valid, an error is returned. If you specify an instance that you do not own, it is not included in the returned results.</p> <p>Recently terminated instances might appear in the returned results. This interval is usually less than one hour.</p> <p>If you describe instances in the rare case where an Availability Zone is experiencing a service disruption and you specify instance IDs that are in the affected zone, or do not specify any instance IDs at all, the call fails. If you describe instances and specify only instance IDs that are in an unaffected zone, the call works normally.</p>"
     },
     "DescribeInternetGateways":{
       "name":"DescribeInternetGateways",
@@ -1839,7 +1838,7 @@
       },
       "input":{"shape":"DescribeRegionsRequest"},
       "output":{"shape":"DescribeRegionsResult"},
-      "documentation":"<p>Describes the Regions that are enabled for your account, or all Regions.</p> <p>For a list of the Regions supported by Amazon EC2, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region\"> Regions and Endpoints</a>.</p> <p>For information about enabling and disabling Regions for your account, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande-manage.html\">Managing AWS Regions</a> in the <i>AWS General Reference</i>.</p>"
+      "documentation":"<p>Describes the Regions that are currently available to you. The API returns a list of all the Regions, including Regions that are disabled for your account. For information about enabling Regions for your account, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/manage-account-payment.html#manage-account-payment-enable-disable-regions\">Enabling and Disabling Regions</a> in the <i>AWS Billing and Cost Management User Guide</i>.</p> <p>For a list of the Regions supported by Amazon EC2, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region\"> Regions and Endpoints</a>.</p>"
     },
     "DescribeReservedInstances":{
       "name":"DescribeReservedInstances",
@@ -4036,39 +4035,6 @@
       },
       "documentation":"<p>Contains the parameters for AssignPrivateIpAddresses.</p>"
     },
-    "AssignPrivateIpAddressesResult":{
-      "type":"structure",
-      "members":{
-        "NetworkInterfaceId":{
-          "shape":"String",
-          "documentation":"<p>The ID of the network interface.</p>",
-          "locationName":"networkInterfaceId"
-        },
-        "AssignedPrivateIpAddresses":{
-          "shape":"AssignedPrivateIpAddressList",
-          "documentation":"<p>The private IP addresses assigned to the network interface.</p>",
-          "locationName":"assignedPrivateIpAddressesSet"
-        }
-      }
-    },
-    "AssignedPrivateIpAddress":{
-      "type":"structure",
-      "members":{
-        "PrivateIpAddress":{
-          "shape":"String",
-          "documentation":"<p>The private IP address assigned to the network interface.</p>",
-          "locationName":"privateIpAddress"
-        }
-      },
-      "documentation":"<p>Describes the private IP addresses assigned to a network interface.</p>"
-    },
-    "AssignedPrivateIpAddressList":{
-      "type":"list",
-      "member":{
-        "shape":"AssignedPrivateIpAddress",
-        "locationName":"item"
-      }
-    },
     "AssociateAddressRequest":{
       "type":"structure",
       "members":{
@@ -6057,7 +6023,7 @@
         },
         "SplitTunnel":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether split-tunnel is enabled in the AWS Client VPN endpoint endpoint.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel AWS Client VPN Endpoint</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>",
+          "documentation":"<p>Indicates whether VPN split tunneling is supported.</p>",
           "locationName":"splitTunnel"
         },
         "VpnProtocol":{
@@ -6516,7 +6482,7 @@
         },
         "Encrypted":{
           "shape":"Boolean",
-          "documentation":"<p>To encrypt a copy of an unencrypted snapshot if encryption by default is not enabled, enable encryption using this parameter. Otherwise, omit this parameter. Encrypted snapshots are encrypted, even if you omit this parameter and encryption by default is not enabled. You cannot set this parameter to false. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS Encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>",
+          "documentation":"<p>Specifies whether the destination snapshot should be encrypted. You can encrypt a copy of an unencrypted snapshot, but you cannot use it to create an unencrypted copy of an encrypted snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS Encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>",
           "locationName":"encrypted"
         },
         "KmsKeyId":{
@@ -6700,10 +6666,6 @@
         "Description":{
           "shape":"String",
           "documentation":"<p>A brief description of the Client VPN endpoint.</p>"
-        },
-        "SplitTunnel":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether split-tunnel is enabled on the AWS Client VPN endpoint endpoint.</p> <p>By default, split-tunnel on a VPN endpoint is disabled.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel AWS Client VPN Endpoint</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -7020,7 +6982,7 @@
         },
         "OnDemandOptions":{
           "shape":"OnDemandOptionsRequest",
-          "documentation":"<p>Describes the configuration of On-Demand Instances in an EC2 Fleet.</p>"
+          "documentation":"<p>The allocation strategy of On-Demand Instances in an EC2 Fleet.</p>"
         },
         "ExcessCapacityTerminationPolicy":{
           "shape":"FleetExcessCapacityTerminationPolicy",
@@ -7032,7 +6994,7 @@
         },
         "TargetCapacitySpecification":{
           "shape":"TargetCapacitySpecificationRequest",
-          "documentation":"<p>The number of units to request.</p>"
+          "documentation":"<p>The <code>TotalTargetCapacity</code>, <code>OnDemandTargetCapacity</code>, <code>SpotTargetCapacity</code>, and <code>DefaultCapacityType</code> structure.</p>"
         },
         "TerminateInstancesWithExpiration":{
           "shape":"Boolean",
@@ -7339,11 +7301,6 @@
         "LaunchTemplateData":{
           "shape":"RequestLaunchTemplateData",
           "documentation":"<p>The information for the launch template.</p>"
-        },
-        "TagSpecifications":{
-          "shape":"TagSpecificationList",
-          "documentation":"<p>The tags to apply to the launch template during creation.</p>",
-          "locationName":"TagSpecification"
         }
       }
     },
@@ -7612,7 +7569,7 @@
         },
         "InterfaceType":{
           "shape":"NetworkInterfaceCreationType",
-          "documentation":"<p>Indicates the type of network interface. To create an Elastic Fabric Adapter (EFA), specify <code>efa</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html\"> Elastic Fabric Adapter</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+          "documentation":"<p>Indicates the type of network interface. To create an Elastic Fabric Adapter (EFA), specify <code>efa</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html\"> Elastic Fabric Adapter</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>If you are not creating an EFA, specify <code>interface</code> or omit this parameter.</p>"
         },
         "SubnetId":{
           "shape":"String",
@@ -7881,7 +7838,7 @@
         },
         "CopyTagsFromSource":{
           "shape":"CopyTagsFromSource",
-          "documentation":"<p>Copies the tags from the specified volume to corresponding snapshot.</p>"
+          "documentation":"<p>Copies the tags from the specified instance to all snapshots.</p>"
         }
       }
     },
@@ -12061,7 +12018,7 @@
       "members":{
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>addresses.private-ip-address</code> - The private IPv4 addresses associated with the network interface.</p> </li> <li> <p> <code>addresses.primary</code> - Whether the private IPv4 address is the primary IP address associated with the network interface. </p> </li> <li> <p> <code>addresses.association.public-ip</code> - The association ID returned when the network interface was associated with the Elastic IP address (IPv4).</p> </li> <li> <p> <code>addresses.association.owner-id</code> - The owner ID of the addresses associated with the network interface.</p> </li> <li> <p> <code>association.association-id</code> - The association ID returned when the network interface was associated with an IPv4 address.</p> </li> <li> <p> <code>association.allocation-id</code> - The allocation ID returned when you allocated the Elastic IP address (IPv4) for your network interface.</p> </li> <li> <p> <code>association.ip-owner-id</code> - The owner of the Elastic IP address (IPv4) associated with the network interface.</p> </li> <li> <p> <code>association.public-ip</code> - The address of the Elastic IP address (IPv4) bound to the network interface.</p> </li> <li> <p> <code>association.public-dns-name</code> - The public DNS name for the network interface (IPv4).</p> </li> <li> <p> <code>attachment.attachment-id</code> - The ID of the interface attachment.</p> </li> <li> <p> <code>attachment.attach-time</code> - The time that the network interface was attached to an instance.</p> </li> <li> <p> <code>attachment.delete-on-termination</code> - Indicates whether the attachment is deleted when an instance is terminated.</p> </li> <li> <p> <code>attachment.device-index</code> - The device index to which the network interface is attached.</p> </li> <li> <p> <code>attachment.instance-id</code> - The ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>attachment.instance-owner-id</code> - The owner ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>attachment.nat-gateway-id</code> - The ID of the NAT gateway to which the network interface is attached.</p> </li> <li> <p> <code>attachment.status</code> - The status of the attachment (<code>attaching</code> | <code>attached</code> | <code>detaching</code> | <code>detached</code>).</p> </li> <li> <p> <code>availability-zone</code> - The Availability Zone of the network interface.</p> </li> <li> <p> <code>description</code> - The description of the network interface.</p> </li> <li> <p> <code>group-id</code> - The ID of a security group associated with the network interface.</p> </li> <li> <p> <code>group-name</code> - The name of a security group associated with the network interface.</p> </li> <li> <p> <code>ipv6-addresses.ipv6-address</code> - An IPv6 address associated with the network interface.</p> </li> <li> <p> <code>mac-address</code> - The MAC address of the network interface.</p> </li> <li> <p> <code>network-interface-id</code> - The ID of the network interface.</p> </li> <li> <p> <code>owner-id</code> - The AWS account ID of the network interface owner.</p> </li> <li> <p> <code>private-ip-address</code> - The private IPv4 address or addresses of the network interface.</p> </li> <li> <p> <code>private-dns-name</code> - The private DNS name of the network interface (IPv4).</p> </li> <li> <p> <code>requester-id</code> - The ID of the entity that launched the instance on your behalf (for example, AWS Management Console, Auto Scaling, and so on).</p> </li> <li> <p> <code>requester-managed</code> - Indicates whether the network interface is being managed by an AWS service (for example, AWS Management Console, Auto Scaling, and so on).</p> </li> <li> <p> <code>source-dest-check</code> - Indicates whether the network interface performs source/destination checking. A value of <code>true</code> means checking is enabled, and <code>false</code> means checking is disabled. The value must be <code>false</code> for the network interface to perform network address translation (NAT) in your VPC. </p> </li> <li> <p> <code>status</code> - The status of the network interface. If the network interface is not attached to an instance, the status is <code>available</code>; if a network interface is attached to an instance the status is <code>in-use</code>.</p> </li> <li> <p> <code>subnet-id</code> - The ID of the subnet for the network interface.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC for the network interface.</p> </li> </ul>",
+          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>addresses.private-ip-address</code> - The private IPv4 addresses associated with the network interface.</p> </li> <li> <p> <code>addresses.primary</code> - Whether the private IPv4 address is the primary IP address associated with the network interface. </p> </li> <li> <p> <code>addresses.association.public-ip</code> - The association ID returned when the network interface was associated with the Elastic IP address (IPv4).</p> </li> <li> <p> <code>addresses.association.owner-id</code> - The owner ID of the addresses associated with the network interface.</p> </li> <li> <p> <code>association.association-id</code> - The association ID returned when the network interface was associated with an IPv4 address.</p> </li> <li> <p> <code>association.allocation-id</code> - The allocation ID returned when you allocated the Elastic IP address (IPv4) for your network interface.</p> </li> <li> <p> <code>association.ip-owner-id</code> - The owner of the Elastic IP address (IPv4) associated with the network interface.</p> </li> <li> <p> <code>association.public-ip</code> - The address of the Elastic IP address (IPv4) bound to the network interface.</p> </li> <li> <p> <code>association.public-dns-name</code> - The public DNS name for the network interface (IPv4).</p> </li> <li> <p> <code>attachment.attachment-id</code> - The ID of the interface attachment.</p> </li> <li> <p> <code>attachment.attach.time</code> - The time that the network interface was attached to an instance.</p> </li> <li> <p> <code>attachment.delete-on-termination</code> - Indicates whether the attachment is deleted when an instance is terminated.</p> </li> <li> <p> <code>attachment.device-index</code> - The device index to which the network interface is attached.</p> </li> <li> <p> <code>attachment.instance-id</code> - The ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>attachment.instance-owner-id</code> - The owner ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>attachment.nat-gateway-id</code> - The ID of the NAT gateway to which the network interface is attached.</p> </li> <li> <p> <code>attachment.status</code> - The status of the attachment (<code>attaching</code> | <code>attached</code> | <code>detaching</code> | <code>detached</code>).</p> </li> <li> <p> <code>availability-zone</code> - The Availability Zone of the network interface.</p> </li> <li> <p> <code>description</code> - The description of the network interface.</p> </li> <li> <p> <code>group-id</code> - The ID of a security group associated with the network interface.</p> </li> <li> <p> <code>group-name</code> - The name of a security group associated with the network interface.</p> </li> <li> <p> <code>ipv6-addresses.ipv6-address</code> - An IPv6 address associated with the network interface.</p> </li> <li> <p> <code>mac-address</code> - The MAC address of the network interface.</p> </li> <li> <p> <code>network-interface-id</code> - The ID of the network interface.</p> </li> <li> <p> <code>owner-id</code> - The AWS account ID of the network interface owner.</p> </li> <li> <p> <code>private-ip-address</code> - The private IPv4 address or addresses of the network interface.</p> </li> <li> <p> <code>private-dns-name</code> - The private DNS name of the network interface (IPv4).</p> </li> <li> <p> <code>requester-id</code> - The ID of the entity that launched the instance on your behalf (for example, AWS Management Console, Auto Scaling, and so on).</p> </li> <li> <p> <code>requester-managed</code> - Indicates whether the network interface is being managed by an AWS service (for example, AWS Management Console, Auto Scaling, and so on).</p> </li> <li> <p> <code>source-dest-check</code> - Indicates whether the network interface performs source/destination checking. A value of <code>true</code> means checking is enabled, and <code>false</code> means checking is disabled. The value must be <code>false</code> for the network interface to perform network address translation (NAT) in your VPC. </p> </li> <li> <p> <code>status</code> - The status of the network interface. If the network interface is not attached to an instance, the status is <code>available</code>; if a network interface is attached to an instance the status is <code>in-use</code>.</p> </li> <li> <p> <code>subnet-id</code> - The ID of the subnet for the network interface.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC for the network interface.</p> </li> </ul>",
           "locationName":"filter"
         },
         "DryRun":{
@@ -12258,17 +12215,13 @@
         },
         "RegionNames":{
           "shape":"RegionNameStringList",
-          "documentation":"<p>The names of the Regions. You can specify any Regions, whether they are enabled and disabled for your account.</p>",
+          "documentation":"<p>The names of the Regions.</p>",
           "locationName":"RegionName"
         },
         "DryRun":{
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
-        },
-        "AllRegions":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether to display all Regions, including Regions that are disabled for your account.</p>"
         }
       }
     },
@@ -17236,7 +17189,7 @@
         },
         "Platform":{
           "shape":"PlatformValues",
-          "documentation":"<p>This value is set to <code>windows</code> for Windows AMIs; otherwise, it is blank.</p>",
+          "documentation":"<p>This value is set for Windows AMIs; otherwise, it is blank.</p>",
           "locationName":"platform"
         },
         "ProductCodes":{
@@ -20858,10 +20811,6 @@
           "shape":"String",
           "documentation":"<p>A brief description of the Client VPN endpoint.</p>"
         },
-        "SplitTunnel":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether the VPN is split-tunnel.</p> <p>For information about split-tunnel VPN endpoints, see <a href=\"https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/split-tunnel-vpn.html\">Split-Tunnel AWS Client VPN Endpoint</a> in the <i>AWS Client VPN Administrator Guide</i>.</p>"
-        },
         "DryRun":{
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
@@ -21518,10 +21467,6 @@
           "shape":"Integer",
           "documentation":"<p>The size of the fleet.</p>",
           "locationName":"targetCapacity"
-        },
-        "OnDemandTargetCapacity":{
-          "shape":"Integer",
-          "documentation":"<p>The number of On-Demand Instances in the fleet.</p>"
         }
       },
       "documentation":"<p>Contains the parameters for ModifySpotFleetRequest.</p>"
@@ -22892,14 +22837,9 @@
           "shape":"Integer",
           "documentation":"<p>The minimum target capacity for On-Demand Instances in the fleet. If the minimum target capacity is not reached, the fleet launches no instances.</p>",
           "locationName":"minTargetCapacity"
-        },
-        "MaxTotalPrice":{
-          "shape":"String",
-          "documentation":"<p>The maximum amount per hour for On-Demand Instances that you're willing to pay.</p>",
-          "locationName":"maxTotalPrice"
         }
       },
-      "documentation":"<p>Describes the configuration of On-Demand Instances in an EC2 Fleet.</p>"
+      "documentation":"<p>The allocation strategy of On-Demand Instances in an EC2 Fleet.</p>"
     },
     "OnDemandOptionsRequest":{
       "type":"structure",
@@ -22919,13 +22859,9 @@
         "MinTargetCapacity":{
           "shape":"Integer",
           "documentation":"<p>The minimum target capacity for On-Demand Instances in the fleet. If the minimum target capacity is not reached, the fleet launches no instances.</p>"
-        },
-        "MaxTotalPrice":{
-          "shape":"String",
-          "documentation":"<p>The maximum amount per hour for On-Demand Instances that you're willing to pay.</p>"
         }
       },
-      "documentation":"<p>Describes the configuration of On-Demand Instances in an EC2 Fleet.</p>"
+      "documentation":"<p>The allocation strategy of On-Demand Instances in an EC2 Fleet.</p>"
     },
     "OperationType":{
       "type":"string",
@@ -23845,11 +23781,6 @@
           "shape":"String",
           "documentation":"<p>The name of the Region.</p>",
           "locationName":"regionName"
-        },
-        "OptInStatus":{
-          "shape":"String",
-          "documentation":"<p>The Region opt-in status. The possible values are <code>opt-in-not-required</code>, <code>opted-in</code>, and <code>not-opted-in</code>.</p>",
-          "locationName":"optInStatus"
         }
       },
       "documentation":"<p>Describes a Region.</p>"
@@ -27619,16 +27550,6 @@
           "documentation":"<p>The number of On-Demand units to request. You can choose to set the target capacity in terms of instances or a performance characteristic that is important to your application workload, such as vCPUs, memory, or I/O. If the request type is <code>maintain</code>, you can specify a target capacity of 0 and add capacity later.</p>",
           "locationName":"onDemandTargetCapacity"
         },
-        "OnDemandMaxTotalPrice":{
-          "shape":"String",
-          "documentation":"<p>The maximum amount per hour for On-Demand Instances that you're willing to pay. You can use the <code>onDemandMaxTotalPrice</code> parameter, the <code>spotMaxTotalPrice</code> parameter, or both parameters to ensure that your fleet cost does not exceed your budget. If you set a maximum price per hour for the On-Demand Instances and Spot Instances in your request, Spot Fleet will launch instances until it reaches the maximum amount you're willing to pay. When the maximum amount you're willing to pay is reached, the fleet stops launching instances even if it hasn’t met the target capacity.</p>",
-          "locationName":"onDemandMaxTotalPrice"
-        },
-        "SpotMaxTotalPrice":{
-          "shape":"String",
-          "documentation":"<p>The maximum amount per hour for Spot Instances that you're willing to pay. You can use the <code>spotdMaxTotalPrice</code> parameter, the <code>onDemandMaxTotalPrice</code> parameter, or both parameters to ensure that your fleet cost does not exceed your budget. If you set a maximum price per hour for the On-Demand Instances and Spot Instances in your request, Spot Fleet will launch instances until it reaches the maximum amount you're willing to pay. When the maximum amount you're willing to pay is reached, the fleet stops launching instances even if it hasn’t met the target capacity.</p>",
-          "locationName":"spotMaxTotalPrice"
-        },
         "TerminateInstancesWithExpiration":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether running Spot Instances are terminated when the Spot Fleet request expires.</p>",
@@ -27937,11 +27858,6 @@
           "shape":"Integer",
           "documentation":"<p>The minimum target capacity for Spot Instances in the fleet. If the minimum target capacity is not reached, the fleet launches no instances.</p>",
           "locationName":"minTargetCapacity"
-        },
-        "MaxTotalPrice":{
-          "shape":"String",
-          "documentation":"<p>The maximum amount per hour for Spot Instances that you're willing to pay.</p>",
-          "locationName":"maxTotalPrice"
         }
       },
       "documentation":"<p>Describes the configuration of Spot Instances in an EC2 Fleet.</p>"
@@ -27972,10 +27888,6 @@
         "MinTargetCapacity":{
           "shape":"Integer",
           "documentation":"<p>The minimum target capacity for Spot Instances in the fleet. If the minimum target capacity is not reached, the fleet launches no instances.</p>"
-        },
-        "MaxTotalPrice":{
-          "shape":"String",
-          "documentation":"<p>The maximum amount per hour for Spot Instances that you're willing to pay.</p>"
         }
       },
       "documentation":"<p>Describes the configuration of Spot Instances in an EC2 Fleet request.</p>"
@@ -28507,7 +28419,7 @@
       "members":{
         "ResourceType":{
           "shape":"ResourceType",
-          "documentation":"<p>The type of resource to tag. Currently, the resource types that support tagging on creation are: <code>capacity-reservation</code> | <code>client-vpn-endpoint</code> | <code>dedicated-host</code> | <code>fleet</code> | <code>instance</code> | <code>launch-template</code> | <code>snapshot</code> | <code>transit-gateway</code> | <code>transit-gateway-attachment</code> | <code>transit-gateway-route-table</code> | <code>volume</code>.</p> <p>To tag a resource after it has been created, see <a>CreateTags</a>.</p>",
+          "documentation":"<p>The type of resource to tag. Currently, the resource types that support tagging on creation are <code>fleet</code>, <code>dedicated-host</code>, <code>instance</code>, <code>snapshot</code>, and <code>volume</code>. To tag a resource after it has been created, see <a>CreateTags</a>.</p>",
           "locationName":"resourceType"
         },
         "Tags":{
@@ -28535,12 +28447,12 @@
         },
         "OnDemandTargetCapacity":{
           "shape":"Integer",
-          "documentation":"<p>The number of On-Demand units to request. If you specify a target capacity for Spot units, you cannot specify a target capacity for On-Demand units.</p>",
+          "documentation":"<p>The number of On-Demand units to request.</p>",
           "locationName":"onDemandTargetCapacity"
         },
         "SpotTargetCapacity":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of Spot units to launch. If you specify a target capacity for On-Demand units, you cannot specify a target capacity for Spot units.</p>",
+          "documentation":"<p>The maximum number of Spot units to launch.</p>",
           "locationName":"spotTargetCapacity"
         },
         "DefaultTargetCapacityType":{
@@ -28549,7 +28461,7 @@
           "locationName":"defaultTargetCapacityType"
         }
       },
-      "documentation":"<p>The number of units to request. You can choose to set the target capacity in terms of instances or a performance characteristic that is important to your application workload, such as vCPUs, memory, or I/O. If the request type is <code>maintain</code>, you can specify a target capacity of 0 and add capacity later.</p> <p>You can use the On-Demand Instance <code>MaxTotalPrice</code> parameter, the Spot Instance <code>MaxTotalPrice</code>, or both to ensure your fleet cost does not exceed your budget. If you set a maximum price per hour for the On-Demand Instances and Spot Instances in your request, EC2 Fleet will launch instances until it reaches the maximum amount you're willing to pay. When the maximum amount you're willing to pay is reached, the fleet stops launching instances even if it hasn’t met the target capacity. The <code>MaxTotalPrice</code> parameters are located in and </p>"
+      "documentation":"<p>The number of units to request. You can choose to set the target capacity in terms of instances or a performance characteristic that is important to your application workload, such as vCPUs, memory, or I/O. If the request type is <code>maintain</code>, you can specify a target capacity of 0 and add capacity later.</p>"
     },
     "TargetCapacitySpecificationRequest":{
       "type":"structure",
@@ -28572,7 +28484,7 @@
           "documentation":"<p>The default <code>TotalTargetCapacity</code>, which is either <code>Spot</code> or <code>On-Demand</code>.</p>"
         }
       },
-      "documentation":"<p>The number of units to request. You can choose to set the target capacity as the number of instances. Or you can set the target capacity to a performance characteristic that is important to your application workload, such as vCPUs, memory, or I/O. If the request type is <code>maintain</code>, you can specify a target capacity of 0 and add capacity later.</p> <p>You can use the On-Demand Instance <code>MaxTotalPrice</code> parameter, the Spot Instance <code>MaxTotalPrice</code> parameter, or both parameters to ensure that your fleet cost does not exceed your budget. If you set a maximum price per hour for the On-Demand Instances and Spot Instances in your request, EC2 Fleet will launch instances until it reaches the maximum amount you're willing to pay. When the maximum amount you're willing to pay is reached, the fleet stops launching instances even if it hasn’t met the target capacity. The <code>MaxTotalPrice</code> parameters are located in and .</p>"
+      "documentation":"<p>The number of units to request. You can choose to set the target capacity in terms of instances or a performance characteristic that is important to your application workload, such as vCPUs, memory, or I/O. If the request type is <code>maintain</code>, you can specify a target capacity of 0 and add capacity later.</p>"
     },
     "TargetConfiguration":{
       "type":"structure",

@@ -24,7 +24,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
@@ -36,8 +35,6 @@ import org.testng.annotations.BeforeMethod;
 public class FullResponseContentPublisherTckTest extends PublisherVerification<ByteBuffer> {
     private static final byte[] CONTENT = new byte[16];
 
-    private CompletableFuture<Void> executeFuture;
-
     private ChannelHandlerContext mockCtx = mock(ChannelHandlerContext.class);
 
     @SuppressWarnings("unchecked")
@@ -46,7 +43,6 @@ public class FullResponseContentPublisherTckTest extends PublisherVerification<B
         Channel chan = mock(Channel.class);
         when(mockCtx.channel()).thenReturn(chan);
         when(chan.attr(any(AttributeKey.class))).thenReturn(mock(Attribute.class));
-        executeFuture = new CompletableFuture<>();
     }
 
     public FullResponseContentPublisherTckTest() {
@@ -61,7 +57,7 @@ public class FullResponseContentPublisherTckTest extends PublisherVerification<B
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new ResponseHandler.FullResponseContentPublisher(mockCtx, ByteBuffer.wrap(CONTENT), executeFuture);
+        return new ResponseHandler.FullResponseContentPublisher(mockCtx, ByteBuffer.wrap(CONTENT), null);
     }
 
     @Override

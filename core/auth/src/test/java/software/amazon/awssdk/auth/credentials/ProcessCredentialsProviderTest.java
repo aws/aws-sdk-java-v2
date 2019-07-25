@@ -14,8 +14,6 @@
  */
 package software.amazon.awssdk.auth.credentials;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -77,7 +75,7 @@ public class ProcessCredentialsProviderTest {
 
         Assert.assertEquals("accessKeyId", sessionCredentials.accessKeyId());
         Assert.assertEquals("secretAccessKey", sessionCredentials.secretAccessKey());
-        assertNotNull(sessionCredentials.sessionToken());
+        Assert.assertEquals("sessionToken", sessionCredentials.sessionToken());
     }
 
     @Test

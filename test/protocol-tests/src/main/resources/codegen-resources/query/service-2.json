@@ -58,14 +58,6 @@
         "requestUri":"/"
       },
       "input":{"shape":"StructureWithStreamingMember"}
-    },
-    "StreamingOutputOperation":{
-      "name":"StreamingOutputOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/streamingOutputOperation"
-      },
-      "output":{"shape":"StructureWithStreamingMember"}
     }
   },
   "shapes":{

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -32,8 +33,6 @@ import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTran
 import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTranscriptionResponseHandler;
 import software.amazon.awssdk.services.transcribestreaming.model.TranscriptEvent;
 import software.amazon.awssdk.services.transcribestreaming.model.TranscriptResultStream;
-import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.stability.tests.utils.TestEventStreamingResponseHandler;
 import software.amazon.awssdk.stability.tests.utils.TestTranscribeStreamingSubscription;
@@ -63,7 +62,7 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
         }
     }
 
-    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    @Test
     public void startTranscription() {
         IntFunction<CompletableFuture<?>> futureIntFunction = i ->
             transcribeStreamingClient.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)

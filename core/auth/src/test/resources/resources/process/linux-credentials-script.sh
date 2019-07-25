@@ -5,7 +5,7 @@ echo "\"AccessKeyId\": \"$1\",";
 echo "\"SecretAccessKey\": \"$2\"";
 if [[ $# -ge 3 ]]; then
     echo ','
-    echo "\"SessionToken\": \"$RANDOM\"";
+    echo "\"SessionToken\": \"$3\"";
 fi;
 if [[ $# -ge 4 ]]; then
     echo ','

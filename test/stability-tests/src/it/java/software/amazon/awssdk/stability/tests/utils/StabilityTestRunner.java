@@ -18,7 +18,6 @@ package software.amazon.awssdk.stability.tests.utils;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +28,6 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.stability.tests.ExceptionCounter;
 import software.amazon.awssdk.stability.tests.TestResult;
-import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -92,11 +90,6 @@ public class StabilityTestRunner {
 
     public StabilityTestRunner futures(List<CompletableFuture<?>> futures) {
         this.futures = futures;
-        return this;
-    }
-
-    public StabilityTestRunner futures(CompletableFuture<?>... futures) {
-        this.futures = Arrays.asList(futures);
         return this;
     }
 
@@ -267,24 +260,19 @@ public class StabilityTestRunner {
 
         double ratio = expectedExceptionCount / (double) testResult.totalRequestCount();
         if (clientExceptionCount > 0) {
-            String errorMessage = String.format("%s SdkClientExceptions were thrown, failing the tests",
-                                          clientExceptionCount);
-            log.error(() -> errorMessage);
-            throw new AssertionError(errorMessage);
+            throw new RuntimeException(String.format("%s SdkClientExceptions were thrown, failing the tests",
+                                                     clientExceptionCount));
         }
 
         if (testResult.unknownExceptionCount() > 0) {
-            String errorMessage = String.format("%s unknown exceptions were thrown, failing the tests",
-                                          unknownExceptionCount);
-            log.error(() -> errorMessage);
-            throw new AssertionError(errorMessage);
+            throw new RuntimeException(String.format("%s unknown exceptions were thrown, failing the tests",
+                                                     unknownExceptionCount));
         }
 
         if (ratio > ALLOWED_FAILURE_RATIO) {
-            String errorMessage = String.format("More than %s percent requests (%s percent) failed of SdkServiceException "
-                                          + "or IOException, failing the tests",
-                                          ALLOWED_FAILURE_RATIO * 100, ratio * 100);
-            throw new StabilityTestsRetryableException(errorMessage);
+            throw new RuntimeException(String.format("More than %s percent requests (%s percent) failed of SdkServiceException "
+                                                     + "or IOException, failing the tests",
+                                                     ALLOWED_FAILURE_RATIO * 100, ratio * 100));
         }
     }
 

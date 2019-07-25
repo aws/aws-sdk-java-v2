@@ -25,10 +25,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StructWithNestedBlobType implements SdkPojo, Serializable,
-        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+                                                       ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private static final SdkField<SdkBytes> NESTED_BLOB_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-            .getter(getter(StructWithNestedBlobType::nestedBlob)).setter(setter(Builder::nestedBlob))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedBlob").build()).build();
+        .getter(getter(StructWithNestedBlobType::nestedBlob)).setter(setter(Builder::nestedBlob))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedBlob").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NESTED_BLOB_FIELD));
 
@@ -42,7 +42,7 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the NestedBlob property for this object.
-     * 
+     *
      * @return The value of the NestedBlob property for this object.
      */
     public SdkBytes nestedBlob() {
@@ -71,11 +71,6 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
 
     @Override
     public boolean equals(Object obj) {
-        return equalsBySdkFields(obj);
-    }
-
-    @Override
-    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -100,10 +95,10 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NestedBlob":
-            return Optional.ofNullable(clazz.cast(nestedBlob()));
-        default:
-            return Optional.empty();
+            case "NestedBlob":
+                return Optional.ofNullable(clazz.cast(nestedBlob()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -166,3 +161,4 @@ public final class StructWithNestedBlobType implements SdkPojo, Serializable,
         }
     }
 }
+
