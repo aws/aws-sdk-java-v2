@@ -315,6 +315,53 @@
                 <version>${netty-open-ssl-version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>DynamoDBLocal</artifactId>
+                <version>${dynamodb-local.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>sqlite4java</artifactId>
+                <version>${sqllite.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>sqlite4java-win32-x86</artifactId>
+                <version>${sqllite.version}</version>
+                <type>dll</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>sqlite4java-win32-x64</artifactId>
+                <version>${sqllite.version}</version>
+                <type>dll</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>libsqlite4java-osx</artifactId>
+                <version>${sqllite.version}</version>
+                <type>dylib</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>libsqlite4java-linux-i386</artifactId>
+                <version>${sqllite.version}</version>
+                <type>so</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.almworks.sqlite4java</groupId>
+                <artifactId>libsqlite4java-linux-amd64</artifactId>
+                <version>${sqllite.version}</version>
+                <type>so</type>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
