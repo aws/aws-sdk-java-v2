@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "description": "AWS Batch now supports SDK auto-pagination and Job-level docker devices."
-}
