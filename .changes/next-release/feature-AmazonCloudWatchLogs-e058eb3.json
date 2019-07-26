@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "description": "Allow for specifying multiple log groups in an Insights query, and deprecate storedByte field for LogStreams and interleaved field for FilterLogEventsRequest."
+}
