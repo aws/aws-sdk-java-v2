@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Greengrass",
+    "description": "Greengrass OTA service supports openwrt/aarch64 and openwrt/armv7l platforms."
+}
