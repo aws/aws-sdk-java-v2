@@ -1,3 +1,45 @@
+# __2.7.13__ __2019-07-26__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch now supports SDK auto-pagination and Job-level docker devices.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds support for resource optimization recommendations.
+
+## __AWS Glue__
+  - ### Features
+    - This release provides GetJobBookmark and GetJobBookmarks APIs. These APIs enable users to look at specific versions or all versions of the JobBookmark for a specific job. This release also enables resetting the job bookmark to a specific run via an enhancement of the ResetJobBookmark API.
+
+## __AWS Greengrass__
+  - ### Features
+    - Greengrass OTA service supports openwrt/aarch64 and openwrt/armv7l platforms.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for the Zixi pull protocol on outputs.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Allow for specifying multiple log groups in an Insights query, and deprecate storedByte field for LogStreams and interleaved field for FilterLogEventsRequest.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now create EC2 Capacity Reservations using Availability Zone ID or Availability Zone name. You can view usage of Amazon EC2 Capacity Reservations per AWS account.
+
+# __2.7.12__ __2019-07-25__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert has added several features including support for: audio normalization using ITU BS.1770-3, 1770-4 algorithms, extension of job progress indicators, input cropping rectangle & output position rectangle filters per input, and dual SCC caption mapping to additional codecs and containers.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive is adding Input Clipping, Immediate Mode Input Switching, and Dynamic Inputs.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for immutable image tags.
+
 # __2.7.11__ __2019-07-24__
 ## __AWS Glue__
   - ### Features
