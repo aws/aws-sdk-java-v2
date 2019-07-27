@@ -95,6 +95,12 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>junit</artifactId>
+                    <groupId>junit</groupId>
+                </exclusion>
+            </exclusions>
             <scope>test</scope>
         </dependency>
         <dependency>
