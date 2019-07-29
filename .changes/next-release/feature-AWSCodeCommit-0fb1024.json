@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodeCommit",
+    "description": "This release supports better exception handling for merges."
+}
