@@ -1,3 +1,12 @@
+# __2.7.14__ __2019-07-29__
+## __AWS CodeCommit__
+  - ### Features
+    - This release supports better exception handling for merges.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Update `HandlerRemovingChannelPool` to only remove per request handlers if the channel is open or registered to avoid the race condition when the DefaultChannelPipeline is trying to removing the handler at the same time, causing `NoSuchElementException`.
+
 # __2.7.13__ __2019-07-26__
 ## __AWS Batch__
   - ### Features
