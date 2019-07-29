@@ -1,0 +1,41 @@
+{
+    "version": "2.7.13",
+    "date": "2019-07-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "description": "Allow for specifying multiple log groups in an Insights query, and deprecate storedByte field for LogStreams and interleaved field for FilterLogEventsRequest."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "description": "AWS Batch now supports SDK auto-pagination and Job-level docker devices."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "description": "This release adds support for the Zixi pull protocol on outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Greengrass",
+            "description": "Greengrass OTA service supports openwrt/aarch64 and openwrt/armv7l platforms."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "You can now create EC2 Capacity Reservations using Availability Zone ID or Availability Zone name. You can view usage of Amazon EC2 Capacity Reservations per AWS account."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "Adds support for resource optimization recommendations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "This release provides GetJobBookmark and GetJobBookmarks APIs. These APIs enable users to look at specific versions or all versions of the JobBookmark for a specific job. This release also enables resetting the job bookmark to a specific run via an enhancement of the ResetJobBookmark API."
+        }
+    ]
+}
