@@ -1,3 +1,136 @@
+# __2.7.14__ __2019-07-29__
+## __AWS CodeCommit__
+  - ### Features
+    - This release supports better exception handling for merges.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Update `HandlerRemovingChannelPool` to only remove per request handlers if the channel is open or registered to avoid the race condition when the DefaultChannelPipeline is trying to removing the handler at the same time, causing `NoSuchElementException`.
+
+# __2.7.13__ __2019-07-26__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch now supports SDK auto-pagination and Job-level docker devices.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds support for resource optimization recommendations.
+
+## __AWS Glue__
+  - ### Features
+    - This release provides GetJobBookmark and GetJobBookmarks APIs. These APIs enable users to look at specific versions or all versions of the JobBookmark for a specific job. This release also enables resetting the job bookmark to a specific run via an enhancement of the ResetJobBookmark API.
+
+## __AWS Greengrass__
+  - ### Features
+    - Greengrass OTA service supports openwrt/aarch64 and openwrt/armv7l platforms.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for the Zixi pull protocol on outputs.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Allow for specifying multiple log groups in an Insights query, and deprecate storedByte field for LogStreams and interleaved field for FilterLogEventsRequest.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now create EC2 Capacity Reservations using Availability Zone ID or Availability Zone name. You can view usage of Amazon EC2 Capacity Reservations per AWS account.
+
+# __2.7.12__ __2019-07-25__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert has added several features including support for: audio normalization using ITU BS.1770-3, 1770-4 algorithms, extension of job progress indicators, input cropping rectangle & output position rectangle filters per input, and dual SCC caption mapping to additional codecs and containers.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive is adding Input Clipping, Immediate Mode Input Switching, and Dynamic Inputs.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds support for immutable image tags.
+
+# __2.7.11__ __2019-07-24__
+## __AWS Glue__
+  - ### Features
+    - This release provides GlueVersion option for Job APIs and WorkerType option for DevEndpoint APIs. Job APIs enable users to pick specific GlueVersion for a specific job and pin the job to a specific runtime environment. DevEndpoint APIs enable users to pick different WorkerType for memory intensive workload.
+
+## __AWS Security Token Service__
+  - ### Features
+    - New STS GetAccessKeyInfo API operation that returns the account identifier for the specified access key ID.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces support for split tunnel with AWS Client VPN, and also adds support for opt-in Regions in DescribeRegions API. In addition, customers can now also tag Launch Templates on creation.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release adds support for programmatic access to many of the same campaign metrics that are displayed on the Amazon Pinpoint console. You can now use the Amazon Pinpoint API to monitor and assess performance data for campaigns, and integrate metrics data with other reporting tools. We update the metrics data continuously, resulting in a data latency timeframe that is limited to approximately two hours.
+
+# __2.7.10__ __2019-07-23__
+## __AWS Secrets Manager__
+  - ### Features
+    - This release increases the maximum allowed size of SecretString or SecretBinary from 7KB to 10KB in the CreateSecret, UpdateSecret, PutSecretValue and GetSecretValue APIs. This release also increases the maximum allowed size of ResourcePolicy from 4KB to 20KB in the GetResourcePolicy and PutResourcePolicy APIs.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - You can now use Maintenance Windows to select a resource group as the target. By selecting a resource group as the target of a Maintenance Window, customers can perform routine tasks across different resources such as Amazon Elastic Compute Cloud (AmazonEC2) instances, Amazon Elastic Block Store (Amazon EBS) volumes, and Amazon Simple Storage Service(Amazon S3) buckets within the same recurring time window.
+
+# __2.7.9__ __2019-07-22__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix model builder enum fluent setters to check null before calling `toString` to avoid NPE.
+
+## __AWS Shield__
+  - ### Features
+    - Adding new VectorType (HTTP_Reflection) and related top contributor types to describe WordPress Pingback DDoS attacks.
+
+## __AmazonMQ__
+  - ### Features
+    - Adds support for AWS Key Management Service (KMS) to offer server-side encryption. You can now select your own customer managed CMK, or use an AWS managed CMK in your KMS account.
+
+# __2.7.8__ __2019-07-19__
+## __AWS IoT Events__
+  - ### Features
+    - Adds support for IoT Events, Lambda, SQS and Kinesis Firehose actions.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release updates the information about the availability of FIFO queues and includes miscellaneous fixes.
+
+# __2.7.7__ __2019-07-18__
+## __AWS CodeDeploy__
+  - ### Features
+    - Documentation updates for codedeploy
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports multiple entities for custom entity recognition
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces support for cluster settings. Cluster settings specify whether CloudWatch Container Insights is enabled or disabled for the cluster.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Updates for Elasticache
+
+# __2.7.6__ __2019-07-17__
+## __AWS Config__
+  - ### Features
+    - This release adds more granularity to the status of an OrganizationConfigRule by adding a new status. It also adds an exception when organization access is denied.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - S3 endpoint settings update: 1) Option to append operation column to full-load files. 2) Option to add a commit timestamp column to full-load and cdc files. Updated DescribeAccountAttributes to include UniqueAccountIdentifier.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Notify error by invoking `AsyncResponseTransformer#exceptionOccurred` for streaming operations for services using xml protocol such as S3 when the request fails and is not retriable.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for autoscaling
+
 # __2.7.5__ __2019-07-12__
 ## __AWS Identity and Access Management__
   - ### Features

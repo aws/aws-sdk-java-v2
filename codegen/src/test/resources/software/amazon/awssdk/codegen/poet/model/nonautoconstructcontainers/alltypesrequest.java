@@ -2247,7 +2247,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         @Override
         public final Builder enumType(EnumType enumType) {
-            this.enumType(enumType.toString());
+            this.enumType(enumType == null ? null : enumType.toString());
             return this;
         }
 

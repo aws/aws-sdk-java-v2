@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.charset.StandardCharsets;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -31,6 +32,11 @@ public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        deleteBucketAndAllContents(BUCKET);
     }
 
     @Test
