@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Http Client", 
-    "type": "bugfix", 
-    "description": "Update `HandlerRemovingChannelPool` to only remove per request handlers if the channel is open or registered to avoid the race condition when the DefaultChannelPipeline is trying to removing the handler at the same time, causing `NoSuchElementException`."
-}
