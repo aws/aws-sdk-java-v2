@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.services.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.charset.StandardCharsets;
@@ -44,6 +45,6 @@ public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
         s3.putObject(r -> r.bucket(BUCKET).key(KEY), RequestBody.fromBytes(CONTENT));
         String retrievedKey = s3.listObjects(r -> r.bucket(BUCKET)).contents().get(0).key();
 
-        assert(retrievedKey).equals(KEY);
+        assertThat(retrievedKey).isEqualTo(KEY);
     }
 }
