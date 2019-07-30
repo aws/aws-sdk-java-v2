@@ -1,0 +1,36 @@
+{
+    "version": "2.5.68",
+    "date": "2019-06-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "description": "ACM Private CA is launching Root CAs and hierarchy management, a new feature that expands the scope of ACM Private CA from supporting only subordinate issuing CAs, to now include a full CA hierarchy that includes root CAs - the cryptographic root of trust for an organization."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "Starting today, you can now use workflows in AWS Glue to author directed acyclic graphs (DAGs) of Glue triggers, crawlers and jobs. Workflows enable orchestration of your ETL workloads by building dependencies between Glue entities (triggers, crawlers and jobs). You can visually track status of the different nodes in the workflows on the console making it easier to monitor progress and troubleshoot issues. Also, you can share parameters across entities in the workflow."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events Data",
+            "description": "\"The colon character ':' is now permitted in Detector Model 'key' parameter values."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "description": "API improvements for the AWS Health service."
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks",
+            "description": "Documentation updates for OpsWorks Stacks."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release adds support for RDS storage autoscaling"
+        }
+    ]
+}

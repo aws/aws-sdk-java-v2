@@ -139,6 +139,16 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
             enumModel.setName(modifyModel.getEmitEnumName());
         }
 
+        if (modifyModel.getEmitEnumValue() != null) {
+            EnumModel enumModel = shapeModel.findEnumModelByValue(memberName);
+            if (enumModel == null) {
+                throw new IllegalStateException(
+                        String.format("Cannot find enum [%s] in the intermediate model when processing "
+                                      + "customization config shapeModifiers.%s", memberName, memberName));
+            }
+            enumModel.setValue(modifyModel.getEmitEnumValue());
+        }
+
         if (modifyModel.getMarshallLocationName() != null) {
             MemberModel memberModel = shapeModel.findMemberModelByC2jName(memberName);
             memberModel.getHttp().setMarshallLocationName(modifyModel.getMarshallLocationName());

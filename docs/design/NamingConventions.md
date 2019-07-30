@@ -1,3 +1,5 @@
+**Design:** Convention, **Status:** [Complete](README.md)
+
 ## Naming Conventions
 
 This page describes the naming conventions, nouns and common terms 

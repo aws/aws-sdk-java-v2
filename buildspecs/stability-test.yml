@@ -1,0 +1,10 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: "$JAVA_RUNTIME"
+
+  build:
+    commands:
+      - mvn clean install -P stability-tests -pl :stability-tests --am

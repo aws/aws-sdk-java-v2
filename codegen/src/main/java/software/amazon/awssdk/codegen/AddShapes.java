@@ -87,6 +87,7 @@ abstract class AddShapes {
         boolean hasStatusCodeMember = false;
         boolean hasPayloadMember = false;
         boolean hasStreamingMember = false;
+        boolean hasRequiresLength = false;
 
         Map<String, Member> members = shape.getMembers();
 
@@ -112,15 +113,19 @@ abstract class AddShapes {
                     if (memberModel.getHttp().getIsStreaming()) {
                         hasStreamingMember = true;
                     }
+                    if (memberModel.getHttp().isRequiresLength()) {
+                        hasRequiresLength = true;
+                    }
                 }
 
                 shapeModel.addMember(memberModel);
             }
 
             shapeModel.withHasHeaderMember(hasHeaderMember)
-                    .withHasStatusCodeMember(hasStatusCodeMember)
-                    .withHasPayloadMember(hasPayloadMember)
-                    .withHasStreamingMember(hasStreamingMember);
+                      .withHasStatusCodeMember(hasStatusCodeMember)
+                      .withHasPayloadMember(hasPayloadMember)
+                      .withHasStreamingMember(hasStreamingMember)
+                      .withHasRequiresLengthMember(hasRequiresLength);
         }
 
         List<String> enumValues = shape.getEnumValues();
@@ -200,9 +205,11 @@ abstract class AddShapes {
         boolean shapeIsStreaming = shape.isStreaming();
         boolean memberIsStreaming = c2jMemberDefinition.isStreaming();
         boolean payloadIsStreaming = shapeIsStreaming || memberIsStreaming;
+        boolean requiresLength = shape.isRequiresLength() || c2jMemberDefinition.isRequiresLength();
 
         httpMapping.withPayload(payload != null && payload.equals(c2jMemberName))
-                .withStreaming(payloadIsStreaming);
+                   .withStreaming(payloadIsStreaming)
+                   .withRequiresLength(requiresLength);
 
         memberModel.setHttp(httpMapping);
 

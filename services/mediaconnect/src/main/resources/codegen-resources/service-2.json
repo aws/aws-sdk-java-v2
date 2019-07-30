@@ -732,6 +732,11 @@
     "AddOutputRequest": {
       "type": "structure",
       "members": {
+        "CidrAllowList": {
+          "shape": "__listOf__string",
+          "locationName": "cidrAllowList",
+          "documentation": "The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -767,6 +772,11 @@
           "locationName": "protocol",
           "documentation": "The protocol to use for the output."
         },
+        "RemoteId": {
+          "shape": "__string",
+          "locationName": "remoteId",
+          "documentation": "The remote ID for the Zixi-pull output stream."
+        },
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
@@ -780,8 +790,6 @@
       },
       "documentation": "The output that you want to add to this flow.",
       "required": [
-        "Destination",
-        "Port",
         "Protocol"
       ]
     },
@@ -936,10 +944,30 @@
           "locationName": "algorithm",
           "documentation": "The type of algorithm that is used for the encryption (such as aes128, aes192, or aes256)."
         },
+        "ConstantInitializationVector": {
+          "shape": "__string",
+          "locationName": "constantInitializationVector",
+          "documentation": "A 128-bit, 16-byte hex value represented by a 32-character string, to be used with the key for encrypting content. This parameter is not valid for static key encryption."
+        },
+        "DeviceId": {
+          "shape": "__string",
+          "locationName": "deviceId",
+          "documentation": "The value of one of the devices that you configured with your digital rights management (DRM) platform key provider. This parameter is required for SPEKE encryption and is not valid for static key encryption."
+        },
         "KeyType": {
           "shape": "KeyType",
           "locationName": "keyType",
           "documentation": "The type of key that is used for the encryption. If no keyType is provided, the service will use the default setting (static-key)."
+        },
+        "Region": {
+          "shape": "__string",
+          "locationName": "region",
+          "documentation": "The AWS Region that the API Gateway proxy endpoint was created in. This parameter is required for SPEKE encryption and is not valid for static key encryption."
+        },
+        "ResourceId": {
+          "shape": "__string",
+          "locationName": "resourceId",
+          "documentation": "An identifier for the content. The service sends this value to the key server to identify the current endpoint. The resource ID is also known as the content ID. This parameter is required for SPEKE encryption and is not valid for static key encryption."
         },
         "RoleArn": {
           "shape": "__string",
@@ -949,12 +977,16 @@
         "SecretArn": {
           "shape": "__string",
           "locationName": "secretArn",
-          "documentation": "The ARN that was assigned to the secret that you created in AWS Secrets Manager to store the encryption key."
+          "documentation": "The ARN of the secret that you created in AWS Secrets Manager to store the encryption key. This parameter is required for static key encryption and is not valid for SPEKE encryption."
+        },
+        "Url": {
+          "shape": "__string",
+          "locationName": "url",
+          "documentation": "The URL from the API Gateway proxy that you set up to talk to your key server. This parameter is required for SPEKE encryption and is not valid for static key encryption."
         }
       },
       "documentation": "Information about the encryption of the flow.",
       "required": [
-        "SecretArn",
         "Algorithm",
         "RoleArn"
       ]
@@ -1176,6 +1208,7 @@
     "KeyType": {
       "type": "string",
       "enum": [
+        "speke",
         "static-key"
       ]
     },
@@ -1428,7 +1461,8 @@
       "enum": [
         "zixi-push",
         "rtp-fec",
-        "rtp"
+        "rtp",
+        "zixi-pull"
       ]
     },
     "RemoveFlowOutputRequest": {
@@ -1586,7 +1620,7 @@
         "WhitelistCidr": {
           "shape": "__string",
           "locationName": "whitelistCidr",
-          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
         }
       },
       "documentation": "The settings for the source of the flow."
@@ -1637,7 +1671,7 @@
         "WhitelistCidr": {
           "shape": "__string",
           "locationName": "whitelistCidr",
-          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
         }
       },
       "documentation": "The settings for the source of the flow.",
@@ -1765,6 +1799,11 @@
     "Transport": {
       "type": "structure",
       "members": {
+        "CidrAllowList": {
+          "shape": "__listOf__string",
+          "locationName": "cidrAllowList",
+          "documentation": "The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+        },
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
@@ -1779,6 +1818,11 @@
           "shape": "Protocol",
           "locationName": "protocol",
           "documentation": "The protocol that is used by the source or output."
+        },
+        "RemoteId": {
+          "shape": "__string",
+          "locationName": "remoteId",
+          "documentation": "The remote ID for the Zixi-pull stream."
         },
         "SmoothingLatency": {
           "shape": "__integer",
@@ -1825,10 +1869,30 @@
           "locationName": "algorithm",
           "documentation": "The type of algorithm that is used for the encryption (such as aes128, aes192, or aes256)."
         },
+        "ConstantInitializationVector": {
+          "shape": "__string",
+          "locationName": "constantInitializationVector",
+          "documentation": "A 128-bit, 16-byte hex value represented by a 32-character string, to be used with the key for encrypting content. This parameter is not valid for static key encryption."
+        },
+        "DeviceId": {
+          "shape": "__string",
+          "locationName": "deviceId",
+          "documentation": "The value of one of the devices that you configured with your digital rights management (DRM) platform key provider. This parameter is required for SPEKE encryption and is not valid for static key encryption."
+        },
         "KeyType": {
           "shape": "KeyType",
           "locationName": "keyType",
           "documentation": "The type of key that is used for the encryption. If no keyType is provided, the service will use the default setting (static-key)."
+        },
+        "Region": {
+          "shape": "__string",
+          "locationName": "region",
+          "documentation": "The AWS Region that the API Gateway proxy endpoint was created in. This parameter is required for SPEKE encryption and is not valid for static key encryption."
+        },
+        "ResourceId": {
+          "shape": "__string",
+          "locationName": "resourceId",
+          "documentation": "An identifier for the content. The service sends this value to the key server to identify the current endpoint. The resource ID is also known as the content ID. This parameter is required for SPEKE encryption and is not valid for static key encryption."
         },
         "RoleArn": {
           "shape": "__string",
@@ -1838,7 +1902,12 @@
         "SecretArn": {
           "shape": "__string",
           "locationName": "secretArn",
-          "documentation": "The ARN that was assigned to the secret that you created in AWS Secrets Manager to store the encryption key."
+          "documentation": "The ARN of the secret that you created in AWS Secrets Manager to store the encryption key. This parameter is required for static key encryption and is not valid for SPEKE encryption."
+        },
+        "Url": {
+          "shape": "__string",
+          "locationName": "url",
+          "documentation": "The URL from the API Gateway proxy that you set up to talk to your key server. This parameter is required for SPEKE encryption and is not valid for static key encryption."
         }
       },
       "documentation": "Information about the encryption of the flow."
@@ -1897,6 +1966,11 @@
     "UpdateFlowOutputRequest": {
       "type": "structure",
       "members": {
+        "CidrAllowList": {
+          "shape": "__listOf__string",
+          "locationName": "cidrAllowList",
+          "documentation": "The range of IP addresses that should be allowed to initiate output requests to this flow. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1938,6 +2012,11 @@
           "shape": "Protocol",
           "locationName": "protocol",
           "documentation": "The protocol to use for the output."
+        },
+        "RemoteId": {
+          "shape": "__string",
+          "locationName": "remoteId",
+          "documentation": "The remote ID for the Zixi-pull stream."
         },
         "SmoothingLatency": {
           "shape": "__integer",
@@ -2028,7 +2107,7 @@
         "WhitelistCidr": {
           "shape": "__string",
           "locationName": "whitelistCidr",
-          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
+          "documentation": "The range of IP addresses that should be allowed to contribute content to your source. These IP addresses should be in the form of a Classless Inter-Domain Routing (CIDR) block; for example, 10.0.0.0/16."
         }
       },
       "documentation": "A request to update the source of a flow.",

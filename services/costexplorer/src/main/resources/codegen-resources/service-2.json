@@ -107,6 +107,20 @@
       ],
       "documentation":"<p>Retrieves the reservation utilization for your account. Master accounts in an organization have access to member accounts. You can filter data by dimensions in a time period. You can use <code>GetDimensionValues</code> to determine the possible dimension values. Currently, you can group only by <code>SUBSCRIPTION_ID</code>. </p>"
     },
+    "GetRightsizingRecommendation":{
+      "name":"GetRightsizingRecommendation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetRightsizingRecommendationRequest"},
+      "output":{"shape":"GetRightsizingRecommendationResponse"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"InvalidNextTokenException"}
+      ],
+      "documentation":"<p>Creates recommendations that helps you save cost by identifying idle and underutilized Amazon EC2 instances.</p> <p>Recommendations are generated to either downsize or terminate instances, along with providing savings detail and metrics. For details on calculation and function, see <a href=\"https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/ce-what-is.html\">Optimizing Your Cost with Rightsizing Recommendations</a>.</p>"
+    },
     "GetTags":{
       "name":"GetTags",
       "http":{
@@ -123,6 +137,21 @@
         {"shape":"RequestChangedException"}
       ],
       "documentation":"<p>Queries for available tag keys and tag values for a specified period. You can search the tag values for an arbitrary string. </p>"
+    },
+    "GetUsageForecast":{
+      "name":"GetUsageForecast",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetUsageForecastRequest"},
+      "output":{"shape":"GetUsageForecastResponse"},
+      "errors":[
+        {"shape":"LimitExceededException"},
+        {"shape":"DataUnavailableException"},
+        {"shape":"UnresolvableUsageUnitException"}
+      ],
+      "documentation":"<p>Retrieves a forecast for how much Amazon Web Services predicts that you will use over the forecast time period that you select, based on your past usage. </p>"
     }
   },
   "shapes":{
@@ -253,6 +282,48 @@
       "type":"list",
       "member":{"shape":"CoverageByTime"}
     },
+    "CurrentInstance":{
+      "type":"structure",
+      "members":{
+        "ResourceId":{
+          "shape":"GenericString",
+          "documentation":"<p>Resource ID of the current instance.</p>"
+        },
+        "Tags":{
+          "shape":"TagValuesList",
+          "documentation":"<p>Cost allocation resource tags applied to the instance.</p>"
+        },
+        "ResourceDetails":{
+          "shape":"ResourceDetails",
+          "documentation":"<p> Details about the resource and utilization.</p>"
+        },
+        "ResourceUtilization":{
+          "shape":"ResourceUtilization",
+          "documentation":"<p> Utilization information of the current instance during the lookback period.</p>"
+        },
+        "ReservationCoveredHoursInLookbackPeriod":{
+          "shape":"GenericString",
+          "documentation":"<p> Number of hours during the lookback period covered by reservations.</p>"
+        },
+        "OnDemandHoursInLookbackPeriod":{
+          "shape":"GenericString",
+          "documentation":"<p> Number of hours during the lookback period billed at On Demand rates.</p>"
+        },
+        "TotalRunningHoursInLookbackPeriod":{
+          "shape":"GenericString",
+          "documentation":"<p> The total number of hours the instance ran during the lookback period.</p>"
+        },
+        "MonthlyCost":{
+          "shape":"GenericString",
+          "documentation":"<p> Current On Demand cost of operating this instance on a monthly basis.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"GenericString",
+          "documentation":"<p> The currency code that Amazon Web Services used to calculate the costs for this instance.</p>"
+        }
+      },
+      "documentation":"<p>Context about the current instance.</p>"
+    },
     "DataUnavailableException":{
       "type":"structure",
       "members":{
@@ -303,7 +374,8 @@
         "CACHE_ENGINE",
         "INSTANCE_TYPE_FAMILY",
         "BILLING_ENTITY",
-        "RESERVATION_ID"
+        "RESERVATION_ID",
+        "RIGHTSIZING_TYPE"
       ]
     },
     "DimensionValues":{
@@ -375,6 +447,66 @@
         }
       },
       "documentation":"<p>Details about the Amazon EC2 instances that AWS recommends that you purchase.</p>"
+    },
+    "EC2ResourceDetails":{
+      "type":"structure",
+      "members":{
+        "HourlyOnDemandRate":{
+          "shape":"GenericString",
+          "documentation":"<p> Hourly public On Demand rate for the instance type.</p>"
+        },
+        "InstanceType":{
+          "shape":"GenericString",
+          "documentation":"<p> The type of Amazon Web Services instance.</p>"
+        },
+        "Platform":{
+          "shape":"GenericString",
+          "documentation":"<p> The platform of the Amazon Web Services instance. The platform is the specific combination of operating system, license model, and software on an instance.</p>"
+        },
+        "Region":{
+          "shape":"GenericString",
+          "documentation":"<p> The Amazon Web Services Region of the instance.</p>"
+        },
+        "Sku":{
+          "shape":"GenericString",
+          "documentation":"<p> The SKU of the product.</p>"
+        },
+        "Memory":{
+          "shape":"GenericString",
+          "documentation":"<p> Memory capacity of Amazon Web Services instance.</p>"
+        },
+        "NetworkPerformance":{
+          "shape":"GenericString",
+          "documentation":"<p> Network performance capacity of the Amazon Web Services instance.</p>"
+        },
+        "Storage":{
+          "shape":"GenericString",
+          "documentation":"<p> The disk storage of the Amazon Web Services instance (Not EBS storage).</p>"
+        },
+        "Vcpu":{
+          "shape":"GenericString",
+          "documentation":"<p> Number of VCPU cores in the Amazon Web Services instance type.</p>"
+        }
+      },
+      "documentation":"<p> Details on the Amazon EC2 Resource.</p>"
+    },
+    "EC2ResourceUtilization":{
+      "type":"structure",
+      "members":{
+        "MaxCpuUtilizationPercentage":{
+          "shape":"GenericString",
+          "documentation":"<p> Maximum observed or expected CPU utilization of the instance.</p>"
+        },
+        "MaxMemoryUtilizationPercentage":{
+          "shape":"GenericString",
+          "documentation":"<p> Maximum observed or expected memory utilization of the instance.</p>"
+        },
+        "MaxStorageUtilizationPercentage":{
+          "shape":"GenericString",
+          "documentation":"<p> Maximum observed or expected storage utilization of the instance (does not measure EBS storage).</p>"
+        }
+      },
+      "documentation":"<p> Utilization metrics of the instance. </p>"
     },
     "EC2Specification":{
       "type":"structure",
@@ -469,7 +601,7 @@
           "documentation":"<p>The specific <code>Tag</code> to use for <code>Expression</code>.</p>"
         }
       },
-      "documentation":"<p>Use <code>Expression</code> to filter by cost or by usage. There are two patterns: </p> <ul> <li> <p>Simple dimension values - You can set the dimension name and values for the filters that you plan to use. For example, you can filter for <code>INSTANCE_TYPE==m4.xlarge OR INSTANCE_TYPE==c4.large</code>. The <code>Expression</code> for that looks like this:</p> <p> <code>{ \"Dimensions\": { \"Key\": \"INSTANCE_TYPE\", \"Values\": [ \"m4.xlarge\", “c4.large” ] } }</code> </p> <p>The list of dimension values are OR'd together to retrieve cost or usage data. You can create <code>Expression</code> and <code>DimensionValues</code> objects using either <code>with*</code> methods or <code>set*</code> methods in multiple lines. </p> </li> <li> <p>Compound dimension values with logical operations - You can use multiple <code>Expression</code> types and the logical operators <code>AND/OR/NOT</code> to create a list of one or more <code>Expression</code> objects. This allows you to filter on more advanced options. For example, you can filter on <code>((INSTANCE_TYPE == m4.large OR INSTANCE_TYPE == m3.large) OR (TAG.Type == Type1)) AND (USAGE_TYPE != DataTransfer)</code>. The <code>Expression</code> for that looks like this:</p> <p> <code>{ \"And\": [ {\"Or\": [ {\"Dimensions\": { \"Key\": \"INSTANCE_TYPE\", \"Values\": [ \"m4.x.large\", \"c4.large\" ] }}, {\"Tags\": { \"Key\": \"TagName\", \"Values\": [\"Value1\"] } } ]}, {\"Not\": {\"Dimensions\": { \"Key\": \"USAGE_TYPE\", \"Values\": [\"DataTransfer\"] }}} ] } </code> </p> <note> <p>Because each <code>Expression</code> can have only one operator, the service returns an error if more than one is specified. The following example shows an <code>Expression</code> object that creates an error.</p> </note> <p> <code> { \"And\": [ ... ], \"DimensionValues\": { \"Dimension\": \"USAGE_TYPE\", \"Values\": [ \"DataTransfer\" ] } } </code> </p> </li> </ul>"
+      "documentation":"<p>Use <code>Expression</code> to filter by cost or by usage. There are two patterns: </p> <ul> <li> <p>Simple dimension values - You can set the dimension name and values for the filters that you plan to use. For example, you can filter for <code>REGION==us-east-1 OR REGION==us-west-1</code>. The <code>Expression</code> for that looks like this:</p> <p> <code>{ \"Dimensions\": { \"Key\": \"REGION\", \"Values\": [ \"us-east-1\", “us-west-1” ] } }</code> </p> <p>The list of dimension values are OR'd together to retrieve cost or usage data. You can create <code>Expression</code> and <code>DimensionValues</code> objects using either <code>with*</code> methods or <code>set*</code> methods in multiple lines. </p> </li> <li> <p>Compound dimension values with logical operations - You can use multiple <code>Expression</code> types and the logical operators <code>AND/OR/NOT</code> to create a list of one or more <code>Expression</code> objects. This allows you to filter on more advanced options. For example, you can filter on <code>((REGION == us-east-1 OR REGION == us-west-1) OR (TAG.Type == Type1)) AND (USAGE_TYPE != DataTransfer)</code>. The <code>Expression</code> for that looks like this:</p> <p> <code>{ \"And\": [ {\"Or\": [ {\"Dimensions\": { \"Key\": \"REGION\", \"Values\": [ \"us-east-1\", \"us-west-1\" ] }}, {\"Tags\": { \"Key\": \"TagName\", \"Values\": [\"Value1\"] } } ]}, {\"Not\": {\"Dimensions\": { \"Key\": \"USAGE_TYPE\", \"Values\": [\"DataTransfer\"] }}} ] } </code> </p> <note> <p>Because each <code>Expression</code> can have only one operator, the service returns an error if more than one is specified. The following example shows an <code>Expression</code> object that creates an error.</p> </note> <p> <code> { \"And\": [ ... ], \"DimensionValues\": { \"Dimension\": \"USAGE_TYPE\", \"Values\": [ \"DataTransfer\" ] } } </code> </p> </li> </ul> <note> <p>For <code>GetRightsizingRecommendation</code> action, a combination of OR and NOT is not supported. OR is not supported between different dimensions, or dimensions and tags. NOT operators aren't supported. Dimentions are also limited to <code>LINKED_ACCOUNT</code>, <code>REGION</code>, or <code>RIGHTSIZING_TYPE</code>.</p> </note>"
     },
     "Expressions":{
       "type":"list",
@@ -564,7 +696,7 @@
         },
         "Metric":{
           "shape":"Metric",
-          "documentation":"<p>Which metric Cost Explorer uses to create your forecast. For more information about blended and unblended rates, see <a href=\"https://aws.amazon.com/premiumsupport/knowledge-center/blended-rates-intro/\">Why does the \"blended\" annotation appear on some line items in my bill?</a>. </p> <p>Valid values for a <code>GetCostForecast</code> call are the following:</p> <ul> <li> <p>AmortizedCost</p> </li> <li> <p>BlendedCost</p> </li> <li> <p>NetAmortizedCost</p> </li> <li> <p>NetUnblendedCost</p> </li> <li> <p>UnblendedCost</p> </li> </ul>"
+          "documentation":"<p>Which metric Cost Explorer uses to create your forecast. For more information about blended and unblended rates, see <a href=\"https://aws.amazon.com/premiumsupport/knowledge-center/blended-rates-intro/\">Why does the \"blended\" annotation appear on some line items in my bill?</a>. </p> <p>Valid values for a <code>GetCostForecast</code> call are the following:</p> <ul> <li> <p>AMORTIZED_COST</p> </li> <li> <p>BLENDED_COST</p> </li> <li> <p>NET_AMORTIZED_COST</p> </li> <li> <p>NET_UNBLENDED_COST</p> </li> <li> <p>UNBLENDED_COST</p> </li> </ul>"
         },
         "Granularity":{
           "shape":"Granularity",
@@ -800,6 +932,46 @@
         }
       }
     },
+    "GetRightsizingRecommendationRequest":{
+      "type":"structure",
+      "required":["Service"],
+      "members":{
+        "Filter":{"shape":"Expression"},
+        "Service":{
+          "shape":"GenericString",
+          "documentation":"<p>The specific service that you want recommendations for.</p>"
+        },
+        "PageSize":{
+          "shape":"NonNegativeInteger",
+          "documentation":"<p>The number of recommendations that you want returned in a single response object.</p>"
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The pagination token that indicates the next set of results that you want to retrieve.</p>"
+        }
+      }
+    },
+    "GetRightsizingRecommendationResponse":{
+      "type":"structure",
+      "members":{
+        "Metadata":{
+          "shape":"RightsizingRecommendationMetadata",
+          "documentation":"<p>Information regarding this specific recommendation set.</p>"
+        },
+        "Summary":{
+          "shape":"RightsizingRecommendationSummary",
+          "documentation":"<p>Summary of this recommendation set.</p>"
+        },
+        "RightsizingRecommendations":{
+          "shape":"RightsizingRecommendationList",
+          "documentation":"<p>Recommendations to rightsize resources.</p>"
+        },
+        "NextPageToken":{
+          "shape":"NextPageToken",
+          "documentation":"<p>The token to retrieve the next set of results.</p>"
+        }
+      }
+    },
     "GetTagsRequest":{
       "type":"structure",
       "required":["TimePeriod"],
@@ -845,6 +1017,49 @@
         "TotalSize":{
           "shape":"PageSize",
           "documentation":"<p>The total number of query results.</p>"
+        }
+      }
+    },
+    "GetUsageForecastRequest":{
+      "type":"structure",
+      "required":[
+        "TimePeriod",
+        "Metric",
+        "Granularity"
+      ],
+      "members":{
+        "TimePeriod":{
+          "shape":"DateInterval",
+          "documentation":"<p>The start and end dates of the period that you want to retrieve usage forecast for. The start date is inclusive, but the end date is exclusive. For example, if <code>start</code> is <code>2017-01-01</code> and <code>end</code> is <code>2017-05-01</code>, then the cost and usage data is retrieved from <code>2017-01-01</code> up to and including <code>2017-04-30</code> but not including <code>2017-05-01</code>.</p>"
+        },
+        "Metric":{
+          "shape":"Metric",
+          "documentation":"<p>Which metric Cost Explorer uses to create your forecast.</p> <p>Valid values for a <code>GetUsageForecast</code> call are the following:</p> <ul> <li> <p>USAGE_QUANTITY</p> </li> <li> <p>NORMALIZED_USAGE_AMOUNT</p> </li> </ul>"
+        },
+        "Granularity":{
+          "shape":"Granularity",
+          "documentation":"<p>How granular you want the forecast to be. You can get 3 months of <code>DAILY</code> forecasts or 12 months of <code>MONTHLY</code> forecasts.</p> <p>The <code>GetUsageForecast</code> operation supports only <code>DAILY</code> and <code>MONTHLY</code> granularities.</p>"
+        },
+        "Filter":{
+          "shape":"Expression",
+          "documentation":"<p>The filters that you want to use to filter your forecast. Cost Explorer API supports all of the Cost Explorer filters.</p>"
+        },
+        "PredictionIntervalLevel":{
+          "shape":"PredictionIntervalLevel",
+          "documentation":"<p>Cost Explorer always returns the mean forecast as a single point. You can request a prediction interval around the mean by specifying a confidence level. The higher the confidence level, the more confident Cost Explorer is about the actual value falling in the prediction interval. Higher confidence levels result in wider prediction intervals.</p>"
+        }
+      }
+    },
+    "GetUsageForecastResponse":{
+      "type":"structure",
+      "members":{
+        "Total":{
+          "shape":"MetricValue",
+          "documentation":"<p>How much you're forecasted to use over the forecast period.</p>"
+        },
+        "ForecastResultsByTime":{
+          "shape":"ForecastResultsByTime",
+          "documentation":"<p>The forecasts for your query, in order. For <code>DAILY</code> forecasts, this is a list of days. For <code>MONTHLY</code> forecasts, this is a list of months.</p>"
         }
       }
     },
@@ -992,6 +1207,16 @@
       "type":"map",
       "key":{"shape":"MetricName"},
       "value":{"shape":"MetricValue"}
+    },
+    "ModifyRecommendationDetail":{
+      "type":"structure",
+      "members":{
+        "TargetInstances":{
+          "shape":"TargetInstancesList",
+          "documentation":"<p> Identifies whether this instance type is the Amazon Web Services default recommendation.</p>"
+        }
+      },
+      "documentation":"<p> Details on the modification recommendation.</p>"
     },
     "NetRISavings":{"type":"string"},
     "NextPageToken":{"type":"string"},
@@ -1371,6 +1596,26 @@
     },
     "ReservedHours":{"type":"string"},
     "ReservedNormalizedUnits":{"type":"string"},
+    "ResourceDetails":{
+      "type":"structure",
+      "members":{
+        "EC2ResourceDetails":{
+          "shape":"EC2ResourceDetails",
+          "documentation":"<p>Details on the Amazon EC2 resource.</p>"
+        }
+      },
+      "documentation":"<p>Details on the resource.</p>"
+    },
+    "ResourceUtilization":{
+      "type":"structure",
+      "members":{
+        "EC2ResourceUtilization":{
+          "shape":"EC2ResourceUtilization",
+          "documentation":"<p>Utilization of current Amazon EC2 Instance </p>"
+        }
+      },
+      "documentation":"<p>Resource utilization of current resource. </p>"
+    },
     "ResultByTime":{
       "type":"structure",
       "members":{
@@ -1396,6 +1641,83 @@
     "ResultsByTime":{
       "type":"list",
       "member":{"shape":"ResultByTime"}
+    },
+    "RightsizingRecommendation":{
+      "type":"structure",
+      "members":{
+        "AccountId":{
+          "shape":"GenericString",
+          "documentation":"<p>The account that this recommendation is for.</p>"
+        },
+        "CurrentInstance":{
+          "shape":"CurrentInstance",
+          "documentation":"<p> Context regarding the current instance.</p>"
+        },
+        "RightsizingType":{
+          "shape":"RightsizingType",
+          "documentation":"<p>Recommendation to either terminate or modify the resource.</p>"
+        },
+        "ModifyRecommendationDetail":{
+          "shape":"ModifyRecommendationDetail",
+          "documentation":"<p> Details for modification recommendations. </p>"
+        },
+        "TerminateRecommendationDetail":{
+          "shape":"TerminateRecommendationDetail",
+          "documentation":"<p>Details for termination recommendations.</p>"
+        }
+      },
+      "documentation":"<p>Recommendations to rightsize resources.</p>"
+    },
+    "RightsizingRecommendationList":{
+      "type":"list",
+      "member":{"shape":"RightsizingRecommendation"}
+    },
+    "RightsizingRecommendationMetadata":{
+      "type":"structure",
+      "members":{
+        "RecommendationId":{
+          "shape":"GenericString",
+          "documentation":"<p> The ID for this specific recommendation.</p>"
+        },
+        "GenerationTimestamp":{
+          "shape":"GenericString",
+          "documentation":"<p> The time stamp for when Amazon Web Services made this recommendation.</p>"
+        },
+        "LookbackPeriodInDays":{
+          "shape":"LookbackPeriodInDays",
+          "documentation":"<p> How many days of previous usage that Amazon Web Services considers when making this recommendation.</p>"
+        }
+      },
+      "documentation":"<p>Metadata for this recommendation set.</p>"
+    },
+    "RightsizingRecommendationSummary":{
+      "type":"structure",
+      "members":{
+        "TotalRecommendationCount":{
+          "shape":"GenericString",
+          "documentation":"<p> Total number of instance recommendations.</p>"
+        },
+        "EstimatedTotalMonthlySavingsAmount":{
+          "shape":"GenericString",
+          "documentation":"<p> Estimated total savings resulting from modifications, on a monthly basis.</p>"
+        },
+        "SavingsCurrencyCode":{
+          "shape":"GenericString",
+          "documentation":"<p> The currency code that Amazon Web Services used to calculate the savings.</p>"
+        },
+        "SavingsPercentage":{
+          "shape":"GenericString",
+          "documentation":"<p> Savings percentage based on the recommended modifications, relative to the total On Demand costs associated with these instances.</p>"
+        }
+      },
+      "documentation":"<p> Summary of rightsizing recommendations </p>"
+    },
+    "RightsizingType":{
+      "type":"string",
+      "enum":[
+        "TERMINATE",
+        "MODIFY"
+      ]
     },
     "SearchString":{"type":"string"},
     "ServiceSpecification":{
@@ -1427,6 +1749,44 @@
       },
       "documentation":"<p>The values that are available for a tag.</p>"
     },
+    "TagValuesList":{
+      "type":"list",
+      "member":{"shape":"TagValues"}
+    },
+    "TargetInstance":{
+      "type":"structure",
+      "members":{
+        "EstimatedMonthlyCost":{
+          "shape":"GenericString",
+          "documentation":"<p> Expected cost to operate this instance type on a monthly basis.</p>"
+        },
+        "EstimatedMonthlySavings":{
+          "shape":"GenericString",
+          "documentation":"<p> Estimated savings resulting from modification, on a monthly basis.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"GenericString",
+          "documentation":"<p> The currency code that Amazon Web Services used to calculate the costs for this instance.</p>"
+        },
+        "DefaultTargetInstance":{
+          "shape":"GenericBoolean",
+          "documentation":"<p> Indicates whether or not this recommendation is the defaulted Amazon Web Services recommendation.</p>"
+        },
+        "ResourceDetails":{
+          "shape":"ResourceDetails",
+          "documentation":"<p> Details on the target instance type. </p>"
+        },
+        "ExpectedResourceUtilization":{
+          "shape":"ResourceUtilization",
+          "documentation":"<p> Expected utilization metrics for target instance type.</p>"
+        }
+      },
+      "documentation":"<p> Details on recommended instance.</p>"
+    },
+    "TargetInstancesList":{
+      "type":"list",
+      "member":{"shape":"TargetInstance"}
+    },
     "TermInYears":{
       "type":"string",
       "enum":[
@@ -1434,12 +1794,34 @@
         "THREE_YEARS"
       ]
     },
+    "TerminateRecommendationDetail":{
+      "type":"structure",
+      "members":{
+        "EstimatedMonthlySavings":{
+          "shape":"GenericString",
+          "documentation":"<p> Estimated savings resulting from modification, on a monthly basis.</p>"
+        },
+        "CurrencyCode":{
+          "shape":"GenericString",
+          "documentation":"<p> The currency code that Amazon Web Services used to calculate the costs for this instance.</p>"
+        }
+      },
+      "documentation":"<p> Details on termination recommendation. </p>"
+    },
     "TotalActualHours":{"type":"string"},
     "TotalActualUnits":{"type":"string"},
     "TotalAmortizedFee":{"type":"string"},
     "TotalPotentialRISavings":{"type":"string"},
     "TotalRunningHours":{"type":"string"},
     "TotalRunningNormalizedUnits":{"type":"string"},
+    "UnresolvableUsageUnitException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Cost Explorer was unable to identify the usage unit. Provide <code>UsageType/UsageTypeGroup</code> filter selections that contain matching units, for example: <code>hours</code>.</p>",
+      "exception":true
+    },
     "UnusedHours":{"type":"string"},
     "UnusedUnits":{"type":"string"},
     "UtilizationByTime":{

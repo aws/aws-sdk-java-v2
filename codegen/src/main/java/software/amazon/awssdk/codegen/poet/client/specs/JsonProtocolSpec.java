@@ -45,7 +45,6 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
 import software.amazon.awssdk.protocols.ion.AwsIonProtocolFactory;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
@@ -122,7 +121,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock responseHandler(IntermediateModel model, OperationModel opModel) {
-        TypeName pojoResponseType = getPojoResponseType(opModel);
+        TypeName pojoResponseType = getPojoResponseType(opModel, poetExtensions);
 
         String protocolFactory = protocolFactoryLiteral(model, opModel);
         CodeBlock.Builder builder = CodeBlock.builder();
@@ -156,7 +155,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock executionHandler(OperationModel opModel) {
-        TypeName responseType = getPojoResponseType(opModel);
+        TypeName responseType = getPojoResponseType(opModel, poetExtensions);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
@@ -180,9 +179,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
-                     .add(".withMarshaller(new $T(new $T(protocolFactory), requestBody))",
-                          ParameterizedTypeName.get(ClassName.get(StreamingRequestMarshaller.class), requestType),
-                          marshaller);
+                     .add(".withMarshaller($L)", syncStreamingMarshaller(model, opModel, marshaller));
         } else {
             codeBlock.add(".withMarshaller(new $T(protocolFactory))", marshaller);
         }
@@ -194,7 +191,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
     @Override
     public CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
         boolean isRestJson = isRestJson(intermediateModel);
-        TypeName pojoResponseType = getPojoResponseType(opModel);
+        TypeName pojoResponseType = getPojoResponseType(opModel, poetExtensions);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
@@ -233,11 +230,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         TypeName responseType = opModel.hasEventStreamOutput() && !isRestJson ? ClassName.get(SdkResponse.class)
                                                                               : pojoResponseType;
-        TypeName executeFutureValueType = executeFutureValueType(opModel);
+        TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
 
         builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n" +
                     ".withOperationName(\"$N\")\n" +
-                    ".withMarshaller(new $T($L))\n" +
+                    ".withMarshaller($L)\n" +
                     "$L" +
                     "$L" +
                     ".withResponseHandler($L)\n" +
@@ -252,8 +249,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     requestType,
                     responseType,
                     opModel.getOperationName(),
-                    marshaller,
-                    protocolFactory,
+                    asyncMarshaller(model, opModel, marshaller, protocolFactory),
                     opModel.hasEventStreamInput() ? CodeBlock.builder()
                                                              .add(".withAsyncRequestBody($T.fromPublisher(adapted))",
                                                                   AsyncRequestBody.class)
@@ -332,20 +328,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     /**
-     * Need to notify the response handler/response transformer if the future is completed exceptionally.
-     *
-     * @param responseHandlerName Variable name of response handler customer passed in.
-     * @return whenComplete to append to future.
-     */
-    private String streamingOutputWhenComplete(String responseHandlerName) {
-        return String.format(".whenComplete((r, e) -> {%n"
-                             + "     if (e != null) {%n"
-                             + "         %s.exceptionOccurred(e);%n"
-                             + "     }%n"
-                             + "})", responseHandlerName);
-    }
-
-    /**
      * For event streaming our future notification is a bit complicated. We create a different future that is not tied
      * to the lifecycle of the wire request. Successful completion of the future is signalled in
      * {@link EventStreamAsyncResponseTransformer}. Failure is notified via the normal future (the one returned by the client
@@ -366,14 +348,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                              + "})", responseHandlerName);
     }
 
-    /**
-     * Gets the POJO response type for the operation.
-     *
-     * @param opModel Operation to get response type for.
-     */
-    private TypeName getPojoResponseType(OperationModel opModel) {
-        return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
-    }
+
 
     @Override
     public Optional<MethodSpec> createErrorResponseHandler() {
@@ -460,15 +435,5 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private boolean isRestJson(IntermediateModel model) {
         return Protocol.REST_JSON.equals(model.getMetadata().getProtocol());
-    }
-
-    private TypeName executeFutureValueType(OperationModel opModel) {
-        if (opModel.hasEventStreamOutput()) {
-            return ClassName.get(Void.class);
-        } else if (opModel.hasStreamingOutput()) {
-            return TypeVariableName.get("ReturnT");
-        } else {
-            return getPojoResponseType(opModel);
-        }
     }
 }

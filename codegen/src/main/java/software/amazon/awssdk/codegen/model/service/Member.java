@@ -29,6 +29,8 @@ public class Member {
 
     private boolean streaming;
 
+    private boolean requiresLength;
+
     private String documentation;
 
     private String queryName;
@@ -95,6 +97,14 @@ public class Member {
 
     public void setStreaming(boolean streaming) {
         this.streaming = streaming;
+    }
+
+    public boolean isRequiresLength() {
+        return requiresLength;
+    }
+
+    public void setRequiresLength(boolean requiresLength) {
+        this.requiresLength = requiresLength;
     }
 
     public String getDocumentation() {

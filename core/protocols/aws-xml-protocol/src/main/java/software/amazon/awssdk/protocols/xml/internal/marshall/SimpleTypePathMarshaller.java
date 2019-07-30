@@ -37,7 +37,7 @@ public final class SimpleTypePathMarshaller {
      * so that it preserves the path structure.
      */
     public static final XmlMarshaller<String> GREEDY_STRING =
-        new SimplePathMarshaller<>(ValueToStringConverter.FROM_STRING, PathMarshaller.GREEDY);
+        new SimplePathMarshaller<>(ValueToStringConverter.FROM_STRING, PathMarshaller.GREEDY_WITH_SLASHES);
 
     public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
         throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
