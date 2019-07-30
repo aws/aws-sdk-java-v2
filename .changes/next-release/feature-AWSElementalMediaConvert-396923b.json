@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "description": "MediaConvert adds support for specifying priority (-50 to 50) on jobs submitted to on demand or reserved queues"
-}
