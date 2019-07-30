@@ -84,5 +84,7 @@ public final class ProfileProperty {
      */
     public static final String CREDENTIAL_PROCESS = "credential_process";
 
+    public static final String WEB_IDENTITY_TOKEN_FILE = "web_identity_token_file";
+
     private ProfileProperty() {}
 }
