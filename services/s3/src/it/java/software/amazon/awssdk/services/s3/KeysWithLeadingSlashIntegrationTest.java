@@ -14,9 +14,11 @@
  */
 package software.amazon.awssdk.services.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.charset.StandardCharsets;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -33,11 +35,16 @@ public class KeysWithLeadingSlashIntegrationTest extends S3IntegrationTestBase {
         createBucket(BUCKET);
     }
 
+    @AfterClass
+    public static void cleanup() {
+        deleteBucketAndAllContents(BUCKET);
+    }
+
     @Test
     public void putObject_KeyWithLeadingSlash_Succeeds() {
         s3.putObject(r -> r.bucket(BUCKET).key(KEY), RequestBody.fromBytes(CONTENT));
         String retrievedKey = s3.listObjects(r -> r.bucket(BUCKET)).contents().get(0).key();
 
-        assert(retrievedKey).equals(KEY);
+        assertThat(retrievedKey).isEqualTo(KEY);
     }
 }
