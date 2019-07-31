@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/aws/aws-sdk-java-v2.svg?branch=master)](https://travis-ci.org/aws/aws-sdk-java-v2) ![Build Status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTFJSRXBBN1hkU1ZEQzZ4M1hoaWlFUExuNER3WjNpVllSQ09Qam1YdFlTSDNTd3RpZzNia3F0VkJRUTBwZlQwR1BEelpSV2dWVnp4YTBCOFZKRzRUR004PSIsIml2UGFyYW1ldGVyU3BlYyI6ImdHdEp1UHhKckpDRmhmQU4iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
 [![Maven](https://img.shields.io/maven-central/v/software.amazon.awssdk/s3.svg?label=Maven)](https://search.maven.org/search?q=g:%22software.amazon.awssdk%22%20AND%20a:%22s3%22)
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
+[![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
 it enables you to easily work with [Amazon Web Services][aws] but also includes features like
@@ -37,35 +38,6 @@ section of the developer guide.
 
 The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. 
 
-#### Whole SDK ####
-
-You can import the whole SDK into your project (includes all services) as follows:
-
-```xml
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>aws-sdk-java</artifactId>
-  <version>2.5.31</version>
-</dependency>
-```
-
-#### Individual Services ####
-
-Alternatively you can add dependencies for the specific services you use only:
-
-```xml
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>ec2</artifactId>
-  <version>2.5.31</version>
-</dependency>
-<dependency>
-  <groupId>software.amazon.awssdk</groupId>
-  <artifactId>s3</artifactId>
-  <version>2.5.31</version>
-</dependency>
-```
-
 #### Importing the BOM ####
 
 To automatically manage module versions (currently all modules have the same version, but this may not always be the case) we recommend you use the [Bill of Materials][bom] import as follows:
@@ -76,7 +48,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.5.31</version>
+      <version>2.7.15</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -101,6 +73,34 @@ Then individual models may omit the `version` from their dependency statement:
     <artifactId>dynamodb</artifactId>
   </dependency>
 </dependencies>
+```
+#### Individual Services ####
+
+Alternatively you can add dependencies for the specific services you use only:
+
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>ec2</artifactId>
+  <version>2.7.15</version>
+</dependency>
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>s3</artifactId>
+  <version>2.7.15</version>
+</dependency>
+```
+
+#### Whole SDK ####
+
+You can import the whole SDK into your project (includes *ALL* services). Please note that it is recommended to only import the modules you need.
+
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>aws-sdk-java</artifactId>
+  <version>2.7.15</version>
+</dependency>
 ```
 
 See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide for more usage information.

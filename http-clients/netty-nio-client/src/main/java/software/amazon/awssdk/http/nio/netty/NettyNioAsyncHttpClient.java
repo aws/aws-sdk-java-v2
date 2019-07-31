@@ -203,6 +203,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * The amount of time to wait for a read on a socket before an exception is thrown.
+         * Specify {@code Duration.ZERO} to disable.
          *
          * @param readTimeout timeout duration
          * @return this builder for method chaining.
@@ -211,6 +212,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * The amount of time to wait for a write on a socket before an exception is thrown.
+         * Specify {@code Duration.ZERO} to disable.
          *
          * @param writeTimeout timeout duration
          * @return this builder for method chaining.
@@ -383,7 +385,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder readTimeout(Duration readTimeout) {
-            Validate.isPositive(readTimeout, "readTimeout");
+            Validate.isNotNegative(readTimeout, "readTimeout");
             standardOptions.put(READ_TIMEOUT, readTimeout);
             return this;
         }
@@ -394,7 +396,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
-            Validate.isPositive(writeTimeout, "writeTimeout");
+            Validate.isNotNegative(writeTimeout, "writeTimeout");
             standardOptions.put(WRITE_TIMEOUT, writeTimeout);
             return this;
         }

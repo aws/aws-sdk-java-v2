@@ -694,6 +694,18 @@
         }
       }
     },
+    "BucketKeyExpression":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^[a-zA-Z0-9!_.*'()/{}:-]*$"
+    },
+    "BucketName":{
+      "type":"string",
+      "max":255,
+      "min":3,
+      "pattern":"^[a-zA-Z0-9.\\-_]*$"
+    },
     "CancelPipelineReprocessingRequest":{
       "type":"structure",
       "required":[
@@ -726,6 +738,10 @@
         "name":{
           "shape":"ChannelName",
           "documentation":"<p>The name of the channel.</p>"
+        },
+        "storage":{
+          "shape":"ChannelStorage",
+          "documentation":"<p>Where channel data is stored.</p>"
         },
         "arn":{
           "shape":"ChannelArn",
@@ -797,6 +813,34 @@
         "DELETING"
       ]
     },
+    "ChannelStorage":{
+      "type":"structure",
+      "members":{
+        "serviceManagedS3":{
+          "shape":"ServiceManagedChannelS3Storage",
+          "documentation":"<p>Use this to store channel data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+        },
+        "customerManagedS3":{
+          "shape":"CustomerManagedChannelS3Storage",
+          "documentation":"<p>Use this to store channel data in an S3 bucket that you manage.</p>"
+        }
+      },
+      "documentation":"<p>Where channel data is stored.</p>"
+    },
+    "ChannelStorageSummary":{
+      "type":"structure",
+      "members":{
+        "serviceManagedS3":{
+          "shape":"ServiceManagedChannelS3StorageSummary",
+          "documentation":"<p>Used to store channel data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+        },
+        "customerManagedS3":{
+          "shape":"CustomerManagedChannelS3StorageSummary",
+          "documentation":"<p>Used to store channel data in an S3 bucket that you manage.</p>"
+        }
+      },
+      "documentation":"<p>Where channel data is stored.</p>"
+    },
     "ChannelSummaries":{
       "type":"list",
       "member":{"shape":"ChannelSummary"}
@@ -807,6 +851,10 @@
         "channelName":{
           "shape":"ChannelName",
           "documentation":"<p>The name of the channel.</p>"
+        },
+        "channelStorage":{
+          "shape":"ChannelStorageSummary",
+          "documentation":"<p>Where channel data is stored.</p>"
         },
         "status":{
           "shape":"ChannelStatus",
@@ -864,6 +912,10 @@
         "channelName":{
           "shape":"ChannelName",
           "documentation":"<p>The name of the channel.</p>"
+        },
+        "channelStorage":{
+          "shape":"ChannelStorage",
+          "documentation":"<p>Where channel data is stored.</p>"
         },
         "retentionPeriod":{
           "shape":"RetentionPeriod",
@@ -975,6 +1027,10 @@
           "shape":"DatastoreName",
           "documentation":"<p>The name of the data store.</p>"
         },
+        "datastoreStorage":{
+          "shape":"DatastoreStorage",
+          "documentation":"<p>Where data store data is stored.</p>"
+        },
         "retentionPeriod":{
           "shape":"RetentionPeriod",
           "documentation":"<p>How long, in days, message data is kept for the data store.</p>"
@@ -1035,6 +1091,86 @@
           "documentation":"<p>The ARN of the pipeline.</p>"
         }
       }
+    },
+    "CustomerManagedChannelS3Storage":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "roleArn"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket in which channel data is stored.</p>"
+        },
+        "keyPrefix":{
+          "shape":"S3KeyPrefix",
+          "documentation":"<p>The prefix used to create the keys of the channel data objects. Each object in an Amazon S3 bucket has a key that is its unique identifier within the bucket (each object in a bucket has exactly one key).</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the role which grants AWS IoT Analytics permission to interact with your Amazon S3 resources.</p>"
+        }
+      },
+      "documentation":"<p>Use this to store channel data in an S3 bucket that you manage.</p>"
+    },
+    "CustomerManagedChannelS3StorageSummary":{
+      "type":"structure",
+      "members":{
+        "bucket":{
+          "shape":"BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket in which channel data is stored.</p>"
+        },
+        "keyPrefix":{
+          "shape":"S3KeyPrefix",
+          "documentation":"<p>The prefix used to create the keys of the channel data objects. Each object in an Amazon S3 bucket has a key that is its unique identifier within the bucket (each object in a bucket has exactly one key).</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the role which grants AWS IoT Analytics permission to interact with your Amazon S3 resources.</p>"
+        }
+      },
+      "documentation":"<p>Used to store channel data in an S3 bucket that you manage.</p>"
+    },
+    "CustomerManagedDatastoreS3Storage":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "roleArn"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket in which data store data is stored.</p>"
+        },
+        "keyPrefix":{
+          "shape":"S3KeyPrefix",
+          "documentation":"<p>The prefix used to create the keys of the data store data objects. Each object in an Amazon S3 bucket has a key that is its unique identifier within the bucket (each object in a bucket has exactly one key).</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the role which grants AWS IoT Analytics permission to interact with your Amazon S3 resources.</p>"
+        }
+      },
+      "documentation":"<p>Use this to store data store data in an S3 bucket that you manage.</p>"
+    },
+    "CustomerManagedDatastoreS3StorageSummary":{
+      "type":"structure",
+      "members":{
+        "bucket":{
+          "shape":"BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket in which data store data is stored.</p>"
+        },
+        "keyPrefix":{
+          "shape":"S3KeyPrefix",
+          "documentation":"<p>The prefix used to create the keys of the data store data objects. Each object in an Amazon S3 bucket has a key that is its unique identifier within the bucket (each object in a bucket has exactly one key).</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the role which grants AWS IoT Analytics permission to interact with your Amazon S3 resources.</p>"
+        }
+      },
+      "documentation":"<p>Used to store data store data in an S3 bucket that you manage.</p>"
     },
     "Dataset":{
       "type":"structure",
@@ -1124,7 +1260,7 @@
           "documentation":"<p>The type of action by which the data set's contents are automatically created.</p>"
         }
       },
-      "documentation":"<p/>"
+      "documentation":"<p>Information about the action which automatically creates the data set's contents.</p>"
     },
     "DatasetActionType":{
       "type":"string",
@@ -1146,6 +1282,10 @@
         "iotEventsDestinationConfiguration":{
           "shape":"IotEventsDestinationConfiguration",
           "documentation":"<p>Configuration information for delivery of data set contents to AWS IoT Events.</p>"
+        },
+        "s3DestinationConfiguration":{
+          "shape":"S3DestinationConfiguration",
+          "documentation":"<p>Configuration information for delivery of data set contents to Amazon S3.</p>"
         }
       },
       "documentation":"<p>The destination to which data set contents are delivered.</p>"
@@ -1328,6 +1468,10 @@
           "shape":"DatastoreName",
           "documentation":"<p>The name of the data store.</p>"
         },
+        "storage":{
+          "shape":"DatastoreStorage",
+          "documentation":"<p>Where data store data is stored.</p>"
+        },
         "arn":{
           "shape":"DatastoreArn",
           "documentation":"<p>The ARN of the data store.</p>"
@@ -1394,6 +1538,34 @@
         "DELETING"
       ]
     },
+    "DatastoreStorage":{
+      "type":"structure",
+      "members":{
+        "serviceManagedS3":{
+          "shape":"ServiceManagedDatastoreS3Storage",
+          "documentation":"<p>Use this to store data store data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+        },
+        "customerManagedS3":{
+          "shape":"CustomerManagedDatastoreS3Storage",
+          "documentation":"<p>Use this to store data store data in an S3 bucket that you manage.</p>"
+        }
+      },
+      "documentation":"<p>Where data store data is stored.</p>"
+    },
+    "DatastoreStorageSummary":{
+      "type":"structure",
+      "members":{
+        "serviceManagedS3":{
+          "shape":"ServiceManagedDatastoreS3StorageSummary",
+          "documentation":"<p>Used to store data store data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+        },
+        "customerManagedS3":{
+          "shape":"CustomerManagedDatastoreS3StorageSummary",
+          "documentation":"<p>Used to store data store data in an S3 bucket that you manage.</p>"
+        }
+      },
+      "documentation":"<p>Where data store data is stored.</p>"
+    },
     "DatastoreSummaries":{
       "type":"list",
       "member":{"shape":"DatastoreSummary"}
@@ -1404,6 +1576,10 @@
         "datastoreName":{
           "shape":"DatastoreName",
           "documentation":"<p>The name of the data store.</p>"
+        },
+        "datastoreStorage":{
+          "shape":"DatastoreStorageSummary",
+          "documentation":"<p>Where data store data is stored.</p>"
         },
         "status":{
           "shape":"DatastoreStatus",
@@ -1766,6 +1942,36 @@
           "documentation":"<p>The status of the data set content.</p>"
         }
       }
+    },
+    "GlueConfiguration":{
+      "type":"structure",
+      "required":[
+        "tableName",
+        "databaseName"
+      ],
+      "members":{
+        "tableName":{
+          "shape":"GlueTableName",
+          "documentation":"<p>The name of the table in your AWS Glue Data Catalog which is used to perform the ETL (extract, transform and load) operations. (An AWS Glue Data Catalog table contains partitioned data and descriptions of data sources and targets.)</p>"
+        },
+        "databaseName":{
+          "shape":"GlueDatabaseName",
+          "documentation":"<p>The name of the database in your AWS Glue Data Catalog in which the table is located. (An AWS Glue Data Catalog database contains Glue Data tables.)</p>"
+        }
+      },
+      "documentation":"<p>Configuration information for coordination with the AWS Glue ETL (extract, transform and load) service.</p>"
+    },
+    "GlueDatabaseName":{
+      "type":"string",
+      "max":150,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
+    },
+    "GlueTableName":{
+      "type":"string",
+      "max":150,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
     "Image":{
       "type":"string",
@@ -2473,6 +2679,39 @@
         }
       }
     },
+    "S3DestinationConfiguration":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "key",
+        "roleArn"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket to which data set contents are delivered.</p>"
+        },
+        "key":{
+          "shape":"BucketKeyExpression",
+          "documentation":"<p>The key of the data set contents object. Each object in an Amazon S3 bucket has a key that is its unique identifier within the bucket (each object in a bucket has exactly one key).</p>"
+        },
+        "glueConfiguration":{
+          "shape":"GlueConfiguration",
+          "documentation":"<p>Configuration information for coordination with the AWS Glue ETL (extract, transform and load) service.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the role which grants AWS IoT Analytics permission to interact with your Amazon S3 and AWS Glue resources.</p>"
+        }
+      },
+      "documentation":"<p>Configuration information for delivery of data set contents to Amazon S3.</p>"
+    },
+    "S3KeyPrefix":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^[a-zA-Z0-9!_.*'()/{}:-]*/$"
+    },
     "SampleChannelDataRequest":{
       "type":"structure",
       "required":["channelName"],
@@ -2544,6 +2783,30 @@
         }
       },
       "documentation":"<p>Creates a new message using only the specified attributes from the original message.</p>"
+    },
+    "ServiceManagedChannelS3Storage":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Use this to store channel data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+    },
+    "ServiceManagedChannelS3StorageSummary":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Used to store channel data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+    },
+    "ServiceManagedDatastoreS3Storage":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Use this to store data store data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
+    },
+    "ServiceManagedDatastoreS3StorageSummary":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Used to store data store data in an S3 bucket managed by the AWS IoT Analytics service.</p>"
     },
     "ServiceUnavailableException":{
       "type":"structure",
@@ -2731,6 +2994,10 @@
           "location":"uri",
           "locationName":"channelName"
         },
+        "channelStorage":{
+          "shape":"ChannelStorage",
+          "documentation":"<p>Where channel data is stored.</p>"
+        },
         "retentionPeriod":{
           "shape":"RetentionPeriod",
           "documentation":"<p>How long, in days, message data is kept for the channel.</p>"
@@ -2785,6 +3052,10 @@
         "retentionPeriod":{
           "shape":"RetentionPeriod",
           "documentation":"<p>How long, in days, message data is kept for the data store.</p>"
+        },
+        "datastoreStorage":{
+          "shape":"DatastoreStorage",
+          "documentation":"<p>Where data store data is stored.</p>"
         }
       }
     },
@@ -2857,7 +3128,8 @@
           "shape":"MaxVersions",
           "documentation":"<p>How many versions of data set contents will be kept. The \"unlimited\" parameter must be false.</p>"
         }
-      }
+      },
+      "documentation":"<p>Information about the versioning of data set contents.</p>"
     },
     "VolumeSizeInGB":{
       "type":"integer",

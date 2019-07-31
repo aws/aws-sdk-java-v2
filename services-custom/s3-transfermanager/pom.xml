@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.5.32-SNAPSHOT</version>
+        <version>2.7.16-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>s3-transfermanager</artifactId>
@@ -35,6 +35,7 @@
 
     <properties>
         <jre.version>1.8</jre.version>
+        <java-sdk-v2.version>2.7.16-SNAPSHOT</java-sdk-v2.version>
     </properties>
 
     <dependencyManagement>
@@ -42,7 +43,7 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom-internal</artifactId>
-                <version>2.5.32-SNAPSHOT</version>
+                <version>${java-sdk-v2.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -53,44 +54,44 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-core</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>regions</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>utils</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
         </dependency>
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>service-test-utils</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
-            <version>2.5.32-SNAPSHOT</version>
+            <version>${java-sdk-v2.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

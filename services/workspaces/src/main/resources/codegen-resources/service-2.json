@@ -47,6 +47,25 @@
       ],
       "documentation":"<p>Adds one or more rules to the specified IP access control group.</p> <p>This action gives users permission to access their WorkSpaces from the CIDR address ranges specified in the rules.</p>"
     },
+    "CopyWorkspaceImage":{
+      "name":"CopyWorkspaceImage",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CopyWorkspaceImageRequest"},
+      "output":{"shape":"CopyWorkspaceImageResult"},
+      "errors":[
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceUnavailableException"},
+        {"shape":"OperationNotSupportedException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValuesException"}
+      ],
+      "documentation":"<p>Copies the specified image from the specified Region to the current Region.</p>"
+    },
     "CreateIpGroup":{
       "name":"CreateIpGroup",
       "http":{
@@ -136,7 +155,7 @@
         {"shape":"InvalidResourceStateException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Deletes the specified image from your account. To delete an image, you must first delete any bundles that are associated with the image. </p>"
+      "documentation":"<p>Deletes the specified image from your account. To delete an image, you must first delete any bundles that are associated with the image and un-share the image if it is shared with other accounts. </p>"
     },
     "DescribeAccount":{
       "name":"DescribeAccount",
@@ -384,7 +403,7 @@
         {"shape":"InvalidResourceStateException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Sets the state of the specified WorkSpace.</p> <p>To maintain a WorkSpace without being interrupted, set the WorkSpace state to <code>ADMIN_MAINTENANCE</code>. WorkSpaces in this state do not respond to requests to reboot, stop, start, or rebuild. An AutoStop WorkSpace in this state is not stopped. Users can log into a WorkSpace in the <code>ADMIN_MAINTENANCE</code> state.</p>"
+      "documentation":"<p>Sets the state of the specified WorkSpace.</p> <p>To maintain a WorkSpace without being interrupted, set the WorkSpace state to <code>ADMIN_MAINTENANCE</code>. WorkSpaces in this state do not respond to requests to reboot, stop, start, rebuild, or restore. An AutoStop WorkSpace in this state is not stopped. Users cannot log into a WorkSpace in the <code>ADMIN_MAINTENANCE</code> state.</p>"
     },
     "RebootWorkspaces":{
       "name":"RebootWorkspaces",
@@ -517,7 +536,6 @@
       "type":"list",
       "member":{"shape":"AccountModification"}
     },
-    "AdditionalInfo":{"type":"string"},
     "Alias":{"type":"string"},
     "AssociateIpGroupsRequest":{
       "type":"structure",
@@ -637,6 +655,45 @@
         "DISCONNECTED",
         "UNKNOWN"
       ]
+    },
+    "CopyWorkspaceImageRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "SourceImageId",
+        "SourceRegion"
+      ],
+      "members":{
+        "Name":{
+          "shape":"WorkspaceImageName",
+          "documentation":"<p>The name of the image.</p>"
+        },
+        "Description":{
+          "shape":"WorkspaceImageDescription",
+          "documentation":"<p>A description of the image.</p>"
+        },
+        "SourceImageId":{
+          "shape":"WorkspaceImageId",
+          "documentation":"<p>The identifier of the source image.</p>"
+        },
+        "SourceRegion":{
+          "shape":"Region",
+          "documentation":"<p>The identifier of the source Region.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags for the image.</p>"
+        }
+      }
+    },
+    "CopyWorkspaceImageResult":{
+      "type":"structure",
+      "members":{
+        "ImageId":{
+          "shape":"WorkspaceImageId",
+          "documentation":"<p>The identifier of the image.</p>"
+        }
+      }
     },
     "CreateIpGroupRequest":{
       "type":"structure",
@@ -1548,10 +1605,6 @@
         "RebuildWorkspaceRequests":{
           "shape":"RebuildWorkspaceRequests",
           "documentation":"<p>The WorkSpace to rebuild. You can specify a single WorkSpace.</p>"
-        },
-        "AdditionalInfo":{
-          "shape":"AdditionalInfo",
-          "documentation":"<p>Reserved.</p>"
         }
       }
     },
@@ -1570,6 +1623,12 @@
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "Region":{
+      "type":"string",
+      "max":31,
+      "min":1,
+      "pattern":"^[-0-9a-z]{1,31}$"
     },
     "RegistrationCode":{
       "type":"string",

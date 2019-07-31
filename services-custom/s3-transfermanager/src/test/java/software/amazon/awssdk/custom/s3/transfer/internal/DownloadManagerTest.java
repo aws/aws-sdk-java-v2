@@ -433,7 +433,15 @@ public class DownloadManagerTest {
         dm.downloadObject(downloadRequest, transformerCreator).completionFuture().join();
 
         verify(transformerCreator, times(expectedContexts.length)).transformerForObjectPart(any(MultipartDownloadContext.class));
-        assertThat(createdContexts).containsExactlyInAnyOrder(expectedContexts);
+
+        for (int i = 0; i < createdContexts.size(); i++) {
+            MultipartDownloadContext expected = expectedContexts[i];
+            MultipartDownloadContext actualContext = createdContexts.get(i);
+            assertThat(expected).isEqualToIgnoringGivenFields(actualContext, "partDownloadSpecification", "downloadRequest");
+            assertThat(expected.partDownloadSpecification().asApiRequest().equalsBySdkFields(actualContext.partDownloadSpecification().asApiRequest())).isTrue();
+            assertThat(expected.downloadRequest()).isEqualTo(actualContext.downloadRequest());
+        }
+
         for (ContextAndTransformerPair pair : contextAndTransformerPairs) {
             verify(s3Client).getObject(any(GetObjectRequest.class), eq(pair.transformer));
         }

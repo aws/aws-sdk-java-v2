@@ -1,0 +1,16 @@
+{
+    "date": "2019-04-29",
+    "version": "2.5.33",
+    "entries": [
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "Adds support for Elastic Fabric Adapter (EFA) ENIs."
+        },
+        {
+            "category": "AWS Transfer for SFTP",
+            "type": "feature",
+            "description": "This release adds support for per-server host-key management. You can now specify the SSH RSA private key used by your SFTP server."
+        }
+    ]
+}

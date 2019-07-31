@@ -195,7 +195,9 @@ class ShapeModelSpec {
     }
 
     private CodeBlock createLocationTrait(MemberModel m) {
+        MarshallLocation marshallLocation = marshallLocation(m);
         String unmarshallLocation = unmarshallLocation(m);
+
         return CodeBlock.builder()
                         // TODO will marshall and unmarshall location name ever differ?
                         .add("$T.builder()\n"
@@ -203,8 +205,19 @@ class ShapeModelSpec {
                              + ".locationName($S)\n"
                              + unmarshallLocation
                              + ".build()", ClassName.get(LocationTrait.class), ClassName.get(MarshallLocation.class),
-                             m.getHttp().getMarshallLocation(), m.getHttp().getMarshallLocationName())
+                             marshallLocation, m.getHttp().getMarshallLocationName())
                         .build();
+    }
+
+    private MarshallLocation marshallLocation(MemberModel m) {
+        // Handle events explicitly
+        if (m.isEventHeader()) {
+            return MarshallLocation.HEADER;
+        }
+        if (m.isEventPayload()) {
+            return MarshallLocation.PAYLOAD;
+        }
+        return m.getHttp().getMarshallLocation();
     }
 
     // Rest xml uses unmarshall locationName to properly unmarshall flattened lists

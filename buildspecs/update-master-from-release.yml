@@ -1,6 +1,10 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      java: "$JAVA_RUNTIME"
+
   pre_build:
     commands:
     - git config --global user.name "AWS"

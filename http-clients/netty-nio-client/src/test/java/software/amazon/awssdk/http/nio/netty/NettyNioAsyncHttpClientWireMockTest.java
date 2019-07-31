@@ -618,6 +618,18 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
     }
 
+    @Test
+    public void createNettyClient_ReadWriteTimeoutCanBeZero() throws Exception {
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                .readTimeout(Duration.ZERO)
+                .writeTimeout(Duration.ZERO)
+                .build();
+
+        makeSimpleRequest(customClient);
+
+        customClient.close();
+    }
+
     private void verifyChannelRelease(Channel channel) throws InterruptedException {
         Thread.sleep(1000);
         assertThat(channel.attr(AttributeKey.valueOf("channelPool")).get()).isNull();

@@ -242,11 +242,11 @@ public class SyncClientClass implements ClassSpec {
         Protocol protocol = model.getMetadata().getProtocol();
         switch (protocol) {
             case QUERY:
-                return new QueryProtocolSpec(poetExtensions);
+                return new QueryProtocolSpec(model, poetExtensions);
             case REST_XML:
                 return new XmlProtocolSpec(model, poetExtensions);
             case EC2:
-                return new Ec2ProtocolSpec(poetExtensions);
+                return new Ec2ProtocolSpec(model, poetExtensions);
             case AWS_JSON:
             case REST_JSON:
             case CBOR:

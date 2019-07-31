@@ -1,0 +1,21 @@
+{
+    "date": "2019-05-23",
+    "version": "2.5.50",
+    "entries": [
+        {
+            "category": "AWS WAF Regional",
+            "type": "feature",
+            "description": "Documentation updates for waf-regional"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Updated aws-java-sdk and bom modules to include ALL service modules."
+        },
+        {
+            "category": "Amazon Elastic Compute Cloud",
+            "type": "feature",
+            "description": "New APIs to enable EBS encryption by default feature. Once EBS encryption by default is enabled in a region within the account, all new EBS volumes and snapshot copies are always encrypted"
+        }
+    ]
+}
