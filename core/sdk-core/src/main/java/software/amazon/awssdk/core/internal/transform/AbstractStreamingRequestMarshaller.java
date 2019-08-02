@@ -57,6 +57,11 @@ public abstract class AbstractStreamingRequestMarshaller<T> implements Marshalle
                                     boolean requiresLength,
                                     boolean transferEncoding,
                                     boolean useHttp2) {
+
+        if (marshalled.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
+            return;
+        }
+
         if (contentLength.isPresent()) {
             marshalled.putHeader(CONTENT_LENGTH, Long.toString(contentLength.get()));
             return;
