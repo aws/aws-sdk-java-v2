@@ -43,6 +43,21 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_SESSION_TOKEN("aws.sessionToken", null),
 
     /**
+     * Configure the AWS web identity token file path.
+     */
+    AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
+
+    /**
+     * Configure the AWS role arn.
+     */
+    AWS_ROLE_ARN("aws.roleArn", null),
+
+    /**
+     * Configure the session name for a role.
+     */
+    AWS_ROLE_SESSION_NAME("aws.roleSessionName", null),
+
+    /**
      * Configure the default region.
      */
     AWS_REGION("aws.region", null),
