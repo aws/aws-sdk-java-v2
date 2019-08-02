@@ -1,3 +1,12 @@
+# __2.7.16__ __2019-08-02__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix the issue where the `content-length` set on the request is not honored for streaming operations.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for sts
+
 # __2.7.15__ __2019-07-30__
 ## __AWS Elemental MediaConvert__
   - ### Features
