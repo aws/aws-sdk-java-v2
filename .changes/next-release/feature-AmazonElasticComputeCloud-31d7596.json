@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "Amazon EC2 now supports a new Spot allocation strategy \"Capacity-optimized\" that fulfills your request using Spot Instance pools that are optimally chosen based on the available Spot capacity."
-}
