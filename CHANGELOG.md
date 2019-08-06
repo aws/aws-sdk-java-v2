@@ -1,3 +1,8 @@
+# __2.7.18__ __2019-08-06__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates for AWS Batch
+
 # __2.7.17__ __2019-08-05__
 ## __AWS DataSync__
   - ### Features
