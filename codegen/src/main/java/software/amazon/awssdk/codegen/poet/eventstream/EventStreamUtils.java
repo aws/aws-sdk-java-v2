@@ -161,4 +161,20 @@ public class EventStreamUtils {
         return doesShapeContainsEventStream(opModel.getInputShape(), eventStreamShape) ||
                doesShapeContainsEventStream(opModel.getOutputShape(), eventStreamShape);
     }
+
+    /**
+     * @return true if the provide model is a request/response shape model that contains event stream shape.
+     * Otherwise return false.
+     */
+    public static boolean isEventStreamParentModel(ShapeModel shapeModel) {
+        return containsEventStream(shapeModel);
+    }
+
+    private static boolean containsEventStream(ShapeModel shapeModel) {
+        return shapeModel != null
+               && shapeModel.getMembers() != null
+               && shapeModel.getMembers().stream()
+                            .filter(m -> m.getShape() != null)
+                            .anyMatch(m -> m.getShape().isEventStream());
+    }
 }
