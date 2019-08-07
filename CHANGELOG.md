@@ -1,3 +1,8 @@
+# __2.7.19__ __2019-08-07__
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - CloudWatch Application Insights for .NET and SQL Server now provides integration with AWS Systems Manager OpsCenter. This integration allows you to view and resolve problems and operational issues detected for selected applications.
+
 # __2.7.18__ __2019-08-06__
 ## __AWS Batch__
   - ### Features
