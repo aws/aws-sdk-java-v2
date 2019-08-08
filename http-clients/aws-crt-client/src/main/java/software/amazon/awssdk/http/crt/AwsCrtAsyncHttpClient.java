@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -25,11 +27,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.crt.http.HttpConnection;
+import software.amazon.awssdk.crt.http.HttpConnectionPoolManager;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.http.HttpRequestOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
@@ -59,23 +61,26 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB Total Buffer size
     private static final int DEFAULT_HTTP_BODY_UPDATE_SIZE = 4 * 1024 * 1024; // 4 MB Update size from Native
 
-    private final Map<URI, HttpConnection> connections = new ConcurrentHashMap<>();
+    private final Map<URI, HttpConnectionPoolManager> connectionPools = new ConcurrentHashMap<>();
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
     private final TlsContext tlsContext;
     private final int windowSize;
+    private final int maxConnectionsPerEndpoint;
     private final int httpBodyUpdateSize;
 
-    public AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
-        this(builder.bootstrap, builder.socketOptions, builder.tlsContext, builder.windowSize, builder.httpBodyUpdateSize);
+    public AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
+        this(builder.bootstrap, builder.socketOptions, builder.tlsContext, builder.windowSize,
+                config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS), builder.httpBodyUpdateSize);
     }
 
     public AwsCrtAsyncHttpClient(ClientBootstrap bootstrap, SocketOptions sockOpts, TlsContext tlsContext) {
-        this(bootstrap, sockOpts, tlsContext, DEFAULT_STREAM_WINDOW_SIZE, DEFAULT_HTTP_BODY_UPDATE_SIZE);
+        this(bootstrap, sockOpts, tlsContext, DEFAULT_STREAM_WINDOW_SIZE, GLOBAL_HTTP_DEFAULTS.get(MAX_CONNECTIONS),
+                DEFAULT_HTTP_BODY_UPDATE_SIZE);
     }
 
     public AwsCrtAsyncHttpClient(ClientBootstrap bootstrap, SocketOptions sockOpts, TlsContext tlsContext,
-                                 int windowSize, int httpBodyUpdateSize) {
+                                 int windowSize, int maxConns, int httpBodyUpdateSize) {
         Validate.notNull(bootstrap, "ClientBootstrap must not be null");
         Validate.notNull(sockOpts, "SocketOptions must not be null");
         Validate.notNull(tlsContext, "TlsContext must not be null");
@@ -85,6 +90,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         this.socketOptions = sockOpts;
         this.tlsContext = tlsContext;
         this.windowSize = windowSize;
+        this.maxConnectionsPerEndpoint = maxConns;
         this.httpBodyUpdateSize = httpBodyUpdateSize;
     }
 
@@ -103,38 +109,30 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return AWS_COMMON_RUNTIME;
     }
 
-    private HttpConnection createConnection(URI uri) {
+    private HttpConnectionPoolManager createConnectionPool(URI uri) {
         Validate.notNull(uri, "URI must not be null");
-        log.debug(() -> "Creating Connection to: " + uri);
-        return invokeSafely(() -> HttpConnection.createConnection(uri, bootstrap, socketOptions, tlsContext,
-                                                                    windowSize, httpBodyUpdateSize).get());
+        log.debug(() -> "Creating ConnectionPool for: " + uri);
+        return new HttpConnectionPoolManager(bootstrap, socketOptions, tlsContext, uri, windowSize, maxConnectionsPerEndpoint);
     }
 
-    private HttpConnection getOrCreateConnection(URI uri) {
+    private HttpConnectionPoolManager getOrCreateConnectionPool(URI uri) {
         Validate.notNull(uri, "URI must not be null");
-        HttpConnection connToReturn = connections.get(uri);
+        HttpConnectionPoolManager connPool = connectionPools.get(uri);
 
-        if (connToReturn == null) {
-            HttpConnection newConn = createConnection(uri);
-            HttpConnection alreadyExistingConn = connections.putIfAbsent(uri, newConn);
+        if (connPool == null) {
+            HttpConnectionPoolManager newConnPool = createConnectionPool(uri);
+            HttpConnectionPoolManager alreadyExistingConnPool = connectionPools.putIfAbsent(uri, newConnPool);
 
-            if (alreadyExistingConn == null) {
-                connToReturn = newConn;
+            if (alreadyExistingConnPool == null) {
+                connPool = newConnPool;
             } else {
                 // Multiple threads trying to open connections to the same URI at once, close the newer one
-                newConn.close();
-                connToReturn = alreadyExistingConn;
+                newConnPool.close();
+                connPool = alreadyExistingConnPool;
             }
         }
 
-        // If connection was shutdown by peer, open a new connection
-        if (connToReturn.getShutdownFuture().isDone()) {
-            connections.remove(uri, connToReturn);
-            connToReturn.close();
-            return getOrCreateConnection(uri);
-        }
-
-        return connToReturn;
+        return connPool;
     }
 
     private List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
@@ -191,22 +189,38 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.notNull(asyncRequest.responseHandler(), "ResponseHandler must not be null");
 
         URI uri = toUri(asyncRequest.request());
-        HttpConnection crtConn = getOrCreateConnection(uri);
+        HttpConnectionPoolManager crtConnPool = getOrCreateConnectionPool(uri);
         HttpRequest crtRequest = toCrtRequest(uri, asyncRequest);
 
         CompletableFuture<Void> requestFuture = new CompletableFuture<>();
         AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
                 new AwsCrtAsyncHttpStreamAdapter(requestFuture, asyncRequest, windowSize);
 
-        invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter));
+        HttpRequestOptions reqOptions = new HttpRequestOptions();
+        reqOptions.setBodyBufferSize(httpBodyUpdateSize);
+
+        // When a Connection is ready from the Connection Pool, schedule the Request on the connection
+        crtConnPool.acquireConnection().whenComplete((crtConn, throwable) -> {
+            // If we didn't get a connection for some reason, fail the request
+            if (throwable != null) {
+                requestFuture.completeExceptionally(throwable);
+                return;
+            }
+
+            // When the Request is complete, return our connection back to the Connection Pool
+            requestFuture.whenComplete((v, t) ->  crtConnPool.releaseConnection(crtConn));
+
+            // Submit the Request on this Connection
+            invokeSafely(() -> crtConn.makeRequest(crtRequest, reqOptions, crtToSdkAdapter));
+        });
 
         return requestFuture;
     }
 
     @Override
     public void close() {
-        for (HttpConnection conn : connections.values()) {
-            conn.close();
+        for (HttpConnectionPoolManager connPool : connectionPools.values()) {
+            connPool.close();
         }
     }
 

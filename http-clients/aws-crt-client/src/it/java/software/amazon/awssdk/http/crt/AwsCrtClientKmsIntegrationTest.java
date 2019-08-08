@@ -13,7 +13,9 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
+import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsAsyncClient;
@@ -32,8 +34,7 @@ import software.amazon.awssdk.services.kms.model.EncryptResponse;
 public class AwsCrtClientKmsIntegrationTest {
     private static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private static Region REGION = Region.US_EAST_1;
-    private static SdkAsyncHttpClient client;
-    private static KmsAsyncClient kms;
+    private static List<SdkAsyncHttpClient> awsCrtHttpClients = new ArrayList<>();
 
     List<CrtResource> crtResources = new ArrayList<>();
 
@@ -45,40 +46,43 @@ public class AwsCrtClientKmsIntegrationTest {
     public void setup() {
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
 
-        ClientBootstrap bootstrap = new ClientBootstrap(1);
-        SocketOptions socketOptions = new SocketOptions();
-        TlsContext tlsContext = new TlsContext();
+        // Create an Http Client for each TLS Cipher Preference supported on the current platform
+        for (TlsCipherPreference pref: TlsCipherPreference.values()) {
+            if (!TlsContextOptions.isCipherPreferenceSupported(pref)) {
+                continue;
+            }
 
-        addResource(bootstrap);
-        addResource(socketOptions);
-        addResource(tlsContext);
+            ClientBootstrap bootstrap = new ClientBootstrap(1);
+            SocketOptions socketOptions = new SocketOptions();
+            TlsContext tlsContext = new TlsContext();
 
-        client = AwsCrtAsyncHttpClient.builder()
-                .bootstrap(bootstrap)
-                .socketOptions(socketOptions)
-                .tlsContext(tlsContext)
-                .build();
+            addResource(bootstrap);
+            addResource(socketOptions);
+            addResource(tlsContext);
 
-        kms = KmsAsyncClient.builder()
-                .region(REGION)
-                .httpClient(client)
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .build();
+            SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
+                    .bootstrap(bootstrap)
+                    .socketOptions(socketOptions)
+                    .tlsContext(tlsContext)
+                    .build();
+
+            awsCrtHttpClients.add(awsCrtHttpClient);
+        }
+    }
+
+    private void closeResources() {
+        for (CrtResource r: crtResources) {
+            r.close();
+        }
     }
 
     @After
     public void tearDown() {
-        kms.close();
-        client.close();
-
-        for (CrtResource r: crtResources) {
-            r.close();
-        }
-
+        closeResources();
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
     }
 
-    private boolean doesKeyExist(String keyAlias) {
+    private boolean doesKeyExist(KmsAsyncClient kms, String keyAlias) {
         try {
             DescribeKeyRequest req = DescribeKeyRequest.builder().keyId(keyAlias).build();
             DescribeKeyResponse resp = kms.describeKey(req).get();
@@ -89,27 +93,27 @@ public class AwsCrtClientKmsIntegrationTest {
         }
     }
 
-    private void createKeyAlias(String keyId, String keyAlias) throws Exception {
+    private void createKeyAlias(KmsAsyncClient kms, String keyId, String keyAlias) throws Exception {
         CreateAliasRequest req = CreateAliasRequest.builder().aliasName(keyAlias).targetKeyId(keyId).build();
         CreateAliasResponse resp = kms.createAlias(req).get();
         Assert.assertEquals(200, resp.sdkHttpResponse().statusCode());
     }
 
-    private String createKey() throws Exception {
+    private String createKey(KmsAsyncClient kms) throws Exception {
         CreateKeyRequest req = CreateKeyRequest.builder().build();
         CreateKeyResponse resp = kms.createKey(req).get();
         Assert.assertEquals(200, resp.sdkHttpResponse().statusCode());
         return resp.keyMetadata().keyId();
     }
 
-    private void createKeyIfNotExists(String keyAlias) throws Exception {
-        if (!doesKeyExist(keyAlias)) {
-            String keyId = createKey();
-            createKeyAlias(keyId, KEY_ALIAS);
+    private void createKeyIfNotExists(KmsAsyncClient kms, String keyAlias) throws Exception {
+        if (!doesKeyExist(kms, keyAlias)) {
+            String keyId = createKey(kms);
+            createKeyAlias(kms, keyId, KEY_ALIAS);
         }
     }
 
-    private SdkBytes encrypt(String keyId, String plaintext) throws Exception {
+    private SdkBytes encrypt(KmsAsyncClient kms, String keyId, String plaintext) throws Exception {
         SdkBytes bytes = SdkBytes.fromUtf8String(plaintext);
         EncryptRequest req = EncryptRequest.builder().keyId(keyId).plaintext(bytes).build();
         EncryptResponse resp = kms.encrypt(req).get();
@@ -117,23 +121,38 @@ public class AwsCrtClientKmsIntegrationTest {
         return resp.ciphertextBlob();
     }
 
-    private String decrypt(SdkBytes ciphertext) throws Exception {
+    private String decrypt(KmsAsyncClient kms, SdkBytes ciphertext) throws Exception {
         DecryptRequest req = DecryptRequest.builder().ciphertextBlob(ciphertext).build();
         DecryptResponse resp = kms.decrypt(req).get();
         Assert.assertEquals(200, resp.sdkHttpResponse().statusCode());
         return resp.plaintext().asUtf8String();
     }
 
-    @Test
-    public void testEncryptDecryptWithKms() throws Exception {
-        createKeyIfNotExists(KEY_ALIAS);
-        Assert.assertTrue(doesKeyExist(KEY_ALIAS));
-        Assert.assertFalse(doesKeyExist("alias/does-not-exist-" + UUID.randomUUID()));
+    private void testEncryptDecryptWithKms(KmsAsyncClient kms) throws Exception {
+        createKeyIfNotExists(kms, KEY_ALIAS);
+        Assert.assertTrue(doesKeyExist(kms, KEY_ALIAS));
+        Assert.assertFalse(doesKeyExist(kms, "alias/does-not-exist-" + UUID.randomUUID()));
 
         String secret = UUID.randomUUID().toString();
-        SdkBytes cipherText = encrypt(KEY_ALIAS, secret);
-        String plainText = decrypt(cipherText);
+        SdkBytes cipherText = encrypt(kms, KEY_ALIAS, secret);
+        String plainText = decrypt(kms, cipherText);
 
         Assert.assertEquals(plainText, secret);
+    }
+
+    @Test
+    public void testEncryptDecryptWithKms() throws Exception {
+        for (SdkAsyncHttpClient awsCrtHttpClient: awsCrtHttpClients) {
+            KmsAsyncClient kms = KmsAsyncClient.builder()
+                                    .region(REGION)
+                                    .httpClient(awsCrtHttpClient)
+                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                    .build();
+
+            testEncryptDecryptWithKms(kms);
+
+            kms.close();
+            awsCrtHttpClient.close();
+        }
     }
 }
