@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.7.19</version>
+        <version>2.7.20</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>aws-sdk-java</artifactId>
@@ -918,6 +918,11 @@ Amazon AutoScaling, etc).</description>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>eventbridge</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>lakeformation</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
