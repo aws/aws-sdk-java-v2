@@ -194,6 +194,7 @@
         <module>applicationinsights</module>
         <module>ec2instanceconnect</module>
         <module>eventbridge</module>
+        <module>lakeformation</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
