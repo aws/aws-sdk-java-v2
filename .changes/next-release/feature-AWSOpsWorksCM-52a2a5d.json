@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS OpsWorks CM",
+    "description": "This release adds support for Chef Automate 2 specific engine attributes."
+}
