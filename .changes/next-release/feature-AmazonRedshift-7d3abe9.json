@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "description": "Add expectedNextSnapshotScheduleTime and expectedNextSnapshotScheduleTimeStatus to redshift cluster object."
+}
