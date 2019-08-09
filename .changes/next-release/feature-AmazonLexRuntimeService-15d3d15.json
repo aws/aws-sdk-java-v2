@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime Service",
+    "description": "Manage Amazon Lex session state using APIs on the client"
+}
