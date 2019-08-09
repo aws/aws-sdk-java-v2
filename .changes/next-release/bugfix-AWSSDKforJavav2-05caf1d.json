@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "For APIs that support input event streams, set the `Content-Type` to `application/vnd.amazon.eventstream` on the request."
-}

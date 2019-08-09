@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "description": "This release adds Quality of Service (QoS) support for AWS IoT rules engine republish action."
-}

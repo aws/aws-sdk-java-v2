@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "description": "New \"evidence\" field in the finding model to provide evidence information explaining why the finding has been triggered. Currently only threat-intelligence findings have this field. Some documentation updates."
-}
