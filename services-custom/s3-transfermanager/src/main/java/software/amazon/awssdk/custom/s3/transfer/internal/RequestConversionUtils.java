@@ -23,7 +23,6 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
@@ -66,9 +65,8 @@ final class RequestConversionUtils {
                                            .sseCustomerAlgorithm(putObjectRequest.sseCustomerAlgorithm())
                                            .sseCustomerKey(putObjectRequest.sseCustomerKey())
                                            .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
-                                           //TODO: uncomment this once #1352 is merged
-                                           //.requestPayer(putObjectRequest.requestPayer())
-                                           //.acl(putObjectRequest.acl())
+                                           .requestPayer(putObjectRequest.requestPayer())
+                                           .acl(putObjectRequest.acl())
                                            .cacheControl(putObjectRequest.cacheControl())
                                            .metadata(putObjectRequest.metadata())
                                            .contentDisposition(putObjectRequest.contentDisposition())
@@ -81,6 +79,7 @@ final class RequestConversionUtils {
                                            .grantFullControl(putObjectRequest.grantFullControl())
                                            .grantReadACP(putObjectRequest.grantReadACP())
                                            .grantWriteACP(putObjectRequest.grantWriteACP())
+                                           //TODO filter out headers
                                            //.overrideConfiguration(putObjectRequest.overrideConfiguration())
                                            .build();
     }
@@ -99,7 +98,7 @@ final class RequestConversionUtils {
                                 .sseCustomerKeyMD5(putObjectRequest.sseCustomerKeyMD5())
                                 .uploadId(uploadId)
                                 .partNumber(partNumber)
-                                //.requestPayer(putObjectRequest.requestPayer())
+                                .requestPayer(putObjectRequest.requestPayer())
                                 //.overrideConfiguration(putObjectRequest.overrideConfiguration())
                                 .build();
     }
@@ -113,21 +112,9 @@ final class RequestConversionUtils {
                                              .multipartUpload(CompletedMultipartUpload.builder()
                                                                                       .parts(parts)
                                                                                       .build())
-                                             //.requestPayer(putObjectRequest.requestPayer())
+                                             .requestPayer(putObjectRequest.requestPayer())
                                              .uploadId(uploadId)
                                              .build();
-
-    }
-
-    static ListPartsRequest toListPartsRequest(PutObjectRequest putObjectRequest,
-                                               String uploadId) {
-        return ListPartsRequest.builder()
-                               .bucket(putObjectRequest.bucket())
-                               .key(putObjectRequest.key())
-                               .uploadId(uploadId)
-                               //.partNumberMarker()
-                               //.requestPayer(putObjectRequest.requestPayer())
-                               .build();
 
     }
 
@@ -137,8 +124,7 @@ final class RequestConversionUtils {
                                           .bucket(putObjectRequest.bucket())
                                           .key(putObjectRequest.key())
                                           .uploadId(uploadId)
-                                          //.partNumberMarker()
-                                          //.requestPayer(putObjectRequest.requestPayer())
+                                          .requestPayer(putObjectRequest.requestPayer())
                                           .build();
 
     }

@@ -36,6 +36,7 @@ import software.amazon.awssdk.custom.s3.transfer.UploadObjectSpecification;
 import software.amazon.awssdk.custom.s3.transfer.UploadRequest;
 import software.amazon.awssdk.custom.s3.transfer.util.SizeConstant;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -166,6 +167,7 @@ public class UploadManagerTest {
                                                    transferRequestBody);
 
         assertThatThrownBy(() -> upload.completionFuture().join()).hasCause(exception);
+        verify(s3Client).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
     }
 
     @Test
@@ -189,6 +191,7 @@ public class UploadManagerTest {
                                                    transferRequestBody);
 
         assertThatThrownBy(() -> upload.completionFuture().join()).hasCause(exception);
+        verify(s3Client).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
     }
 
     private void stubSuccessfulCreateMultipartUpload() {

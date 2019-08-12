@@ -18,7 +18,6 @@ package software.amazon.awssdk.custom.s3.transfer.internal;
 import static software.amazon.awssdk.custom.s3.transfer.internal.RequestConversionUtils.toAbortPartRequest;
 import static software.amazon.awssdk.custom.s3.transfer.internal.RequestConversionUtils.toCompleteMultipartUploadRequest;
 import static software.amazon.awssdk.custom.s3.transfer.internal.RequestConversionUtils.toCreateMultipartUploadRequest;
-import static software.amazon.awssdk.custom.s3.transfer.internal.RequestConversionUtils.toListPartsRequest;
 import static software.amazon.awssdk.custom.s3.transfer.internal.RequestConversionUtils.toUploadPartRequest;
 import static software.amazon.awssdk.utils.CompletableFutureUtils.allOfCancelForwarded;
 
@@ -38,10 +37,8 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
-import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -122,7 +119,7 @@ final class MultiPartUploadManager {
                 log.warn(() -> String.format("Failed to abort multipartUpload. You should invoke abortMultipart to avoid "
                                + "being charged for storage of the uploaded parts. (uploadId: %s)", uploadId), t);
             } else {
-                verifyNoPartsPersisted(request, uploadId);
+                log.debug(() -> "Upload " + uploadId + " has been aborted");
             }
         });
     }
@@ -130,23 +127,6 @@ final class MultiPartUploadManager {
     private CompletableFuture<AbortMultipartUploadResponse> abortMultipart(PutObjectRequest request, String uploadId) {
         AbortMultipartUploadRequest abortMultipartUploadRequest = toAbortPartRequest(request, uploadId);
         return s3Client.abortMultipartUpload(abortMultipartUploadRequest);
-    }
-
-    private void verifyNoPartsPersisted(PutObjectRequest request,
-                                        String uploadId) {
-        ListPartsRequest listPartsRequest = toListPartsRequest(request, uploadId);
-        s3Client.listParts(listPartsRequest).whenComplete((listPartsResponse, exception) -> {
-            if (exception == null) {
-                if (!CollectionUtils.isNullOrEmpty(listPartsResponse.parts())) {
-                    log.warn(() -> String.format("Not all parts have been deleted. You should invoke abortMultipart to avoid"
-                                   + " being charged for storage of the uploaded parts (uploadId = %s)", uploadId));
-                } else {
-                    log.debug(() -> "All uploaded parts have been deleted");
-                }
-            } else {
-                log.warn(() -> "Failed to list parts", exception);
-            }
-        });
     }
 
     private CompletionStage<Void> completeMultipartUpload(CompletionStage<Void> completedMultiPartsFuture,
