@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "description": "Amazon EC2 Auto Scaling now supports a new Spot allocation strategy \"capacity-optimized\" that fulfills your request using Spot Instance pools that are optimally chosen based on the available Spot capacity."
+}
