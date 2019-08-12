@@ -21,7 +21,7 @@ public class EventStreamOperationWithOnlyInputRequestMarshaller implements
                                                                 Marshaller<EventStreamOperationWithOnlyInputRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
                                                                             .requestUri("/2016-03-11/EventStreamOperationWithOnlyInput").httpMethod(SdkHttpMethod.POST)
-                                                                            .hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
+                                                                            .hasExplicitPayloadMember(false).hasPayloadMembers(true).hasEventStreamingInput(true).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 

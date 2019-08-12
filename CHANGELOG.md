@@ -1,3 +1,29 @@
+# __2.7.21__ __2019-08-09__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert has added support for multi-DRM SPEKE with CMAF outputs, MP3 ingest, and options for improved video quality.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds Quality of Service (QoS) support for AWS IoT rules engine republish action.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed the issue where ByteArrayAsyncRequestBody can send duplicate requests when another request comes in at the same time the subscription completes.
+    - For APIs that support input event streams, set the `Content-Type` to `application/vnd.amazon.eventstream` on the request.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - New "evidence" field in the finding model to provide evidence information explaining why the finding has been triggered. Currently only threat-intelligence findings have this field. Some documentation updates.
+
+## __Amazon Lex Runtime Service__
+  - ### Features
+    - Manage Amazon Lex session state using APIs on the client
+
+## __Amazon Redshift__
+  - ### Features
+    - Add expectedNextSnapshotScheduleTime and expectedNextSnapshotScheduleTimeStatus to redshift cluster object.
+
 # __2.7.20__ __2019-08-08__
 ## __AWS CodeBuild__
   - ### Features
