@@ -1,3 +1,8 @@
+# __2.7.23__ __2019-08-13__
+## __AWS AppSync__
+  - ### Features
+    - Adds a configuration option for AppSync GraphQL APIs
+
 # __2.7.22__ __2019-08-12__
 ## __Amazon CloudWatch__
   - ### Features
