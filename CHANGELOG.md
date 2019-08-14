@@ -1,3 +1,8 @@
+# __2.7.24__ __2019-08-14__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new API called SendDiagnosticInterrupt, which allows you to send diagnostic interrupts to your EC2 instance.
+
 # __2.7.23__ __2019-08-13__
 ## __AWS AppSync__
   - ### Features
