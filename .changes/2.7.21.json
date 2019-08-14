@@ -1,0 +1,41 @@
+{
+    "version": "2.7.21",
+    "date": "2019-08-09",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fixed the issue where ByteArrayAsyncRequestBody can send duplicate requests when another request comes in at the same time the subscription completes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert has added support for multi-DRM SPEKE with CMAF outputs, MP3 ingest, and options for improved video quality."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "description": "New \"evidence\" field in the finding model to provide evidence information explaining why the finding has been triggered. Currently only threat-intelligence findings have this field. Some documentation updates."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime Service",
+            "description": "Manage Amazon Lex session state using APIs on the client"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "description": "Add expectedNextSnapshotScheduleTime and expectedNextSnapshotScheduleTimeStatus to redshift cluster object."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "description": "This release adds Quality of Service (QoS) support for AWS IoT rules engine republish action."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "For APIs that support input event streams, set the `Content-Type` to `application/vnd.amazon.eventstream` on the request."
+        }
+    ]
+}

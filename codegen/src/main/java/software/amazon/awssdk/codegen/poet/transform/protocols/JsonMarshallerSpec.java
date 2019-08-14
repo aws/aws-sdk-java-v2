@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.transform.protocols;
 
+import static software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils.isEventStreamParentModel;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -101,6 +103,10 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
         if (shapeModel.isHasStreamingMember()) {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
+        }
+
+        if (isEventStreamParentModel(shapeModel)) {
+            initializationCodeBlockBuilder.add(".hasEventStreamingInput(true)");
         }
 
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
