@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -381,6 +382,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
         /**
          * Configure the {@link TlsKeyManagersProvider} that will provide the {@link javax.net.ssl.KeyManager}s to use
          * when constructing the SSL context.
+         * <p>
+         * The default used by the client will be {@link SystemPropertyTlsKeyManagersProvider}. Configure an instance of
+         * {@link software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider} or another implementation of
+         * {@link TlsKeyManagersProvider} to override it.
          */
         Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider);
     }
@@ -392,7 +397,6 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
-        private TlsKeyManagersProvider tlsKeyManagersProvider = SystemPropertyTlsKeyManagersProvider.create();
 
         private DefaultBuilder() {
         }
@@ -521,7 +525,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         @Override
         public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
-            this.tlsKeyManagersProvider = tlsKeyManagersProvider;
+            standardOptions.put(TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
             return this;
         }
 
@@ -565,7 +569,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private ConnectionSocketFactory getPreferredSocketFactory(ApacheHttpClient.DefaultBuilder configuration,
                                                                   AttributeMap standardOptions) {
             // TODO v2 custom socket factory
-            return new SdkTlsSocketFactory(getSslContext(configuration.tlsKeyManagersProvider, standardOptions),
+            return new SdkTlsSocketFactory(getSslContext(standardOptions),
                                            getHostNameVerifier(standardOptions));
         }
 
@@ -575,7 +579,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                    : SSLConnectionSocketFactory.getDefaultHostnameVerifier();
         }
 
-        private SSLContext getSslContext(TlsKeyManagersProvider keyManagersProvider, AttributeMap standardOptions) {
+        private SSLContext getSslContext(AttributeMap standardOptions) {
             TrustManager[] trustManagers = null;
             if (standardOptions.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
                 log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
@@ -583,10 +587,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
                 trustManagers = trustAllTrustManager();
             }
 
-            KeyManager[] keyManagers = null;
-            if (keyManagersProvider != null) {
-                keyManagers = keyManagersProvider.keyManagers();
-            }
+            TlsKeyManagersProvider provider = standardOptions.get(TLS_KEY_MANAGERS_PROVIDER);
+            KeyManager[] keyManagers = provider.keyManagers();
 
             try {
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
