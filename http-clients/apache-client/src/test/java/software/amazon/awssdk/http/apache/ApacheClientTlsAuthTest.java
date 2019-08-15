@@ -21,6 +21,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.instanceOf;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_PASSWORD;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
@@ -30,11 +32,14 @@ import java.net.SocketException;
 import java.net.URI;
 import javax.net.ssl.SSLException;
 import org.apache.http.NoHttpResponseException;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -43,6 +48,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 /**
  * Tests to ensure that {@link ApacheHttpClient} can properly support TLS
@@ -52,6 +58,9 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
     private static WireMockServer wireMockServer;
     private static TlsKeyManagersProvider keyManagersProvider;
     private SdkHttpClient client;
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @BeforeClass
     public static void setUp() throws IOException {
@@ -108,14 +117,9 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
 
     @Test
     public void requestFailsWhenKeyProviderNotConfigured() throws IOException {
-        client = ApacheHttpClient.builder().build();
-        try {
-            makeRequestWithHttpClient(client);
-            fail("HTTP request should have failed");
-        } catch (NoHttpResponseException | SSLException | SocketException expected) {
-            // The client doesn't seem to consistently throw a single error,
-            // and can also vary depending on actual JVM used.
-        }
+        thrown.expect(anyOf(instanceOf(NoHttpResponseException.class), instanceOf(SSLException.class)));
+        client = ApacheHttpClient.builder().tlsKeyManagersProvider(NoneTlsKeyManagersProvider.getInstance()).build();
+        makeRequestWithHttpClient(client);
     }
 
     @Test
@@ -142,6 +146,22 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
 
         client = ApacheHttpClient.builder().build();
+        try {
+            makeRequestWithHttpClient(client);
+        } finally {
+            System.clearProperty(SSL_KEY_STORE.property());
+            System.clearProperty(SSL_KEY_STORE_TYPE.property());
+            System.clearProperty(SSL_KEY_STORE_PASSWORD.property());
+        }
+    }
+
+    @Test
+    public void defaultTlsKeyManagersProviderIsSystemPropertyProvider_explicitlySetToNull() throws IOException {
+        System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
+        System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
+        System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
+
+        client = ApacheHttpClient.builder().tlsKeyManagersProvider(null).build();
         try {
             makeRequestWithHttpClient(client);
         } finally {

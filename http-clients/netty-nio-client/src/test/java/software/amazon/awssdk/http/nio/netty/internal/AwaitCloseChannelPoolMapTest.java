@@ -18,10 +18,14 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.Channel;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.concurrent.Future;
 import java.net.URI;
@@ -36,9 +40,11 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.RecordingNetworkTrafficListener;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class AwaitCloseChannelPoolMapTest {
 
@@ -146,6 +152,25 @@ public class AwaitCloseChannelPoolMapTest {
         String requests = recorder.requests().toString();
 
         assertThat(requests).contains("CONNECT some-awesome-service:443");
+    }
+
+    @Test
+    public void usesProvidedKeyManagersProvider() {
+        TlsKeyManagersProvider provider = mock(TlsKeyManagersProvider.class);
+
+        AttributeMap config = AttributeMap.builder()
+                .put(TLS_KEY_MANAGERS_PROVIDER, provider)
+                .build();
+
+        channelPoolMap = AwaitCloseChannelPoolMap.builder()
+                .sdkChannelOptions(new SdkChannelOptions())
+                .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
+                .configuration(new NettyConfiguration(config.merge(GLOBAL_HTTP_DEFAULTS)))
+                .build();
+
+        ChannelPool channelPool = channelPoolMap.newPool(URI.create("https://localhost:" + mockProxy.port()));
+        channelPool.acquire().awaitUninterruptibly();
+        verify(provider).keyManagers();
     }
 
 }
