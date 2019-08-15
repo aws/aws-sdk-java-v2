@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Mesh",
-    "description": "This release adds support for http header based routing and route prioritization."
-}
