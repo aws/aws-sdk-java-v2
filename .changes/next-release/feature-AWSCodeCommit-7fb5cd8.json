@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodeCommit",
+    "description": "This release adds an API, BatchGetCommits, that allows retrieval of metadata for multiple commits in an AWS CodeCommit repository."
+}
