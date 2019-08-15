@@ -1,3 +1,55 @@
+# __2.7.25__ __2019-08-15__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds support for http header based routing and route prioritization.
+
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds an API, BatchGetCommits, that allows retrieval of metadata for multiple commits in an AWS CodeCommit repository.
+
+## __AWS Glue__
+  - ### Features
+    - GetJobBookmarks API is withdrawn.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - CreateSnapshotFromVolumeRecoveryPoint API supports new parameter: Tags (to be attached to the created resource)
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for querying S3 Requester Pays buckets. Users can enable this feature through their Workgroup settings.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an option to use private certificates from AWS Certificate Manager (ACM) to authenticate a Site-to-Site VPN connection's tunnel endpoints and customer gateway device.
+
+# __2.7.24__ __2019-08-14__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new API called SendDiagnosticInterrupt, which allows you to send diagnostic interrupts to your EC2 instance.
+
+# __2.7.23__ __2019-08-13__
+## __AWS AppSync__
+  - ### Features
+    - Adds a configuration option for AppSync GraphQL APIs
+
+# __2.7.22__ __2019-08-12__
+## __Amazon CloudWatch__
+  - ### Features
+    - Documentation updates for monitoring
+
+## __Amazon Rekognition__
+  - ### Features
+    - Adding new Emotion, Fear
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for Application Auto Scaling
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports a new Spot allocation strategy "capacity-optimized" that fulfills your request using Spot Instance pools that are optimally chosen based on the available Spot capacity.
+
 # __2.7.21__ __2019-08-09__
 ## __AWS Elemental MediaConvert__
   - ### Features
