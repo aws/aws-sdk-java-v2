@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "description": "CreateSnapshotFromVolumeRecoveryPoint API supports new parameter: Tags (to be attached to the created resource)"
+}
