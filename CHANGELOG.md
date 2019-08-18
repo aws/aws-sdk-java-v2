@@ -1,3 +1,46 @@
+# __2.7.26__ __2019-08-16__
+## __AWS RoboMaker__
+  - ### Features
+    - Two feature release: 1. AWS RoboMaker introduces log-based simulation. Log-based simulation allows you to play back pre-recorded log data such as sensor streams for testing robotic functions like localization, mapping, and object detection. Use the AWS RoboMaker SDK to test your robotic applications. 2. AWS RoboMaker allow customer to setup a robot deployment timeout when CreateDeploymentJob.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) introduces support for controlling the usage of swap space on a per-container basis for Linux containers.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR has introduced an account level configuration called Block Public Access that allows you to block clusters with ports open to traffic from public IP sources (i.e. 0.0.0.0/0 for IPv4 and ::/0 for IPv6) from launching. Individual ports or port ranges can be added as exceptions to allow public access.
+
+# __2.7.25__ __2019-08-15__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds support for http header based routing and route prioritization.
+
+## __AWS CodeCommit__
+  - ### Features
+    - This release adds an API, BatchGetCommits, that allows retrieval of metadata for multiple commits in an AWS CodeCommit repository.
+
+## __AWS Glue__
+  - ### Features
+    - GetJobBookmarks API is withdrawn.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - CreateSnapshotFromVolumeRecoveryPoint API supports new parameter: Tags (to be attached to the created resource)
+
+## __Amazon Athena__
+  - ### Features
+    - This release adds support for querying S3 Requester Pays buckets. Users can enable this feature through their Workgroup settings.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds an option to use private certificates from AWS Certificate Manager (ACM) to authenticate a Site-to-Site VPN connection's tunnel endpoints and customer gateway device.
+
+# __2.7.24__ __2019-08-14__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new API called SendDiagnosticInterrupt, which allows you to send diagnostic interrupts to your EC2 instance.
+
 # __2.7.23__ __2019-08-13__
 ## __AWS AppSync__
   - ### Features
