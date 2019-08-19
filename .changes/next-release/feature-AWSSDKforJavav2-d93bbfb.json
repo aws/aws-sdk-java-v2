@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Upgrade Netty version to 4.1.39.Final, netty reactive streams version to 2.0.3, netty open ssl version to 2.0.25.Final"
+}
