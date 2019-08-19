@@ -1,3 +1,12 @@
+# __2.7.27__ __2019-08-19__
+## __AWS App Mesh__
+  - ### Features
+    - Fix for HttpMethod enum
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - New IAM permission required for editing AWS Cost and Usage Reports - Starting today, you can allow or deny IAM users permission to edit Cost & Usage Reports through the API and the Billing and Cost Management console. To allow users to edit Cost & Usage Reports, ensure that they have 'cur: ModifyReportDefinition' permission. Refer to the technical documentation (https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_cur_ModifyReportDefinition.html) for additional details.
+
 # __2.7.26__ __2019-08-16__
 ## __AWS RoboMaker__
   - ### Features
