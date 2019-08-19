@@ -143,7 +143,15 @@ New modules are created to support metrics feature.
 
 ## Sequence Diagram
 
-![Normal API Call flow](images/MetricsSequenceDiagram.png)
+<div style="text-align:center" markdown="1">
+<b>Metrics Collection</b>
+
+![Metrics Collection](images/MetricCollection.jpg)
+
+<div style="text-align:center" markdown="1">
+<b>MetricPublisher</b>
+
+![MetricPublisher fig.align="left"](images/MetricPublisher.jpg)
 
 1. Client enables metrics feature through MetricConfigurationProvider and configure publishers through MetricPublisherConfiguration.
 2. For each API call, a new MetricRegistry object is created and stored in the ExecutionAttributes. If metrics are not enabled, a NoOpMetricRegistry is used.
@@ -156,7 +164,12 @@ These MetricRegistry instance for the current attempt is also accessed through A
 8. MetricPublisher calls publish() method to report metrics to external sources. The frequency of publish() method call is unique to Publisher implementation.
 9. Client has access to all registered publishers and it can call publish() method explicitly if desired.
 
-    
+
+<div style="text-align:center" markdown="1">
+<b>CloudWatch MetricPublisher</b>
+
+![CloudWatch MetricPublisher](images/CWMetricPublisher.jpg)
+
 ## Implementation Details
 Few important implementation details are discussed in this section.
 
