@@ -24,8 +24,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
+import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -115,14 +116,16 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
-        ForkedHttp2MultiplexCodecBuilder codecBuilder = ForkedHttp2MultiplexCodecBuilder
-            .forClient(new NoOpChannelInitializer())
-            .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
-            .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576));
+        // Using Http2FrameCodecBuilder and Http2MultiplexHandler based on 4.1.37 release notes
+        // https://netty.io/news/2019/06/28/4-1-37-Final.html
+        pipeline.addLast(Http2FrameCodecBuilder.forClient()
+                                               .headerSensitivityDetector((name, value) -> lowerCase(name.toString())
+                                                   .equals("authorization"))
+                                               .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
+                                               .frameLogger(new Http2FrameLogger(LogLevel.DEBUG))
+                                               .build());
 
-        codecBuilder.frameLogger(new Http2FrameLogger(LogLevel.DEBUG));
-
-        pipeline.addLast(codecBuilder.build());
+        pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
 
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
     }
