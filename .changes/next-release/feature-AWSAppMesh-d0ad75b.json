@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS App Mesh",
+    "description": "Fix for HttpMethod enum"
+}
