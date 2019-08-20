@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppStream",
-    "description": "Includes API updates to support streaming through VPC endpoints for image builders and stacks."
-}

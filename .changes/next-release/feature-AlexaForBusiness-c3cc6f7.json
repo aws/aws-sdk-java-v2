@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Alexa For Business",
-    "description": "Adding support for optional locale input in CreateProfile and UpdateProfile APIs"
-}
