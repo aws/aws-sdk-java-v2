@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer for SFTP",
+    "description": "New field in response of TestIdentityProvider"
+}
