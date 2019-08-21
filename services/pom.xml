@@ -196,6 +196,7 @@
         <module>eventbridge</module>
         <module>lakeformation</module>
         <module>forecast</module>
+        <module>forecastquery</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
