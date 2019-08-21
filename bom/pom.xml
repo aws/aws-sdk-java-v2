@@ -1035,6 +1035,11 @@
                 <artifactId>lakeformation</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>forecast</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
