@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "description": "ElastiCache extends support for Scale down for Redis Cluster-mode enabled and disabled replication groups"
+}
