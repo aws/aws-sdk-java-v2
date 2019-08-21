@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize Runtime",
+    "description": "Increased limits on number of items recommended and reranked: The maximum number of results returned from getRecommendations API has been increased to 200. The maximum number of items which can be reranked via getPersonalizedRanking API has been increased to 200."
+}
