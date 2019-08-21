@@ -1,5 +1,0 @@
-{
-    "category": "HTTP Client SPI", 
-    "type": "feature", 
-    "description": "Add `TlsKeyManagersProvider` interface for supporting TLS client auth in HTTP client implementations."
-}
