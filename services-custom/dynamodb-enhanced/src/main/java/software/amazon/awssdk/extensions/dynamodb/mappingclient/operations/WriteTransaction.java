@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
@@ -81,7 +82,7 @@ public class WriteTransaction<T> {
 
     TransactWriteItem generateRequest() {
         return writeOperation.generateTransactWriteItem(mappedTable.getTableSchema(),
-                                                        mappedTable.getOperationContext(),
+                                                        OperationContext.of(mappedTable.getTableName()),
                                                         mappedTable.getMapperExtension());
     }
 }
