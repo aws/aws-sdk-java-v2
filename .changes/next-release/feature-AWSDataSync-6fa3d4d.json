@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "description": "This release adds support for SMB location type."
-}

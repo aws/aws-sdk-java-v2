@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "This release allows users to enable RDS Data API while creating Aurora Serverless databases."
-}
