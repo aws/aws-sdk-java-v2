@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.TransformIterable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -139,12 +140,12 @@ public class BatchGetItem
         public <T> List<T> getResultsForTable(MappedTable<T> mappedTable) {
             List<Map<String, AttributeValue>> results =
                 batchGetItemResponse.responses()
-                                    .getOrDefault(mappedTable.getOperationContext().getTableName(), emptyList());
+                                    .getOrDefault(mappedTable.getTableName(), emptyList());
 
             return results.stream()
                           .map(itemMap -> readAndTransformSingleItem(itemMap,
                                                                      mappedTable.getTableSchema(),
-                                                                     mappedTable.getOperationContext(),
+                                                                     OperationContext.of(mappedTable.getTableName()),
                                                                      mapperExtension))
                           .collect(Collectors.toList());
         }

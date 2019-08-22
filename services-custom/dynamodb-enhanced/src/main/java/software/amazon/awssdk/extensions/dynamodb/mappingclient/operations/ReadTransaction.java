@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableReadOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
@@ -44,7 +45,7 @@ public class ReadTransaction<T> {
 
     TransactGetItem generateTransactGetItem() {
         return readOperation.generateTransactGetItem(mappedTable.getTableSchema(),
-                                                     mappedTable.getOperationContext(),
+                                                     OperationContext.of(mappedTable.getTableName()),
                                                      mappedTable.getMapperExtension());
     }
 

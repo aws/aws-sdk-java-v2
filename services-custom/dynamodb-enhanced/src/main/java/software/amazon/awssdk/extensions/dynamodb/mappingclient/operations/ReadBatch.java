@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableReadOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
@@ -66,7 +67,7 @@ public class ReadBatch<T> {
     }
 
     String getTableName() {
-        return mappedTable.getOperationContext().getTableName();
+        return mappedTable.getTableName();
     }
 
     private KeysAndAttributes generateKeysAndAttributes() {
@@ -91,7 +92,7 @@ public class ReadBatch<T> {
                           })
                           .map(BatchableReadOperation::getKey)
                           .map(key -> key.getKeyMap(mappedTable.getTableSchema(),
-                                                    mappedTable.getOperationContext().getIndexName()))
+                                                    TableMetadata.getPrimaryIndexName()))
                           .collect(Collectors.toList());
 
         return KeysAndAttributes.builder()

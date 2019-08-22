@@ -21,6 +21,7 @@ import java.util.Map;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkPublicApi
@@ -38,7 +39,7 @@ public class UnmappedItem {
     public <T> T getItem(MappedTable<T> mappedTable) {
         return readAndTransformSingleItem(itemMap,
                                           mappedTable.getTableSchema(),
-                                          mappedTable.getOperationContext(),
+                                          OperationContext.of(mappedTable.getTableName()),
                                           mappedTable.getMapperExtension());
     }
 

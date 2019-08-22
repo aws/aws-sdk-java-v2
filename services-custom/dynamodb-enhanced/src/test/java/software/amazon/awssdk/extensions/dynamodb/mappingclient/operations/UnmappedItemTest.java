@@ -34,6 +34,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -80,7 +81,7 @@ public class UnmappedItemTest {
         MappedTable<FakeItem> mappedTable = createMappedTable(mockMapperExtension);
         assertThat(unmappedItem.getItem(mappedTable), is(fakeItem2));
         verify(mockMapperExtension).afterRead(fakeItemMap,
-                                              mappedTable.getOperationContext(),
+                                              OperationContext.of(mappedTable.getTableName()),
                                               FakeItem.getTableMetadata());
     }
 

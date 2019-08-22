@@ -31,6 +31,10 @@ public class OperationContext {
         return new OperationContext(tableName, indexName);
     }
 
+    public static OperationContext of(String tableName) {
+        return new OperationContext(tableName, TableMetadata.getPrimaryIndexName());
+    }
+
     public String getTableName() {
         return tableName;
     }
