@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage VOD",
-    "description": "Adds optional Constant Initialization Vector (IV) to HLS Encryption for MediaPackage VOD."
-}
