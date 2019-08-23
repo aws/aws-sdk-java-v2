@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release of EC2 VM Import Export adds support for exporting Amazon Machine Image(AMI)s to a VM file"
+}
