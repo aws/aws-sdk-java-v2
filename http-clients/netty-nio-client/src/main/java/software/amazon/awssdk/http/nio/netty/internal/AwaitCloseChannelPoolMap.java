@@ -40,6 +40,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -260,6 +262,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                                     .sslProvider(sslProvider)
                                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                                     .trustManager(getTrustManager())
+                                    .keyManager(getKeyManager())
                                     .build();
         } catch (SSLException e) {
             throw new RuntimeException(e);
@@ -268,6 +271,16 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
     private TrustManagerFactory getTrustManager() {
         return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
+    }
+
+    private KeyManagerFactory getKeyManager() {
+        if (configuration.tlsKeyManagersProvider() != null) {
+            KeyManager[] keyManagers = configuration.tlsKeyManagersProvider().keyManagers();
+            if (keyManagers != null) {
+                return StaticKeyManagerFactory.create(keyManagers);
+            }
+        }
+        return null;
     }
 
     public static class Builder {

@@ -17,6 +17,7 @@ package software.amazon.awssdk.http;
 
 import javax.net.ssl.KeyManager;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 /**
  * Provider for the {@link KeyManager key managers} to be used by the SDK when
@@ -31,4 +32,11 @@ public interface TlsKeyManagersProvider {
      * @return The {@link KeyManager}s, or {@code null}.
      */
     KeyManager[] keyManagers();
+
+    /**
+     * @return A provider that returns a {@code null} array of {@link KeyManager}s.
+     */
+    static TlsKeyManagersProvider noneProvider() {
+        return NoneTlsKeyManagersProvider.getInstance();
+    }
 }
