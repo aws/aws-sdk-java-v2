@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "description": "This release resolves an issue with the DescribeHub action, changes the MasterId and InvitationId parameters for AcceptInvitation to Required, and changes the AccountIds parameter for DeleteInvitations and DeclineInvitations to Required."
+}
