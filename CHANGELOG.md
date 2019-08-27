@@ -1,3 +1,8 @@
+# __2.7.33__ __2019-08-27__
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for organizations
+
 # __2.7.32__ __2019-08-26__
 ## __AWS SecurityHub__
   - ### Features
