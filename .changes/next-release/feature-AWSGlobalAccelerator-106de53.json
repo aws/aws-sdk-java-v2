@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "description": "API Update for AWS Global Accelerator Client IP Preservation"
+}
