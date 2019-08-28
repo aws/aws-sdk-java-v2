@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "description": "Added support for message system attributes, which currently lets you send AWS X-Ray trace IDs through Amazon SQS."
-}
