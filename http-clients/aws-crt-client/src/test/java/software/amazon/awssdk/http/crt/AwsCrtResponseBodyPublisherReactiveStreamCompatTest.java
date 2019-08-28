@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
@@ -36,7 +37,7 @@ public class AwsCrtResponseBodyPublisherReactiveStreamCompatTest extends Publish
     @Override
     public Publisher<ByteBuffer> createPublisher(long elements) {
         HttpStream stream = mock(HttpStream.class);
-        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(stream, Integer.MAX_VALUE);
+        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(stream, new CompletableFuture<>(), Integer.MAX_VALUE);
 
         for (long i = 0; i < elements; i++) {
             bodyPublisher.queueBuffer(ByteBuffer.wrap(UUID.randomUUID().toString().getBytes()));

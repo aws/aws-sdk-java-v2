@@ -126,7 +126,7 @@ public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
         if (!endOfStream) {
             requestDataIfNecessary();
         } else {
-            log.debug(() -> "End Of Stream reached");
+            log.debug(() -> "End Of RequestBody reached");
         }
 
         return endOfStream;
