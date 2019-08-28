@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -27,6 +28,7 @@ import java.util.function.LongUnaryOperator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.http.HttpConnection;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -39,11 +41,14 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
+
+    private final HttpConnection connection;
+    private final HttpStream stream;
     private final CompletableFuture<Void> responseComplete;
     private final AtomicLong outstandingRequests = new AtomicLong(0);
-    private final HttpStream stream;
     private final int windowSize;
     private final AtomicBoolean isCancelled = new AtomicBoolean(false);
+    private final AtomicBoolean areNativeResourcesReleased = new AtomicBoolean(false);
     private final AtomicBoolean isSubscriptionComplete = new AtomicBoolean(false);
     private final AtomicBoolean queueComplete = new AtomicBoolean(false);
     private final AtomicInteger mutualRecursionDepth = new AtomicInteger(0);
@@ -58,10 +63,13 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * @param windowSize The max allowed bytes to be queued. The sum of the sizes of all queued ByteBuffers should
      *                   never exceed this value.
      */
-    public AwsCrtResponseBodyPublisher(HttpStream stream, CompletableFuture<Void> responseComplete, int windowSize) {
+    public AwsCrtResponseBodyPublisher(HttpConnection connection, HttpStream stream,
+                                       CompletableFuture<Void> responseComplete, int windowSize) {
+        Validate.notNull(connection, "HttpConnection must not be null");
         Validate.notNull(stream, "Stream must not be null");
         Validate.notNull(responseComplete, "Stream must not be null");
         Validate.isPositive(windowSize, "windowSize must be > 0");
+        this.connection = connection;
         this.stream = stream;
         this.responseComplete = responseComplete;
         this.windowSize = windowSize;
@@ -142,9 +150,23 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         subscriberRef.set(null);
     }
 
+    private synchronized void releaseNativeResources() {
+        boolean alreadyReleased = areNativeResourcesReleased.getAndSet(true);
+
+        if (!alreadyReleased) {
+            stream.close();
+            connection.close();
+        }
+    }
+
+    /**
+     * Called when the final Buffer has been queued and no more data is expected.
+     */
     public void setQueueComplete() {
-        queueComplete.set(true);
         log.trace(() -> "Response Body Publisher queue marked as completed.");
+        queueComplete.set(true);
+        // We're done with the Native Resources, release them so they can be used by another request.
+        releaseNativeResources();
     }
 
     /**
@@ -157,39 +179,43 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             return;
         }
 
-        Subscriber subscriber = subscriberRef.getAndSet(null);
-
-        if (subscriber == null) {
-            return;
-        }
+        // Subscriber may have cancelled their subscription, in which case this may be null.
+        Optional<Subscriber> subscriber = Optional.ofNullable(subscriberRef.getAndSet(null));
 
         Throwable throwable = error.get();
 
+        // We're done with the Native Resources, release them so they can be used by another request.
+        releaseNativeResources();
+
+        // Complete the Futures
         if (throwable != null) {
             log.error(() -> "Error before ResponseBodyPublisher could complete: " + throwable.getMessage());
-            subscriber.onError(throwable);
+            subscriber.ifPresent(s -> s.onError(throwable));
+            responseComplete.completeExceptionally(throwable);
         } else {
             log.debug(() -> "ResponseBodyPublisher Completed Successfully");
-            subscriber.onComplete();
+            subscriber.ifPresent(s -> s.onComplete());
             responseComplete.complete(null);
         }
     }
 
     /**
+     * Publishes any queued data to any Subscribers if there is data queued and there is an outstanding Subscriber
+     * request for more data. Will also call onError() or onComplete() callbacks if needed.
+     *
      * This method MUST be synchronized since it can be called simultaneously from both the Native EventLoop Thread and
      * the User Thread. If this method wasn't synchronized, it'd be possible for each thread to dequeue a buffer by
      * calling queuedBuffers.poll(), but then have the 2nd thread call subscriber.onNext(buffer) first, resulting in the
      * subscriber seeing out-of-order data. To avoid this race condition, this method must be synchronized.
      */
     protected synchronized void publishToSubscribers() {
-        Subscriber subscriber = subscriberRef.get();
-        if (subscriber == null) {
-            log.warn(() -> "No Subscribers to publish to");
+        if (error.get() != null) {
+            completeSubscriptionExactlyOnce();
             return;
         }
 
-        if (error.get() != null) {
-            completeSubscriptionExactlyOnce();
+        if (isSubscriptionComplete.get() || isCancelled.get()) {
+            log.warn(() -> "Subscription already completed or cancelled, can't publish updates to Subscribers.");
             return;
         }
 
@@ -208,14 +234,19 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             ByteBuffer buffer = queuedBuffers.poll();
             outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
             int amount = buffer.remaining();
-            publishWithoutMutualRecursion(subscriber, buffer);
+            publishWithoutMutualRecursion(subscriberRef.get(), buffer);
             totalAmountTransferred += amount;
         }
 
         if (totalAmountTransferred > 0) {
             queuedBytes.addAndGet(-totalAmountTransferred);
-            // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
-            stream.incrementWindow(totalAmountTransferred);
+
+            // We may have released the Native HttpConnection and HttpStream if they completed before the Subscriber
+            // has finished reading the data.
+            if (!areNativeResourcesReleased.get()) {
+                // Open HttpStream's IO window so HttpStream can keep track of IO back-pressure
+                stream.incrementWindow(totalAmountTransferred);
+            }
         }
 
         // Check if Complete
@@ -232,7 +263,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * @param subscriber The Subscriber to publish to.
      * @param buffer The buffer to publish to the subscriber.
      */
-    private synchronized void publishWithoutMutualRecursion(Subscriber<ByteBuffer> subscriber, ByteBuffer buffer) {
+    private synchronized void publishWithoutMutualRecursion(Subscriber<? super ByteBuffer> subscriber, ByteBuffer buffer) {
         try {
             /**
              * Need to keep track of recursion depth between .onNext() -> .request() calls
