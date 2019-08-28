@@ -97,6 +97,13 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Boolean> REAP_IDLE_CONNECTIONS =
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
 
+    /**
+     * The {@link TlsKeyManagersProvider} that will be used by the HTTP client when authenticating with a
+     * TLS host.
+     */
+    public static final SdkHttpConfigurationOption<TlsKeyManagersProvider> TLS_KEY_MANAGERS_PROVIDER =
+            new SdkHttpConfigurationOption<>("TlsKeyManagersProvider", TlsKeyManagersProvider.class);
+
     private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
@@ -109,6 +116,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
+
+    private static final TlsKeyManagersProvider DEFAULT_TLS_KEY_MANAGERS_PROVIDER = SystemPropertyTlsKeyManagersProvider.create();
 
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
@@ -123,6 +132,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
+            .put(TLS_KEY_MANAGERS_PROVIDER, DEFAULT_TLS_KEY_MANAGERS_PROVIDER)
             .build();
 
     private final String name;
