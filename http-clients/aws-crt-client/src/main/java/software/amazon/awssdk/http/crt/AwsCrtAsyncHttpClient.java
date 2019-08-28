@@ -57,6 +57,8 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClient.class);
     private static final String HOST_HEADER = "Host";
     private static final String CONTENT_LENGTH = "Content-Length";
+    private static final String CONNECTION = "Connection";
+    private static final String KEEP_ALIVE = "keep-alive";
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB Total Buffer size
     private static final int DEFAULT_HTTP_BODY_UPDATE_SIZE = 4 * 1024 * 1024; // 4 MB Update size from Native
@@ -111,7 +113,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private HttpConnectionPoolManager createConnectionPool(URI uri) {
         Validate.notNull(uri, "URI must not be null");
-        log.debug(() -> "Creating ConnectionPool for: " + uri);
+        log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
         return new HttpConnectionPoolManager(bootstrap, socketOptions, tlsContext, uri, windowSize, maxConnectionsPerEndpoint);
     }
 
@@ -142,6 +144,11 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         // Set Host Header if needed
         if (isNullOrEmpty(sdkRequest.headers().get(HOST_HEADER))) {
             crtHeaderList.add(new HttpHeader(HOST_HEADER, uri.getHost()));
+        }
+
+        // Add Connection Keep Alive Header to reuse this Http Connection as long as possible
+        if (isNullOrEmpty(sdkRequest.headers().get(CONNECTION))) {
+            crtHeaderList.add(new HttpHeader(CONNECTION, KEEP_ALIVE));
         }
 
         // Set Content-Length if needed
@@ -200,19 +207,20 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         reqOptions.setBodyBufferSize(httpBodyUpdateSize);
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
-        crtConnPool.acquireConnection().whenComplete((crtConn, throwable) -> {
-            // If we didn't get a connection for some reason, fail the request
-            if (throwable != null) {
-                requestFuture.completeExceptionally(throwable);
-                return;
-            }
+        crtConnPool.acquireConnection()
+            .whenComplete((crtConn, throwable) -> {
+                // If we didn't get a connection for some reason, fail the request
+                if (throwable != null) {
+                    requestFuture.completeExceptionally(throwable);
+                    return;
+                }
 
-            // When the Request is complete, return our connection back to the Connection Pool
-            requestFuture.whenComplete((v, t) ->  crtConnPool.releaseConnection(crtConn));
+                // When the Request is complete, return our connection back to the Connection Pool
+                requestFuture.whenComplete((v, t) ->  crtConnPool.releaseConnection(crtConn));
 
-            // Submit the Request on this Connection
-            invokeSafely(() -> crtConn.makeRequest(crtRequest, reqOptions, crtToSdkAdapter));
-        });
+                // Submit the Request on this Connection
+                invokeSafely(() -> crtConn.makeRequest(crtRequest, reqOptions, crtToSdkAdapter));
+            });
 
         return requestFuture;
     }

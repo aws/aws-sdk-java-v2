@@ -20,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
@@ -35,6 +37,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 
 public class AwsCrtClientS3IntegrationTest {
@@ -43,9 +46,10 @@ public class AwsCrtClientS3IntegrationTest {
      */
     private static String BUCKET_NAME = "aws-crt-test-stuff";
 
-    private static String KEY = "http_test_doc.txt";
-
-    private static String FILE_SHA256 = "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534";
+    private static String LARGE_FILE = "http_test_doc.txt";
+    private static String SMALL_FILE = "random_32_byte.data";
+    private static String LARGE_FILE_SHA256 = "C7FDB5314B9742467B16BD5EA2F8012190B5E2C44A005F7984F89AAB58219534";
+    private static int NUM_REQUESTS = 1000;
 
     private static Region REGION = Region.US_EAST_1;
 
@@ -63,7 +67,7 @@ public class AwsCrtClientS3IntegrationTest {
     public void setup() {
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
 
-        ClientBootstrap bootstrap = new ClientBootstrap(1);
+        ClientBootstrap bootstrap = new ClientBootstrap(4);
         SocketOptions socketOptions = new SocketOptions();
         TlsContext tlsContext = new TlsContext();
 
@@ -100,11 +104,31 @@ public class AwsCrtClientS3IntegrationTest {
     public void testDownloadFromS3() throws Exception {
         GetObjectRequest s3Request = GetObjectRequest.builder()
                 .bucket(BUCKET_NAME)
-                .key(KEY)
+                .key(LARGE_FILE)
                 .build();
 
         byte[] responseBody = s3.getObject(s3Request, AsyncResponseTransformer.toBytes()).get(120, TimeUnit.SECONDS).asByteArray();
 
-        assertThat(sha256Hex(responseBody).toUpperCase()).isEqualTo(FILE_SHA256);
+        assertThat(sha256Hex(responseBody).toUpperCase()).isEqualTo(LARGE_FILE_SHA256);
     }
+
+    @Test
+    public void testParallelDownloadFromS3() throws Exception {
+        List<CompletableFuture<ResponseBytes<GetObjectResponse>> > requestFutures = new ArrayList<>();
+
+        for (int i = 0; i < NUM_REQUESTS; i++) {
+            GetObjectRequest s3Request = GetObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(SMALL_FILE)
+                    .build();
+            CompletableFuture<ResponseBytes<GetObjectResponse>> requestFuture = s3.getObject(s3Request, AsyncResponseTransformer.toBytes());
+            requestFutures.add(requestFuture);
+        }
+
+        for(CompletableFuture<ResponseBytes<GetObjectResponse>>  f: requestFutures) {
+            f.join();
+            Assert.assertEquals(32, f.get().asByteArray().length);
+        }
+    }
+
 }
