@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.CrtHttpStreamHandler;
+import software.amazon.awssdk.crt.http.HttpConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpStream;
@@ -36,29 +37,41 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
-    private final AsyncExecuteRequest sdkRequest;
+
+    private final HttpConnection connection;
     private final CompletableFuture<Void> responseComplete;
+    private final AsyncExecuteRequest sdkRequest;
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
     private final int windowSize;
     private final AwsCrtRequestBodySubscriber requestBodySubscriber;
     private AwsCrtResponseBodyPublisher respBodyPublisher = null;
 
-    public AwsCrtAsyncHttpStreamAdapter(CompletableFuture<Void> responseComplete, AsyncExecuteRequest sdkRequest,
-                                        int windowSize) {
+    public AwsCrtAsyncHttpStreamAdapter(HttpConnection connection, CompletableFuture<Void> responseComplete,
+                                        AsyncExecuteRequest sdkRequest, int windowSize) {
+        Validate.notNull(connection, "HttpConnection is null");
         Validate.notNull(responseComplete, "reqComplete Future is null");
         Validate.notNull(sdkRequest, "AsyncExecuteRequest Future is null");
         Validate.isPositive(windowSize, "windowSize is <= 0");
 
-        this.sdkRequest = sdkRequest;
+        this.connection = connection;
         this.responseComplete = responseComplete;
+        this.sdkRequest = sdkRequest;
         this.windowSize = windowSize;
         this.requestBodySubscriber = new AwsCrtRequestBodySubscriber(windowSize);
 
         sdkRequest.requestContentPublisher().subscribe(requestBodySubscriber);
     }
 
+    private void initRespBodyPublisherIfNeeded(HttpStream stream) {
+        if (respBodyPublisher == null) {
+            respBodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, responseComplete, windowSize);
+        }
+    }
+
     @Override
     public void onResponseHeaders(HttpStream stream, int responseStatusCode, HttpHeader[] nextHeaders) {
+        initRespBodyPublisherIfNeeded(stream);
+
         respBuilder.statusCode(responseStatusCode);
 
         for (HttpHeader h : nextHeaders) {
@@ -68,10 +81,10 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
 
     @Override
     public void onResponseHeadersDone(HttpStream stream, boolean hasBody) {
+        initRespBodyPublisherIfNeeded(stream);
+
         respBuilder.statusCode(stream.getResponseStatusCode());
         sdkRequest.responseHandler().onHeaders(respBuilder.build());
-        respBodyPublisher = new AwsCrtResponseBodyPublisher(stream, responseComplete, windowSize);
-
 
         if (!hasBody) {
             respBodyPublisher.setQueueComplete();
@@ -82,6 +95,8 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
 
     @Override
     public int onResponseBody(HttpStream stream, ByteBuffer bodyBytesIn) {
+        initRespBodyPublisherIfNeeded(stream);
+
         if (respBodyPublisher == null) {
             log.error(() -> "Publisher is null, onResponseHeadersDone() was never called");
             throw new IllegalStateException("Publisher is null, onResponseHeadersDone() was never called");
@@ -101,11 +116,12 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
 
     @Override
     public void onResponseComplete(HttpStream stream, int errorCode) {
+        initRespBodyPublisherIfNeeded(stream);
+
         if (errorCode == CRT.AWS_CRT_SUCCESS) {
             log.debug(() -> "Response Completed Successfully");
             respBodyPublisher.setQueueComplete();
             respBodyPublisher.publishToSubscribers();
-            responseComplete.complete(null);
         } else {
             HttpException error = new HttpException(errorCode);
             log.error(() -> "Response Encountered an Error.", error);
@@ -114,15 +130,9 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
             sdkRequest.responseHandler().onError(error);
 
             // Invoke Error Callback on any Subscriber's of the Response Body
-            if (respBodyPublisher != null) {
-                respBodyPublisher.setError(error);
-                respBodyPublisher.publishToSubscribers();
-            }
-
-            responseComplete.completeExceptionally(error);
+            respBodyPublisher.setError(error);
+            respBodyPublisher.publishToSubscribers();
         }
-
-        stream.close();
     }
 
     @Override
