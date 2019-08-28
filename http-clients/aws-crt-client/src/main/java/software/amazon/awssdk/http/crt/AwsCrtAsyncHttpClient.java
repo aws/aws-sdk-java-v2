@@ -200,8 +200,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         HttpRequest crtRequest = toCrtRequest(uri, asyncRequest);
 
         CompletableFuture<Void> requestFuture = new CompletableFuture<>();
-        AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
-                new AwsCrtAsyncHttpStreamAdapter(requestFuture, asyncRequest, windowSize);
+
 
         HttpRequestOptions reqOptions = new HttpRequestOptions();
         reqOptions.setBodyBufferSize(httpBodyUpdateSize);
@@ -215,8 +214,8 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                     return;
                 }
 
-                // When the Request is complete, return our connection back to the Connection Pool
-                requestFuture.whenComplete((v, t) ->  crtConnPool.releaseConnection(crtConn));
+                AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
+                        new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, windowSize);
 
                 // Submit the Request on this Connection
                 invokeSafely(() -> crtConn.makeRequest(crtRequest, reqOptions, crtToSdkAdapter));
