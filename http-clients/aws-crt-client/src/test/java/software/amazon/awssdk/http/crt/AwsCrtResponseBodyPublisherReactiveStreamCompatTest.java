@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.crt.http.HttpConnection;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher;
 import software.amazon.awssdk.utils.Logger;
@@ -36,8 +37,9 @@ public class AwsCrtResponseBodyPublisherReactiveStreamCompatTest extends Publish
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long elements) {
+        HttpConnection connection = mock(HttpConnection.class);
         HttpStream stream = mock(HttpStream.class);
-        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(stream, new CompletableFuture<>(), Integer.MAX_VALUE);
+        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, new CompletableFuture<>(), Integer.MAX_VALUE);
 
         for (long i = 0; i < elements; i++) {
             bodyPublisher.queueBuffer(ByteBuffer.wrap(UUID.randomUUID().toString().getBytes()));
