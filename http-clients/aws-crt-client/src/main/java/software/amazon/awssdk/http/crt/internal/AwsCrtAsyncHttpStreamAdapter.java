@@ -37,20 +37,20 @@ import software.amazon.awssdk.utils.Validate;
 public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
     private final AsyncExecuteRequest sdkRequest;
-    private final CompletableFuture<Void> reqComplete;
+    private final CompletableFuture<Void> responseComplete;
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
     private final int windowSize;
     private final AwsCrtRequestBodySubscriber requestBodySubscriber;
     private AwsCrtResponseBodyPublisher respBodyPublisher = null;
 
-    public AwsCrtAsyncHttpStreamAdapter(CompletableFuture<Void> reqComplete, AsyncExecuteRequest sdkRequest,
+    public AwsCrtAsyncHttpStreamAdapter(CompletableFuture<Void> responseComplete, AsyncExecuteRequest sdkRequest,
                                         int windowSize) {
-        Validate.notNull(reqComplete, "reqComplete Future is null");
+        Validate.notNull(responseComplete, "reqComplete Future is null");
         Validate.notNull(sdkRequest, "AsyncExecuteRequest Future is null");
         Validate.isPositive(windowSize, "windowSize is <= 0");
 
         this.sdkRequest = sdkRequest;
-        this.reqComplete = reqComplete;
+        this.responseComplete = responseComplete;
         this.windowSize = windowSize;
         this.requestBodySubscriber = new AwsCrtRequestBodySubscriber(windowSize);
 
@@ -70,7 +70,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     public void onResponseHeadersDone(HttpStream stream, boolean hasBody) {
         respBuilder.statusCode(stream.getResponseStatusCode());
         sdkRequest.responseHandler().onHeaders(respBuilder.build());
-        respBodyPublisher = new AwsCrtResponseBodyPublisher(stream, windowSize);
+        respBodyPublisher = new AwsCrtResponseBodyPublisher(stream, responseComplete, windowSize);
 
 
         if (!hasBody) {
@@ -92,6 +92,10 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
         respBodyPublisher.queueBuffer(deepCopy(bodyBytesIn));
         respBodyPublisher.publishToSubscribers();
 
+        if (bodyBytesIn.remaining() != 0) {
+            throw new IllegalStateException("Unprocessed bytes remain in bodyBytesIn Buffer!");
+        }
+
         return 0;
     }
 
@@ -101,7 +105,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
             log.debug(() -> "Response Completed Successfully");
             respBodyPublisher.setQueueComplete();
             respBodyPublisher.publishToSubscribers();
-            reqComplete.complete(null);
+            responseComplete.complete(null);
         } else {
             HttpException error = new HttpException(errorCode);
             log.error(() -> "Response Encountered an Error.", error);
@@ -115,7 +119,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
                 respBodyPublisher.publishToSubscribers();
             }
 
-            reqComplete.completeExceptionally(error);
+            responseComplete.completeExceptionally(error);
         }
 
         stream.close();

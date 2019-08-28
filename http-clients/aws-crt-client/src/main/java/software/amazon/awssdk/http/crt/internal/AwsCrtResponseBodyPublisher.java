@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.crt.internal;
 
 import java.nio.ByteBuffer;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,6 +39,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
+    private final CompletableFuture<Void> responseComplete;
     private final AtomicLong outstandingRequests = new AtomicLong(0);
     private final HttpStream stream;
     private final int windowSize;
@@ -56,10 +58,12 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * @param windowSize The max allowed bytes to be queued. The sum of the sizes of all queued ByteBuffers should
      *                   never exceed this value.
      */
-    public AwsCrtResponseBodyPublisher(HttpStream stream, int windowSize) {
+    public AwsCrtResponseBodyPublisher(HttpStream stream, CompletableFuture<Void> responseComplete, int windowSize) {
         Validate.notNull(stream, "Stream must not be null");
+        Validate.notNull(responseComplete, "Stream must not be null");
         Validate.isPositive(windowSize, "windowSize must be > 0");
         this.stream = stream;
+        this.responseComplete = responseComplete;
         this.windowSize = windowSize;
     }
 
@@ -153,18 +157,21 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             return;
         }
 
-        Subscriber s = subscriberRef.getAndSet(null);
+        Subscriber subscriber = subscriberRef.getAndSet(null);
 
-        if (s == null) {
+        if (subscriber == null) {
             return;
         }
 
         Throwable throwable = error.get();
 
         if (throwable != null) {
-            s.onError(throwable);
+            log.error(() -> "Error before ResponseBodyPublisher could complete: " + throwable.getMessage());
+            subscriber.onError(throwable);
         } else {
-            s.onComplete();
+            log.debug(() -> "ResponseBodyPublisher Completed Successfully");
+            subscriber.onComplete();
+            responseComplete.complete(null);
         }
     }
 
