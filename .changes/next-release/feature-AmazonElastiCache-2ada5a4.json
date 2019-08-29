@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "description": "Amazon ElastiCache for Redis now supports encryption at rest using customer managed customer master keys (CMKs) in AWS Key Management Service (KMS). Amazon ElastiCache now supports cluster names upto 40 characters for replicationGoups and upto 50 characters for cacheClusters."
+}
