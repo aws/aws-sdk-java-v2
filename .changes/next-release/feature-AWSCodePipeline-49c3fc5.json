@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "description": "Introducing pipeline execution trigger details in ListPipelineExecutions API."
+}
