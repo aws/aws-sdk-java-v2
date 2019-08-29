@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "description": "Adds a \"MaximumBatchingWindowInSeconds\" parameter to event source mapping api's. Usable by Dynamodb and Kinesis event sources."
+}
