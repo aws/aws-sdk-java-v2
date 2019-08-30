@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMQ",
-    "description": "Adds support for updating security groups selection of an Amazon MQ broker."
-}
