@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
@@ -36,7 +37,8 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
 
 @SdkPublicApi
-public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Iterable<Page<T>>> {
+public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Iterable<Page<T>>>,
+                                IndexOperation<T, ScanRequest, ScanIterable, Iterable<Page<T>>> {
     private final Map<String, AttributeValue> exclusiveStartKey;
     private final Integer limit;
     private final Boolean consistentRead;

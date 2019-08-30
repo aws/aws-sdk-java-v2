@@ -30,6 +30,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
@@ -132,7 +133,7 @@ public class BatchWriteItem
 
         public <T> List<T> unprocessedPutItemsForTable(MappedTable<T> mappedTable) {
             List<WriteRequest> writeRequests =
-                unprocessedRequests.getOrDefault(mappedTable.getOperationContext().getTableName(),
+                unprocessedRequests.getOrDefault(mappedTable.getTableName(),
                                                  Collections.emptyList());
 
             return writeRequests.stream()
@@ -141,14 +142,14 @@ public class BatchWriteItem
                                 .map(PutRequest::item)
                                 .map(item -> readAndTransformSingleItem(item,
                                                                         mappedTable.getTableSchema(),
-                                                                        mappedTable.getOperationContext(),
+                                                                        OperationContext.of(mappedTable.getTableName()),
                                                                         mappedTable.getMapperExtension()))
                                 .collect(Collectors.toList());
         }
 
         public <T> List<T> unprocessedDeleteItemsForTable(MappedTable<T> mappedTable) {
             List<WriteRequest> writeRequests =
-                unprocessedRequests.getOrDefault(mappedTable.getOperationContext().getTableName(),
+                unprocessedRequests.getOrDefault(mappedTable.getTableName(),
                                                  Collections.emptyList());
 
             return writeRequests.stream()

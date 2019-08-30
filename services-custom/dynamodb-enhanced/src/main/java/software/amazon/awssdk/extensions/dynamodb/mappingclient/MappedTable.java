@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
-public interface MappedTable<T> extends MappedIndex<T> {
+public interface MappedTable<T> {
     /**
      * Returns a mapped index that can be used to execute commands against a secondary index belonging to the table
      * being mapped by this object. Note that only a subset of the commands that work against a table will work
@@ -38,4 +38,43 @@ public interface MappedTable<T> extends MappedIndex<T> {
      * @return A {@link MappedIndex} object that can be used to execute database commands against.
      */
     MappedIndex<T> index(String indexName);
+
+    /**
+     * Executes a command against the database with the context of the primary index of the specific table this object
+     * is linked to.
+     *
+     * Example: mappedTable.execute(PutItem.of(myItem));
+     *
+     * @param operationToPerform The operation to be performed in the context of the primary index of the table.
+     * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
+     * @return The result of the operation being executed. The documentation on the operation itself should have more
+     * information.
+     */
+    <R> R execute(TableOperation<T, ?, ?, R> operationToPerform);
+
+    /**
+     * Gets the {@link MapperExtension} associated with this mapped resource.
+     * @return The {@link MapperExtension} associated with this mapped resource.
+     */
+    MapperExtension getMapperExtension();
+
+    /**
+     * Gets the {@link TableSchema} object that this mapped table was built with.
+     * @return The {@link TableSchema} object for this mapped table.
+     */
+    TableSchema<T> getTableSchema();
+
+    /**
+     * Gets the physical table name that operations performed by this object will be executed against.
+     * @return The physical table name.
+     */
+    String getTableName();
+
+    /**
+     * Creates a {@link Key} object from a modelled item. This key can be used in query conditionals and get
+     * operations to locate a specific record.
+     * @param item The item to extract the key fields from.
+     * @return A key that has been initialized with the index values extracted from the modelled object.
+     */
+    Key keyFrom(T item);
 }

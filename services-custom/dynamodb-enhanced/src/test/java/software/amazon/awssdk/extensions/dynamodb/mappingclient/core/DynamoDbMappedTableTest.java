@@ -32,6 +32,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
@@ -54,7 +55,7 @@ public class DynamoDbMappedTableTest {
     @Test
     public void execute_callsOperationCorrectly() {
         FakeItem expectedOutput = FakeItem.createUniqueFakeItem();
-        when(mockTableOperation.execute(any(), any(), any(), any())).thenReturn(expectedOutput);
+        when(mockTableOperation.executeOnPrimaryIndex(any(), any(), any(), any())).thenReturn(expectedOutput);
         DynamoDbMappedTable<FakeItem> dynamoDbMappedTable = new DynamoDbMappedTable<>(mockDynamoDbClient,
                                                                                       mockMapperExtension,
                                                                                       FakeItem.getTableSchema(),
@@ -63,8 +64,8 @@ public class DynamoDbMappedTableTest {
         FakeItem actualOutput = dynamoDbMappedTable.execute(mockTableOperation);
 
         assertThat(actualOutput, is(expectedOutput));
-        verify(mockTableOperation).execute(FakeItem.getTableSchema(),
-                                           dynamoDbMappedTable.getOperationContext(),
+        verify(mockTableOperation).executeOnPrimaryIndex(FakeItem.getTableSchema(),
+                                           dynamoDbMappedTable.getTableName(),
                                            mockMapperExtension,
                                            mockDynamoDbClient);
     }

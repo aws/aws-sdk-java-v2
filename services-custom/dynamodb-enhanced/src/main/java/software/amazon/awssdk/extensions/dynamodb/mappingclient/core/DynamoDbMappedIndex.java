@@ -19,11 +19,10 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Util
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -49,8 +48,12 @@ public class DynamoDbMappedIndex<T> implements MappedIndex<T> {
     }
 
     @Override
-    public <R> R execute(TableOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.execute(tableSchema, getOperationContext(), mapperExtension, dynamoDbClient);
+    public <R> R execute(IndexOperation<T, ?, ?, R> operationToPerform) {
+        return operationToPerform.executeOnSecondaryIndex(tableSchema,
+                                                          tableName,
+                                                          indexName,
+                                                          mapperExtension,
+                                                          dynamoDbClient);
     }
 
     @Override
@@ -61,11 +64,6 @@ public class DynamoDbMappedIndex<T> implements MappedIndex<T> {
     @Override
     public TableSchema<T> getTableSchema() {
         return tableSchema;
-    }
-
-    @Override
-    public OperationContext getOperationContext() {
-        return OperationContext.of(tableName, indexName);
     }
 
     public DynamoDbClient getDynamoDbClient() {

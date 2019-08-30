@@ -19,16 +19,16 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Interface for a single operation that can be executed against a mapped database table. These operations will be
- * executed against the primary index of the table. Conceptually an operation maps 1:1 with an actual DynamoDb call.
+ * Interface for a single operation that can be executed against a secondary index of a mapped database table.
+ * Conceptually an operation maps 1:1 with an actual DynamoDb call.
  *
- * Typically a table operation will be executed by a {@link MappedTable}:
+ * Typically a table operation will be executed by a {@link MappedIndex}:
  *
  * {@code
- * mappedDatabase.table(tableSchema).execute(tableOperation);                             // For primary index
+ * mappedDatabase.table(tableSchema).index("an_index_name").execute(indexOperation);      // For secondary index
  * }
  *
- * A concrete implementation of this interface should also implement {@link IndexOperation} with the same types if
+ * A concrete implementation of this interface should also implement {@link TableOperation} with the same types if
  * the operation supports being executed against both the primary index and secondary indices.
  *
  * @param <ItemT> The modelled object that this table maps records to.
@@ -37,25 +37,28 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  * @param <ResultT> The type of the mapped result object that will be returned by the execution of this operation.
  */
 @SdkPublicApi
-public interface TableOperation<ItemT, RequestT, ResponseT, ResultT>
+public interface IndexOperation<ItemT, RequestT, ResponseT, ResultT>
     extends CommonOperation<ItemT, RequestT, ResponseT, ResultT> {
     /**
-     * Default implementation of a complete execution of this operation against the primary index. It will construct
-     * a context based on the given table name and then call execute() on the {@link CommonOperation} interface to
-     * perform the operation.
+     * Default implementation of a complete execution of this operation against a secondary index. It will construct
+     * a context based on the given table name and secondary index name and then call execute() on the
+     * {@link CommonOperation} interface to perform the operation.
      *
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
-     * @param tableName The physical name of the table to execute the operation against.
+     * @param tableName The physical name of the table that contains the secondary index to execute the operation
+     *                  against.
+     * @param indexName The physical name of the secondary index to execute the operation against.
      * @param dynamoDbClient A {@link DynamoDbClient} to make the call against.
      * @param mapperExtension A {@link MapperExtension} that may modify the request or result of this operation. A
      *                        null value here will result in no modifications.
      * @return A high level result object as specified by the implementation of this operation.
      */
-    default ResultT executeOnPrimaryIndex(TableSchema<ItemT> tableSchema,
-                                          String tableName,
-                                          MapperExtension mapperExtension,
-                                          DynamoDbClient dynamoDbClient) {
-        OperationContext context = OperationContext.of(tableName, TableMetadata.getPrimaryIndexName());
+    default ResultT executeOnSecondaryIndex(TableSchema<ItemT> tableSchema,
+                                            String tableName,
+                                            String indexName,
+                                            MapperExtension mapperExtension,
+                                            DynamoDbClient dynamoDbClient) {
+        OperationContext context = OperationContext.of(tableName, indexName);
         return execute(tableSchema, context, mapperExtension, dynamoDbClient);
     }
 }

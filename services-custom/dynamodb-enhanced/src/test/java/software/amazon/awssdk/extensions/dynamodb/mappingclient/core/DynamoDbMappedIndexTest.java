@@ -29,10 +29,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
@@ -43,7 +43,7 @@ public class DynamoDbMappedIndexTest {
     private DynamoDbClient mockDynamoDbClient;
 
     @Mock
-    private TableOperation<FakeItem, Object, Object, FakeItem> mockTableOperation;
+    private IndexOperation<FakeItem, Object, Object, FakeItem> mockIndexOperation;
 
     @Mock
     private MapperExtension mockMapperExtension;
@@ -56,14 +56,16 @@ public class DynamoDbMappedIndexTest {
                                                                                       FakeItem.getTableSchema(),
                                                                                       "test_table",
                                                                                       "test_index");
-        when(mockTableOperation.execute(any(), any(), any(), any())).thenReturn(expectedOutput);
+        when(mockIndexOperation.executeOnSecondaryIndex(any(), any(), any(), any(), any())).thenReturn(expectedOutput);
 
-        FakeItem actualOutput = dynamoDbMappedIndex.execute(mockTableOperation);
+        FakeItem actualOutput = dynamoDbMappedIndex.execute(mockIndexOperation);
 
         assertThat(actualOutput, is(expectedOutput));
-        OperationContext expectedOperationContext = OperationContext.of("test_table", "test_index");
-        verify(mockTableOperation).execute(FakeItem.getTableSchema(), expectedOperationContext, mockMapperExtension,
-                                           mockDynamoDbClient);
+        verify(mockIndexOperation).executeOnSecondaryIndex(FakeItem.getTableSchema(),
+                                                           "test_table",
+                                                           "test_index",
+                                                           mockMapperExtension,
+                                                           mockDynamoDbClient);
     }
 
     @Test

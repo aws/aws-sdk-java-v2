@@ -34,17 +34,17 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMap
 @SdkPublicApi
 public interface MappedIndex<T> {
     /**
-     * Executes a command against the database with the context of the specific secondary index this object is linked
-     * to.
+     * Executes a command against the database with the context of the specific table and secondary index this object
+     * is linked to.
      *
      * Example: mappedIndex.execute(Scan.create());
      *
-     * @param operationToPerform The operation to be performed in the context of the index.
+     * @param operationToPerform The operation to be performed in the context of the secondary index.
      * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
      * @return The result of the operation being executed. The documentation on the operation itself should have more
      * information.
      */
-    <R> R execute(TableOperation<T, ?, ?, R> operationToPerform);
+    <R> R execute(IndexOperation<T, ?, ?, R> operationToPerform);
 
     /**
      * Gets the {@link MapperExtension} associated with this mapped resource.
@@ -53,17 +53,22 @@ public interface MappedIndex<T> {
     MapperExtension getMapperExtension();
 
     /**
-     * Gets the {@link OperationContext} that can be used to execute commands against.
-     *
-     * @return The {@link OperationContext} associated with this object.
-     */
-    OperationContext getOperationContext();
-
-    /**
      * Gets the {@link TableSchema} object that this mapped table was built with.
      * @return The {@link TableSchema} object for this mapped table.
      */
     TableSchema<T> getTableSchema();
+
+    /**
+     * Gets the physical table name that operations performed by this object will be executed against.
+     * @return The physical table name.
+     */
+    String getTableName();
+
+    /**
+     * Gets the physical secondary index name that operations performed by this object will be executed against.
+     * @return The physical secondary index name.
+     */
+    String getIndexName();
 
     /**
      * Creates a {@link Key} object from a modelled item. This key can be used in query conditionals and get
