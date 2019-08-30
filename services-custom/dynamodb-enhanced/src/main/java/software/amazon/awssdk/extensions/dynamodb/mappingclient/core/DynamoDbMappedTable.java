@@ -22,7 +22,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
@@ -48,17 +47,12 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
 
     @Override
     public <R> R execute(TableOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.execute(tableSchema, getOperationContext(), mapperExtension, dynamoDbClient);
+        return operationToPerform.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
     }
 
     @Override
     public MapperExtension getMapperExtension() {
         return this.mapperExtension;
-    }
-
-    @Override
-    public OperationContext getOperationContext() {
-        return OperationContext.of(tableName, TableMetadata.getPrimaryIndexName());
     }
 
     @Override
