@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.kms.model.GenerateRandomResponse;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(Theories.class)
-public class AwsCrtCombinatorialConfigStressTest {
+public class AwsCrtCombinatorialConfigStressIntegrationTest {
     private final static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private final static Region REGION = Region.US_EAST_1;
     private final static List<SdkAsyncHttpClient> awsCrtHttpClients = new ArrayList<>();
