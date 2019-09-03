@@ -24,8 +24,8 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
-import io.netty.handler.codec.http2.ForkedHttp2StreamChannelBootstrap;
 import io.netty.handler.codec.http2.Http2StreamChannel;
+import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
@@ -133,7 +132,7 @@ public final class MultiplexedChannelRecord {
      * @return BiConsumer that will bootstrap the child channel.
      */
     private BiConsumer<Protocol, Promise<Channel>> bootstrapChildChannel(Channel parentChannel) {
-        return (s, p) -> new ForkedHttp2StreamChannelBootstrap(parentChannel)
+        return (s, p) -> new Http2StreamChannelBootstrap(parentChannel)
             .open()
             .addListener((GenericFutureListener<Future<Http2StreamChannel>>) future -> {
                 if (future.isSuccess()) {
