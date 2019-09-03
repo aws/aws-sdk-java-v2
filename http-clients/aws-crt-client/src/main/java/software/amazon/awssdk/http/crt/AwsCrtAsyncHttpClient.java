@@ -15,26 +15,28 @@
 
 package software.amazon.awssdk.http.crt;
 
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpConnectionPoolManager;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpRequestOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
+import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -60,40 +62,56 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final String CONNECTION = "Connection";
     private static final String KEEP_ALIVE = "keep-alive";
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
-    private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB Total Buffer size
-    private static final int DEFAULT_HTTP_BODY_UPDATE_SIZE = 4 * 1024 * 1024; // 4 MB Update size from Native
+    private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
 
     private final Map<URI, HttpConnectionPoolManager> connectionPools = new ConcurrentHashMap<>();
+    private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
+    private final TlsContextOptions tlsContextOptions;
     private final TlsContext tlsContext;
     private final int windowSize;
     private final int maxConnectionsPerEndpoint;
-    private final int httpBodyUpdateSize;
+
 
     public AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
-        this(builder.bootstrap, builder.socketOptions, builder.tlsContext, builder.windowSize,
-                config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS), builder.httpBodyUpdateSize);
-    }
+        int maxConns = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
 
-    public AwsCrtAsyncHttpClient(ClientBootstrap bootstrap, SocketOptions sockOpts, TlsContext tlsContext) {
-        this(bootstrap, sockOpts, tlsContext, DEFAULT_STREAM_WINDOW_SIZE, GLOBAL_HTTP_DEFAULTS.get(MAX_CONNECTIONS),
-                DEFAULT_HTTP_BODY_UPDATE_SIZE);
-    }
+        Validate.isPositive(maxConns, "maxConns");
+        Validate.isPositive(builder.eventLoopSize, "eventLoopSize");
+        Validate.notNull(builder.cipherPreference, "cipherPreference");
+        Validate.isPositive(builder.windowSize, "windowSize");
 
-    public AwsCrtAsyncHttpClient(ClientBootstrap bootstrap, SocketOptions sockOpts, TlsContext tlsContext,
-                                 int windowSize, int maxConns, int httpBodyUpdateSize) {
-        Validate.notNull(bootstrap, "ClientBootstrap must not be null");
-        Validate.notNull(sockOpts, "SocketOptions must not be null");
-        Validate.notNull(tlsContext, "TlsContext must not be null");
-        Validate.isPositive(windowSize, "windowSize must be > 0");
+        /**
+         * Must add to List in reverse order that they were created in, so that they are closed in the correct order.
+         *
+         * Do NOT use Dependency Injection for Native Resources. It's possible to crash the JVM Process if Native
+         * Dependencies are closed in the wrong order (Eg closing the Bootstrap/Threadpool when there are still open
+         * connections). By creating and owning our own Native Resources we can guarantee that things are shutdown in
+         * the correct order.
+         */
 
-        this.bootstrap = bootstrap;
-        this.socketOptions = sockOpts;
-        this.tlsContext = tlsContext;
-        this.windowSize = windowSize;
+        bootstrap = own(new ClientBootstrap(builder.eventLoopSize));
+        socketOptions = own(new SocketOptions());
+        tlsContextOptions = own(new TlsContextOptions().withCipherPreference(builder.cipherPreference));
+        tlsContextOptions.setVerifyPeer(builder.verifyPeer);
+        tlsContext = own(new TlsContext(tlsContextOptions));
+
+        this.windowSize = builder.windowSize;
         this.maxConnectionsPerEndpoint = maxConns;
-        this.httpBodyUpdateSize = httpBodyUpdateSize;
+    }
+
+    /**
+     * Marks a Native CrtResource as owned by the current Java Object.
+     * This will guarantee that any owned CrtResources are closed in reverse order when this Java Object is closed.
+     *
+     * @param subresource The Resource to own.
+     * @param <T> The CrtResource Type
+     * @return The CrtResource passed in
+     */
+    private <T extends CrtResource> T own(T subresource) {
+        ownedSubResources.push(subresource);
+        return subresource;
     }
 
     private static URI toUri(SdkHttpRequest sdkRequest) {
@@ -203,7 +221,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
 
         HttpRequestOptions reqOptions = new HttpRequestOptions();
-        reqOptions.setBodyBufferSize(httpBodyUpdateSize);
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         crtConnPool.acquireConnection()
@@ -229,6 +246,11 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         for (HttpConnectionPoolManager connPool : connectionPools.values()) {
             connPool.close();
         }
+
+        while (ownedSubResources.size() > 0) {
+            CrtResource r = ownedSubResources.pop();
+            r.close();
+        }
     }
 
     /**
@@ -237,39 +259,35 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     public interface Builder extends SdkAsyncHttpClient.Builder<AwsCrtAsyncHttpClient.Builder> {
 
         /**
-         * The AWS CRT Bootstrap Instance to use for this Client
-         * @param boostrap The AWS Common Runtime Bootstrap
+         * The number of Threads to use in the EventLoop.
+         * @param eventLoopSize The number of Threads to use in the EventLoop.
          * @return the builder of the method chaining.
          */
-        Builder bootstrap(ClientBootstrap boostrap);
+        Builder eventLoopSize(int eventLoopSize);
 
         /**
-         * The AWS CRT SocketOptions to use for this Client.
-         * @param socketOptions The AWS Common Runtime SocketOptions
+         * The AWS CRT TlsCipherPreference to use for this Client
+         * @param tlsCipherPreference The AWS Common Runtime TlsCipherPreference
          * @return the builder of the method chaining.
          */
-        Builder socketOptions(SocketOptions socketOptions);
+        Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference);
 
         /**
-         * The AWS CRT TlsContext to use for this Client
-         * @param tlsContext The AWS Common Runtime TlsContext
+         * Whether or not to Verify the Peer's TLS Certificate Chain.
+         * @param verifyPeer true if the Certificate Chain should be validated, false if validation should be skipped.
          * @return the builder of the method chaining.
          */
-        Builder tlsContext(TlsContext tlsContext);
+        Builder verifyPeer(boolean verifyPeer);
 
         /**
-         * The AWS CRT WindowSize to use for this HttpClient
+         * The AWS CRT WindowSize to use for this HttpClient. This represents the number of unread bytes that can be
+         * buffered in the ResponseBodyPublisher before we stop reading from the underlying TCP socket and wait for
+         * the Subscriber to read more data.
+         *
          * @param windowSize The AWS Common Runtime WindowSize
          * @return the builder of the method chaining.
          */
         Builder windowSize(int windowSize);
-
-        /**
-         * The AWS CRT httpBodyUpdateSize to use for this HttpClient
-         * @param httpBodyUpdateSize The AWS Common Runtime httpBodyUpdateSize
-         * @return the builder of the method chaining.
-         */
-        Builder httpBodyUpdateSize(int httpBodyUpdateSize);
     }
 
     /**
@@ -278,12 +296,10 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      */
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-
-        private ClientBootstrap bootstrap;
-        private SocketOptions socketOptions;
-        private TlsContext tlsContext;
+        private int eventLoopSize = Runtime.getRuntime().availableProcessors();
+        private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int windowSize = DEFAULT_STREAM_WINDOW_SIZE;
-        private int httpBodyUpdateSize = DEFAULT_HTTP_BODY_UPDATE_SIZE;
+        private boolean verifyPeer = true;
 
         private DefaultBuilder() {
         }
@@ -301,23 +317,25 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                            .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
-        public Builder bootstrap(ClientBootstrap bootstrap) {
-            Validate.notNull(bootstrap, "bootstrap");
-            this.bootstrap = bootstrap;
+        @Override
+        public Builder eventLoopSize(int eventLoopSize) {
+            Validate.isPositive(eventLoopSize, "eventLoopSize");
+            this.eventLoopSize = eventLoopSize;
             return this;
         }
 
         @Override
-        public Builder socketOptions(SocketOptions socketOptions) {
-            Validate.notNull(socketOptions, "socketOptions");
-            this.socketOptions = socketOptions;
+        public Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference) {
+            Validate.notNull(tlsCipherPreference, "cipherPreference");
+            Validate.isTrue(TlsContextOptions.isCipherPreferenceSupported(tlsCipherPreference),
+                            "TlsCipherPreference not supported on current Platform");
+            this.cipherPreference = tlsCipherPreference;
             return this;
         }
 
         @Override
-        public Builder tlsContext(TlsContext tlsContext) {
-            Validate.notNull(tlsContext, "tlsContext");
-            this.tlsContext = tlsContext;
+        public Builder verifyPeer(boolean verifyPeer) {
+            this.verifyPeer = verifyPeer;
             return this;
         }
 
@@ -325,13 +343,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder windowSize(int windowSize) {
             Validate.isPositive(windowSize, "windowSize");
             this.windowSize = windowSize;
-            return this;
-        }
-
-        @Override
-        public Builder httpBodyUpdateSize(int httpBodyUpdateSize) {
-            Validate.isPositive(httpBodyUpdateSize, "httpBodyUpdateSize");
-            this.httpBodyUpdateSize = httpBodyUpdateSize;
             return this;
         }
     }
