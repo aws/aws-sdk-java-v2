@@ -11,10 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.ClientBootstrap;
-import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
-import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -36,12 +33,6 @@ public class AwsCrtClientKmsIntegrationTest {
     private static Region REGION = Region.US_EAST_1;
     private static List<SdkAsyncHttpClient> awsCrtHttpClients = new ArrayList<>();
 
-    List<CrtResource> crtResources = new ArrayList<>();
-
-    private void addResource(CrtResource resource) {
-        crtResources.add(resource);
-    }
-
     @Before
     public void setup() {
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
@@ -52,33 +43,18 @@ public class AwsCrtClientKmsIntegrationTest {
                 continue;
             }
 
-            ClientBootstrap bootstrap = new ClientBootstrap(1);
-            SocketOptions socketOptions = new SocketOptions();
-            TlsContext tlsContext = new TlsContext();
-
-            addResource(bootstrap);
-            addResource(socketOptions);
-            addResource(tlsContext);
 
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .bootstrap(bootstrap)
-                    .socketOptions(socketOptions)
-                    .tlsContext(tlsContext)
+                    .eventLoopSize(1)
                     .build();
 
             awsCrtHttpClients.add(awsCrtHttpClient);
         }
     }
 
-    private void closeResources() {
-        for (CrtResource r: crtResources) {
-            r.close();
-        }
-    }
 
     @After
     public void tearDown() {
-        closeResources();
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
     }
 
