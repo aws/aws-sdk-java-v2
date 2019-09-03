@@ -32,10 +32,6 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.ClientBootstrap;
-import software.amazon.awssdk.crt.io.SocketOptions;
-import software.amazon.awssdk.crt.io.TlsContext;
-import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -45,10 +41,9 @@ import software.amazon.awssdk.services.kms.model.GenerateRandomResponse;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(Theories.class)
-public class AwsCrtCombinatorialConfigStressIntegrationTest {
+public class AwsCrtCombinatorialConfigStressIntegrationTest  {
     private final static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private final static Region REGION = Region.US_EAST_1;
-    private final static List<SdkAsyncHttpClient> awsCrtHttpClients = new ArrayList<>();
     private final static int DEFAULT_KEY_SIZE = 32;
 
     // Success rate will currently never go above ~99% due to aws-c-http not detecting connection close headers, and KMS
@@ -98,26 +93,16 @@ public class AwsCrtCombinatorialConfigStressIntegrationTest {
     }
 
     private boolean testWithNewClient(int eventLoopSize, int numberOfRequests) {
-        try (ClientBootstrap newBootstrap = new ClientBootstrap(eventLoopSize)) {
-            try (SocketOptions newSocketOptions = new SocketOptions()) {
-                try (TlsContextOptions newContextOptions = new TlsContextOptions()) {
-                    try (TlsContext newTlsContext = new TlsContext(newContextOptions)) {
-                        try (SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                                .bootstrap(newBootstrap)
-                                .socketOptions(newSocketOptions)
-                                .tlsContext(newTlsContext)
-                                .build()) {
-                            try (KmsAsyncClient newAsyncKMSClient = KmsAsyncClient.builder()
-                                    .region(REGION)
-                                    .httpClient(newAwsCrtHttpClient)
-                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                    .build()) {
-                                boolean succeeded = testWithClient(newAsyncKMSClient, numberOfRequests);
-                                return succeeded;
-                            }
-                        }
-                    }
-                }
+        try (SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
+                .eventLoopSize(eventLoopSize)
+                .build()) {
+            try (KmsAsyncClient newAsyncKMSClient = KmsAsyncClient.builder()
+                    .region(REGION)
+                    .httpClient(newAwsCrtHttpClient)
+                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                    .build()) {
+                boolean succeeded = testWithClient(newAsyncKMSClient, numberOfRequests);
+                return succeeded;
             }
         }
     }
@@ -172,13 +157,9 @@ public class AwsCrtCombinatorialConfigStressIntegrationTest {
                     .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, connectionPoolSize)
                     .build();
 
-            ClientBootstrap bootstrap = new ClientBootstrap(eventLoopSize);
-            SocketOptions socketOptions = new SocketOptions();
-            TlsContext tlsContext = new TlsContext();
+
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .bootstrap(bootstrap)
-                    .socketOptions(socketOptions)
-                    .tlsContext(tlsContext)
+                    .eventLoopSize(eventLoopSize)
                     .buildWithDefaults(attributes);
 
             KmsAsyncClient sharedAsyncKMSClient = KmsAsyncClient.builder()
@@ -212,10 +193,6 @@ public class AwsCrtCombinatorialConfigStressIntegrationTest {
 
             sharedAsyncKMSClient.close();
             awsCrtHttpClient.close();
-            tlsContext.close();
-            socketOptions.close();
-            bootstrap.close();
-
             Assert.assertFalse(failed.get());
 
             if (CrtResource.getAllocatedNativeResourceCount() > 0) {
