@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GameLift",
+    "description": "You can now make use of PKI resources to provide more secure connections between your game clients and servers. To learn more, please refer to the public Amazon GameLift documentation."
+}
