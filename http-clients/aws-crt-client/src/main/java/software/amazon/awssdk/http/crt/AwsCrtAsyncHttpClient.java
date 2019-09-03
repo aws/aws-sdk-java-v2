@@ -83,12 +83,12 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.isPositive(builder.windowSize, "windowSize");
 
         /**
-         * Must add to List in reverse order that they were created in, so that they are closed in the correct order.
+         * Must call own() in same order that CrtResources are created in, so that they will be closed in reverse order.
          *
-         * Do NOT use Dependency Injection for Native Resources. It's possible to crash the JVM Process if Native
-         * Dependencies are closed in the wrong order (Eg closing the Bootstrap/Threadpool when there are still open
-         * connections). By creating and owning our own Native Resources we can guarantee that things are shutdown in
-         * the correct order.
+         * Do NOT use Dependency Injection for Native CrtResources. It's possible to crash the JVM Process if Native
+         * Resources are closed in the wrong order (Eg closing the Bootstrap/Threadpool when there are still open
+         * connections). By creating and owning our own Native CrtResources we can guarantee that things are shutdown
+         * in the correct order.
          */
 
         bootstrap = own(new ClientBootstrap(builder.eventLoopSize));
