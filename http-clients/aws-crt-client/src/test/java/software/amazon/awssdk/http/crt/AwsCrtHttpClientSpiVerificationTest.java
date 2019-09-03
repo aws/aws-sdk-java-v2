@@ -30,8 +30,6 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -48,9 +46,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.ClientBootstrap;
-import software.amazon.awssdk.crt.io.SocketOptions;
-import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -70,39 +65,18 @@ public class AwsCrtHttpClientSpiVerificationTest {
             .dynamicHttpsPort());
 
     private SdkAsyncHttpClient client;
-    List<CrtResource> crtResources = new ArrayList<>();
-
-    private void addResource(CrtResource resource) {
-        crtResources.add(resource);
-    }
 
     @Before
     public void setup() throws Exception {
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
 
-        ClientBootstrap bootstrap = new ClientBootstrap(1);
-        SocketOptions socketOptions = new SocketOptions();
-        TlsContext tlsContext = new TlsContext();
-
-        addResource(bootstrap);
-        addResource(socketOptions);
-        addResource(tlsContext);
-
         client = AwsCrtAsyncHttpClient.builder()
-                .bootstrap(bootstrap)
-                .socketOptions(socketOptions)
-                .tlsContext(tlsContext)
                 .build();
     }
 
     @After
     public void tearDown() {
         client.close();
-
-        for (CrtResource r: crtResources) {
-            r.close();
-        }
-
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
     }
 

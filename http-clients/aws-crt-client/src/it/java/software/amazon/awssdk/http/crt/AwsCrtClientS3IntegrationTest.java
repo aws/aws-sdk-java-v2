@@ -30,9 +30,6 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.ClientBootstrap;
-import software.amazon.awssdk.crt.io.SocketOptions;
-import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -57,28 +54,12 @@ public class AwsCrtClientS3IntegrationTest {
 
     private static S3AsyncClient s3;
 
-    List<CrtResource> crtResources = new ArrayList<>();
-
-    private void addResource(CrtResource resource) {
-        crtResources.add(resource);
-    }
-
     @Before
     public void setup() {
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
 
-        ClientBootstrap bootstrap = new ClientBootstrap(4);
-        SocketOptions socketOptions = new SocketOptions();
-        TlsContext tlsContext = new TlsContext();
-
-        addResource(bootstrap);
-        addResource(socketOptions);
-        addResource(tlsContext);
-
         crtClient = AwsCrtAsyncHttpClient.builder()
-                .bootstrap(bootstrap)
-                .socketOptions(socketOptions)
-                .tlsContext(tlsContext)
+                .eventLoopSize(4)
                 .build();
 
         s3 = S3AsyncClient.builder()
@@ -92,10 +73,6 @@ public class AwsCrtClientS3IntegrationTest {
     public void tearDown() {
         s3.close();
         crtClient.close();
-
-        for (CrtResource r: crtResources) {
-            r.close();
-        }
 
         Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
     }

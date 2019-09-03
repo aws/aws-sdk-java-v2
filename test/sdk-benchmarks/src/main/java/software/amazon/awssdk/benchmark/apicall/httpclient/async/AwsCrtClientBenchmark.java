@@ -42,10 +42,6 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
-import software.amazon.awssdk.crt.io.ClientBootstrap;
-import software.amazon.awssdk.crt.io.SocketOptions;
-import software.amazon.awssdk.crt.io.TlsContext;
-import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
@@ -63,28 +59,14 @@ public class AwsCrtClientBenchmark implements SdkHttpClientBenchmark {
     private MockServer mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
     private ProtocolRestJsonAsyncClient client;
-    private TlsContextOptions tlsOptions;
-    private TlsContext tlsContext;
-    private SocketOptions socketOptions;
-    private ClientBootstrap bootstrap;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         mockServer = new MockServer();
         mockServer.start();
 
-        int numCores = Runtime.getRuntime().availableProcessors();
-        bootstrap = new ClientBootstrap(numCores);
-        socketOptions = new SocketOptions();
-
-        tlsOptions = new TlsContextOptions();
-        tlsOptions.setVerifyPeer(false);
-        tlsContext = new TlsContext(tlsOptions);
-
         sdkHttpClient = AwsCrtAsyncHttpClient.builder()
-                .bootstrap(bootstrap)
-                .socketOptions(socketOptions)
-                .tlsContext(tlsContext)
+                .verifyPeer(false)
                 .build();
 
         client = ProtocolRestJsonAsyncClient.builder()
@@ -101,10 +83,6 @@ public class AwsCrtClientBenchmark implements SdkHttpClientBenchmark {
         mockServer.stop();
         client.close();
         sdkHttpClient.close();
-        tlsContext.close();
-        tlsOptions.close();
-        socketOptions.close();
-        bootstrap.close();
     }
 
     @Override
