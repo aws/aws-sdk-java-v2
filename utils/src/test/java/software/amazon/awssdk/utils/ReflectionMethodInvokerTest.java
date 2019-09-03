@@ -124,29 +124,60 @@ public class ReflectionMethodInvokerTest {
     }
 
     @Test
-    public void invoke_methodNotFound_throwsCachedExceptionOnSecondAttempt() throws Exception {
+    public void initialize_methodNotFound_throwsMethodNotFoundException() throws NoSuchMethodException {
         ReflectionMethodInvoker<String, Integer> invoker =
-                new ReflectionMethodInvoker<>(String.class,
-                                              Integer.class,
-                                              "foo",
-                                              String.class,
-                                              int.class);
+            new ReflectionMethodInvoker<String, Integer>(String.class,
+                                                         Integer.class,
+                                                         "foo",
+                                                         String.class,
+                                                         int.class);
+        exception.expect(NoSuchMethodException.class);
+        invoker.initialize();
+    }
 
-        NoSuchMethodException thrownException = null;
+    @Test
+    public void isInitialized_methodFoundAndInitialized_returnsTrue() throws Exception {
+        ReflectionMethodInvoker<String, Integer> invoker =
+            new ReflectionMethodInvoker<String, Integer>(String.class,
+                                                         Integer.class,
+                                                         "indexOf",
+                                                         String.class,
+                                                         int.class);
+
+        invoker.initialize();
+
+        assertThat(invoker.isInitialized(), is(true));
+    }
+
+    @Test
+    public void isInitialized_methodFoundAndNotInitialized_returnsFalse() throws Exception {
+        ReflectionMethodInvoker<String, Integer> invoker =
+            new ReflectionMethodInvoker<String, Integer>(String.class,
+                                                         Integer.class,
+                                                         "indexOf",
+                                                         String.class,
+                                                         int.class);
+
+        assertThat(invoker.isInitialized(), is(false));
+    }
+
+    @Test
+    public void isInitialized_methodNotFoundAndInitialized_returnsFalse() throws Exception {
+        ReflectionMethodInvoker<String, Integer> invoker =
+            new ReflectionMethodInvoker<String, Integer>(String.class,
+                                                         Integer.class,
+                                                         "foo",
+                                                         String.class,
+                                                         int.class);
 
         try {
-            invoker.invoke("ababab", "ab", 1);
-            fail("Expected NoSuchMethodException to be thrown");
-        } catch (NoSuchMethodException e) {
-            thrownException = e;
+            invoker.initialize();
+            fail("Excepted NoSuchMethodException to be thrown");
+        } catch (NoSuchMethodException ignored) {
+
         }
 
-        try {
-            invoker.invoke("ababab", "ab", 1);
-            fail("Expected NoSuchMethodException to be thrown");
-        } catch (NoSuchMethodException e) {
-            assertThat(e, sameInstance(thrownException));
-        }
+        assertThat(invoker.isInitialized(), is(false));
     }
 
     public static class InvokeTestClass {
