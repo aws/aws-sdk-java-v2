@@ -1,3 +1,16 @@
+# __2.8.1__ __2019-09-04__
+## __AWS Step Functions__
+  - ### Features
+    - Added support for new history events
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Amazon EKS DescribeCluster API returns a new OIDC issuer field that can be used to create OIDC identity provider for IAM for Service Accounts feature.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - MediaFormat is now optional for StartTranscriptionJob API.
+
 # __2.8.0__ __2019-09-03__
 ## __AWS Resource Groups Tagging API__
   - ### Features
