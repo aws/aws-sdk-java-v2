@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "description": "Added support for new history events"
+}
