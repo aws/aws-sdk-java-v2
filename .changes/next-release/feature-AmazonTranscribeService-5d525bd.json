@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Service",
+    "description": "MediaFormat is now optional for StartTranscriptionJob API."
+}
