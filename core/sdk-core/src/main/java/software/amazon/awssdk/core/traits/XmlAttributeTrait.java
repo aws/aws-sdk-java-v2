@@ -13,27 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.model.service;
+package software.amazon.awssdk.core.traits;
 
-public class XmlNamespace {
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-    private String prefix;
+/**
+ * Trait to indicate this is an Xml attribute.
+ */
+@SdkProtectedApi
+public final class XmlAttributeTrait implements Trait {
 
-    private String uri;
-
-    public String getPrefix() {
-        return prefix;
+    private XmlAttributeTrait() {
     }
 
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
+    public static XmlAttributeTrait create() {
+        return new XmlAttributeTrait();
 
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
     }
 }
