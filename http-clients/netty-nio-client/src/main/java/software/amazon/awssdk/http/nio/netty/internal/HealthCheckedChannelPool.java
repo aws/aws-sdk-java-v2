@@ -20,6 +20,7 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -61,7 +62,7 @@ public class HealthCheckedChannelPool implements ChannelPool {
     public Future<Channel> acquire(Promise<Channel> resultFuture) {
         // Schedule a task to time out this acquisition, in case we can't acquire a channel fast enough.
         ScheduledFuture<?> timeoutFuture =
-                eventLoopGroup.schedule(() -> timeoutAcquire(resultFuture), acquireTimeoutMillis, TimeUnit.MILLISECONDS);
+             GlobalEventExecutor.INSTANCE.schedule(() -> timeoutAcquire(resultFuture), acquireTimeoutMillis, TimeUnit.MILLISECONDS);
 
         tryAcquire(resultFuture, timeoutFuture);
         return resultFuture;

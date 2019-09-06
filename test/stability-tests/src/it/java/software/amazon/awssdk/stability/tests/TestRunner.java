@@ -16,17 +16,19 @@
 package software.amazon.awssdk.stability.tests;
 
 
+import software.amazon.awssdk.stability.tests.s3.S3AsyncStabilityTest;
+
 public class TestRunner {
 
     public static void main(String... args) {
         // You can add the tests you want to run here.
         // eg:
-//        try {
-//            S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
-//            S3AsyncStabilityTest.setup();
-//            s3AsyncStabilityTest.putObject_getObject();
-//        } finally {
-//            S3AsyncStabilityTest.cleanup();
-//        }
+        try {
+            S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
+            S3AsyncStabilityTest.setup();
+            s3AsyncStabilityTest.putObject_getObject_highConcurrency();
+        } finally {
+            S3AsyncStabilityTest.cleanup();
+        }
     }
 }
