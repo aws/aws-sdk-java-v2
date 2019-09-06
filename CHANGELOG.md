@@ -1,3 +1,8 @@
+# __2.8.3__ __2019-09-06__
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Documentation updates for kinesisanalytics
+
 # __2.8.2__ __2019-09-05__
 ## __AWS Config__
   - ### Features
