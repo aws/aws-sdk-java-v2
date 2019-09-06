@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
@@ -39,21 +40,21 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public class HealthCheckedChannelPool implements ChannelPool {
-    private final EventLoopGroup eventLoopGroup;
+    private final EventLoop eventLoopGroup;
     private final int acquireTimeoutMillis;
     private final ChannelPool delegate;
 
     public HealthCheckedChannelPool(EventLoopGroup eventLoopGroup,
                                     NettyConfiguration configuration,
                                     ChannelPool delegate) {
-        this.eventLoopGroup = eventLoopGroup;
+        this.eventLoopGroup = eventLoopGroup.next();
         this.acquireTimeoutMillis = configuration.connectionAcquireTimeoutMillis();
         this.delegate = delegate;
     }
 
     @Override
     public Future<Channel> acquire() {
-        return acquire(eventLoopGroup.next().newPromise());
+        return acquire(eventLoopGroup.newPromise());
     }
 
     @Override
@@ -88,7 +89,7 @@ public class HealthCheckedChannelPool implements ChannelPool {
             return;
         }
 
-        Promise<Channel> delegateFuture = eventLoopGroup.next().newPromise();
+        Promise<Channel> delegateFuture = eventLoopGroup.newPromise();
         delegate.acquire(delegateFuture);
         delegateFuture.addListener(f -> ensureAcquiredChannelIsHealthy(delegateFuture, resultFuture, timeoutFuture));
     }
