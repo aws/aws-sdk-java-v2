@@ -40,8 +40,12 @@ import software.amazon.awssdk.services.kms.model.GenerateRandomRequest;
 import software.amazon.awssdk.services.kms.model.GenerateRandomResponse;
 import software.amazon.awssdk.utils.AttributeMap;
 
+
+/**
+ * Test many possible different calling patterns that users might do, and make sure everything works.
+ */
 @RunWith(Theories.class)
-public class AwsCrtCombinatorialConfigStressIntegrationTest  {
+public class AwsCrtClientCallingPatternIntegrationTest {
     private final static String KEY_ALIAS = "alias/aws-sdk-java-v2-integ-test";
     private final static Region REGION = Region.US_EAST_1;
     private final static int DEFAULT_KEY_SIZE = 32;
@@ -86,8 +90,6 @@ public class AwsCrtCombinatorialConfigStressIntegrationTest  {
             }
             failures.get(0).printStackTrace();
         }
-
-
 
         return succeeded;
     }
