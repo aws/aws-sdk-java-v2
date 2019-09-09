@@ -198,6 +198,7 @@
         <module>forecast</module>
         <module>forecastquery</module>
         <module>qldb</module>
+        <module>qldbsession</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
