@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Commerce Analytics",
+    "description": "Add FDP+FPS (monthly_revenue_field_demonstration_usage + monthly_revenue_flexible_payment_schedule) to Marketplace Commerce Analytics Service"
+}
