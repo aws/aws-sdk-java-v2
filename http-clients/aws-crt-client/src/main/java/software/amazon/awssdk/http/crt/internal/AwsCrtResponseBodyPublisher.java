@@ -41,7 +41,6 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
-
     private final HttpConnection connection;
     private final HttpStream stream;
     private final CompletableFuture<Void> responseComplete;

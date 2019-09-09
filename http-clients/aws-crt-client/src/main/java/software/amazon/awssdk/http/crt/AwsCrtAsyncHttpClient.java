@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpConnectionPoolManager;
@@ -66,6 +67,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private final Map<URI, HttpConnectionPoolManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
+    private final AtomicBoolean isClosed = new AtomicBoolean(false);
     private final ClientBootstrap bootstrap;
     private final SocketOptions socketOptions;
     private final TlsContextOptions tlsContextOptions;
@@ -208,6 +210,9 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
+        if (isClosed.get()) {
+            throw new IllegalStateException("Client is closed. No more requests can be made with this client.");
+        }
         Validate.notNull(asyncRequest, "AsyncExecuteRequest must not be null");
         Validate.notNull(asyncRequest.request(), "SdkHttpRequest must not be null");
         Validate.notNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher must not be null");
@@ -243,6 +248,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
+        isClosed.set(true);
         for (HttpConnectionPoolManager connPool : connectionPools.values()) {
             connPool.close();
         }
