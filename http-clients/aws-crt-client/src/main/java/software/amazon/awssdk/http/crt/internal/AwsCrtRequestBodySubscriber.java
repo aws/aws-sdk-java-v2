@@ -99,8 +99,6 @@ public class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
         isComplete.set(true);
     }
 
-
-
     /**
      * Transfers any queued data from the Request Body subscriptionRef to the output buffer
      * @param out The output ByteBuffer
