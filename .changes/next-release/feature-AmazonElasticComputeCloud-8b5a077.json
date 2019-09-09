@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release expands Site-to-Site VPN tunnel options to allow customers to restrict security algorithms and configure timer settings for VPN connections. Customers can specify these new options while creating new VPN connections, or they can modify the tunnel options on existing connections using a new API."
+}
