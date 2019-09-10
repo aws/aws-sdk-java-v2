@@ -1,0 +1,16 @@
+{
+    "version": "2.8.5",
+    "date": "2019-09-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix marshalling for models with xml attribute. See [#1182](https://github.com/aws/aws-sdk-java-v2/issues/1182)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "description": "The CloudWatchLogGroupARN parameter of the UpdateGatewayInformation API allows for configuring the gateway to use a CloudWatch log-group where Storage Gateway health events will be logged."
+        }
+    ]
+}

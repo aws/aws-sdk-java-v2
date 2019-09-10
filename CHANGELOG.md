@@ -1,3 +1,12 @@
+# __2.8.5__ __2019-09-10__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix marshalling for models with xml attribute. See [#1182](https://github.com/aws/aws-sdk-java-v2/issues/1182)
+
+## __AWS Storage Gateway__
+  - ### Features
+    - The CloudWatchLogGroupARN parameter of the UpdateGatewayInformation API allows for configuring the gateway to use a CloudWatch log-group where Storage Gateway health events will be logged.
+
 # __2.8.4__ __2019-09-09__
 ## __AWS App Mesh__
   - ### Features
