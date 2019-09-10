@@ -27,6 +27,9 @@ public interface TimeoutTask extends Runnable {
     default void abortable(Abortable abortable) {
     }
 
+    default void cancel() {
+    }
+
     /**
      * @return True if timeout task has executed. False otherwise
      */
