@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.xml.internal.marshall;
 
 import java.io.StringWriter;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -47,6 +48,16 @@ public final class XmlGenerator {
 
     public void startElement(String element) {
         xmlWriter.startElement(element);
+    }
+
+    /**
+     * Start to write the element
+     *
+     * @param element the element to write
+     * @param attributes the attributes
+     */
+    public void  startElement(String element, Map<String, String> attributes) {
+        xmlWriter.startElement(element, attributes);
     }
 
     public void endElement() {
