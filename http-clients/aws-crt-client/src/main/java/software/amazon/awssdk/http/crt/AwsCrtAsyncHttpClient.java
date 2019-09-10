@@ -45,6 +45,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.AwsCrtAsyncHttpStreamAdapter;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -250,12 +251,12 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     public void close() {
         isClosed.set(true);
         for (HttpConnectionPoolManager connPool : connectionPools.values()) {
-            connPool.close();
+            IoUtils.closeQuietly(connPool, log.logger());
         }
 
         while (ownedSubResources.size() > 0) {
             CrtResource r = ownedSubResources.pop();
-            r.close();
+            IoUtils.closeQuietly(r, log.logger());
         }
     }
 
