@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "description": "Adding input validation for the OrganizationConfigRuleName string."
+}
