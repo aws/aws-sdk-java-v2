@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "This release allows customers to specify a custom parameter group when creating a Read Replica, for DB engines which support this feature."
+}
