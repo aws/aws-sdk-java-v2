@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "description": "Fixing letter case in Map history event details to be small case"
+}
