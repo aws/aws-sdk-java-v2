@@ -484,6 +484,7 @@ public final class EC2MetadataUtils {
         private final String availabilityZone;
         private final String privateIp;
         private final String[] devpayProductCodes;
+        private final String[] marketplaceProductCodes;
 
         @JsonCreator
         public InstanceInfo(
@@ -500,7 +501,8 @@ public final class EC2MetadataUtils {
                 @JsonProperty(value = "version", required = true) String version,
                 @JsonProperty(value = "availabilityZone", required = true) String availabilityZone,
                 @JsonProperty(value = "privateIp", required = true) String privateIp,
-                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes) {
+                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes,
+                @JsonProperty(value = "marketplaceProductCodes", required = false) String[] marketplaceProductCodes) {
             this.pendingTime = pendingTime;
             this.instanceType = instanceType;
             this.imageId = imageId;
@@ -517,6 +519,8 @@ public final class EC2MetadataUtils {
             this.privateIp = privateIp;
             this.devpayProductCodes = devpayProductCodes == null
                                       ? null : devpayProductCodes.clone();
+            this.marketplaceProductCodes = marketplaceProductCodes == null
+                                           ? null : marketplaceProductCodes.clone();
         }
 
         public String getPendingTime() {
@@ -573,6 +577,10 @@ public final class EC2MetadataUtils {
 
         public String[] getDevpayProductCodes() {
             return devpayProductCodes == null ? null : devpayProductCodes.clone();
+        }
+
+        public String[] getMarketplaceProductCodes() {
+            return marketplaceProductCodes == null ? null : marketplaceProductCodes.clone();
         }
     }
 
