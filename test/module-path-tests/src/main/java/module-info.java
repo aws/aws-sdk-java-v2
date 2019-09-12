@@ -17,6 +17,7 @@ module software.amazon.awssdk.modulepath.tests {
     requires software.amazon.awssdk.regions;
     requires software.amazon.awssdk.http.urlconnection;
     requires software.amazon.awssdk.http.apache;
+    requires software.amazon.awssdk.http.nio.netty;
     requires software.amazon.awssdk.http;
     requires software.amazon.awssdk.core;
     requires software.amazon.awssdk.awscore;
@@ -27,9 +28,6 @@ module software.amazon.awssdk.modulepath.tests {
     requires software.amazon.awssdk.utils;
     requires software.amazon.awssdk.testutils.service;
 
-    // This is fine because those are just used in unit test.
-    // https://jira.qos.ch/browse/SLF4J-420
-    requires slf4j.api;
+    requires org.slf4j;
     requires slf4j.simple;
-
 }
