@@ -945,6 +945,11 @@ Amazon AutoScaling, etc).</description>
             <artifactId>qldbsession</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>workmailmessageflow</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
