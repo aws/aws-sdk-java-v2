@@ -111,4 +111,10 @@ public class EC2MetadataUtilsIntegrationTest {
         Assert.assertEquals("bar", info.getDevpayProductCodes()[0]);
         Assert.assertEquals("qaz", info.getMarketplaceProductCodes()[0]);
     }
+
+    @Test
+    public void testInstanceSignature() {
+        String signature = EC2MetadataUtils.getInstanceSignature();
+        Assert.assertEquals("foobar", signature);
+    }
 }
