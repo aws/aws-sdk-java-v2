@@ -1,5 +1,6 @@
 {
     "category": "AWS SDK for Java v2", 
     "type": "feature", 
-    "description": "Update jackson, slf4j, netty versions."
+    "description": "Updating dependencies versions: jackson 2.9.8 -> 2.9.9, slf4j 1.7.35 -> 1.7.38, netty 4.1.39.Final -> 4.1.41.Final (contains the fix for the performance regression in 4.1.39)",
+
 }
