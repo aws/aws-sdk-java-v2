@@ -109,5 +109,6 @@ public class EC2MetadataUtilsIntegrationTest {
         Assert.assertEquals("us-east-1b", info.getAvailabilityZone());
         Assert.assertEquals("10.201.215.38", info.getPrivateIp());
         Assert.assertEquals("bar", info.getDevpayProductCodes()[0]);
+        Assert.assertEquals("qaz", info.getMarketplaceProductCodes()[0]);
     }
 }
