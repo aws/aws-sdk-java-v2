@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "description": "Documentation updates for elasticloadbalancingv2: This release adds support for TLS SNI on Network Load Balancers"
+}
