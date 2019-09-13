@@ -28,10 +28,6 @@
     <artifactId>stability-tests</artifactId>
     <name>AWS Java SDK :: Test :: Stability Tests</name>
     <description>Contains stability regression tests.</description>
-
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>

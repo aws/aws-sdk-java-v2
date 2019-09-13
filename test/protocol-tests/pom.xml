@@ -29,10 +29,6 @@
     <name>AWS Java SDK :: Test :: Protocol Tests</name>
     <description>Contains functional tests for all supported protocols.</description>
 
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>

@@ -29,10 +29,6 @@
     <name>AWS Java SDK :: HTTP Clients</name>
     <packaging>pom</packaging>
 
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
-
     <modules>
         <module>apache-client</module>
         <module>netty-nio-client</module>
