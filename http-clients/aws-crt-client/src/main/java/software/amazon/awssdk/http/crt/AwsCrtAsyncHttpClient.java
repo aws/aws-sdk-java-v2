@@ -32,7 +32,6 @@ import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpConnectionPoolManager;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.http.HttpRequestOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
@@ -135,7 +134,10 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private HttpConnectionPoolManager createConnectionPool(URI uri) {
         Validate.notNull(uri, "URI must not be null");
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
-        return new HttpConnectionPoolManager(bootstrap, socketOptions, tlsContext, uri, windowSize, maxConnectionsPerEndpoint);
+
+        return new HttpConnectionPoolManager(bootstrap, socketOptions, tlsContext, uri,
+                                                HttpConnectionPoolManager.DEFAULT_MAX_BUFFER_SIZE, windowSize,
+                                                maxConnectionsPerEndpoint);
     }
 
     private HttpConnectionPoolManager getOrCreateConnectionPool(URI uri) {
@@ -225,9 +227,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         CompletableFuture<Void> requestFuture = new CompletableFuture<>();
 
-
-        HttpRequestOptions reqOptions = new HttpRequestOptions();
-
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         crtConnPool.acquireConnection()
             .whenComplete((crtConn, throwable) -> {
@@ -241,7 +240,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                         new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, windowSize);
 
                 // Submit the Request on this Connection
-                invokeSafely(() -> crtConn.makeRequest(crtRequest, reqOptions, crtToSdkAdapter));
+                invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter));
             });
 
         return requestFuture;
