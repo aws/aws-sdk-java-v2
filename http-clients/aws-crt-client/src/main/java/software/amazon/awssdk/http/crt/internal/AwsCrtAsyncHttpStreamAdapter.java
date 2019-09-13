@@ -80,16 +80,11 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     }
 
     @Override
-    public void onResponseHeadersDone(HttpStream stream, boolean hasBody) {
+    public void onResponseHeadersDone(HttpStream stream, int headerType) {
         initRespBodyPublisherIfNeeded(stream);
 
         respBuilder.statusCode(stream.getResponseStatusCode());
         sdkRequest.responseHandler().onHeaders(respBuilder.build());
-
-        if (!hasBody) {
-            respBodyPublisher.setQueueComplete();
-        }
-
         sdkRequest.responseHandler().onStream(respBodyPublisher);
     }
 
