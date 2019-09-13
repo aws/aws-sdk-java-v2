@@ -22,10 +22,13 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.DaemonThreadFactory;
 
 /**
  * An implementation of {@link ChannelPool} that validates the health of its connections.
@@ -44,6 +47,7 @@ public class HealthCheckedChannelPool implements ChannelPool {
     private final EventLoop eventLoopGroup;
     private final int acquireTimeoutMillis;
     private final ChannelPool delegate;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     public HealthCheckedChannelPool(EventLoopGroup eventLoopGroup,
                                     NettyConfiguration configuration,
@@ -51,6 +55,7 @@ public class HealthCheckedChannelPool implements ChannelPool {
         this.eventLoopGroup = eventLoopGroup.next();
         this.acquireTimeoutMillis = configuration.connectionAcquireTimeoutMillis();
         this.delegate = delegate;
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(5, new DaemonThreadFactory(Executors.defaultThreadFactory()));
     }
 
     @Override
@@ -62,7 +67,7 @@ public class HealthCheckedChannelPool implements ChannelPool {
     public Future<Channel> acquire(Promise<Channel> resultFuture) {
         // Schedule a task to time out this acquisition, in case we can't acquire a channel fast enough.
         ScheduledFuture<?> timeoutFuture =
-             GlobalEventExecutor.INSTANCE.schedule(() -> timeoutAcquire(resultFuture), acquireTimeoutMillis, TimeUnit.MILLISECONDS);
+            scheduledExecutorService.schedule(() -> timeoutAcquire(resultFuture), acquireTimeoutMillis, TimeUnit.MILLISECONDS);
 
         tryAcquire(resultFuture, timeoutFuture);
         return resultFuture;
