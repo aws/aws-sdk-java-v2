@@ -1,0 +1,56 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"restxml",
+    "protocol":"rest-xml",
+    "serviceAbbreviation":"AmazonProtocolRestXml",
+    "serviceFullName":"AWS DR Tools Rest-XML Protocol Tests",
+    "serviceId":"AmazonProtocolRestXml",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsRestXmlService",
+    "timestampFormat":"unixTimestamp"
+  },
+  "operations":{
+    "TestXmlNamespace":{
+      "name":"Type",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/testTestXmlNamespaceStructure"
+      },
+      "input":{
+        "shape":"TestXmlNamespaceStructure",
+        "locationName":"TestXmlNamespaceRequest",
+        "xmlNamespace":{"uri":"https://restxml/"}
+      },
+      "output":{"shape":"TestXmlNamespaceStructure"}
+    }
+  },
+  "shapes":{
+    "TestXmlNamespaceStructure":{
+      "type":"structure",
+      "members":{
+        "stringMember":{"shape":"String"},
+        "integerMember":{"shape":"Integer"},
+        "xmlNamespaceMember":{"shape": "XmlNamespaceMember"}
+      }
+    },
+    "String":{"type":"string"},
+    "Integer": {"type": "integer"},
+    "XmlNamespaceMember":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "locationName":"foo:type",
+          "xmlAttribute":true
+        },
+        "stringMember":{"shape":"String"}
+      },
+      "xmlNamespace":{
+        "prefix":"foo",
+        "uri":"http://bar"
+      }
+    }
+  }
+}
