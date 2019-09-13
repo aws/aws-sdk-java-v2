@@ -9,9 +9,6 @@
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
     <packaging>pom</packaging>
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
     <modules>
         <module>acm</module>
         <module>apigateway</module>

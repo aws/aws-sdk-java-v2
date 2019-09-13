@@ -32,10 +32,6 @@
         core of the library.
     </description>
 
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
-
     <modules>
         <module>annotations</module>
         <module>auth</module>

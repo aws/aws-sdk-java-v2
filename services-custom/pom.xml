@@ -27,10 +27,6 @@
     <description>The AWS Java SDK custom services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
-
     <modules>
         <module>dynamodb-enhanced</module>
     </modules>

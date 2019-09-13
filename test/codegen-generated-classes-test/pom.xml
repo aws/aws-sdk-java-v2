@@ -17,10 +17,6 @@
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
