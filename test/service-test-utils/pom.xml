@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.9.0-SNAPSHOT</version>
+        <version>2.8.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>service-test-utils</artifactId>
@@ -29,6 +29,10 @@
     <description>The AWS SDK for Java - Service Test Utils module holds utilities used by service tests that may have dependencies on the core runtime.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
 
     <dependencyManagement>
         <dependencies>

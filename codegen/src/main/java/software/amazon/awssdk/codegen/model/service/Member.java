@@ -59,8 +59,6 @@ public class Member {
 
     private boolean sensitive;
 
-    private boolean xmlAttribute;
-
     public String getShape() {
         return shape;
     }
@@ -203,13 +201,5 @@ public class Member {
 
     public void setSensitive(boolean sensitive) {
         this.sensitive = sensitive;
-    }
-
-    public boolean isXmlAttribute() {
-        return xmlAttribute;
-    }
-
-    public void setXmlAttribute(boolean xmlAttribute) {
-        this.xmlAttribute = xmlAttribute;
     }
 }

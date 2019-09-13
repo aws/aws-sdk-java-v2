@@ -4,11 +4,14 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.9.0-SNAPSHOT</version>
+        <version>2.8.3-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
     <packaging>pom</packaging>
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
     <modules>
         <module>acm</module>
         <module>apigateway</module>
@@ -194,9 +197,6 @@
         <module>lakeformation</module>
         <module>forecast</module>
         <module>forecastquery</module>
-        <module>qldb</module>
-        <module>qldbsession</module>
-        <module>workmailmessageflow</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

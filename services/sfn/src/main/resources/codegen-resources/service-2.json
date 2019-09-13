@@ -1408,11 +1408,11 @@
     "MapIterationEventDetails":{
       "type":"structure",
       "members":{
-        "name":{
+        "Name":{
           "shape":"Name",
           "documentation":"<p>The name of the iteration’s parent Map state.</p>"
         },
-        "index":{
+        "Index":{
           "shape":"UnsignedInteger",
           "documentation":"<p>The index of the array belonging to the Map state iteration.</p>"
         }
@@ -1422,7 +1422,7 @@
     "MapStateStartedEventDetails":{
       "type":"structure",
       "members":{
-        "length":{
+        "Length":{
           "shape":"UnsignedInteger",
           "documentation":"<p>The size of the array for Map state iterations.</p>"
         }

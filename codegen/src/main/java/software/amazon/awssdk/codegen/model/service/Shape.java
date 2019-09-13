@@ -73,8 +73,6 @@ public class Shape {
 
     private boolean sensitive;
 
-    private XmlNamespace xmlNamespace;
-
     public boolean isFault() {
         return fault;
     }
@@ -270,13 +268,4 @@ public class Shape {
     public void setSensitive(boolean sensitive) {
         this.sensitive = sensitive;
     }
-
-    public XmlNamespace getXmlNamespace() {
-        return xmlNamespace;
-    }
-
-    public void setXmlNamespace(XmlNamespace xmlNamespace) {
-        this.xmlNamespace = xmlNamespace;
-    }
-
 }
