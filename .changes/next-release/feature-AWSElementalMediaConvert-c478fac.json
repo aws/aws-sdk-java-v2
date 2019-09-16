@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "description": "AWS Elemental MediaConvert SDK has added support for multi-DRM SPEKE with CMAF outputs, MP3 ingest, and options for improved video quality."
+}
