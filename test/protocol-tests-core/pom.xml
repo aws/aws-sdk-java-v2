@@ -20,7 +20,7 @@
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.8.7</version>
+        <version>2.9.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,10 +28,6 @@
     <artifactId>protocol-tests-core</artifactId>
     <name>AWS Java SDK :: Test :: Protocol Tests Core</name>
     <description>Contains test drivers and assertions for protocol tests.</description>
-
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
 
     <dependencyManagement>
         <dependencies>
