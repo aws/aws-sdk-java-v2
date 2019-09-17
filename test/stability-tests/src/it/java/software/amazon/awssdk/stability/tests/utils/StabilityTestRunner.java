@@ -251,7 +251,11 @@ public class StabilityTestRunner {
             } else if (isIOException(cause)) {
                 exceptionCounter.addIoException();
             } else if (cause instanceof SdkClientException) {
-                exceptionCounter.addClientException();
+                if (isIOException(cause.getCause())) {
+                    exceptionCounter.addIoException();
+                } else {
+                    exceptionCounter.addClientException();
+                }
             } else {
                 exceptionCounter.addUnknownException();
             }

@@ -1,0 +1,5 @@
+{
+    "category": "Amazon CloudWatch", 
+    "type": "bugfix", 
+    "description": "Add cloudwatch specific http configurations, specifically reducing `connectionMaxIdleTime`. Related to [#1380](https://github.com/aws/aws-sdk-java-v2/issues/1380)"
+}
