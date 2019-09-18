@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Resource Access Manager",
-    "description": "AWS RAM provides a new ListPendingInvitationResources API action that lists the resources in a resource share that is shared with you but that the invitation is still pending for"
-}
