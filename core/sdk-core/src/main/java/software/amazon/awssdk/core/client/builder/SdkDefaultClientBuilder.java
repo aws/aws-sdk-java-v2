@@ -264,16 +264,20 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Finalize which async executor service will be used for the created client.
+     * Finalize which async executor service will be used for the created client. The default async executor
+     * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
+     * on the number of processors available.
      */
     private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
         Supplier<Executor> defaultExecutor = () -> {
-            ThreadPoolExecutor executor = new ThreadPoolExecutor(50, 50,
+            int processors = Runtime.getRuntime().availableProcessors();
+            int corePoolSize = Math.max(8, processors);
+            int maxPoolSize = Math.max(64, processors * 2);
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
                                                                  10, TimeUnit.SECONDS,
-                                                                 new LinkedBlockingQueue<>(10_000),
+                                                                 new LinkedBlockingQueue<>(1_000),
                                                                  new ThreadFactoryBuilder()
                                                                      .threadNamePrefix("sdk-async-response").build());
-
             // Allow idle core threads to time out
             executor.allowCoreThreadTimeOut(true);
             return executor;
@@ -420,5 +424,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             // Do nothing, this client is managed by the customer.
         }
     }
+
 
 }

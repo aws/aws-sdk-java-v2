@@ -16,7 +16,13 @@
 package software.amazon.awssdk.stability.tests.utils;
 
 
+import static java.lang.management.MemoryType.HEAP;
+
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +71,11 @@ public class StabilityTestRunner {
     private static final Logger log = Logger.loggerFor(StabilityTestRunner.class);
     private static final double ALLOWED_FAILURE_RATIO = 0.05;
     private static final int TESTS_TIMEOUT_IN_MINUTES = 60;
+    // The peak thread count might be different depending on the machine the tests are currently running on.
+    // because of the internal thread pool used in AsynchronousFileChannel
+    private static final int ALLOWED_PEAK_THREAD_COUNT = 60;
 
+    private ThreadMXBean threadMXBean;
     private IntFunction<CompletableFuture<?>> futureFactory;
     private List<CompletableFuture<?>> futures;
     private String testName;
@@ -73,7 +83,11 @@ public class StabilityTestRunner {
     private Integer requestCountPerRun;
     private Integer totalRuns = 1;
 
+
     private StabilityTestRunner() {
+        threadMXBean = ManagementFactory.getThreadMXBean();
+        // Reset peak thread count for every test
+        threadMXBean.resetPeakThreadCount();
     }
 
     /**
@@ -177,6 +191,26 @@ public class StabilityTestRunner {
         return generateTestResult(totalRequestNumber, testName, exceptionCounter, completableFutures);
     }
 
+    private double calculateHeapMemoryAfterGCUsage() {
+        List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
+
+        long used = 0, max = 0;
+
+        for (MemoryPoolMXBean memoryPoolMXBean : memoryPoolMXBeans) {
+            String name = memoryPoolMXBean.getName();
+
+            if (!name.contains("Eden")) {
+                if (memoryPoolMXBean.getType().equals(HEAP)) {
+                    MemoryUsage memoryUsage = memoryPoolMXBean.getCollectionUsage();
+                    used += memoryUsage.getUsed();
+                    max += memoryUsage.getMax() == -1 ? 0 : memoryUsage.getMax();
+                }
+            }
+        }
+
+        return used / (double) max;
+    }
+
     private TestResult runTestsFromFutures() {
         ExceptionCounter exceptionCounter = new ExceptionCounter();
         CompletableFuture[] completableFutures =
@@ -229,7 +263,7 @@ public class StabilityTestRunner {
         return throwable.getClass().isAssignableFrom(IOException.class);
     }
 
-    private static TestResult generateTestResult(int totalRequestNumber, String testName, ExceptionCounter exceptionCounter,
+    private TestResult generateTestResult(int totalRequestNumber, String testName, ExceptionCounter exceptionCounter,
                                                  CompletableFuture[] completableFutures) {
         try {
             CompletableFuture.allOf(completableFutures).get(TESTS_TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
@@ -247,6 +281,8 @@ public class StabilityTestRunner {
                          .ioExceptionCount(exceptionCounter.ioExceptionCount())
                          .totalRequestCount(totalRequestNumber)
                          .unknownExceptionCount(exceptionCounter.unknownExceptionCount())
+                         .peakThreadCount(threadMXBean.getPeakThreadCount())
+                         .heapMemoryAfterGCUsage(calculateHeapMemoryAfterGCUsage())
                          .build();
     }
 
@@ -286,6 +322,11 @@ public class StabilityTestRunner {
                                           ALLOWED_FAILURE_RATIO * 100, ratio * 100);
             throw new StabilityTestsRetryableException(errorMessage);
         }
-    }
 
+        if (testResult.peakThreadCount() > ALLOWED_PEAK_THREAD_COUNT) {
+            String errorMessage = String.format("The number of peak thread exceeds the allowed peakThread threshold %s",
+                                                ALLOWED_PEAK_THREAD_COUNT);
+            throw new AssertionError(errorMessage);
+        }
+    }
 }

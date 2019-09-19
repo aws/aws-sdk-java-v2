@@ -104,7 +104,7 @@ public class RetryableTestExtension implements TestTemplateInvocationContextProv
     private static final class RetryExecutor implements Iterator<RetryableTestsTemplateInvocationContext> {
         private final int maxRetries;
         private int totalAttempts;
-        private static final List<Throwable> throwables = new ArrayList<>();
+        private List<Throwable> throwables = new ArrayList<>();
 
         RetryExecutor(int maxRetries) {
             this.maxRetries = maxRetries;
