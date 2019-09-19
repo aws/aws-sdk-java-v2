@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "AWS Glue DevEndpoints now supports GlueVersion, enabling you to choose Apache Spark 2.4.3 (in addition to Apache Spark 2.2.1). In addition to supporting the latest version of Spark, you will also have the ability to choose between Python 2 and Python 3."
+}
