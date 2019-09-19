@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces support for container image manifest digests. This enables you to identify all tasks launched using a container image pulled from ECR in order to correlate what was built with where it is running."
+}
