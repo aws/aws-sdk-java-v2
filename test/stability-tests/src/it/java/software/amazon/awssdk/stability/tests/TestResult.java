@@ -26,6 +26,8 @@ public class TestResult {
     private final int ioExceptionCount;
     private final int clientExceptionCount;
     private final int unknownExceptionCount;
+    private final int peakThreadCount;
+    private final double heapMemoryAfterGCUsage;
 
     private TestResult(Builder builder) {
         this.testName = builder.testName;
@@ -34,6 +36,8 @@ public class TestResult {
         this.ioExceptionCount = builder.ioExceptionCount;
         this.clientExceptionCount = builder.clientExceptionCount;
         this.unknownExceptionCount = builder.unknownExceptionCount;
+        this.heapMemoryAfterGCUsage = builder.heapMemoryAfterGCUsage;
+        this.peakThreadCount = builder.peakThreadCount;
     }
 
     public static Builder builder() {
@@ -64,6 +68,14 @@ public class TestResult {
         return unknownExceptionCount;
     }
 
+    public int peakThreadCount() {
+        return peakThreadCount;
+    }
+
+    public double heapMemoryAfterGCUsage() {
+        return heapMemoryAfterGCUsage;
+    }
+
     @Override
     public String toString() {
         return "{" +
@@ -73,6 +85,8 @@ public class TestResult {
                ", ioExceptionCount: " + ioExceptionCount +
                ", clientExceptionCount: " + clientExceptionCount +
                ", unknownExceptionCount: " + unknownExceptionCount +
+               ", peakThreadCount: " + peakThreadCount +
+               ", heapMemoryAfterGCUsage: " + heapMemoryAfterGCUsage +
                '}';
     }
 
@@ -83,6 +97,8 @@ public class TestResult {
         private int ioExceptionCount;
         private int clientExceptionCount;
         private int unknownExceptionCount;
+        private int peakThreadCount;
+        private double heapMemoryAfterGCUsage;
 
         private Builder() {
         }
@@ -114,6 +130,16 @@ public class TestResult {
 
         public Builder unknownExceptionCount(int unknownExceptionCount) {
             this.unknownExceptionCount = unknownExceptionCount;
+            return this;
+        }
+
+        public Builder peakThreadCount(int peakThreadCount) {
+            this.peakThreadCount = peakThreadCount;
+            return this;
+        }
+
+        public Builder heapMemoryAfterGCUsage(double heapMemoryAfterGCUsage) {
+            this.heapMemoryAfterGCUsage = heapMemoryAfterGCUsage;
             return this;
         }
 
