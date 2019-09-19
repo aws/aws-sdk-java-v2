@@ -28,8 +28,7 @@ public final class SyncTimeoutTask implements TimeoutTask {
     private volatile boolean hasExecuted;
     private volatile boolean isCancelled;
 
-    // Synchronize calls to run(), cancel(), and hasExecuted(). XXX: We could just use synchronized methods instead of
-    // this.
+    // Synchronize calls to run(), cancel(), and hasExecuted().
     private final Object lock = new Object();
 
     private Abortable abortable;
