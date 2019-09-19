@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaConnect",
-    "description": "When you grant an entitlement, you can now specify the percentage of the entitlement data transfer that you want the subscriber to be responsible for."
-}
