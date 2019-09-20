@@ -72,14 +72,6 @@ public final class ApiCallTimeoutTrackingStage<OutputT> implements RequestToResp
     private Response<OutputT> executeWithTimer(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         long timeoutInMillis = resolveTimeoutInMillis(context.requestConfig()::apiCallTimeout, apiCallTimeout);
 
-        // XXX: I think there's another class of bug here, with an analog in ApiCallAttemptTimeoutTrackingStage: This
-        // call schedules a future, and it's possible that the future will execute (interrupting the current thread)
-        // before we get into the try/finally, and before we call context.apiCallTimeoutTracker(timeoutTracker).
-        // However, I *think* this bug is harmless (perhaps by design, in which case its not a bug, just undocumented,
-        // subtle behavior), because nothing between this line and the call to wrapped.execute() will check the
-        // interrupt flag, the call to execute() will (in my testing) raise an AbortedException with the interrupt flag
-        // still set, and our exception-handling will see that timeoutTask.hasExecuted() returns true, clearing the flag
-        // and returning an appropriate call.
         TimeoutTracker timeoutTracker = timeSyncTaskIfNeeded(timeoutExecutor, timeoutInMillis, Thread.currentThread());
 
         Response<OutputT> response;
@@ -122,10 +114,6 @@ public final class ApiCallTimeoutTrackingStage<OutputT> implements RequestToResp
         if (context.apiCallTimeoutTracker().hasExecuted()) {
             // Clear the interrupt flag. Since we already have an exception from the call, which may contain information
             // that's useful to the caller, just return that instead of an ApiCallTimeoutException.
-            // XXX: In the edge case described further up, it's possible that wrapped.execute() will throw an
-            // AbortedException caused by this timeout, so in that case raising an ApiCallTimeoutException would
-            // actually be the right thing, I think. Not sure if there's a good way to distinguish all exceptions
-            // possibly raised due to interrupts (such as AbortedException) from other ones.
             Thread.interrupted();
         }
 
