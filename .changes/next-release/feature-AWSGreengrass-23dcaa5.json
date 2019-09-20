@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Greengrass",
-    "description": "Greengrass OTA service now returns the updated software version in the PlatformSoftwareVersion parameter of a CreateSoftwareUpdateJob response"
-}
