@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS RDS DataService",
-    "description": "RDS Data API now supports Amazon Aurora Serverless PostgreSQL databases."
-}
