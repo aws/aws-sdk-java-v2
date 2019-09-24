@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "description": "With this update Amazon Transcribe enables you to provide an AWS KMS key to encrypt your transcription output."
-}
