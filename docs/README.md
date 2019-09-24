@@ -1,16 +1,18 @@
-# AWS SDK for Java 2.0 Docs
+# AWS SDK for Java 2.x Documentation
 
-## 1.11 to 2.0 Changelog
-- [Launch Changelog](LaunchChangelog.md)
+## SDK Usage
 
-## New Contributions
-- [Getting Started](GettingStarted.md)
+- [Developer Guide](https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/welcome.html)
+  \- How to use the AWS SDK for Java 2.x
+- [Migration Guide](https://docs.aws.amazon.com/sdk-for-java/v2/migration-guide/what-is-java-migration.html)
+  \- How to move from the AWS SDK for Java 1.11.x to 2.x.
+- [1.11 to 2.x Changelog](LaunchChangelog.md) - What has changed
+  between 1.11.x and 2.x.
 
-## Style Conventions
-- [Client Configuration](design/ClientConfiguration.md)
-- [Favor Static Factory Methods Over Constructors](design/FavorStaticFactoryMethods.md)
-- [Use of Optional](design/UseOfOptional.md)
-- [Naming Conventions](design/NamingConventions.md)
+## SDK Development
 
-## Design Decisions
-- [Use of CompletableFuture](design/UseOfCompletableFuture.md)
+- [Contribution Guide](../Contributing.md) - How to contribute to the
+  SDK.
+- [Design](design/README.md) - Documents summarizing: (1) design
+  decisions and standards of the SDK, (2) design for new features, and
+  (3) new feature proposals.

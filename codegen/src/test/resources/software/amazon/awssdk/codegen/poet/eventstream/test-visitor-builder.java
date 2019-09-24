@@ -37,7 +37,7 @@ final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOper
     }
 
     @Generated("software.amazon.awssdk:codegen")
-    class VisitorFromBuilder implements EventStreamOperationResponseHandler.Visitor {
+    static class VisitorFromBuilder implements EventStreamOperationResponseHandler.Visitor {
         private final Consumer<EventStream> onDefault;
 
         private final Consumer<EventOne> onEventOne;

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore;
 
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -49,6 +50,30 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        AwsRequestOverrideConfiguration that = (AwsRequestOverrideConfiguration) o;
+        return Objects.equals(credentialsProvider, that.credentialsProvider);
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + super.hashCode();
+        hashCode = 31 * hashCode + Objects.hashCode(credentialsProvider);
+        return hashCode;
     }
 
     public interface Builder extends RequestOverrideConfiguration.Builder<Builder>,

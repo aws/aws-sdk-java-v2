@@ -47,7 +47,7 @@ public class FileSubscriberTckTest extends SubscriberWhiteboxVerification<ByteBu
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> whiteboxSubscriberProbe) {
         Path tempFile = getNewTempFile();
-        return new FileSubscriber(openChannel(tempFile), tempFile, new CompletableFuture<>()) {
+        return new FileSubscriber(openChannel(tempFile), tempFile, new CompletableFuture<>(), (t) -> {}) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);

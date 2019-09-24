@@ -17,7 +17,17 @@ package software.amazon.awssdk.codegen.model.service;
 
 public class XmlNamespace {
 
+    private String prefix;
+
     private String uri;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 
     public String getUri() {
         return uri;
@@ -26,5 +36,4 @@ public class XmlNamespace {
     public void setUri(String uri) {
         this.uri = uri;
     }
-
 }

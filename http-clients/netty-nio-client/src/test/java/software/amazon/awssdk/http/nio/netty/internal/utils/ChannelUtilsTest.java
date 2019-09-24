@@ -20,6 +20,10 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.util.Optional;
 import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -39,4 +43,22 @@ public class ChannelUtilsTest {
         }
     }
 
+    @Test
+    public void removeIfExists() throws Exception {
+        MockChannel channel = null;
+
+        try {
+            channel = new MockChannel();
+            ChannelPipeline pipeline = channel.pipeline();
+            pipeline.addLast(new ReadTimeoutHandler(1));
+            pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
+
+            ChannelUtils.removeIfExists(pipeline, ReadTimeoutHandler.class, LoggingHandler.class);
+            assertThat(pipeline.get(ReadTimeoutHandler.class)).isNull();
+            assertThat(pipeline.get(LoggingHandler.class)).isNull();
+        } finally {
+            Optional.ofNullable(channel).ifPresent(Channel::close);
+        }
+
+    }
 }

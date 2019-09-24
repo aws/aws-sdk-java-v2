@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.5.21-SNAPSHOT</version>
+    <version>2.9.6-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -53,6 +53,7 @@
         <module>aws-sdk-java</module>
         <module>core</module>
         <module>services</module>
+        <module>services-custom</module>
         <module>bom</module>
         <module>bom-internal</module>
         <module>codegen</module>
@@ -62,6 +63,9 @@
         <module>bundle</module>
         <module>build-tools</module>
         <module>release-scripts</module>
+        <module>utils</module>
+        <module>codegen-lite</module>
+        <module>codegen-lite-maven-plugin</module>
         <module>test/dynamodbdocument-v1</module>
         <module>test/dynamodbmapper-v1</module>
         <module>test/http-client-tests</module>
@@ -72,33 +76,32 @@
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
         <module>test/module-path-tests</module>
-        <module>utils</module>
-        <module>codegen-lite</module>
-        <module>codegen-lite-maven-plugin</module>
+        <module>test/tests-coverage-reporting</module>
+        <module>test/stability-tests</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <flow.version>1.7</flow.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <jackson.annotations.version>2.9.0</jackson.annotations.version>
+        <eventstream.version>1.0.1</eventstream.version>
         <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.4</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>1.7.28</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <commons.io.version>2.5</commons.io.version>
         <equalsverifier.version>2.3.3</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml#L286 -->
-        <netty.version>4.1.33.Final</netty.version>
+        <netty.version>4.1.41.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spotbugs.version>3.1.11</spotbugs.version>
-        <netty-reactive-streams-http.version>2.0.0</netty-reactive-streams-http.version>
+        <netty-reactive-streams-http.version>2.0.3</netty-reactive-streams-http.version>
         <freemarker.version>2.3.24-incubating</freemarker.version>
         <javapoet.verion>1.11.1</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
@@ -109,19 +112,23 @@
 
         <!-- Test dependencies -->
         <junit.version>4.12</junit.version>
+        <junit5.version>5.4.2</junit5.version>
         <hamcrest.version>1.3</hamcrest.version>
         <mockito.version>1.10.19</mockito.version>
+        <mockito2.version>2.28.2</mockito2.version>
         <assertj.version>3.8.0</assertj.version>
         <guava.version>26.0-jre</guava.version>
         <jimfs.version>1.1</jimfs.version>
         <commons-lang.verson>2.3</commons-lang.verson>
-        <netty-open-ssl-version>2.0.20.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.25.Final</netty-open-ssl-version>
+        <dynamodb-local.version>1.11.477</dynamodb-local.version>
+        <sqllite.version>1.0.392</sqllite.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>2.21.0</maven.surefire.version>
-        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-        <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
+        <maven-failsafe-plugin.version>2.22.0</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
@@ -142,19 +149,14 @@
         <aspectj.version>1.8.2</aspectj.version>
 
         <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
-        <httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
+        <httpcomponents.httpclient.version>4.5.9</httpcomponents.httpclient.version>
+        <httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->
         <unitils.version>3.3</unitils.version>
 
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.2</reactive-streams.version>
-
-        <!-- Sonar -->
-        <root.offset>..</root.offset>
-        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
@@ -168,7 +170,7 @@
     </dependencies>
 
     <build>
-        <finalName>aws-sdk-java-${project.artifactId}-${project.version}</finalName>
+        <finalName>aws-sdk-java-${project.artifactId}-${awsjavasdk.version}</finalName>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -213,6 +215,8 @@
                     <configuration>
                         <argLine>${argLine}</argLine>
                         <excludes>
+                            <exclude>**/*StabilityTest.java</exclude>
+                            <exclude>**/*StabilityTests.java</exclude>
                             <exclude>**/*CucumberTest.java</exclude>
                             <exclude>**/*IntegrationTest.java</exclude>
                             <exclude>**/*IntegrationTests.java</exclude>
@@ -393,6 +397,8 @@
                         <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
                         <ignoredUsedUndeclaredDependency>org.mockito:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.junit.platform:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.opentest4j:*</ignoredUsedUndeclaredDependency>
 
                         <!-- TODO: fix this once we start to generate pom.xml for individual services -->
                         <ignoredUsedUndeclaredDependency>org.reactivestreams:reactive-streams</ignoredUsedUndeclaredDependency>
@@ -413,7 +419,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
-                    <destFile>${basedir}/target/jacoco.exec</destFile>
+                    <destFile>${sonar.jacoco.reportPath}</destFile>
                 </configuration>
                 <executions>
                     <execution>
@@ -425,6 +431,24 @@
                     <execution>
                         <id>jacoco-site</id>
                         <phase>package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <!--
+                        Prepares the property pointing to the JaCoCo runtime agent which
+                        is passed as VM argument when Maven the Failsafe plugin is executed.
+                    -->
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>post-integration-test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
@@ -442,6 +466,36 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>sonar-generate</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco-maven-plugin.version}</version>
+                        <configuration>
+                            <destFile>${sonar.jacoco.reportPath}</destFile>
+                            <append>true</append>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>default-prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>publishing</id>
             <build>
@@ -467,7 +521,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>sonatype-nexus-staging</serverId>
-                            <nexusUrl>https://oss.sonatype.org</nexusUrl>
+                            <nexusUrl>https://aws.oss.sonatype.org</nexusUrl>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -503,7 +557,7 @@
             </activation>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
-                <findbugs.skip>true</findbugs.skip>
+                <spotbugs.skip>true</spotbugs.skip>
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
             </properties>
@@ -521,6 +575,8 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
+                                    <!-- Sets the VM argument line used when integration tests are run. -->
+                                    <argLine>${argLine}</argLine>
                                     <includes>
                                         <include>**/*IntegrationTest.java</include>
                                         <include>**/*IntegrationTests.java</include>
@@ -530,6 +586,48 @@
                                     <excludes>
                                         <exclude>**/SimpleMethodsIntegrationTest.java</exclude>
                                     </excludes>
+                                    <trimStackTrace>false</trimStackTrace>
+                                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>stability-tests</id>
+            <activation>
+                <property>
+                    <name>doRelease</name>
+                </property>
+            </activation>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <argLine>-Dio.netty.leakDetection.level=advanced</argLine>
+                                    <includes>
+                                        <include>**/*StabilityTest.java</include>
+                                        <include>**/*StabilityTests.java</include>
+                                    </includes>
                                     <trimStackTrace>false</trimStackTrace>
                                     <rerunFailingTestsCount>2</rerunFailingTestsCount>
                                 </configuration>
@@ -590,7 +688,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <minmemory>128m</minmemory>
-                            <maxmemory>4g</maxmemory>
+                            <maxmemory>8g</maxmemory>
                             <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
@@ -598,10 +696,10 @@
                             <use>false</use>
                             <notree>true</notree>
                             <nodeprecatedlist>true</nodeprecatedlist>
-                            <windowtitle>AWS SDK for Java - ${project.version}</windowtitle>
+                            <windowtitle>AWS SDK for Java - ${awsjavasdk.version}</windowtitle>
                             <encoding>UTF-8</encoding>
                             <docencoding>UTF-8</docencoding>
-                            <doctitle>AWS SDK for Java API Reference - ${project.version}</doctitle>
+                            <doctitle>AWS SDK for Java API Reference - ${awsjavasdk.version}</doctitle>
                             <packagesheader>AWS SDK for Java</packagesheader>
                             <excludePackageNames>:*.codegen:software.amazon.awssdk.services.protocol*</excludePackageNames>
                             <groups>

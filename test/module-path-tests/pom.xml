@@ -20,7 +20,7 @@
     <parent>
         <artifactId>aws-sdk-java-pom</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.5.21-SNAPSHOT</version>
+        <version>2.9.6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -48,29 +48,20 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
             <version>${awsjavasdk.version}</version>
-            <exclusions>
-                <exclusion>
-                     <!-- TODO remove exclusions after we fix netty module -->
-                    <artifactId>netty-nio-client</artifactId>
-                    <groupId>software.amazon.awssdk</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>protocol-tests</artifactId>
             <version>${awsjavasdk.version}</version>
-            <exclusions>
-                <exclusion>
-                     <!-- TODO remove exclusions after we fix netty module -->
-                    <artifactId>netty-nio-client</artifactId>
-                    <groupId>software.amazon.awssdk</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
@@ -87,6 +78,12 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>service-test-utils</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>${hamcrest.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

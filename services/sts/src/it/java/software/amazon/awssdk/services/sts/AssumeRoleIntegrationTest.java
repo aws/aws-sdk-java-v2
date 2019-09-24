@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.Optional;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -38,19 +38,12 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyResponse;
-import software.amazon.awssdk.services.iam.model.DeleteAccessKeyRequest;
-import software.amazon.awssdk.services.iam.model.DeleteLoginProfileRequest;
-import software.amazon.awssdk.services.iam.model.DeleteRoleRequest;
-import software.amazon.awssdk.services.iam.model.DeleteUserPolicyRequest;
-import software.amazon.awssdk.services.iam.model.DeleteUserRequest;
-import software.amazon.awssdk.services.iam.model.ListAccessKeysRequest;
-import software.amazon.awssdk.services.iam.model.ListAccessKeysResponse;
-import software.amazon.awssdk.services.iam.model.ListUserPoliciesRequest;
-import software.amazon.awssdk.services.iam.model.ListUserPoliciesResponse;
+import software.amazon.awssdk.services.iam.model.EntityAlreadyExistsException;
 import software.amazon.awssdk.services.iam.model.MalformedPolicyDocumentException;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 import software.amazon.awssdk.services.sts.model.StsException;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -60,12 +53,15 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     private static final int SESSION_DURATION = 60 * 60;
 
-    private static final String USER_NAME = "user-" + System.currentTimeMillis();
-    private static final String USER_ARN_FORMAT = "arn:aws:iam::%s:user/%s";
+    private static final String USER_NAME = "assume-role-integration-test-user";
+    private static final String USER_ARN_FORMAT = "arn:aws:iam::%s:user/" + USER_NAME;
     private static String USER_ARN;
 
-    private static final String ROLE_NAME = "java-test-role-" + System.currentTimeMillis();
-    private static final String ROLE_ARN_FORMAT = "arn:aws:iam::%s:role/%s";
+    private static final String POLICY_NAME = "AssumeRoleIntegrationTestPolicy";
+    private static final String POLICY_ARN_FORMAT = "arn:aws:iam::%s:policy/" + POLICY_NAME;
+
+    private static final String ROLE_NAME = "assume-role-integration-test-role";
+    private static final String ROLE_ARN_FORMAT = "arn:aws:iam::%s:role/" + ROLE_NAME;
     private static String ROLE_ARN;
 
     private static final String ASSUME_ROLE = "sts:AssumeRole";
@@ -75,103 +71,66 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
     @BeforeClass
     public static void setup() {
         String accountId = sts.getCallerIdentity().account();
-        USER_ARN = String.format(USER_ARN_FORMAT, accountId, USER_NAME);
-        ROLE_ARN = String.format(ROLE_ARN_FORMAT, accountId, ROLE_NAME);
+        USER_ARN = String.format(USER_ARN_FORMAT, accountId);
+        ROLE_ARN = String.format(ROLE_ARN_FORMAT, accountId);
 
         // Create a user
-        iam.createUser(r -> r.userName(USER_NAME));
+        try {
+            iam.createUser(r -> r.userName(USER_NAME));
+        } catch (EntityAlreadyExistsException e) {
+            // Test user already exists - awesome.
+        }
 
-        // Create credentials for that user
+        // Create a managed policy that allows the user to assume a role
+        try {
+            iam.createPolicy(r -> r.policyName("AssumeRoleIntegrationTestPolicy")
+                                   .policyDocument(new Policy().withStatements(new Statement(Effect.Allow)
+                                                                                       .withActions(new Action(ASSUME_ROLE))
+                                                                                       .withResources(new Resource("*")))
+                                                               .toJson()));
+        } catch (EntityAlreadyExistsException e) {
+            // Policy already exists - awesome.
+        }
+
+        // Attach the policy to the user (if it isn't already attached)
+        iam.attachUserPolicy(r -> r.userName(USER_NAME).policyArn(String.format(POLICY_ARN_FORMAT, accountId)));
+
+        // Try to create a role that can be assumed by the user, until the eventual consistency catches up.
+        try {
+            String rolePolicyDoc = new Policy()
+                    .withStatements(new Statement(Effect.Allow)
+                                            .withPrincipals(new Principal("AWS", USER_ARN, false))
+                                            .withActions(new Action(ASSUME_ROLE)))
+                    .toJson();
+
+            Waiter.run(() -> iam.createRole(r -> r.roleName(ROLE_NAME)
+                                                  .assumeRolePolicyDocument(rolePolicyDoc)))
+                  .ignoringException(MalformedPolicyDocumentException.class)
+                  .orFailAfter(Duration.ofMinutes(2));
+        } catch (EntityAlreadyExistsException e) {
+            // Role already exists - awesome.
+        }
+
+        // Delete the oldest credentials for the user. We don't want to hit our limit.
+                iam.listAccessKeysPaginator(r -> r.userName(USER_NAME))
+                   .accessKeyMetadata().stream()
+                   .min(Comparator.comparing(AccessKeyMetadata::createDate))
+                   .ifPresent(key -> iam.deleteAccessKey(r -> r.userName(USER_NAME).accessKeyId(key.accessKeyId())));
+
+        // Create new credentials for the user
         CreateAccessKeyResponse createAccessKeyResult = iam.createAccessKey(r -> r.userName(USER_NAME));
         userCredentials = AwsBasicCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
                                                      createAccessKeyResult.accessKey().secretAccessKey());
 
-        // Allow the user to assume roles
-        String policyDoc = new Policy()
-                .withStatements(new Statement(Effect.Allow)
-                                        .withActions(new Action(ASSUME_ROLE))
-                                        .withResources(new Resource("*")))
-                .toJson();
-
-        iam.putUserPolicy(r -> r.policyDocument(policyDoc)
-                                .userName(USER_NAME)
-                                .policyName("assume-role"));
-
-        // Create a role that can be assumed by the user
-        String rolePolicyDoc = new Policy()
-                .withStatements(new Statement(Effect.Allow)
-                                        .withPrincipals(new Principal("AWS", USER_ARN, false))
-                                        .withActions(new Action(ASSUME_ROLE)))
-                .toJson();
-
-        // Try to create the role until the eventual consistency catches up.
-        Waiter.run(() -> iam.createRole(r -> r.roleName(ROLE_NAME)
-                                              .assumeRolePolicyDocument(rolePolicyDoc)))
-              .ignoringException(MalformedPolicyDocumentException.class)
-              .orFailAfter(Duration.ofMinutes(2));
-
+        // Try to assume the role to make sure we won't hit issues during testing.
         StsClient userCredentialSts = StsClient.builder()
                                                .credentialsProvider(() -> userCredentials)
                                                .build();
-
-        // Try to assume the role until the eventual consistency catches up.
         Waiter.run(() -> userCredentialSts.assumeRole(r -> r.durationSeconds(SESSION_DURATION)
                                                             .roleArn(ROLE_ARN)
                                                             .roleSessionName("Test")))
               .ignoringException(StsException.class)
-              .orFailAfter(Duration.ofMinutes(2));
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        deleteUser(USER_NAME);
-        deleteRole(ROLE_NAME);
-    }
-
-    private static void deleteUser(String userName) {
-        try {
-            deleteAccessKeysForUser(userName);
-        } catch (Exception e) {
-            // Ignore.
-        }
-        try {
-            deleteUserPoliciesForUser(userName);
-        } catch (Exception e) {
-            // Ignore.
-        }
-        try {
-            iam.deleteLoginProfile(DeleteLoginProfileRequest.builder()
-                                                            .userName(userName).build());
-        } catch (Exception e) {
-            // Ignore.
-        }
-        try {
-            iam.deleteUser(DeleteUserRequest.builder().userName(userName).build());
-        } catch (Exception e) {
-            // Ignore.
-        }
-    }
-
-    private static void deleteAccessKeysForUser(String userName) {
-        ListAccessKeysResponse response = iam.listAccessKeys(ListAccessKeysRequest.builder().userName(userName).build());
-        for (AccessKeyMetadata akm : response.accessKeyMetadata()) {
-            iam.deleteAccessKey(DeleteAccessKeyRequest.builder().userName(userName).accessKeyId(akm.accessKeyId()).build());
-        }
-    }
-
-    private static void deleteUserPoliciesForUser(String userName) {
-        ListUserPoliciesResponse response = iam.listUserPolicies(ListUserPoliciesRequest.builder().userName(userName).build());
-        for (String pName : response.policyNames()) {
-            iam.deleteUserPolicy(DeleteUserPolicyRequest.builder().userName(userName).policyName(pName).build());
-        }
-    }
-
-    private static void deleteRole(String roleName) {
-        try {
-            iam.deleteRole(DeleteRoleRequest.builder().roleName(roleName).build());
-        } catch (Exception e) {
-            // Ignore.
-        }
+              .orFailAfter(Duration.ofMinutes(5));
     }
 
     /** Tests that we can call assumeRole successfully. */
@@ -220,5 +179,75 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         assertThat(awsCredentials.accessKeyId()).isNotBlank();
         assertThat(awsCredentials.secretAccessKey()).isNotBlank();
         ((SdkAutoCloseable) awsCredentialsProvider).close();
+    }
+
+    @Test
+    public void profileCredentialProviderCanAssumeRolesWithEnvironmentCredentialSource() throws InterruptedException {
+        EnvironmentVariableHelper.run(helper -> {
+            helper.set("AWS_ACCESS_KEY_ID", userCredentials.accessKeyId());
+            helper.set("AWS_SECRET_ACCESS_KEY", userCredentials.secretAccessKey());
+
+            String ASSUME_ROLE_PROFILE =
+                "[test]\n"
+                + "region = us-west-1\n"
+                + "credential_source = Environment\n"
+                + "role_arn = " + ROLE_ARN;
+
+            ProfileFile profiles = ProfileFile.builder()
+                                              .content(new StringInputStream(ASSUME_ROLE_PROFILE))
+                                              .type(ProfileFile.Type.CREDENTIALS)
+                                              .build();
+            Optional<Profile> profile = profiles.profile("test");
+            AwsCredentialsProvider awsCredentialsProvider =
+                new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
+
+
+            // Try to assume the role until the eventual consistency catches up.
+            AwsCredentials awsCredentials = Waiter.run(awsCredentialsProvider::resolveCredentials)
+                                                  .ignoringException(StsException.class)
+                                                  .orFail();
+
+            assertThat(awsCredentials.accessKeyId()).isNotBlank();
+            assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+            ((SdkAutoCloseable) awsCredentialsProvider).close();
+        });
+    }
+
+    @Test
+    public void profileCredentialProviderWithEnvironmentCredentialSourceAndSystemProperties() throws InterruptedException {
+        System.setProperty("aws.accessKeyId", userCredentials.accessKeyId());
+        System.setProperty("aws.secretAccessKey", userCredentials.secretAccessKey());
+
+        EnvironmentVariableHelper.run(helper -> {
+            helper.remove("AWS_ACCESS_KEY_ID");
+            helper.remove("AWS_SECRET_ACCESS_KEY");
+
+            String ASSUME_ROLE_PROFILE =
+                "[test]\n"
+                + "region = us-west-1\n"
+                + "credential_source = Environment\n"
+                + "role_arn = " + ROLE_ARN;
+
+            ProfileFile profiles = ProfileFile.builder()
+                                              .content(new StringInputStream(ASSUME_ROLE_PROFILE))
+                                              .type(ProfileFile.Type.CREDENTIALS)
+                                              .build();
+            Optional<Profile> profile = profiles.profile("test");
+            AwsCredentialsProvider awsCredentialsProvider =
+                new ProfileCredentialsUtils(profile.get(), profiles::profile).credentialsProvider().get();
+
+
+            // Try to assume the role until the eventual consistency catches up.
+            AwsCredentials awsCredentials = Waiter.run(awsCredentialsProvider::resolveCredentials)
+                                                  .ignoringException(StsException.class)
+                                                  .orFail();
+
+            assertThat(awsCredentials.accessKeyId()).isNotBlank();
+            assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+            ((SdkAutoCloseable) awsCredentialsProvider).close();
+        });
+
+        System.clearProperty("aws.accessKeyId");
+        System.clearProperty("aws.secretAccessKey");
     }
 }

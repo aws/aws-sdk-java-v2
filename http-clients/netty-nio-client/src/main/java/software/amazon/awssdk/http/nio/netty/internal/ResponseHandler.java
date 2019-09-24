@@ -66,15 +66,15 @@ import software.amazon.awssdk.utils.async.DelegatingSubscription;
 @SdkInternalApi
 public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-    private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
-
-    private static final ResponseHandler INSTANCE = new ResponseHandler();
-
     /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request
      * has completed.
      */
-    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("KeepAlive");
+    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
+
+    private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
+
+    private static final ResponseHandler INSTANCE = new ResponseHandler();
 
     private ResponseHandler() {
     }
@@ -200,15 +200,15 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         return ctx.channel().attr(EXECUTE_FUTURE_KEY).get();
     }
 
-    private static class PublisherAdapter implements Publisher<ByteBuffer> {
+    static class PublisherAdapter implements Publisher<ByteBuffer> {
         private final StreamedHttpResponse response;
         private final ChannelHandlerContext channelContext;
         private final RequestContext requestContext;
         private final CompletableFuture<Void> executeFuture;
         private final AtomicBoolean isDone = new AtomicBoolean(false);
 
-        private PublisherAdapter(StreamedHttpResponse response, ChannelHandlerContext channelContext,
-                                 RequestContext requestContext, CompletableFuture<Void> executeFuture) {
+        PublisherAdapter(StreamedHttpResponse response, ChannelHandlerContext channelContext,
+                         RequestContext requestContext, CompletableFuture<Void> executeFuture) {
             this.response = response;
             this.channelContext = channelContext;
             this.requestContext = requestContext;
@@ -240,7 +240,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         SdkCancellationException e = new SdkCancellationException(
                                 "Subscriber cancelled before all events were published");
-                        requestContext.handler().onError(e);
+                        log.warn("Subscriber cancelled before all events were published");
                         executeFuture.completeExceptionally(e);
                     } finally {
                         runAndLogError("Could not release channel back to the pool",
@@ -267,8 +267,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     if (byteBuffer != null) {
                         tryCatch(() -> subscriber.onNext(byteBuffer),
                                  this::notifyError);
-
-                        tryCatch(channelContext::read, this::onError);
                     }
                 }
 

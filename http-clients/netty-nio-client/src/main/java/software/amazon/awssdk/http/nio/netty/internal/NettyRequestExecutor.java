@@ -47,6 +47,8 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -130,8 +132,9 @@ public final class NettyRequestExecutor {
         if (channelFuture.isSuccess()) {
             channel = channelFuture.getNow();
             configureChannel();
-            configurePipeline();
-            makeRequest();
+            if (tryConfigurePipeline()) {
+                makeRequest();
+            }
         } else {
             handleFailure(() -> "Failed to create connection to " + endpoint(), channelFuture.cause());
         }
@@ -146,7 +149,7 @@ public final class NettyRequestExecutor {
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
-    private void configurePipeline() {
+    private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
         if (HTTP2.equals(protocol)) {
@@ -156,10 +159,23 @@ public final class NettyRequestExecutor {
             String errorMsg = "Unknown protocol: " + protocol;
             closeAndRelease(channel);
             handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-            return;
+            return false;
         }
+
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
+
+        // It's possible that the channel could become inactive between checking it out from the pool, and adding our response
+        // handler (which will monitor for it going inactive from now on).
+        // Make sure it's active here, or the request will never complete: https://github.com/aws/aws-sdk-java-v2/issues/1207
+        if (!channel.isActive()) {
+            String errorMessage = "Channel was closed before it could be written to.";
+            closeAndRelease(channel);
+            handleFailure(() -> errorMessage, new IOException(errorMessage));
+            return false;
+        }
+
+        return true;
     }
 
     private void makeRequest() {
@@ -196,8 +212,8 @@ public final class NettyRequestExecutor {
 
             // Should only add an one-time ReadTimeoutHandler to 100 Continue request.
             if (is100ContinueExpected()) {
-                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(context.configuration().readTimeoutMillis(),
-                                                                          TimeUnit.MILLISECONDS));
+                channel.pipeline().addFirst(new OneTimeReadTimeoutHandler(Duration.ofMillis(context.configuration()
+                        .readTimeoutMillis())));
             } else {
                 channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
                                                                    TimeUnit.MILLISECONDS));
@@ -247,6 +263,8 @@ public final class NettyRequestExecutor {
             return new IOException("Read timed out", originalCause);
         } else if (originalCause instanceof WriteTimeoutException) {
             return new IOException("Write timed out", originalCause);
+        } else if (originalCause instanceof ClosedChannelException) {
+            return new IOException(getMessageForClosedChannel(), originalCause);
         }
 
         return originalCause;
@@ -303,6 +321,12 @@ public final class NettyRequestExecutor {
                 + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
                 + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
                 + "AWS, or by increasing the number of hosts sending requests.";
+    }
+
+    private String getMessageForClosedChannel() {
+        return "The channel was closed. This may have been done by the client (e.g. because the request was aborted), " +
+               "by the service (e.g. because the request took too long or the client tried to write on a read-only socket), " +
+               "or by an intermediary party (e.g. because the channel was idle for too long).";
     }
 
     /**

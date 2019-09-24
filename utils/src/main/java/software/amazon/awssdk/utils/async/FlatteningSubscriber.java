@@ -48,7 +48,9 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
             public void request(long l) {
                 synchronized (lock) {
                     demand.addAndGet(l);
-                    if (currentBatch.isEmpty() && !requestedNextBatch) {
+                    // Execution goes into `if` block only once for the initial request
+                    // After that requestedNextBatch is always true and more requests are made in fulfillDemand()
+                    if (!requestedNextBatch) {
                         requestedNextBatch = true;
                         sourceSubscription.request(1);
                     } else {
@@ -74,9 +76,11 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
     }
 
     private void fulfillDemand() {
-        while (demand.decrementAndGet() > 0 && !currentBatch.isEmpty()) {
+        while (demand.get() > 0 && !currentBatch.isEmpty()) {
+            demand.decrementAndGet();
             subscriber.onNext(currentBatch.poll());
         }
+
         if (onCompleteCalled && currentBatch.isEmpty()) {
             subscriber.onComplete();
         } else if (currentBatch.isEmpty() && demand.get() > 0) {

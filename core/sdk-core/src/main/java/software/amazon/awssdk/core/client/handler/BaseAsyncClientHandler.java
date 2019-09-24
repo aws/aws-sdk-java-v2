@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.client.handler;
 
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -37,9 +40,11 @@ import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkProtectedApi
 public abstract class BaseAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
+    private static final Logger log = Logger.loggerFor(BaseAsyncClientHandler.class);
     private final SdkClientConfiguration clientConfiguration;
     private final AmazonAsyncHttpClient client;
     private final Function<SdkHttpFullResponse, SdkHttpFullResponse> crc32Validator;
@@ -73,13 +78,18 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
+        // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
+        // See https://github.com/aws/aws-sdk-java-v2/issues/1268
+        AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
+            new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
+        CompletableFuture<ReturnT> asyncTransformerFuture = asyncStreamingResponseHandler.prepare();
+
         ExecutionContext context = createExecutionContext(executionParams);
+        context.executionAttributes().putAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE, asyncTransformerFuture);
 
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), context);
-
-        AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
-            new AsyncStreamingResponseHandler<>(asyncResponseTransformer, decoratedResponseHandlers);
+        asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
 
         return doExecute(executionParams, context, asyncStreamingResponseHandler);
     }
@@ -136,6 +146,10 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
             return CompletableFutureUtils.forwardExceptionTo(exceptionTranslatedFuture, invokeFuture);
         } catch (Throwable t) {
+            runAndLogError(
+                log.logger(),
+                "Error thrown from TransformingAsyncResponseHandler#onError, ignoring.",
+                () -> asyncResponseHandler.onError(t));
             return CompletableFutureUtils.failedFuture(ThrowableUtils.asSdkException(t));
         }
     }

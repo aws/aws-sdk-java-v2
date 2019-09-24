@@ -21,6 +21,7 @@ import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValid
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.putObjectChecksumEnabled;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.validatePutObjectChecksum;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.InputStream;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
 import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -45,16 +47,16 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
         if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpRequest())
             && context.requestBody().isPresent()) {
             SdkChecksum checksum = new Md5Checksum();
-
-            ChecksumCalculatingInputStream is = new ChecksumCalculatingInputStream(context.requestBody()
-                                                                                          .get()
-                                                                                          .contentStreamProvider()
-                                                                                          .newStream(),
-                                                                                   checksum);
             executionAttributes.putAttribute(CHECKSUM, checksum);
-            return Optional.of(RequestBody.fromContentProvider(() -> is,
-                                                               context.requestBody().get().contentLength(),
-                                                               context.requestBody().get().contentType()));
+
+            RequestBody requestBody = context.requestBody().get();
+
+            ChecksumCalculatingStreamProvider streamProvider =
+                new ChecksumCalculatingStreamProvider(requestBody.contentStreamProvider(), checksum);
+
+            return Optional.of(RequestBody.fromContentProvider(streamProvider,
+                                                               requestBody.contentLength(),
+                                                               requestBody.contentType()));
         }
 
         return context.requestBody();
@@ -88,4 +90,32 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
             validatePutObjectChecksum((PutObjectResponse) context.response(), executionAttributes);
         }
     }
+
+    static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {
+        private final SdkChecksum checksum;
+        private InputStream currentStream;
+        private final ContentStreamProvider underlyingInputStreamProvider;
+
+        ChecksumCalculatingStreamProvider(ContentStreamProvider underlyingInputStreamProvider, SdkChecksum checksum) {
+            this.underlyingInputStreamProvider = underlyingInputStreamProvider;
+            this.checksum = checksum;
+        }
+
+        @Override
+        public InputStream newStream() {
+            closeCurrentStream();
+            currentStream = invokeSafely(() -> new ChecksumCalculatingInputStream(underlyingInputStreamProvider.newStream(),
+                                                                                  checksum));
+            return currentStream;
+        }
+
+        private void closeCurrentStream() {
+            checksum.reset();
+            if (currentStream != null) {
+                invokeSafely(currentStream::close);
+                currentStream = null;
+            }
+        }
+    }
+
 }

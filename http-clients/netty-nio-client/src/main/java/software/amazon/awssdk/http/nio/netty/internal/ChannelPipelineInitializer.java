@@ -24,14 +24,19 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
+import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
@@ -46,17 +51,20 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final long clientMaxStreams;
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
+    private final URI poolKey;
 
     public ChannelPipelineInitializer(Protocol protocol,
                                       SslContext sslCtx,
                                       long clientMaxStreams,
                                       AtomicReference<ChannelPool> channelPoolRef,
-                                      NettyConfiguration configuration) {
+                                      NettyConfiguration configuration,
+                                      URI poolKey) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
         this.channelPoolRef = channelPoolRef;
         this.configuration = configuration;
+        this.poolKey = poolKey;
     }
 
     @Override
@@ -64,7 +72,13 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
         if (sslCtx != null) {
-            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+
+            // Need to provide host and port to enable SNI
+            // https://github.com/netty/netty/issues/3801#issuecomment-104274440
+            SslHandler sslHandler = sslCtx.newHandler(ch.alloc(), poolKey.getHost(), poolKey.getPort());
+            configureSslEngine(sslHandler.engine());
+
+            pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
         }
 
@@ -87,15 +101,31 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
     }
 
+    /**
+     * Enable HostName verification.
+     *
+     * See https://netty.io/4.0/api/io/netty/handler/ssl/SslContext.html#newHandler-io.netty.buffer.ByteBufAllocator-java.lang
+     * .String-int-
+     *
+     * @param sslEngine the sslEngine to configure
+     */
+    private void configureSslEngine(SSLEngine sslEngine) {
+        SSLParameters sslParameters = sslEngine.getSSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+        sslEngine.setSSLParameters(sslParameters);
+    }
+
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
-        ForkedHttp2MultiplexCodecBuilder codecBuilder = ForkedHttp2MultiplexCodecBuilder
-            .forClient(new NoOpChannelInitializer())
-            .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
-            .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576));
+        // Using Http2FrameCodecBuilder and Http2MultiplexHandler based on 4.1.37 release notes
+        // https://netty.io/news/2019/06/28/4-1-37-Final.html
+        pipeline.addLast(Http2FrameCodecBuilder.forClient()
+                                               .headerSensitivityDetector((name, value) -> lowerCase(name.toString())
+                                                   .equals("authorization"))
+                                               .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
+                                               .frameLogger(new Http2FrameLogger(LogLevel.DEBUG))
+                                               .build());
 
-        codecBuilder.frameLogger(new Http2FrameLogger(LogLevel.DEBUG));
-
-        pipeline.addLast(codecBuilder.build());
+        pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
 
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
     }

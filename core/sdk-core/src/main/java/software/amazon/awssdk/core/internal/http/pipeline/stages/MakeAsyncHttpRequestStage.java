@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -89,7 +91,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) {
 
-        CompletableFuture<OutputT> preparedTransformFuture = responseHandler.prepare();
+        CompletableFuture<OutputT> preparedTransformFuture =
+            context.asyncResponseTransformerFuture() != null ? context.asyncResponseTransformerFuture()
+                                                             : responseHandler.prepare();
+
         CompletableFuture<? extends SdkException> preparedErrorTransformFuture = errorResponseHandler == null ? null :
                                                                                  errorResponseHandler.prepare();
         CompletableFuture<Response<OutputT>> responseFuture = new CompletableFuture<>();
@@ -165,9 +170,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private TimeoutTracker setupAttemptTimer(CompletableFuture<Response<OutputT>> executeFuture, RequestExecutionContext ctx) {
         long timeoutMillis = resolveTimeoutInMillis(ctx.requestConfig()::apiCallAttemptTimeout, apiCallAttemptTimeout);
+        Supplier<SdkClientException> exceptionSupplier = () -> ApiCallAttemptTimeoutException.create(timeoutMillis);
+
         return TimerUtils.timeAsyncTaskIfNeeded(executeFuture,
                                                 timeoutExecutor,
-                                                ApiCallAttemptTimeoutException.create(timeoutMillis),
+                                                exceptionSupplier,
                                                 timeoutMillis);
     }
 

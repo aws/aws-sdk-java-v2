@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
+import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.SdkField;
@@ -44,6 +46,10 @@ import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.XmlAttributeTrait;
+import software.amazon.awssdk.core.traits.XmlAttributesTrait;
+import software.amazon.awssdk.core.traits.XmlAttributesTrait.AttributeAccessors;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Provides Poet specs related to shape models.
@@ -169,6 +175,15 @@ class ShapeModelSpec {
         if (m.getTimestampFormat() != null) {
             traits.add(createTimestampFormatTrait(m));
         }
+
+        if (m.getShape() != null && m.getShape().getXmlNamespace() != null) {
+            traits.add(createXmlAttributesTrait(m));
+        }
+
+        if (m.isXmlAttribute()) {
+            traits.add(createXmlAttributeTrait());
+        }
+
         if (!traits.isEmpty()) {
             return CodeBlock.builder()
                             .add(".traits(" + traits.stream().map(t -> "$L").collect(Collectors.joining(", ")) + ")",
@@ -195,7 +210,9 @@ class ShapeModelSpec {
     }
 
     private CodeBlock createLocationTrait(MemberModel m) {
+        MarshallLocation marshallLocation = marshallLocation(m);
         String unmarshallLocation = unmarshallLocation(m);
+
         return CodeBlock.builder()
                         // TODO will marshall and unmarshall location name ever differ?
                         .add("$T.builder()\n"
@@ -203,8 +220,19 @@ class ShapeModelSpec {
                              + ".locationName($S)\n"
                              + unmarshallLocation
                              + ".build()", ClassName.get(LocationTrait.class), ClassName.get(MarshallLocation.class),
-                             m.getHttp().getMarshallLocation(), m.getHttp().getMarshallLocationName())
+                             marshallLocation, m.getHttp().getMarshallLocationName())
                         .build();
+    }
+
+    private MarshallLocation marshallLocation(MemberModel m) {
+        // Handle events explicitly
+        if (m.isEventHeader()) {
+            return MarshallLocation.HEADER;
+        }
+        if (m.isEventPayload()) {
+            return MarshallLocation.PAYLOAD;
+        }
+        return m.getHttp().getMarshallLocation();
     }
 
     // Rest xml uses unmarshall locationName to properly unmarshall flattened lists
@@ -263,6 +291,45 @@ class ShapeModelSpec {
                              m.getListModel().getMemberLocationName(),
                              containerSdkFieldInitializer(m.getListModel().getListMemberModel()))
                         .build();
+    }
+
+    private CodeBlock createXmlAttributeTrait() {
+        return CodeBlock.builder()
+                        .add("$T.create()", ClassName.get(XmlAttributeTrait.class))
+                        .build();
+    }
+
+    private CodeBlock createXmlAttributesTrait(MemberModel model) {
+        ShapeModel shape = model.getShape();
+        XmlNamespace xmlNamespace = shape.getXmlNamespace();
+        String uri = xmlNamespace.getUri();
+        String prefix = xmlNamespace.getPrefix();
+        CodeBlock.Builder codeBlockBuilder = CodeBlock.builder()
+                                         .add("$T.create(", ClassName.get(XmlAttributesTrait.class));
+
+        String namespacePrefix = "xmlns:" + prefix;
+        codeBlockBuilder.add("$T.of($S, $T.builder().attributeGetter((ignore) -> $S).build())",
+                             Pair.class, namespacePrefix, AttributeAccessors.class, uri);
+
+        Optional<MemberModel> memberWithXmlAttribute = findMemberWithXmlAttribute(shape);
+        memberWithXmlAttribute.ifPresent(m -> {
+            String attributeLocation = m.getHttp().getMarshallLocationName();
+            codeBlockBuilder
+                .add(", $T.of($S, ", Pair.class, attributeLocation)
+                .add("$T.builder()", AttributeAccessors.class)
+                .add(".attributeGetter(t -> (($T)t).$L())\n",
+                     typeProvider.fieldType(model),
+                     m.getFluentGetterMethodName())
+                .add(".build())");
+        });
+
+        codeBlockBuilder.add(")");
+
+        return codeBlockBuilder.build();
+    }
+
+    private static Optional<MemberModel> findMemberWithXmlAttribute(ShapeModel shapeModel) {
+        return shapeModel.getMembers().stream().filter(MemberModel::isXmlAttribute).findAny();
     }
 
     private String isFlattened(MemberModel m) {

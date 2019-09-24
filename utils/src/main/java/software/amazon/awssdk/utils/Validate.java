@@ -564,11 +564,13 @@ public final class Validate {
      * @param values  the optional values for the formatted exception message, null array not recommended
      * @throws IllegalArgumentException if argument can not be converted to the specified class
      */
-    public static void isAssignableFrom(final Class<?> superType, final Class<?> type,
+    public static <T> Class<? extends T> isAssignableFrom(final Class<T> superType, final Class<?> type,
                                         final String message, final Object... values) {
         if (!superType.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format(message, values));
         }
+
+        return (Class<? extends T>) type;
     }
 
     /**
@@ -579,6 +581,20 @@ public final class Validate {
      * @return Number if positive.
      */
     public static int isPositive(int num, String fieldName) {
+        if (num <= 0) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return num;
+    }
+
+    /**
+     * Asserts that the given number is positive (non-negative and non-zero).
+     *
+     * @param num Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Number if positive.
+     */
+    public static long isPositive(long num, String fieldName) {
         if (num <= 0) {
             throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
         }
@@ -626,7 +642,6 @@ public final class Validate {
 
         return isPositive(duration, fieldName);
     }
-
 
     /**
      * Asserts that the given duration is positive (non-negative and non-zero).

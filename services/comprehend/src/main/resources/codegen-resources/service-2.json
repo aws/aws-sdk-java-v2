@@ -108,6 +108,7 @@
       "errors":[
         {"shape":"InvalidRequestException"},
         {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceLimitExceededException"},
         {"shape":"UnsupportedLanguageException"},
@@ -127,6 +128,7 @@
       "errors":[
         {"shape":"InvalidRequestException"},
         {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceLimitExceededException"},
         {"shape":"UnsupportedLanguageException"},
@@ -490,6 +492,21 @@
       ],
       "documentation":"<p>Gets a list of sentiment detection jobs that you have submitted.</p>"
     },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTagsForResourceRequest"},
+      "output":{"shape":"ListTagsForResourceResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Lists all tags associated with a given Amazon Comprehend resource. </p>"
+    },
     "ListTopicsDetectionJobs":{
       "name":"ListTopicsDetectionJobs",
       "http":{
@@ -697,6 +714,40 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Stops an entity recognizer training job while in progress.</p> <p>If the training job state is <code>TRAINING</code>, the job is marked for termination and put into the <code>STOP_REQUESTED</code> state. If the training job completes before it can be stopped, it is put into the <code>TRAINED</code>; otherwise the training job is stopped and putted into the <code>STOPPED</code> state and the service sends back an HTTP 200 response with an empty HTTP body.</p>"
+    },
+    "TagResource":{
+      "name":"TagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"TagResourceRequest"},
+      "output":{"shape":"TagResourceResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"ConcurrentModificationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"TooManyTagsException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Associates a specific tag with an Amazon Comprehend resource. A tag is a key-value pair that adds as a metadata to a resource used by Amazon Comprehend. For example, a tag with \"Sales\" as the key might be added to a resource to indicate its use by the sales department. </p>"
+    },
+    "UntagResource":{
+      "name":"UntagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UntagResourceRequest"},
+      "output":{"shape":"UntagResourceResponse"},
+      "errors":[
+        {"shape":"TooManyTagKeysException"},
+        {"shape":"InvalidRequestException"},
+        {"shape":"ConcurrentModificationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Removes a specific tag associated with an Amazon Comprehend resource. </p>"
     }
   },
   "shapes":{
@@ -769,7 +820,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -817,7 +868,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -869,7 +920,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -917,7 +968,7 @@
         },
         "LanguageCode":{
           "shape":"SyntaxLanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -1018,10 +1069,23 @@
       "min":1,
       "pattern":"^[a-zA-Z0-9-]+$"
     },
+    "ComprehendArn":{
+      "type":"string",
+      "max":256,
+      "pattern":"arn:aws(-[^:]+)?:comprehend:[a-zA-Z0-9-]*:[0-9]{12}:[a-zA-Z0-9-]{1,64}/[a-zA-Z0-9](-*[a-zA-Z0-9])*"
+    },
     "ComprehendArnName":{
       "type":"string",
       "max":63,
       "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9])*"
+    },
+    "ConcurrentModificationException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>Concurrent modification of the tags associated with an Amazon Comprehend resource is not supported. </p>",
+      "exception":true
     },
     "CreateDocumentClassifierRequest":{
       "type":"structure",
@@ -1040,9 +1104,17 @@
           "shape":"IamRoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Management (IAM) role that grants Amazon Comprehend read access to your input data.</p>"
         },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to be associated with the document classifier being created. A tag is a key-value pair that adds as a metadata to a resource used by Amazon Comprehend. For example, a tag with \"Sales\" as the key might be added to a resource to indicate its use by the sales department. </p>"
+        },
         "InputDataConfig":{
           "shape":"DocumentClassifierInputDataConfig",
           "documentation":"<p>Specifies the format and location of the input data for the job.</p>"
+        },
+        "OutputDataConfig":{
+          "shape":"DocumentClassifierOutputDataConfig",
+          "documentation":"<p>Enables the addition of output results configuration parameters for custom classifier jobs.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestTokenString",
@@ -1051,11 +1123,15 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         },
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your custom classifier. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -1085,6 +1161,10 @@
           "shape":"IamRoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Management (IAM) role that grants Amazon Comprehend read access to your input data.</p>"
         },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to be associated with the entity recognizer being created. A tag is a key-value pair that adds as a metadata to a resource used by Amazon Comprehend. For example, a tag with \"Sales\" as the key might be added to a resource to indicate its use by the sales department. </p>"
+        },
         "InputDataConfig":{
           "shape":"EntityRecognizerInputDataConfig",
           "documentation":"<p>Specifies the format and location of the input data. The S3 bucket containing the input data must be located in the same region as the entity recognizer being created. </p>"
@@ -1101,6 +1181,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your custom entity recognizer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -1327,7 +1411,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -1353,7 +1437,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -1379,7 +1463,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         }
       }
     },
@@ -1409,7 +1493,7 @@
         },
         "LanguageCode":{
           "shape":"SyntaxLanguageCode",
-          "documentation":"<p>The language code of the input documents. You can specify English (\"en\") or Spanish (\"es\").</p>"
+          "documentation":"<p>The language code of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\").</p>"
         }
       }
     },
@@ -1490,6 +1574,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your document classification job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about a document classification job.</p>"
@@ -1532,6 +1620,20 @@
       },
       "documentation":"<p>The input properties for training a document classifier. </p> <p>For more information on how the input file is formatted, see <a>how-document-classification-training-data</a>. </p>"
     },
+    "DocumentClassifierOutputDataConfig":{
+      "type":"structure",
+      "members":{
+        "S3Uri":{
+          "shape":"S3Uri",
+          "documentation":"<p>When you use the <code>OutputDataConfig</code> object while creating a custom classifier, you specify the Amazon S3 location where you want to write the confusion matrix. The URI must be in the same region as the API endpoint that you are calling. The location is used as the prefix for the actual location of this output file.</p> <p>When the custom classifier job is finished, the service creates the output file in a directory specific to the job. The <code>S3Uri</code> field contains the location of the output file, called <code>output.tar.gz</code>. It is a compressed archive that contains the confusion matrix.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt the output results from an analysis job. The KmsKeyId can be one of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>KMS Key Alias: <code>\"alias/ExampleAlias\"</code> </p> </li> <li> <p>ARN of a KMS Key Alias: <code>\"arn:aws:kms:us-west-2:111122223333:alias/ExampleAlias\"</code> </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Provides output results configuration parameters for custom classifier jobs. </p>"
+    },
     "DocumentClassifierProperties":{
       "type":"structure",
       "members":{
@@ -1571,6 +1673,10 @@
           "shape":"DocumentClassifierInputDataConfig",
           "documentation":"<p>The input data configuration that you supplied when you created the document classifier for training.</p>"
         },
+        "OutputDataConfig":{
+          "shape":"DocumentClassifierOutputDataConfig",
+          "documentation":"<p> Provides output results configuration parameters for custom classifier jobs.</p>"
+        },
         "ClassifierMetadata":{
           "shape":"ClassifierMetadata",
           "documentation":"<p>Information about the document classifier, including the number of documents used for training the classifier, the number of documents used for test the classifier, and an accuracy rating.</p>"
@@ -1582,6 +1688,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your custom classifier. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about a document classifier.</p>"
@@ -1668,6 +1778,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your dominant language detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about a dominant language detection job.</p>"
@@ -1749,6 +1863,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your entity detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about an entities detection job.</p>"
@@ -1837,7 +1955,7 @@
           "documentation":"<p>A measure of how accurate the recognizer results are for the test data. It is derived from the <code>Precision</code> and <code>Recall</code> values. The <code>F1Score</code> is the harmonic average of the two scores. The highest score is 1, and the worst score is 0. </p>"
         }
       },
-      "documentation":"<p> Detailed information about the accuracy of an entity recognizer. </p>"
+      "documentation":"<p>Detailed information about the accuracy of an entity recognizer. </p>"
     },
     "EntityRecognizerFilter":{
       "type":"structure",
@@ -1866,7 +1984,7 @@
       "members":{
         "EntityTypes":{
           "shape":"EntityTypesList",
-          "documentation":"<p>The entity types in the input data for an entity recognizer.</p>"
+          "documentation":"<p>The entity types in the input data for an entity recognizer. A maximum of 12 entity types can be used at one time to train an entity recognizer.</p>"
         },
         "Documents":{
           "shape":"EntityRecognizerDocuments",
@@ -1896,7 +2014,7 @@
         },
         "EvaluationMetrics":{
           "shape":"EntityRecognizerEvaluationMetrics",
-          "documentation":"<p> Detailed information about the accuracy of an entity recognizer.</p>"
+          "documentation":"<p>Detailed information about the accuracy of an entity recognizer.</p>"
         },
         "EntityTypes":{
           "shape":"EntityRecognizerMetadataEntityTypesList",
@@ -1915,6 +2033,14 @@
         "Type":{
           "shape":"AnyLengthString",
           "documentation":"<p>Type of entity from the list of entity types in the metadata of an entity recognizer. </p>"
+        },
+        "EvaluationMetrics":{
+          "shape":"EntityTypesEvaluationMetrics",
+          "documentation":"<p>Detailed information about the accuracy of the entity recognizer for a specific item on the list of entity types. </p>"
+        },
+        "NumberOfTrainMentions":{
+          "shape":"Integer",
+          "documentation":"<p>indicates the number of times the given entity name was seen in the training data. </p>"
         }
       },
       "documentation":"<p>Individual item from the list of entity types in the metadata of an entity recognizer.</p>"
@@ -1969,6 +2095,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your custom entity recognizer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Describes information about an entity recognizer.</p>"
@@ -1995,6 +2125,24 @@
       "type":"string",
       "max":64,
       "pattern":"[_A-Z0-9]+"
+    },
+    "EntityTypesEvaluationMetrics":{
+      "type":"structure",
+      "members":{
+        "Precision":{
+          "shape":"Double",
+          "documentation":"<p>A measure of the usefulness of the recognizer results for a specific entity type in the test data. High precision means that the recognizer returned substantially more relevant results than irrelevant ones. </p>"
+        },
+        "Recall":{
+          "shape":"Double",
+          "documentation":"<p>A measure of how complete the recognizer results are for a specific entity type in the test data. High recall means that the recognizer returned most of the relevant results.</p>"
+        },
+        "F1Score":{
+          "shape":"Double",
+          "documentation":"<p>A measure of how accurate the recognizer results are for for a specific entity type in the test data. It is derived from the <code>Precision</code> and <code>Recall</code> values. The <code>F1Score</code> is the harmonic average of the two scores. The highest score is 1, and the worst score is 0. </p>"
+        }
+      },
+      "documentation":"<p>Detailed information about the accuracy of an entity recognizer for a specific entity type. </p>"
     },
     "EntityTypesList":{
       "type":"list",
@@ -2055,7 +2203,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>The filter specified for the <code>ListDocumentClassificationJobs</code> operation is invalid. Specify a different filter.</p>",
+      "documentation":"<p>The filter specified for the operation is invalid. Specify a different filter.</p>",
       "exception":true
     },
     "InvalidRequestException":{
@@ -2187,6 +2335,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your key phrases detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about a key phrases detection job.</p>"
@@ -2464,6 +2616,29 @@
         }
       }
     },
+    "ListTagsForResourceRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ComprehendArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the given Amazon Comprehend resource you are querying. </p>"
+        }
+      }
+    },
+    "ListTagsForResourceResponse":{
+      "type":"structure",
+      "members":{
+        "ResourceArn":{
+          "shape":"ComprehendArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the given Amazon Comprehend resource you are querying.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags associated with the Amazon Comprehend resource being queried. A tag is a key-value pair that adds as a metadata to a resource used by Amazon Comprehend. For example, a tag with \"Sales\" as the key might be added to a resource to indicate its use by the sales department. </p>"
+        }
+      }
+    },
     "ListTopicsDetectionJobsRequest":{
       "type":"structure",
       "members":{
@@ -2605,6 +2780,18 @@
       "max":1024,
       "pattern":"s3://[a-z0-9][\\.\\-a-z0-9]{1,61}[a-z0-9](/.*)?"
     },
+    "SecurityGroupId":{
+      "type":"string",
+      "max":32,
+      "min":1,
+      "pattern":"[-0-9a-zA-Z]+"
+    },
+    "SecurityGroupIds":{
+      "type":"list",
+      "member":{"shape":"SecurityGroupId"},
+      "max":5,
+      "min":1
+    },
     "SentimentDetectionJobFilter":{
       "type":"structure",
       "members":{
@@ -2673,6 +2860,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your sentiment detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about a sentiment detection job.</p>"
@@ -2749,6 +2940,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your document classification job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -2797,6 +2992,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your dominant language detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -2854,6 +3053,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your entity detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -2897,7 +3100,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestTokenString",
@@ -2907,6 +3110,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p> Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your key phrases detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -2950,7 +3157,7 @@
         },
         "LanguageCode":{
           "shape":"LanguageCode",
-          "documentation":"<p>The language of the input documents. You can specify English (\"en\") or Spanish (\"es\"). All documents must be in the same language.</p>"
+          "documentation":"<p>The language of the input documents. You can specify any of the primary languages supported by Amazon Comprehend: German (\"de\"), English (\"en\"), Spanish (\"es\"), French (\"fr\"), Italian (\"it\"), or Portuguese (\"pt\"). All documents must be in the same language.</p>"
         },
         "ClientRequestToken":{
           "shape":"ClientRequestTokenString",
@@ -2960,6 +3167,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your sentiment detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -3012,6 +3223,10 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for your topic detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       }
     },
@@ -3158,6 +3373,18 @@
       "type":"list",
       "member":{"shape":"String"}
     },
+    "SubnetId":{
+      "type":"string",
+      "max":32,
+      "min":1,
+      "pattern":"[-0-9a-zA-Z]+"
+    },
+    "Subnets":{
+      "type":"list",
+      "member":{"shape":"SubnetId"},
+      "max":16,
+      "min":1
+    },
     "SyntaxLanguageCode":{
       "type":"string",
       "enum":[
@@ -3195,6 +3422,61 @@
       },
       "documentation":"<p>Represents a work in the input text that was recognized and assigned a part of speech. There is one syntax token record for each word in the source text.</p>"
     },
+    "Tag":{
+      "type":"structure",
+      "required":["Key"],
+      "members":{
+        "Key":{
+          "shape":"TagKey",
+          "documentation":"<p>The initial part of a key-value pair that forms a tag associated with a given resource. For instance, if you want to show which resources are used by which departments, you might use “Department” as the key portion of the pair, with multiple possible values such as “sales,” “legal,” and “administration.” </p>"
+        },
+        "Value":{
+          "shape":"TagValue",
+          "documentation":"<p> The second part of a key-value pair that forms a tag associated with a given resource. For instance, if you want to show which resources are used by which departments, you might use “Department” as the initial (key) portion of the pair, with a value of “sales” to indicate the sales department. </p>"
+        }
+      },
+      "documentation":"<p>A key-value pair that adds as a metadata to a resource used by Amazon Comprehend. For example, a tag with the key-value pair ‘Department’:’Sales’ might be added to a resource to indicate its use by a particular department. </p>"
+    },
+    "TagKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "TagKeyList":{
+      "type":"list",
+      "member":{"shape":"TagKey"}
+    },
+    "TagList":{
+      "type":"list",
+      "member":{"shape":"Tag"}
+    },
+    "TagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceArn",
+        "Tags"
+      ],
+      "members":{
+        "ResourceArn":{
+          "shape":"ComprehendArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the given Amazon Comprehend resource to which you want to associate the tags. </p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags being associated with a specific Amazon Comprehend resource. There can be a maximum of 50 tags (both existing and pending) associated with a specific resource. </p>"
+        }
+      }
+    },
+    "TagResourceResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "TagValue":{
+      "type":"string",
+      "max":256,
+      "min":0
+    },
     "TextSizeLimitExceededException":{
       "type":"structure",
       "members":{
@@ -3210,6 +3492,22 @@
         "Message":{"shape":"String"}
       },
       "documentation":"<p>The number of requests exceeds the limit. Resubmit your request later.</p>",
+      "exception":true
+    },
+    "TooManyTagKeysException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The request contains more tag keys than can be associated with a resource (50 tag keys per resource).</p>",
+      "exception":true
+    },
+    "TooManyTagsException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The request contains more tags than can be associated with a resource (50 tags per resource). The maximum number of tags includes both existing tags and those included in your current request. </p>",
       "exception":true
     },
     "TopicsDetectionJobFilter":{
@@ -3275,11 +3573,15 @@
         },
         "DataAccessRoleArn":{
           "shape":"IamRoleArn",
-          "documentation":"<p> The Amazon Resource Name (ARN) of the AWS Identity and Management (IAM) role that grants Amazon Comprehend read access to your input data.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Management (IAM) role that grants Amazon Comprehend read access to your job data. </p>"
         },
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>ID for the AWS Key Management Service (KMS) key that Amazon Comprehend uses to encrypt data on the storage volume attached to the ML compute instance(s) that process the analysis job. The VolumeKmsKeyId can be either of the following formats:</p> <ul> <li> <p>KMS Key ID: <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>Amazon Resource Name (ARN) of a KMS Key: <code>\"arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> </ul>"
+        },
+        "VpcConfig":{
+          "shape":"VpcConfig",
+          "documentation":"<p>Configuration parameters for a private Virtual Private Cloud (VPC) containing the resources you are using for your topic detection job. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
         }
       },
       "documentation":"<p>Provides information about a topic detection job.</p>"
@@ -3293,8 +3595,48 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>Amazon Comprehend can't process the language of the input text. For all custom entity recognition APIs (such as <code>CreateEntityRecognizer</code>), only English is accepted. For most other APIs, Amazon Comprehend accepts only English or Spanish text. </p>",
+      "documentation":"<p>Amazon Comprehend can't process the language of the input text. For all custom entity recognition APIs (such as <code>CreateEntityRecognizer</code>), only English is accepted. For most other APIs, such as those for Custom Classification, Amazon Comprehend accepts text in all supported languages. For a list of supported languages, see <a>supported-languages</a>. </p>",
       "exception":true
+    },
+    "UntagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceArn",
+        "TagKeys"
+      ],
+      "members":{
+        "ResourceArn":{
+          "shape":"ComprehendArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the given Amazon Comprehend resource from which you want to remove the tags. </p>"
+        },
+        "TagKeys":{
+          "shape":"TagKeyList",
+          "documentation":"<p>The initial part of a key-value pair that forms a tag being removed from a given resource. For example, a tag with \"Sales\" as the key might be added to a resource to indicate its use by the sales department. Keys must be unique and cannot be duplicated for a particular resource. </p>"
+        }
+      }
+    },
+    "UntagResourceResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "VpcConfig":{
+      "type":"structure",
+      "required":[
+        "SecurityGroupIds",
+        "Subnets"
+      ],
+      "members":{
+        "SecurityGroupIds":{
+          "shape":"SecurityGroupIds",
+          "documentation":"<p>The ID number for a security group on an instance of your private VPC. Security groups on your VPC function serve as a virtual firewall to control inbound and outbound traffic and provides security for the resources that you’ll be accessing on the VPC. This ID number is preceded by \"sg-\", for instance: \"sg-03b388029b0a285ea\". For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html\">Security Groups for your VPC</a>. </p>"
+        },
+        "Subnets":{
+          "shape":"Subnets",
+          "documentation":"<p>The ID for each subnet being used in your private VPC. This subnet is a subset of the a range of IPv4 addresses used by the VPC and is specific to a given availability zone in the VPC’s region. This ID number is preceded by \"subnet-\", for instance: \"subnet-04ccf456919e69055\". For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html\">VPCs and Subnets</a>. </p>"
+        }
+      },
+      "documentation":"<p> Configuration parameters for an optional private Virtual Private Cloud (VPC) containing the resources you are using for the job. For For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html\">Amazon VPC</a>. </p>"
     }
   },
   "documentation":"<p>Amazon Comprehend is an AWS service for gaining insight into the content of documents. Use these actions to determine the topics contained in your documents, the topics they discuss, the predominant sentiment expressed in them, the predominant language used, and more.</p>"

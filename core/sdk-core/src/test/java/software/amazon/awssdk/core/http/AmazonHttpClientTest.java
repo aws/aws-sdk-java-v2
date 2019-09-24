@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -66,6 +67,7 @@ public class AmazonHttpClientTest {
         BasicConfigurator.configure();
         client = HttpTestUtils.testClientBuilder().httpClient(sdkHttpClient).build();
         when(sdkHttpClient.prepareRequest(any())).thenReturn(abortableCallable);
+        when(sdkHttpClient.clientName()).thenReturn("UNKNOWN");
         stubSuccessfulResponse();
     }
 
@@ -149,6 +151,33 @@ public class AmazonHttpClientTest {
 
         Assert.assertTrue(userAgent.startsWith(prefix));
         Assert.assertTrue(userAgent.endsWith(suffix));
+    }
+
+    @Test
+    public void testUserAgentContainsHttpClientInfo() {
+        HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
+
+        SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
+                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
+                                                     .option(SdkClientOption.CLIENT_TYPE, ClientType.SYNC)
+                                                     .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
+                                                     .build();
+        AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
+
+        client.requestExecutionBuilder()
+              .request(ValidSdkObjects.sdkHttpFullRequest().build())
+              .originalRequest(NoopTestRequest.builder().build())
+              .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
+              .execute(handler);
+
+        ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
+        verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
+
+        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
+                                                  .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
+
+        Assert.assertTrue(userAgent.contains("io/sync"));
+        Assert.assertTrue(userAgent.contains("http/UNKNOWN"));
     }
 
     @Test

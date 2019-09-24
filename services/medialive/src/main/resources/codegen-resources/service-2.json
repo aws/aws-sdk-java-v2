@@ -6,10 +6,10 @@
     "serviceFullName": "AWS Elemental MediaLive",
     "serviceId": "MediaLive",
     "protocol": "rest-json",
+    "jsonVersion": "1.1",
     "uid": "medialive-2017-10-14",
     "signatureVersion": "v4",
-    "serviceAbbreviation": "MediaLive",
-    "jsonVersion": "1.1"
+    "serviceAbbreviation": "MediaLive"
   },
   "operations": {
     "BatchUpdateSchedule": {
@@ -421,6 +421,52 @@
         }
       ],
       "documentation": "Delete an expired reservation."
+    },
+    "DeleteSchedule": {
+      "name": "DeleteSchedule",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/prod/channels/{channelId}/schedule",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DeleteScheduleRequest"
+      },
+      "output": {
+        "shape": "DeleteScheduleResponse",
+        "documentation": "Successful delete of the schedule."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request to delete the schedule on this channel was invalid."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to delete the channel schedule."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error"
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The specified channel does not exist to have its schedule deleted."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on delete schedule calls."
+        }
+      ],
+      "documentation": "Delete all schedule actions on a channel."
     },
     "DeleteTags": {
       "name": "DeleteTags",
@@ -1168,6 +1214,60 @@
       ],
       "documentation": "Updates a channel."
     },
+    "UpdateChannelClass": {
+      "name": "UpdateChannelClass",
+      "http": {
+        "method": "PUT",
+        "requestUri": "/prod/channels/{channelId}/channelClass",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateChannelClassRequest"
+      },
+      "output": {
+        "shape": "UpdateChannelClassResponse",
+        "documentation": "The class of the channel has been successfully updated."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request to update the channel class was invalid."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "The channel configuration failed validation when attempting to update the channel class."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to update the class of this channel."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error"
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The channel you're trying to update the class on does not exist."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on update channel class calls."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The channel class cannot be updated due to an issue with channel resources."
+        }
+      ],
+      "documentation": "Changes the class of the channel."
+    },
     "UpdateInput": {
       "name": "UpdateInput",
       "http": {
@@ -1259,6 +1359,56 @@
         }
       ],
       "documentation": "Update an Input Security Group's Whilelists."
+    },
+    "UpdateReservation": {
+      "name": "UpdateReservation",
+      "http": {
+        "method": "PUT",
+        "requestUri": "/prod/reservations/{reservationId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateReservationRequest"
+      },
+      "output": {
+        "shape": "UpdateReservationResponse",
+        "documentation": "Updated reservation"
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid"
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Internal service error"
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to update reservation"
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad gateway error"
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "Reservation not found"
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway timeout error"
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded"
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The reservation could not be updated"
+        }
+      ],
+      "documentation": "Update reservation."
     }
   },
   "shapes": {
@@ -1744,7 +1894,7 @@
         "AudioOnlyImage": {
           "shape": "InputLocation",
           "locationName": "audioOnlyImage",
-          "documentation": "For use with an audio only Stream. Must be a .jpg or .png file. If given, this image will be used as the cover-art for the audio only output. Ideally, it should be formatted for an iPhone screen for two reasons. The iPhone does not resize the image, it crops a centered image on the top/bottom and left/right. Additionally, this image file gets saved bit-for-bit into every 10-second segment file, so will increase bandwidth by {image file size} * {segment count} * {user count.}."
+          "documentation": "Optional. Specifies the .jpg or .png image to use as the cover art for an audio-only output. We recommend a low bit-size file because the image increases the output audio bandwidth.\n\nThe image is attached to the audio as an ID3 tag, frame type APIC, picture type 0x10, as per the \"ID3 tag version 2.4.0 - Native Frames\" standard."
         },
         "AudioTrackType": {
           "shape": "AudioOnlyHlsTrackType",
@@ -2393,6 +2543,11 @@
           "locationName": "arn",
           "documentation": "The unique arn of the channel."
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations",
@@ -2431,6 +2586,11 @@
           "locationName": "name",
           "documentation": "The name of the channel. (user-mutable)"
         },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails",
+          "documentation": "Runtime details for the pipelines of a running channel."
+        },
         "PipelinesRunningCount": {
           "shape": "__integer",
           "locationName": "pipelinesRunningCount",
@@ -2452,6 +2612,14 @@
         }
       },
       "documentation": "Placeholder documentation for Channel"
+    },
+    "ChannelClass": {
+      "type": "string",
+      "documentation": "A standard channel has two encoding pipelines and a single pipeline channel only has one.",
+      "enum": [
+        "STANDARD",
+        "SINGLE_PIPELINE"
+      ]
     },
     "ChannelConfigurationValidationError": {
       "type": "structure",
@@ -2490,7 +2658,9 @@
         "RECOVERING",
         "STOPPING",
         "DELETING",
-        "DELETED"
+        "DELETED",
+        "UPDATING",
+        "UPDATE_FAILED"
       ],
       "documentation": "Placeholder documentation for ChannelState"
     },
@@ -2501,6 +2671,11 @@
           "shape": "__string",
           "locationName": "arn",
           "documentation": "The unique arn of the channel."
+        },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
         },
         "Destinations": {
           "shape": "__listOfOutputDestination",
@@ -2558,6 +2733,12 @@
       },
       "documentation": "Placeholder documentation for ChannelSummary"
     },
+    "ColorSpacePassthroughSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Passthrough applies no color space conversion to the output"
+    },
     "ConflictException": {
       "type": "structure",
       "members": {
@@ -2575,6 +2756,11 @@
     "CreateChannel": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2631,6 +2817,11 @@
     "CreateChannelRequest": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations"
@@ -2911,6 +3102,11 @@
           "locationName": "arn",
           "documentation": "The unique arn of the channel."
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations",
@@ -2948,6 +3144,11 @@
           "shape": "__string",
           "locationName": "name",
           "documentation": "The name of the channel. (user-mutable)"
+        },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails",
+          "documentation": "Runtime details for the pipelines of a running channel."
         },
         "PipelinesRunningCount": {
           "shape": "__integer",
@@ -3111,6 +3312,11 @@
           "locationName": "state",
           "documentation": "Current state of reservation, e.g. 'ACTIVE'"
         },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs"
+        },
         "UsagePrice": {
           "shape": "__double",
           "locationName": "usagePrice",
@@ -3118,6 +3324,27 @@
         }
       },
       "documentation": "Placeholder documentation for DeleteReservationResponse"
+    },
+    "DeleteScheduleRequest": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "channelId",
+          "documentation": "Id of the channel whose schedule is being deleted."
+        }
+      },
+      "required": [
+        "ChannelId"
+      ],
+      "documentation": "Placeholder documentation for DeleteScheduleRequest"
+    },
+    "DeleteScheduleResponse": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Placeholder documentation for DeleteScheduleResponse"
     },
     "DeleteTagsRequest": {
       "type": "structure",
@@ -3163,6 +3390,11 @@
           "locationName": "arn",
           "documentation": "The unique arn of the channel."
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations",
@@ -3200,6 +3432,11 @@
           "shape": "__string",
           "locationName": "name",
           "documentation": "The name of the channel. (user-mutable)"
+        },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails",
+          "documentation": "Runtime details for the pipelines of a running channel."
         },
         "PipelinesRunningCount": {
           "shape": "__integer",
@@ -3260,6 +3497,16 @@
           "shape": "__string",
           "locationName": "id",
           "documentation": "The generated ID of the input (unique for user account, immutable)."
+        },
+        "InputClass": {
+          "shape": "InputClass",
+          "locationName": "inputClass",
+          "documentation": "STANDARD - MediaLive expects two sources to be connected to this input. If the channel is also STANDARD, both sources will be ingested. If the channel is SINGLE_PIPELINE, only the first source will be ingested; the second source will always be ignored, even if the first source fails.\nSINGLE_PIPELINE - You can connect only one source to this input. If the ChannelClass is also  SINGLE_PIPELINE, this value is valid. If the ChannelClass is STANDARD, this value is not valid because the channel requires two sources in the input.\n"
+        },
+        "InputSourceType": {
+          "shape": "InputSourceType",
+          "locationName": "inputSourceType",
+          "documentation": "Certain pull input sources can be dynamic, meaning that they can have their URL's dynamically changes\nduring input switch actions. Presently, this functionality only works with MP4_FILE inputs.\n"
         },
         "MediaConnectFlows": {
           "shape": "__listOfMediaConnectFlow",
@@ -3526,6 +3773,11 @@
           "shape": "ReservationState",
           "locationName": "state",
           "documentation": "Current state of reservation, e.g. 'ACTIVE'"
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs"
         },
         "UsagePrice": {
           "shape": "__double",
@@ -4400,6 +4652,24 @@
         "INSERT"
       ]
     },
+    "H264ColorSpaceSettings": {
+      "type": "structure",
+      "members": {
+        "ColorSpacePassthroughSettings": {
+          "shape": "ColorSpacePassthroughSettings",
+          "locationName": "colorSpacePassthroughSettings"
+        },
+        "Rec601Settings": {
+          "shape": "Rec601Settings",
+          "locationName": "rec601Settings"
+        },
+        "Rec709Settings": {
+          "shape": "Rec709Settings",
+          "locationName": "rec709Settings"
+        }
+      },
+      "documentation": "H264 Color Space Settings"
+    },
     "H264EntropyEncoding": {
       "type": "string",
       "documentation": "H264 Entropy Encoding",
@@ -4497,6 +4767,7 @@
       "documentation": "H264 Rate Control Mode",
       "enum": [
         "CBR",
+        "MULTIPLEX",
         "QVBR",
         "VBR"
       ]
@@ -4543,12 +4814,17 @@
         "BufSize": {
           "shape": "__integerMin0",
           "locationName": "bufSize",
-          "documentation": "Size of buffer (HRD buffer model) in bits/second."
+          "documentation": "Size of buffer (HRD buffer model) in bits."
         },
         "ColorMetadata": {
           "shape": "H264ColorMetadata",
           "locationName": "colorMetadata",
           "documentation": "Includes colorspace metadata in the output."
+        },
+        "ColorSpaceSettings": {
+          "shape": "H264ColorSpaceSettings",
+          "locationName": "colorSpaceSettings",
+          "documentation": "Color Space settings"
         },
         "EntropyEncoding": {
           "shape": "H264EntropyEncoding",
@@ -4618,7 +4894,7 @@
         "MaxBitrate": {
           "shape": "__integerMin1000",
           "locationName": "maxBitrate",
-          "documentation": "For QVBR: See the tooltip for Quality level \n\nFor VBR: Set the maximum bitrate in order to accommodate expected spikes in the complexity of the video."
+          "documentation": "For QVBR: See the tooltip for Quality level\n\nFor VBR: Set the maximum bitrate in order to accommodate expected spikes in the complexity of the video."
         },
         "MinIInterval": {
           "shape": "__integerMin0Max30",
@@ -4658,7 +4934,7 @@
         "RateControlMode": {
           "shape": "H264RateControlMode",
           "locationName": "rateControlMode",
-          "documentation": "Rate control mode. \n\nQVBR: Quality will match the specified quality level except when it is constrained by the\nmaximum bitrate.  Recommended if you or your viewers pay for bandwidth.\n\nVBR: Quality and bitrate vary, depending on the video complexity. Recommended instead of QVBR\nif you want to maintain a specific average bitrate over the duration of the channel.\n\nCBR: Quality varies, depending on the video complexity. Recommended only if you distribute\nyour assets to devices that cannot handle variable bitrates."
+          "documentation": "Rate control mode.\n\nQVBR: Quality will match the specified quality level except when it is constrained by the\nmaximum bitrate.  Recommended if you or your viewers pay for bandwidth.\n\nVBR: Quality and bitrate vary, depending on the video complexity. Recommended instead of QVBR\nif you want to maintain a specific average bitrate over the duration of the channel.\n\nCBR: Quality varies, depending on the video complexity. Recommended only if you distribute\nyour assets to devices that cannot handle variable bitrates."
         },
         "ScanType": {
           "shape": "H264ScanType",
@@ -4747,6 +5023,314 @@
         "DISABLED",
         "PIC_TIMING_SEI"
       ]
+    },
+    "H265AdaptiveQuantization": {
+      "type": "string",
+      "documentation": "H265 Adaptive Quantization",
+      "enum": [
+        "HIGH",
+        "HIGHER",
+        "LOW",
+        "MAX",
+        "MEDIUM",
+        "OFF"
+      ]
+    },
+    "H265AlternativeTransferFunction": {
+      "type": "string",
+      "documentation": "H265 Alternative Transfer Function",
+      "enum": [
+        "INSERT",
+        "OMIT"
+      ]
+    },
+    "H265ColorMetadata": {
+      "type": "string",
+      "documentation": "H265 Color Metadata",
+      "enum": [
+        "IGNORE",
+        "INSERT"
+      ]
+    },
+    "H265ColorSpaceSettings": {
+      "type": "structure",
+      "members": {
+        "ColorSpacePassthroughSettings": {
+          "shape": "ColorSpacePassthroughSettings",
+          "locationName": "colorSpacePassthroughSettings"
+        },
+        "Hdr10Settings": {
+          "shape": "Hdr10Settings",
+          "locationName": "hdr10Settings"
+        },
+        "Rec601Settings": {
+          "shape": "Rec601Settings",
+          "locationName": "rec601Settings"
+        },
+        "Rec709Settings": {
+          "shape": "Rec709Settings",
+          "locationName": "rec709Settings"
+        }
+      },
+      "documentation": "H265 Color Space Settings"
+    },
+    "H265FlickerAq": {
+      "type": "string",
+      "documentation": "H265 Flicker Aq",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "H265GopSizeUnits": {
+      "type": "string",
+      "documentation": "H265 Gop Size Units",
+      "enum": [
+        "FRAMES",
+        "SECONDS"
+      ]
+    },
+    "H265Level": {
+      "type": "string",
+      "documentation": "H265 Level",
+      "enum": [
+        "H265_LEVEL_1",
+        "H265_LEVEL_2",
+        "H265_LEVEL_2_1",
+        "H265_LEVEL_3",
+        "H265_LEVEL_3_1",
+        "H265_LEVEL_4",
+        "H265_LEVEL_4_1",
+        "H265_LEVEL_5",
+        "H265_LEVEL_5_1",
+        "H265_LEVEL_5_2",
+        "H265_LEVEL_6",
+        "H265_LEVEL_6_1",
+        "H265_LEVEL_6_2",
+        "H265_LEVEL_AUTO"
+      ]
+    },
+    "H265LookAheadRateControl": {
+      "type": "string",
+      "documentation": "H265 Look Ahead Rate Control",
+      "enum": [
+        "HIGH",
+        "LOW",
+        "MEDIUM"
+      ]
+    },
+    "H265Profile": {
+      "type": "string",
+      "documentation": "H265 Profile",
+      "enum": [
+        "MAIN",
+        "MAIN_10BIT"
+      ]
+    },
+    "H265RateControlMode": {
+      "type": "string",
+      "documentation": "H265 Rate Control Mode",
+      "enum": [
+        "CBR",
+        "QVBR"
+      ]
+    },
+    "H265ScanType": {
+      "type": "string",
+      "documentation": "H265 Scan Type",
+      "enum": [
+        "PROGRESSIVE"
+      ]
+    },
+    "H265SceneChangeDetect": {
+      "type": "string",
+      "documentation": "H265 Scene Change Detect",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "H265Settings": {
+      "type": "structure",
+      "members": {
+        "AdaptiveQuantization": {
+          "shape": "H265AdaptiveQuantization",
+          "locationName": "adaptiveQuantization",
+          "documentation": "Adaptive quantization. Allows intra-frame quantizers to vary to improve visual quality."
+        },
+        "AfdSignaling": {
+          "shape": "AfdSignaling",
+          "locationName": "afdSignaling",
+          "documentation": "Indicates that AFD values will be written into the output stream.  If afdSignaling is \"auto\", the system will try to preserve the input AFD value (in cases where multiple AFD values are valid). If set to \"fixed\", the AFD value will be the value configured in the fixedAfd parameter."
+        },
+        "AlternativeTransferFunction": {
+          "shape": "H265AlternativeTransferFunction",
+          "locationName": "alternativeTransferFunction",
+          "documentation": "Whether or not EML should insert an Alternative Transfer Function SEI message to support backwards compatibility with non-HDR decoders and displays."
+        },
+        "Bitrate": {
+          "shape": "__integerMin100000Max40000000",
+          "locationName": "bitrate",
+          "documentation": "Average bitrate in bits/second. Required when the rate control mode is VBR or CBR. Not used for QVBR. In an MS Smooth output group, each output must have a unique value when its bitrate is rounded down to the nearest multiple of 1000."
+        },
+        "BufSize": {
+          "shape": "__integerMin100000Max80000000",
+          "locationName": "bufSize",
+          "documentation": "Size of buffer (HRD buffer model) in bits."
+        },
+        "ColorMetadata": {
+          "shape": "H265ColorMetadata",
+          "locationName": "colorMetadata",
+          "documentation": "Includes colorspace metadata in the output."
+        },
+        "ColorSpaceSettings": {
+          "shape": "H265ColorSpaceSettings",
+          "locationName": "colorSpaceSettings",
+          "documentation": "Color Space settings"
+        },
+        "FixedAfd": {
+          "shape": "FixedAfd",
+          "locationName": "fixedAfd",
+          "documentation": "Four bit AFD value to write on all frames of video in the output stream. Only valid when afdSignaling is set to 'Fixed'."
+        },
+        "FlickerAq": {
+          "shape": "H265FlickerAq",
+          "locationName": "flickerAq",
+          "documentation": "If set to enabled, adjust quantization within each frame to reduce flicker or 'pop' on I-frames."
+        },
+        "FramerateDenominator": {
+          "shape": "__integerMin1Max3003",
+          "locationName": "framerateDenominator",
+          "documentation": "Framerate denominator."
+        },
+        "FramerateNumerator": {
+          "shape": "__integerMin1",
+          "locationName": "framerateNumerator",
+          "documentation": "Framerate numerator - framerate is a fraction, e.g. 24000 / 1001 = 23.976 fps."
+        },
+        "GopClosedCadence": {
+          "shape": "__integerMin0",
+          "locationName": "gopClosedCadence",
+          "documentation": "Frequency of closed GOPs. In streaming applications, it is recommended that this be set to 1 so a decoder joining mid-stream will receive an IDR frame as quickly as possible. Setting this value to 0 will break output segmenting."
+        },
+        "GopSize": {
+          "shape": "__doubleMin1",
+          "locationName": "gopSize",
+          "documentation": "GOP size (keyframe interval) in units of either frames or seconds per gopSizeUnits. Must be greater than zero."
+        },
+        "GopSizeUnits": {
+          "shape": "H265GopSizeUnits",
+          "locationName": "gopSizeUnits",
+          "documentation": "Indicates if the gopSize is specified in frames or seconds. If seconds the system will convert the gopSize into a frame count at run time."
+        },
+        "Level": {
+          "shape": "H265Level",
+          "locationName": "level",
+          "documentation": "H.265 Level."
+        },
+        "LookAheadRateControl": {
+          "shape": "H265LookAheadRateControl",
+          "locationName": "lookAheadRateControl",
+          "documentation": "Amount of lookahead. A value of low can decrease latency and memory usage, while high can produce better quality for certain content."
+        },
+        "MaxBitrate": {
+          "shape": "__integerMin100000Max40000000",
+          "locationName": "maxBitrate",
+          "documentation": "For QVBR: See the tooltip for Quality level"
+        },
+        "MinIInterval": {
+          "shape": "__integerMin0Max30",
+          "locationName": "minIInterval",
+          "documentation": "Only meaningful if sceneChangeDetect is set to enabled.  Enforces separation between repeated (cadence) I-frames and I-frames inserted by Scene Change Detection. If a scene change I-frame is within I-interval frames of a cadence I-frame, the GOP is shrunk and/or stretched to the scene change I-frame. GOP stretch requires enabling lookahead as well as setting I-interval. The normal cadence resumes for the next GOP. Note: Maximum GOP stretch = GOP size + Min-I-interval - 1"
+        },
+        "ParDenominator": {
+          "shape": "__integerMin1",
+          "locationName": "parDenominator",
+          "documentation": "Pixel Aspect Ratio denominator."
+        },
+        "ParNumerator": {
+          "shape": "__integerMin1",
+          "locationName": "parNumerator",
+          "documentation": "Pixel Aspect Ratio numerator."
+        },
+        "Profile": {
+          "shape": "H265Profile",
+          "locationName": "profile",
+          "documentation": "H.265 Profile."
+        },
+        "QvbrQualityLevel": {
+          "shape": "__integerMin1Max10",
+          "locationName": "qvbrQualityLevel",
+          "documentation": "Controls the target quality for the video encode. Applies only when the rate control mode is QVBR. Set values for the QVBR quality level field and Max bitrate field that suit your most important viewing devices. Recommended values are:\n- Primary screen: Quality level: 8 to 10. Max bitrate: 4M\n- PC or tablet: Quality level: 7. Max bitrate: 1.5M to 3M\n- Smartphone: Quality level: 6. Max bitrate: 1M to 1.5M"
+        },
+        "RateControlMode": {
+          "shape": "H265RateControlMode",
+          "locationName": "rateControlMode",
+          "documentation": "Rate control mode.\n\nQVBR: Quality will match the specified quality level except when it is constrained by the\nmaximum bitrate.  Recommended if you or your viewers pay for bandwidth.\n\nCBR: Quality varies, depending on the video complexity. Recommended only if you distribute\nyour assets to devices that cannot handle variable bitrates."
+        },
+        "ScanType": {
+          "shape": "H265ScanType",
+          "locationName": "scanType",
+          "documentation": "Sets the scan type of the output to progressive or top-field-first interlaced."
+        },
+        "SceneChangeDetect": {
+          "shape": "H265SceneChangeDetect",
+          "locationName": "sceneChangeDetect",
+          "documentation": "Scene change detection."
+        },
+        "Slices": {
+          "shape": "__integerMin1Max16",
+          "locationName": "slices",
+          "documentation": "Number of slices per picture. Must be less than or equal to the number of macroblock rows for progressive pictures, and less than or equal to half the number of macroblock rows for interlaced pictures.\nThis field is optional; when no value is specified the encoder will choose the number of slices based on encode resolution."
+        },
+        "Tier": {
+          "shape": "H265Tier",
+          "locationName": "tier",
+          "documentation": "H.265 Tier."
+        },
+        "TimecodeInsertion": {
+          "shape": "H265TimecodeInsertionBehavior",
+          "locationName": "timecodeInsertion",
+          "documentation": "Determines how timecodes should be inserted into the video elementary stream.\n- 'disabled': Do not include timecodes\n- 'picTimingSei': Pass through picture timing SEI messages from the source specified in Timecode Config"
+        }
+      },
+      "documentation": "H265 Settings",
+      "required": [
+        "FramerateNumerator",
+        "FramerateDenominator"
+      ]
+    },
+    "H265Tier": {
+      "type": "string",
+      "documentation": "H265 Tier",
+      "enum": [
+        "HIGH",
+        "MAIN"
+      ]
+    },
+    "H265TimecodeInsertionBehavior": {
+      "type": "string",
+      "documentation": "H265 Timecode Insertion Behavior",
+      "enum": [
+        "DISABLED",
+        "PIC_TIMING_SEI"
+      ]
+    },
+    "Hdr10Settings": {
+      "type": "structure",
+      "members": {
+        "MaxCll": {
+          "shape": "__integerMin0Max32768",
+          "locationName": "maxCll",
+          "documentation": "Maximum Content Light Level\nAn integer metadata value defining the maximum light level, in nits,\nof any single pixel within an encoded HDR video stream or file."
+        },
+        "MaxFall": {
+          "shape": "__integerMin0Max32768",
+          "locationName": "maxFall",
+          "documentation": "Maximum Frame Average Light Level\nAn integer metadata value defining the maximum average light level, in nits,\nfor any single frame within an encoded HDR video stream or file."
+        }
+      },
+      "documentation": "Hdr10 Settings"
     },
     "HlsAdMarkers": {
       "type": "string",
@@ -5349,6 +5933,12 @@
         "STANDARD"
       ]
     },
+    "ImmediateModeScheduleActionStartSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Settings to configure an action so that it occurs immediately. This is only supported for input switch actions currently."
+    },
     "Input": {
       "type": "structure",
       "members": {
@@ -5371,6 +5961,16 @@
           "shape": "__string",
           "locationName": "id",
           "documentation": "The generated ID of the input (unique for user account, immutable)."
+        },
+        "InputClass": {
+          "shape": "InputClass",
+          "locationName": "inputClass",
+          "documentation": "STANDARD - MediaLive expects two sources to be connected to this input. If the channel is also STANDARD, both sources will be ingested. If the channel is SINGLE_PIPELINE, only the first source will be ingested; the second source will always be ignored, even if the first source fails.\nSINGLE_PIPELINE - You can connect only one source to this input. If the ChannelClass is also  SINGLE_PIPELINE, this value is valid. If the ChannelClass is STANDARD, this value is not valid because the channel requires two sources in the input.\n"
+        },
+        "InputSourceType": {
+          "shape": "InputSourceType",
+          "locationName": "inputSourceType",
+          "documentation": "Certain pull input sources can be dynamic, meaning that they can have their URL's dynamically changes\nduring input switch actions. Presently, this functionality only works with MP4_FILE inputs.\n"
         },
         "MediaConnectFlows": {
           "shape": "__listOfMediaConnectFlow",
@@ -5452,6 +6052,38 @@
       "required": [
         "InputChannel",
         "Gain"
+      ]
+    },
+    "InputClass": {
+      "type": "string",
+      "documentation": "A standard input has two sources and a single pipeline input only has one.",
+      "enum": [
+        "STANDARD",
+        "SINGLE_PIPELINE"
+      ]
+    },
+    "InputClippingSettings": {
+      "type": "structure",
+      "members": {
+        "InputTimecodeSource": {
+          "shape": "InputTimecodeSource",
+          "locationName": "inputTimecodeSource",
+          "documentation": "The source of the timecodes in the source being clipped."
+        },
+        "StartTimecode": {
+          "shape": "StartTimecode",
+          "locationName": "startTimecode",
+          "documentation": "Settings to identify the start of the clip."
+        },
+        "StopTimecode": {
+          "shape": "StopTimecode",
+          "locationName": "stopTimecode",
+          "documentation": "Settings to identify the end of the clip."
+        }
+      },
+      "documentation": "Settings to let you create a clip of the file input, in order to set up the input to ingest only a portion of the file.",
+      "required": [
+        "InputTimecodeSource"
       ]
     },
     "InputCodec": {
@@ -5817,6 +6449,14 @@
       },
       "documentation": "Settings for for a PULL type input."
     },
+    "InputSourceType": {
+      "type": "string",
+      "documentation": "There are two types of input sources, static and dynamic. If an input source is dynamic you can\nchange the source url of the input dynamically using an input switch action. However, the only input type\nto support a dynamic url at this time is MP4_FILE. By default all input sources are static.\n",
+      "enum": [
+        "STATIC",
+        "DYNAMIC"
+      ]
+    },
     "InputSpecification": {
       "type": "structure",
       "members": {
@@ -5855,12 +6495,30 @@
         "InputAttachmentNameReference": {
           "shape": "__string",
           "locationName": "inputAttachmentNameReference",
-          "documentation": "The name of the input attachment that should be switched to by this action."
+          "documentation": "The name of the input attachment (not the name of the input!) to switch to. The name is specified in the channel configuration."
+        },
+        "InputClippingSettings": {
+          "shape": "InputClippingSettings",
+          "locationName": "inputClippingSettings",
+          "documentation": "Settings to let you create a clip of the file input, in order to set up the input to ingest only a portion of the file."
+        },
+        "UrlPath": {
+          "shape": "__listOf__string",
+          "locationName": "urlPath",
+          "documentation": "The value for the variable portion of the URL for the dynamic input, for this instance of the input. Each time you use the same dynamic input in an input switch action, you can provide a different value, in order to connect the input to a different content source."
         }
       },
-      "documentation": "Settings for the action to switch an input.",
+      "documentation": "Settings for the \"switch input\" action: to switch from ingesting one input to ingesting another input.",
       "required": [
         "InputAttachmentNameReference"
+      ]
+    },
+    "InputTimecodeSource": {
+      "type": "string",
+      "documentation": "Documentation update needed",
+      "enum": [
+        "ZEROBASED",
+        "EMBEDDED"
       ]
     },
     "InputType": {
@@ -5960,6 +6618,14 @@
         }
       },
       "documentation": "Key Provider Settings"
+    },
+    "LastFrameClippingBehavior": {
+      "type": "string",
+      "documentation": "If you specify a StopTimecode in an input (in order to clip the file), you can specify if you want the clip to exclude (the default) or include the frame specified by the timecode.",
+      "enum": [
+        "EXCLUDE_LAST_FRAME",
+        "INCLUDE_LAST_FRAME"
+      ]
     },
     "LimitExceeded": {
       "type": "structure",
@@ -6108,6 +6774,12 @@
     "ListOfferingsRequest": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "channelClass",
+          "documentation": "Filter by channel class, 'STANDARD' or 'SINGLE_PIPELINE'\n"
+        },
         "ChannelConfiguration": {
           "shape": "__string",
           "location": "querystring",
@@ -6204,6 +6876,12 @@
     "ListReservationsRequest": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "channelClass",
+          "documentation": "Filter by channel class, 'STANDARD' or 'SINGLE_PIPELINE'\n"
+        },
         "Codec": {
           "shape": "__string",
           "location": "querystring",
@@ -6871,7 +7549,7 @@
           "documentation": "ID of the channel in MediaPackage that is the destination for this output group. You do not need to specify the individual inputs in MediaPackage; MediaLive will handle the connection of the two MediaLive pipelines to the two MediaPackage inputs. The MediaPackage channel and MediaLive channel must be in the same region."
         }
       },
-      "documentation": "Media Package Output Destination Settings"
+      "documentation": "MediaPackage Output Destination Settings"
     },
     "MediaPackageOutputSettings": {
       "type": "structure",
@@ -7012,9 +7690,22 @@
         "Destination"
       ]
     },
+    "MsSmoothH265PackagingType": {
+      "type": "string",
+      "documentation": "Ms Smooth H265 Packaging Type",
+      "enum": [
+        "HEV1",
+        "HVC1"
+      ]
+    },
     "MsSmoothOutputSettings": {
       "type": "structure",
       "members": {
+        "H265PackagingType": {
+          "shape": "MsSmoothH265PackagingType",
+          "locationName": "h265PackagingType",
+          "documentation": "Only applicable when this output is referencing an H.265 video description.\nSpecifies whether MP4 segments should be packaged as HEV1 or HVC1."
+        },
         "NameModifier": {
           "shape": "__string",
           "locationName": "nameModifier",
@@ -7335,6 +8026,27 @@
       },
       "documentation": "Settings for the action to set pause state of a channel."
     },
+    "PipelineDetail": {
+      "type": "structure",
+      "members": {
+        "ActiveInputAttachmentName": {
+          "shape": "__string",
+          "locationName": "activeInputAttachmentName",
+          "documentation": "The name of the active input attachment currently being ingested by this pipeline."
+        },
+        "ActiveInputSwitchActionName": {
+          "shape": "__string",
+          "locationName": "activeInputSwitchActionName",
+          "documentation": "The name of the input switch schedule action that occurred most recently and that resulted in the switch to the current input attachment for this pipeline."
+        },
+        "PipelineId": {
+          "shape": "__string",
+          "locationName": "pipelineId",
+          "documentation": "Pipeline ID"
+        }
+      },
+      "documentation": "Runtime details of a pipeline when a channel is running."
+    },
     "PipelineId": {
       "type": "string",
       "documentation": "Pipeline ID",
@@ -7380,6 +8092,11 @@
           "shape": "__string",
           "locationName": "start",
           "documentation": "Requested reservation start time (UTC) in ISO-8601 format. The specified time must be between the first day of the current month and one year from now. If no value is given, the default is now."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs"
         }
       },
       "documentation": "PurchaseOffering request",
@@ -7416,6 +8133,11 @@
           "shape": "__string",
           "locationName": "start",
           "documentation": "Requested reservation start time (UTC) in ISO-8601 format. The specified time must be between the first day of the current month and one year from now. If no value is given, the default is now."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs"
         }
       },
       "required": [
@@ -7443,6 +8165,18 @@
         }
       },
       "documentation": "PurchaseOffering response"
+    },
+    "Rec601Settings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Rec601 Settings"
+    },
+    "Rec709Settings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Rec709 Settings"
     },
     "RemixSettings": {
       "type": "structure",
@@ -7551,6 +8285,11 @@
           "locationName": "state",
           "documentation": "Current state of reservation, e.g. 'ACTIVE'"
         },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs"
+        },
         "UsagePrice": {
           "shape": "__double",
           "locationName": "usagePrice",
@@ -7598,6 +8337,11 @@
     "ReservationResourceSpecification": {
       "type": "structure",
       "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "Channel class, e.g. 'STANDARD'"
+        },
         "Codec": {
           "shape": "ReservationCodec",
           "locationName": "codec",
@@ -7866,15 +8610,26 @@
         "FixedModeScheduleActionStartSettings": {
           "shape": "FixedModeScheduleActionStartSettings",
           "locationName": "fixedModeScheduleActionStartSettings",
-          "documentation": "Holds the start time for the action."
+          "documentation": "Option for specifying the start time for an action."
         },
         "FollowModeScheduleActionStartSettings": {
           "shape": "FollowModeScheduleActionStartSettings",
           "locationName": "followModeScheduleActionStartSettings",
-          "documentation": "Specifies an action to follow for scheduling this action."
+          "documentation": "Option for specifying an action as relative to another action."
+        },
+        "ImmediateModeScheduleActionStartSettings": {
+          "shape": "ImmediateModeScheduleActionStartSettings",
+          "locationName": "immediateModeScheduleActionStartSettings",
+          "documentation": "Option for specifying an action that should be applied immediately."
         }
       },
-      "documentation": "Settings to specify the start time for an action."
+      "documentation": "Settings to specify when an action should occur. Only one of the options must be selected."
+    },
+    "ScheduleDeleteResultModel": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Result of a schedule deletion."
     },
     "ScheduleDescribeResultModel": {
       "type": "structure",
@@ -8048,7 +8803,7 @@
       "type": "structure",
       "members": {
         "SpliceEventId": {
-          "shape": "__integerMin0Max4294967295",
+          "shape": "__longMin0Max4294967295",
           "locationName": "spliceEventId",
           "documentation": "The splice_event_id for the SCTE-35 splice_insert, as defined in SCTE-35."
         }
@@ -8085,12 +8840,12 @@
           "documentation": "Corresponds to SCTE-35 segmentation_event_cancel_indicator."
         },
         "SegmentationDuration": {
-          "shape": "__integerMin0Max1099511627775",
+          "shape": "__longMin0Max1099511627775",
           "locationName": "segmentationDuration",
           "documentation": "Corresponds to SCTE-35 segmentation_duration. Optional. The duration for the time_signal, in 90 KHz ticks. To convert seconds to ticks, multiple the seconds by 90,000. Enter time in 90 KHz clock ticks. If you do not enter a duration, the time_signal will continue until you insert a cancellation message."
         },
         "SegmentationEventId": {
-          "shape": "__integerMin0Max4294967295",
+          "shape": "__longMin0Max4294967295",
           "locationName": "segmentationEventId",
           "documentation": "Corresponds to SCTE-35 segmentation_event_id. "
         },
@@ -8164,12 +8919,12 @@
       "type": "structure",
       "members": {
         "Duration": {
-          "shape": "__integerMin0Max8589934591",
+          "shape": "__longMin0Max8589934591",
           "locationName": "duration",
           "documentation": "Optional, the duration for the splice_insert, in 90 KHz ticks. To convert seconds to ticks, multiple the seconds by 90,000. If you enter a duration, there is an expectation that the downstream system can read the duration and cue in at that time. If you do not enter a duration, the splice_insert will continue indefinitely and there is an expectation that you will enter a return_to_network to end the splice_insert at the appropriate time."
         },
         "SpliceEventId": {
-          "shape": "__integerMin0Max4294967295",
+          "shape": "__longMin0Max4294967295",
           "locationName": "spliceEventId",
           "documentation": "The splice_event_id for the SCTE-35 splice_insert, as defined in SCTE-35."
         }
@@ -8342,6 +9097,11 @@
           "locationName": "arn",
           "documentation": "The unique arn of the channel."
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations",
@@ -8380,6 +9140,11 @@
           "locationName": "name",
           "documentation": "The name of the channel. (user-mutable)"
         },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails",
+          "documentation": "Runtime details for the pipelines of a running channel."
+        },
         "PipelinesRunningCount": {
           "shape": "__integer",
           "locationName": "pipelinesRunningCount",
@@ -8401,6 +9166,17 @@
         }
       },
       "documentation": "Placeholder documentation for StartChannelResponse"
+    },
+    "StartTimecode": {
+      "type": "structure",
+      "members": {
+        "Timecode": {
+          "shape": "__string",
+          "locationName": "timecode",
+          "documentation": "The timecode for the frame where you want to start the clip. Optional; if not specified, the clip starts at first frame in the file. Enter the timecode as HH:MM:SS:FF or HH:MM:SS;FF."
+        }
+      },
+      "documentation": "Settings to identify the start of the clip."
     },
     "StaticImageActivateScheduleActionSettings": {
       "type": "structure",
@@ -8519,6 +9295,11 @@
           "locationName": "arn",
           "documentation": "The unique arn of the channel."
         },
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The class for this channel. STANDARD for a channel with two pipelines or SINGLE_PIPELINE for a channel with one pipeline."
+        },
         "Destinations": {
           "shape": "__listOfOutputDestination",
           "locationName": "destinations",
@@ -8557,6 +9338,11 @@
           "locationName": "name",
           "documentation": "The name of the channel. (user-mutable)"
         },
+        "PipelineDetails": {
+          "shape": "__listOfPipelineDetail",
+          "locationName": "pipelineDetails",
+          "documentation": "Runtime details for the pipelines of a running channel."
+        },
         "PipelinesRunningCount": {
           "shape": "__integer",
           "locationName": "pipelinesRunningCount",
@@ -8578,6 +9364,22 @@
         }
       },
       "documentation": "Placeholder documentation for StopChannelResponse"
+    },
+    "StopTimecode": {
+      "type": "structure",
+      "members": {
+        "LastFrameClippingBehavior": {
+          "shape": "LastFrameClippingBehavior",
+          "locationName": "lastFrameClippingBehavior",
+          "documentation": "If you specify a StopTimecode in an input (in order to clip the file), you can specify if you want the clip to exclude (the default) or include the frame specified by the timecode."
+        },
+        "Timecode": {
+          "shape": "__string",
+          "locationName": "timecode",
+          "documentation": "The timecode for the frame where you want to stop the clip. Optional; if not specified, the clip continues to the end of the file. Enter the timecode as HH:MM:SS:FF or HH:MM:SS;FF."
+        }
+      },
+      "documentation": "Settings to identify the end of the clip."
     },
     "Tags": {
       "type": "map",
@@ -8805,6 +9607,61 @@
       },
       "documentation": "Placeholder documentation for UpdateChannel"
     },
+    "UpdateChannelClass": {
+      "type": "structure",
+      "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The channel class that you wish to update this channel to use."
+        },
+        "Destinations": {
+          "shape": "__listOfOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of output destinations for this channel."
+        }
+      },
+      "required": [
+        "ChannelClass"
+      ],
+      "documentation": "Placeholder documentation for UpdateChannelClass"
+    },
+    "UpdateChannelClassRequest": {
+      "type": "structure",
+      "members": {
+        "ChannelClass": {
+          "shape": "ChannelClass",
+          "locationName": "channelClass",
+          "documentation": "The channel class that you wish to update this channel to use."
+        },
+        "ChannelId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "channelId",
+          "documentation": "Channel Id of the channel whose class should be updated."
+        },
+        "Destinations": {
+          "shape": "__listOfOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of output destinations for this channel."
+        }
+      },
+      "documentation": "Channel class that the channel should be updated to.",
+      "required": [
+        "ChannelId",
+        "ChannelClass"
+      ]
+    },
+    "UpdateChannelClassResponse": {
+      "type": "structure",
+      "members": {
+        "Channel": {
+          "shape": "Channel",
+          "locationName": "channel"
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateChannelClassResponse"
+    },
     "UpdateChannelRequest": {
       "type": "structure",
       "members": {
@@ -9020,6 +9877,57 @@
       },
       "documentation": "Placeholder documentation for UpdateInputSecurityGroupResultModel"
     },
+    "UpdateReservation": {
+      "type": "structure",
+      "members": {
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "Name of the reservation"
+        }
+      },
+      "documentation": "UpdateReservation request"
+    },
+    "UpdateReservationRequest": {
+      "type": "structure",
+      "members": {
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "Name of the reservation"
+        },
+        "ReservationId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "reservationId",
+          "documentation": "Unique reservation ID, e.g. '1234567'"
+        }
+      },
+      "documentation": "Request to update a reservation",
+      "required": [
+        "ReservationId"
+      ]
+    },
+    "UpdateReservationResponse": {
+      "type": "structure",
+      "members": {
+        "Reservation": {
+          "shape": "Reservation",
+          "locationName": "reservation"
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateReservationResponse"
+    },
+    "UpdateReservationResultModel": {
+      "type": "structure",
+      "members": {
+        "Reservation": {
+          "shape": "Reservation",
+          "locationName": "reservation"
+        }
+      },
+      "documentation": "UpdateReservation response"
+    },
     "ValidationError": {
       "type": "structure",
       "members": {
@@ -9044,6 +9952,10 @@
         "H264Settings": {
           "shape": "H264Settings",
           "locationName": "h264Settings"
+        },
+        "H265Settings": {
+          "shape": "H265Settings",
+          "locationName": "h265Settings"
         }
       },
       "documentation": "Video Codec Settings"
@@ -9115,7 +10027,7 @@
         "ColorSpace": {
           "shape": "VideoSelectorColorSpace",
           "locationName": "colorSpace",
-          "documentation": "Specifies the colorspace of an input. This setting works in tandem with colorSpaceConversion to determine if any conversion will be performed."
+          "documentation": "Specifies the color space of an input. This setting works in tandem with colorSpaceUsage and a video description's colorSpaceSettingsChoice to determine if any conversion will be performed."
         },
         "ColorSpaceUsage": {
           "shape": "VideoSelectorColorSpaceUsage",
@@ -9201,9 +10113,21 @@
       "type": "double",
       "documentation": "Placeholder documentation for __doubleMin0"
     },
+    "__doubleMin0Max1000000000": {
+      "type": "double",
+      "documentation": "Placeholder documentation for __doubleMin0Max1000000000"
+    },
+    "__doubleMin0Max65535": {
+      "type": "double",
+      "documentation": "Placeholder documentation for __doubleMin0Max65535"
+    },
     "__doubleMin1": {
       "type": "double",
       "documentation": "Placeholder documentation for __doubleMin1"
+    },
+    "__doubleMin10000Max1000000000": {
+      "type": "double",
+      "documentation": "Placeholder documentation for __doubleMin10000Max1000000000"
     },
     "__doubleMinNegative59Max0": {
       "type": "double",
@@ -9248,12 +10172,6 @@
       "max": 1000000,
       "documentation": "Placeholder documentation for __integerMin0Max1000000"
     },
-    "__integerMin0Max1099511627775": {
-      "type": "long",
-      "min": 0,
-      "max": 1099511627775,
-      "documentation": "Placeholder documentation for __integerMin0Max1099511627775"
-    },
     "__integerMin0Max128": {
       "type": "integer",
       "min": 0,
@@ -9278,17 +10196,17 @@
       "max": 30,
       "documentation": "Placeholder documentation for __integerMin0Max30"
     },
+    "__integerMin0Max32768": {
+      "type": "integer",
+      "min": 0,
+      "max": 32768,
+      "documentation": "Placeholder documentation for __integerMin0Max32768"
+    },
     "__integerMin0Max3600": {
       "type": "integer",
       "min": 0,
       "max": 3600,
       "documentation": "Placeholder documentation for __integerMin0Max3600"
-    },
-    "__integerMin0Max4294967295": {
-      "type": "long",
-      "min": 0,
-      "max": 4294967295,
-      "documentation": "Placeholder documentation for __integerMin0Max4294967295"
     },
     "__integerMin0Max500": {
       "type": "integer",
@@ -9326,12 +10244,6 @@
       "max": 8191,
       "documentation": "Placeholder documentation for __integerMin0Max8191"
     },
-    "__integerMin0Max8589934591": {
-      "type": "long",
-      "min": 0,
-      "max": 8589934591,
-      "documentation": "Placeholder documentation for __integerMin0Max8589934591"
-    },
     "__integerMin1": {
       "type": "integer",
       "min": 1,
@@ -9341,6 +10253,24 @@
       "type": "integer",
       "min": 1000,
       "documentation": "Placeholder documentation for __integerMin1000"
+    },
+    "__integerMin100000Max100000000": {
+      "type": "integer",
+      "min": 100000,
+      "max": 100000000,
+      "documentation": "Placeholder documentation for __integerMin100000Max100000000"
+    },
+    "__integerMin100000Max40000000": {
+      "type": "integer",
+      "min": 100000,
+      "max": 40000000,
+      "documentation": "Placeholder documentation for __integerMin100000Max40000000"
+    },
+    "__integerMin100000Max80000000": {
+      "type": "integer",
+      "min": 100000,
+      "max": 80000000,
+      "documentation": "Placeholder documentation for __integerMin100000Max80000000"
     },
     "__integerMin1000Max30000": {
       "type": "integer",
@@ -9371,6 +10301,12 @@
       "min": 1,
       "max": 20,
       "documentation": "Placeholder documentation for __integerMin1Max20"
+    },
+    "__integerMin1Max3003": {
+      "type": "integer",
+      "min": 1,
+      "max": 3003,
+      "documentation": "Placeholder documentation for __integerMin1Max3003"
     },
     "__integerMin1Max31": {
       "type": "integer",
@@ -9655,6 +10591,13 @@
       },
       "documentation": "Placeholder documentation for __listOfOutputGroup"
     },
+    "__listOfPipelineDetail": {
+      "type": "list",
+      "member": {
+        "shape": "PipelineDetail"
+      },
+      "documentation": "Placeholder documentation for __listOfPipelineDetail"
+    },
     "__listOfPipelinePauseStateSettings": {
       "type": "list",
       "member": {
@@ -9708,9 +10651,32 @@
       "type": "long",
       "documentation": "Placeholder documentation for __long"
     },
+    "__longMin0Max1099511627775": {
+      "type": "long",
+      "min": 0,
+      "max": 1099511627775,
+      "documentation": "Placeholder documentation for __longMin0Max1099511627775"
+    },
+    "__longMin0Max4294967295": {
+      "type": "long",
+      "min": 0,
+      "max": 4294967295,
+      "documentation": "Placeholder documentation for __longMin0Max4294967295"
+    },
+    "__longMin0Max8589934591": {
+      "type": "long",
+      "min": 0,
+      "max": 8589934591,
+      "documentation": "Placeholder documentation for __longMin0Max8589934591"
+    },
     "__string": {
       "type": "string",
       "documentation": "Placeholder documentation for __string"
+    },
+    "__stringMax256": {
+      "type": "string",
+      "max": 256,
+      "documentation": "Placeholder documentation for __stringMax256"
     },
     "__stringMax32": {
       "type": "string",

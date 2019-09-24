@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import java.time.Clock;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.regions.Region;
@@ -26,11 +27,9 @@ import software.amazon.awssdk.regions.Region;
 @SdkInternalApi
 public final class Aws4SignerRequestParams {
 
-    /**
-     * The datetime in milliseconds for which the signature needs to be
-     * computed.
-     */
-    private final long signingDateTimeMilli;
+    private final Clock signingClock;
+
+    private final long requestSigningDateTimeMilli;
 
     /**
      * The scope of the signature.
@@ -50,68 +49,56 @@ public final class Aws4SignerRequestParams {
     /**
      * UTC formatted version of the signing time stamp.
      */
-    private final String formattedSigningDateTime;
+    private final String formattedRequestSigningDateTime;
 
     /**
      * UTC Formatted Signing date with time stamp stripped.
      */
-    private final String formattedSigningDate;
+    private final String formattedRequestSigningDate;
 
     /**
-     * Generates an instance of AWS4signerRequestParams that holds the parameters used for computing a AWS 4 signature
-     * for a request based on the given {@link Aws4SignerParams} for that request.
+     * Generates an instance of AWS4signerRequestParams that holds the
+     * parameters used for computing a AWS 4 signature for a request based on
+     * the given {@link Aws4SignerParams} for that request.
      */
     public Aws4SignerRequestParams(Aws4SignerParams signerParams) {
-        this.signingDateTimeMilli = getSigningDate(signerParams);
-        this.formattedSigningDate = Aws4SignerUtils.formatDateStamp(signingDateTimeMilli);
+        this.signingClock = resolveSigningClock(signerParams);
+        this.requestSigningDateTimeMilli = this.signingClock.millis();
+        this.formattedRequestSigningDate = Aws4SignerUtils.formatDateStamp(requestSigningDateTimeMilli);
         this.serviceSigningName = signerParams.signingName();
         this.regionName = getRegion(signerParams.signingRegion());
-        this.scope = generateScope(formattedSigningDate, this.serviceSigningName, regionName);
-        this.formattedSigningDateTime = Aws4SignerUtils.formatTimestamp(signingDateTimeMilli);
+        this.scope = generateScope(formattedRequestSigningDate, this.serviceSigningName, regionName);
+        this.formattedRequestSigningDateTime = Aws4SignerUtils.formatTimestamp(requestSigningDateTimeMilli);
     }
 
     /**
-     * Returns the signing date from the request.
+     * @return The clock to use for signing additional data i.e. events or chunks.
      */
-    private long getSigningDate(Aws4SignerParams signerParams) {
-        return signerParams.signingClockOverride()
-                    .map(Clock::millis)
-                    .orElse(signerParams.timeOffset()
-                                        .map(t -> System.currentTimeMillis() - t * 1000L)
-                                        .orElse(System.currentTimeMillis()));
-    }
-
-    private String getRegion(Region region) {
-        return region != null ? region.id() : null;
+    public Clock getSigningClock() {
+        return signingClock;
     }
 
     /**
-     * Returns the scope to be used for the signing.
-     */
-    private String generateScope(String dateStamp, String serviceName, String regionName) {
-        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstant.AWS4_TERMINATOR;
-    }
-
-    /**
-     * Returns the scope of the signing.
+     * Returns the scope of the request signing.
      */
     public String getScope() {
         return scope;
     }
 
     /**
-     * Returns the formatted date and time of the signing date in UTC zone.
+     * Returns the formatted date and time of the request signing date in UTC
+     * zone.
      */
-    public String getFormattedSigningDateTime() {
-        return formattedSigningDateTime;
+    public String getFormattedRequestSigningDateTime() {
+        return formattedRequestSigningDateTime;
     }
 
     /**
-     * Returns the signing date time in millis for which the signature needs to
-     * be computed.
+     * Returns the request signing date time in millis for which the request
+     * signature needs to be computed.
      */
-    public long getSigningDateTimeMilli() {
-        return signingDateTimeMilli;
+    public long getRequestSigningDateTimeMilli() {
+        return requestSigningDateTimeMilli;
     }
 
     /**
@@ -129,10 +116,11 @@ public final class Aws4SignerRequestParams {
     }
 
     /**
-     * Returns the formatted date in UTC zone of the signing date.
+     * Returns the formatted date in UTC zone of the signing date for the
+     * request.
      */
-    public String getFormattedSigningDate() {
-        return formattedSigningDate;
+    public String getFormattedRequestSigningDate() {
+        return formattedRequestSigningDate;
     }
 
     /**
@@ -140,5 +128,26 @@ public final class Aws4SignerRequestParams {
      */
     public String getSigningAlgorithm() {
         return SignerConstant.AWS4_SIGNING_ALGORITHM;
+    }
+
+    private Clock resolveSigningClock(Aws4SignerParams signerParams) {
+        if (signerParams.signingClockOverride().isPresent()) {
+            return signerParams.signingClockOverride().get();
+        }
+        Clock baseClock = Clock.systemUTC();
+        return signerParams.timeOffset()
+                .map(offset -> Clock.offset(baseClock, Duration.ofSeconds(-offset)))
+                .orElse(baseClock);
+    }
+
+    private String getRegion(Region region) {
+        return region != null ? region.id() : null;
+    }
+
+    /**
+     * Returns the scope to be used for the signing.
+     */
+    private String generateScope(String dateStamp, String serviceName, String regionName) {
+        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstant.AWS4_TERMINATOR;
     }
 }

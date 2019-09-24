@@ -42,7 +42,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.http.Fault;
-import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
@@ -54,10 +53,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
-import java.net.Socket;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,7 +87,6 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
-import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -237,11 +233,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
         };
 
         sdkChannelPoolMap.get(URI.create("http://blah"));
-        SdkChannelOptions channelOptions = new SdkChannelOptions();
         NettyConfiguration nettyConfiguration = new NettyConfiguration(AttributeMap.empty());
 
         SdkAsyncHttpClient customerClient =
-            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, channelOptions, nettyConfiguration, 1);
+            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, nettyConfiguration);
 
         customerClient.close();
         assertThat(eventLoopGroup.eventLoopGroup().isShuttingDown()).isTrue();
@@ -443,7 +438,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         // HTTP servers will stop processing the request as soon as it reads
         // bytes equal to 'Content-Length' so we need to inspect the raw
         // traffic to ensure that there wasn't anything after that.
-        assertThat(wiremockTrafficListener.requests.toString()).endsWith(content);
+        assertThat(wiremockTrafficListener.requests().toString()).endsWith(content);
     }
 
     @Test
@@ -620,6 +615,18 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
     }
 
+    @Test
+    public void createNettyClient_ReadWriteTimeoutCanBeZero() throws Exception {
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                .readTimeout(Duration.ZERO)
+                .writeTimeout(Duration.ZERO)
+                .build();
+
+        makeSimpleRequest(customClient);
+
+        customClient.close();
+    }
+
     private void verifyChannelRelease(Channel channel) throws InterruptedException {
         Thread.sleep(1000);
         assertThat(channel.attr(AttributeKey.valueOf("channelPool")).get()).isNull();
@@ -643,34 +650,5 @@ public class NettyNioAsyncHttpClientWireMockTest {
         return AttributeMap.builder()
                            .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
                            .build();
-    }
-
-    private static class RecordingNetworkTrafficListener implements WiremockNetworkTrafficListener {
-        private final StringBuilder requests = new StringBuilder();
-
-
-        @Override
-        public void opened(Socket socket) {
-
-        }
-
-        @Override
-        public void incoming(Socket socket, ByteBuffer byteBuffer) {
-            requests.append(StandardCharsets.UTF_8.decode(byteBuffer));
-        }
-
-        @Override
-        public void outgoing(Socket socket, ByteBuffer byteBuffer) {
-
-        }
-
-        @Override
-        public void closed(Socket socket) {
-
-        }
-
-        public void reset() {
-            requests.setLength(0);
-        }
     }
 }

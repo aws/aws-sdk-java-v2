@@ -73,6 +73,7 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
                      // Adding httpMethod to avoid validation failure while creating the SdkHttpFullRequest
                      .add(".httpMethod($T.GET)", SdkHttpMethod.class)
+                     .add(".hasEvent(true)")
                      .add(".build()");
 
 

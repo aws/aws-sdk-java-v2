@@ -44,6 +44,20 @@ public interface SdkAsyncHttpClient extends SdkAutoCloseable {
      */
     CompletableFuture<Void> execute(AsyncExecuteRequest request);
 
+    /**
+     * Each HTTP client implementation should return a well-formed client name
+     * that allows requests to be identifiable back to the client that made the request.
+     * The client name should include the backing implementation as well as the Sync or Async
+     * to identify the transmission type of the request. Client names should only include
+     * alphanumeric characters. Examples of well formed client names include, Apache, for
+     * requests using Apache's http client or NettyNio for Netty's http client.
+     *
+     * @return String containing the name of the client
+     */
+    default String clientName() {
+        return "UNKNOWN";
+    }
+
     @FunctionalInterface
     interface Builder<T extends SdkAsyncHttpClient.Builder<T>> extends SdkBuilder<T, SdkAsyncHttpClient> {
         /**

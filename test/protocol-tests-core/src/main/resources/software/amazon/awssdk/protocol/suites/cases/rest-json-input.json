@@ -91,6 +91,11 @@
     },
     "then": {
       "serializedAs": {
+        "headers": {
+          "contains": {
+            "Content-Length": "8"
+          }
+        },
         "body": {
           "equals": "contents"
         }
@@ -119,6 +124,24 @@
         "body": {
           "equals": "{\"JsonValueMember\":\"dontEncode\"}"
         }
+      }
+    }
+  },
+  {
+    "description": "Input with greedy label in path, leading slash removed",
+    "given": {
+      "input": {
+        "NonGreedyPathParam": "pathParamValue",
+        "GreedyPathParam": "/foo/bar/baz"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "OperationWithGreedyLabel"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue/foo/bar/baz"
       }
     }
   }

@@ -139,7 +139,7 @@ def write_new_change(parsed_values):
     category = parsed_values['category']
     short_summary = ''.join(filter(lambda x: x in VALID_CHARS, category))
     contents = json.dumps(parsed_values, indent=4) + "\n"
-    contents_digest = hashlib.sha1(contents).hexdigest()
+    contents_digest = hashlib.sha1(contents.encode('utf-8')).hexdigest()
     filename = '{type_name}-{summary}-{digest}.json'.format(
         type_name=parsed_values['type'],
         summary=short_summary,

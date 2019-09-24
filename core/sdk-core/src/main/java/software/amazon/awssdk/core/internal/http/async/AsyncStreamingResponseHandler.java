@@ -31,16 +31,17 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  * Response handler for asynchronous streaming operations.
  */
 @SdkInternalApi
-public class AsyncStreamingResponseHandler<OutputT extends SdkResponse, ReturnT>
+public final class AsyncStreamingResponseHandler<OutputT extends SdkResponse, ReturnT>
     implements TransformingAsyncResponseHandler<ReturnT> {
 
     private final AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer;
-    private final HttpResponseHandler<OutputT> responseHandler;
-    private volatile CompletableFuture<ReturnT> transformFuture;
+    private volatile HttpResponseHandler<OutputT> responseHandler;
 
-    public AsyncStreamingResponseHandler(AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer,
-                                         HttpResponseHandler<OutputT> responseHandler) {
+    public AsyncStreamingResponseHandler(AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
         this.asyncResponseTransformer = asyncResponseTransformer;
+    }
+
+    public void responseHandler(HttpResponseHandler<OutputT> responseHandler) {
         this.responseHandler = responseHandler;
     }
 
@@ -53,7 +54,7 @@ public class AsyncStreamingResponseHandler<OutputT extends SdkResponse, ReturnT>
 
             asyncResponseTransformer.onResponse(resp);
         } catch (Exception e) {
-            transformFuture.completeExceptionally(e);
+            asyncResponseTransformer.exceptionOccurred(e);
         }
     }
 
@@ -69,7 +70,6 @@ public class AsyncStreamingResponseHandler<OutputT extends SdkResponse, ReturnT>
 
     @Override
     public CompletableFuture<ReturnT> prepare() {
-        this.transformFuture = asyncResponseTransformer.prepare();
-        return transformFuture;
+        return asyncResponseTransformer.prepare();
     }
 }

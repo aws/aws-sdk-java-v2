@@ -56,4 +56,8 @@ public final class Aws4SignerUtils {
     public static String formatTimestamp(long timeMilli) {
         return TIME_FORMATTER.format(Instant.ofEpochMilli(timeMilli));
     }
+
+    public static String formatTimestamp(Instant instant) {
+        return TIME_FORMATTER.format(instant);
+    }
 }

@@ -67,6 +67,8 @@ public final class Mimetype {
 
     public static final String MIMETYPE_TEXT_PLAIN = "text/plain; charset=UTF-8";
 
+    public static final String MIMETYPE_EVENT_STREAM = "application/vnd.amazon.eventstream";
+
     private static final Logger LOG = LoggerFactory.getLogger(Mimetype.class);
 
     private static final String MIME_TYPE_PATH = "software/amazon/awssdk/core/util/mime.types";

@@ -24,6 +24,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -32,6 +33,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 public final class NettyConfiguration {
 
+    public static final int CHANNEL_POOL_CLOSE_TIMEOUT_SECONDS = 5;
     public static final int EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS = 2;
     public static final int EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS = 15;
     public static final int EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS = 16;
@@ -84,5 +86,9 @@ public final class NettyConfiguration {
 
     public boolean reapIdleConnections() {
         return configuration.get(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS);
+    }
+
+    public TlsKeyManagersProvider tlsKeyManagersProvider() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER);
     }
 }

@@ -40,6 +40,8 @@ public class Shape {
 
     private boolean streaming;
 
+    private boolean requiresLength;
+
     private boolean wrapper;
 
     private Member listMember;
@@ -70,6 +72,8 @@ public class Shape {
     private String timestampFormat;
 
     private boolean sensitive;
+
+    private XmlNamespace xmlNamespace;
 
     public boolean isFault() {
         return fault;
@@ -203,6 +207,14 @@ public class Shape {
         this.streaming = streaming;
     }
 
+    public boolean isRequiresLength() {
+        return requiresLength;
+    }
+
+    public void setRequiresLength(boolean requiresLength) {
+        this.requiresLength = requiresLength;
+    }
+
     public boolean isWrapper() {
         return wrapper;
     }
@@ -258,4 +270,13 @@ public class Shape {
     public void setSensitive(boolean sensitive) {
         this.sensitive = sensitive;
     }
+
+    public XmlNamespace getXmlNamespace() {
+        return xmlNamespace;
+    }
+
+    public void setXmlNamespace(XmlNamespace xmlNamespace) {
+        this.xmlNamespace = xmlNamespace;
+    }
+
 }

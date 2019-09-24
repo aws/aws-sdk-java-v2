@@ -89,8 +89,9 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
             createKey("key-" + numberFormatter.format(i));
         }
         createKey("aaaaa");
-        createKey("aaaaa/aaaaa");
         createKey("aaaaa/aaaaa/aaaaa");
+        createKey("aaaaa/aaaaa+a");
+        createKey("aaaaa/aaaaa//aaaaa");
         createKey(KEY_NAME_WITH_SPECIAL_CHARS);
     }
 

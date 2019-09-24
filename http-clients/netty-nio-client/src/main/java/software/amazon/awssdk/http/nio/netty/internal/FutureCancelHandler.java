@@ -20,8 +20,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.ReferenceCountUtil;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -30,16 +29,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 @ChannelHandler.Sharable
-public final class FutureCancelHandler extends SimpleChannelInboundHandler {
+public final class FutureCancelHandler extends ChannelInboundHandlerAdapter {
     private static final FutureCancelHandler INSTANCE = new FutureCancelHandler();
 
     private FutureCancelHandler() {
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object o) {
-        ReferenceCountUtil.retain(o);
-        ctx.fireChannelRead(o);
     }
 
     @Override

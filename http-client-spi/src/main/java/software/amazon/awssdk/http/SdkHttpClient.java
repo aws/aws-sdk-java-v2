@@ -31,6 +31,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @ThreadSafe
 @SdkPublicApi
 public interface SdkHttpClient extends SdkAutoCloseable {
+
     /**
      * Create a {@link ExecutableHttpRequest} that can be used to execute the HTTP request.
      *
@@ -38,6 +39,21 @@ public interface SdkHttpClient extends SdkAutoCloseable {
      * @return Task that can execute an HTTP request and can be aborted.
      */
     ExecutableHttpRequest prepareRequest(HttpExecuteRequest request);
+
+    /**
+     * Each HTTP client implementation should return a well-formed client name
+     * that allows requests to be identifiable back to the client that made the request.
+     * The client name should include the backing implementation as well as the Sync or Async
+     * to identify the transmission type of the request. Client names should only include
+     * alphanumeric characters. Examples of well formed client names include, ApacheSync, for
+     * requests using Apache's synchronous http client or NettyNioAsync for Netty's asynchronous
+     * http client.
+     *
+     * @return String containing the name of the client
+     */
+    default String clientName() {
+        return "UNKNOWN";
+    }
 
     /**
      * Interface for creating an {@link SdkHttpClient} with service specific defaults applied.

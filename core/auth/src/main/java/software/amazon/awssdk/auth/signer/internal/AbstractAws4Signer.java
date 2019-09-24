@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,7 +69,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         }
 
         addHostHeader(mutableRequest);
-        addDateHeader(mutableRequest, requestParams.getFormattedSigningDateTime());
+        addDateHeader(mutableRequest, requestParams.getFormattedRequestSigningDateTime());
 
         String contentSha256 = calculateContentHash(mutableRequest, signingParams);
         mutableRequest.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
@@ -99,7 +98,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        long expirationInSeconds = generateExpirationTime(signingParams);
+        long expirationInSeconds = getSignatureDurationInSeconds(requestParams, signingParams);
         addHostHeader(mutableRequest);
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -112,9 +111,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         }
 
         // Add the important parameters for v4 signing
-        String timeStamp = requestParams.getFormattedSigningDateTime();
-
-        addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, requestParams, timeStamp, expirationInSeconds);
+        addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, requestParams, expirationInSeconds);
 
         String contentSha256 = calculateContentHashPresign(mutableRequest, signingParams);
 
@@ -166,7 +163,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected byte[] deriveSigningKey(AwsCredentials credentials, Aws4SignerRequestParams signerRequestParams) {
 
         String cacheKey = computeSigningCacheKeyName(credentials, signerRequestParams);
-        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
+        long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getRequestSigningDateTimeMilli());
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
@@ -177,7 +174,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
             TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));
         byte[] signingKey = newSigningKey(credentials,
-            signerRequestParams.getFormattedSigningDate(),
+            signerRequestParams.getFormattedRequestSigningDate(),
             signerRequestParams.getRegionName(),
             signerRequestParams.getServiceSigningName());
         SIGNER_CACHE.add(cacheKey, new SignerKey(daysSinceEpochSigningDate, signingKey));
@@ -221,7 +218,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         String stringToSign = requestParams.getSigningAlgorithm() +
                                     SignerConstant.LINE_SEPARATOR +
-                                    requestParams.getFormattedSigningDateTime() +
+                                    requestParams.getFormattedRequestSigningDateTime() +
                                     SignerConstant.LINE_SEPARATOR +
                                     requestParams.getScope() +
                                     SignerConstant.LINE_SEPARATOR +
@@ -275,13 +272,12 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     private void addPreSignInformationToRequest(SdkHttpFullRequest.Builder mutableRequest,
                                                 AwsCredentials sanitizedCredentials,
                                                 Aws4SignerRequestParams signerParams,
-                                                String timeStamp,
                                                 long expirationInSeconds) {
 
         String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + signerParams.getScope();
 
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
-        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_DATE, timeStamp);
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_DATE, signerParams.getFormattedRequestSigningDateTime());
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER,
                                             getSignedHeadersString(mutableRequest.headers()));
         mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES,
@@ -397,10 +393,13 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * Generates an expiration time for the presigned url. If user has specified
      * an expiration time, check if it is in the given limit.
      */
-    private long generateExpirationTime(U signingParams) {
+    private long getSignatureDurationInSeconds(Aws4SignerRequestParams requestParams,
+                                               U signingParams) {
 
-        long expirationInSeconds = signingParams.expirationTime().map(Instant::getEpochSecond)
-                                                 .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
+        long expirationInSeconds = signingParams.expirationTime()
+                                                .map(t -> t.getEpochSecond() -
+                                                          (requestParams.getRequestSigningDateTimeMilli() / 1000))
+                                                .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
 
         if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
             throw SdkClientException.builder()

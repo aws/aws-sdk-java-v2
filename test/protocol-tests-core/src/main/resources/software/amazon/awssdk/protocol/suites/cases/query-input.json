@@ -21,6 +21,30 @@
     }
   },
   {
+    "description": "Streaming payload member is marshalled correctly",
+    "given": {
+      "input": {
+        "StreamingMember": "contents"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "StreamingInputOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "Content-Length": "8"
+          }
+        },
+        "body": {
+          "equals": "contents"
+        }
+      }
+    }
+  },
+  {
     "description": "Scalar Members are marshalled correctly into the query params",
     "given": {
       "input": {

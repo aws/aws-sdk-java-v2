@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.customization.ShapeCustomizationInfo;
+import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class ShapeModel extends DocumentationModel implements HasDeprecation {
@@ -43,6 +44,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private boolean hasHeaderMember;
     private boolean hasStatusCodeMember;
     private boolean hasStreamingMember;
+    private boolean hasRequiresLengthMember;
     private boolean wrapper;
     private boolean simpleMethod;
     private String requestSignerClassFqcn;
@@ -64,6 +66,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private boolean isEventStream;
 
     private boolean isEvent;
+
+    private XmlNamespace xmlNamespace;
 
     public ShapeModel(@JsonProperty("c2jName") String c2jName) {
         this.c2jName = c2jName;
@@ -236,6 +240,19 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public ShapeModel withHasStreamingMember(boolean hasStreamingMember) {
         setHasStreamingMember(hasStreamingMember);
+        return this;
+    }
+
+    public boolean isHasRequiresLengthMember() {
+        return hasRequiresLengthMember;
+    }
+
+    public void setHasRequiresLengthMember(boolean hasRequiresLengthMember) {
+        this.hasRequiresLengthMember = hasRequiresLengthMember;
+    }
+
+    public ShapeModel withHasRequiresLengthMember(boolean hasRequiresLengthMember) {
+        setHasRequiresLengthMember(hasRequiresLengthMember);
         return this;
     }
 
@@ -543,5 +560,18 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     public ShapeModel withIsEvent(boolean isEvent) {
         this.isEvent = isEvent;
         return this;
+    }
+
+    public XmlNamespace getXmlNamespace() {
+        return xmlNamespace;
+    }
+
+    public ShapeModel withXmlNamespace(XmlNamespace xmlNamespace) {
+        this.xmlNamespace = xmlNamespace;
+        return this;
+    }
+
+    public void setXmlNamespace(XmlNamespace xmlNamespace) {
+        this.xmlNamespace = xmlNamespace;
     }
 }

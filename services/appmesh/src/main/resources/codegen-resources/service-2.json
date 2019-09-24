@@ -11,7 +11,7 @@
     "signingName": "appmesh",
     "uid": "appmesh-2019-01-25"
   },
-  "documentation": "<p>AWS App Mesh is a service mesh based on the Envoy proxy that makes it easy to monitor and\n         control microservices. App Mesh standardizes how your microservices communicate, giving you\n         end-to-end visibility and helping to ensure high availability for your applications.</p>\n         <p>App Mesh gives you consistent visibility and network traffic controls for every\n         microservice in an application. You can use App Mesh with AWS Fargate, Amazon ECS, Amazon EKS, and\n         Kubernetes on AWS.</p>\n         <note>\n            <p>App Mesh supports microservice applications that use service discovery naming for their\n            components. To use App Mesh, you must have an application running on Amazon EC2 instances,\n            hosted in either Amazon ECS, Amazon EKS, or Kubernetes on AWS. For more information about\n            service discovery on Amazon ECS, see <a href=\"http://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html\">Service\n               Discovery</a> in the <i>Amazon Elastic Container Service Developer Guide</i>. Kubernetes\n               <code>kube-dns</code> and <code>coredns</code> are supported. For more information,\n            see <a href=\"https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/\">DNS\n               for Services and Pods</a> in the Kubernetes documentation.</p>\n         </note>",
+  "documentation": "<p>AWS App Mesh is a service mesh based on the Envoy proxy that makes it easy to monitor and\n         control microservices. App Mesh standardizes how your microservices communicate, giving you\n         end-to-end visibility and helping to ensure high availability for your applications.</p>\n         <p>App Mesh gives you consistent visibility and network traffic controls for every\n         microservice in an application. You can use App Mesh with AWS Fargate, Amazon ECS, Amazon EKS,\n         Kubernetes on AWS, and Amazon EC2.</p>\n         <note>\n            <p>App Mesh supports microservice applications that use service discovery naming for their\n            components. For more information about service discovery on Amazon ECS, see <a href=\"http://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html\">Service Discovery</a> in the\n               <i>Amazon Elastic Container Service Developer Guide</i>. Kubernetes <code>kube-dns</code> and\n               <code>coredns</code> are supported. For more information, see <a href=\"https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/\">DNS\n               for Services and Pods</a> in the Kubernetes documentation.</p>\n         </note>",
   "operations": {
     "CreateMesh": {
       "name": "CreateMesh",
@@ -52,7 +52,7 @@
           "shape": "TooManyRequestsException"
         }
       ],
-      "documentation": "<p>Creates a service mesh. A service mesh is a logical boundary for network traffic\n         between the services that reside within it.</p>\n         <p>After you create your service mesh, you can create virtual services, virtual nodes,\n         virtual routers, and routes to distribute traffic between the applications in your\n         mesh.</p>",
+      "documentation": "<p>Creates a service mesh. A service mesh is a logical boundary for network traffic between\n         the services that reside within it.</p>\n         <p>After you create your service mesh, you can create virtual services, virtual nodes,\n         virtual routers, and routes to distribute traffic between the applications in your\n         mesh.</p>",
       "idempotent": true
     },
     "CreateRoute": {
@@ -136,7 +136,7 @@
           "shape": "TooManyRequestsException"
         }
       ],
-      "documentation": "<p>Creates a virtual node within a service mesh.</p>\n         <p>A virtual node acts as a logical pointer to a particular task group, such as an Amazon ECS\n         service or a Kubernetes deployment. When you create a virtual node, you must specify the\n         DNS service discovery hostname for your task group.</p>\n         <p>Any inbound traffic that your virtual node expects should be specified as a\n            <code>listener</code>. Any outbound traffic that your virtual node expects to reach\n         should be specified as a <code>backend</code>.</p>\n         <p>The response metadata for your new virtual node contains the <code>arn</code> that is\n         associated with the virtual node. Set this value (either the full ARN or the truncated\n         resource name: for example, <code>mesh/default/virtualNode/simpleapp</code>) as the\n            <code>APPMESH_VIRTUAL_NODE_NAME</code> environment variable for your task group's Envoy\n         proxy container in your task definition or pod spec. This is then mapped to the\n            <code>node.id</code> and <code>node.cluster</code> Envoy parameters.</p>\n         <note>\n            <p>If you require your Envoy stats or tracing to use a different name, you can override\n            the <code>node.cluster</code> value that is set by\n               <code>APPMESH_VIRTUAL_NODE_NAME</code> with the\n               <code>APPMESH_VIRTUAL_NODE_CLUSTER</code> environment variable.</p>\n         </note>",
+      "documentation": "<p>Creates a virtual node within a service mesh.</p>\n         <p>A virtual node acts as a logical pointer to a particular task group, such as an Amazon ECS\n         service or a Kubernetes deployment. When you create a virtual node, you can specify the\n         service discovery information for your task group.</p>\n         <p>Any inbound traffic that your virtual node expects should be specified as a\n            <code>listener</code>. Any outbound traffic that your virtual node expects to reach\n         should be specified as a <code>backend</code>.</p>\n         <p>The response metadata for your new virtual node contains the <code>arn</code> that is\n         associated with the virtual node. Set this value (either the full ARN or the truncated\n         resource name: for example, <code>mesh/default/virtualNode/simpleapp</code>) as the\n            <code>APPMESH_VIRTUAL_NODE_NAME</code> environment variable for your task group's Envoy\n         proxy container in your task definition or pod spec. This is then mapped to the\n            <code>node.id</code> and <code>node.cluster</code> Envoy parameters.</p>\n         <note>\n            <p>If you require your Envoy stats or tracing to use a different name, you can override\n            the <code>node.cluster</code> value that is set by\n               <code>APPMESH_VIRTUAL_NODE_NAME</code> with the\n               <code>APPMESH_VIRTUAL_NODE_CLUSTER</code> environment variable.</p>\n         </note>",
       "idempotent": true
     },
     "CreateVirtualRouter": {
@@ -220,7 +220,7 @@
           "shape": "TooManyRequestsException"
         }
       ],
-      "documentation": "<p>Creates a virtual service within a service mesh.</p>\n         <p>A virtual service is an abstraction of a real service that is provided by a\n         virtual node directly or indirectly by means of a virtual router. Dependent services call\n         your virtual service by its <code>virtualServiceName</code>, and those requests are routed\n         to the virtual node or virtual router that is specified as the provider for the virtual\n         service.</p>",
+      "documentation": "<p>Creates a virtual service within a service mesh.</p>\n         <p>A virtual service is an abstraction of a real service that is provided by a virtual node\n         directly or indirectly by means of a virtual router. Dependent services call your virtual\n         service by its <code>virtualServiceName</code>, and those requests are routed to the\n         virtual node or virtual router that is specified as the provider for the virtual\n         service.</p>",
       "idempotent": true
     },
     "DeleteMesh": {
@@ -259,7 +259,7 @@
           "shape": "TooManyRequestsException"
         }
       ],
-      "documentation": "<p>Deletes an existing service mesh.</p>\n         <p>You must delete all resources (virtual services, routes, virtual routers, and virtual nodes)\n         in the service mesh before you can delete the mesh itself.</p>",
+      "documentation": "<p>Deletes an existing service mesh.</p>\n         <p>You must delete all resources (virtual services, routes, virtual routers, and virtual\n         nodes) in the service mesh before you can delete the mesh itself.</p>",
       "idempotent": true
     },
     "DeleteRoute": {
@@ -678,6 +678,9 @@
           "shape": "BadRequestException"
         },
         {
+          "shape": "ForbiddenException"
+        },
+        {
           "shape": "InternalServerErrorException"
         },
         {
@@ -685,6 +688,9 @@
         },
         {
           "shape": "ServiceUnavailableException"
+        },
+        {
+          "shape": "TooManyRequestsException"
         }
       ],
       "documentation": "<p>List the tags for an App Mesh resource.</p>"
@@ -812,6 +818,9 @@
           "shape": "BadRequestException"
         },
         {
+          "shape": "ForbiddenException"
+        },
+        {
           "shape": "InternalServerErrorException"
         },
         {
@@ -821,10 +830,13 @@
           "shape": "ServiceUnavailableException"
         },
         {
+          "shape": "TooManyRequestsException"
+        },
+        {
           "shape": "TooManyTagsException"
         }
       ],
-      "documentation": "<p>Associates the specified tags to a resource with the specified\n         <code>resourceArn</code>. If existing tags on a resource aren't specified in the\n         request parameters, they aren't changed. When a resource is deleted, the tags\n         associated with that resource are also deleted.</p>",
+      "documentation": "<p>Associates the specified tags to a resource with the specified <code>resourceArn</code>.\n         If existing tags on a resource aren't specified in the request parameters, they aren't\n         changed. When a resource is deleted, the tags associated with that resource are also\n         deleted.</p>",
       "idempotent": true
     },
     "UntagResource": {
@@ -845,6 +857,9 @@
           "shape": "BadRequestException"
         },
         {
+          "shape": "ForbiddenException"
+        },
+        {
           "shape": "InternalServerErrorException"
         },
         {
@@ -852,6 +867,9 @@
         },
         {
           "shape": "ServiceUnavailableException"
+        },
+        {
+          "shape": "TooManyRequestsException"
         }
       ],
       "documentation": "<p>Deletes specified tags from a resource.</p>",
@@ -1125,6 +1143,14 @@
       },
       "documentation": ""
     },
+    "TcpRetryPolicyEvents": {
+      "type": "list",
+      "member": {
+        "shape": "TcpRetryPolicyEvent"
+      },
+      "min": 1,
+      "max": 1
+    },
     "CreateVirtualServiceInput": {
       "type": "structure",
       "required": [
@@ -1150,7 +1176,7 @@
         },
         "tags": {
           "shape": "TagList",
-          "documentation": "<p>Optional metadata that you can apply to the virtual service to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+          "documentation": "<p>Optional metadata that you can apply to the virtual service to assist with\n         categorization and organization. Each tag consists of a key and an optional value, both of\n         which you define. Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
         },
         "virtualServiceName": {
           "shape": "ServiceName",
@@ -1215,13 +1241,13 @@
       "members": {
         "limit": {
           "shape": "TagsLimit",
-          "documentation": "<p>The maximum number of tag results returned by <code>ListTagsForResource</code> in\n         paginated output. When this parameter is used, <code>ListTagsForResource</code> returns only\n         <code>limit</code> results in a single page along with a <code>nextToken</code>\n         response element. You can see the remaining results of the initial request by sending\n         another <code>ListTagsForResource</code> request with the returned <code>nextToken</code>\n         value. This value can be between 1 and 100. If you don't use this\n         parameter, <code>ListTagsForResource</code> returns up to\n         100 results and a <code>nextToken</code> value if applicable.</p>",
+          "documentation": "<p>The maximum number of tag results returned by <code>ListTagsForResource</code> in\n         paginated output. When this parameter is used, <code>ListTagsForResource</code> returns\n         only <code>limit</code> results in a single page along with a <code>nextToken</code>\n         response element. You can see the remaining results of the initial request by sending\n         another <code>ListTagsForResource</code> request with the returned <code>nextToken</code>\n         value. This value can be between 1 and 100. If you don't use\n         this parameter, <code>ListTagsForResource</code> returns up to 100\n         results and a <code>nextToken</code> value if applicable.</p>",
           "location": "querystring",
           "locationName": "limit"
         },
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListTagsForResource</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
+          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n            <code>ListTagsForResource</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
           "location": "querystring",
           "locationName": "nextToken"
         },
@@ -1335,7 +1361,7 @@
       "members": {
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualRouters</code>\n         request. When the results of a <code>ListVirtualRouters</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>"
+          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualRouters</code>\n         request. When the results of a <code>ListVirtualRouters</code> request exceed\n            <code>limit</code>, you can use this value to retrieve the next page of results. This\n         value is <code>null</code> when there are no more results to return.</p>"
         },
         "virtualRouters": {
           "shape": "VirtualRouterList",
@@ -1443,7 +1469,7 @@
           "shape": "String"
         }
       },
-      "documentation": "<p>You can't delete the specified resource because it's in use or required by another resource.</p>",
+      "documentation": "<p>You can't delete the specified resource because it's in use or required by another\n         resource.</p>",
       "exception": true,
       "error": {
         "code": "ResourceInUseException",
@@ -1480,7 +1506,7 @@
       "members": {
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListRoutes</code>\n         request. When the results of a <code>ListRoutes</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>"
+          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListRoutes</code> request.\n         When the results of a <code>ListRoutes</code> request exceed <code>limit</code>, you can\n         use this value to retrieve the next page of results. This value is <code>null</code> when\n         there are no more results to return.</p>"
         },
         "routes": {
           "shape": "RouteList",
@@ -1611,7 +1637,7 @@
       "members": {
         "limit": {
           "shape": "ListRoutesLimit",
-          "documentation": "<p>The maximum number of results returned by <code>ListRoutes</code> in paginated output.\n         When you use this parameter, <code>ListRoutes</code> returns only <code>limit</code>\n         results in a single page along with a <code>nextToken</code> response element. You can see the\n         remaining results of the initial request by sending another\n            <code>ListRoutes</code> request with the returned <code>nextToken</code> value. This\n         value can be between 1 and 100. If you don't use this parameter,\n         <code>ListRoutes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
+          "documentation": "<p>The maximum number of results returned by <code>ListRoutes</code> in paginated output.\n         When you use this parameter, <code>ListRoutes</code> returns only <code>limit</code>\n         results in a single page along with a <code>nextToken</code> response element. You can see\n         the remaining results of the initial request by sending another <code>ListRoutes</code>\n         request with the returned <code>nextToken</code> value. This value can be between\n         1 and 100. If you don't use this parameter,\n            <code>ListRoutes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
           "location": "querystring",
           "locationName": "limit"
         },
@@ -1623,7 +1649,7 @@
         },
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListRoutes</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
+          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n            <code>ListRoutes</code> request where <code>limit</code> was used and the results\n         exceeded the value of that parameter. Pagination continues from the end of the previous\n         results that returned the <code>nextToken</code> value.</p>",
           "location": "querystring",
           "locationName": "nextToken"
         },
@@ -1708,7 +1734,7 @@
       "members": {
         "type": {
           "shape": "EgressFilterType",
-          "documentation": "<p>The egress filter type. By default, the type is <code>DROP_ALL</code>, which allows\n         egress only from virtual nodes to other defined resources in the service mesh (and any traffic\n         to <code>*.amazonaws.com</code> for AWS API calls). You can set the egress filter type to\n            <code>ALLOW_ALL</code> to allow egress to any endpoint inside or outside of the service\n         mesh.</p>"
+          "documentation": "<p>The egress filter type. By default, the type is <code>DROP_ALL</code>, which allows\n         egress only from virtual nodes to other defined resources in the service mesh (and any\n         traffic to <code>*.amazonaws.com</code> for AWS API calls). You can set the egress filter\n         type to <code>ALLOW_ALL</code> to allow egress to any endpoint inside or outside of the\n         service mesh.</p>"
         }
       },
       "documentation": "<p>An object representing the egress filter rules for a service mesh.</p>"
@@ -1787,6 +1813,36 @@
       },
       "documentation": "<p>An object representing a virtual service returned by a describe operation.</p>"
     },
+    "Boolean": {
+      "type": "boolean",
+      "box": true
+    },
+    "HttpRouteHeader": {
+      "type": "structure",
+      "required": [
+        "name"
+      ],
+      "members": {
+        "invert": {
+          "shape": "Boolean",
+          "documentation": "<p>Specify <code>True</code> to match the opposite of the <code>HeaderMatchMethod</code> method and value. The default value is <code>False</code>.</p>"
+        },
+        "match": {
+          "shape": "HeaderMatchMethod",
+          "documentation": "<p>The <code>HeaderMatchMethod</code> object.</p>"
+        },
+        "name": {
+          "shape": "HeaderName",
+          "documentation": "<p>A name for the HTTP header in the client request that will be matched on.</p>"
+        }
+      },
+      "documentation": "<p>An object representing the HTTP header in the request.</p>"
+    },
+    "HttpRetryPolicyEvent": {
+      "type": "string",
+      "min": 1,
+      "max": 25
+    },
     "DescribeVirtualServiceOutput": {
       "type": "structure",
       "required": [
@@ -1805,6 +1861,12 @@
       "type": "string",
       "min": 1,
       "max": 255
+    },
+    "AwsCloudMapInstanceAttributes": {
+      "type": "list",
+      "member": {
+        "shape": "AwsCloudMapInstanceAttribute"
+      }
     },
     "VirtualNodeRef": {
       "type": "structure",
@@ -1850,7 +1912,7 @@
         },
         "tags": {
           "shape": "TagList",
-          "documentation": "<p>Optional metadata that you can apply to the service mesh to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+          "documentation": "<p>Optional metadata that you can apply to the service mesh to assist with categorization\n         and organization. Each tag consists of a key and an optional value, both of which you\n         define. Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
         }
       },
       "documentation": ""
@@ -1869,6 +1931,12 @@
       "documentation": "",
       "payload": "virtualNode"
     },
+    "AwsCloudMapName": {
+      "type": "string",
+      "min": 1,
+      "max": 1024,
+      "pattern": "((?=^.{1,127}$)^([a-zA-Z0-9_][a-zA-Z0-9-_]{0,61}[a-zA-Z0-9_]|[a-zA-Z0-9])(.([a-zA-Z0-9_][a-zA-Z0-9-_]{0,61}[a-zA-Z0-9_]|[a-zA-Z0-9]))*$)|(^.$)"
+    },
     "LimitExceededException": {
       "type": "structure",
       "members": {
@@ -1876,7 +1944,7 @@
           "shape": "String"
         }
       },
-      "documentation": "<p>You have exceeded a service limit for your account. For more information, see <a href=\"https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html\">Service Limits</a> in the <i>AWS App Mesh User Guide</i>.</p>",
+      "documentation": "<p>You have exceeded a service limit for your account. For more information, see <a href=\"https://docs.aws.amazon.com/app-mesh/latest/userguide/service_limits.html\">Service\n            Limits</a> in the <i>AWS App Mesh User Guide</i>.</p>",
       "exception": true,
       "error": {
         "code": "LimitExceededException",
@@ -2019,6 +2087,30 @@
       "members": { },
       "documentation": ""
     },
+    "AwsCloudMapInstanceAttribute": {
+      "type": "structure",
+      "required": [
+        "key",
+        "value"
+      ],
+      "members": {
+        "key": {
+          "shape": "AwsCloudMapInstanceAttributeKey",
+          "documentation": "<p>The name of an AWS Cloud Map service instance attribute key. Any AWS Cloud Map service instance\n         that contains the specified key and value is returned.</p>"
+        },
+        "value": {
+          "shape": "AwsCloudMapInstanceAttributeValue",
+          "documentation": "<p>The value of an AWS Cloud Map service instance attribute key. Any AWS Cloud Map service\n         instance that contains the specified key and value is returned.</p>"
+        }
+      },
+      "documentation": "<p>An object representing the AWS Cloud Map attribute information for your virtual node.</p>"
+    },
+    "TcpRetryPolicyEvent": {
+      "type": "string",
+      "enum": [
+        "connection-error"
+      ]
+    },
     "VirtualServiceSpec": {
       "type": "structure",
       "members": {
@@ -2038,6 +2130,24 @@
         }
       },
       "documentation": "<p>An object representing the backends that a virtual node is expected to send outbound\n         traffic to. </p>"
+    },
+    "MatchRange": {
+      "type": "structure",
+      "required": [
+        "end",
+        "start"
+      ],
+      "members": {
+        "end": {
+          "shape": "Long",
+          "documentation": "<p>The end of the range.</p>"
+        },
+        "start": {
+          "shape": "Long",
+          "documentation": "<p>The start of the range.</p>"
+        }
+      },
+      "documentation": "<p>The range of values to match on. The first character of the range is included in the range, though the last character is not. For example, if the range specified were 1-100, only values 1-99 would be matched.</p>"
     },
     "ListVirtualRoutersLimit": {
       "type": "integer",
@@ -2062,13 +2172,13 @@
       "members": {
         "limit": {
           "shape": "ListMeshesLimit",
-          "documentation": "<p>The maximum number of results returned by <code>ListMeshes</code> in paginated output.\n         When you use this parameter, <code>ListMeshes</code> returns only <code>limit</code>\n         results in a single page along with a <code>nextToken</code> response element. You can see the\n         remaining results of the initial request by sending another\n            <code>ListMeshes</code> request with the returned <code>nextToken</code> value. This\n         value can be between 1 and 100. If you don't use this parameter,\n         <code>ListMeshes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
+          "documentation": "<p>The maximum number of results returned by <code>ListMeshes</code> in paginated output.\n         When you use this parameter, <code>ListMeshes</code> returns only <code>limit</code>\n         results in a single page along with a <code>nextToken</code> response element. You can see\n         the remaining results of the initial request by sending another <code>ListMeshes</code>\n         request with the returned <code>nextToken</code> value. This value can be between\n         1 and 100. If you don't use this parameter,\n            <code>ListMeshes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
           "location": "querystring",
           "locationName": "limit"
         },
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListMeshes</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>\n         <note>\n            <p>This token should be treated as an opaque identifier that is used only to\n                retrieve the next items in a list and not for other programmatic purposes.</p>\n        </note>",
+          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n            <code>ListMeshes</code> request where <code>limit</code> was used and the results\n         exceeded the value of that parameter. Pagination continues from the end of the previous\n         results that returned the <code>nextToken</code> value.</p> \n         <note>\n            <p>This token should be treated as an opaque identifier that is used only to\n                retrieve the next items in a list and not for other programmatic purposes.</p>\n        </note>",
           "location": "querystring",
           "locationName": "nextToken"
         }
@@ -2105,7 +2215,7 @@
       "members": {
         "limit": {
           "shape": "ListVirtualRoutersLimit",
-          "documentation": "<p>The maximum number of results returned by <code>ListVirtualRouters</code> in paginated\n         output. When you use this parameter, <code>ListVirtualRouters</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualRouters</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this parameter, \n         <code>ListVirtualRouters</code> returns up to 100 results and\n         a <code>nextToken</code> value if applicable.</p>",
+          "documentation": "<p>The maximum number of results returned by <code>ListVirtualRouters</code> in paginated\n         output. When you use this parameter, <code>ListVirtualRouters</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualRouters</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this\n         parameter, <code>ListVirtualRouters</code> returns up to 100 results and\n         a <code>nextToken</code> value if applicable.</p>",
           "location": "querystring",
           "locationName": "limit"
         },
@@ -2117,7 +2227,7 @@
         },
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListVirtualRouters</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
+          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n            <code>ListVirtualRouters</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
           "location": "querystring",
           "locationName": "nextToken"
         }
@@ -2181,6 +2291,19 @@
       },
       "documentation": ""
     },
+    "DurationUnit": {
+      "type": "string",
+      "enum": [
+        "ms",
+        "s"
+      ]
+    },
+    "RoutePriority": {
+      "type": "integer",
+      "box": true,
+      "min": 0,
+      "max": 1000
+    },
     "ListVirtualServicesInput": {
       "type": "structure",
       "required": [
@@ -2189,7 +2312,7 @@
       "members": {
         "limit": {
           "shape": "ListVirtualServicesLimit",
-          "documentation": "<p>The maximum number of results returned by <code>ListVirtualServices</code> in paginated\n         output. When you use this parameter, <code>ListVirtualServices</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualServices</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this parameter,\n         <code>ListVirtualServices</code> returns up to 100 results and\n         a <code>nextToken</code> value if applicable.</p>",
+          "documentation": "<p>The maximum number of results returned by <code>ListVirtualServices</code> in paginated\n         output. When you use this parameter, <code>ListVirtualServices</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualServices</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this\n         parameter, <code>ListVirtualServices</code> returns up to 100 results and\n         a <code>nextToken</code> value if applicable.</p>",
           "location": "querystring",
           "locationName": "limit"
         },
@@ -2233,7 +2356,7 @@
         },
         "tags": {
           "shape": "TagList",
-          "documentation": "<p>Optional metadata that you can apply to the virtual router to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+          "documentation": "<p>Optional metadata that you can apply to the virtual router to assist with categorization\n         and organization. Each tag consists of a key and an optional value, both of which you\n         define. Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
         },
         "virtualRouterName": {
           "shape": "ResourceName",
@@ -2260,7 +2383,7 @@
       "members": {
         "limit": {
           "shape": "ListVirtualNodesLimit",
-          "documentation": "<p>The maximum number of results returned by <code>ListVirtualNodes</code> in paginated\n         output. When you use this parameter, <code>ListVirtualNodes</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualNodes</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this parameter,\n         <code>ListVirtualNodes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
+          "documentation": "<p>The maximum number of results returned by <code>ListVirtualNodes</code> in paginated\n         output. When you use this parameter, <code>ListVirtualNodes</code> returns only\n            <code>limit</code> results in a single page along with a <code>nextToken</code> response\n         element. You can see the remaining results of the initial request by sending another\n            <code>ListVirtualNodes</code> request with the returned <code>nextToken</code> value.\n         This value can be between 1 and 100. If you don't use this\n         parameter, <code>ListVirtualNodes</code> returns up to 100 results and a\n            <code>nextToken</code> value if applicable.</p>",
           "location": "querystring",
           "locationName": "limit"
         },
@@ -2272,7 +2395,7 @@
         },
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n         <code>ListVirtualNodes</code> request where <code>limit</code> was used and the\n         results exceeded the value of that parameter. Pagination continues from the end of the\n         previous results that returned the <code>nextToken</code> value.</p>",
+          "documentation": "<p>The <code>nextToken</code> value returned from a previous paginated\n            <code>ListVirtualNodes</code> request where <code>limit</code> was used and the results\n         exceeded the value of that parameter. Pagination continues from the end of the previous\n         results that returned the <code>nextToken</code> value.</p>",
           "location": "querystring",
           "locationName": "nextToken"
         }
@@ -2334,6 +2457,14 @@
       },
       "documentation": "<p>An object representing the status of a virtual service.</p>"
     },
+    "HttpRetryPolicyEvents": {
+      "type": "list",
+      "member": {
+        "shape": "HttpRetryPolicyEvent"
+      },
+      "min": 1,
+      "max": 25
+    },
     "ListVirtualNodesLimit": {
       "type": "integer",
       "box": true,
@@ -2357,15 +2488,18 @@
       "min": 1,
       "max": 255
     },
+    "AwsCloudMapInstanceAttributeKey": {
+      "type": "string",
+      "min": 1,
+      "max": 255,
+      "pattern": "^[a-zA-Z0-9!-~]+$"
+    },
     "VirtualRouterSpec": {
       "type": "structure",
-      "required": [
-        "listeners"
-      ],
       "members": {
         "listeners": {
           "shape": "VirtualRouterListeners",
-          "documentation": "<p>The listeners that the virtual router is expected to receive inbound traffic from. Currently only one listener is supported per virtual router.</p>"
+          "documentation": "<p>The listeners that the virtual router is expected to receive inbound traffic from.\n         Currently only one listener is supported per virtual router.</p>"
         }
       },
       "documentation": "<p>An object representing the specification of a virtual router.</p>"
@@ -2377,7 +2511,7 @@
           "shape": "String"
         }
       },
-      "documentation": "<p>The maximum request rate permitted by the App Mesh APIs has been exceeded for your\n         account. For best results, use an increasing or variable sleep interval between requests.</p>",
+      "documentation": "<p>The maximum request rate permitted by the App Mesh APIs has been exceeded for your\n         account. For best results, use an increasing or variable sleep interval between\n         requests.</p>",
       "exception": true,
       "error": {
         "code": "TooManyRequestsException",
@@ -2388,6 +2522,11 @@
     "Timestamp": {
       "type": "timestamp"
     },
+    "HeaderMatch": {
+      "type": "string",
+      "min": 1,
+      "max": 255
+    },
     "VirtualNodeSpec": {
       "type": "structure",
       "members": {
@@ -2397,7 +2536,7 @@
         },
         "listeners": {
           "shape": "Listeners",
-          "documentation": "<p>The listeners that the virtual node is expected to receive inbound traffic from. Currently only one listener is supported per virtual node.</p>"
+          "documentation": "<p>The listeners that the virtual node is expected to receive inbound traffic from.\n         Currently only one listener is supported per virtual node.</p>"
         },
         "logging": {
           "shape": "Logging",
@@ -2422,7 +2561,7 @@
         },
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListMeshes</code>\n         request. When the results of a <code>ListMeshes</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>"
+          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListMeshes</code> request.\n         When the results of a <code>ListMeshes</code> request exceed <code>limit</code>, you can\n         use this value to retrieve the next page of results. This value is <code>null</code> when\n         there are no more results to return.</p>"
         }
       },
       "documentation": ""
@@ -2434,6 +2573,34 @@
       },
       "min": 1,
       "max": 1
+    },
+    "HttpMethod": {
+      "type": "string",
+      "enum": [
+        "CONNECT",
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT",
+        "TRACE"
+      ]
+    },
+    "Duration": {
+      "type": "structure",
+      "members": {
+        "unit": {
+          "shape": "DurationUnit",
+          "documentation": "<p>The unit of time between retry attempts.</p>"
+        },
+        "value": {
+          "shape": "DurationValue",
+          "documentation": "<p>The duration of time between retry attempts.</p>"
+        }
+      },
+      "documentation": "<p>An object representing the duration between retry attempts.</p>"
     },
     "ConflictException": {
       "type": "structure",
@@ -2470,9 +2637,21 @@
         "prefix"
       ],
       "members": {
+        "headers": {
+          "shape": "HttpRouteHeaders",
+          "documentation": "<p>The client request headers to match on.</p>"
+        },
+        "method": {
+          "shape": "HttpMethod",
+          "documentation": "<p>The client request header method to match on.</p>"
+        },
         "prefix": {
           "shape": "String",
           "documentation": "<p>Specifies the path to match requests with. This parameter must always start with\n            <code>/</code>, which by itself matches all requests to the virtual service name. You\n         can also match for path-based routing of requests. For example, if your virtual service\n         name is <code>my-service.local</code> and you want the route to match requests to\n            <code>my-service.local/metrics</code>, your prefix should be\n         <code>/metrics</code>.</p>"
+        },
+        "scheme": {
+          "shape": "HttpScheme",
+          "documentation": "<p>The client request header scheme to match on.</p>"
         }
       },
       "documentation": "<p>An object representing the requirements for a route to match HTTP requests for a virtual\n         router.</p>"
@@ -2495,10 +2674,10 @@
         },
         "value": {
           "shape": "TagValue",
-          "documentation": "<p>The optional part of a key-value pair that make up a tag. A <code>value</code> acts as\n         a descriptor within a tag category (key).</p>"
+          "documentation": "<p>The optional part of a key-value pair that make up a tag. A <code>value</code> acts as a\n         descriptor within a tag category (key).</p>"
         }
       },
-      "documentation": "<p>Optional metadata that you apply to a resource to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+      "documentation": "<p>Optional metadata that you apply to a resource to assist with categorization and\n         organization. Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
     },
     "MeshRef": {
       "type": "structure",
@@ -2517,6 +2696,11 @@
         }
       },
       "documentation": "<p>An object representing a service mesh returned by a list operation.</p>"
+    },
+    "MaxRetries": {
+      "type": "long",
+      "box": true,
+      "min": 0
     },
     "MeshStatusCode": {
       "type": "string",
@@ -2601,6 +2785,12 @@
         }
       },
       "documentation": ""
+    },
+    "AwsCloudMapInstanceAttributeValue": {
+      "type": "string",
+      "min": 1,
+      "max": 1024,
+      "pattern": "^([a-zA-Z0-9!-~][ ta-zA-Z0-9!-~]*){0,1}[a-zA-Z0-9!-~]{0,1}$"
     },
     "WeightedTarget": {
       "type": "structure",
@@ -2821,13 +3011,18 @@
           "shape": "String"
         }
       },
-      "documentation": "<p>The request processing has failed because of an unknown error, exception, or failure.</p>",
+      "documentation": "<p>The request processing has failed because of an unknown error, exception, or\n         failure.</p>",
       "exception": true,
       "error": {
         "code": "InternalServerErrorException",
         "httpStatusCode": 500,
         "fault": true
       }
+    },
+    "HeaderName": {
+      "type": "string",
+      "min": 1,
+      "max": 50
     },
     "TagList": {
       "type": "list",
@@ -2836,6 +3031,32 @@
       },
       "min": 0,
       "max": 50
+    },
+    "HttpRetryPolicy": {
+      "type": "structure",
+      "required": [
+        "maxRetries",
+        "perRetryTimeout"
+      ],
+      "members": {
+        "httpRetryEvents": {
+          "shape": "HttpRetryPolicyEvents",
+          "documentation": "<p>Specify at least one of the following values.</p>\n         <ul>\n            <li>\n               <p>\n                  <b>server-error</b> – HTTP status codes 500, 501,\n               502, 503, 504, 505, 506, 507, 508, 510, and 511</p>\n            </li>\n            <li>\n               <p>\n                  <b>gateway-error</b> – HTTP status codes 502,\n               503, and 504</p>\n            </li>\n            <li>\n               <p>\n                  <b>client-error</b> – HTTP status code 409</p>\n            </li>\n            <li>\n               <p>\n                  <b>stream-error</b> – Retry on refused\n               stream</p>\n            </li>\n         </ul>"
+        },
+        "maxRetries": {
+          "shape": "MaxRetries",
+          "documentation": "<p>The maximum number of retry attempts. If no value is specified, the default is 1.</p>"
+        },
+        "perRetryTimeout": {
+          "shape": "Duration",
+          "documentation": "<p>An object that represents the retry duration.</p>"
+        },
+        "tcpRetryEvents": {
+          "shape": "TcpRetryPolicyEvents",
+          "documentation": "<p>Specify a valid value.</p>"
+        }
+      },
+      "documentation": "<p>An object that represents a retry policy.</p>"
     },
     "DescribeVirtualRouterInput": {
       "type": "structure",
@@ -2900,6 +3121,32 @@
         "senderFault": true
       }
     },
+    "HeaderMatchMethod": {
+      "type": "structure",
+      "members": {
+        "exact": {
+          "shape": "HeaderMatch",
+          "documentation": "<p>The header value sent by the client must match the specified value exactly.</p>"
+        },
+        "prefix": {
+          "shape": "HeaderMatch",
+          "documentation": "<p>The header value sent by the client must begin with the specified characters.</p>"
+        },
+        "range": {
+          "shape": "MatchRange",
+          "documentation": "<p>The object that specifies the range of numbers that the header value sent by the client must be included in.</p>"
+        },
+        "regex": {
+          "shape": "HeaderMatch",
+          "documentation": "<p>The header value sent by the client must include the specified characters.</p>"
+        },
+        "suffix": {
+          "shape": "HeaderMatch",
+          "documentation": "<p>The header value sent by the client must end with the specified characters.</p>"
+        }
+      },
+      "documentation": "<p>An object representing the method and value to match the header value sent with a request. Specify one match method.</p>"
+    },
     "DeleteMeshOutput": {
       "type": "structure",
       "required": [
@@ -2920,6 +3167,11 @@
         "ALLOW_ALL",
         "DROP_ALL"
       ]
+    },
+    "DurationValue": {
+      "type": "long",
+      "box": true,
+      "min": 0
     },
     "Hostname": {
       "type": "string"
@@ -2979,7 +3231,7 @@
         },
         "tags": {
           "shape": "TagList",
-          "documentation": "<p>Optional metadata that you can apply to the route to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+          "documentation": "<p>Optional metadata that you can apply to the route to assist with categorization and\n         organization. Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
         },
         "virtualRouterName": {
           "shape": "ResourceName",
@@ -2994,6 +3246,14 @@
       "type": "list",
       "member": {
         "shape": "WeightedTarget"
+      },
+      "min": 1,
+      "max": 10
+    },
+    "HttpRouteHeaders": {
+      "type": "list",
+      "member": {
+        "shape": "HttpRouteHeader"
       },
       "min": 1,
       "max": 10
@@ -3014,6 +3274,35 @@
     },
     "String": {
       "type": "string"
+    },
+    "AwsCloudMapServiceDiscovery": {
+      "type": "structure",
+      "required": [
+        "namespaceName",
+        "serviceName"
+      ],
+      "members": {
+        "attributes": {
+          "shape": "AwsCloudMapInstanceAttributes",
+          "documentation": "<p>A string map that contains attributes with values that you can use to filter instances\n         by any custom attribute that you specified when you registered the instance. Only instances\n         that match all of the specified key/value pairs will be returned.</p>"
+        },
+        "namespaceName": {
+          "shape": "AwsCloudMapName",
+          "documentation": "<p>The name of the AWS Cloud Map namespace to use.</p>"
+        },
+        "serviceName": {
+          "shape": "AwsCloudMapName",
+          "documentation": "<p>The name of the AWS Cloud Map service to use.</p>"
+        }
+      },
+      "documentation": "<p>An object representing the AWS Cloud Map service discovery information for your virtual\n         node.</p>"
+    },
+    "HttpScheme": {
+      "type": "string",
+      "enum": [
+        "http",
+        "https"
+      ]
     },
     "UpdateVirtualServiceOutput": {
       "type": "structure",
@@ -3103,7 +3392,7 @@
         },
         "tags": {
           "shape": "TagList",
-          "documentation": "<p>Optional metadata that you can apply to the virtual node to assist with categorization and organization.\n         Each tag consists of a key and an optional value, both of which you define.\n         Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
+          "documentation": "<p>Optional metadata that you can apply to the virtual node to assist with categorization\n         and organization. Each tag consists of a key and an optional value, both of which you\n         define. Tag keys can have a maximum character length of 128 characters, and tag values can have\n            a maximum length of 256 characters.</p>"
         },
         "virtualNodeName": {
           "shape": "ResourceName",
@@ -3134,6 +3423,10 @@
           "shape": "HttpRoute",
           "documentation": "<p>The HTTP routing information for the route.</p>"
         },
+        "priority": {
+          "shape": "RoutePriority",
+          "documentation": "<p>The priority for the route. Routes are matched based on the specified value, where 0 is the highest priority.</p>"
+        },
         "tcpRoute": {
           "shape": "TcpRoute",
           "documentation": "<p>The TCP routing information for the route.</p>"
@@ -3155,6 +3448,10 @@
         "match": {
           "shape": "HttpRouteMatch",
           "documentation": "<p>The criteria for determining an HTTP request match.</p>"
+        },
+        "retryPolicy": {
+          "shape": "HttpRetryPolicy",
+          "documentation": "<p>An object that represents a retry policy.</p>"
         }
       },
       "documentation": "<p>An object representing the HTTP routing specification for a route.</p>"
@@ -3206,7 +3503,7 @@
       "members": {
         "path": {
           "shape": "FilePath",
-          "documentation": "<p>The file path to write access logs to. You can use <code>/dev/stdout</code> to send\n         access logs to standard out and configure your Envoy container to use a log driver, such as\n            <code>awslogs</code>, to export the access logs to a log storage service such as Amazon CloudWatch\n         Logs. You can also specify a path in the Envoy container's file system to write the files\n         to disk.</p>\n         <note>\n            <p>The Envoy process must have write permissions to the path that you specify here.\n            Otherwise, Envoy fails to bootstrap properly.</p>\n         </note>"
+          "documentation": "<p>The file path to write access logs to. You can use <code>/dev/stdout</code> to send\n         access logs to standard out and configure your Envoy container to use a log driver, such as\n            <code>awslogs</code>, to export the access logs to a log storage service such as Amazon\n         CloudWatch Logs. You can also specify a path in the Envoy container's file system to write\n         the files to disk.</p>\n         <note>\n            <p>The Envoy process must have write permissions to the path that you specify here.\n            Otherwise, Envoy fails to bootstrap properly.</p>\n         </note>"
         }
       },
       "documentation": "<p>An object representing an access log file.</p>"
@@ -3254,7 +3551,7 @@
       "members": {
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListTagsForResource</code>\n         request. When the results of a <code>ListTagsForResource</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>"
+          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListTagsForResource</code>\n         request. When the results of a <code>ListTagsForResource</code> request exceed\n            <code>limit</code>, you can use this value to retrieve the next page of results. This\n         value is <code>null</code> when there are no more results to return.</p>"
         },
         "tags": {
           "shape": "TagList",
@@ -3266,6 +3563,10 @@
     "ServiceDiscovery": {
       "type": "structure",
       "members": {
+        "awsCloudMap": {
+          "shape": "AwsCloudMapServiceDiscovery",
+          "documentation": "<p>Specifies any AWS Cloud Map information for the virtual node.</p>"
+        },
         "dns": {
           "shape": "DnsServiceDiscovery",
           "documentation": "<p>Specifies the DNS information for the virtual node.</p>"
@@ -3281,7 +3582,7 @@
       "members": {
         "nextToken": {
           "shape": "String",
-          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualNodes</code>\n         request. When the results of a <code>ListVirtualNodes</code> request exceed\n         <code>limit</code>, you can use this value to retrieve the next page of\n         results. This value is <code>null</code> when there are no more results to\n         return.</p>"
+          "documentation": "<p>The <code>nextToken</code> value to include in a future <code>ListVirtualNodes</code>\n         request. When the results of a <code>ListVirtualNodes</code> request exceed\n            <code>limit</code>, you can use this value to retrieve the next page of results. This\n         value is <code>null</code> when there are no more results to return.</p>"
         },
         "virtualNodes": {
           "shape": "VirtualNodeList",

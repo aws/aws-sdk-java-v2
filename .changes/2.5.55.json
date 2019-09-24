@@ -1,0 +1,16 @@
+{
+    "version": "2.5.55",
+    "date": "2019-06-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "Amazon RDS Data API is generally available. Removing beta notes in the documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Amazon EC2 I3en instances are the new storage-optimized instances offering up to 60 TB NVMe SSD instance storage and up to 100 Gbps of network bandwidth."
+        }
+    ]
+}

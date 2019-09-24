@@ -1,0 +1,21 @@
+{
+    "version": "2.7.4",
+    "date": "2019-07-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "description": "Fix the issue where the SDK can invoke `channel#read` twice per request and buffer content aggressively before the subscriber is able to consume the data. This should fix [#1122](https://github.com/aws/aws-sdk-java-v2/issues/1122)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "description": "Amazon EventBridge is a serverless event bus service that makes it easy to connect your applications with data from a variety of sources, including AWS services, partner applications, and your own applications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "description": "Adds APIs for partner event sources, partner event buses, and custom event buses. These new features are managed in the EventBridge service."
+        }
+    ]
+}

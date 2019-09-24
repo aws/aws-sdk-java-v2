@@ -1,0 +1,16 @@
+{
+    "version": "2.7.30",
+    "date": "2019-08-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release allows users to enable RDS Data API while creating Aurora Serverless databases."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "description": "This release adds support for SMB location type."
+        }
+    ]
+}

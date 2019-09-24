@@ -184,6 +184,19 @@
         "requestUri":"/2016-03-11/streamingOutputOperation"
       },
       "output":{"shape":"StructureWithStreamingMember"}
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes":{
@@ -676,7 +689,8 @@
     },
     "StreamType":{
       "type":"blob",
-      "streaming":true
+      "streaming":true,
+      "requiresLength":true
     },
     "String":{"type":"string"},
     "StructWithNestedBlobType":{
@@ -704,6 +718,83 @@
         "SubTypeOneMember":{"shape":"String"}
       }
     },
-    "Timestamp":{"type":"timestamp"}
+    "Timestamp":{"type":"timestamp"},
+    "EventStreamOperationRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStream": {
+          "shape": "InputEventStream"
+        }
+      },
+      "payload":"InputEventStream"
+    },
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "InputEventStream": {
+      "type": "structure",
+      "members": {
+        "InputEvent": {
+          "shape": "InputEvent"
+        }
+      },
+      "eventstream": true
+    },
+    "InputEvent": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "ExplicitPayloadMember":{"type":"blob"},
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "EventTwo": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    }
   }
 }

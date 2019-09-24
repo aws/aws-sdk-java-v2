@@ -60,6 +60,11 @@ public final class ProfileProperty {
     public static final String SOURCE_PROFILE = "source_profile";
 
     /**
+     * Property name for specifying the credential source to use when assuming a role
+     */
+    public static final String CREDENTIAL_SOURCE = "credential_source";
+
+    /**
      * AWS Region to use when creating clients.
      */
     public static final String REGION = "region";
@@ -73,6 +78,13 @@ public final class ProfileProperty {
      * Property name for specifying whether or not endpoint discovery is enabled.
      */
     public static final String ENDPOINT_DISCOVERY_ENABLED = "aws_endpoint_discovery_enabled";
+
+    /**
+     * An external process that should be invoked to load credentials.
+     */
+    public static final String CREDENTIAL_PROCESS = "credential_process";
+
+    public static final String WEB_IDENTITY_TOKEN_FILE = "web_identity_token_file";
 
     private ProfileProperty() {}
 }

@@ -19,7 +19,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class InputEventMarshaller implements Marshaller<InputEvent> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().hasExplicitPayloadMember(true)
-                                                                            .hasPayloadMembers(true).httpMethod(SdkHttpMethod.GET).build();
+                                                                            .hasPayloadMembers(true).httpMethod(SdkHttpMethod.GET).hasEvent(true).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
