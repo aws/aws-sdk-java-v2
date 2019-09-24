@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "description": "Added S3StorageClass, OverwriteMode sync option, and ONLY_FILES_TRANSFERRED setting for the VerifyMode sync option."
+}
