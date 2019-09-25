@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "description": "Enable G4D and R5 instances in SageMaker Hosting Services"
+}
