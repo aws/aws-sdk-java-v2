@@ -1,3 +1,16 @@
+# __2.9.7__ __2019-09-25__
+## __AWS Database Migration Service__
+  - ### Features
+    - This release adds a new DeleteConnection API to delete the connection between a replication instance and an endpoint. It also adds an optional S3 setting to specify the precision of any TIMESTAMP column values written to an S3 object file in .parquet format.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - API Update for AWS Global Accelerator to support for DNS aliasing.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable G4D and R5 instances in SageMaker Hosting Services
+
 # __2.9.6__ __2019-09-24__
 ## __AWS Comprehend Medical__
   - ### Features
