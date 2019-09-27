@@ -17,6 +17,8 @@ package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
+import java.util.function.Supplier;
+
 /**
  * Interface for loading {@link AwsCredentials} that are used for authentication.
  *
@@ -39,4 +41,32 @@ public interface AwsCredentialsProvider {
      * @return AwsCredentials which the caller can use to authorize an AWS request.
      */
     AwsCredentials resolveCredentials();
+
+    /**
+     * Returns {@link AwsCredentialsProvider} that can be used to load {@link AwsCredentials} used for authentication.
+     *
+     * @param accessKeyIdSupplier     The supplier of access key idt to use.
+     * @param secretAccessKeySupplier The supplier of secret access key to use.
+     * @return AwsCredentialsProvider  which the caller can use to resolve AwsCredentials
+     */
+    static AwsCredentialsProvider provide(final Supplier<String> accessKeyIdSupplier, final Supplier<String> secretAccessKeySupplier) {
+        final String accessKeyId = accessKeyIdSupplier.get();
+        final String secretAccessKey = secretAccessKeySupplier.get();
+        if (accessKeyId == null || accessKeyId.isBlank() || secretAccessKey == null || secretAccessKey.isBlank()) {
+            return DefaultCredentialsProvider.create();
+        } else {
+            return () ->
+                    new AwsCredentials() {
+                        @Override
+                        public String accessKeyId() {
+                            return accessKeyId;
+                        }
+
+                        @Override
+                        public String secretAccessKey() {
+                            return secretAccessKey;
+                        }
+                    };
+        }
+    }
 }
