@@ -1,3 +1,16 @@
+# __2.9.9__ __2019-09-27__
+## __AWS Amplify__
+  - ### Features
+    - This release adds access logs APIs and artifact APIs for AWS Amplify Console.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update the pool size for default async future completion executor service. See [#1251](https://github.com/aws/aws-sdk-java-v2/issues/1251), [#994](https://github.com/aws/aws-sdk-java-v2/issues/994)
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) removes FirelensConfiguration from the DescribeTask output during the FireLens public preview.
+
 # __2.9.8__ __2019-09-26__
 ## __AWS CodePipeline__
   - ### Features
