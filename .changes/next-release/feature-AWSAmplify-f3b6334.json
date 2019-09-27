@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "description": "This release adds access logs APIs and artifact APIs for AWS Amplify Console."
+}
