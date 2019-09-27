@@ -1,3 +1,38 @@
+# __2.9.8__ __2019-09-26__
+## __AWS CodePipeline__
+  - ### Features
+    - Documentation updates for CodePipeline
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release updates the AWS Systems Manager Parameter Store PutParameter and LabelParameterVersion APIs to return the "Tier" of parameter created/updated and the "parameter version" labeled respectively.
+
+# __2.9.7__ __2019-09-25__
+## __AWS Database Migration Service__
+  - ### Features
+    - This release adds a new DeleteConnection API to delete the connection between a replication instance and an endpoint. It also adds an optional S3 setting to specify the precision of any TIMESTAMP column values written to an S3 object file in .parquet format.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - API Update for AWS Global Accelerator to support for DNS aliasing.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enable G4D and R5 instances in SageMaker Hosting Services
+
+# __2.9.6__ __2019-09-24__
+## __AWS Comprehend Medical__
+  - ### Features
+    - Use Amazon Comprehend Medical to analyze medical text stored in the specified Amazon S3 bucket. Use the console to create and manage batch analysis jobs, or use the batch APIs to detect both medical entities and protected health information (PHI). The batch APIs start, stop, list, and retrieve information about batch analysis jobs. This release also includes DetectEntitiesV2 operation which returns the Acuity and Direction entities as attributes instead of types.
+
+## __AWS DataSync__
+  - ### Features
+    - Added S3StorageClass, OverwriteMode sync option, and ONLY_FILES_TRANSFERRED setting for the VerifyMode sync option.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - With this update Amazon Transcribe enables you to provide an AWS KMS key to encrypt your transcription output.
+
 # __2.9.5__ __2019-09-23__
 ## __AWS RDS DataService__
   - ### Features
