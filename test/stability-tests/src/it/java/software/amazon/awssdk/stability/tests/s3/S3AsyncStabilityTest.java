@@ -45,6 +45,7 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(bucketName);
+        s3NettyClient.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
