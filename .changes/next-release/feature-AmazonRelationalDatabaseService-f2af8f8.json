@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "This release adds support for creating a Read Replica with Active Directory domain information. This release updates RDS API to indicate whether an OrderableDBInstanceOption supports Kerberos Authentication."
-}

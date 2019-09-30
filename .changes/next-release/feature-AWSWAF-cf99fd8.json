@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAF",
-    "description": "Lowering the threshold for Rate Based rule from 2000 to 100."
-}
