@@ -19,6 +19,8 @@ import static org.junit.Assert.assertSame;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.junit.Test;
 
 public class RegionTest {
@@ -59,5 +61,21 @@ public class RegionTest {
         someMap.put(Region.of("key"), "A Value");
 
         assertThat(someMap.get(Region.of("key"))).isEqualTo("A Value");
+    }
+
+    @Test
+    public void regions_returnsAllRegions() {
+        assertThat(Region.regions().stream().map(Region::id)
+                .collect(Collectors.toSet()))
+                .containsExactlyInAnyOrder(
+                        "aws-global", "aws-cn-global", "ap-east-1",
+                        "ap-northeast-1", "ap-northeast-2", "ap-southeast-1",
+                        "ap-southeast-2", "ap-south-1", "cn-north-1",
+                        "eu-central-1", "eu-north-1", "eu-west-1",
+                        "eu-west-2", "eu-west-3", "us-gov-east-1",
+                        "us-gov-west-1", "ca-central-1", "sa-east-1",
+                        "us-east-1", "us-east-2", "us-west-1",
+                        "us-west-2", "cn-northwest-1", "aws-us-gov-global"
+                );
     }
 }
