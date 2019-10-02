@@ -1,3 +1,34 @@
+# __2.9.11__ __2019-10-01__
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release provides support for describe and modify CA certificates.
+
+# __2.9.10__ __2019-09-30__
+## __AWS WAF__
+  - ### Features
+    - Lowering the threshold for Rate Based rule from 2000 to 100.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for creating a Read Replica with Active Directory domain information. This release updates RDS API to indicate whether an OrderableDBInstanceOption supports Kerberos Authentication.
+
+## __AmazonMQ__
+  - ### Features
+    - Amazon MQ now includes the ability to scale your brokers by changing the host instance type. See the hostInstanceType property of UpdateBrokerInput (https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html#brokers-broker-id-model-updatebrokerinput), and pendingHostInstanceType property of DescribeBrokerOutput (https://docs.aws.amazon.com/amazon-mq/latest/api-reference/brokers-broker-id.html#brokers-broker-id-model-describebrokeroutput).
+
+# __2.9.9__ __2019-09-27__
+## __AWS Amplify__
+  - ### Features
+    - This release adds access logs APIs and artifact APIs for AWS Amplify Console.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update the pool size for default async future completion executor service. See [#1251](https://github.com/aws/aws-sdk-java-v2/issues/1251), [#994](https://github.com/aws/aws-sdk-java-v2/issues/994)
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release of Amazon Elastic Container Service (Amazon ECS) removes FirelensConfiguration from the DescribeTask output during the FireLens public preview.
+
 # __2.9.8__ __2019-09-26__
 ## __AWS CodePipeline__
   - ### Features
