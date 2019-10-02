@@ -1,3 +1,8 @@
+# __2.9.12__ __2019-10-02__
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the automatic snapshots add-on for instances and block storage disks.
+
 # __2.9.11__ __2019-10-01__
 ## __Amazon DocumentDB with MongoDB compatibility__
   - ### Features
