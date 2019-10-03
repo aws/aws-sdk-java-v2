@@ -728,6 +728,10 @@
                                     <packages>software.amazon.awssdk.services.resourcegroupstaggingapi*</packages>
                                 </group>
                                 <group>
+                                    <title>S3 Control</title>
+                                    <packages>software.amazon.awssdk.services.s3control*</packages>
+                                </group>
+                                <group>
                                     <title>S3</title>
                                     <packages>software.amazon.awssdk.services.s3*</packages>
                                 </group>
