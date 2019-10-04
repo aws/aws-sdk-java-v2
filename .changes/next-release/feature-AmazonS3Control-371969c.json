@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3 Control", 
+    "type": "feature", 
+    "description": "Adds support for the Amazon S3 Control service to the SDK."
+}
