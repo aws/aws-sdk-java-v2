@@ -90,7 +90,6 @@
         <module>route53</module>
         <module>route53domains</module>
         <module>s3</module>
-        <module>s3control</module>
         <module>sms</module>
         <module>servicecatalog</module>
         <module>ses</module>
