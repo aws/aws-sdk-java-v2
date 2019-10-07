@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Direct Connect",
-    "description": "This release adds a service provider field for physical connection creation and provides a list of available partner providers for each Direct Connect location."
-}

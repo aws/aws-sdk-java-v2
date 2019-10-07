@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Firehose",
-    "description": "Amazon Kinesis Data Firehose now allows delivering data to Elasticsearch clusters set up in a different AWS account than the Firehose AWS account. For technical documentation, look for ElasticsearchDestinationConfiguration in the Amazon Kinesis Firehose API reference."
-}
