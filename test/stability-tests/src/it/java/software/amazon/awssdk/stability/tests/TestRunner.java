@@ -16,17 +16,22 @@
 package software.amazon.awssdk.stability.tests;
 
 
+/**
+ * The main method will be invoked when you execute the test jar generated from
+ * "mvn package -P test-jar"
+ *
+ * You can add the tests in the main method.
+ * eg:
+ *        try {
+ *            S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
+ *            S3AsyncStabilityTest.setup();
+ *            s3AsyncStabilityTest.putObject_getObject();
+ *        } finally {
+ *            S3AsyncStabilityTest.cleanup();
+ *        }
+ */
 public class TestRunner {
 
     public static void main(String... args) {
-        // You can add the tests you want to run here.
-        // eg:
-//        try {
-//            S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
-//            S3AsyncStabilityTest.setup();
-//            s3AsyncStabilityTest.putObject_getObject();
-//        } finally {
-//            S3AsyncStabilityTest.cleanup();
-//        }
     }
 }
