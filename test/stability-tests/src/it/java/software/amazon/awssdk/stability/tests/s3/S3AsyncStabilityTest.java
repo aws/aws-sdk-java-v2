@@ -61,6 +61,18 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
         downloadLargeObjectToFile();
     }
 
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void getBucketAcl_lowTpsLongInterval() {
+        IntFunction<CompletableFuture<?>> future = i -> s3NettyClient.getBucketAcl(b -> b.bucket(bucketName));
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.getBucketAcl_lowTpsLongInterval")
+                           .futureFactory(future)
+                           .requestCountPerRun(10)
+                           .totalRuns(3)
+                           .delaysBetweenEachRun(Duration.ofSeconds(6))
+                           .run();
+    }
+
     private void downloadLargeObjectToFile() {
         File randomTempFile = RandomTempFile.randomUncreatedFile();
         StabilityTestRunner.newRunner()
