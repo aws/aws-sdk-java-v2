@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "description": "AWS Glue now provides ability to use custom certificates for JDBC Connections."
+}
