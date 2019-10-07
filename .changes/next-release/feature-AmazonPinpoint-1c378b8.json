@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "description": "This release of the Amazon Pinpoint API introduces support for using and managing message templates."
+}
