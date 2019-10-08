@@ -213,7 +213,8 @@ public class EC2MetadataUtilsServer {
                + "\"version\":\"2010-08-31\","
                + "\"availabilityZone\":\"us-east-1b\","
                + "\"privateIp\":\"10.201.215.38\","
-               + "\"devpayProductCodes\":[\"bar\"]"
+               + "\"devpayProductCodes\":[\"bar\"],"
+               + "\"marketplaceProductCodes\":[\"qaz\"]"
                + "}";
     }
 
