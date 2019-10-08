@@ -60,4 +60,10 @@ public class RegionTest {
 
         assertThat(someMap.get(Region.of("key"))).isEqualTo("A Value");
     }
+
+    @Test
+    public void idIsUrlEncoded() {
+        Region region = Region.of("http://my-host.com/?");
+        assertThat(region.id()).isEqualTo("http%3A%2F%2Fmy-host.com%2F%3F");
+    }
 }
