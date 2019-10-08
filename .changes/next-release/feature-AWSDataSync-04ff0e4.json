@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "description": "Add Sync options to enable/disable TaskQueueing"
+}
