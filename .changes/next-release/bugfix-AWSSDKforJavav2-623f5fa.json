@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "Fix the implementations of `equals(Object)` and `hashCode()` for `DefaultSdkAutoConstructList` and `DefaultSdkAutoConstructMap` so that they follow the Java `equals` and `hashCode` contract. In addition, ensure that these implementations' `toString()` methods return nicely readable results. Fixes [#1445](https://github.com/aws/aws-sdk-java-v2/issues/1445)"
-}
