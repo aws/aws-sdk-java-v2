@@ -34,6 +34,7 @@ import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.Image;
 import software.amazon.awssdk.services.ec2.model.InstanceStateName;
@@ -202,6 +203,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
 
         Waiter.run(() -> ec2.describeInstances(b -> b.instanceIds(instanceId)))
               .until(r -> InstanceStateName.RUNNING.equals(r.reservations().get(0).instances().get(0).state().name()))
+              .ignoringException(Ec2Exception.class)
               .orFailAfter(Duration.ofMinutes(10));
 
         // Register it with our load balancer
