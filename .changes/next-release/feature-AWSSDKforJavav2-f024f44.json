@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "EC2MetadataUtils: add marketplaceProductCodes inside InstanceInfo's POJO"
-}
