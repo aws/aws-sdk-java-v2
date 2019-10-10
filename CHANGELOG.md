@@ -1,3 +1,24 @@
+# __2.9.18__ __2019-10-10__
+## __AWS IoT Analytics__
+  - ### Features
+    - Add `completionTime` to API call ListDatasetContents.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Implement arn parser functions in `arns` module.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New EC2 M5n, M5dn, R5n, R5dn instances with 100 Gbps network performance and Elastic Fabric Adapter (EFA) for ultra low latency; New A1.metal bare metal instance powered by AWS Graviton Processors
+
+## __Amazon Lex Runtime Service__
+  - ### Features
+    - Amazon Lex now supports Session API checkpoints
+
+## __Firewall Management Service__
+  - ### Features
+    - Firewall Manager now supports Amazon VPC security groups, making it easier to configure and manage security groups across multiple accounts from a single place.
+
 # __2.9.17__ __2019-10-09__
 ## __AWS Elemental MediaConvert__
   - ### Features

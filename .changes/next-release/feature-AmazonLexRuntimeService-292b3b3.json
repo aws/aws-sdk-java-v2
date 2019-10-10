@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Runtime Service",
-    "description": "Amazon Lex now supports Session API checkpoints"
-}
