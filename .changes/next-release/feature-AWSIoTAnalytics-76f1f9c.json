@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Analytics",
+    "description": "Add `completionTime` to API call ListDatasetContents."
+}
