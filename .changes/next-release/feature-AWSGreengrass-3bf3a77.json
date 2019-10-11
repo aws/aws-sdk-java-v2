@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Greengrass",
+    "description": "Greengrass OTA service supports Raspbian/Armv6l platforms."
+}
