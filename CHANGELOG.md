@@ -1,3 +1,12 @@
+# __2.9.20__ __2019-10-14__
+## __Amazon Personalize__
+  - ### Features
+    - AWS Personalize: Adds ability to create a solution version using FULL or UPDATE training mode
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for WorkSpaces
+
 # __2.9.19__ __2019-10-11__
 ## __AWS Greengrass__
   - ### Features
