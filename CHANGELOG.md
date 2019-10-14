@@ -1,3 +1,155 @@
+# __2.9.20__ __2019-10-14__
+## __Amazon Personalize__
+  - ### Features
+    - AWS Personalize: Adds ability to create a solution version using FULL or UPDATE training mode
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for WorkSpaces
+
+# __2.9.19__ __2019-10-11__
+## __AWS Greengrass__
+  - ### Features
+    - Greengrass OTA service supports Raspbian/Armv6l platforms.
+
+# __2.9.18__ __2019-10-10__
+## __AWS IoT Analytics__
+  - ### Features
+    - Add `completionTime` to API call ListDatasetContents.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Implement arn parser functions in `arns` module.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - New EC2 M5n, M5dn, R5n, R5dn instances with 100 Gbps network performance and Elastic Fabric Adapter (EFA) for ultra low latency; New A1.metal bare metal instance powered by AWS Graviton Processors
+
+## __Amazon Lex Runtime Service__
+  - ### Features
+    - Amazon Lex now supports Session API checkpoints
+
+## __Firewall Management Service__
+  - ### Features
+    - Firewall Manager now supports Amazon VPC security groups, making it easier to configure and manage security groups across multiple accounts from a single place.
+
+# __2.9.17__ __2019-10-09__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for Dolby Atmos encoding, up to 36 outputs, accelerated transcoding with frame capture and preferred acceleration feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose instance signature through EC2MetadataUtils
+
+  - ### Bugfixes
+    - Fix the implementations of `equals(Object)` and `hashCode()` for `DefaultSdkAutoConstructList` and `DefaultSdkAutoConstructMap` so that they follow the Java `equals` and `hashCode` contract. In addition, ensure that these implementations' `toString()` methods return nicely readable results. Fixes [#1445](https://github.com/aws/aws-sdk-java-v2/issues/1445)
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache now allows you to apply available service updates on demand to your Memcached and Redis Cache Clusters. Features included: (1) Access to the list of applicable service updates and their priorities. (2) Service update monitoring and regular status updates. (3) Recommended apply-by-dates for scheduling the service updates. (4) Ability to stop and later re-apply updates. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Self-Service-Updates.html and https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Self-Service-Updates.html
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Updated documentation for Amazon Managed Streaming for Kafka service.
+
+# __2.9.16__ __2019-10-08__
+## __AWS DataSync__
+  - ### Features
+    - Add Sync options to enable/disable TaskQueueing
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation updates for organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - EC2MetadataUtils: add marketplaceProductCodes inside InstanceInfo's POJO
+
+## __Amazon EventBridge__
+  - ### Features
+    - Documentation updates for Amazon EventBridge.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - With this release, you can use Amazon Kinesis Firehose delivery streams to deliver streaming data to Amazon Elasticsearch Service version 7.x clusters. For technical documentation, look for CreateDeliveryStream operation in Amazon Kinesis Firehose API reference.
+
+## __Amazon S3 Control__
+  - ### Features
+    - Adds support for the Amazon S3 Control service to the SDK.
+
+# __2.9.15__ __2019-10-07__
+## __AWS Direct Connect__
+  - ### Features
+    - This release adds a service provider field for physical connection creation and provides a list of available partner providers for each Direct Connect location.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now provides ability to use custom certificates for JDBC Connections.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - AWS Snowball Edge now allows you to perform an offline update to the software of your Snowball Edge device when your device is not connected to the internet. Previously, updating your Snowball Edge's software required that the device be connected to the internet or be sent back to AWS. Now, you can keep your Snowball Edge software up to date even if your device(s) cannot connect to the internet, or are required to run in an air-gapped environment. To complete offline updates, download the software update from a client machine with connection to the internet using the AWS Command Line Interface (CLI). Then, have the Snowball Edge device download and install the software update using the Snowball Edge device API. For more information about offline updates, visit the Snowball Edge documentation page.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Amazon Kinesis Data Firehose now allows delivering data to Elasticsearch clusters set up in a different AWS account than the Firehose AWS account. For technical documentation, look for ElasticsearchDestinationConfiguration in the Amazon Kinesis Firehose API reference.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API introduces support for using and managing message templates.
+
+## __Amazon Pinpoint Email Service__
+  - ### Features
+    - This release of the Amazon Pinpoint Email API introduces support for using and managing message templates.
+
+# __2.9.14__ __2019-10-04__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - New Harvest Job APIs to export segment-accurate content windows from MediaPackage Origin Endpoints to S3. See https://docs.aws.amazon.com/mediapackage/latest/ug/harvest-jobs.html for more info
+
+## __Amazon CloudWatch__
+  - ### Bugfixes
+    - Add cloudwatch specific http configurations, specifically reducing `connectionMaxIdleTime`. Related to [#1380](https://github.com/aws/aws-sdk-java-v2/issues/1380)
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds ClientMetadata input parameter to multiple Cognito User Pools operations, making this parameter available to the customer configured lambda triggers as applicable.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Add s3 specific http configurations, specifically reducing `connectionMaxIdleTime`. Related to [#1122](https://github.com/aws/aws-sdk-java-v2/issues/1122)
+
+## __Amazon S3 Control__
+  - ### Features
+    - Adds support for the Amazon S3 Control service to the SDK.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Documentation updates for Systems Manager / StartSession.
+
+# __2.9.13__ __2019-10-03__
+## __AWS Device Farm__
+  - ### Features
+    - Documentation updates for devicefarm
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows customers to purchase regional EC2 RIs on a future date.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon Elasticsearch Service now supports configuring additional options for domain endpoint, such as whether to require HTTPS for all traffic.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Documentation updates for Application Auto Scaling
+
+# __2.9.12__ __2019-10-02__
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the automatic snapshots add-on for instances and block storage disks.
+
 # __2.9.11__ __2019-10-01__
 ## __Amazon DocumentDB with MongoDB compatibility__
   - ### Features

@@ -69,6 +69,7 @@ public class SigningStage implements RequestToRequestPipeline {
                         .signAsyncRequestBody(signedRequest, context.requestProvider(), context.executionAttributes());
                 context.requestProvider(transformedRequestProvider);
             }
+            updateInterceptorContext(signedRequest, context.executionContext());
             return signedRequest;
         }
 
