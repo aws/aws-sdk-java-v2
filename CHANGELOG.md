@@ -1,3 +1,8 @@
+# __2.9.21__ __2019-10-15__
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Add ON_DISCONTINUITY mode to the GetHLSStreamingSessionURL API
+
 # __2.9.20__ __2019-10-14__
 ## __Amazon Personalize__
   - ### Features
