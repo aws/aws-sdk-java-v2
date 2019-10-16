@@ -103,6 +103,7 @@ public class MultiplexedChannelRecord {
      * streams newer than the last-stream-id on the go-away frame.
      */
     public void goAway(Http2GoAwayFrame frame) {
+        System.out.println("Got GOAWAY: " + frame);
         this.goAway = true;
         doInEventLoop(connection.eventLoop(), () -> {
             GoAwayException exception = new GoAwayException(frame.errorCode(), frame.content());

@@ -25,15 +25,11 @@ import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2Error;
 import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2Frame;
-import io.netty.handler.codec.http2.Http2GoAwayFrame;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 import io.netty.handler.codec.http2.Http2ResetFrame;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Converts {@link Http2Frame}s to {@link HttpObject}s. Ignores the majority of {@link Http2Frame}s like PING
