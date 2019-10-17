@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "description": "Better handle `GOAWAY` messages from the remote endpoint."
+}

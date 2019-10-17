@@ -103,14 +103,12 @@ public class MultiplexedChannelRecord {
      * streams newer than the last-stream-id on the go-away frame.
      */
     public void goAway(Http2GoAwayFrame frame) {
-        System.out.println("Got GOAWAY: " + frame);
         this.goAway = true;
-        doInEventLoop(connection.eventLoop(), () -> {
-            GoAwayException exception = new GoAwayException(frame.errorCode(), frame.content());
-            childChannels.entrySet().stream()
-                         .filter(c -> c.getValue().stream().id() > frame.lastStreamId())
-                         .forEach(c -> shutdownChildChannel(c.getValue(), exception));
-        });
+        GoAwayException exception = new GoAwayException(frame.errorCode(), frame.content());
+        childChannels.entrySet().stream()
+                     .map(Map.Entry::getValue)
+                     .filter(cc -> cc.stream().id() > frame.lastStreamId())
+                     .forEach(cc -> cc.eventLoop().execute(() -> shutdownChildChannel(cc, exception)));
     }
 
     /**
@@ -141,7 +139,7 @@ public class MultiplexedChannelRecord {
     }
 
     private void createChildChannel0(Promise<Channel> channelPromise) {
-        if (availableStreams() <= 0) {
+        if (goAway) {
             channelPromise.tryFailure(new IOException("No streams are available on this connection."));
         } else {
             // Once protocol future is notified then parent pipeline is configured and ready to go

@@ -78,7 +78,6 @@
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
-        <module>test/test-server</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
