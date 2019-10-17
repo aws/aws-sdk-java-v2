@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "description": "Adding support for Compute Environment Allocation Strategies"
+}
