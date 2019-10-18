@@ -17,27 +17,57 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.AsciiString;
+import java.util.Arrays;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class RequestAdapter {
+
+    private static final List<AsciiString> IGNORE_HEADERS = Arrays.asList(HttpHeaderNames.HOST);
 
     public HttpRequest adapt(SdkHttpRequest sdkRequest) {
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
         HttpHeaders headers = new DefaultHttpHeaders();
         String uri = sdkRequest.getUri().toString();
         DefaultHttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, uri, headers);
-        sdkRequest.headers().forEach(request.headers()::add);
+        addHeadersToRequest(request, sdkRequest);
         return request;
     }
 
     private static HttpMethod toNettyHttpMethod(SdkHttpMethod method) {
         return HttpMethod.valueOf(method.name());
+    }
+
+    /**
+     * Configures the headers in the specified Netty HTTP request.
+     */
+    private void addHeadersToRequest(DefaultHttpRequest httpRequest, SdkHttpRequest request) {
+
+        httpRequest.headers().add(HttpHeaderNames.HOST, getHostHeaderValue(request));
+
+        // Copy over any other headers already in our request
+        request.headers().entrySet().stream()
+                /*
+                 * Skip the Host header to avoid sending it twice, which will
+                 * interfere with some signing schemes.
+                 */
+                .filter(e -> !IGNORE_HEADERS.contains(e.getKey()))
+                .forEach(e -> e.getValue().forEach(h -> httpRequest.headers().add(e.getKey(), h)));
+    }
+
+    private String getHostHeaderValue(SdkHttpRequest request) {
+        return !SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+                ? request.host() + ":" + request.port()
+                : request.host();
     }
 }
