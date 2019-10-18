@@ -67,6 +67,13 @@ public final class ChannelAttributeKey {
             "aws.http.nio.netty.async.executionId");
 
     /**
+     * {@link AttributeKey} to keep track of whether we should close the connection after this request
+     * has completed.
+     */
+    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
+
+
+    /**
      * Whether the channel is still in use
      */
     static final AttributeKey<Boolean> IN_USE = AttributeKey.newInstance("aws.http.nio.netty.async.inUse");
