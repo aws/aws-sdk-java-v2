@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "description": "New Period parameter added to MetricDataQuery structure."
+}
