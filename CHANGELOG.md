@@ -1,3 +1,12 @@
+# __2.9.24__ __2019-10-18__
+## __Amazon CloudWatch__
+  - ### Features
+    - New Period parameter added to MetricDataQuery structure.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Update `HealthCheckedChannelPool` to check `KEEP_ALIVE` when acquiring a channel from the pool to avoid soon-to-be inactive channels being picked up by a new request. This should reduce the frequency of `IOException: Server failed to complete response` errors. See [#1380](https://github.com/aws/aws-sdk-java-v2/issues/1380), [#1466](https://github.com/aws/aws-sdk-java-v2/issues/1466).
+
 # __2.9.23__ __2019-10-17__
 ## __AWS Batch__
   - ### Features
