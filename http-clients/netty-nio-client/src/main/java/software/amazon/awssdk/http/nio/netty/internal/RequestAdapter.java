@@ -22,7 +22,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.AsciiString;
 import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -33,7 +32,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class RequestAdapter {
 
-    private static final List<AsciiString> IGNORE_HEADERS = Arrays.asList(HttpHeaderNames.HOST);
+    private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaderNames.HOST.toString());
 
     public HttpRequest adapt(SdkHttpRequest sdkRequest) {
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
