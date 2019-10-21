@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Updating to use Jackson 2.10.0 and Netty 4.1.42.Final"
+}
