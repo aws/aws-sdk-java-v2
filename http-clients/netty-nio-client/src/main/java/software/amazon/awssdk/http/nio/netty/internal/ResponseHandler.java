@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
@@ -38,7 +39,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
-import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -65,12 +65,6 @@ import software.amazon.awssdk.utils.async.DelegatingSubscription;
 @Sharable
 @SdkInternalApi
 public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
-
-    /**
-     * {@link AttributeKey} to keep track of whether we should close the connection after this request
-     * has completed.
-     */
-    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 

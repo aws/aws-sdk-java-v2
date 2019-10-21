@@ -1,3 +1,39 @@
+# __2.9.24__ __2019-10-18__
+## __Amazon CloudWatch__
+  - ### Features
+    - New Period parameter added to MetricDataQuery structure.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Update `HealthCheckedChannelPool` to check `KEEP_ALIVE` when acquiring a channel from the pool to avoid soon-to-be inactive channels being picked up by a new request. This should reduce the frequency of `IOException: Server failed to complete response` errors. See [#1380](https://github.com/aws/aws-sdk-java-v2/issues/1380), [#1466](https://github.com/aws/aws-sdk-java-v2/issues/1466).
+
+# __2.9.23__ __2019-10-17__
+## __AWS Batch__
+  - ### Features
+    - Adding support for Compute Environment Allocation Strategies
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS now supports Amazon RDS on VMware with the introduction of APIs related to Custom Availability Zones and Media installation.
+
+# __2.9.22__ __2019-10-16__
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - add 2 more values for the supporting sections - age of past due funds + uncollected funds breakdown
+
+## __AWS RoboMaker__
+  - ### Features
+    - This release adds support for ROS2 Dashing as a beta feature
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - AWS MSK has added support for adding brokers to a cluster.
+
+# __2.9.21__ __2019-10-15__
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Add ON_DISCONTINUITY mode to the GetHLSStreamingSessionURL API
+
 # __2.9.20__ __2019-10-14__
 ## __Amazon Personalize__
   - ### Features
