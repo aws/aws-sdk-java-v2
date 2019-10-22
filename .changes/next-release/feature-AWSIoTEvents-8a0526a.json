@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Events",
+    "description": "Add support for new serial evaluation method for events in a detector model."
+}
