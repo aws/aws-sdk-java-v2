@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -60,6 +61,12 @@ public final class ChannelAttributeKey {
     static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance(
         "aws.http.nio.netty.async.responseComplete");
 
+    /**
+     * {@link AttributeKey} to keep track of whether we have received the {@link LastHttpContent}.
+     */
+    static final AttributeKey<Boolean> LAST_HTTP_CONTENT_RECEIVED_KEY = AttributeKey.newInstance(
+        "aws.http.nio.netty.async.lastHttpContentReceived");
+
     static final AttributeKey<CompletableFuture<Void>> EXECUTE_FUTURE_KEY = AttributeKey.newInstance(
             "aws.http.nio.netty.async.executeFuture");
 
@@ -71,7 +78,6 @@ public final class ChannelAttributeKey {
      * has completed.
      */
     static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
-
 
     /**
      * Whether the channel is still in use

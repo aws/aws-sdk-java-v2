@@ -20,6 +20,8 @@ import static software.amazon.awssdk.http.Protocol.HTTP2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
@@ -145,6 +147,7 @@ public final class NettyRequestExecutor {
         channel.attr(EXECUTE_FUTURE_KEY).set(executeFuture);
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
+        channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
         channel.attr(IN_USE).set(true);
         channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
@@ -162,6 +165,7 @@ public final class NettyRequestExecutor {
             return false;
         }
 
+        pipeline.addLast(LastHttpContentHandler.create());
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
 
@@ -336,6 +340,7 @@ public final class NettyRequestExecutor {
      */
     private void closeAndRelease(Channel channel) {
         log.trace("closing and releasing channel {}", channel.id().asLongText());
+        channel.attr(KEEP_ALIVE).set(false);
         channel.close();
         context.channelPool().release(channel);
     }
