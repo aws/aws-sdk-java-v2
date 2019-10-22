@@ -39,6 +39,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayFrameHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
 
 /**
@@ -126,8 +127,8 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                                                .build());
 
         pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
-
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
+        pipeline.addLast(new Http2GoAwayFrameHandler());
     }
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {
