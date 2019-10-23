@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Security Token Service",
-    "description": "AWS Security Token Service (STS) now supports a regional configuration flag to make the client respect the region without the need for the endpoint parameter."
-}
