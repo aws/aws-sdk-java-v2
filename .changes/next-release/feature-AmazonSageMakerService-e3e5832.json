@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "description": "Adds support for the new family of Elastic Inference Accelerators (eia2) for SageMaker Hosting and Notebook Services"
+}
