@@ -1,3 +1,32 @@
+# __2.10.0__ __2019-10-24__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds support for the gRPC and HTTP/2 protocols.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updating to use Jackson 2.10.0 and Netty 4.1.42.Final
+
+## __Amazon Chime__
+  - ### Features
+    - CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils This release introduces Voice Connector PDX region and defaults previously created Voice Connectors to IAD. You can create Voice Connector Groups and add region specific Voice Connectors to direct telephony traffic across AWS regions in case of regional failures. With this release you can add phone numbers to Voice Connector Groups and can bulk move phone numbers between Voice Connectors, between Voice Connector and Voice Connector Groups and between Voice Connector Groups. Voice Connector now supports additional settings to enable SIP Log capture. This is in addition to the launch of Voice Connector Cloud Watch metrics in this release. This release also supports assigning outbound calling name (CNAM) to AWS account and individual phone numbers assigned to Voice Connectors. CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md LICENSE.txt NOTICE.txt README.md aws-sdk-java bom bom-internal build-tools buildspecs bundle codegen codegen-lite codegen-lite-maven-plugin codegen-maven-plugin core docs http-client-spi http-clients pom.xml release-scripts scripts services services-custom test utils Voice Connector now supports a setting to enable real time audio streaming delivered via Kinesis Audio streams. Please note that recording Amazon Chime Voice Connector calls with this feature maybe be subject to laws or regulations regarding the recording of telephone calls and other electronic communications. AWS Customer and their end users' have the responsibility to comply with all applicable laws regarding the recording, including properly notifying all participants in a recorded session or to a recorded communication that the session or communication is being recorded and obtain their consent.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates CreateFpgaImage to support tagging FPGA images on creation
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift offers expanded hardware options for game hosting: Custom game builds can use the Amazon Linux 2 operating system, and fleets for both custom builds and Realtime servers can now use C5, M5, and R5 instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for the new family of Elastic Inference Accelerators (eia2) for SageMaker Hosting and Notebook Services
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Fix a race condition where the channel is closed right after all content is buffered, causing `server failed to complete the response` error by adding a flag when `LastHttpContentHandler` is received.
+
 # __2.9.26__ __2019-10-23__
 ## __AWS Security Token Service__
   - ### Features
