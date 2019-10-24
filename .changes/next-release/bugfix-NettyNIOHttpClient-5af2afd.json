@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Http Client", 
-    "type": "bugfix", 
-    "description": "Fix a race condition where the channel is closed right after all content is buffered, causing `server failed to complete the response` error by adding a flag when `LastHttpContentHandler` is received."
-}

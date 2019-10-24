@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS App Mesh",
-    "description": "This release adds support for the gRPC and HTTP/2 protocols."
-}
