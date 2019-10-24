@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release updates CreateFpgaImage to support tagging FPGA images on creation"
+}
