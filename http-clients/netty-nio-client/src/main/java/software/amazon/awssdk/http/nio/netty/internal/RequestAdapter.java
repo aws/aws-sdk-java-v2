@@ -27,6 +27,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.nio.netty.internal.utils.UriUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
@@ -37,7 +38,7 @@ public final class RequestAdapter {
     public HttpRequest adapt(SdkHttpRequest sdkRequest) {
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
         HttpHeaders headers = new DefaultHttpHeaders();
-        String uri = sdkRequest.getUri().toString();
+        String uri = UriUtils.relativize(sdkRequest.getUri()).toString();
         DefaultHttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, uri, headers);
         addHeadersToRequest(request, sdkRequest);
         return request;
