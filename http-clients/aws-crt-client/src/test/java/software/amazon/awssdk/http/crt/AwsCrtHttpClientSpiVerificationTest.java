@@ -68,7 +68,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     @Before
     public void setup() throws Exception {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
 
         client = AwsCrtAsyncHttpClient.builder()
                 .build();
@@ -77,7 +77,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
     @After
     public void tearDown() {
         client.close();
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
     }
 
     private byte[] generateRandomBody(int size) {
