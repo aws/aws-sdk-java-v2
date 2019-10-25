@@ -35,7 +35,7 @@ public class AwsCrtClientKmsIntegrationTest {
 
     @Before
     public void setup() {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
 
         // Create an Http Client for each TLS Cipher Preference supported on the current platform
         for (TlsCipherPreference pref: TlsCipherPreference.values()) {
@@ -55,7 +55,7 @@ public class AwsCrtClientKmsIntegrationTest {
 
     @After
     public void tearDown() {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
     }
 
     private boolean doesKeyExist(KmsAsyncClient kms, String keyAlias) {
