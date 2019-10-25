@@ -56,7 +56,7 @@ public class AwsCrtClientS3IntegrationTest {
 
     @Before
     public void setup() {
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
 
         crtClient = AwsCrtAsyncHttpClient.builder()
                 .eventLoopSize(4)
@@ -74,7 +74,7 @@ public class AwsCrtClientS3IntegrationTest {
         s3.close();
         crtClient.close();
 
-        Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+        CrtResource.waitForNoResources();
     }
 
     @Test

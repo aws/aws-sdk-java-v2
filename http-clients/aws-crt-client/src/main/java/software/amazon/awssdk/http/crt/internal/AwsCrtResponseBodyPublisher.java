@@ -28,7 +28,7 @@ import java.util.function.LongUnaryOperator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.crt.http.HttpConnection;
+import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -41,7 +41,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
-    private final HttpConnection connection;
+    private final HttpClientConnection connection;
     private final HttpStream stream;
     private final CompletableFuture<Void> responseComplete;
     private final AtomicLong outstandingRequests = new AtomicLong(0);
@@ -62,7 +62,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * @param windowSize The max allowed bytes to be queued. The sum of the sizes of all queued ByteBuffers should
      *                   never exceed this value.
      */
-    public AwsCrtResponseBodyPublisher(HttpConnection connection, HttpStream stream,
+    public AwsCrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
                                        CompletableFuture<Void> responseComplete, int windowSize) {
         Validate.notNull(connection, "HttpConnection must not be null");
         Validate.notNull(stream, "Stream must not be null");

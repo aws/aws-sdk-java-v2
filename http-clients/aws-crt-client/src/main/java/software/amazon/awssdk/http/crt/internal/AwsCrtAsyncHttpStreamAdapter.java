@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.CrtHttpStreamHandler;
-import software.amazon.awssdk.crt.http.HttpConnection;
+import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpStream;
@@ -38,7 +38,7 @@ import software.amazon.awssdk.utils.Validate;
 public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
 
-    private final HttpConnection connection;
+    private final HttpClientConnection connection;
     private final CompletableFuture<Void> responseComplete;
     private final AsyncExecuteRequest sdkRequest;
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
@@ -46,7 +46,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     private final AwsCrtRequestBodySubscriber requestBodySubscriber;
     private AwsCrtResponseBodyPublisher respBodyPublisher = null;
 
-    public AwsCrtAsyncHttpStreamAdapter(HttpConnection connection, CompletableFuture<Void> responseComplete,
+    public AwsCrtAsyncHttpStreamAdapter(HttpClientConnection connection, CompletableFuture<Void> responseComplete,
                                         AsyncExecuteRequest sdkRequest, int windowSize) {
         Validate.notNull(connection, "HttpConnection is null");
         Validate.notNull(responseComplete, "reqComplete Future is null");
@@ -69,7 +69,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     }
 
     @Override
-    public void onResponseHeaders(HttpStream stream, int responseStatusCode, HttpHeader[] nextHeaders) {
+    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
         initRespBodyPublisherIfNeeded(stream);
 
         respBuilder.statusCode(responseStatusCode);

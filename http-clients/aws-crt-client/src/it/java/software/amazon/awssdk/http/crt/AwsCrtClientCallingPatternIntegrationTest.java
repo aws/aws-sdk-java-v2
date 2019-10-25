@@ -143,11 +143,8 @@ public class AwsCrtClientCallingPatternIntegrationTest {
                                      @FromDataPoints("SharedClient") boolean useSharedClient) throws Exception {
 
         try {
-            if (CrtResource.getAllocatedNativeResourceCount() > 0) {
-                System.err.println("Leaked Resources: " + String.join(", ", CrtResource.getAllocatedNativeResources()));
-            }
-            Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
 
+            CrtResource.waitForNoResources();
             String testName = String.format("Testing with eventLoopSize %d, connectionPoolSize %d, numberOfRequests %d, " +
                             "numberOfParallelJavaClients %d, useSharedClient %b", eventLoopSize, connectionPoolSize,
                     numberOfRequests, numberOfParallelClients, useSharedClient);
@@ -197,11 +194,7 @@ public class AwsCrtClientCallingPatternIntegrationTest {
             awsCrtHttpClient.close();
             Assert.assertFalse(failed.get());
 
-            if (CrtResource.getAllocatedNativeResourceCount() > 0) {
-                System.err.println("Leaked Resources: " + String.join(", ", CrtResource.getAllocatedNativeResources()));
-            }
-
-            Assert.assertEquals("Expected Zero allocated AwsCrtResources", 0, CrtResource.getAllocatedNativeResourceCount());
+            CrtResource.waitForNoResources();
 
             float numSeconds = (float) ((System.currentTimeMillis() - start) / 1000.0);
             String timeElapsed = String.format("%.2f sec", numSeconds);
