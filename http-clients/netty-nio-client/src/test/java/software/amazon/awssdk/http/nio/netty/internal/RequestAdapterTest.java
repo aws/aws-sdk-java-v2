@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
@@ -33,7 +34,7 @@ public class RequestAdapterTest {
 
     @Before
     public void setup() {
-        instance = new RequestAdapter();
+        instance = new RequestAdapter(Protocol.HTTP1_1);
     }
 
     @Test
