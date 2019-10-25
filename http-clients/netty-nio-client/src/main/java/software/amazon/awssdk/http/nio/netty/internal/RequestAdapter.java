@@ -22,12 +22,17 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http2.HttpConversionUtil.ExtensionHeaderNames;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.UriUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
@@ -35,12 +40,20 @@ public final class RequestAdapter {
 
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaderNames.HOST.toString());
 
+    private final Protocol protocol;
+
+    public RequestAdapter(Protocol protocol) {
+        Objects.requireNonNull(protocol, "protocol");
+        this.protocol = protocol;
+    }
+
     public HttpRequest adapt(SdkHttpRequest sdkRequest) {
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
         HttpHeaders headers = new DefaultHttpHeaders();
-        String uri = UriUtils.relativize(sdkRequest.getUri()).toString();
+        URI originalUri = sdkRequest.getUri();
+        String uri = UriUtils.relativize(originalUri).toString();
         DefaultHttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, uri, headers);
-        addHeadersToRequest(request, sdkRequest);
+        addHeadersToRequest(request, sdkRequest, originalUri);
         return request;
     }
 
@@ -51,9 +64,12 @@ public final class RequestAdapter {
     /**
      * Configures the headers in the specified Netty HTTP request.
      */
-    private void addHeadersToRequest(DefaultHttpRequest httpRequest, SdkHttpRequest request) {
+    private void addHeadersToRequest(DefaultHttpRequest httpRequest, SdkHttpRequest request, URI originalUri) {
 
         httpRequest.headers().add(HttpHeaderNames.HOST, getHostHeaderValue(request));
+        if (protocol == Protocol.HTTP2 && !StringUtils.isBlank(originalUri.getScheme())) {
+            httpRequest.headers().add(ExtensionHeaderNames.SCHEME.text(), originalUri.getScheme());
+        }
 
         // Copy over any other headers already in our request
         request.headers().entrySet().stream()

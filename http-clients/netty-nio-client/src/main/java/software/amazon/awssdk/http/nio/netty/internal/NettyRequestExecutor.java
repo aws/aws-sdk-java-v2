@@ -72,12 +72,14 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 @SdkInternalApi
 public final class NettyRequestExecutor {
     private static final Logger log = LoggerFactory.getLogger(NettyRequestExecutor.class);
-    private static final RequestAdapter REQUEST_ADAPTER = new RequestAdapter();
+    private static final RequestAdapter REQUEST_ADAPTER_HTTP2 = new RequestAdapter(Protocol.HTTP2);
+    private static final RequestAdapter REQUEST_ADAPTER_HTTP1_1 = new RequestAdapter(Protocol.HTTP1_1);
     private static final AtomicLong EXECUTION_COUNTER = new AtomicLong(0L);
     private final long executionId = EXECUTION_COUNTER.incrementAndGet();
     private final RequestContext context;
     private CompletableFuture<Void> executeFuture;
     private Channel channel;
+    private RequestAdapter requestAdapter;
 
     public NettyRequestExecutor(RequestContext context) {
         this.context = context;
@@ -156,14 +158,20 @@ public final class NettyRequestExecutor {
     private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
-        if (HTTP2.equals(protocol)) {
-            pipeline.addLast(new Http2ToHttpInboundAdapter());
-            pipeline.addLast(new HttpToHttp2OutboundAdapter());
-        } else if (!HTTP1_1.equals(protocol)) {
-            String errorMsg = "Unknown protocol: " + protocol;
-            closeAndRelease(channel);
-            handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
-            return false;
+        switch (protocol) {
+            case HTTP2:
+                pipeline.addLast(new Http2ToHttpInboundAdapter());
+                pipeline.addLast(new HttpToHttp2OutboundAdapter());
+                requestAdapter = REQUEST_ADAPTER_HTTP2;
+                break;
+            case HTTP1_1:
+                requestAdapter = REQUEST_ADAPTER_HTTP1_1;
+                break;
+            default:
+                String errorMsg = "Unknown protocol: " + protocol;
+                closeAndRelease(channel);
+                handleFailure(() -> errorMsg, new RuntimeException(errorMsg));
+                return false;
         }
 
         pipeline.addLast(LastHttpContentHandler.create());
@@ -184,7 +192,7 @@ public final class NettyRequestExecutor {
     }
 
     private void makeRequest() {
-        HttpRequest request = REQUEST_ADAPTER.adapt(context.executeRequest().request());
+        HttpRequest request = requestAdapter.adapt(context.executeRequest().request());
         writeRequest(request);
     }
 
