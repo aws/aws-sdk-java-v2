@@ -1,3 +1,8 @@
+# __2.10.1__ __2019-10-25__
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - With this release, Amazon Transcribe Streaming now supports audio sources in Australian English (en-AU).
+
 # __2.10.0__ __2019-10-24__
 ## __AWS App Mesh__
   - ### Features
