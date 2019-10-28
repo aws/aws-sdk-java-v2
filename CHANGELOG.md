@@ -1,3 +1,8 @@
+# __2.10.3__ __2019-10-28__
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adding support in SelectObjectContent for scanning a portion of an object specified by a scan range.
+
 # __2.10.2__ __2019-10-28__
 ## __AWS Transfer for SFTP__
   - ### Features
