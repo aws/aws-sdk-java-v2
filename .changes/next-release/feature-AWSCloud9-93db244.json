@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cloud9",
-    "description": "Added CREATING and CREATE_FAILED environment lifecycle statuses."
-}
