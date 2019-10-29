@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon AppStream",
+    "description": "Adds support for providing domain names that can embed streaming sessions"
+}
