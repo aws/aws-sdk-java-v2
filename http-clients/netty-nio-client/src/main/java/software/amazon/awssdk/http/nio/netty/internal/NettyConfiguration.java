@@ -24,6 +24,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -85,5 +86,9 @@ public final class NettyConfiguration {
 
     public boolean reapIdleConnections() {
         return configuration.get(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS);
+    }
+
+    public TlsKeyManagersProvider tlsKeyManagersProvider() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER);
     }
 }

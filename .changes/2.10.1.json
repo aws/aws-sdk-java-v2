@@ -1,0 +1,11 @@
+{
+    "version": "2.10.1",
+    "date": "2019-10-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "description": "With this release, Amazon Transcribe Streaming now supports audio sources in Australian English (en-AU)."
+        }
+    ]
+}

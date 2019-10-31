@@ -18,7 +18,6 @@ package software.amazon.awssdk.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
 
@@ -124,5 +123,16 @@ public class StringUtilsTest {
         assertEquals("lloWorld" ,replacePrefixIgnoreCase("helloWorld", "he", ""));
         assertEquals("lloWORld" ,replacePrefixIgnoreCase("helloWORld", "He", ""));
         assertEquals("llOwOrld" ,replacePrefixIgnoreCase("HEllOwOrld", "he", ""));
+    }
+
+    @Test
+    public void findFirstOccurrence() {
+        assertEquals((Character) ':', StringUtils.findFirstOccurrence("abc:def/ghi:jkl/mno", ':', '/'));
+        assertEquals((Character) ':', StringUtils.findFirstOccurrence("abc:def/ghi:jkl/mno", '/', ':'));
+    }
+
+    @Test
+    public void findFirstOccurrence_NoMatch() {
+        assertNull(StringUtils.findFirstOccurrence("abc", ':'));
     }
 }

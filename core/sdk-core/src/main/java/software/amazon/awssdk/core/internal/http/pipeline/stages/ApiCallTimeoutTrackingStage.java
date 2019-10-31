@@ -70,17 +70,28 @@ public final class ApiCallTimeoutTrackingStage<OutputT> implements RequestToResp
      * doesn't leak out to the callers code
      */
     private Response<OutputT> executeWithTimer(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-
         long timeoutInMillis = resolveTimeoutInMillis(context.requestConfig()::apiCallTimeout, apiCallTimeout);
 
         TimeoutTracker timeoutTracker = timeSyncTaskIfNeeded(timeoutExecutor, timeoutInMillis, Thread.currentThread());
 
+        Response<OutputT> response;
         try {
             context.apiCallTimeoutTracker(timeoutTracker);
-            return wrapped.execute(request, context);
+            response = wrapped.execute(request, context);
         } finally {
+            // Cancel the timeout tracker, guaranteeing that if it hasn't already executed and set this thread's
+            // interrupt flag, it won't do so later. Every code path executed after this line *must* call
+            // timeoutTracker.hasExecuted() and appropriately clear the interrupt flag if it returns true.
             timeoutTracker.cancel();
         }
+
+        if (timeoutTracker.hasExecuted()) {
+            // The timeout tracker executed before the call to cancel(), which means it set this thread's interrupt
+            // flag. However, the execute() call returned before we raised an InterruptedException, so just clear the
+            // interrupt flag and return the result we got back.
+            Thread.interrupted();
+        }
+        return response;
     }
 
     /**
@@ -96,10 +107,14 @@ public final class ApiCallTimeoutTrackingStage<OutputT> implements RequestToResp
             return handleInterruptedException(context, (InterruptedException) e);
         }
 
-        // InterruptedException was not rethrown and instead the interrupted flag was set
-        if (Thread.currentThread().isInterrupted() && context.apiCallTimeoutTracker().hasExecuted()) {
+        // Timeout tracker finished and interrupted this thread after wrapped.execute() last checked the interrupt flag,
+        // but before we called timeoutTracker.cancel(). Note that if hasExecuted() returns true, its guaranteed that
+        // the timeout tracker has set the interrupt flag, and if it returns false, it guarantees that it did not and
+        // will never set the interrupt flag.
+        if (context.apiCallTimeoutTracker().hasExecuted()) {
+            // Clear the interrupt flag. Since we already have an exception from the call, which may contain information
+            // that's useful to the caller, just return that instead of an ApiCallTimeoutException.
             Thread.interrupted();
-            return generateApiCallTimeoutException(context);
         }
 
         return e;
@@ -130,6 +145,6 @@ public final class ApiCallTimeoutTrackingStage<OutputT> implements RequestToResp
 
     private ApiCallTimeoutException generateApiCallTimeoutException(RequestExecutionContext context) {
         return ApiCallTimeoutException.create(
-            resolveTimeoutInMillis(context.requestConfig()::apiCallTimeout, apiCallTimeout));
+                resolveTimeoutInMillis(context.requestConfig()::apiCallTimeout, apiCallTimeout));
     }
 }

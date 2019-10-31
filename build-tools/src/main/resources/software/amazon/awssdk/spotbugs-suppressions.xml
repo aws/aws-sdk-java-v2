@@ -143,4 +143,11 @@
         </Or>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
+
+    <!-- See SpotBugs bug: https://github.com/spotbugs/spotbugs/issues/600, https://github.com/spotbugs/spotbugs/issues/756 -->
+    <Match>
+        <Class name="software.amazon.awssdk.internal.http.AbstractFileStoreTlsKeyManagersProvider"/>
+        <Method name="createKeyStore"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
 </FindBugsFilter>

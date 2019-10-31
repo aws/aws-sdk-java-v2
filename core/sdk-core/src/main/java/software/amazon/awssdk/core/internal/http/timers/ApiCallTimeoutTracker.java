@@ -47,7 +47,10 @@ public final class ApiCallTimeoutTracker implements TimeoutTracker {
 
     @Override
     public void cancel() {
+        // Best-effort attempt to ensure that if the future hasn't started running already, don't run it.
         future.cancel(false);
+        // Ensure that if the future hasn't executed its timeout logic already, it won't do so.
+        timeoutTask.cancel();
     }
 
     @Override

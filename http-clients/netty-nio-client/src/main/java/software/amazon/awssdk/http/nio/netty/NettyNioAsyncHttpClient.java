@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECT
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
@@ -48,6 +49,8 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.AwaitCloseChannelPoolMap;
@@ -91,6 +94,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                              .maxStreams(maxStreams)
                                              .sdkEventLoopGroup(sdkEventLoopGroup)
                                              .sslProvider(resolveSslProvider(builder))
+                                             .proxyConfiguration(builder.proxyConfiguration)
                                              .build();
     }
 
@@ -343,6 +347,28 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return the builder of the method chaining.
          */
         Builder sslProvider(SslProvider sslProvider);
+
+        /**
+         * Set the proxy configuration for this client. The configured proxy will be used to proxy any HTTP request
+         * destined for any host that does not match any of the hosts in configured non proxy hosts.
+         *
+         * @param proxyConfiguration The proxy configuration.
+         * @return The builder for method chaining.
+         * @see ProxyConfiguration#nonProxyHosts()
+         */
+        Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
+
+        /**
+         * Set the {@link TlsKeyManagersProvider} for this client. The {@code KeyManager}s will be used by the client to
+         * authenticate itself with the remote server if necessary when establishing the TLS connection.
+         * <p>
+         * If no provider is configured, the client will default to {@link SystemPropertyTlsKeyManagersProvider}. To
+         * disable any automatic resolution via the system properties, use {@link TlsKeyManagersProvider#noneProvider()}.
+         *
+         * @param keyManagersProvider The {@code TlsKeyManagersProvider}.
+         * @return The builder for method chaining.
+         */
+        Builder tlsKeyManagersProvider(TlsKeyManagersProvider keyManagersProvider);
     }
 
     /**
@@ -350,7 +376,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
      * configure and construct an immutable instance of the factory.
      */
     private static final class DefaultBuilder implements Builder {
-
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
 
         private SdkChannelOptions sdkChannelOptions = new SdkChannelOptions();
@@ -359,6 +384,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
         private Integer maxHttp2Streams;
         private SslProvider sslProvider;
+        private ProxyConfiguration proxyConfiguration;
 
         private DefaultBuilder() {
         }
@@ -513,6 +539,22 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setSslProvider(SslProvider sslProvider) {
             sslProvider(sslProvider);
+        }
+
+        @Override
+        public Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
+            this.proxyConfiguration = proxyConfiguration;
+            return this;
+        }
+
+        public void setProxyConfiguration(ProxyConfiguration proxyConfiguration) {
+            proxyConfiguration(proxyConfiguration);
+        }
+
+        @Override
+        public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
+            this.standardOptions.put(TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
+            return this;
         }
 
         @Override

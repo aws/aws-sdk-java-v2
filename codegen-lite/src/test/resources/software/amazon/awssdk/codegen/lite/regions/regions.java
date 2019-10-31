@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An Amazon Web Services region that hosts a set of Amazon services.
@@ -99,7 +100,8 @@ public final class Region {
 
     private static Region of(String value, boolean isGlobalRegion) {
         Validate.paramNotBlank(value, "region");
-        return RegionCache.put(value, isGlobalRegion);
+        String urlEncodedValue = SdkHttpUtils.urlEncode(value);
+        return RegionCache.put(urlEncodedValue, isGlobalRegion);
     }
 
     public static List<Region> regions() {

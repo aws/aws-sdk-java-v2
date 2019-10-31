@@ -780,7 +780,7 @@
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
-          "documentation": "The smoothing latency in milliseconds for RTP and RTP-FEC streams."
+          "documentation": "The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams."
         },
         "StreamId": {
           "shape": "__string",
@@ -994,6 +994,11 @@
     "Entitlement": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1107,6 +1112,11 @@
     "GrantEntitlementRequest": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1303,6 +1313,11 @@
     "ListedEntitlement": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "EntitlementArn": {
           "shape": "__string",
           "locationName": "entitlementArn",
@@ -1404,6 +1419,11 @@
     "Output": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -1462,7 +1482,8 @@
         "zixi-push",
         "rtp-fec",
         "rtp",
-        "zixi-pull"
+        "zixi-pull",
+        "rist"
       ]
     },
     "RemoveFlowOutputRequest": {
@@ -1595,12 +1616,12 @@
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
-          "documentation": "The smoothing max bitrate for RTP and RTP-FEC streams."
+          "documentation": "The smoothing max bitrate for RIST, RTP, and RTP-FEC streams."
         },
         "MaxLatency": {
           "shape": "__integer",
           "locationName": "maxLatency",
-          "documentation": "The maximum latency in milliseconds for Zixi-based streams."
+          "documentation": "The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams."
         },
         "Name": {
           "shape": "__string",
@@ -1628,6 +1649,11 @@
     "Source": {
       "type": "structure",
       "members": {
+        "DataTransferSubscriberFeePercent": {
+          "shape": "__integer",
+          "locationName": "dataTransferSubscriberFeePercent",
+          "documentation": "Percentage from 0-100 of the data transfer cost to be billed to the subscriber."
+        },
         "Decryption": {
           "shape": "Encryption",
           "locationName": "decryption",
@@ -1807,12 +1833,12 @@
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
-          "documentation": "The smoothing max bitrate for RTP and RTP-FEC streams."
+          "documentation": "The smoothing max bitrate for RIST, RTP, and RTP-FEC streams."
         },
         "MaxLatency": {
           "shape": "__integer",
           "locationName": "maxLatency",
-          "documentation": "The maximum latency in milliseconds for Zixi-based streams."
+          "documentation": "The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams."
         },
         "Protocol": {
           "shape": "Protocol",
@@ -1827,7 +1853,7 @@
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
-          "documentation": "The smoothing latency in milliseconds for RTP and RTP-FEC streams."
+          "documentation": "The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams."
         },
         "StreamId": {
           "shape": "__string",
@@ -2021,7 +2047,7 @@
         "SmoothingLatency": {
           "shape": "__integer",
           "locationName": "smoothingLatency",
-          "documentation": "The smoothing latency in milliseconds for RTP and RTP-FEC streams."
+          "documentation": "The smoothing latency in milliseconds for RIST, RTP, and RTP-FEC streams."
         },
         "StreamId": {
           "shape": "__string",
@@ -2081,12 +2107,12 @@
         "MaxBitrate": {
           "shape": "__integer",
           "locationName": "maxBitrate",
-          "documentation": "The smoothing max bitrate for RTP and RTP-FEC streams."
+          "documentation": "The smoothing max bitrate for RIST, RTP, and RTP-FEC streams."
         },
         "MaxLatency": {
           "shape": "__integer",
           "locationName": "maxLatency",
-          "documentation": "The maximum latency in milliseconds for Zixi-based streams."
+          "documentation": "The maximum latency in milliseconds. This parameter applies only to RIST-based and Zixi-based streams."
         },
         "Protocol": {
           "shape": "Protocol",

@@ -1,0 +1,21 @@
+{
+    "version": "2.7.31",
+    "date": "2019-08-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "description": "Amazon Transcribe - support transcriptions from audio sources in Russian (ru-RU) and Chinese (zh-CN)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release of EC2 VM Import Export adds support for exporting Amazon Machine Image(AMI)s to a VM file"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage VOD",
+            "description": "Adds optional Constant Initialization Vector (IV) to HLS Encryption for MediaPackage VOD."
+        }
+    ]
+}

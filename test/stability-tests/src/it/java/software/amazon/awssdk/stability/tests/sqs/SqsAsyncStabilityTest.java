@@ -47,6 +47,7 @@ public class SqsAsyncStabilityTest extends SqsBaseStabilityTest {
         if (queueUrl != null) {
             sqsAsyncClient.deleteQueue(b -> b.queueUrl(queueUrl));
         }
+        sqsAsyncClient.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
