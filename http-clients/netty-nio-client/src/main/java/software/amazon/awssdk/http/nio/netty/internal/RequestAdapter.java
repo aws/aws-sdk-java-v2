@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -38,7 +37,8 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public final class RequestAdapter {
 
-    private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaderNames.HOST.toString());
+    private static final String HOST = "Host"; // can't use netty's because of case
+    private static final List<String> IGNORE_HEADERS = Arrays.asList(HOST);
 
     private final Protocol protocol;
 
@@ -66,7 +66,7 @@ public final class RequestAdapter {
      */
     private void addHeadersToRequest(DefaultHttpRequest httpRequest, SdkHttpRequest request, URI originalUri) {
 
-        httpRequest.headers().add(HttpHeaderNames.HOST, getHostHeaderValue(request));
+        httpRequest.headers().add(HOST, getHostHeaderValue(request));
         if (protocol == Protocol.HTTP2 && !StringUtils.isBlank(originalUri.getScheme())) {
             httpRequest.headers().add(ExtensionHeaderNames.SCHEME.text(), originalUri.getScheme());
         }
