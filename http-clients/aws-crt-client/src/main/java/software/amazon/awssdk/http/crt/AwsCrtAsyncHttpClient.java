@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.http.HttpConnectionPoolManager;
+import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
@@ -65,7 +65,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
 
-    private final Map<URI, HttpConnectionPoolManager> connectionPools = new ConcurrentHashMap<>();
+    private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
     private final ClientBootstrap bootstrap;
@@ -95,7 +95,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         bootstrap = own(new ClientBootstrap(builder.eventLoopSize));
         socketOptions = own(new SocketOptions());
-        tlsContextOptions = own(new TlsContextOptions().withCipherPreference(builder.cipherPreference));
+        tlsContextOptions = own(TlsContextOptions.createDefaultClient().withCipherPreference(builder.cipherPreference));
         tlsContextOptions.setVerifyPeer(builder.verifyPeer);
         tlsContext = own(new TlsContext(tlsContextOptions));
 
@@ -131,22 +131,22 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return AWS_COMMON_RUNTIME;
     }
 
-    private HttpConnectionPoolManager createConnectionPool(URI uri) {
+    private HttpClientConnectionManager createConnectionPool(URI uri) {
         Validate.notNull(uri, "URI must not be null");
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        return new HttpConnectionPoolManager(bootstrap, socketOptions, tlsContext, uri,
-                                                HttpConnectionPoolManager.DEFAULT_MAX_BUFFER_SIZE, windowSize,
+        return new HttpClientConnectionManager(bootstrap, socketOptions, tlsContext, uri,
+                                                HttpClientConnectionManager.DEFAULT_MAX_BUFFER_SIZE, windowSize,
                                                 maxConnectionsPerEndpoint);
     }
 
-    private HttpConnectionPoolManager getOrCreateConnectionPool(URI uri) {
+    private HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
         Validate.notNull(uri, "URI must not be null");
-        HttpConnectionPoolManager connPool = connectionPools.get(uri);
+        HttpClientConnectionManager connPool = connectionPools.get(uri);
 
         if (connPool == null) {
-            HttpConnectionPoolManager newConnPool = createConnectionPool(uri);
-            HttpConnectionPoolManager alreadyExistingConnPool = connectionPools.putIfAbsent(uri, newConnPool);
+            HttpClientConnectionManager newConnPool = createConnectionPool(uri);
+            HttpClientConnectionManager alreadyExistingConnPool = connectionPools.putIfAbsent(uri, newConnPool);
 
             if (alreadyExistingConnPool == null) {
                 connPool = newConnPool;
@@ -222,7 +222,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.notNull(asyncRequest.responseHandler(), "ResponseHandler must not be null");
 
         URI uri = toUri(asyncRequest.request());
-        HttpConnectionPoolManager crtConnPool = getOrCreateConnectionPool(uri);
+        HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(uri);
         HttpRequest crtRequest = toCrtRequest(uri, asyncRequest);
 
         CompletableFuture<Void> requestFuture = new CompletableFuture<>();
@@ -249,7 +249,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public void close() {
         isClosed.set(true);
-        for (HttpConnectionPoolManager connPool : connectionPools.values()) {
+        for (HttpClientConnectionManager connPool : connectionPools.values()) {
             IoUtils.closeQuietly(connPool, log.logger());
         }
 
