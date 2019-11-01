@@ -605,4 +605,24 @@ public final class StringUtils {
     public static String replacePrefixIgnoreCase(String str, String prefix, String replacement) {
         return str.replaceFirst("(?i)" + prefix, replacement);
     }
+
+
+    /**
+     * Searches a string for the first occurrence of a character specified by a list of characters.
+     * @param s The string to search.
+     * @param charsToMatch A list of characters to search the string for.
+     * @return The character that was first matched in the string or null if none of the characters were found.
+     */
+    public static Character findFirstOccurrence(String s, char ...charsToMatch) {
+        int lowestIndex = Integer.MAX_VALUE;
+
+        for (char toMatch : charsToMatch) {
+            int currentIndex = s.indexOf(toMatch);
+            if (currentIndex != -1 && currentIndex < lowestIndex) {
+                lowestIndex = currentIndex;
+            }
+        }
+
+        return lowestIndex == Integer.MAX_VALUE ? null : s.charAt(lowestIndex);
+    }
 }

@@ -82,6 +82,7 @@ abstract class AddShapes {
         shapeModel.setWrapper(shape.isWrapper());
         shapeModel.withIsEventStream(shape.isEventStream());
         shapeModel.withIsEvent(shape.isEvent());
+        shapeModel.withXmlNamespace(shape.getXmlNamespace());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;
@@ -184,6 +185,7 @@ abstract class AddShapes {
         memberModel.setEventPayload(c2jMemberDefinition.isEventPayload());
         memberModel.setEventHeader(c2jMemberDefinition.isEventHeader());
         memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointDiscoveryId());
+        memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {

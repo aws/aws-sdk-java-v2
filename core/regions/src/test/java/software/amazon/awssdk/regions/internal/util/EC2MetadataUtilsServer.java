@@ -110,6 +110,10 @@ public class EC2MetadataUtilsServer {
 
         } else if (path.equals("/latest/dynamic/instance-identity/document")) {
             outputInstanceInfo(output);
+
+        } else if (path.equals("/latest/dynamic/instance-identity/signature")) {
+            outputInstanceSignature(output);
+
         } else {
             throw new RuntimeException("Unknown path: " + path);
         }
@@ -213,8 +217,21 @@ public class EC2MetadataUtilsServer {
                + "\"version\":\"2010-08-31\","
                + "\"availabilityZone\":\"us-east-1b\","
                + "\"privateIp\":\"10.201.215.38\","
-               + "\"devpayProductCodes\":[\"bar\"]"
+               + "\"devpayProductCodes\":[\"bar\"],"
+               + "\"marketplaceProductCodes\":[\"qaz\"]"
                + "}";
+    }
+
+    private void outputInstanceSignature(PrintWriter output) {
+        String payload = "foobar";
+
+        output.println("HTTP/1.1 200 OK");
+        output.println("Connection: close");
+        output.println("Content-Length: " + payload.length());
+        output.println();
+
+        output.print(payload);
+        output.flush();
     }
 
 }

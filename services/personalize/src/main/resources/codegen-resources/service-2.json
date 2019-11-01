@@ -76,7 +76,8 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceAlreadyExistsException"},
-        {"shape":"LimitExceededException"}
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceInUseException"}
       ],
       "documentation":"<p>Creates a job that imports training data from your data source (an Amazon S3 bucket) to an Amazon Personalize dataset. To allow Amazon Personalize to import the training data, you must specify an AWS Identity and Access Management (IAM) role that has permission to read from the data source.</p> <important> <p>The dataset import job replaces any previous data in the dataset.</p> </important> <p> <b>Status</b> </p> <p>A dataset import job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul> <p>To get the status of the import job, call <a>DescribeDatasetImportJob</a>, providing the Amazon Resource Name (ARN) of the dataset import job. The dataset import is complete when the status shows as ACTIVE. If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the job failed.</p> <note> <p>Importing takes time. You must wait until the status shows as ACTIVE before training a model using the dataset.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListDatasetImportJobs</a> </p> </li> <li> <p> <a>DescribeDatasetImportJob</a> </p> </li> </ul>"
     },
@@ -528,7 +529,8 @@
       "output":{"shape":"ListSolutionVersionsResponse"},
       "errors":[
         {"shape":"InvalidInputException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidNextTokenException"}
       ],
       "documentation":"<p>Returns a list of solution versions for the given solution. When a solution is not specified, all the solution versions associated with the account are listed. The response provides the properties for each solution version, including the Amazon Resource Name (ARN). For more information on solutions, see <a>CreateSolution</a>.</p>",
       "idempotent":true
@@ -669,6 +671,7 @@
       "type":"string",
       "max":10000
     },
+    "Boolean":{"type":"boolean"},
     "Campaign":{
       "type":"structure",
       "members":{
@@ -1030,7 +1033,7 @@
           "documentation":"<p>The name for the solution.</p>"
         },
         "performHPO":{
-          "shape":"PerformHPO",
+          "shape":"Boolean",
           "documentation":"<p>Whether to perform hyperparameter optimization (HPO) on the specified or selected recipe. The default is <code>false</code>.</p> <p>When performing AutoML, this parameter is always <code>true</code> and you should not set it to <code>false</code>.</p>"
         },
         "performAutoML":{
@@ -1071,6 +1074,10 @@
         "solutionArn":{
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the solution containing the training configuration information.</p>"
+        },
+        "trainingMode":{
+          "shape":"TrainingMode",
+          "documentation":"<p>The scope of training to be performed when creating the solution version. The <code>FULL</code> option trains the solution version based on the entirety of the input solution's training data, while the <code>UPDATE</code> option processes only the data that has changed in comparison to the input solution. Choose <code>UPDATE</code> when you want to incrementally update your solution version instead of creating an entirely new one.</p> <important> <p>The <code>UPDATE</code> option can only be used when you already have an active solution version created from the input solution using the <code>FULL</code> option and the input solution was trained with the <a>native-recipe-hrnn-coldstart</a> recipe.</p> </important>"
         }
       }
     },
@@ -1931,11 +1938,11 @@
       "members":{
         "maxNumberOfTrainingJobs":{
           "shape":"HPOResource",
-          "documentation":"<p>The maximum number of training jobs.</p>"
+          "documentation":"<p>The maximum number of training jobs when you create a solution version. The maximum value for <code>maxNumberOfTrainingJobs</code> is <code>40</code>.</p>"
         },
         "maxParallelTrainingJobs":{
           "shape":"HPOResource",
-          "documentation":"<p>The maximum number of parallel training jobs.</p>"
+          "documentation":"<p>The maximum number of parallel training jobs when you create a solution version. The maximum value for <code>maxParallelTrainingJobs</code> is <code>10</code>.</p>"
         }
       },
       "documentation":"<p>Describes the resource configuration for hyperparameter optimization (HPO).</p>"
@@ -2574,7 +2581,7 @@
         },
         "performAutoML":{
           "shape":"PerformAutoML",
-          "documentation":"<p>When true, Amazon Personalize performs a search for the most optimal recipe according to the solution configuration. When false (the default), Amazon Personalize uses <code>recipeArn</code>.</p>"
+          "documentation":"<p>When true, Amazon Personalize searches for the most optimal recipe according to the solution configuration. When false (the default), Amazon Personalize uses <code>recipeArn</code>.</p>"
         },
         "recipeArn":{
           "shape":"Arn",
@@ -2592,13 +2599,21 @@
           "shape":"SolutionConfig",
           "documentation":"<p>Describes the configuration properties for the solution.</p>"
         },
+        "trainingHours":{
+          "shape":"TrainingHours",
+          "documentation":"<p>The time used to train the model. You are billed for the time it takes to train a model. This field is visible only after Amazon Personalize successfully trains a model.</p>"
+        },
+        "trainingMode":{
+          "shape":"TrainingMode",
+          "documentation":"<p>The scope of training used to create the solution version. The <code>FULL</code> option trains the solution version based on the entirety of the input solution's training data, while the <code>UPDATE</code> option processes only the training data that has changed since the creation of the last solution version. Choose <code>UPDATE</code> when you want to start recommending items added to the dataset without retraining the model.</p> <important> <p>The <code>UPDATE</code> option can only be used after you've created a solution version with the <code>FULL</code> option and the training solution uses the <a>native-recipe-hrnn-coldstart</a>.</p> </important>"
+        },
         "status":{
           "shape":"Status",
-          "documentation":"<p>The status of the solution version.</p> <p>A solution version can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul>"
+          "documentation":"<p>The status of the solution version.</p> <p>A solution version can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING</p> </li> <li> <p>CREATE IN_PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> </ul>"
         },
         "failureReason":{
           "shape":"FailureReason",
-          "documentation":"<p>If training a solution version fails, the reason behind the failure.</p>"
+          "documentation":"<p>If training a solution version fails, the reason for the failure.</p>"
         },
         "creationDateTime":{
           "shape":"Date",
@@ -2655,9 +2670,20 @@
       "type":"string",
       "max":256
     },
+    "TrainingHours":{
+      "type":"double",
+      "min":0
+    },
     "TrainingInputMode":{
       "type":"string",
       "max":256
+    },
+    "TrainingMode":{
+      "type":"string",
+      "enum":[
+        "FULL",
+        "UPDATE"
+      ]
     },
     "TransactionsPerSecond":{
       "type":"integer",

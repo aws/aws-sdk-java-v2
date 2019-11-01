@@ -40,6 +40,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class RegionGenerator implements PoetClass {
 
@@ -153,7 +154,9 @@ public class RegionGenerator implements PoetClass {
                          .addParameter(boolean.class, "isGlobalRegion")
                          .returns(className())
                          .addStatement("$T.paramNotBlank($L, $S)", Validate.class, "value", "region")
-                         .addStatement("return $L.put($L, $L)", "RegionCache", "value", "isGlobalRegion")
+                         .addStatement("$T $L = $T.urlEncode($L)",
+                                       String.class, "urlEncodedValue", SdkHttpUtils.class, "value")
+                         .addStatement("return $L.put($L, $L)", "RegionCache", "urlEncodedValue", "isGlobalRegion")
                          .build();
 
     }

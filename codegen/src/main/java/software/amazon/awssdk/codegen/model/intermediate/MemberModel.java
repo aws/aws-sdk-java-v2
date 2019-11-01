@@ -86,6 +86,8 @@ public class MemberModel extends DocumentationModel {
 
     private boolean sensitive;
 
+    private boolean xmlAttribute;
+
     public String getName() {
         return name;
     }
@@ -542,6 +544,19 @@ public class MemberModel extends DocumentationModel {
 
     public boolean isSensitive() {
         return sensitive;
+    }
+
+    public boolean isXmlAttribute() {
+        return xmlAttribute;
+    }
+
+    public void setXmlAttribute(boolean xmlAttribute) {
+        this.xmlAttribute = xmlAttribute;
+    }
+
+    public MemberModel withXmlAttribtue(boolean xmlAttribtue) {
+        this.xmlAttribute = xmlAttribtue;
+        return this;
     }
 
     @JsonIgnore

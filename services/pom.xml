@@ -4,14 +4,11 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.7.23-SNAPSHOT</version>
+        <version>2.10.7-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
     <packaging>pom</packaging>
-    <properties>
-        <root.offset>../..</root.offset>
-    </properties>
     <modules>
         <module>acm</module>
         <module>apigateway</module>
@@ -93,6 +90,7 @@
         <module>route53</module>
         <module>route53domains</module>
         <module>s3</module>
+        <module>s3control</module>
         <module>sms</module>
         <module>servicecatalog</module>
         <module>ses</module>
@@ -195,6 +193,11 @@
         <module>ec2instanceconnect</module>
         <module>eventbridge</module>
         <module>lakeformation</module>
+        <module>forecast</module>
+        <module>forecastquery</module>
+        <module>qldb</module>
+        <module>qldbsession</module>
+        <module>workmailmessageflow</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

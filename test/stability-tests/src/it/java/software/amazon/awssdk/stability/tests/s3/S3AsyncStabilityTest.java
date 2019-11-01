@@ -45,6 +45,7 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(bucketName);
+        s3NettyClient.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
@@ -58,6 +59,18 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     public void largeObject_put_get_usingFile() {
         uploadLargeObjectFromFile();
         downloadLargeObjectToFile();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void getBucketAcl_lowTpsLongInterval() {
+        IntFunction<CompletableFuture<?>> future = i -> s3NettyClient.getBucketAcl(b -> b.bucket(bucketName));
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.getBucketAcl_lowTpsLongInterval")
+                           .futureFactory(future)
+                           .requestCountPerRun(10)
+                           .totalRuns(3)
+                           .delaysBetweenEachRun(Duration.ofSeconds(6))
+                           .run();
     }
 
     private void downloadLargeObjectToFile() {

@@ -67,6 +67,7 @@ public final class EC2MetadataUtils {
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
     private static final String REGION = "region";
     private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
+    private static final String INSTANCE_IDENTITY_SIGNATURE = "instance-identity/signature";
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
     private static final String EC2_USERDATA_ROOT = "/latest/user-data/";
     private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
@@ -253,6 +254,13 @@ public final class EC2MetadataUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Get the signature of the instance.
+     */
+    public static String getInstanceSignature() {
+        return fetchData(EC2_DYNAMICDATA_ROOT + INSTANCE_IDENTITY_SIGNATURE);
     }
 
     /**
@@ -484,6 +492,7 @@ public final class EC2MetadataUtils {
         private final String availabilityZone;
         private final String privateIp;
         private final String[] devpayProductCodes;
+        private final String[] marketplaceProductCodes;
 
         @JsonCreator
         public InstanceInfo(
@@ -500,7 +509,8 @@ public final class EC2MetadataUtils {
                 @JsonProperty(value = "version", required = true) String version,
                 @JsonProperty(value = "availabilityZone", required = true) String availabilityZone,
                 @JsonProperty(value = "privateIp", required = true) String privateIp,
-                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes) {
+                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes,
+                @JsonProperty(value = "marketplaceProductCodes", required = false) String[] marketplaceProductCodes) {
             this.pendingTime = pendingTime;
             this.instanceType = instanceType;
             this.imageId = imageId;
@@ -517,6 +527,8 @@ public final class EC2MetadataUtils {
             this.privateIp = privateIp;
             this.devpayProductCodes = devpayProductCodes == null
                                       ? null : devpayProductCodes.clone();
+            this.marketplaceProductCodes = marketplaceProductCodes == null
+                                           ? null : marketplaceProductCodes.clone();
         }
 
         public String getPendingTime() {
@@ -573,6 +585,10 @@ public final class EC2MetadataUtils {
 
         public String[] getDevpayProductCodes() {
             return devpayProductCodes == null ? null : devpayProductCodes.clone();
+        }
+
+        public String[] getMarketplaceProductCodes() {
+            return marketplaceProductCodes == null ? null : marketplaceProductCodes.clone();
         }
     }
 
