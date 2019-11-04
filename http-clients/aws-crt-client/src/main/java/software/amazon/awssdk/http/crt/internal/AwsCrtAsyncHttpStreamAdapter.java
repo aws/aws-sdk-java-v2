@@ -89,7 +89,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     }
 
     @Override
-    public int onResponseBody(HttpStream stream, ByteBuffer bodyBytesIn) {
+    public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
         initRespBodyPublisherIfNeeded(stream);
 
         if (respBodyPublisher == null) {
@@ -99,10 +99,10 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
 
         // Queue a Deep Copy since bodyBytesIn is only guaranteed to contain valid memory for the lifetime of this
         // function call, and it's memory can be reused once this function returns.
-        respBodyPublisher.queueBuffer(deepCopy(bodyBytesIn));
+        respBodyPublisher.queueBuffer(bodyBytesIn);
         respBodyPublisher.publishToSubscribers();
 
-        if (bodyBytesIn.remaining() != 0) {
+        if (bodyBytesIn.length != 0) {
             throw new IllegalStateException("Unprocessed bytes remain in bodyBytesIn Buffer!");
         }
 

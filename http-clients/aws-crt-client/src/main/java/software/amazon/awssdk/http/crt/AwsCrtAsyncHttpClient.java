@@ -135,8 +135,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.notNull(uri, "URI must not be null");
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        return new HttpClientConnectionManager(bootstrap, socketOptions, tlsContext, uri,
-                                                HttpClientConnectionManager.DEFAULT_MAX_BUFFER_SIZE, windowSize,
+        return new HttpClientConnectionManager(bootstrap, socketOptions, tlsContext, uri, windowSize,
                                                 maxConnectionsPerEndpoint);
     }
 
