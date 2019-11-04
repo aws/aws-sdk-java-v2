@@ -53,7 +53,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
     private final AtomicInteger mutualRecursionDepth = new AtomicInteger(0);
     private final AtomicInteger queuedBytes = new AtomicInteger(0);
     private final AtomicReference<Subscriber<? super ByteBuffer>> subscriberRef = new AtomicReference<>(null);
-    private final Queue<ByteBuffer> queuedBuffers = new ConcurrentLinkedQueue<>();
+    private final Queue<byte[]> queuedBuffers = new ConcurrentLinkedQueue<>();
     private final AtomicReference<Throwable> error = new AtomicReference<>(null);
 
     /**
@@ -97,18 +97,18 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
      * Adds a Buffer to the Queue to be published to any Subscribers
      * @param buffer The Buffer to be queued.
      */
-    public void queueBuffer(ByteBuffer buffer) {
+    public void queueBuffer(byte[] buffer) {
         Validate.notNull(buffer, "ByteBuffer must not be null");
 
         if (isCancelled.get()) {
             // Immediately open HttpStream's IO window so it doesn't see any IO Back-pressure.
             // AFAIK there's no way to abort an in-progress HttpStream, only free it's memory by calling close()
-            stream.incrementWindow(buffer.remaining());
+            stream.incrementWindow(buffer.length);
             return;
         }
 
         queuedBuffers.add(buffer);
-        int totalBytesQueued = queuedBytes.addAndGet(buffer.remaining());
+        int totalBytesQueued = queuedBytes.addAndGet(buffer.length);
 
         if (totalBytesQueued > windowSize) {
             throw new IllegalStateException("Queued more than Window Size: queued=" + totalBytesQueued
@@ -230,10 +230,10 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         int totalAmountTransferred = 0;
 
         while (outstandingRequests.get() > 0 && queuedBuffers.size() > 0) {
-            ByteBuffer buffer = queuedBuffers.poll();
+            byte[] buffer = queuedBuffers.poll();
             outstandingRequests.getAndUpdate(DECREMENT_IF_GREATER_THAN_ZERO);
-            int amount = buffer.remaining();
-            publishWithoutMutualRecursion(subscriberRef.get(), buffer);
+            int amount = buffer.length;
+            publishWithoutMutualRecursion(subscriberRef.get(), ByteBuffer.wrap(buffer));
             totalAmountTransferred += amount;
         }
 
