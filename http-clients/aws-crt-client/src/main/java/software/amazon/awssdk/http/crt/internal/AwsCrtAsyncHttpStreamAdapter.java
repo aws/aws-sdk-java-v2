@@ -97,8 +97,6 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
             throw new IllegalStateException("Publisher is null, onResponseHeadersDone() was never called");
         }
 
-        // Queue a Deep Copy since bodyBytesIn is only guaranteed to contain valid memory for the lifetime of this
-        // function call, and it's memory can be reused once this function returns.
         respBodyPublisher.queueBuffer(bodyBytesIn);
         respBodyPublisher.publishToSubscribers();
 
