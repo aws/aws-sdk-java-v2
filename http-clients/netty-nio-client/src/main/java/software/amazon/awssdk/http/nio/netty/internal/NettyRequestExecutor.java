@@ -114,7 +114,6 @@ public final class NettyRequestExecutor {
                 if (!channelPromise.isSuccess()) {
                     return;
                 }
-                log.error("Exception caught but promise was already done", t);
                 Channel ch = channelPromise.getNow();
                 try {
                     ch.eventLoop().submit(() -> {
