@@ -100,10 +100,6 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
         respBodyPublisher.queueBuffer(bodyBytesIn);
         respBodyPublisher.publishToSubscribers();
 
-        if (bodyBytesIn.length != 0) {
-            throw new IllegalStateException("Unprocessed bytes remain in bodyBytesIn Buffer!");
-        }
-
         return 0;
     }
 
