@@ -248,8 +248,8 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             }
         }
 
-        // Check if Complete
-        if (queueComplete.get() && queuedBuffers.size() == 0) {
+        // Check if Complete, consider no subscriber as a completion.
+        if (queueComplete.get() && (subscriberRef.get() == null || queuedBuffers.size() == 0)) {
             completeSubscriptionExactlyOnce();
         }
     }
