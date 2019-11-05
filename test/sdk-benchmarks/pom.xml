@@ -193,7 +193,7 @@
         <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
-            <version>0.3.35</version>
+            <version>0.4.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
