@@ -42,7 +42,7 @@ public class AwsCrtResponseBodyPublisherReactiveStreamCompatTest extends Publish
         AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, new CompletableFuture<>(), Integer.MAX_VALUE);
 
         for (long i = 0; i < elements; i++) {
-            bodyPublisher.queueBuffer(ByteBuffer.wrap(UUID.randomUUID().toString().getBytes()));
+            bodyPublisher.queueBuffer(UUID.randomUUID().toString().getBytes());
         }
 
         bodyPublisher.setQueueComplete();
