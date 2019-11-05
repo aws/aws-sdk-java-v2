@@ -1,3 +1,12 @@
+# __2.10.9__ __2019-11-05__
+## __AWS CodeStar Notifications__
+  - ### Features
+    - This release adds a notification manager for events in repositories, build projects, deployments, and pipelines. You can now configure rules and receive notifications about events that occur for resources. Each notification includes a status message as well as a link to the resource (repository, build project, deployment application, or pipeline) whose event generated the notification.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for Amazon RDS
+
 # __2.10.8__ __2019-11-04__
 ## __AWS RoboMaker__
   - ### Features
