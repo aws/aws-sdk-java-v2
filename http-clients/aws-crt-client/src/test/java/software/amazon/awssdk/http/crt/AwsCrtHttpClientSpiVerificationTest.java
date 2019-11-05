@@ -37,8 +37,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -238,7 +238,6 @@ public class AwsCrtHttpClientSpiVerificationTest {
         byte[] expectedBody = generateRandomBody(TEST_BODY_LEN);
         stubFor(any(urlEqualTo(pathExpect200)).withRequestBody(binaryEqualTo(expectedBody)).willReturn(aResponse().withStatus(200)));
         makePutRequest(pathExpect200, expectedBody, 200);
-
 
         String pathExpect404 = "/testPutRequest/return_404_always";
         byte[] randomBody = generateRandomBody(TEST_BODY_LEN);
