@@ -201,6 +201,25 @@ public class AwsCrtHttpClientSpiVerificationTest {
         final AtomicReference<SdkHttpResponse> response = new AtomicReference<>(null);
         final AtomicReference<Throwable> error = new AtomicReference<>(null);
 
+        Subscriber<ByteBuffer> subscriber = new Subscriber<ByteBuffer>() {
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                subscription.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        };
+
         SdkAsyncHttpResponseHandler handler = new SdkAsyncHttpResponseHandler() {
             @Override
             public void onHeaders(SdkHttpResponse headers) {
@@ -208,6 +227,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
             }
             @Override
             public void onStream(Publisher<ByteBuffer> stream) {
+                stream.subscribe(subscriber);
                 streamReceived.complete(true);
             }
 

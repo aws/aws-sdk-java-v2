@@ -132,6 +132,12 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
             outstandingReqs = outstandingRequests.addAndGet(n);
         }
 
+        /*
+         * Since we buffer, in the case where the subscriber came in after the publication has already begun,
+         * go ahead and flush what we have.
+         */
+        publishToSubscribers();
+
         log.trace(() -> "Subscriber Requested more Buffers. Outstanding Requests: " + outstandingReqs);
     }
 
@@ -249,7 +255,7 @@ public class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
         }
 
         // Check if Complete, consider no subscriber as a completion.
-        if (queueComplete.get() && (subscriberRef.get() == null || queuedBuffers.size() == 0)) {
+        if (queueComplete.get() && queuedBuffers.size() == 0) {
             completeSubscriptionExactlyOnce();
         }
     }
