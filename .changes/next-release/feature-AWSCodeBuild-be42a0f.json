@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "description": "Add support for Build Number, Secrets Manager and Exported Environment Variables."
+}
