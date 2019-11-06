@@ -34,6 +34,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
  * @see ProfileCredentialsProvider
+ * @see WebIdentityTokenFileCredentialsProvider
  * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
@@ -71,6 +72,7 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
                     SystemPropertyCredentialsProvider.create(),
                     EnvironmentVariableCredentialsProvider.create(),
                     ProfileCredentialsProvider.create(),
+                    WebIdentityTokenFileCredentialsProvider.create(),
                     ContainerCredentialsProvider.builder()
                                                 .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                 .build(),
