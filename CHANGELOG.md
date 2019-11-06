@@ -1,3 +1,12 @@
+# __2.10.11__ __2019-11-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added the web identity credentials provider to the default credential chain
+
+## __AWS Savings Plans__
+  - ### Features
+    - This is the first release of Savings Plans, a new flexible pricing model that offers low prices on Amazon EC2 and AWS Fargate usage.
+
 # __2.10.10__ __2019-11-06__
 ## __AWS Budgets__
   - ### Features
