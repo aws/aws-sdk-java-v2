@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Signer",
-    "description": "This release adds support for tagging code-signing profiles in AWS Signer."
-}
