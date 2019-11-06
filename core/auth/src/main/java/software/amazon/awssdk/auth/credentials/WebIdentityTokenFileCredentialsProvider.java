@@ -156,7 +156,7 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
             return this;
         }
 
-        public void setwebIdentityTokenFile(Path webIdentityTokenFile) {
+        public void setWebIdentityTokenFile(Path webIdentityTokenFile) {
             webIdentityTokenFile(webIdentityTokenFile);
         }
 
