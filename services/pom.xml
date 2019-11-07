@@ -200,6 +200,7 @@
         <module>workmailmessageflow</module>
         <module>codestarnotifications</module>
         <module>savingsplans</module>
+        <module>sso</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
