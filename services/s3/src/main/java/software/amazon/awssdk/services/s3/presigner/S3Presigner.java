@@ -32,8 +32,11 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.presigner.DefaultS3Presigner;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
  * Enables signing an S3 {@link SdkRequest} so that it can be executed without requiring any additional authentication on the
@@ -261,6 +264,51 @@ public interface S3Presigner extends SdkPresigner {
         GetObjectPresignRequest.Builder builder = GetObjectPresignRequest.builder();
         request.accept(builder);
         return presignGetObject(builder.build());
+    }
+
+    /**
+     * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a PutObjectRequest to be pre-signed
+     *     PutObjectRequest putObjectRequest = ...;
+     *
+     *     // Create a PutObjectPresignRequest to specify the signature duration
+     *     PutObjectPresignRequest putObjectPresignRequest =
+     *         PutObjectPresignRequest.builder()
+     *                                .signatureDuration(Duration.ofMinutes(10))
+     *                                .putObjectRequest(request)
+     *                                .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedPutObjectRequest presignedPutObjectRequest =
+     *         presigner.presignPutObject(putObjectPresignRequest);
+     * }
+     * </pre>
+     */
+    PresignedPutObjectRequest presignPutObject(PutObjectPresignRequest request);
+
+    /**
+     * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignPutObject(PutObjectPresignRequest)} without needing
+     * to call {@code PutObjectPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignPutObject(PutObjectPresignRequest)
+     */
+    default PresignedPutObjectRequest presignPutObject(Consumer<PutObjectPresignRequest.Builder> request) {
+        PutObjectPresignRequest.Builder builder = PutObjectPresignRequest.builder();
+        request.accept(builder);
+        return presignPutObject(builder.build());
     }
 
     /**
