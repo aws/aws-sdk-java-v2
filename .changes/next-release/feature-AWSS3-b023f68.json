@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS S3",
+    "description": "Added support for presignPutObject in S3Presigner."
+}
