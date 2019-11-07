@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO OIDC",
-    "description": "This is an initial release of AWS Single Sign-On OAuth device code authorization service."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Netty NIO HTTP Client",
-    "description": "Switch from setting the absolute URI in HTTP requests with no `Host` header to setting the absolute request path and query paramters and a `Host` header."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "AWS Systems Manager Session Manager target length increased to 400."
-}
