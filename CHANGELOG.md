@@ -1,3 +1,202 @@
+# __2.10.12__ __2019-11-07__
+## __AWS S3__
+  - ### Features
+    - Added support for presignPutObject in S3Presigner.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - This is an initial release of AWS Single Sign-On OAuth device code authorization service.
+
+## __AWS Single Sign-On__
+  - ### Features
+    - This is an initial release of AWS Single Sign-On (SSO) end-user access. This release adds support for accessing AWS accounts assigned in AWS SSO using short term credentials.
+
+## __Amazon Comprehend__
+  - ### Features
+    - This release adds new languages (ar, hi, ko, ja, zh, zh-TW) for Amazon Comprehend's DetectSentiment, DetectEntities, DetectKeyPhrases, BatchDetectSentiment, BatchDetectEntities and BatchDetectKeyPhrases APIs
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager Session Manager target length increased to 400.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Switch from setting the absolute URI in HTTP requests with no `Host` header to setting the absolute request path and query paramters and a `Host` header.
+
+# __2.10.11__ __2019-11-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added the web identity credentials provider to the default credential chain
+
+## __AWS Savings Plans__
+  - ### Features
+    - This is the first release of Savings Plans, a new flexible pricing model that offers low prices on Amazon EC2 and AWS Fargate usage.
+
+# __2.10.10__ __2019-11-06__
+## __AWS Budgets__
+  - ### Features
+    - Documentation updates for budgets to track Savings Plans utilization and coverage
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for Build Number, Secrets Manager and Exported Environment Variables.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This launch provides customers with access to Savings Plans management APIs.
+
+## __AWS Savings Plans__
+  - ### Features
+    - This is the first release of Savings Plans, a new flexible pricing model that offers low prices on Amazon EC2 and AWS Fargate usage.
+
+## __AWS Signer__
+  - ### Features
+    - This release adds support for tagging code-signing profiles in AWS Signer.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS customers can select a lifecycle policy that automatically moves files that have not been accessed for 7 days into the EFS Infrequent Access (EFS IA) storage class. EFS IA provides price/performance that is cost-optimized for files that are not accessed every day.
+
+# __2.10.9__ __2019-11-05__
+## __AWS CodeStar Notifications__
+  - ### Features
+    - This release adds a notification manager for events in repositories, build projects, deployments, and pipelines. You can now configure rules and receive notifications about events that occur for resources. Each notification includes a status message as well as a link to the resource (repository, build project, deployment application, or pipeline) whose event generated the notification.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for Amazon RDS
+
+# __2.10.8__ __2019-11-04__
+## __AWS RoboMaker__
+  - ### Features
+    - RoboMaker Fleet Management launch a feature to verify your robot is ready to download and install the new robot application using a download condition file, which is a script run on the robot prior to downloading the new deployment.
+
+## __Amazon DynamoDB Accelerator (DAX)__
+  - ### Features
+    - Documentation updates for dax
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for ec2
+
+# __2.10.7__ __2019-11-01__
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds two new APIs, GetTrail and ListTrails, and support for adding tags when you create a trail by using a new TagsList parameter on CreateTrail operations.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - This release contains task timeline attributes in replication task statistics. This release also adds a note to the documentation for the CdcStartPosition task request parameter. This note describes how to enable the use of native CDC start points for a PostgreSQL source by setting the new slotName extra connection attribute on the source endpoint to the name of an existing logical replication slot.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API introduces support for using and managing journeys, and querying analytics data for journeys.
+
+# __2.10.6__ __2019-10-31__
+## __AWS Amplify__
+  - ### Features
+    - This release of AWS Amplify Console introduces support for Web Previews. This feature allows user to create ephemeral branch deployments from pull request submissions made to a connected repository. A pull-request preview deploys every pull request made to your Git repository to a unique preview URL.
+
+## __AWS Support__
+  - ### Features
+    - The status descriptions for TrustedAdvisorCheckRefreshStatus have been updated
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 Inventory now supports a new field 'IntelligentTieringAccessTier' that reports the access tier (frequent or infrequent) of objects stored in Intelligent-Tiering storage class.
+
+# __2.10.5__ __2019-10-30__
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache for Redis 5.0.5 now allows you to modify authentication tokens by setting and rotating new tokens. You can now modify active tokens while in use, or add brand-new tokens to existing encryption-in-transit enabled clusters that were previously setup without authentication tokens. This is a two-step process that allows you to set and rotate the token without interrupting client requests.
+
+# __2.10.4__ __2019-10-29__
+## __AWS Cloud9__
+  - ### Features
+    - Added CREATING and CREATE_FAILED environment lifecycle statuses.
+
+## __Amazon AppStream__
+  - ### Features
+    - Adds support for providing domain names that can embed streaming sessions
+
+# __2.10.3__ __2019-10-28__
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adding support in SelectObjectContent for scanning a portion of an object specified by a scan range.
+
+# __2.10.2__ __2019-10-28__
+## __AWS Transfer for SFTP__
+  - ### Features
+    - This release adds logical directories support to your AWS SFTP server endpoint, so you can now create logical directory structures mapped to Amazon Simple Storage Service (Amazon S3) bucket paths for users created and stored within the service. Amazon S3 bucket names and paths can now be hidden from AWS SFTP users, providing an additional level of privacy to meet security requirements. You can lock down your SFTP users' access to designated folders (commonly referred to as 'chroot'), and simplify complex folder structures for data distribution through SFTP without replicating files across multiple users.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release of Amazon Elastic Container Registry Service (Amazon ECR) introduces support for image scanning. This identifies the software vulnerabilities in the container image based on the Common Vulnerabilities and Exposures (CVE) database.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache adds support for migrating Redis workloads hosted on Amazon EC2 into ElastiCache by syncing the data between the source Redis cluster and target ElastiCache for Redis cluster in real time. For more information, see https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/migrate-to-elasticache.html.
+
+# __2.10.1__ __2019-10-25__
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - With this release, Amazon Transcribe Streaming now supports audio sources in Australian English (en-AU).
+
+# __2.10.0__ __2019-10-24__
+## __AWS App Mesh__
+  - ### Features
+    - This release adds support for the gRPC and HTTP/2 protocols.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updating to use Jackson 2.10.0 and Netty 4.1.42.Final
+
+## __Amazon Chime__
+  - ### Features
+    - This release introduces Voice Connector PDX region and defaults previously created Voice Connectors to IAD. You can create Voice Connector Groups and add region specific Voice Connectors to direct telephony traffic across AWS regions in case of regional failures. With this release you can add phone numbers to Voice Connector Groups and can bulk move phone numbers between Voice Connectors, between Voice Connector and Voice Connector Groups and between Voice Connector Groups. Voice Connector now supports additional settings to enable SIP Log capture. This is in addition to the launch of Voice Connector Cloud Watch metrics in this release. This release also supports assigning outbound calling name (CNAM) to AWS account and individual phone numbers assigned to Voice Connectors. * Voice Connector now supports a setting to enable real time audio streaming delivered via Kinesis Audio streams. Please note that recording Amazon Chime Voice Connector calls with this feature maybe be subject to laws or regulations regarding the recording of telephone calls and other electronic communications. AWS Customer and their end users' have the responsibility to comply with all applicable laws regarding the recording, including properly notifying all participants in a recorded session or to a recorded communication that the session or communication is being recorded and obtain their consent.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates CreateFpgaImage to support tagging FPGA images on creation
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift offers expanded hardware options for game hosting: Custom game builds can use the Amazon Linux 2 operating system, and fleets for both custom builds and Realtime servers can now use C5, M5, and R5 instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for the new family of Elastic Inference Accelerators (eia2) for SageMaker Hosting and Notebook Services
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Fix a race condition where the channel is closed right after all content is buffered, causing `server failed to complete the response` error by adding a flag when `LastHttpContentHandler` is received.
+
+# __2.9.26__ __2019-10-23__
+## __AWS Security Token Service__
+  - ### Features
+    - AWS Security Token Service (STS) now supports a regional configuration flag to make the client respect the region without the need for the endpoint parameter.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds 4 new APIs ListQueues, ListPhoneNumbers, ListContactFlows, and ListHoursOfOperations, which can be used to programmatically list Queues, PhoneNumbers, ContactFlows, and HoursOfOperations configured for an Amazon Connect instance respectively. You can learn more about the new APIs here: https://docs.aws.amazon.com/connect/latest/APIReference/Welcome.html.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new female voices: US Spanish - Lupe and Brazilian Portuguese - Camila; both voices are available in Standard and Neural engine.
+
+# __2.9.25__ __2019-10-22__
+## __AWS IoT Events__
+  - ### Features
+    - Add support for new serial evaluation method for events in a detector model.
+
+## __AWS OpsWorks CM__
+  - ### Features
+    - AWS OpsWorks for Chef Automate (OWCA) now allows customers to use a custom domain and respective certificate, for their AWS OpsWorks For Chef Automate servers. Customers can now provide a CustomDomain, CustomCertificate and CustomPrivateKey in CreateServer API to configure their Chef Automate servers with a custom domain and certificate.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Better handle `GOAWAY` messages from the remote endpoint.
+
 # __2.9.24__ __2019-10-18__
 ## __Amazon CloudWatch__
   - ### Features
