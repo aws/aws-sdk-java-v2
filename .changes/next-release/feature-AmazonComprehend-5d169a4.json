@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Comprehend",
+    "description": "This release adds new languages (ar, hi, ko, ja, zh, zh-TW) for Amazon Comprehend's DetectSentiment, DetectEntities, DetectKeyPhrases, BatchDetectSentiment, BatchDetectEntities and BatchDetectKeyPhrases APIs"
+}
