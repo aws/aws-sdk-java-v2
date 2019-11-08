@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Polly",
+    "description": "Add `PollyPresigner` which enables support for presigning `SynthesizeSpeech` requests."
+}
