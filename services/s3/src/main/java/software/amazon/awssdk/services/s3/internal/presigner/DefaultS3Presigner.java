@@ -65,10 +65,14 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -83,11 +87,13 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
+    private final PutObjectRequestMarshaller putObjectRequestMarshaller;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
         this.clientInterceptors = initializeInterceptors();
         this.getObjectRequestMarshaller = initializeGetObjectRequestMarshaller();
+        this.putObjectRequestMarshaller = initializePutObjectRequestMarshaller();
     }
 
     public static S3Presigner.Builder builder() {
@@ -117,6 +123,18 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     }
 
     /**
+     * Copied from {@code DefaultS3Client}.
+     */
+    private PutObjectRequestMarshaller initializePutObjectRequestMarshaller() {
+        // Copied from DefaultS3Client#init
+        AwsS3ProtocolFactory protocolFactory = AwsS3ProtocolFactory.builder()
+                                                                   .clientConfiguration(createClientConfiguration())
+                                                                   .build();
+        // Copied from DefaultS3Client#getObject
+        return new PutObjectRequestMarshaller(protocolFactory);
+    }
+
+    /**
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
@@ -143,6 +161,17 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        GetObjectRequest.class,
                        getObjectRequestMarshaller::marshall,
                        "GetObject")
+            .build();
+    }
+
+    @Override
+    public PresignedPutObjectRequest presignPutObject(PutObjectPresignRequest request) {
+        return presign(PresignedPutObjectRequest.builder(),
+                       request,
+                       request.putObjectRequest(),
+                       PutObjectRequest.class,
+                       putObjectRequestMarshaller::marshall,
+                       "PutObject")
             .build();
     }
 

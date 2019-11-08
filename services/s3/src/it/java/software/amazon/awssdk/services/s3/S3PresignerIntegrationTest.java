@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -27,23 +28,29 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class S3PresignerIntegrationTest {
     private static S3Client client;
     private static String testBucket;
     private static String testNonDnsCompatibleBucket;
-    private static String testObjectKey;
+    private static String testGetObjectKey;
     private static String testObjectContent;
 
     private S3Presigner presigner;
@@ -53,17 +60,21 @@ public class S3PresignerIntegrationTest {
         client = S3Client.create();
         testBucket = S3TestUtils.getTestBucket(client);
         testNonDnsCompatibleBucket = S3TestUtils.getNonDnsCompatibleTestBucket(client);
-        testObjectKey = "s3-presigner-it-" + UUID.randomUUID();
+        testGetObjectKey = generateRandomObjectKey();
         testObjectContent = "Howdy!";
 
-        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, testObjectKey, testObjectContent);
-        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testNonDnsCompatibleBucket, testObjectKey, testObjectContent);
+        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, testGetObjectKey, testObjectContent);
+        S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testNonDnsCompatibleBucket, testGetObjectKey, testObjectContent);
     }
 
     @AfterClass
     public static void tearDownClass() {
         S3TestUtils.runCleanupTasks(S3PresignerIntegrationTest.class);
         client.close();
+    }
+
+    private static String generateRandomObjectKey() {
+        return "s3-presigner-it-" + UUID.randomUUID();
     }
 
     @Before
@@ -76,19 +87,20 @@ public class S3PresignerIntegrationTest {
         this.presigner.close();
     }
 
+
     @Test
     public void browserCompatiblePresignedUrlWorks() throws IOException {
-        assertThatPresigningWorks(testBucket, testObjectKey);
+        assertThatPresigningWorks(testBucket, testGetObjectKey);
     }
 
     @Test
     public void bucketsWithScaryCharactersWorks() throws IOException {
-        assertThatPresigningWorks(testNonDnsCompatibleBucket, testObjectKey);
+        assertThatPresigningWorks(testNonDnsCompatibleBucket, testGetObjectKey);
     }
 
     @Test
     public void keysWithScaryCharactersWorks() throws IOException {
-        String scaryObjectKey = testObjectKey + " !'/()~`";
+        String scaryObjectKey = testGetObjectKey + " !'/()~`";
         S3TestUtils.putObject(S3PresignerIntegrationTest.class, client, testBucket, scaryObjectKey, testObjectContent);
 
         assertThatPresigningWorks(testBucket, scaryObjectKey);
@@ -111,7 +123,7 @@ public class S3PresignerIntegrationTest {
         PresignedGetObjectRequest presigned =
             presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                                              .getObjectRequest(gor -> gor.bucket(testBucket)
-                                                                         .key(testObjectKey)
+                                                                         .key(testGetObjectKey)
                                                                          .requestPayer(RequestPayer.REQUESTER)));
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
@@ -130,7 +142,7 @@ public class S3PresignerIntegrationTest {
         PresignedGetObjectRequest presigned =
             presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                                              .getObjectRequest(gor -> gor.bucket(testBucket)
-                                                                         .key(testObjectKey)
+                                                                         .key(testGetObjectKey)
                                                                          .requestPayer(RequestPayer.REQUESTER)));
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
@@ -149,11 +161,11 @@ public class S3PresignerIntegrationTest {
     }
 
     @Test
-    public void presignedHttpRequestCanBeInvokedDirectlyBySdk() throws IOException {
+    public void getObject_PresignedHttpRequestCanBeInvokedDirectlyBySdk() throws IOException {
         PresignedGetObjectRequest presigned =
             presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                                              .getObjectRequest(gor -> gor.bucket(testBucket)
-                                                                         .key(testObjectKey)
+                                                                         .key(testGetObjectKey)
                                                                          .requestPayer(RequestPayer.REQUESTER)));
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
@@ -175,5 +187,35 @@ public class S3PresignerIntegrationTest {
         try (InputStream responseStream = response.responseBody().get()) {
             assertThat(IoUtils.toUtf8String(responseStream)).isEqualTo(testObjectContent);
         }
+    }
+
+    @Test
+    public void putObject_PresignedHttpRequestCanBeInvokedDirectlyBySdk() throws IOException {
+        String objectKey = generateRandomObjectKey();
+        S3TestUtils.addCleanupTask(S3PresignerIntegrationTest.class,
+                                   () -> client.deleteObject(r -> r.bucket(testBucket).key(objectKey)));
+
+        PresignedPutObjectRequest presigned =
+            presigner.presignPutObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .putObjectRequest(por -> por.bucket(testBucket).key(objectKey)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+
+        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+
+        ContentStreamProvider requestPayload = () -> new StringInputStream(testObjectContent);
+
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(presigned.httpRequest())
+                                                       .contentStreamProvider(requestPayload)
+                                                       .build();
+
+        HttpExecuteResponse response = httpClient.prepareRequest(request).call();
+
+        assertThat(response.responseBody()).isPresent();
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+        response.responseBody().ifPresent(AbortableInputStream::abort);
+        String content = client.getObjectAsBytes(r -> r.bucket(testBucket).key(objectKey)).asUtf8String();
+        assertThat(content).isEqualTo(testObjectContent);
     }
 }

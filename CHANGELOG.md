@@ -1,3 +1,110 @@
+# __2.10.12__ __2019-11-07__
+## __AWS S3__
+  - ### Features
+    - Added support for presignPutObject in S3Presigner.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - This is an initial release of AWS Single Sign-On OAuth device code authorization service.
+
+## __AWS Single Sign-On__
+  - ### Features
+    - This is an initial release of AWS Single Sign-On (SSO) end-user access. This release adds support for accessing AWS accounts assigned in AWS SSO using short term credentials.
+
+## __Amazon Comprehend__
+  - ### Features
+    - This release adds new languages (ar, hi, ko, ja, zh, zh-TW) for Amazon Comprehend's DetectSentiment, DetectEntities, DetectKeyPhrases, BatchDetectSentiment, BatchDetectEntities and BatchDetectKeyPhrases APIs
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - AWS Systems Manager Session Manager target length increased to 400.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Switch from setting the absolute URI in HTTP requests with no `Host` header to setting the absolute request path and query paramters and a `Host` header.
+
+# __2.10.11__ __2019-11-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added the web identity credentials provider to the default credential chain
+
+## __AWS Savings Plans__
+  - ### Features
+    - This is the first release of Savings Plans, a new flexible pricing model that offers low prices on Amazon EC2 and AWS Fargate usage.
+
+# __2.10.10__ __2019-11-06__
+## __AWS Budgets__
+  - ### Features
+    - Documentation updates for budgets to track Savings Plans utilization and coverage
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for Build Number, Secrets Manager and Exported Environment Variables.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This launch provides customers with access to Savings Plans management APIs.
+
+## __AWS Savings Plans__
+  - ### Features
+    - This is the first release of Savings Plans, a new flexible pricing model that offers low prices on Amazon EC2 and AWS Fargate usage.
+
+## __AWS Signer__
+  - ### Features
+    - This release adds support for tagging code-signing profiles in AWS Signer.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - EFS customers can select a lifecycle policy that automatically moves files that have not been accessed for 7 days into the EFS Infrequent Access (EFS IA) storage class. EFS IA provides price/performance that is cost-optimized for files that are not accessed every day.
+
+# __2.10.9__ __2019-11-05__
+## __AWS CodeStar Notifications__
+  - ### Features
+    - This release adds a notification manager for events in repositories, build projects, deployments, and pipelines. You can now configure rules and receive notifications about events that occur for resources. Each notification includes a status message as well as a link to the resource (repository, build project, deployment application, or pipeline) whose event generated the notification.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for Amazon RDS
+
+# __2.10.8__ __2019-11-04__
+## __AWS RoboMaker__
+  - ### Features
+    - RoboMaker Fleet Management launch a feature to verify your robot is ready to download and install the new robot application using a download condition file, which is a script run on the robot prior to downloading the new deployment.
+
+## __Amazon DynamoDB Accelerator (DAX)__
+  - ### Features
+    - Documentation updates for dax
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for ec2
+
+# __2.10.7__ __2019-11-01__
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds two new APIs, GetTrail and ListTrails, and support for adding tags when you create a trail by using a new TagsList parameter on CreateTrail operations.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - This release contains task timeline attributes in replication task statistics. This release also adds a note to the documentation for the CdcStartPosition task request parameter. This note describes how to enable the use of native CDC start points for a PostgreSQL source by setting the new slotName extra connection attribute on the source endpoint to the name of an existing logical replication slot.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release of the Amazon Pinpoint API introduces support for using and managing journeys, and querying analytics data for journeys.
+
+# __2.10.6__ __2019-10-31__
+## __AWS Amplify__
+  - ### Features
+    - This release of AWS Amplify Console introduces support for Web Previews. This feature allows user to create ephemeral branch deployments from pull request submissions made to a connected repository. A pull-request preview deploys every pull request made to your Git repository to a unique preview URL.
+
+## __AWS Support__
+  - ### Features
+    - The status descriptions for TrustedAdvisorCheckRefreshStatus have been updated
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 Inventory now supports a new field 'IntelligentTieringAccessTier' that reports the access tier (frequent or infrequent) of objects stored in Intelligent-Tiering storage class.
+
 # __2.10.5__ __2019-10-30__
 ## __Amazon ElastiCache__
   - ### Features
