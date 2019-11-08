@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity",
+    "description": "This release adds support for disabling classic flow."
+}
