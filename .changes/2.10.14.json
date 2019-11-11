@@ -1,0 +1,21 @@
+{
+    "version": "2.10.14",
+    "date": "2019-11-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "description": "Add `PollyPresigner` which enables support for presigning `SynthesizeSpeech` requests."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "description": "The Resource Import feature enables customers to import existing AWS resources into new or existing CloudFormation Stacks."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "This launch provides customers with access to GetCostAndUsageWithResources API."
+        }
+    ]
+}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudFormation",
-    "description": "The Resource Import feature enables customers to import existing AWS resources into new or existing CloudFormation Stacks."
-}
