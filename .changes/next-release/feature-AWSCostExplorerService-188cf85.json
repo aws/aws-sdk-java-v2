@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "description": "This launch provides customers with access to GetCostAndUsageWithResources API."
+}
