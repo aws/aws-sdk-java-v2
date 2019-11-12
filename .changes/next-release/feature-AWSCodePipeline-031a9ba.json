@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "description": "AWS CodePipeline now supports the use of variables in action configuration."
+}
