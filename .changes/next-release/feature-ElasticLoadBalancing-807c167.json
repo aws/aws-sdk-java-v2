@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "description": "You can configure your Application Load Balancer to either drop invalid header fields or forward them to targets."
-}
