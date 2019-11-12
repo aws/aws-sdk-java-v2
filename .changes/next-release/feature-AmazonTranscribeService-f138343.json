@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Service",
+    "description": "With this release, Amazon Transcribe now supports transcriptions from audio sources in Welsh English (en-WL), Scottish English(en-AB), Irish English(en-IE), Farsi(fa-IR), Tamil(ta-IN), Indonesian(id-ID), Portuguese (pt-PT), Dutch(nl-NL)."
+}
