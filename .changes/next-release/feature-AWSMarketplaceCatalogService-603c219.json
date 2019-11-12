@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Catalog Service",
+    "description": "This is the first release for the AWS Marketplace Catalog service which allows you to list, describe and manage change requests on your published entities on AWS Marketplace."
+}
