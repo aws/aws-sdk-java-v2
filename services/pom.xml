@@ -204,6 +204,7 @@
         <module>ssooidc</module>
         <module>marketplacecatalog</module>
         <module>sesv2</module>
+        <module>dataexchange</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
