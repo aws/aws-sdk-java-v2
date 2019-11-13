@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "description": "This is the first release of version 2 of the Amazon SES API. You can use this API to configure your Amazon SES account, and to send email. This API extends the functionality that exists in the previous version of the Amazon SES API."
-}
