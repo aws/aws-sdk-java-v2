@@ -1,3 +1,67 @@
+# __2.10.16__ __2019-11-13__
+## __AWS Data Exchange__
+  - ### Features
+    - Introducing AWS Data Exchange, a service that makes it easy for AWS customers to securely create, manage, access, and exchange data sets in the cloud.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds the custom fields definition support in the index definition for AWS IoT Fleet Indexing Service. Custom fields can be used as an aggregation field to run aggregations with both existing GetStatistics API and newly added GetCardinality, GetPercentiles APIs. GetStatistics will return all statistics (min/max/sum/avg/count...) with this release. For more information, please refer to our latest documentation: https://docs.aws.amazon.com/iot/latest/developerguide/iot-indexing.html
+
+## __Amazon CloudSearch__
+  - ### Features
+    - Amazon CloudSearch domains let you require that all traffic to the domain arrive over HTTPS. This security feature helps you block clients that send unencrypted requests to the domain.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - You can now add tags to a lifecycle policy in Data Lifecycle Manager (DLM). Tags allow you to categorize your policies in different ways, such as by department, purpose or owner. You can also enable resource level permissions based on tags to set access control on ability to modify or delete a tagged policy.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This is the first release of version 2 of the Amazon SES API. You can use this API to configure your Amazon SES account, and to send email. This API extends the functionality that exists in the previous version of the Amazon SES API.
+
+# __2.10.15__ __2019-11-12__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline now supports the use of variables in action configuration.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This is the first release for the AWS Marketplace Catalog service which allows you to list, describe and manage change requests on your published entities on AWS Marketplace.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Amazon DynamoDB enables you to restore your data to a new DynamoDB table using a point-in-time or on-demand backup. You now can modify the settings on the new restored table. Specifically, you can exclude some or all of the local and global secondary indexes from being created with the restored table. In addition, you can change the billing mode and provisioned capacity settings.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - With this release, Amazon Transcribe now supports transcriptions from audio sources in Welsh English (en-WL), Scottish English(en-AB), Irish English(en-IE), Farsi(fa-IR), Tamil(ta-IN), Indonesian(id-ID), Portuguese (pt-PT), Dutch(nl-NL).
+
+## __Elastic Load Balancing__
+  - ### Features
+    - You can configure your Application Load Balancer to either drop invalid header fields or forward them to targets.
+
+# __2.10.14__ __2019-11-11__
+## __AWS CloudFormation__
+  - ### Features
+    - The Resource Import feature enables customers to import existing AWS resources into new or existing CloudFormation Stacks.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This launch provides customers with access to GetCostAndUsageWithResources API.
+
+## __Amazon Polly__
+  - ### Features
+    - Add `PollyPresigner` which enables support for presigning `SynthesizeSpeech` requests.
+
+# __2.10.13__ __2019-11-08__
+## __Amazon Cognito Identity__
+  - ### Features
+    - This release adds support for disabling classic flow.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release contains ticket fixes for Amazon ECR.
+
 # __2.10.12__ __2019-11-07__
 ## __AWS S3__
   - ### Features
