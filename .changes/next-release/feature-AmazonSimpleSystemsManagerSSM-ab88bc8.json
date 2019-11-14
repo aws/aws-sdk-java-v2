@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "Updates support for adding attachments to Systems Manager Automation documents"
-}
