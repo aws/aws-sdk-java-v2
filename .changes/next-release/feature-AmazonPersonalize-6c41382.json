@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize",
+    "description": "Amazon Personalize: Adds ability to get batch recommendations by creating a batch inference job."
+}
