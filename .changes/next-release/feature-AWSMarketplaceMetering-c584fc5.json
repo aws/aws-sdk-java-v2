@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWSMarketplace Metering",
+    "description": "Added CustomerNotEntitledException in MeterUsage API for Container use case."
+}
