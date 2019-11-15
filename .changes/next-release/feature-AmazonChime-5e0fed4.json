@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "description": "This release adds support for Chime Room Management APIs"
+}
