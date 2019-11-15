@@ -19,11 +19,13 @@ import static software.amazon.awssdk.codegen.AddMetadata.constructMetadata;
 import static software.amazon.awssdk.codegen.RemoveUnusedShapes.removeUnusedShapes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
@@ -52,6 +54,8 @@ import software.amazon.awssdk.utils.CollectionUtils;
  * customizations.
  */
 public class IntermediateModelBuilder {
+
+    private static final List<String> NO_BODY_METHODS = Arrays.asList("GET", "HEAD", "DELETE");
 
     private static final Logger log = LoggerFactory.getLogger(IntermediateModelBuilder.class);
     private final CustomizationConfig customConfig;
@@ -157,7 +161,26 @@ public class IntermediateModelBuilder {
 
         setSimpleMethods(trimmedModel);
 
+        validateOperations(trimmedModel);
+
         return trimmedModel;
+    }
+
+    /**
+     * Validates that operations that use GET, DELETE or HEAD do not have an HTTP body.
+     */
+    private void validateOperations(IntermediateModel model) {
+        List<String> methods = model.getOperations()
+                                    .values()
+                                    .stream()
+                                    .filter(e -> e.getInputShape().hasPayloadMembers())
+                                    .filter(e -> NO_BODY_METHODS.contains(e.getInputShape().getMarshaller().getVerb()))
+                                    .map(e -> e.getInputShape().getC2jName())
+                                    .collect(Collectors.toList());
+
+        if (methods.size() > 0) {
+            throw new RuntimeException("An HTTP body is not allowed on GET/DELETE/HEAD requests. Invalid operations: " + methods);
+        }
     }
 
     /**
