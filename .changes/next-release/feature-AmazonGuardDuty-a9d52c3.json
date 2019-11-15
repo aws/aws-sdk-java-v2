@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "description": "This release includes new operations related to findings export, including: CreatePublishingDestination, UpdatePublishingDestination, DescribePublishingDestination, DeletePublishingDestination and ListPublishingDestinations."
-}

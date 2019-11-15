@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "When SdkException or one of its children is created without a 'message', inherit the message from the exception 'cause' (if any). This should reduce the chance of an exception being raised by the SDK with a null message."
-}
