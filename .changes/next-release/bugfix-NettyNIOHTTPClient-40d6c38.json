@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "type": "bugfix", 
+    "description": "Update default connectionMaxIdleTimeout of NettyNioAsyncClient to 5 seconds"
+}
