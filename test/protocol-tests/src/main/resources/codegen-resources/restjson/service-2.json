@@ -43,6 +43,14 @@
       "input":{"shape":"FurtherNestedContainersStructure"},
       "output":{"shape":"FurtherNestedContainersStructure"}
     },
+    "GetOperationWithBody":{
+      "name":"GetOperationWithBody",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2016-03-11/getOperationWithBody"
+      },
+      "input":{"shape":"GetOperationWithBodyInput"}
+    },
     "HeadOperation":{
       "name":"HeadOperation",
       "http":{
@@ -306,6 +314,12 @@
       "type":"structure",
       "members":{
         "ListOfNested":{"shape":"ListOfNested"}
+      }
+    },
+    "GetOperationWithBodyInput":{
+      "type":"structure",
+      "members":{
+        "StringMember":{"shape":"String"}
       }
     },
     "IdempotentOperationStructure":{

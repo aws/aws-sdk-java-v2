@@ -33,7 +33,6 @@ import software.amazon.awssdk.utils.StringUtils;
 
 @SdkProtectedApi
 public abstract class BaseClientHandler {
-
     private SdkClientConfiguration clientConfiguration;
 
     protected BaseClientHandler(SdkClientConfiguration clientConfiguration) {
