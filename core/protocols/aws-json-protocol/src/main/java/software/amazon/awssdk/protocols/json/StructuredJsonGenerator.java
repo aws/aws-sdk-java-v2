@@ -32,6 +32,8 @@ public interface StructuredJsonGenerator {
      */
     StructuredJsonGenerator NO_OP = new StructuredJsonGenerator() {
 
+        private final byte[] emptyBytes = new byte[0];
+
         @Override
         public StructuredJsonGenerator writeStartArray() {
             return this;
@@ -124,7 +126,7 @@ public interface StructuredJsonGenerator {
 
         @Override
         public byte[] getBytes() {
-            return null;
+            return emptyBytes;
         }
 
         @Override
