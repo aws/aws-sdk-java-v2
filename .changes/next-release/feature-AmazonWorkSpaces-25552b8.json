@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "description": "Added APIs to register your directories with Amazon WorkSpaces and to modify directory details."
+}
