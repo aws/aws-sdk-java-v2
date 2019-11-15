@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "description": "Documentation-only change to the default value of the routing.http.drop_invalid_header_fields.enabled attribute."
+}
