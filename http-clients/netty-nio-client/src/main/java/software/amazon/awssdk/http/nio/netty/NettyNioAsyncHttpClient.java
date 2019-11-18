@@ -78,6 +78,12 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
     private static final long MAX_STREAMS_ALLOWED = 4294967295L; // unsigned 32-bit, 2^32 -1
 
+    // Override connection idle timeout for Netty http client to reduce the frequency of "server failed to complete the
+    // response error". see https://github.com/aws/aws-sdk-java-v2/issues/1122
+    private static final AttributeMap NETTY_HTTP_DEFAULTS = AttributeMap.builder()
+                                                                        .put(CONNECTION_MAX_IDLE_TIMEOUT, Duration.ofSeconds(5))
+                                                                        .build();
+
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final SdkChannelPoolMap<URI, ? extends ChannelPool> pools;
     private final NettyConfiguration configuration;
@@ -173,6 +179,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public String clientName() {
         return CLIENT_NAME;
+    }
+
+    @SdkTestInternalApi
+    NettyConfiguration configuration() {
+        return configuration;
     }
 
     /**
@@ -561,6 +572,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
+                                                                    .merge(NETTY_HTTP_DEFAULTS)
                                                                     .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
 
         }
