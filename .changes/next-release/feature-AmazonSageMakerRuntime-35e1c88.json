@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Runtime",
-    "description": "Amazon SageMaker Runtime now supports a new TargetModel header to invoke a specific model hosted on multi model endpoints."
-}

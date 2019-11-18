@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "description": "Amazon SageMaker now supports multi-model endpoints to host multiple models on an endpoint using a single inference container."
-}
