@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "description": "Added support for S3 Replication for existing objects. This release allows customers who have requested and been granted access to replicate existing S3 objects across buckets."
+}
