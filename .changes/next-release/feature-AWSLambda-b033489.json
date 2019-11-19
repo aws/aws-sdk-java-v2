@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "description": "This release provides three new runtimes to support Node.js 12 (initially 12.13.0), Python 3.8 and Java 11."
+}
