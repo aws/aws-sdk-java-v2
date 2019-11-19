@@ -16,12 +16,18 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.internal.util.UserAgentUtils;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -33,9 +39,15 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
+    private static final Logger log = Logger.loggerFor(InstanceProfileCredentialsProvider.class);
+
+    private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
+    private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
+    private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
+    private static final String DEFAULT_TOKEN_TTL = "21600";
 
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
-    private final ResourcesEndpointProvider credentialsEndpointProvider = new InstanceProviderCredentialsEndpointProvider();
+    private final InstanceProviderTokenEndpointProvider tokenEndpointProvider = new InstanceProviderTokenEndpointProvider();
 
     /**
      * @see #builder()
@@ -62,7 +74,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
 
     @Override
     protected ResourcesEndpointProvider getCredentialsEndpointProvider() {
-        return credentialsEndpointProvider;
+        return new InstanceProviderCredentialsEndpointProvider(getToken());
     }
 
     @Override
@@ -75,13 +87,68 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
         return ToString.create("InstanceProfileCredentialsProvider");
     }
 
+    private String getToken() {
+        try {
+            return HttpResourcesUtils.instance().readResource(getTokenEndpointProvider(), "PUT");
+        } catch (Exception e) {
+            log.debug(() -> "Error retrieving credentials metadata token", e);
+
+            boolean is400ServiceException = e instanceof SdkServiceException
+                    && ((SdkServiceException) e).statusCode() == 400;
+
+            boolean isSocketTimeout = e instanceof SocketTimeoutException;
+
+            // Credentials resolution must not continue to the token-less flow if either of these errors occur
+            if (is400ServiceException || isSocketTimeout) {
+                throw SdkClientException.builder()
+                        .message("Unable to load credentials from service endpoint")
+                        .cause(e)
+                        .build();
+            }
+
+            return null;
+        }
+    }
+
+    private ResourcesEndpointProvider getTokenEndpointProvider() {
+        return tokenEndpointProvider;
+    }
+
+    private static ResourcesEndpointProvider includeTokenHeader(ResourcesEndpointProvider provider, String token) {
+        return new ResourcesEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return provider.endpoint();
+            }
+
+            @Override
+            public Map<String, String> headers() {
+                Map<String, String> headers = new HashMap<>(provider.headers());
+                headers.put(EC2_METADATA_TOKEN_HEADER, token);
+                return headers;
+            }
+        };
+    }
+
     private static final class InstanceProviderCredentialsEndpointProvider implements ResourcesEndpointProvider {
+        private final String metadataToken;
+
+        private InstanceProviderCredentialsEndpointProvider(String metadataToken) {
+            this.metadataToken = metadataToken;
+        }
+
         @Override
         public URI endpoint() throws IOException {
             String host = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
 
             URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
-            String securityCredentialsList = HttpResourcesUtils.instance().readResource(endpoint);
+            ResourcesEndpointProvider endpointProvider = () -> endpoint;
+
+            if (metadataToken != null) {
+                endpointProvider = includeTokenHeader(endpointProvider, metadataToken);
+            }
+
+            String securityCredentialsList = HttpResourcesUtils.instance().readResource(endpointProvider);
             String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
             if (securityCredentials.length == 0) {
@@ -89,6 +156,42 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
             }
 
             return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+        }
+
+        @Override
+        public Map<String, String> headers() {
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("Accept", "*/*");
+            requestHeaders.put("Connection", "keep-alive");
+
+            if (metadataToken != null) {
+                requestHeaders.put(EC2_METADATA_TOKEN_HEADER, metadataToken);
+            }
+
+            return requestHeaders;
+        }
+    }
+
+    private static final class InstanceProviderTokenEndpointProvider implements ResourcesEndpointProvider {
+        @Override
+        public URI endpoint() {
+            String host = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+            if (host.endsWith("/")) {
+                host = host.substring(0, host.length() - 1);
+            }
+            return URI.create(host + TOKEN_RESOURCE_PATH);
+        }
+
+        @Override
+        public Map<String, String> headers() {
+            Map<String, String> requestHeaders = new HashMap<>();
+            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("Accept", "*/*");
+            requestHeaders.put("Connection", "keep-alive");
+            requestHeaders.put(EC2_METADATA_TOKEN_TTL_HEADER, DEFAULT_TOKEN_TTL);
+
+            return requestHeaders;
         }
     }
 
