@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "description": "This release allows forward actions on Application Load Balancers to route requests to multiple target groups, based on the weight you specify for each target group."
+}
