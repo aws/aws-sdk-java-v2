@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "description": "IAM reports the timestamp when a role's credentials were last used to make an AWS request. This helps you identify unused roles and remove them confidently from your AWS accounts."
+}
