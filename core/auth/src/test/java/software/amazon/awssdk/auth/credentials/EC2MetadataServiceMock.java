@@ -26,6 +26,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
+import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Mock server for imitating the Amazon EC2 Instance Metadata Service. Tests can
@@ -99,6 +101,7 @@ public class EC2MetadataServiceMock {
      * and response with a predefined response file.
      */
     private static class EC2MockMetadataServiceListenerThread extends Thread {
+        private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
         private ServerSocket serverSocket;
         private final String credentialsResource;
         private String responseFileName;
@@ -164,7 +167,13 @@ public class EC2MetadataServiceMock {
                                                             .toString());
                         outputStream.write(httpResponse.getBytes());
 
-                    } else {
+                    } else if (TOKEN_RESOURCE_PATH.equals(resourcePath)) {
+                        httpResponse = "HTTP/1.1 404 Not Found\r\n" +
+                                       "Content-Length: 0\r\n" +
+                                       "\r\n";
+                        outputStream.write(httpResponse.getBytes());
+                    }
+                    else {
                         throw new RuntimeException("Unknown resource requested: " + resourcePath);
                     }
                 } catch (IOException e) {

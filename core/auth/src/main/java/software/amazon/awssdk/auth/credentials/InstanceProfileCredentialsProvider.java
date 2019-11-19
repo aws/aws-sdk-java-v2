@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,10 +95,8 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
             boolean is400ServiceException = e instanceof SdkServiceException
                     && ((SdkServiceException) e).statusCode() == 400;
 
-            boolean isSocketTimeout = e instanceof SocketTimeoutException;
-
-            // Credentials resolution must not continue to the token-less flow if either of these errors occur
-            if (is400ServiceException || isSocketTimeout) {
+            // Credentials resolution must not continue to the token-less flow for a 400
+            if (is400ServiceException) {
                 throw SdkClientException.builder()
                         .message("Unable to load credentials from service endpoint")
                         .cause(e)

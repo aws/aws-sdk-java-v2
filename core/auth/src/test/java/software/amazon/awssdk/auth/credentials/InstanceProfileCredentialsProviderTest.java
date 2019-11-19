@@ -124,8 +124,36 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
+    public void resolveCredentials_queriesTokenResource_403Error_fallbackToInsecure() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403).withBody("oops")));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        provider.resolveCredentials();
+
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
+    }
+
+    @Test
     public void resolveCredentials_queriesTokenResource_404Error_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(404).withBody("oops")));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        provider.resolveCredentials();
+
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
+    }
+
+    @Test
+    public void resolveCredentials_queriesTokenResource_405Error_fallbackToInsecure() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(405).withBody("oops")));
         stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
         stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
 
@@ -150,16 +178,17 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_queriesTokenResource_socketTimeout_throws() {
-        thrown.expect(SdkClientException.class);
-        thrown.expectCause(instanceOf(SocketTimeoutException.class));
-        thrown.expectMessage("Unable to load credentials");
-
+    public void resolveCredentials_queriesTokenResource_socketTimeout_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token").withFixedDelay(Integer.MAX_VALUE)));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
 
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
 
         provider.resolveCredentials();
+
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
     }
 
     @Test
