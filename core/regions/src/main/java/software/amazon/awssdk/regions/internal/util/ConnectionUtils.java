@@ -31,14 +31,10 @@ public class ConnectionUtils {
     }
 
     public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers) throws IOException {
-        return connectToEndpoint(endpoint, headers, "GET");
-    }
-
-    public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
         connection.setConnectTimeout(1000 * 2);
         connection.setReadTimeout(1000 * 5);
-        connection.setRequestMethod(method);
+        connection.setRequestMethod("GET");
         connection.setDoOutput(true);
         headers.forEach(connection::addRequestProperty);
         connection.setInstanceFollowRedirects(false);
