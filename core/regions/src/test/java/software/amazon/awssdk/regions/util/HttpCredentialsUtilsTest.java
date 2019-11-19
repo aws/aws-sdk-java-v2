@@ -153,13 +153,13 @@ public class HttpCredentialsUtilsTest {
      */
     @Test
     public void readResouceWithDefaultRetryPolicy_DoesNotRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenThrow(new IOException());
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers)).thenThrow(new IOException());
 
         try {
             new HttpResourcesUtils(mockConnection).readResource(endpoint);
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers, "GET");
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers);
         }
     }
 
@@ -170,13 +170,13 @@ public class HttpCredentialsUtilsTest {
      */
     @Test
     public void readResouceWithCustomRetryPolicy_DoesRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenThrow(new IOException());
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers)).thenThrow(new IOException());
 
         try {
             new HttpResourcesUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint, headers, "GET");
+            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint, headers);
         }
     }
 
@@ -188,13 +188,13 @@ public class HttpCredentialsUtilsTest {
     @Test
     public void readResouceWithCustomRetryPolicy_DoesNotRetry_ForNonIoException() throws IOException {
         generateStub(500, "Non Json error body");
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenCallRealMethod();
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers)).thenCallRealMethod();
 
         try {
             new HttpResourcesUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an SdkServiceException");
         } catch (SdkServiceException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers, "GET");
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers);
         }
     }
 

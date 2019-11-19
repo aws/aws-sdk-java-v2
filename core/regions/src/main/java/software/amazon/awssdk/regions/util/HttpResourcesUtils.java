@@ -71,7 +71,7 @@ public final class HttpResourcesUtils {
      * @throws SdkClientException If the requested service is not found.
      */
     public String readResource(URI endpoint) throws IOException {
-        return readResource(() -> endpoint, "GET");
+        return readResource(() -> endpoint);
     }
 
     /**
@@ -86,30 +86,13 @@ public final class HttpResourcesUtils {
      * @throws SdkClientException If the requested service is not found.
      */
     public String readResource(ResourcesEndpointProvider endpointProvider) throws IOException {
-        return readResource(endpointProvider, "GET");
-    }
-
-    /**
-     * Connects to the given endpoint to read the resource
-     * and returns the text contents.
-     *
-     * @param endpointProvider The endpoint provider.
-     * @param method The HTTP request method to use.
-     * @return The text payload returned from the container metadata endpoint
-     * service for the specified resource path.
-     * @throws IOException If any problems were encountered while connecting to the
-     * service for the requested resource path.
-     * @throws SdkClientException If the requested service is not found.
-     */
-    public String readResource(ResourcesEndpointProvider endpointProvider, String method) throws IOException {
         int retriesAttempted = 0;
         InputStream inputStream = null;
 
         while (true) {
             try {
                 HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider.endpoint(),
-                                                                                 endpointProvider.headers(),
-                                                                                 method);
+                                                                                 endpointProvider.headers());
 
                 int statusCode = connection.getResponseCode();
 
@@ -146,7 +129,6 @@ public final class HttpResourcesUtils {
         }
 
     }
-
 
     private void handleErrorResponse(InputStream errorStream, int statusCode, String responseMessage) throws IOException {
         // Parse the error stream returned from the service.
