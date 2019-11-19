@@ -24,6 +24,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http2.Http2FrameCodec;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
@@ -39,7 +40,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayFrameHandler;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayEventListener;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2PingFrameHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
 
@@ -120,16 +121,22 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
         // Using Http2FrameCodecBuilder and Http2MultiplexHandler based on 4.1.37 release notes
         // https://netty.io/news/2019/06/28/4-1-37-Final.html
-        pipeline.addLast(Http2FrameCodecBuilder.forClient()
-                                               .headerSensitivityDetector((name, value) -> lowerCase(name.toString())
-                                                   .equals("authorization"))
-                                               .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
-                                               .frameLogger(new Http2FrameLogger(LogLevel.DEBUG))
-                                               .build());
+        Http2FrameCodec codec =
+            Http2FrameCodecBuilder.forClient()
+                                  .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
+                                  .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
+                                  .frameLogger(new Http2FrameLogger(LogLevel.DEBUG))
+                                  .build();
 
+        // Connection listeners have higher priority than handlers, in the eyes of the Http2FrameCodec. The Http2FrameCodec will
+        // close any connections when a GOAWAY is received, but we'd like to send a "GOAWAY happened" exception instead of just
+        // closing the connection. Because of this, we use a go-away listener instead of a handler, so that we can send the
+        // exception before the Http2FrameCodec closes the connection itself.
+        codec.connection().addListener(new Http2GoAwayEventListener(ch));
+
+        pipeline.addLast(codec);
         pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
-        pipeline.addLast(new Http2GoAwayFrameHandler());
         pipeline.addLast(Http2PingFrameHandler.create());
     }
 

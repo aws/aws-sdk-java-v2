@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_POOL_RECORD;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PING_TRACKER;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
@@ -93,9 +92,7 @@ public final class Http2FrameExceptionHandler extends ChannelInboundHandlerAdapt
     }
 
     private void closeH2Connection(Channel parent, PingFailedException exception) {
-        MultiplexedChannelRecord channelRecord = parent.attr(CHANNEL_POOL_RECORD).get();
-        channelRecord.shutdownChildChannels(exception);
-        parent.close();
+        parent.pipeline().fireExceptionCaught(exception);
     }
 
     static final class PingFailedException extends IOException {

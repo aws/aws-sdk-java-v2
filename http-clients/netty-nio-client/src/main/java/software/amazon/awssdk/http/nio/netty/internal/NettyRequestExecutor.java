@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.Protocol.HTTP1_1;
-import static software.amazon.awssdk.http.Protocol.HTTP2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
@@ -57,7 +55,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -158,6 +155,7 @@ public final class NettyRequestExecutor {
     private boolean tryConfigurePipeline() {
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
+
         switch (protocol) {
             case HTTP2:
                 pipeline.addLast(new Http2ToHttpInboundAdapter());

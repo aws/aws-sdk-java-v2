@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
@@ -40,6 +39,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
 public class HttpOrHttp2ChannelPool implements ChannelPool {
     private final ChannelPool delegatePool;
     private final int maxConcurrency;
+    private final EventLoopGroup eventLoopGroup;
     private final EventLoop eventLoop;
     private final NettyConfiguration configuration;
 
@@ -53,6 +53,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                   NettyConfiguration configuration) {
         this.delegatePool = delegatePool;
         this.maxConcurrency = maxConcurrency;
+        this.eventLoopGroup = group;
         this.eventLoop = group.next();
         this.configuration = configuration;
     }
@@ -149,8 +150,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .maxPendingAcquires(configuration.maxPendingConnectionAcquires())
                                                  .build();
         } else {
-            ChannelPool h2Pool = new Http2MultiplexedChannelPool(
-                    delegatePool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
+            ChannelPool h2Pool = new Http2MultiplexedChannelPool(delegatePool, eventLoopGroup);
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)
