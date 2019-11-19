@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "description": "This release of AWS CloudFormation StackSets enables users to detect drift on a stack set and the stack instances that belong to that stack set."
+}
