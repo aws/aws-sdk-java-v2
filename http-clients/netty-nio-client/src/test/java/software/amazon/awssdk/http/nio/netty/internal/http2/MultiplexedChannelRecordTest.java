@@ -55,13 +55,9 @@ public class MultiplexedChannelRecordTest {
         channelPromise.setSuccess(channel);
 
         channel.attr(PING_TRACKER).set(new PingTracker(() -> Mockito.mock(ScheduledFuture.class)));
-        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channelPromise,
-                                                                       channel,
-                                                                       8,
-                                                                       (ch, rec) -> {
-                                                                       });
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8);
 
-        assertThat(record.reusable()).isFalse();
+        assertThat(record.acquireStream(null)).isFalse();
     }
 
     @Test
@@ -70,12 +66,8 @@ public class MultiplexedChannelRecordTest {
         Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
         channelPromise.setSuccess(channel);
 
-        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channelPromise,
-                                                                       channel,
-                                                                       0,
-                                                                       (ch, rec) -> {
-                                                                       });
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 0);
 
-        assertThat(record.reusable()).isFalse();
+        assertThat(record.acquireStream(null)).isFalse();
     }
 }

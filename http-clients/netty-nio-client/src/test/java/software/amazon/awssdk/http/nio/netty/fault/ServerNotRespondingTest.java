@@ -114,12 +114,10 @@ public class ServerNotRespondingTest {
         assertThatThrownBy(() -> firstRequest.join()).hasCauseInstanceOf(IOException.class);
 
         // The second request should pick up a new healthy channel - Channel 2
-        CompletableFuture<Void> secondRequest = sendGetRequest();
+        sendGetRequest().join();
 
         // The third request should reuse the previous channel - Channel 2
-        CompletableFuture<Void> thirdRequest = sendGetRequest();
-
-        CompletableFuture.allOf(secondRequest, thirdRequest).join();
+        sendGetRequest().join();
 
         assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
 

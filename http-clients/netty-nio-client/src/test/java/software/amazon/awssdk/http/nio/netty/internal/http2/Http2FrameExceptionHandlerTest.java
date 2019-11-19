@@ -20,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_POOL_RECORD;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PING_TRACKER;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.DefaultChannelPromise;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http2.DefaultHttp2PingFrame;
@@ -63,13 +63,13 @@ public class Http2FrameExceptionHandlerTest {
     private Channel streamChannel;
 
     @Mock
+    private ChannelPipeline mockParentChannelPipeline;
+
+    @Mock
     private Attribute<PingTracker> attribute;
 
     @Mock
     private Attribute<MultiplexedChannelRecord> recordAttribute;
-
-    @Mock
-    private MultiplexedChannelRecord multiplexedChannelRecord;
 
     @Mock
     private ScheduledFuture<?> future;
@@ -85,7 +85,7 @@ public class Http2FrameExceptionHandlerTest {
     @After
     public void tearDown() {
         embeddedParentChannel.close().awaitUninterruptibly();
-        Mockito.reset(recordAttribute, attribute, multiplexedChannelRecord, streamChannel, context, mockParentChannel);
+        Mockito.reset(recordAttribute, attribute, streamChannel, context, mockParentChannel);
     }
 
     @AfterClass
@@ -122,8 +122,7 @@ public class Http2FrameExceptionHandlerTest {
         // Wait for the ping to time out
         Thread.sleep(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1000 + 100);
 
-        verify(multiplexedChannelRecord).shutdownChildChannels(Http2FrameExceptionHandler.PingFailedException.PING_NOT_ACK_INSTANCE);
-        verify(mockParentChannel).close();
+        verify(mockParentChannelPipeline).fireExceptionCaught(Http2FrameExceptionHandler.PingFailedException.PING_NOT_ACK_INSTANCE);
         verify(context).fireExceptionCaught(ReadTimeoutException.INSTANCE);
     }
 
@@ -141,8 +140,7 @@ public class Http2FrameExceptionHandlerTest {
         // Wait for the listener execution
         Thread.sleep(1000);
 
-        verify(multiplexedChannelRecord).shutdownChildChannels(Http2FrameExceptionHandler.PingFailedException.PING_WRITE_FAILED_INSTANCE);
-        verify(mockParentChannel).close();
+        verify(mockParentChannelPipeline).fireExceptionCaught(Http2FrameExceptionHandler.PingFailedException.PING_WRITE_FAILED_INSTANCE);
         verify(context).fireExceptionCaught(ReadTimeoutException.INSTANCE);
     }
 
@@ -177,10 +175,8 @@ public class Http2FrameExceptionHandlerTest {
 
     private void stubMockParentChannel() {
         when(mockParentChannel.attr(PING_TRACKER)).thenReturn(attribute);
-        when(recordAttribute.get()).thenReturn(multiplexedChannelRecord);
-        when(mockParentChannel.attr(CHANNEL_POOL_RECORD)).thenReturn(recordAttribute);
         when(mockParentChannel.eventLoop()).thenReturn(GROUP.next());
-
+        when(mockParentChannel.pipeline()).thenReturn(mockParentChannelPipeline);
         when(streamChannel.parent()).thenReturn(mockParentChannel);
     }
 }
