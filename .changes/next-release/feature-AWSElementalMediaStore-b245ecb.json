@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaStore",
+    "description": "This release fixes a broken link in the SDK documentation."
+}
