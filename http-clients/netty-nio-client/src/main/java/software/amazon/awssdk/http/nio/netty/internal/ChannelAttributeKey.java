@@ -24,6 +24,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
+import software.amazon.awssdk.http.nio.netty.internal.http2.PingTracker;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
@@ -43,11 +44,20 @@ public final class ChannelAttributeKey {
     public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD = AttributeKey.newInstance(
         "aws.http.nio.netty.async.channelPoolRecord");
 
+    public static final AttributeKey<PingTracker> PING_TRACKER =
+        AttributeKey.newInstance("aws.http.nio.netty.async.h2.pingTracker");
+
     /**
      * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.
      */
     public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance(
         "aws.http.nio.netty.async.maxConcurrentStreams");
+
+    /**
+     * {@link AttributeKey} to keep track of whether we should close the connection after this request
+     * has completed.
+     */
+    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     /**
      * Attribute key for {@link RequestContext}.
@@ -72,12 +82,6 @@ public final class ChannelAttributeKey {
 
     static final AttributeKey<Long> EXECUTION_ID_KEY = AttributeKey.newInstance(
             "aws.http.nio.netty.async.executionId");
-
-    /**
-     * {@link AttributeKey} to keep track of whether we should close the connection after this request
-     * has completed.
-     */
-    static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     /**
      * Whether the channel is still in use

@@ -38,9 +38,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2Frame> {
 
-    public Http2ToHttpInboundAdapter() {
-    }
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Http2Frame frame) throws Exception {
         if (frame instanceof Http2DataFrame) {
@@ -74,7 +71,7 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
         ctx.fireExceptionCaught(new Http2ResetException(resetFrame.errorCode()));
     }
 
-    public static class Http2ResetException extends IOException {
+    public static final class Http2ResetException extends IOException {
 
         Http2ResetException(long errorCode) {
             super(String.format("Connection reset. Error - %s(%d)", Http2Error.valueOf(errorCode).name(), errorCode));

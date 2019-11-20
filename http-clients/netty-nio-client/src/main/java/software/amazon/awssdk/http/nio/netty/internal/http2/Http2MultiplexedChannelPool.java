@@ -97,7 +97,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         }
 
         for (MultiplexedChannelRecord connection : connections) {
-            if (connection.availableStreams() > 0) {
+            if (connection.reusable()) {
                 connection.acquire(promise);
                 return promise;
             }
