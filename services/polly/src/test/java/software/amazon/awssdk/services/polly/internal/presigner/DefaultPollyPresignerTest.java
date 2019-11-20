@@ -176,6 +176,7 @@ public class DefaultPollyPresignerTest {
         TestCredentialsProvider mockCredentialsProvider = mock(TestCredentialsProvider.class);
 
         PollyPresigner presigner = DefaultPollyPresigner.builder()
+                .region(Region.US_EAST_1)
                 .credentialsProvider(mockCredentialsProvider)
                 .build();
 
