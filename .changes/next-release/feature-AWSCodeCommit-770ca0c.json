@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeCommit",
-    "description": "This release adds support for creating pull request approval rules and pull request approval rule templates in AWS CodeCommit. This allows developers to block merges of pull requests, contingent on the approval rules being satisfiied."
-}

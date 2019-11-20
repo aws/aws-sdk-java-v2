@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Data Lifecycle Manager",
-    "description": "DLM now supports Fast Snapshot Restore. You can enable Fast Restore on snapshots created by DLM, provide the AZs and the number of snapshots to be enabled with this capability."
-}

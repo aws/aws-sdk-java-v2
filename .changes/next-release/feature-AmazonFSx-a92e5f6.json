@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "description": "Announcing a Multi-AZ deployment type for Amazon FSx for Windows File Server, providing fully-managed Windows file storage with high availability and redundancy across multiple AWS Availability Zones."
-}

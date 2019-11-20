@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Migration Hub",
-    "description": "New exception type for use with Migration Hub home region"
-}

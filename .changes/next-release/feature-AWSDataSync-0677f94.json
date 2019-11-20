@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "description": "Update to configure task to run periodically on a schedule"
-}
