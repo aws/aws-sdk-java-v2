@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "description": "Added support for CPU and memory task-level overrides on the RunTask and StartTask APIs. Added location information to Tasks."
+}
