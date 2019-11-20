@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "description": "Adds APIs to create and manage meeting session resources for the Amazon Chime SDK"
+}
