@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub Config",
+    "description": "AWS Migration Hub Config Service allows you to get and set the Migration Hub home region for use with AWS Migration Hub and Application Discovery Service"
+}

@@ -205,6 +205,7 @@
         <module>marketplacecatalog</module>
         <module>sesv2</module>
         <module>dataexchange</module>
+        <module>migrationhubconfig</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
