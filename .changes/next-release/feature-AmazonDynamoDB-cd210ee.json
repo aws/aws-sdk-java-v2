@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "description": "With this release, you can convert an existing Amazon DynamoDB table to a global table by adding replicas in other AWS Regions."
+}
