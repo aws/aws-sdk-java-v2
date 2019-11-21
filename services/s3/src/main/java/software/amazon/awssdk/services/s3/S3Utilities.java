@@ -46,8 +46,8 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <pre>
  * S3Utilities utilities = S3Utilities.builder().region(Region.US_WEST_2).build()
- * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build()
- * URL url = pathStyleUtilities.getUrl(request);
+ * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
+ * URL url = utilities.getUrl(request);
  * </pre>
  * </p>
  *
@@ -58,8 +58,8 @@ import software.amazon.awssdk.utils.Validate;
  * <pre>
  * S3Client s3client = S3Client.create();
  * S3Utilities utilities = s3client.utilities();
- * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build()
- * URL url = pathStyleUtilities.getUrl(request);
+ * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
+ * URL url = utilities.getUrl(request);
  * </pre>
  * </p>
  *
