@@ -39,7 +39,7 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
         this.bytes = bytes.clone();
     }
     
-    public byte[] getBytes = { return bytes; }
+    public byte[] getBytes() { return bytes; }
 
     @Override
     public Optional<Long> contentLength() {
