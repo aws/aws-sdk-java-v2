@@ -434,7 +434,7 @@
       },
       "input":{"shape":"CreateCustomerGatewayRequest"},
       "output":{"shape":"CreateCustomerGatewayResult"},
-      "documentation":"<p>Provides information to AWS about your VPN customer gateway device. The customer gateway is the appliance at your end of the VPN connection. (The device on the AWS side of the VPN connection is the virtual private gateway.) You must provide the Internet-routable IP address of the customer gateway's external interface. The IP address must be static and can be behind a device performing network address translation (NAT).</p> <p>For devices that use Border Gateway Protocol (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You can use an existing ASN assigned to your network. If you don't have an ASN already, you can use a private ASN (in the 64512 - 65534 range).</p> <note> <p>Amazon EC2 supports all 2-byte ASN numbers in the range of 1 - 65534, with the exception of 7224, which is reserved in the <code>us-east-1</code> Region, and 9059, which is reserved in the <code>eu-west-1</code> Region.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <important> <p>You cannot create more than one customer gateway with the same VPN type, IP address, and BGP ASN parameter values. If you run an identical request more than one time, the first request creates the customer gateway, and subsequent requests return information about the existing customer gateway. The subsequent requests do not create new customer gateway resources.</p> </important>"
+      "documentation":"<p>Provides information to AWS about your VPN customer gateway device. The customer gateway is the appliance at your end of the VPN connection. (The device on the AWS side of the VPN connection is the virtual private gateway.) You must provide the Internet-routable IP address of the customer gateway's external interface. The IP address must be static and can be behind a device performing network address translation (NAT).</p> <p>For devices that use Border Gateway Protocol (BGP), you can also provide the device's BGP Autonomous System Number (ASN). You can use an existing ASN assigned to your network. If you don't have an ASN already, you can use a private ASN (in the 64512 - 65534 range).</p> <note> <p>Amazon EC2 supports all 2-byte ASN numbers in the range of 1 - 65534, with the exception of 7224, which is reserved in the <code>us-east-1</code> Region, and 9059, which is reserved in the <code>eu-west-1</code> Region.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html\">AWS Site-to-Site VPN</a> in the <i>AWS Site-to-Site VPN User Guide</i>.</p> <important> <p>To create more than one customer gateway with the same VPN type, IP address, and BGP ASN, specify a unique device name for each customer gateway. Identical requests return information about the existing customer gateway and do not create new customer gateways.</p> </important>"
     },
     "CreateDefaultSubnet":{
       "name":"CreateDefaultSubnet",
@@ -1511,6 +1511,16 @@
       "output":{"shape":"DescribeExportTasksResult"},
       "documentation":"<p>Describes the specified export instance tasks or all your export instance tasks.</p>"
     },
+    "DescribeFastSnapshotRestores":{
+      "name":"DescribeFastSnapshotRestores",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeFastSnapshotRestoresRequest"},
+      "output":{"shape":"DescribeFastSnapshotRestoresResult"},
+      "documentation":"<p>Describes the state of fast snapshot restores for your snapshots.</p>"
+    },
     "DescribeFleetHistory":{
       "name":"DescribeFleetHistory",
       "http":{
@@ -2358,6 +2368,16 @@
       "output":{"shape":"DisableEbsEncryptionByDefaultResult"},
       "documentation":"<p>Disables EBS encryption by default for your account in the current Region.</p> <p>After you disable encryption by default, you can still create encrypted volumes by enabling encryption when you create each volume.</p> <p>Disabling encryption by default does not change the encryption status of your existing volumes.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS Encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
+    "DisableFastSnapshotRestores":{
+      "name":"DisableFastSnapshotRestores",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisableFastSnapshotRestoresRequest"},
+      "output":{"shape":"DisableFastSnapshotRestoresResult"},
+      "documentation":"<p>Disables fast snapshot restores for the specified snapshots in the specified Availability Zones.</p>"
+    },
     "DisableTransitGatewayRouteTablePropagation":{
       "name":"DisableTransitGatewayRouteTablePropagation",
       "http":{
@@ -2474,6 +2494,16 @@
       "input":{"shape":"EnableEbsEncryptionByDefaultRequest"},
       "output":{"shape":"EnableEbsEncryptionByDefaultResult"},
       "documentation":"<p>Enables EBS encryption by default for your account in the current Region.</p> <p>After you enable encryption by default, the EBS volumes that you create are are always encrypted, either using the default CMK or the CMK that you specified when you created each volume. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS Encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>You can specify the default CMK for encryption by default using <a>ModifyEbsDefaultKmsKeyId</a> or <a>ResetEbsDefaultKmsKeyId</a>.</p> <p>Enabling encryption by default has no effect on the encryption status of your existing volumes.</p> <p>After you enable encryption by default, you can no longer launch instances using instance types that do not support encryption. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances\">Supported Instance Types</a>.</p>"
+    },
+    "EnableFastSnapshotRestores":{
+      "name":"EnableFastSnapshotRestores",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EnableFastSnapshotRestoresRequest"},
+      "output":{"shape":"EnableFastSnapshotRestoresResult"},
+      "documentation":"<p>Enables fast snapshot restores for the specified snapshots in the specified Availability Zones.</p> <p>You get the full benefit of fast snapshot restores after they enter the <code>enabled</code> state. To get the current state of fast snapshot restores, use <a>DescribeFastSnapshotRestores</a>. To disable fast snapshot restores, use <a>DisableFastSnapshotRestores</a>.</p>"
     },
     "EnableTransitGatewayRouteTablePropagation":{
       "name":"EnableTransitGatewayRouteTablePropagation",
@@ -2868,6 +2898,16 @@
       "input":{"shape":"ModifyInstanceEventStartTimeRequest"},
       "output":{"shape":"ModifyInstanceEventStartTimeResult"},
       "documentation":"<p>Modifies the start time for a scheduled Amazon EC2 instance event.</p>"
+    },
+    "ModifyInstanceMetadataOptions":{
+      "name":"ModifyInstanceMetadataOptions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyInstanceMetadataOptionsRequest"},
+      "output":{"shape":"ModifyInstanceMetadataOptionsResult"},
+      "documentation":"<p>Modify the instance metadata parameters on a running or stopped instance. When you modify the parameters on a stopped instance, they are applied when the instance is started. When you modify the parameters on a running instance, the API responds with a state of “pending”. After the parameter modifications are successfully applied to the instance, the state of the modifications changes from “pending” to “applied” in subsequent describe-instances API calls. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html\">Instance Metadata and User Data</a>.</p>"
     },
     "ModifyInstancePlacement":{
       "name":"ModifyInstancePlacement",
@@ -4607,8 +4647,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for AttachVolume.</p>"
+      }
     },
     "AttachVpnGatewayRequest":{
       "type":"structure",
@@ -4942,6 +4981,13 @@
         "impaired",
         "unavailable"
       ]
+    },
+    "AvailabilityZoneStringList":{
+      "type":"list",
+      "member":{
+        "shape":"String",
+        "locationName":"AvailabilityZone"
+      }
     },
     "AvailableCapacity":{
       "type":"structure",
@@ -6630,6 +6676,7 @@
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
+          "documentation":"<p>The tags to apply to the new snapshot.</p>",
           "locationName":"TagSpecification"
         },
         "DryRun":{
@@ -6637,8 +6684,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for CopySnapshot.</p>"
+      }
     },
     "CopySnapshotResult":{
       "type":"structure",
@@ -6650,10 +6696,10 @@
         },
         "Tags":{
           "shape":"TagList",
+          "documentation":"<p>Any tags applied to the new snapshot.</p>",
           "locationName":"tagSet"
         }
-      },
-      "documentation":"<p>Contains the output of CopySnapshot.</p>"
+      }
     },
     "CopyTagsFromSource":{
       "type":"string",
@@ -6911,6 +6957,10 @@
         "Type":{
           "shape":"GatewayType",
           "documentation":"<p>The type of VPN connection that this customer gateway supports (<code>ipsec.1</code>).</p>"
+        },
+        "DeviceName":{
+          "shape":"String",
+          "documentation":"<p>A name for the customer gateway device.</p> <p>Length Constraints: Up to 255 characters.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -7969,8 +8019,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for CreateSnapshot.</p>"
+      }
     },
     "CreateSnapshotsRequest":{
       "type":"structure",
@@ -7991,7 +8040,7 @@
         },
         "DryRun":{
           "shape":"Boolean",
-          "documentation":"<p>Checks whether you have the required permissions for the action without actually making the request. Provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.</p>"
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
         },
         "CopyTagsFromSource":{
           "shape":"CopyTagsFromSource",
@@ -8576,8 +8625,7 @@
           "documentation":"<p>The tags to apply to the volume during creation.</p>",
           "locationName":"TagSpecification"
         }
-      },
-      "documentation":"<p>Contains the parameters for CreateVolume.</p>"
+      }
     },
     "CreateVpcEndpointConnectionNotificationRequest":{
       "type":"structure",
@@ -8966,6 +9014,11 @@
           "shape":"String",
           "documentation":"<p>The type of VPN connection the customer gateway supports (<code>ipsec.1</code>).</p>",
           "locationName":"type"
+        },
+        "DeviceName":{
+          "shape":"String",
+          "documentation":"<p>The name of customer gateway device.</p>",
+          "locationName":"deviceName"
         },
         "Tags":{
           "shape":"TagList",
@@ -9717,8 +9770,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for DeleteSnapshot.</p>"
+      }
     },
     "DeleteSpotDatafeedSubscriptionRequest":{
       "type":"structure",
@@ -9979,8 +10031,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for DeleteVolume.</p>"
+      }
     },
     "DeleteVpcEndpointConnectionNotificationsRequest":{
       "type":"structure",
@@ -10986,6 +11037,116 @@
         }
       }
     },
+    "DescribeFastSnapshotRestoreSuccessItem":{
+      "type":"structure",
+      "members":{
+        "SnapshotId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the snapshot.</p>",
+          "locationName":"snapshotId"
+        },
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone.</p>",
+          "locationName":"availabilityZone"
+        },
+        "State":{
+          "shape":"FastSnapshotRestoreStateCode",
+          "documentation":"<p>The state of fast snapshot restores.</p>",
+          "locationName":"state"
+        },
+        "StateTransitionReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the state transition. The possible values are as follows:</p> <ul> <li> <p> <code>Client.UserInitiated</code> - The state successfully transitioned to <code>enabling</code> or <code>disabling</code>.</p> </li> <li> <p> <code>Client.UserInitiated - Lifecycle state transition</code> - The state successfully transitioned to <code>optimizing</code>, <code>enabled</code>, or <code>disabled</code>.</p> </li> </ul>",
+          "locationName":"stateTransitionReason"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the AWS account that owns the snapshot.</p>",
+          "locationName":"ownerId"
+        },
+        "OwnerAlias":{
+          "shape":"String",
+          "documentation":"<p>The alias of the snapshot owner.</p>",
+          "locationName":"ownerAlias"
+        },
+        "EnablingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>enabling</code> state.</p>",
+          "locationName":"enablingTime"
+        },
+        "OptimizingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>optimizing</code> state.</p>",
+          "locationName":"optimizingTime"
+        },
+        "EnabledTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>enabled</code> state.</p>",
+          "locationName":"enabledTime"
+        },
+        "DisablingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>disabling</code> state.</p>",
+          "locationName":"disablingTime"
+        },
+        "DisabledTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>disabled</code> state.</p>",
+          "locationName":"disabledTime"
+        }
+      },
+      "documentation":"<p>Describes fast snapshot restores for a snapshot.</p>"
+    },
+    "DescribeFastSnapshotRestoreSuccessSet":{
+      "type":"list",
+      "member":{
+        "shape":"DescribeFastSnapshotRestoreSuccessItem",
+        "locationName":"item"
+      }
+    },
+    "DescribeFastSnapshotRestoresMaxResults":{
+      "type":"integer",
+      "max":200,
+      "min":0
+    },
+    "DescribeFastSnapshotRestoresRequest":{
+      "type":"structure",
+      "members":{
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>The filters. The possible values are:</p> <ul> <li> <p> <code>availability-zone</code>: The Availability Zone of the snapshot.</p> </li> <li> <p> <code>owner-id</code>: The ID of the AWS account that owns the snapshot.</p> </li> <li> <p> <code>snapshot-id</code>: The ID of the snapshot.</p> </li> <li> <p> <code>state</code>: The state of fast snapshot restores for the snapshot (<code>enabling</code> | <code>optimizing</code> | <code>enabled</code> | <code>disabling</code> | <code>disabled</code>).</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "MaxResults":{
+          "shape":"DescribeFastSnapshotRestoresMaxResults",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next page of results.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DescribeFastSnapshotRestoresResult":{
+      "type":"structure",
+      "members":{
+        "FastSnapshotRestores":{
+          "shape":"DescribeFastSnapshotRestoreSuccessSet",
+          "documentation":"<p>Information about the state of fast snapshot restores.</p>",
+          "locationName":"fastSnapshotRestoreSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "DescribeFleetError":{
       "type":"structure",
       "members":{
@@ -11815,7 +11976,7 @@
       "members":{
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>affinity</code> - The affinity setting for an instance running on a Dedicated Host (<code>default</code> | <code>host</code>).</p> </li> <li> <p> <code>architecture</code> - The instance architecture (<code>i386</code> | <code>x86_64</code> | <code>arm64</code>).</p> </li> <li> <p> <code>availability-zone</code> - The Availability Zone of the instance.</p> </li> <li> <p> <code>block-device-mapping.attach-time</code> - The attach time for an EBS volume mapped to the instance, for example, <code>2010-09-15T17:15:20.000Z</code>.</p> </li> <li> <p> <code>block-device-mapping.delete-on-termination</code> - A Boolean that indicates whether the EBS volume is deleted on instance termination.</p> </li> <li> <p> <code>block-device-mapping.device-name</code> - The device name specified in the block device mapping (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p> </li> <li> <p> <code>block-device-mapping.status</code> - The status for the EBS volume (<code>attaching</code> | <code>attached</code> | <code>detaching</code> | <code>detached</code>).</p> </li> <li> <p> <code>block-device-mapping.volume-id</code> - The volume ID of the EBS volume.</p> </li> <li> <p> <code>client-token</code> - The idempotency token you provided when you launched the instance.</p> </li> <li> <p> <code>dns-name</code> - The public DNS name of the instance.</p> </li> <li> <p> <code>group-id</code> - The ID of the security group for the instance. EC2-Classic only.</p> </li> <li> <p> <code>group-name</code> - The name of the security group for the instance. EC2-Classic only.</p> </li> <li> <p> <code>hibernation-options.configured</code> - A Boolean that indicates whether the instance is enabled for hibernation. A value of <code>true</code> means that the instance is enabled for hibernation. </p> </li> <li> <p> <code>host-id</code> - The ID of the Dedicated Host on which the instance is running, if applicable.</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor type of the instance (<code>ovm</code> | <code>xen</code>).</p> </li> <li> <p> <code>iam-instance-profile.arn</code> - The instance profile associated with the instance. Specified as an ARN.</p> </li> <li> <p> <code>image-id</code> - The ID of the image used to launch the instance.</p> </li> <li> <p> <code>instance-id</code> - The ID of the instance.</p> </li> <li> <p> <code>instance-lifecycle</code> - Indicates whether this is a Spot Instance or a Scheduled Instance (<code>spot</code> | <code>scheduled</code>).</p> </li> <li> <p> <code>instance-state-code</code> - The state of the instance, as a 16-bit unsigned integer. The high byte is used for internal purposes and should be ignored. The low byte is set based on the state represented. The valid values are: 0 (pending), 16 (running), 32 (shutting-down), 48 (terminated), 64 (stopping), and 80 (stopped).</p> </li> <li> <p> <code>instance-state-name</code> - The state of the instance (<code>pending</code> | <code>running</code> | <code>shutting-down</code> | <code>terminated</code> | <code>stopping</code> | <code>stopped</code>).</p> </li> <li> <p> <code>instance-type</code> - The type of instance (for example, <code>t2.micro</code>).</p> </li> <li> <p> <code>instance.group-id</code> - The ID of the security group for the instance. </p> </li> <li> <p> <code>instance.group-name</code> - The name of the security group for the instance. </p> </li> <li> <p> <code>ip-address</code> - The public IPv4 address of the instance.</p> </li> <li> <p> <code>kernel-id</code> - The kernel ID.</p> </li> <li> <p> <code>key-name</code> - The name of the key pair used when the instance was launched.</p> </li> <li> <p> <code>launch-index</code> - When launching multiple instances, this is the index for the instance in the launch group (for example, 0, 1, 2, and so on). </p> </li> <li> <p> <code>launch-time</code> - The time when the instance was launched.</p> </li> <li> <p> <code>monitoring-state</code> - Indicates whether detailed monitoring is enabled (<code>disabled</code> | <code>enabled</code>).</p> </li> <li> <p> <code>network-interface.addresses.private-ip-address</code> - The private IPv4 address associated with the network interface.</p> </li> <li> <p> <code>network-interface.addresses.primary</code> - Specifies whether the IPv4 address of the network interface is the primary private IPv4 address.</p> </li> <li> <p> <code>network-interface.addresses.association.public-ip</code> - The ID of the association of an Elastic IP address (IPv4) with a network interface.</p> </li> <li> <p> <code>network-interface.addresses.association.ip-owner-id</code> - The owner ID of the private IPv4 address associated with the network interface.</p> </li> <li> <p> <code>network-interface.association.public-ip</code> - The address of the Elastic IP address (IPv4) bound to the network interface.</p> </li> <li> <p> <code>network-interface.association.ip-owner-id</code> - The owner of the Elastic IP address (IPv4) associated with the network interface.</p> </li> <li> <p> <code>network-interface.association.allocation-id</code> - The allocation ID returned when you allocated the Elastic IP address (IPv4) for your network interface.</p> </li> <li> <p> <code>network-interface.association.association-id</code> - The association ID returned when the network interface was associated with an IPv4 address.</p> </li> <li> <p> <code>network-interface.attachment.attachment-id</code> - The ID of the interface attachment.</p> </li> <li> <p> <code>network-interface.attachment.instance-id</code> - The ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>network-interface.attachment.instance-owner-id</code> - The owner ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>network-interface.attachment.device-index</code> - The device index to which the network interface is attached.</p> </li> <li> <p> <code>network-interface.attachment.status</code> - The status of the attachment (<code>attaching</code> | <code>attached</code> | <code>detaching</code> | <code>detached</code>).</p> </li> <li> <p> <code>network-interface.attachment.attach-time</code> - The time that the network interface was attached to an instance.</p> </li> <li> <p> <code>network-interface.attachment.delete-on-termination</code> - Specifies whether the attachment is deleted when an instance is terminated.</p> </li> <li> <p> <code>network-interface.availability-zone</code> - The Availability Zone for the network interface.</p> </li> <li> <p> <code>network-interface.description</code> - The description of the network interface.</p> </li> <li> <p> <code>network-interface.group-id</code> - The ID of a security group associated with the network interface.</p> </li> <li> <p> <code>network-interface.group-name</code> - The name of a security group associated with the network interface.</p> </li> <li> <p> <code>network-interface.ipv6-addresses.ipv6-address</code> - The IPv6 address associated with the network interface.</p> </li> <li> <p> <code>network-interface.mac-address</code> - The MAC address of the network interface.</p> </li> <li> <p> <code>network-interface.network-interface-id</code> - The ID of the network interface.</p> </li> <li> <p> <code>network-interface.owner-id</code> - The ID of the owner of the network interface.</p> </li> <li> <p> <code>network-interface.private-dns-name</code> - The private DNS name of the network interface.</p> </li> <li> <p> <code>network-interface.requester-id</code> - The requester ID for the network interface.</p> </li> <li> <p> <code>network-interface.requester-managed</code> - Indicates whether the network interface is being managed by AWS.</p> </li> <li> <p> <code>network-interface.status</code> - The status of the network interface (<code>available</code>) | <code>in-use</code>).</p> </li> <li> <p> <code>network-interface.source-dest-check</code> - Whether the network interface performs source/destination checking. A value of <code>true</code> means that checking is enabled, and <code>false</code> means that checking is disabled. The value must be <code>false</code> for the network interface to perform network address translation (NAT) in your VPC.</p> </li> <li> <p> <code>network-interface.subnet-id</code> - The ID of the subnet for the network interface.</p> </li> <li> <p> <code>network-interface.vpc-id</code> - The ID of the VPC for the network interface.</p> </li> <li> <p> <code>owner-id</code> - The AWS account ID of the instance owner.</p> </li> <li> <p> <code>placement-group-name</code> - The name of the placement group for the instance.</p> </li> <li> <p> <code>placement-partition-number</code> - The partition in which the instance is located.</p> </li> <li> <p> <code>platform</code> - The platform. To list only Windows instances, use <code>windows</code>.</p> </li> <li> <p> <code>private-dns-name</code> - The private IPv4 DNS name of the instance.</p> </li> <li> <p> <code>private-ip-address</code> - The private IPv4 address of the instance.</p> </li> <li> <p> <code>product-code</code> - The product code associated with the AMI used to launch the instance.</p> </li> <li> <p> <code>product-code.type</code> - The type of product code (<code>devpay</code> | <code>marketplace</code>).</p> </li> <li> <p> <code>ramdisk-id</code> - The RAM disk ID.</p> </li> <li> <p> <code>reason</code> - The reason for the current state of the instance (for example, shows \"User Initiated [date]\" when you stop or terminate the instance). Similar to the state-reason-code filter.</p> </li> <li> <p> <code>requester-id</code> - The ID of the entity that launched the instance on your behalf (for example, AWS Management Console, Auto Scaling, and so on).</p> </li> <li> <p> <code>reservation-id</code> - The ID of the instance's reservation. A reservation ID is created any time you launch an instance. A reservation ID has a one-to-one relationship with an instance launch request, but can be associated with more than one instance if you launch multiple instances using the same launch request. For example, if you launch one instance, you get one reservation ID. If you launch ten instances using the same launch request, you also get one reservation ID.</p> </li> <li> <p> <code>root-device-name</code> - The device name of the root device volume (for example, <code>/dev/sda1</code>).</p> </li> <li> <p> <code>root-device-type</code> - The type of the root device volume (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>source-dest-check</code> - Indicates whether the instance performs source/destination checking. A value of <code>true</code> means that checking is enabled, and <code>false</code> means that checking is disabled. The value must be <code>false</code> for the instance to perform network address translation (NAT) in your VPC. </p> </li> <li> <p> <code>spot-instance-request-id</code> - The ID of the Spot Instance request.</p> </li> <li> <p> <code>state-reason-code</code> - The reason code for the state change.</p> </li> <li> <p> <code>state-reason-message</code> - A message that describes the state change.</p> </li> <li> <p> <code>subnet-id</code> - The ID of the subnet for the instance.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources that have a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>tenancy</code> - The tenancy of an instance (<code>dedicated</code> | <code>default</code> | <code>host</code>).</p> </li> <li> <p> <code>virtualization-type</code> - The virtualization type of the instance (<code>paravirtual</code> | <code>hvm</code>).</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC that the instance is running in.</p> </li> </ul>",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>affinity</code> - The affinity setting for an instance running on a Dedicated Host (<code>default</code> | <code>host</code>).</p> </li> <li> <p> <code>architecture</code> - The instance architecture (<code>i386</code> | <code>x86_64</code> | <code>arm64</code>).</p> </li> <li> <p> <code>availability-zone</code> - The Availability Zone of the instance.</p> </li> <li> <p> <code>block-device-mapping.attach-time</code> - The attach time for an EBS volume mapped to the instance, for example, <code>2010-09-15T17:15:20.000Z</code>.</p> </li> <li> <p> <code>block-device-mapping.delete-on-termination</code> - A Boolean that indicates whether the EBS volume is deleted on instance termination.</p> </li> <li> <p> <code>block-device-mapping.device-name</code> - The device name specified in the block device mapping (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p> </li> <li> <p> <code>block-device-mapping.status</code> - The status for the EBS volume (<code>attaching</code> | <code>attached</code> | <code>detaching</code> | <code>detached</code>).</p> </li> <li> <p> <code>block-device-mapping.volume-id</code> - The volume ID of the EBS volume.</p> </li> <li> <p> <code>client-token</code> - The idempotency token you provided when you launched the instance.</p> </li> <li> <p> <code>dns-name</code> - The public DNS name of the instance.</p> </li> <li> <p> <code>group-id</code> - The ID of the security group for the instance. EC2-Classic only.</p> </li> <li> <p> <code>group-name</code> - The name of the security group for the instance. EC2-Classic only.</p> </li> <li> <p> <code>hibernation-options.configured</code> - A Boolean that indicates whether the instance is enabled for hibernation. A value of <code>true</code> means that the instance is enabled for hibernation. </p> </li> <li> <p> <code>host-id</code> - The ID of the Dedicated Host on which the instance is running, if applicable.</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor type of the instance (<code>ovm</code> | <code>xen</code>).</p> </li> <li> <p> <code>iam-instance-profile.arn</code> - The instance profile associated with the instance. Specified as an ARN. <code>image-id</code> - The ID of the image used to launch the instance.</p> </li> <li> <p> <code>instance-id</code> - The ID of the instance.</p> </li> <li> <p> <code>instance-lifecycle</code> - Indicates whether this is a Spot Instance or a Scheduled Instance (<code>spot</code> | <code>scheduled</code>).</p> </li> <li> <p> <code>instance-state-code</code> - The state of the instance, as a 16-bit unsigned integer. The high byte is used for internal purposes and should be ignored. The low byte is set based on the state represented. The valid values are: 0 (pending), 16 (running), 32 (shutting-down), 48 (terminated), 64 (stopping), and 80 (stopped).</p> </li> <li> <p> <code>instance-state-name</code> - The state of the instance (<code>pending</code> | <code>running</code> | <code>shutting-down</code> | <code>terminated</code> | <code>stopping</code> | <code>stopped</code>).</p> </li> <li> <p> <code>instance-type</code> - The type of instance (for example, <code>t2.micro</code>).</p> </li> <li> <p> <code>instance.group-id</code> - The ID of the security group for the instance. </p> </li> <li> <p> <code>instance.group-name</code> - The name of the security group for the instance. </p> </li> <li> <p> <code>ip-address</code> - The public IPv4 address of the instance.</p> </li> <li> <p> <code>kernel-id</code> - The kernel ID.</p> </li> <li> <p> <code>key-name</code> - The name of the key pair used when the instance was launched.</p> </li> <li> <p> <code>launch-index</code> - When launching multiple instances, this is the index for the instance in the launch group (for example, 0, 1, 2, and so on). </p> </li> <li> <p> <code>launch-time</code> - The time when the instance was launched.</p> </li> <li> <p> <code>metadata-http-tokens</code> - The metadata request authorization state (<code>optional</code> | <code>required</code>)</p> </li> <li> <p> <code>metadata-http-put-response-hop-limit</code> - The http metadata request put response hop limit (integer, possible values <code>1</code> to <code>64</code>)</p> </li> <li> <p> <code>metadata-http-endpoint</code> - Enable or disable metadata access on http endpoint (<code>enabled</code> | <code>disabled</code>)</p> </li> <li> <p> <code>monitoring-state</code> - Indicates whether detailed monitoring is enabled (<code>disabled</code> | <code>enabled</code>).</p> </li> <li> <p> <code>network-interface.addresses.private-ip-address</code> - The private IPv4 address associated with the network interface.</p> </li> <li> <p> <code>network-interface.addresses.primary</code> - Specifies whether the IPv4 address of the network interface is the primary private IPv4 address.</p> </li> <li> <p> <code>network-interface.addresses.association.public-ip</code> - The ID of the association of an Elastic IP address (IPv4) with a network interface.</p> </li> <li> <p> <code>network-interface.addresses.association.ip-owner-id</code> - The owner ID of the private IPv4 address associated with the network interface.</p> </li> <li> <p> <code>network-interface.association.public-ip</code> - The address of the Elastic IP address (IPv4) bound to the network interface.</p> </li> <li> <p> <code>network-interface.association.ip-owner-id</code> - The owner of the Elastic IP address (IPv4) associated with the network interface.</p> </li> <li> <p> <code>network-interface.association.allocation-id</code> - The allocation ID returned when you allocated the Elastic IP address (IPv4) for your network interface.</p> </li> <li> <p> <code>network-interface.association.association-id</code> - The association ID returned when the network interface was associated with an IPv4 address.</p> </li> <li> <p> <code>network-interface.attachment.attachment-id</code> - The ID of the interface attachment.</p> </li> <li> <p> <code>network-interface.attachment.instance-id</code> - The ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>network-interface.attachment.instance-owner-id</code> - The owner ID of the instance to which the network interface is attached.</p> </li> <li> <p> <code>network-interface.attachment.device-index</code> - The device index to which the network interface is attached.</p> </li> <li> <p> <code>network-interface.attachment.status</code> - The status of the attachment (<code>attaching</code> | <code>attached</code> | <code>detaching</code> | <code>detached</code>).</p> </li> <li> <p> <code>network-interface.attachment.attach-time</code> - The time that the network interface was attached to an instance.</p> </li> <li> <p> <code>network-interface.attachment.delete-on-termination</code> - Specifies whether the attachment is deleted when an instance is terminated.</p> </li> <li> <p> <code>network-interface.availability-zone</code> - The Availability Zone for the network interface.</p> </li> <li> <p> <code>network-interface.description</code> - The description of the network interface.</p> </li> <li> <p> <code>network-interface.group-id</code> - The ID of a security group associated with the network interface.</p> </li> <li> <p> <code>network-interface.group-name</code> - The name of a security group associated with the network interface.</p> </li> <li> <p> <code>network-interface.ipv6-addresses.ipv6-address</code> - The IPv6 address associated with the network interface.</p> </li> <li> <p> <code>network-interface.mac-address</code> - The MAC address of the network interface.</p> </li> <li> <p> <code>network-interface.network-interface-id</code> - The ID of the network interface.</p> </li> <li> <p> <code>network-interface.owner-id</code> - The ID of the owner of the network interface.</p> </li> <li> <p> <code>network-interface.private-dns-name</code> - The private DNS name of the network interface.</p> </li> <li> <p> <code>network-interface.requester-id</code> - The requester ID for the network interface.</p> </li> <li> <p> <code>network-interface.requester-managed</code> - Indicates whether the network interface is being managed by AWS.</p> </li> <li> <p> <code>network-interface.status</code> - The status of the network interface (<code>available</code>) | <code>in-use</code>).</p> </li> <li> <p> <code>network-interface.source-dest-check</code> - Whether the network interface performs source/destination checking. A value of <code>true</code> means that checking is enabled, and <code>false</code> means that checking is disabled. The value must be <code>false</code> for the network interface to perform network address translation (NAT) in your VPC.</p> </li> <li> <p> <code>network-interface.subnet-id</code> - The ID of the subnet for the network interface.</p> </li> <li> <p> <code>network-interface.vpc-id</code> - The ID of the VPC for the network interface.</p> </li> <li> <p> <code>owner-id</code> - The AWS account ID of the instance owner.</p> </li> <li> <p> <code>placement-group-name</code> - The name of the placement group for the instance.</p> </li> <li> <p> <code>placement-partition-number</code> - The partition in which the instance is located.</p> </li> <li> <p> <code>platform</code> - The platform. To list only Windows instances, use <code>windows</code>.</p> </li> <li> <p> <code>private-dns-name</code> - The private IPv4 DNS name of the instance.</p> </li> <li> <p> <code>private-ip-address</code> - The private IPv4 address of the instance.</p> </li> <li> <p> <code>product-code</code> - The product code associated with the AMI used to launch the instance.</p> </li> <li> <p> <code>product-code.type</code> - The type of product code (<code>devpay</code> | <code>marketplace</code>).</p> </li> <li> <p> <code>ramdisk-id</code> - The RAM disk ID.</p> </li> <li> <p> <code>reason</code> - The reason for the current state of the instance (for example, shows \"User Initiated [date]\" when you stop or terminate the instance). Similar to the state-reason-code filter.</p> </li> <li> <p> <code>requester-id</code> - The ID of the entity that launched the instance on your behalf (for example, AWS Management Console, Auto Scaling, and so on).</p> </li> <li> <p> <code>reservation-id</code> - The ID of the instance's reservation. A reservation ID is created any time you launch an instance. A reservation ID has a one-to-one relationship with an instance launch request, but can be associated with more than one instance if you launch multiple instances using the same launch request. For example, if you launch one instance, you get one reservation ID. If you launch ten instances using the same launch request, you also get one reservation ID.</p> </li> <li> <p> <code>root-device-name</code> - The device name of the root device volume (for example, <code>/dev/sda1</code>).</p> </li> <li> <p> <code>root-device-type</code> - The type of the root device volume (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>source-dest-check</code> - Indicates whether the instance performs source/destination checking. A value of <code>true</code> means that checking is enabled, and <code>false</code> means that checking is disabled. The value must be <code>false</code> for the instance to perform network address translation (NAT) in your VPC. </p> </li> <li> <p> <code>spot-instance-request-id</code> - The ID of the Spot Instance request.</p> </li> <li> <p> <code>state-reason-code</code> - The reason code for the state change.</p> </li> <li> <p> <code>state-reason-message</code> - A message that describes the state change.</p> </li> <li> <p> <code>subnet-id</code> - The ID of the subnet for the instance.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources that have a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>tenancy</code> - The tenancy of an instance (<code>dedicated</code> | <code>default</code> | <code>host</code>).</p> </li> <li> <p> <code>virtualization-type</code> - The virtualization type of the instance (<code>paravirtual</code> | <code>hvm</code>).</p> </li> <li> <p> <code>vpc-id</code> - The ID of the VPC that the instance is running in.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "InstanceIds":{
@@ -12969,8 +13130,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for DescribeSnapshotAttribute.</p>"
+      }
     },
     "DescribeSnapshotAttributeResult":{
       "type":"structure",
@@ -12990,8 +13150,7 @@
           "documentation":"<p>The ID of the EBS snapshot.</p>",
           "locationName":"snapshotId"
         }
-      },
-      "documentation":"<p>Contains the output of DescribeSnapshotAttribute.</p>"
+      }
     },
     "DescribeSnapshotsRequest":{
       "type":"structure",
@@ -13796,8 +13955,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for DescribeVolumeAttribute.</p>"
+      }
     },
     "DescribeVolumeAttributeResult":{
       "type":"structure",
@@ -13817,8 +13975,7 @@
           "documentation":"<p>The ID of the volume.</p>",
           "locationName":"volumeId"
         }
-      },
-      "documentation":"<p>Contains the output of DescribeVolumeAttribute.</p>"
+      }
     },
     "DescribeVolumeStatusRequest":{
       "type":"structure",
@@ -14422,7 +14579,7 @@
       "members":{
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>customer-gateway-configuration</code> - The configuration information for the customer gateway.</p> </li> <li> <p> <code>customer-gateway-id</code> - The ID of a customer gateway associated with the VPN connection.</p> </li> <li> <p> <code>state</code> - The state of the VPN connection (<code>pending</code> | <code>available</code> | <code>deleting</code> | <code>deleted</code>).</p> </li> <li> <p> <code>option.static-routes-only</code> - Indicates whether the connection has static routes only. Used for devices that do not support Border Gateway Protocol (BGP).</p> </li> <li> <p> <code>route.destination-cidr-block</code> - The destination CIDR block. This corresponds to the subnet used in a customer data center.</p> </li> <li> <p> <code>bgp-asn</code> - The BGP Autonomous System Number (ASN) associated with a BGP device.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>type</code> - The type of VPN connection. Currently the only supported type is <code>ipsec.1</code>.</p> </li> <li> <p> <code>vpn-connection-id</code> - The ID of the VPN connection.</p> </li> <li> <p> <code>vpn-gateway-id</code> - The ID of a virtual private gateway associated with the VPN connection.</p> </li> </ul>",
+          "documentation":"<p>One or more filters.</p> <ul> <li> <p> <code>customer-gateway-configuration</code> - The configuration information for the customer gateway.</p> </li> <li> <p> <code>customer-gateway-id</code> - The ID of a customer gateway associated with the VPN connection.</p> </li> <li> <p> <code>state</code> - The state of the VPN connection (<code>pending</code> | <code>available</code> | <code>deleting</code> | <code>deleted</code>).</p> </li> <li> <p> <code>option.static-routes-only</code> - Indicates whether the connection has static routes only. Used for devices that do not support Border Gateway Protocol (BGP).</p> </li> <li> <p> <code>route.destination-cidr-block</code> - The destination CIDR block. This corresponds to the subnet used in a customer data center.</p> </li> <li> <p> <code>bgp-asn</code> - The BGP Autonomous System Number (ASN) associated with a BGP device.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>type</code> - The type of VPN connection. Currently the only supported type is <code>ipsec.1</code>.</p> </li> <li> <p> <code>vpn-connection-id</code> - The ID of the VPN connection.</p> </li> <li> <p> <code>vpn-gateway-id</code> - The ID of a virtual private gateway associated with the VPN connection.</p> </li> <li> <p> <code>transit-gateway-id</code> - The ID of a transit gateway associated with the VPN connection.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "VpnConnectionIds":{
@@ -14586,8 +14743,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for DetachVolume.</p>"
+      }
     },
     "DetachVpnGatewayRequest":{
       "type":"structure",
@@ -14716,7 +14872,7 @@
       "members":{
         "DryRun":{
           "shape":"Boolean",
-          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>. </p>"
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
         }
       }
     },
@@ -14727,6 +14883,174 @@
           "shape":"Boolean",
           "documentation":"<p>The updated status of encryption by default.</p>",
           "locationName":"ebsEncryptionByDefault"
+        }
+      }
+    },
+    "DisableFastSnapshotRestoreErrorItem":{
+      "type":"structure",
+      "members":{
+        "SnapshotId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the snapshot.</p>",
+          "locationName":"snapshotId"
+        },
+        "FastSnapshotRestoreStateErrors":{
+          "shape":"DisableFastSnapshotRestoreStateErrorSet",
+          "documentation":"<p>The errors.</p>",
+          "locationName":"fastSnapshotRestoreStateErrorSet"
+        }
+      },
+      "documentation":"<p>Contains information about the errors that occurred when disabling fast snapshot restores.</p>"
+    },
+    "DisableFastSnapshotRestoreErrorSet":{
+      "type":"list",
+      "member":{
+        "shape":"DisableFastSnapshotRestoreErrorItem",
+        "locationName":"item"
+      }
+    },
+    "DisableFastSnapshotRestoreStateError":{
+      "type":"structure",
+      "members":{
+        "Code":{
+          "shape":"String",
+          "documentation":"<p>The error code.</p>",
+          "locationName":"code"
+        },
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>",
+          "locationName":"message"
+        }
+      },
+      "documentation":"<p>Describes an error that occurred when disabling fast snapshot restores.</p>"
+    },
+    "DisableFastSnapshotRestoreStateErrorItem":{
+      "type":"structure",
+      "members":{
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone.</p>",
+          "locationName":"availabilityZone"
+        },
+        "Error":{
+          "shape":"DisableFastSnapshotRestoreStateError",
+          "documentation":"<p>The error.</p>",
+          "locationName":"error"
+        }
+      },
+      "documentation":"<p>Contains information about an error that occurred when disabling fast snapshot restores.</p>"
+    },
+    "DisableFastSnapshotRestoreStateErrorSet":{
+      "type":"list",
+      "member":{
+        "shape":"DisableFastSnapshotRestoreStateErrorItem",
+        "locationName":"item"
+      }
+    },
+    "DisableFastSnapshotRestoreSuccessItem":{
+      "type":"structure",
+      "members":{
+        "SnapshotId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the snapshot.</p>",
+          "locationName":"snapshotId"
+        },
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone.</p>",
+          "locationName":"availabilityZone"
+        },
+        "State":{
+          "shape":"FastSnapshotRestoreStateCode",
+          "documentation":"<p>The state of fast snapshot restores for the snapshot.</p>",
+          "locationName":"state"
+        },
+        "StateTransitionReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the state transition. The possible values are as follows:</p> <ul> <li> <p> <code>Client.UserInitiated</code> - The state successfully transitioned to <code>enabling</code> or <code>disabling</code>.</p> </li> <li> <p> <code>Client.UserInitiated - Lifecycle state transition</code> - The state successfully transitioned to <code>optimizing</code>, <code>enabled</code>, or <code>disabled</code>.</p> </li> </ul>",
+          "locationName":"stateTransitionReason"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the AWS account that owns the snapshot.</p>",
+          "locationName":"ownerId"
+        },
+        "OwnerAlias":{
+          "shape":"String",
+          "documentation":"<p>The alias of the snapshot owner.</p>",
+          "locationName":"ownerAlias"
+        },
+        "EnablingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>enabling</code> state.</p>",
+          "locationName":"enablingTime"
+        },
+        "OptimizingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>optimizing</code> state.</p>",
+          "locationName":"optimizingTime"
+        },
+        "EnabledTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>enabled</code> state.</p>",
+          "locationName":"enabledTime"
+        },
+        "DisablingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>disabling</code> state.</p>",
+          "locationName":"disablingTime"
+        },
+        "DisabledTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>disabled</code> state.</p>",
+          "locationName":"disabledTime"
+        }
+      },
+      "documentation":"<p>Describes fast snapshot restores that were successfully disabled.</p>"
+    },
+    "DisableFastSnapshotRestoreSuccessSet":{
+      "type":"list",
+      "member":{
+        "shape":"DisableFastSnapshotRestoreSuccessItem",
+        "locationName":"item"
+      }
+    },
+    "DisableFastSnapshotRestoresRequest":{
+      "type":"structure",
+      "required":[
+        "AvailabilityZones",
+        "SourceSnapshotIds"
+      ],
+      "members":{
+        "AvailabilityZones":{
+          "shape":"AvailabilityZoneStringList",
+          "documentation":"<p>One or more Availability Zones. For example, <code>us-east-2a</code>.</p>",
+          "locationName":"AvailabilityZone"
+        },
+        "SourceSnapshotIds":{
+          "shape":"SnapshotIdStringList",
+          "documentation":"<p>The IDs of one or more snapshots. For example, <code>snap-1234567890abcdef0</code>.</p>",
+          "locationName":"SourceSnapshotId"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DisableFastSnapshotRestoresResult":{
+      "type":"structure",
+      "members":{
+        "Successful":{
+          "shape":"DisableFastSnapshotRestoreSuccessSet",
+          "documentation":"<p>Information about the snapshots for which fast snapshot restores were successfully disabled.</p>",
+          "locationName":"successful"
+        },
+        "Unsuccessful":{
+          "shape":"DisableFastSnapshotRestoreErrorSet",
+          "documentation":"<p>Information about the snapshots for which fast snapshot restores could not be disabled.</p>",
+          "locationName":"unsuccessful"
         }
       }
     },
@@ -15469,7 +15793,7 @@
       "members":{
         "DryRun":{
           "shape":"Boolean",
-          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>. </p>"
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
         }
       }
     },
@@ -15480,6 +15804,174 @@
           "shape":"Boolean",
           "documentation":"<p>The updated status of encryption by default.</p>",
           "locationName":"ebsEncryptionByDefault"
+        }
+      }
+    },
+    "EnableFastSnapshotRestoreErrorItem":{
+      "type":"structure",
+      "members":{
+        "SnapshotId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the snapshot.</p>",
+          "locationName":"snapshotId"
+        },
+        "FastSnapshotRestoreStateErrors":{
+          "shape":"EnableFastSnapshotRestoreStateErrorSet",
+          "documentation":"<p>The errors.</p>",
+          "locationName":"fastSnapshotRestoreStateErrorSet"
+        }
+      },
+      "documentation":"<p>Contains information about the errors that occurred when enabling fast snapshot restores.</p>"
+    },
+    "EnableFastSnapshotRestoreErrorSet":{
+      "type":"list",
+      "member":{
+        "shape":"EnableFastSnapshotRestoreErrorItem",
+        "locationName":"item"
+      }
+    },
+    "EnableFastSnapshotRestoreStateError":{
+      "type":"structure",
+      "members":{
+        "Code":{
+          "shape":"String",
+          "documentation":"<p>The error code.</p>",
+          "locationName":"code"
+        },
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>The error message.</p>",
+          "locationName":"message"
+        }
+      },
+      "documentation":"<p>Describes an error that occurred when enabling fast snapshot restores.</p>"
+    },
+    "EnableFastSnapshotRestoreStateErrorItem":{
+      "type":"structure",
+      "members":{
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone.</p>",
+          "locationName":"availabilityZone"
+        },
+        "Error":{
+          "shape":"EnableFastSnapshotRestoreStateError",
+          "documentation":"<p>The error.</p>",
+          "locationName":"error"
+        }
+      },
+      "documentation":"<p>Contains information about an error that occurred when enabling fast snapshot restores.</p>"
+    },
+    "EnableFastSnapshotRestoreStateErrorSet":{
+      "type":"list",
+      "member":{
+        "shape":"EnableFastSnapshotRestoreStateErrorItem",
+        "locationName":"item"
+      }
+    },
+    "EnableFastSnapshotRestoreSuccessItem":{
+      "type":"structure",
+      "members":{
+        "SnapshotId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the snapshot.</p>",
+          "locationName":"snapshotId"
+        },
+        "AvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Availability Zone.</p>",
+          "locationName":"availabilityZone"
+        },
+        "State":{
+          "shape":"FastSnapshotRestoreStateCode",
+          "documentation":"<p>The state of fast snapshot restores.</p>",
+          "locationName":"state"
+        },
+        "StateTransitionReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the state transition. The possible values are as follows:</p> <ul> <li> <p> <code>Client.UserInitiated</code> - The state successfully transitioned to <code>enabling</code> or <code>disabling</code>.</p> </li> <li> <p> <code>Client.UserInitiated - Lifecycle state transition</code> - The state successfully transitioned to <code>optimizing</code>, <code>enabled</code>, or <code>disabled</code>.</p> </li> </ul>",
+          "locationName":"stateTransitionReason"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the AWS account that owns the snapshot.</p>",
+          "locationName":"ownerId"
+        },
+        "OwnerAlias":{
+          "shape":"String",
+          "documentation":"<p>The alias of the snapshot owner.</p>",
+          "locationName":"ownerAlias"
+        },
+        "EnablingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>enabling</code> state.</p>",
+          "locationName":"enablingTime"
+        },
+        "OptimizingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>optimizing</code> state.</p>",
+          "locationName":"optimizingTime"
+        },
+        "EnabledTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>enabled</code> state.</p>",
+          "locationName":"enabledTime"
+        },
+        "DisablingTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>disabling</code> state.</p>",
+          "locationName":"disablingTime"
+        },
+        "DisabledTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The time at which fast snapshot restores entered the <code>disabled</code> state.</p>",
+          "locationName":"disabledTime"
+        }
+      },
+      "documentation":"<p>Describes fast snapshot restores that were successfully enabled.</p>"
+    },
+    "EnableFastSnapshotRestoreSuccessSet":{
+      "type":"list",
+      "member":{
+        "shape":"EnableFastSnapshotRestoreSuccessItem",
+        "locationName":"item"
+      }
+    },
+    "EnableFastSnapshotRestoresRequest":{
+      "type":"structure",
+      "required":[
+        "AvailabilityZones",
+        "SourceSnapshotIds"
+      ],
+      "members":{
+        "AvailabilityZones":{
+          "shape":"AvailabilityZoneStringList",
+          "documentation":"<p>One or more Availability Zones. For example, <code>us-east-2a</code>.</p>",
+          "locationName":"AvailabilityZone"
+        },
+        "SourceSnapshotIds":{
+          "shape":"SnapshotIdStringList",
+          "documentation":"<p>The IDs of one or more snapshots. For example, <code>snap-1234567890abcdef0</code>. You can specify a snapshot that was shared with you from another AWS account.</p>",
+          "locationName":"SourceSnapshotId"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "EnableFastSnapshotRestoresResult":{
+      "type":"structure",
+      "members":{
+        "Successful":{
+          "shape":"EnableFastSnapshotRestoreSuccessSet",
+          "documentation":"<p>Information about the snapshots for which fast snapshot restores were successfully enabled.</p>",
+          "locationName":"successful"
+        },
+        "Unsuccessful":{
+          "shape":"EnableFastSnapshotRestoreErrorSet",
+          "documentation":"<p>Information about the snapshots for which fast snapshot restores could not be enabled.</p>",
+          "locationName":"unsuccessful"
         }
       }
     },
@@ -15546,8 +16038,7 @@
           "documentation":"<p>The ID of the volume.</p>",
           "locationName":"volumeId"
         }
-      },
-      "documentation":"<p>Contains the parameters for EnableVolumeIO.</p>"
+      }
     },
     "EnableVpcClassicLinkDnsSupportRequest":{
       "type":"structure",
@@ -16068,6 +16559,16 @@
         "shape":"FailedQueuedPurchaseDeletion",
         "locationName":"item"
       }
+    },
+    "FastSnapshotRestoreStateCode":{
+      "type":"string",
+      "enum":[
+        "enabling",
+        "optimizing",
+        "enabled",
+        "disabling",
+        "disabled"
+      ]
     },
     "Filter":{
       "type":"structure",
@@ -17565,6 +18066,13 @@
         "host"
       ]
     },
+    "HttpTokensState":{
+      "type":"string",
+      "enum":[
+        "optional",
+        "required"
+      ]
+    },
     "HypervisorType":{
       "type":"string",
       "enum":[
@@ -18753,7 +19261,7 @@
         },
         "ElasticInferenceAcceleratorAssociations":{
           "shape":"ElasticInferenceAcceleratorAssociationList",
-          "documentation":"<p> The elastic inference accelerator associated with the instance. </p>",
+          "documentation":"<p> The elastic inference accelerator associated with the instance.</p>",
           "locationName":"elasticInferenceAcceleratorAssociationSet"
         },
         "NetworkInterfaces":{
@@ -18830,6 +19338,11 @@
           "shape":"LicenseList",
           "documentation":"<p>The license configurations.</p>",
           "locationName":"licenseSet"
+        },
+        "MetadataOptions":{
+          "shape":"InstanceMetadataOptionsResponse",
+          "documentation":"<p>The metadata options for the instance.</p>",
+          "locationName":"metadataOptions"
         }
       },
       "documentation":"<p>Describes an instance.</p>"
@@ -19207,6 +19720,64 @@
       "enum":[
         "open",
         "targeted"
+      ]
+    },
+    "InstanceMetadataEndpointState":{
+      "type":"string",
+      "enum":[
+        "disabled",
+        "enabled"
+      ]
+    },
+    "InstanceMetadataOptionsRequest":{
+      "type":"structure",
+      "members":{
+        "HttpTokens":{
+          "shape":"HttpTokensState",
+          "documentation":"<p>The state of token usage for your instance metadata requests. If the parameter is not specified in the request, the default state is <code>optional</code>.</p> <p>If the state is <code>optional</code>, you can choose to retrieve instance metadata with or without a signed token header on your request. If you retrieve the IAM role credentials without a token, the version 1.0 role credentials are returned. If you retrieve the IAM role credentials using a valid signed token, the version 2.0 role credentials are returned.</p> <p>If the state is <code>required</code>, you must send a signed token header with any instance metadata retrieval requests. In this state, retrieving the IAM role credentials always returns the version 2.0 credentials; the version 1.0 credentials are not available.</p>"
+        },
+        "HttpPutResponseHopLimit":{
+          "shape":"Integer",
+          "documentation":"<p>The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel.</p> <p>Default: 1</p> <p>Possible values: Integers from 1 to 64</p>"
+        },
+        "HttpEndpoint":{
+          "shape":"InstanceMetadataEndpointState",
+          "documentation":"<p>This parameter enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is <code>enabled</code>.</p> <note> <p>If you specify a value of <code>disabled</code>, you will not be able to access your instance metadata.</p> </note>"
+        }
+      },
+      "documentation":"<p>The metadata options for the instance.</p>"
+    },
+    "InstanceMetadataOptionsResponse":{
+      "type":"structure",
+      "members":{
+        "State":{
+          "shape":"InstanceMetadataOptionsState",
+          "documentation":"<p>The state of the metadata option changes.</p> <p> <code>pending</code> - The metadata options are being updated and the instance is not ready to process metadata traffic with the new selection.</p> <p> <code>applied</code> - The metadata options have been successfully applied on the instance.</p>",
+          "locationName":"state"
+        },
+        "HttpTokens":{
+          "shape":"HttpTokensState",
+          "documentation":"<p>The state of token usage for your instance metadata requests. If the parameter is not specified in the request, the default state is <code>optional</code>.</p> <p>If the state is <code>optional</code>, you can choose to retrieve instance metadata with or without a signed token header on your request. If you retrieve the IAM role credentials without a token, the version 1.0 role credentials are returned. If you retrieve the IAM role credentials using a valid signed token, the version 2.0 role credentials are returned.</p> <p>If the state is <code>required</code>, you must send a signed token header with any instance metadata retrieval requests. In this state, retrieving the IAM role credential always returns the version 2.0 credentials; the version 1.0 credentials are not available.</p>",
+          "locationName":"httpTokens"
+        },
+        "HttpPutResponseHopLimit":{
+          "shape":"Integer",
+          "documentation":"<p>The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel.</p> <p>Default: 1</p> <p>Possible values: Integers from 1 to 64</p>",
+          "locationName":"httpPutResponseHopLimit"
+        },
+        "HttpEndpoint":{
+          "shape":"InstanceMetadataEndpointState",
+          "documentation":"<p>This parameter enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is <code>enabled</code>.</p> <note> <p>If you specify a value of <code>disabled</code>, you will not be able to access your instance metadata.</p> </note>",
+          "locationName":"httpEndpoint"
+        }
+      },
+      "documentation":"<p>The metadata options for the instance.</p>"
+    },
+    "InstanceMetadataOptionsState":{
+      "type":"string",
+      "enum":[
+        "pending",
+        "applied"
       ]
     },
     "InstanceMonitoring":{
@@ -21920,6 +22491,47 @@
         }
       }
     },
+    "ModifyInstanceMetadataOptionsRequest":{
+      "type":"structure",
+      "required":["InstanceId"],
+      "members":{
+        "InstanceId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the instance.</p>"
+        },
+        "HttpTokens":{
+          "shape":"HttpTokensState",
+          "documentation":"<p>The state of token usage for your instance metadata requests. If the parameter is not specified in the request, the default state is <code>optional</code>.</p> <p>If the state is <code>optional</code>, you can choose to retrieve instance metadata with or without a signed token header on your request. If you retrieve the IAM role credentials without a token, the version 1.0 role credentials are returned. If you retrieve the IAM role credentials using a valid signed token, the version 2.0 role credentials are returned.</p> <p>If the state is <code>required</code>, you must send a signed token header with any instance metadata retrieval requests. In this state, retrieving the IAM role credential always returns the version 2.0 credentials; the version 1.0 credentials are not available.</p>"
+        },
+        "HttpPutResponseHopLimit":{
+          "shape":"Integer",
+          "documentation":"<p>The desired HTTP PUT response hop limit for instance metadata requests. The larger the number, the further instance metadata requests can travel. If no parameter is specified, the existing state is maintained.</p> <p>Possible values: Integers from 1 to 64</p>"
+        },
+        "HttpEndpoint":{
+          "shape":"InstanceMetadataEndpointState",
+          "documentation":"<p>This parameter enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the existing state is maintained.</p> <note> <p>If you specify a value of <code>disabled</code>, you will not be able to access your instance metadata.</p> </note>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "ModifyInstanceMetadataOptionsResult":{
+      "type":"structure",
+      "members":{
+        "InstanceId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the instance.</p>",
+          "locationName":"instanceId"
+        },
+        "InstanceMetadataOptions":{
+          "shape":"InstanceMetadataOptionsResponse",
+          "documentation":"<p>The metadata options for the instance.</p>",
+          "locationName":"instanceMetadataOptions"
+        }
+      }
+    },
     "ModifyInstancePlacementRequest":{
       "type":"structure",
       "required":["InstanceId"],
@@ -22108,8 +22720,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for ModifySnapshotAttribute.</p>"
+      }
     },
     "ModifySpotFleetRequestRequest":{
       "type":"structure",
@@ -22386,8 +22997,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for ModifyVolumeAttribute.</p>"
+      }
     },
     "ModifyVolumeRequest":{
       "type":"structure",
@@ -26368,8 +26978,7 @@
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
         }
-      },
-      "documentation":"<p>Contains the parameters for ResetSnapshotAttribute.</p>"
+      }
     },
     "ResourceIdList":{
       "type":"list",
@@ -27109,6 +27718,10 @@
           "shape":"LicenseSpecificationListRequest",
           "documentation":"<p>The license configurations.</p>",
           "locationName":"LicenseSpecification"
+        },
+        "MetadataOptions":{
+          "shape":"InstanceMetadataOptionsRequest",
+          "documentation":"<p>The metadata options for the instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html\">Instance Metadata and User Data</a>.</p>"
         }
       }
     },
@@ -31394,6 +32007,11 @@
           "shape":"VolumeType",
           "documentation":"<p>The volume type. This can be <code>gp2</code> for General Purpose SSD, <code>io1</code> for Provisioned IOPS SSD, <code>st1</code> for Throughput Optimized HDD, <code>sc1</code> for Cold HDD, or <code>standard</code> for Magnetic volumes.</p>",
           "locationName":"volumeType"
+        },
+        "FastRestored":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the volume was created using fast snapshot restore.</p>",
+          "locationName":"fastRestored"
         }
       },
       "documentation":"<p>Describes a volume.</p>"

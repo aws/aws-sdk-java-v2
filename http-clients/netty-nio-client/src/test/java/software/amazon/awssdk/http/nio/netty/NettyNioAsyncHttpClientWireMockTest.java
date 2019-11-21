@@ -114,6 +114,22 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
+    public void defaultConnectionIdleTimeout() {
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder().build()) {
+            assertThat(client.configuration().idleTimeoutMillis()).isEqualTo(5000);
+        }
+    }
+
+    @Test
+    public void overrideConnectionIdleTimeout_shouldHonor() {
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionMaxIdleTime(Duration.ofMillis(1000))
+                                                                                               .build()) {
+            assertThat(client.configuration().idleTimeoutMillis()).isEqualTo(1000);
+        }
+    }
+
+    @Test
     public void customFactoryIsUsed() throws Exception {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         SdkAsyncHttpClient customClient =
