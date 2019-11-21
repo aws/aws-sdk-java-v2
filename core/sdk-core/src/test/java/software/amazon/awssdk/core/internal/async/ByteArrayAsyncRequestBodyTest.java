@@ -58,5 +58,11 @@ public class ByteArrayAsyncRequestBodyTest {
         byteArrayReq.subscribe(subscriber);
         assertTrue(subscriber.onCompleteCalled.get());
     }
+    
+    @Test
+    public void getBytes_shouldReturnBytesArray() {
+        ByteArrayAsyncRequestBody byteArrayReq = new ByteArrayAsyncRequestBody("Hello World!".getBytes());
+        assertTrue(byteArrayReq.getBytes == "Hello World!".getBytes());
+    }
 
 }
