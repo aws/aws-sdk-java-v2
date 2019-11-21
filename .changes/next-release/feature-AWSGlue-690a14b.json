@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "This release adds support for Glue 1.0 compatible ML Transforms."
-}
