@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "description": "AWS Config launches Custom Configuration Items. A new feature which allows customers to publish resource configuration for third-party resources, custom, or on-premises servers."
+}
