@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "description": "The ProcessCredentialsProvider now supports credential files up to 64 KB by default through an increase of the processOutputLimit from 1024 bytes to 64000 bytes."
-}
