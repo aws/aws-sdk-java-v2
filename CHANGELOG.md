@@ -1,3 +1,56 @@
+# __2.10.23__ __2019-11-22__
+## __AWS Auto Scaling Plans__
+  - ### Features
+    - Update default endpoint for AWS Auto Scaling.
+
+## __AWS Certificate Manager__
+  - ### Features
+    - This release adds support for Tag-Based IAM for AWS Certificate Manager and adding tags to certificates upon creation.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add Canonical ARN to LogsLocation.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Includes the submission time of Asset ingestion request in the API response for Create/List/Describe Assets.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - The ProcessCredentialsProvider now supports credential files up to 64 KB by default through an increase of the processOutputLimit from 1024 bytes to 64000 bytes.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Support tagging for STS sessions and tag based access control for the STS APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds two new APIs (DescribeInstanceTypes and DescribeInstanceTypeOfferings) that give customers access to instance type attributes and regional and zonal offerings.
+
+## __Amazon Elastic MapReduce__
+  - ### Features
+    - Amazon EMR adds support for concurrent step execution and cancelling running steps. Amazon EMR has added a new Outpost ARN field in the ListCluster and DescribeCluster API responses that is populated for clusters launched in an AWS Outpost subnet.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - This release adds two key updates to existing APIs. 1. Amazon Forecast can now generate forecasts in any quantile using the optional parameter forecastTypes in the CreateForecast API and 2. You can get additional details (metrics and relevant error messages) on your AutoML runs using the DescribePredictor and GetAccuracyMetrics APIs.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds enhanced face filtering support to the IndexFaces API operation, and introduces face filtering for CompareFaces and SearchFacesByImage API operations.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Added documentation for the dead-letter queue feature.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add RebootOption and LastNoRebootInstallOperationTime for DescribeInstancePatchStates and DescribeInstancePatchStatesForPatchGroup API
+
+## __Application Auto Scaling__
+  - ### Features
+    - Update default endpoint for Application Auto Scaling.
+
 # __2.10.22__ __2019-11-21__
 ## __AWS Amplify__
   - ### Features

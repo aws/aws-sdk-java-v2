@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Rekognition",
-    "description": "This release adds enhanced face filtering support to the IndexFaces API operation, and introduces face filtering for CompareFaces and SearchFacesByImage API operations."
-}

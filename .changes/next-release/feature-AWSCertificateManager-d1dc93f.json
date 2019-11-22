@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Certificate Manager",
-    "description": "This release adds support for Tag-Based IAM for AWS Certificate Manager and adding tags to certificates upon creation."
-}

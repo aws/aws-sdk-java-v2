@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic MapReduce",
-    "description": "Amazon EMR adds support for concurrent step execution and cancelling running steps. Amazon EMR has added a new Outpost ARN field in the ListCluster and DescribeCluster API responses that is populated for clusters launched in an AWS Outpost subnet."
-}
