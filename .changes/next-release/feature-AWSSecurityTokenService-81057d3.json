@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Security Token Service",
+    "description": "Support tagging for STS sessions and tag based access control for the STS APIs"
+}
