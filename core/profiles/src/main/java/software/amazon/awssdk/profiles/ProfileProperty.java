@@ -86,5 +86,12 @@ public final class ProfileProperty {
 
     public static final String WEB_IDENTITY_TOKEN_FILE = "web_identity_token_file";
 
+    /**
+     * The S3 regional endpoint setting for the {@code us-east-1} region. Setting the value to {@code regional} causes
+     * the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the {@code US_EAST_1} region instead of
+     * the global {@code s3.amazonaws.com}. Using the regional endpoint is disabled by default.
+     */
+    public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "s3_us_east_1_regional_endpoint";
+
     private ProfileProperty() {}
 }
