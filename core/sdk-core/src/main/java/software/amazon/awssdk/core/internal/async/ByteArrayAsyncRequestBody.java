@@ -33,13 +33,13 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 @SdkInternalApi
 public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
-    private final byte[] bytes;
+    public final byte[] bytes;
 
     public ByteArrayAsyncRequestBody(byte[] bytes) {
         this.bytes = bytes.clone();
     }
     
-    public byte[] getBytes() { return bytes; }
+    // public byte[] getBytes() { return bytes; }
 
     @Override
     public Optional<Long> contentLength() {
