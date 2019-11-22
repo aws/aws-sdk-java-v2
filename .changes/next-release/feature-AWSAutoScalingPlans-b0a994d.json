@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Auto Scaling Plans",
+    "description": "Update default endpoint for AWS Auto Scaling."
+}
