@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "description": "This release contains changes for 1. Redshift Scheduler 2. Update to the DescribeNodeConfigurationOptions to include a new action type recommend-node-config"
+}
