@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Analytics",
+    "description": "Kinesis Data Analytics service adds support to configure Java applications to access resources in a VPC. Also releasing support to configure Java applications to set allowNonRestoreState flag through the service APIs."
+}
