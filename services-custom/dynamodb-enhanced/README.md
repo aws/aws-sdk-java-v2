@@ -33,7 +33,7 @@ values used are also completely arbitrary.
        public void setName(String name) { this.name = name; }
        
        public String getCreatedDate() { return this.createdDate; }
-       public void setCreatedDate() { this.createdDate = createdDate; }
+       public void setCreatedDate(String createdDate) { this.createdDate = createdDate; }
    }
    ```
    
