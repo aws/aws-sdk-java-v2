@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "description": "This release introduces new set of APIs (\"wafv2\") for AWS WAF. Major changes include single set of APIs for creating/updating resources in global and regional scope, and rules are configured directly into web ACL instead of being referenced. The previous APIs (\"waf\" and \"waf-regional\") are now referred as AWS WAF Classic. For more information visit: https://docs.aws.amazon.com/waf/latest/APIReference/Welcome.html"
+}
