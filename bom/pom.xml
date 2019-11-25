@@ -1115,6 +1115,11 @@
                 <artifactId>wafv2</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>appconfig</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

@@ -208,6 +208,7 @@
         <module>migrationhubconfig</module>
         <module>connectparticipant</module>
         <module>wafv2</module>
+        <module>appconfig</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

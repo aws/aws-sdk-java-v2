@@ -1005,6 +1005,11 @@ Amazon AutoScaling, etc).</description>
             <artifactId>wafv2</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>appconfig</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
