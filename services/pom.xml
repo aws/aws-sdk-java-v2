@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.10.24-SNAPSHOT</version>
+        <version>2.10.25-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -207,6 +207,9 @@
         <module>dataexchange</module>
         <module>migrationhubconfig</module>
         <module>connectparticipant</module>
+        <module>wafv2</module>
+        <module>appconfig</module>
+        <module>iotsecuretunneling</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
