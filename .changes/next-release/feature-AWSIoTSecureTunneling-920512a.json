@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Secure Tunneling",
+    "description": "This release adds support for IoT Secure Tunneling to remote access devices behind restricted firewalls."
+}
