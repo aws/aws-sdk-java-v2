@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "description": "Cluster Endpoints can now be tagged by using --tags in the create-db-cluster-endpoint API"
+}
