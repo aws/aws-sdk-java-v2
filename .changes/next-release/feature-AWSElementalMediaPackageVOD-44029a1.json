@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage VOD",
+    "description": "Adds a domain name to PackagingGroups, representing the fully qualified domain name for Assets created in the group."
+}
