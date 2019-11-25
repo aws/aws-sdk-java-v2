@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "description": "This release of Elastic Load Balancing V2 adds new subnet features for Network Load Balancers and a new routing algorithm for Application Load Balancers."
+}
