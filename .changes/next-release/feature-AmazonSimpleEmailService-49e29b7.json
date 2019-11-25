@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "description": "This release includes support for automatically suppressing email addresses that result in hard bounce or complaint events at the account level, and for managing addresses on this account-level suppression list."
-}

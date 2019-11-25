@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "description": "This release adds additional query lifecycle metrics to the QueryExecutionStatistics object in GetQueryExecution response."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "description": "Amazon Cognito Userpools now supports Sign in with Apple as an Identity Provider."
-}

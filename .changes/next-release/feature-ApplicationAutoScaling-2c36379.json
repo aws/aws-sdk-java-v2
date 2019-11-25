@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Application Auto Scaling",
-    "description": "This release supports auto scaling of document classifier endpoints for Comprehend; and supports target tracking based on the average capacity utilization metric for AppStream 2.0 fleets."
-}

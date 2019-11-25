@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Data Lifecycle Manager",
-    "description": "You can now set time based retention policies on Data Lifecycle Manager. With this launch, DLM allows you to set snapshot retention period in the following interval units: days, weeks, months and years."
-}

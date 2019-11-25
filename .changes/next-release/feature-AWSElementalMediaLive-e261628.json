@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "description": "AWS Elemental MediaLive now supports the ability to create a multiple program transport stream (MPTS)."
-}
