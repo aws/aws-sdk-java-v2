@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Runtime Service",
+    "description": "Amazon Lex adds \"sessionId\" attribute to the PostText and PostContent response."
+}
