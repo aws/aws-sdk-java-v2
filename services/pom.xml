@@ -210,6 +210,7 @@
         <module>wafv2</module>
         <module>appconfig</module>
         <module>iotsecuretunneling</module>
+        <module>elasticinference</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
