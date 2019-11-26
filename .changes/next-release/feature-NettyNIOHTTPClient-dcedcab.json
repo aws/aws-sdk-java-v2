@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "type": "feature", 
-    "description": "Detect unhealthy http2 connections when read or write times out by sending PING frames"
-}

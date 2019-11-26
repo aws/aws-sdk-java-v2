@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Inference",
-    "description": "Amazon Elastic Inference allows customers to attach Elastic Inference Accelerators to Amazon EC2 and Amazon ECS tasks, thus providing low-cost GPU-powered acceleration and reducing the cost of running deep learning inference. This release allows customers to add or remove tags for their Elastic Inference Accelerators."
-}

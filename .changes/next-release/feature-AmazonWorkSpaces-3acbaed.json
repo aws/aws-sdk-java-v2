@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "description": "For the WorkspaceBundle API, added the image identifier and the time of the last update."
-}

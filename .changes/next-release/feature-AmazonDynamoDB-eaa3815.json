@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "description": "1) Amazon Contributor Insights for Amazon DynamoDB is a diagnostic tool for identifying frequently accessed keys and understanding database traffic trends. 2) Support for displaying new fields when a table's encryption state is Inaccessible or the table have been Archived."
-}

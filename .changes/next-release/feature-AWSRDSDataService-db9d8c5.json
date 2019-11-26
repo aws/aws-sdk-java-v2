@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS RDS DataService",
-    "description": "Type hints to improve handling of some specific parameter types (date/time, decimal etc) for ExecuteStatement and BatchExecuteStatement APIs"
-}

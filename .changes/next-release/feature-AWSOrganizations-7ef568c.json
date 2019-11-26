@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "description": "Introduces the DescribeEffectivePolicy action, which returns the contents of the policy that's in effect for the account."
-}

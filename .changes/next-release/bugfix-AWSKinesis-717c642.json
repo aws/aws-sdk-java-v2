@@ -1,5 +1,0 @@
-{
-    "category": "AWS Kinesis", 
-    "type": "bugfix", 
-    "description": "Reducing default read timeout and write timeout to 10 seconds for Kinesis client."
-}
