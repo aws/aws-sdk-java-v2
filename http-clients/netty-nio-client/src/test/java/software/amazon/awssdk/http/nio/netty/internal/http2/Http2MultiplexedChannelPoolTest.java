@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PING_TRACKER;
+
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -23,16 +26,15 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Promise;
+import io.netty.util.concurrent.ScheduledFuture;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
-
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 /**
  * Tests for {@link Http2MultiplexedChannelPool}.
@@ -89,6 +91,59 @@ public class Http2MultiplexedChannelPoolTest {
         h2Pool.close();
 
         assertThat(h2Pool.acquire().await().isSuccess()).isFalse();
+    }
+
+    @Test
+    public void acquire_shouldAcquireAgainIfExistingNotReusable() throws Exception {
+        Channel channel = new MockChannel();
+
+        try {
+            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
+            channel.attr(PING_TRACKER).set(new PingTracker(() -> Mockito.mock(ScheduledFuture.class)));
+
+            loopGroup.register(channel).awaitUninterruptibly();
+            Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+            channelPromise.setSuccess(channel);
+
+            Mockito.when(connectionPool.acquire()).thenReturn(channelPromise);
+
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 5, Collections.emptyList());
+
+            h2Pool.acquire().awaitUninterruptibly();
+
+            channel.attr(PING_TRACKER).set(new PingTracker(() -> Mockito.mock(ScheduledFuture.class)));
+
+            h2Pool.acquire().awaitUninterruptibly();
+
+            Mockito.verify(connectionPool, Mockito.times(2)).acquire();
+        } finally {
+            channel.close();
+        }
+    }
+
+    @Test
+    public void acquire_shouldReuseIfExistingIsReusable() throws Exception {
+        Channel channel = new MockChannel();
+
+        try {
+            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
+
+            loopGroup.register(channel).awaitUninterruptibly();
+            Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+            channelPromise.setSuccess(channel);
+
+            Mockito.when(connectionPool.acquire()).thenReturn(channelPromise);
+
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), 5, Collections.emptyList());
+
+            h2Pool.acquire().awaitUninterruptibly();
+
+            h2Pool.acquire().awaitUninterruptibly();
+
+            Mockito.verify(connectionPool, Mockito.times(1)).acquire();
+        } finally {
+            channel.close();
+        }
     }
 
     @Test(timeout = 5_000)

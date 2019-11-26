@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_POOL_RECORD;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PING_TRACKER;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.asyncPromiseNotifyingBiConsumer;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
@@ -102,7 +103,7 @@ public class MultiplexedChannelRecord {
      * Handle a {@link Http2GoAwayFrame} on this connection, preventing new streams from being created on it, and closing any
      * streams newer than the last-stream-id on the go-away frame.
      */
-    public void goAway(Http2GoAwayFrame frame) {
+    void goAway(Http2GoAwayFrame frame) {
         this.goAway = true;
         GoAwayException exception = new GoAwayException(frame.errorCode(), frame.content());
         childChannels.entrySet().stream()
@@ -116,7 +117,7 @@ public class MultiplexedChannelRecord {
      *
      * @param t Exception to deliver.
      */
-    public void shutdownChildChannels(Throwable t) {
+    void shutdownChildChannels(Throwable t) {
         this.goAway = true;
         doInEventLoop(connection.eventLoop(), () -> {
             for (Channel childChannel : childChannels.values()) {
@@ -175,12 +176,20 @@ public class MultiplexedChannelRecord {
         childChannels.remove(channel.id());
     }
 
-    public Future<Channel> getConnectionFuture() {
+    boolean reusable() {
+        return !isPingInflight() && availableStreams.get() > 0 && !goAway;
+    }
+
+    Future<Channel> getConnectionFuture() {
         return connectionFuture;
     }
 
-    long availableStreams() {
-        return goAway ? 0 : availableStreams.get();
-    }
+    private boolean isPingInflight() {
+        // It is possible the h2 connection is not ready
+        if (connection == null) {
+            return false;
+        }
 
+        return connection.attr(PING_TRACKER).get() != null;
+    }
 }

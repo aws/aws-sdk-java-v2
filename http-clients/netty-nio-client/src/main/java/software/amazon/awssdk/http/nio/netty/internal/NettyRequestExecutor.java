@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2FrameExceptionHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
@@ -161,6 +162,7 @@ public final class NettyRequestExecutor {
             case HTTP2:
                 pipeline.addLast(new Http2ToHttpInboundAdapter());
                 pipeline.addLast(new HttpToHttp2OutboundAdapter());
+                pipeline.addLast(Http2FrameExceptionHandler.create());
                 requestAdapter = REQUEST_ADAPTER_HTTP2;
                 break;
             case HTTP1_1:

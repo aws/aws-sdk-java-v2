@@ -101,6 +101,10 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
     }
 
     private ClassName serviceMetadataClass(String service) {
+        if ("s3".equals(service)) {
+            // This class contains extra logic for detecting the regional endpoint flag
+            return ClassName.get(basePackage, "EnhancedS3ServiceMetadata");
+        }
         String sanitizedServiceName = service.replace(".", "-");
         return ClassName.get(basePackage, Stream.of(sanitizedServiceName.split("-"))
                                                 .map(Utils::capitalize)

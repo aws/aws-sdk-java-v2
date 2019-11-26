@@ -37,6 +37,7 @@ public final class NettyConfiguration {
     public static final int EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS = 2;
     public static final int EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS = 15;
     public static final int EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS = 16;
+    public static final int HTTP2_CONNECTION_PING_TIMEOUT_SECONDS = 5;
 
     private final AttributeMap configuration;
 
