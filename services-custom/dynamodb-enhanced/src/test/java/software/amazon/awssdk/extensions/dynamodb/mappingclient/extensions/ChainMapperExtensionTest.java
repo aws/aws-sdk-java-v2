@@ -48,7 +48,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class ChainMapperExtensionTest {
     private static final String TABLE_NAME = "concrete-table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
 
     private static final Map<String, AttributeValue> ATTRIBUTE_VALUES_1 =
         Collections.unmodifiableMap(Collections.singletonMap("key1", AttributeValue.builder().s("1").build()));
@@ -100,9 +100,9 @@ public class ChainMapperExtensionTest {
         combinedMap.putAll(ATTRIBUTE_VALUES_2);
         combinedMap.putAll(ATTRIBUTE_VALUES_3);
         Expression expectedExpression =
-            Expression.builder().expression("one AND two AND three").expressionValues(combinedMap).build();
-        assertThat(result.getTransformedItem(), is(fakeItems.get(3)));
-        assertThat(result.getAdditionalConditionalExpression(), is(expectedExpression));
+            Expression.builder().expression("((one) AND (two)) AND (three)").expressionValues(combinedMap).build();
+        assertThat(result.transformedItem(), is(fakeItems.get(3)));
+        assertThat(result.additionalConditionalExpression(), is(expectedExpression));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -122,8 +122,8 @@ public class ChainMapperExtensionTest {
                                                          PRIMARY_CONTEXT,
                                                          FakeItem.getTableMetadata());
 
-        assertThat(result.getAdditionalConditionalExpression(), is(nullValue()));
-        assertThat(result.getTransformedItem(), is(nullValue()));
+        assertThat(result.additionalConditionalExpression(), is(nullValue()));
+        assertThat(result.transformedItem(), is(nullValue()));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -153,8 +153,8 @@ public class ChainMapperExtensionTest {
                                                   .expression("one")
                                                   .expressionValues(ATTRIBUTE_VALUES_1)
                                                   .build();
-        assertThat(result.getTransformedItem(), is(nullValue()));
-        assertThat(result.getAdditionalConditionalExpression(), is(expectedExpression));
+        assertThat(result.transformedItem(), is(nullValue()));
+        assertThat(result.additionalConditionalExpression(), is(expectedExpression));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -179,8 +179,8 @@ public class ChainMapperExtensionTest {
                                                          PRIMARY_CONTEXT,
                                                          FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(fakeItems.get(1)));
-        assertThat(result.getAdditionalConditionalExpression(), is(nullValue()));
+        assertThat(result.transformedItem(), is(fakeItems.get(1)));
+        assertThat(result.additionalConditionalExpression(), is(nullValue()));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension1).beforeWrite(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -197,8 +197,8 @@ public class ChainMapperExtensionTest {
                                                          PRIMARY_CONTEXT,
                                                          FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(nullValue()));
-        assertThat(result.getAdditionalConditionalExpression(), is(nullValue()));
+        assertThat(result.transformedItem(), is(nullValue()));
+        assertThat(result.additionalConditionalExpression(), is(nullValue()));
     }
 
     @Test
@@ -213,7 +213,7 @@ public class ChainMapperExtensionTest {
 
         ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT,  FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(fakeItems.get(1)));
+        assertThat(result.transformedItem(), is(fakeItems.get(1)));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension3).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -234,7 +234,7 @@ public class ChainMapperExtensionTest {
 
         ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(fakeItems.get(1)));
+        assertThat(result.transformedItem(), is(fakeItems.get(1)));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension3).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -255,7 +255,7 @@ public class ChainMapperExtensionTest {
 
         ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(nullValue()));
+        assertThat(result.transformedItem(), is(nullValue()));
 
         InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
         inOrder.verify(mockExtension3).afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
@@ -270,6 +270,6 @@ public class ChainMapperExtensionTest {
 
         ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(nullValue()));
+        assertThat(result.transformedItem(), is(nullValue()));
     }
 }

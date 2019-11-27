@@ -53,11 +53,11 @@ public class ConditionCheck<T> implements TransactableWriteOperation<T> {
         software.amazon.awssdk.services.dynamodb.model.ConditionCheck conditionCheck =
             software.amazon.awssdk.services.dynamodb.model.ConditionCheck
                 .builder()
-                .tableName(operationContext.getTableName())
-                .key(key.getKeyMap(tableSchema, operationContext.getIndexName()))
-                .conditionExpression(conditionExpression.getExpression())
-                .expressionAttributeNames(conditionExpression.getExpressionNames())
-                .expressionAttributeValues(conditionExpression.getExpressionValues())
+                .tableName(operationContext.tableName())
+                .key(key.keyMap(tableSchema, operationContext.indexName()))
+                .conditionExpression(conditionExpression.expression())
+                .expressionAttributeNames(conditionExpression.expressionNames())
+                .expressionAttributeValues(conditionExpression.expressionValues())
                 .build();
 
         return TransactWriteItem.builder()
@@ -65,11 +65,11 @@ public class ConditionCheck<T> implements TransactableWriteOperation<T> {
                                 .build();
     }
 
-    public Key getKey() {
+    public Key key() {
         return key;
     }
 
-    public Expression getConditionExpression() {
+    public Expression conditionExpression() {
         return conditionExpression;
     }
 

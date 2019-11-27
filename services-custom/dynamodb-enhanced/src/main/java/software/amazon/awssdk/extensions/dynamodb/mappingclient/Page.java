@@ -61,7 +61,7 @@ public class Page<T> {
      * Returns a page of mapped objects that represent records from a database query or scan.
      * @return A list of mapped objects.
      */
-    public List<T> getItems() {
+    public List<T> items() {
         return items;
     }
 
@@ -70,7 +70,7 @@ public class Page<T> {
      * to continue the query or scan if passed into a request.
      * @return The 'lastEvaluatedKey' from the last query or scan operation or null if the no more pages are available.
      */
-    public Map<String, AttributeValue> getLastEvaluatedKey() {
+    public Map<String, AttributeValue> lastEvaluatedKey() {
         return lastEvaluatedKey;
     }
 

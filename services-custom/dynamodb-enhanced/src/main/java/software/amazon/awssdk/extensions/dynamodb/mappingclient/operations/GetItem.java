@@ -60,12 +60,12 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
     }
 
     @Override
-    public Boolean getConsistentRead() {
+    public Boolean consistentRead() {
         return this.consistentRead;
     }
 
     @Override
-    public Key getKey() {
+    public Key key() {
         return this.key;
     }
 
@@ -73,13 +73,13 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
     public GetItemRequest generateRequest(TableSchema<T> tableSchema,
                                           OperationContext context,
                                           MapperExtension mapperExtension) {
-        if (!TableMetadata.getPrimaryIndexName().equals(context.getIndexName())) {
+        if (!TableMetadata.primaryIndexName().equals(context.indexName())) {
             throw new IllegalArgumentException("GetItem cannot be executed against a secondary index.");
         }
 
         return GetItemRequest.builder()
-                             .tableName(context.getTableName())
-                             .key(key.getKeyMap(tableSchema, context.getIndexName()))
+                             .tableName(context.tableName())
+                             .key(key.keyMap(tableSchema, context.indexName()))
                              .consistentRead(consistentRead)
                              .build();
     }
@@ -93,7 +93,7 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
     }
 
     @Override
-    public Function<GetItemRequest, GetItemResponse> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<GetItemRequest, GetItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::getItem;
     }
 
@@ -103,8 +103,8 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
                                                    MapperExtension mapperExtension) {
         return TransactGetItem.builder()
                               .get(Get.builder()
-                                      .tableName(operationContext.getTableName())
-                                      .key(key.getKeyMap(tableSchema, operationContext.getIndexName()))
+                                      .tableName(operationContext.tableName())
+                                      .key(key.keyMap(tableSchema, operationContext.indexName()))
                                       .build())
                               .build();
     }

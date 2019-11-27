@@ -32,7 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
@@ -65,7 +64,7 @@ public class DynamoDbMappedTableTest {
 
         assertThat(actualOutput, is(expectedOutput));
         verify(mockTableOperation).executeOnPrimaryIndex(FakeItem.getTableSchema(),
-                                           dynamoDbMappedTable.getTableName(),
+                                           dynamoDbMappedTable.tableName(),
                                            mockMapperExtension,
                                            mockDynamoDbClient);
     }
@@ -80,10 +79,10 @@ public class DynamoDbMappedTableTest {
 
         DynamoDbMappedIndex<FakeItemWithIndices> dynamoDbMappedIndex = dynamoDbMappedTable.index("gsi_1");
 
-        assertThat(dynamoDbMappedIndex.getDynamoDbClient(), is(sameInstance(mockDynamoDbClient)));
-        assertThat(dynamoDbMappedIndex.getMapperExtension(), is(sameInstance(mockMapperExtension)));
-        assertThat(dynamoDbMappedIndex.getTableSchema(), is(sameInstance(FakeItemWithIndices.getTableSchema())));
-        assertThat(dynamoDbMappedIndex.getIndexName(), is("gsi_1"));
+        assertThat(dynamoDbMappedIndex.dynamoDbClient(), is(sameInstance(mockDynamoDbClient)));
+        assertThat(dynamoDbMappedIndex.mapperExtension(), is(sameInstance(mockMapperExtension)));
+        assertThat(dynamoDbMappedIndex.tableSchema(), is(sameInstance(FakeItemWithIndices.getTableSchema())));
+        assertThat(dynamoDbMappedIndex.indexName(), is("gsi_1"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -108,8 +107,8 @@ public class DynamoDbMappedTableTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.getPartitionKeyValue(), is(stringValue(item.getId())));
-        assertThat(key.getSortKeyValue(), is(Optional.of(stringValue(item.getSort()))));
+        assertThat(key.partitionKeyValue(), is(stringValue(item.getId())));
+        assertThat(key.sortKeyValue(), is(Optional.of(stringValue(item.getSort()))));
     }
 
     @Test
@@ -123,8 +122,8 @@ public class DynamoDbMappedTableTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.getPartitionKeyValue(), is(stringValue(item.getId())));
-        assertThat(key.getSortKeyValue(), is(Optional.empty()));
+        assertThat(key.partitionKeyValue(), is(stringValue(item.getId())));
+        assertThat(key.sortKeyValue(), is(Optional.empty()));
     }
 
     @Test
@@ -138,7 +137,7 @@ public class DynamoDbMappedTableTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.getPartitionKeyValue(), is(stringValue(item.getId())));
-        assertThat(key.getSortKeyValue(), is(Optional.empty()));
+        assertThat(key.partitionKeyValue(), is(stringValue(item.getId())));
+        assertThat(key.sortKeyValue(), is(Optional.empty()));
     }
 }

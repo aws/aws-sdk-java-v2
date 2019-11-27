@@ -41,8 +41,8 @@ public class AttributeTagTest {
 
     private static class KeyAttributeTag extends AttributeTag {
         @Override
-        protected Map<String, Object> getCustomMetadataForAttribute(String attributeName,
-                                                                    AttributeValueType attributeValueType) {
+        protected Map<String, Object> customMetadataForAttribute(String attributeName,
+                                                                 AttributeValueType attributeValueType) {
             return CUSTOM_METADATA;
         }
 
@@ -55,8 +55,8 @@ public class AttributeTagTest {
     private static class NonKeyAttributeTag extends AttributeTag {
 
         @Override
-        protected Map<String, Object> getCustomMetadataForAttribute(String attributeName,
-                                                                    AttributeValueType attributeValueType) {
+        protected Map<String, Object> customMetadataForAttribute(String attributeName,
+                                                                 AttributeValueType attributeValueType) {
             return CUSTOM_METADATA;
         }
 

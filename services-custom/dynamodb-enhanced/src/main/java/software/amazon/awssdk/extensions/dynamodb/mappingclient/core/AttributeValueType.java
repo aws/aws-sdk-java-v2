@@ -40,7 +40,7 @@ public enum AttributeValueType {
         this.scalarAttributeType = scalarAttributeType;
     }
 
-    public ScalarAttributeType getScalarAttributeType() {
+    public ScalarAttributeType scalarAttributeType() {
         return scalarAttributeType;
     }
 }

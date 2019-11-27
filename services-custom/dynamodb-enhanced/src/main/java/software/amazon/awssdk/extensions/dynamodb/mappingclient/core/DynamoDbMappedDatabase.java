@@ -48,11 +48,11 @@ public class DynamoDbMappedDatabase implements MappedDatabase {
         return new DynamoDbMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
     }
 
-    public DynamoDbClient getDynamoDbClient() {
+    public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
 
-    public MapperExtension getMapperExtension() {
+    public MapperExtension mapperExtension() {
         return mapperExtension;
     }
 

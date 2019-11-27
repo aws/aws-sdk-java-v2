@@ -38,9 +38,9 @@ public class UnmappedItem {
 
     public <T> T getItem(MappedTable<T> mappedTable) {
         return readAndTransformSingleItem(itemMap,
-                                          mappedTable.getTableSchema(),
-                                          OperationContext.of(mappedTable.getTableName()),
-                                          mappedTable.getMapperExtension());
+                                          mappedTable.tableSchema(),
+                                          OperationContext.of(mappedTable.tableName()),
+                                          mappedTable.mapperExtension());
     }
 
     @Override

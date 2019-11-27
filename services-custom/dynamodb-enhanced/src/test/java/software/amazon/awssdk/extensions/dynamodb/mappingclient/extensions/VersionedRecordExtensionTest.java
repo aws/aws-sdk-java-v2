@@ -36,7 +36,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class VersionedRecordExtensionTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
 
     private final VersionedRecordExtension versionedRecordExtension = VersionedRecordExtension.builder().build();
 
@@ -60,7 +60,7 @@ public class VersionedRecordExtensionTest {
                                                  PRIMARY_CONTEXT,
                                                  FakeItem.getTableMetadata());
 
-        assertThat(result.getAdditionalConditionalExpression(),
+        assertThat(result.additionalConditionalExpression(),
                    is(Expression.builder().expression("attribute_not_exists(version)").build()));
     }
 
@@ -77,7 +77,7 @@ public class VersionedRecordExtensionTest {
                                                  FakeItem.getTableMetadata());
 
 
-        assertThat(result.getTransformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
     }
 
     @Test
@@ -93,7 +93,7 @@ public class VersionedRecordExtensionTest {
         WriteModification result =
             versionedRecordExtension.beforeWrite(inputMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata());
 
-        assertThat(result.getTransformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class VersionedRecordExtensionTest {
                                                  PRIMARY_CONTEXT,
                                                  FakeItem.getTableMetadata());
 
-        assertThat(result.getAdditionalConditionalExpression(),
+        assertThat(result.additionalConditionalExpression(),
                    is(Expression.builder()
                                 .expression("version = :old_version_value")
                                 .expressionValues(singletonMap(":old_version_value",
@@ -128,7 +128,7 @@ public class VersionedRecordExtensionTest {
                                                  FakeItem.getTableMetadata());
 
 
-        assertThat(result.getTransformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
     }
 
     @Test
@@ -139,7 +139,7 @@ public class VersionedRecordExtensionTest {
 
         WriteModification writeModification = versionedRecordExtension.beforeWrite(itemMap,
                                                                                    PRIMARY_CONTEXT,
-                                                                                   FakeItemWithSort.getTableSchema().getTableMetadata());
+                                                                                   FakeItemWithSort.getTableSchema().tableMetadata());
 
         assertThat(writeModification, is(WriteModification.builder().build()));
     }

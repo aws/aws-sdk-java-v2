@@ -57,24 +57,24 @@ public class DynamoDbMappedIndex<T> implements MappedIndex<T> {
     }
 
     @Override
-    public MapperExtension getMapperExtension() {
+    public MapperExtension mapperExtension() {
         return this.mapperExtension;
     }
 
     @Override
-    public TableSchema<T> getTableSchema() {
+    public TableSchema<T> tableSchema() {
         return tableSchema;
     }
 
-    public DynamoDbClient getDynamoDbClient() {
+    public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
 
-    public String getTableName() {
+    public String tableName() {
         return tableName;
     }
 
-    public String getIndexName() {
+    public String indexName() {
         return indexName;
     }
 

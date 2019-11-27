@@ -27,8 +27,11 @@ import java.util.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
@@ -106,6 +109,9 @@ public class VersionedRecordTest extends LocalDynamoDbTestBase {
 
     private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @Before
     public void createTable() {
         mappedTable.execute(CreateTable.of(getDefaultProvisionedThroughput()));
@@ -146,6 +152,114 @@ public class VersionedRecordTest extends LocalDynamoDbTestBase {
         Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
+    }
+
+    @Test
+    public void putExistingRecordVersionMatchesConditionExpressionMatches() {
+        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#k = :v OR #k = :v1")
+                                                   .putExpressionName("#k", "attribute")
+                                                   .putExpressionValue(":v", stringValue("wrong"))
+                                                   .putExpressionValue(":v1", stringValue("one"))
+                                                   .build();
+
+        mappedTable.execute(PutItem.builder()
+                                   .item(new Record().setId("id").setAttribute("one").setVersion(1))
+                                   .conditionExpression(conditionExpression)
+                                   .build());
+
+        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
+        Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
+        assertThat(result, is(expectedResult));
+    }
+
+    @Test
+    public void putExistingRecordVersionDoesNotMatchConditionExpressionMatches() {
+        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#k = :v OR #k = :v1")
+                                                   .putExpressionName("#k", "attribute")
+                                                   .putExpressionValue(":v", stringValue("wrong"))
+                                                   .putExpressionValue(":v1", stringValue("one"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(PutItem.builder()
+                                   .item(new Record().setId("id").setAttribute("one").setVersion(2))
+                                   .conditionExpression(conditionExpression)
+                                   .build());
+    }
+
+    @Test
+    public void putExistingRecordVersionMatchesConditionExpressionDoesNotMatch() {
+        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#k = :v OR #k = :v1")
+                                                   .putExpressionName("#k", "attribute")
+                                                   .putExpressionValue(":v", stringValue("wrong"))
+                                                   .putExpressionValue(":v1", stringValue("wrong2"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(PutItem.builder()
+                                   .item(new Record().setId("id").setAttribute("one").setVersion(1))
+                                   .conditionExpression(conditionExpression)
+                                   .build());
+    }
+
+    @Test
+    public void updateExistingRecordVersionMatchesConditionExpressionMatches() {
+        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#k = :v OR #k = :v1")
+                                                   .putExpressionName("#k", "attribute")
+                                                   .putExpressionValue(":v", stringValue("wrong"))
+                                                   .putExpressionValue(":v1", stringValue("one"))
+                                                   .build();
+
+        mappedTable.execute(UpdateItem.builder()
+                                      .item(new Record().setId("id").setAttribute("one").setVersion(1))
+                                      .conditionExpression(conditionExpression)
+                                      .build());
+
+        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
+        Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
+        assertThat(result, is(expectedResult));
+    }
+
+    @Test
+    public void updateExistingRecordVersionDoesNotMatchConditionExpressionMatches() {
+        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#k = :v OR #k = :v1")
+                                                   .putExpressionName("#k", "attribute")
+                                                   .putExpressionValue(":v", stringValue("wrong"))
+                                                   .putExpressionValue(":v1", stringValue("one"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(UpdateItem.builder()
+                                      .item(new Record().setId("id").setAttribute("one").setVersion(2))
+                                      .conditionExpression(conditionExpression)
+                                      .build());
+    }
+
+    @Test
+    public void updateExistingRecordVersionMatchesConditionExpressionDoesNotMatch() {
+        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#k = :v OR #k = :v1")
+                                                   .putExpressionName("#k", "attribute")
+                                                   .putExpressionValue(":v", stringValue("wrong"))
+                                                   .putExpressionValue(":v1", stringValue("wrong2"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(UpdateItem.builder()
+                                      .item(new Record().setId("id").setAttribute("one").setVersion(1))
+                                      .conditionExpression(conditionExpression)
+                                      .build());
     }
 
     @Test

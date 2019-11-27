@@ -78,7 +78,7 @@ public class Attribute<T> {
         return new AttributeSupplier<>(attributeName,
                                        getAttributeValueWithTransform,
                                        updateItemWithTransform,
-                                       attributeType.getAttributeValueType());
+                                       attributeType.attributeValueType());
     }
 
     /**
@@ -112,19 +112,19 @@ public class Attribute<T> {
             attributeValueType);
     }
 
-    String getAttributeName() {
+    String attributeName() {
         return attributeName;
     }
 
-    Function<T, AttributeValue> getGetAttributeMethod() {
+    Function<T, AttributeValue> attributeGetterMethod() {
         return getAttributeMethod;
     }
 
-    BiConsumer<T, AttributeValue> getUpdateItemMethod() {
+    BiConsumer<T, AttributeValue> updateItemMethod() {
         return updateItemMethod;
     }
 
-    StaticTableMetadata getTableMetadata() {
+    StaticTableMetadata tableMetadata() {
         return tableMetadata;
     }
 

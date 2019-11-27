@@ -74,11 +74,11 @@ public class BatchGetItemTest {
     private static final List<FakeItem> FAKE_ITEMS =
         IntStream.range(0, 6).mapToObj($ -> createUniqueFakeItem()).collect(toList());
     private static final List<Map<String, AttributeValue>> FAKE_ITEM_MAPS = FAKE_ITEMS.stream().map(item ->
-        FakeItem.getTableSchema().itemToMap(item, FakeItem.getTableMetadata().getPrimaryKeys())).collect(toList());
+        FakeItem.getTableSchema().itemToMap(item, FakeItem.getTableMetadata().primaryKeys())).collect(toList());
     private static final List<FakeItemWithSort> FAKESORT_ITEMS =
         IntStream.range(0, 6).mapToObj($ -> createUniqueFakeItemWithSort()).collect(toList());
     private static final List<Map<String, AttributeValue>> FAKESORT_ITEM_MAPS = FAKESORT_ITEMS.stream().map(item ->
-        FakeItemWithSort.getTableSchema().itemToMap(item, FakeItemWithSort.getTableMetadata().getPrimaryKeys()))
+        FakeItemWithSort.getTableSchema().itemToMap(item, FakeItemWithSort.getTableMetadata().primaryKeys()))
           .collect(toList());
     private static final List<Key> FAKE_ITEM_KEYS =
         FAKE_ITEMS.stream().map(fakeItem -> Key.of(stringValue(fakeItem.getId()))).collect(toList());
@@ -119,7 +119,7 @@ public class BatchGetItemTest {
         BatchGetItemIterable expectedResponse = mock(BatchGetItemIterable.class);
         when(mockDynamoDbClient.batchGetItemPaginator(any(BatchGetItemRequest.class))).thenReturn(expectedResponse);
 
-        BatchGetItemIterable response = operation.getServiceCall(mockDynamoDbClient).apply(batchGetItemRequest);
+        BatchGetItemIterable response = operation.serviceCall(mockDynamoDbClient).apply(batchGetItemRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).batchGetItemPaginator(batchGetItemRequest);
@@ -251,13 +251,13 @@ public class BatchGetItemTest {
             doReturn(ReadModification.builder().transformedItem(FAKE_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
                 .afterRead(eq(FAKE_ITEM_MAPS.get(i)),
-                           argThat(operationContext -> operationContext.getTableName().equals(TABLE_NAME)),
+                           argThat(operationContext -> operationContext.tableName().equals(TABLE_NAME)),
                            any(TableMetadata.class));
             doReturn(ReadModification.builder().transformedItem(FAKESORT_ITEM_MAPS.get(i + 3)).build())
                 .when(mockExtension)
                 .afterRead(eq(FAKESORT_ITEM_MAPS.get(i)),
                            argThat(operationContext ->
-                                       operationContext.getTableName().equals(TABLE_NAME_2)),
+                                       operationContext.tableName().equals(TABLE_NAME_2)),
                            any(TableMetadata.class));
         });
 

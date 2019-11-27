@@ -34,7 +34,7 @@ public interface TableMetadata {
      * @throws IllegalArgumentException if the index does not exist in the metadata or does not have a partition key
      * associated with it..
      */
-    String getIndexPartitionKey(String indexName);
+    String indexPartitionKey(String indexName);
 
     /**
      * Returns the attribute name of the sort key for an index.
@@ -43,7 +43,7 @@ public interface TableMetadata {
      * @return Optional of the attribute name representing the sort key for this index; empty if the index does not
      * have a sort key.
      */
-    Optional<String> getIndexSortKey(String indexName);
+    Optional<String> indexSortKey(String indexName);
 
     /**
      * Returns a custom metadata object. These objects are used by extensions to the library, therefore the type of
@@ -56,7 +56,7 @@ public interface TableMetadata {
      * @param <T> The flexible type for the object being returned. The compiler will typically infer this.
      * @return An optional containing custom metadata object or empty if the object was not found.
      */
-    <T> Optional<T> getCustomMetadataObject(String key, Class<? extends T> objectClass);
+    <T> Optional<T> customMetadataObject(String key, Class<? extends T> objectClass);
 
     /**
      * Returns all the names of attributes associated with the keys of a specified index.
@@ -64,7 +64,7 @@ public interface TableMetadata {
      * @param indexName The name of the index.
      * @return A collection of all key attribute names for that index.
      */
-    Collection<String> getIndexKeys(String indexName);
+    Collection<String> indexKeys(String indexName);
 
     /**
      * Returns all the names of attributes associated with any index (primary or secondary) known for this table.
@@ -74,7 +74,7 @@ public interface TableMetadata {
      *
      * @return A collection of all key attribute names for the table.
      */
-    Collection<String> getAllKeys();
+    Collection<String> allKeys();
 
     /**
      * Returns the DynamoDb scalar attribute type associated with a key attribute if one is applicable.
@@ -82,7 +82,7 @@ public interface TableMetadata {
      * @return Optional {@link ScalarAttributeType} of the attribute, or empty if attribute is a non-scalar type.
      * @throws IllegalArgumentException if the keyAttribute is not found.
      */
-    Optional<ScalarAttributeType> getScalarAttributeType(String keyAttribute);
+    Optional<ScalarAttributeType> scalarAttributeType(String keyAttribute);
 
     /**
      * Returns the attribute name used as the primary partition key for the table.
@@ -90,8 +90,8 @@ public interface TableMetadata {
      * @return The primary partition key attribute name.
      * @throws IllegalArgumentException if the primary partition key is not known.
      */
-    default String getPrimaryPartitionKey() {
-        return getIndexPartitionKey(getPrimaryIndexName());
+    default String primaryPartitionKey() {
+        return indexPartitionKey(primaryIndexName());
     }
 
     /**
@@ -99,8 +99,8 @@ public interface TableMetadata {
      *
      * @return An optional of the primary sort key attribute name; empty if this key is not known.
      */
-    default Optional<String> getPrimarySortKey() {
-        return getIndexSortKey(getPrimaryIndexName());
+    default Optional<String> primarySortKey() {
+        return indexSortKey(primaryIndexName());
     }
 
     /**
@@ -108,8 +108,8 @@ public interface TableMetadata {
      *
      * @return A collection of attribute names that make up the primary key for the table.
      */
-    default Collection<String> getPrimaryKeys() {
-        return getIndexKeys(getPrimaryIndexName());
+    default Collection<String> primaryKeys() {
+        return indexKeys(primaryIndexName());
     }
 
     /**
@@ -119,7 +119,7 @@ public interface TableMetadata {
      *
      * @return An arbitrary constant that internally represents the primary index name.
      */
-    static String getPrimaryIndexName() {
+    static String primaryIndexName() {
         // Must include illegal symbols that cannot be used by a real index.
         // This value is arbitrary and ephemeral but could end up being serialized with TableMetadata through the
         // actions of a client, so it should not be altered unless absolutely necessary.

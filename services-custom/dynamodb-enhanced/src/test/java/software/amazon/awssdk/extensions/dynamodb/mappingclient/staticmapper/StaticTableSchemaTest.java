@@ -689,7 +689,7 @@ public class StaticTableSchemaTest {
 
     private static class TestTableTag extends TableTag {
         @Override
-        protected Map<String, Object> getCustomMetadata() {
+        protected Map<String, Object> customMetadata() {
             return singletonMap(TABLE_TAG_KEY, TABLE_TAG_VALUE);
         }
     }
@@ -699,10 +699,10 @@ public class StaticTableSchemaTest {
 
     @Test
     public void getTableMetadata_hasCorrectFields() {
-        TableMetadata tableMetadata = FakeItemWithSort.getTableSchema().getTableMetadata();
+        TableMetadata tableMetadata = FakeItemWithSort.getTableSchema().tableMetadata();
 
-        assertThat(tableMetadata.getPrimaryPartitionKey(), is("id"));
-        assertThat(tableMetadata.getPrimarySortKey(), is(Optional.of("sort")));
+        assertThat(tableMetadata.primaryPartitionKey(), is("id"));
+        assertThat(tableMetadata.primarySortKey(), is(Optional.of("sort")));
     }
 
     @Test
@@ -1077,7 +1077,7 @@ public class StaticTableSchemaTest {
         FakeItem fakeItem = FakeItem.builder().id("id-value").build();
         fakeItem.setSubclassAttribute("subclass-value");
 
-        AttributeValue attributeValue = FakeItem.getTableSchema().getAttributeValue(fakeItem, "subclass_attribute");
+        AttributeValue attributeValue = FakeItem.getTableSchema().attributeValue(fakeItem, "subclass_attribute");
 
         assertThat(attributeValue, is(AttributeValue.builder().s("subclass-value").build()));
     }
@@ -1088,7 +1088,7 @@ public class StaticTableSchemaTest {
             .composedObject(FakeItemComposedClass.builder().composedAttribute("composed-value").build())
             .build();
 
-        AttributeValue attributeValue = FakeItem.getTableSchema().getAttributeValue(fakeItem, "composed_attribute");
+        AttributeValue attributeValue = FakeItem.getTableSchema().attributeValue(fakeItem, "composed_attribute");
 
         assertThat(attributeValue, is(AttributeValue.builder().s("composed-value").build()));
     }
@@ -1171,7 +1171,7 @@ public class StaticTableSchemaTest {
                 .tagWith(new TestTableTag())
                 .build();
 
-        assertThat(abstractTableSchema.getTableMetadata().getCustomMetadataObject(TABLE_TAG_KEY, String.class),
+        assertThat(abstractTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
                    is(Optional.of(TABLE_TAG_VALUE)));
     }
 
@@ -1185,7 +1185,7 @@ public class StaticTableSchemaTest {
                 .tagWith(new TestTableTag())
                 .build();
 
-        assertThat(concreteTableSchema.getTableMetadata().getCustomMetadataObject(TABLE_TAG_KEY, String.class),
+        assertThat(concreteTableSchema.tableMetadata().customMetadataObject(TABLE_TAG_KEY, String.class),
                    is(Optional.of(TABLE_TAG_VALUE)));
     }
 

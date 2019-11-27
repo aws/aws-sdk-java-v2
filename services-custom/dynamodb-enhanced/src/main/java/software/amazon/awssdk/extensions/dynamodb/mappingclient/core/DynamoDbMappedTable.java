@@ -51,34 +51,34 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
     }
 
     @Override
-    public MapperExtension getMapperExtension() {
+    public MapperExtension mapperExtension() {
         return this.mapperExtension;
     }
 
     @Override
-    public TableSchema<T> getTableSchema() {
+    public TableSchema<T> tableSchema() {
         return this.tableSchema;
     }
 
-    public DynamoDbClient getDynamoDbClient() {
+    public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
 
-    public String getTableName() {
+    public String tableName() {
         return tableName;
     }
 
     @Override
     public DynamoDbMappedIndex<T> index(String indexName) {
         // Force a check for the existence of the index
-        tableSchema.getTableMetadata().getIndexPartitionKey(indexName);
+        tableSchema.tableMetadata().indexPartitionKey(indexName);
 
         return new DynamoDbMappedIndex<>(dynamoDbClient, mapperExtension, tableSchema, tableName, indexName);
     }
 
     @Override
     public Key keyFrom(T item) {
-        return createKeyFromItem(item, tableSchema, TableMetadata.getPrimaryIndexName());
+        return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
     }
 
     @Override
