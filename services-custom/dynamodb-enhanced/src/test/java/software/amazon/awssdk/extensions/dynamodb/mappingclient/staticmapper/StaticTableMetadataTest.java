@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata.getPrimaryIndexName;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata.primaryIndexName;
 
 import java.util.Optional;
 
@@ -42,48 +42,48 @@ public class StaticTableMetadataTest {
     @Test
     public void setAndRetrievePrimaryPartitionKey() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-            .addIndexPartitionKey(getPrimaryIndexName(), ATTRIBUTE_NAME, AttributeValueType.S)
+            .addIndexPartitionKey(primaryIndexName(), ATTRIBUTE_NAME, AttributeValueType.S)
             .build();
 
-        assertThat(tableMetadata.getPrimaryPartitionKey(), is(ATTRIBUTE_NAME));
+        assertThat(tableMetadata.primaryPartitionKey(), is(ATTRIBUTE_NAME));
     }
 
     @Test
     public void setAndRetrievePrimarySortKey() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-            .addIndexSortKey(getPrimaryIndexName(), ATTRIBUTE_NAME, AttributeValueType.S)
+            .addIndexSortKey(primaryIndexName(), ATTRIBUTE_NAME, AttributeValueType.S)
             .build();
 
-        assertThat(tableMetadata.getPrimarySortKey(), is(Optional.of(ATTRIBUTE_NAME)));
+        assertThat(tableMetadata.primarySortKey(), is(Optional.of(ATTRIBUTE_NAME)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void retrieveUnsetPrimaryPartitionKey() {
         TableMetadata tableMetadata = StaticTableMetadata.builder().build();
 
-        tableMetadata.getPrimaryPartitionKey();
+        tableMetadata.primaryPartitionKey();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void retrieveUnsetPrimaryPartitionKey_withSortKeySet() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexSortKey(getPrimaryIndexName(),
+                                                         .addIndexSortKey(primaryIndexName(),
                                                                           ATTRIBUTE_NAME,
                                                                           AttributeValueType.S)
                                                          .build();
 
-        tableMetadata.getPrimaryPartitionKey();
+        tableMetadata.primaryPartitionKey();
     }
 
     @Test
     public void retrieveUnsetPrimarySortKey() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(),
+                                                         .addIndexPartitionKey(primaryIndexName(),
                                                                                ATTRIBUTE_NAME,
                                                                                AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getPrimarySortKey(), is(Optional.empty()));
+        assertThat(tableMetadata.primarySortKey(), is(Optional.empty()));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class StaticTableMetadataTest {
                                                                                AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexPartitionKey(INDEX_NAME), is(ATTRIBUTE_NAME));
+        assertThat(tableMetadata.indexPartitionKey(INDEX_NAME), is(ATTRIBUTE_NAME));
     }
 
     @Test
@@ -105,20 +105,20 @@ public class StaticTableMetadataTest {
                                                                           AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexSortKey(INDEX_NAME), is(Optional.of(ATTRIBUTE_NAME)));
+        assertThat(tableMetadata.indexSortKey(INDEX_NAME), is(Optional.of(ATTRIBUTE_NAME)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void retrieveUnsetSecondaryPartitionKey() {
         TableMetadata tableMetadata = StaticTableMetadata.builder().build();
 
-        tableMetadata.getIndexPartitionKey(INDEX_NAME);
+        tableMetadata.indexPartitionKey(INDEX_NAME);
     }
 
     @Test
     public void retrieveSecondaryPartitionKeyForLocalIndex() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(),
+                                                         .addIndexPartitionKey(primaryIndexName(),
                                                                                ATTRIBUTE_NAME,
                                                                                AttributeValueType.S)
                                                          .addIndexSortKey(INDEX_NAME,
@@ -126,7 +126,7 @@ public class StaticTableMetadataTest {
                                                                           AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexPartitionKey(INDEX_NAME), is(ATTRIBUTE_NAME));
+        assertThat(tableMetadata.indexPartitionKey(INDEX_NAME), is(ATTRIBUTE_NAME));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class StaticTableMetadataTest {
                                                                                AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexSortKey(INDEX_NAME), is(Optional.empty()));
+        assertThat(tableMetadata.indexSortKey(INDEX_NAME), is(Optional.empty()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -159,24 +159,24 @@ public class StaticTableMetadataTest {
     @Test
     public void getPrimaryKeys_partitionAndSort() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-            .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-            .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+            .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+            .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
             .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
             .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
             .build();
 
-        assertThat(tableMetadata.getPrimaryKeys(), containsInAnyOrder("primary_id", "primary_sort"));
+        assertThat(tableMetadata.primaryKeys(), containsInAnyOrder("primary_id", "primary_sort"));
     }
 
     @Test
     public void getPrimaryKeys_partition() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
                                                          .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                          .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getPrimaryKeys(), contains("primary_id"));
+        assertThat(tableMetadata.primaryKeys(), contains("primary_id"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -186,81 +186,81 @@ public class StaticTableMetadataTest {
                                                          .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
                                                          .build();
 
-        tableMetadata.getPrimaryKeys();
+        tableMetadata.primaryKeys();
     }
 
     @Test
     public void getIndexKeys_partitionAndSort() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-                                                         .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+                                                         .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
                                                          .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                          .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexKeys(INDEX_NAME), containsInAnyOrder("dummy", "dummy2"));
+        assertThat(tableMetadata.indexKeys(INDEX_NAME), containsInAnyOrder("dummy", "dummy2"));
     }
 
     @Test
     public void getIndexKeys_partition() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-                                                         .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+                                                         .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
                                                          .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexKeys(INDEX_NAME), contains("dummy"));
+        assertThat(tableMetadata.indexKeys(INDEX_NAME), contains("dummy"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getIndexKeys_unset() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-                                                         .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+                                                         .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
                                                          .build();
 
-        tableMetadata.getIndexKeys(INDEX_NAME);
+        tableMetadata.indexKeys(INDEX_NAME);
     }
 
     @Test
     public void getIndexKeys_sortOnly() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-                                                         .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+                                                         .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
                                                          .addIndexSortKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getIndexKeys(INDEX_NAME), containsInAnyOrder("primary_id", "dummy"));
+        assertThat(tableMetadata.indexKeys(INDEX_NAME), containsInAnyOrder("primary_id", "dummy"));
     }
 
     @Test
     public void getAllKeys() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-                                                         .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+                                                         .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
                                                          .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                          .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
                                                          .build();
 
-        assertThat(tableMetadata.getAllKeys(), containsInAnyOrder("primary_id", "primary_sort", "dummy", "dummy2"));
+        assertThat(tableMetadata.allKeys(), containsInAnyOrder("primary_id", "primary_sort", "dummy", "dummy2"));
     }
 
     @Test
     public void getScalarAttributeValueType() {
         TableMetadata tableMetadata = StaticTableMetadata.builder()
-                                                         .addIndexPartitionKey(getPrimaryIndexName(), "primary_id",
+                                                         .addIndexPartitionKey(primaryIndexName(), "primary_id",
                                                                                AttributeValueType.S)
-                                                         .addIndexSortKey(getPrimaryIndexName(), "primary_sort",
+                                                         .addIndexSortKey(primaryIndexName(), "primary_sort",
                                                                           AttributeValueType.N)
                                                          .addIndexPartitionKey(INDEX_NAME, "dummy",
                                                                                AttributeValueType.B)
                                                          .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.BOOL)
                                                          .build();
 
-        assertThat(tableMetadata.getScalarAttributeType("primary_id"), is(Optional.of(ScalarAttributeType.S)));
-        assertThat(tableMetadata.getScalarAttributeType("primary_sort"), is(Optional.of(ScalarAttributeType.N)));
-        assertThat(tableMetadata.getScalarAttributeType("dummy"), is(Optional.of(ScalarAttributeType.B)));
-        assertThat(tableMetadata.getScalarAttributeType("dummy2"), is(Optional.empty()));
+        assertThat(tableMetadata.scalarAttributeType("primary_id"), is(Optional.of(ScalarAttributeType.S)));
+        assertThat(tableMetadata.scalarAttributeType("primary_sort"), is(Optional.of(ScalarAttributeType.N)));
+        assertThat(tableMetadata.scalarAttributeType("dummy"), is(Optional.of(ScalarAttributeType.B)));
+        assertThat(tableMetadata.scalarAttributeType("dummy2"), is(Optional.empty()));
     }
 
     @Test
@@ -269,14 +269,14 @@ public class StaticTableMetadataTest {
             .addCustomMetadataObject("custom-key", 123)
             .build();
 
-        assertThat(tableMetadata.getCustomMetadataObject("custom-key", Integer.class), is(Optional.of(123)));
+        assertThat(tableMetadata.customMetadataObject("custom-key", Integer.class), is(Optional.of(123)));
     }
 
     @Test
     public void retrieveUnsetCustomMetadata() {
         TableMetadata tableMetadata = StaticTableMetadata.builder().build();
 
-        assertThat(tableMetadata.getCustomMetadataObject("custom-key", Integer.class), is(Optional.empty()));
+        assertThat(tableMetadata.customMetadataObject("custom-key", Integer.class), is(Optional.empty()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -285,7 +285,7 @@ public class StaticTableMetadataTest {
                                                          .addCustomMetadataObject("custom-key", 123.45)
                                                          .build();
 
-        tableMetadata.getCustomMetadataObject("custom-key", Integer.class);
+        tableMetadata.customMetadataObject("custom-key", Integer.class);
     }
 
     @Test
@@ -294,14 +294,14 @@ public class StaticTableMetadataTest {
                                                          .addCustomMetadataObject("custom-key", 123.45f)
                                                          .build();
 
-        assertThat(tableMetadata.getCustomMetadataObject("custom-key", Number.class), is(Optional.of(123.45f)));
+        assertThat(tableMetadata.customMetadataObject("custom-key", Number.class), is(Optional.of(123.45f)));
     }
 
     @Test
     public void mergeFullIntoEmpty() {
         StaticTableMetadata tableMetadata = StaticTableMetadata.builder()
-            .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-            .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+            .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+            .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
             .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
             .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
             .addCustomMetadataObject("custom1", "value1")
@@ -318,8 +318,8 @@ public class StaticTableMetadataTest {
         StaticTableMetadata emptyTableMetadata = StaticTableMetadata.builder().build();
 
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder()
-                                                               .addIndexPartitionKey(getPrimaryIndexName(), "primary_id", AttributeValueType.S)
-                                                               .addIndexSortKey(getPrimaryIndexName(), "primary_sort", AttributeValueType.S)
+                                                               .addIndexPartitionKey(primaryIndexName(), "primary_id", AttributeValueType.S)
+                                                               .addIndexSortKey(primaryIndexName(), "primary_sort", AttributeValueType.S)
                                                                .addIndexPartitionKey(INDEX_NAME, "dummy", AttributeValueType.S)
                                                                .addIndexSortKey(INDEX_NAME, "dummy2", AttributeValueType.S)
                                                                .addCustomMetadataObject("custom1", "value1")

@@ -71,13 +71,13 @@ public class TransactWriteItems
     }
 
     @Override
-    public Function<TransactWriteItemsRequest, TransactWriteItemsResponse> getServiceCall(
+    public Function<TransactWriteItemsRequest, TransactWriteItemsResponse> serviceCall(
         DynamoDbClient dynamoDbClient) {
 
         return dynamoDbClient::transactWriteItems;
     }
 
-    public List<WriteTransaction> getWriteTransactions() {
+    public List<WriteTransaction> writeTransactions() {
         return writeTransactions;
     }
 

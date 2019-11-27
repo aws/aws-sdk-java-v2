@@ -25,6 +25,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem.createUniqueFakeItem;
 
@@ -55,9 +56,39 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class PutItemTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
+    private static final Expression CONDITION_EXPRESSION;
+    private static final Expression CONDITION_EXPRESSION_2;
+
+    static {
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#test_field_1", "test_field_1");
+        expressionNames.put("#test_field_2", "test_field_2");
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":test_value_1", numberValue(1));
+        expressionValues.put(":test_value_2", numberValue(2));
+        CONDITION_EXPRESSION = Expression.builder()
+                                         .expression("#test_field_1 = :test_value_1 OR #test_field_2 = :test_value_2")
+                                         .expressionNames(Collections.unmodifiableMap(expressionNames))
+                                         .expressionValues(Collections.unmodifiableMap(expressionValues))
+                                         .build();
+    }
+
+    static {
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#test_field_3", "test_field_3");
+        expressionNames.put("#test_field_4", "test_field_4");
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":test_value_3", numberValue(3));
+        expressionValues.put(":test_value_4", numberValue(4));
+        CONDITION_EXPRESSION_2 = Expression.builder()
+                                         .expression("#test_field_3 = :test_value_3 OR #test_field_4 = :test_value_4")
+                                         .expressionNames(Collections.unmodifiableMap(expressionNames))
+                                         .expressionValues(Collections.unmodifiableMap(expressionValues))
+                                         .build();
+    }
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -72,7 +103,7 @@ public class PutItemTest {
         PutItemResponse expectedResponse = PutItemResponse.builder().build();
         when(mockDynamoDbClient.putItem(any(PutItemRequest.class))).thenReturn(expectedResponse);
 
-        PutItemResponse response = putItemOperation.getServiceCall(mockDynamoDbClient).apply(getItemRequest);
+        PutItemResponse response = putItemOperation.serviceCall(mockDynamoDbClient).apply(getItemRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).putItem(getItemRequest);
@@ -104,6 +135,52 @@ public class PutItemTest {
             .item(expectedItemMap)
             .build();
         assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withConditionExpression_generatesCorrectRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setSubclassAttribute("subclass-value");
+
+        PutItem<FakeItem> putItemOperation = PutItem.builder()
+                                                    .conditionExpression(CONDITION_EXPRESSION)
+                                                    .item(fakeItem)
+                                                    .build();
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  null);
+
+        Map<String, AttributeValue> expectedItemMap = new HashMap<>();
+        expectedItemMap.put("id", AttributeValue.builder().s(fakeItem.getId()).build());
+        expectedItemMap.put("subclass_attribute", AttributeValue.builder().s("subclass-value").build());
+        PutItemRequest expectedRequest =
+            PutItemRequest.builder()
+                          .tableName(TABLE_NAME)
+                          .item(expectedItemMap)
+                          .conditionExpression(CONDITION_EXPRESSION.expression())
+                          .expressionAttributeNames(CONDITION_EXPRESSION.expressionNames())
+                          .expressionAttributeValues(CONDITION_EXPRESSION.expressionValues())
+                          .build();
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withConditionExpression_andExtensionWithSingleCondition() {
+        FakeItem baseFakeItem = createUniqueFakeItem();
+        when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
+            .thenReturn(WriteModification.builder().additionalConditionalExpression(CONDITION_EXPRESSION_2).build());
+        PutItem<FakeItem> putItemOperation =
+            PutItem.builder().item(baseFakeItem).conditionExpression(CONDITION_EXPRESSION).build();
+
+        PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                  PRIMARY_CONTEXT,
+                                                                  mockMapperExtension);
+
+        Expression expectedCondition = Expression.coalesce(CONDITION_EXPRESSION, CONDITION_EXPRESSION_2, " AND ");
+        assertThat(request.conditionExpression(), is(expectedCondition.expression()));
+        assertThat(request.expressionAttributeNames(), is(expectedCondition.expressionNames()));
+        assertThat(request.expressionAttributeValues(), is(expectedCondition.expressionValues()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -179,7 +256,7 @@ public class PutItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         PutItem<FakeItem> putItemOperation = spy(PutItem.of(fakeItem));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
 
         PutItemRequest putItemRequest = PutItemRequest.builder()
                                                       .tableName(TABLE_NAME)
@@ -206,7 +283,7 @@ public class PutItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         PutItem<FakeItem> putItemOperation = spy(PutItem.of(fakeItem));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));

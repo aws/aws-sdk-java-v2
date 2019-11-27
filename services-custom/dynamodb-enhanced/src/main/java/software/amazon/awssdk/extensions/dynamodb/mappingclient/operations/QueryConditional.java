@@ -67,7 +67,7 @@ public abstract class QueryConditional {
         return new BeginsWithConditional(key);
     }
 
-    public abstract Expression getExpression(TableSchema<?> tableSchema, String indexName);
+    public abstract Expression expression(TableSchema<?> tableSchema, String indexName);
 
     private static class EqualToConditional extends QueryConditional {
         private final Key key;
@@ -77,19 +77,19 @@ public abstract class QueryConditional {
         }
 
         @Override
-        public Expression getExpression(TableSchema<?> tableSchema, String indexName) {
-            String partitionKey = tableSchema.getTableMetadata().getIndexPartitionKey(indexName);
-            AttributeValue partitionValue = key.getPartitionKeyValue();
+        public Expression expression(TableSchema<?> tableSchema, String indexName) {
+            String partitionKey = tableSchema.tableMetadata().indexPartitionKey(indexName);
+            AttributeValue partitionValue = key.partitionKeyValue();
 
             if (partitionValue == null || partitionValue.equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Partition key must be a valid scalar value to execute a query "
                     + "against. The provided partition key was set to null.");
             }
 
-            Optional<AttributeValue> sortKeyValue = key.getSortKeyValue();
+            Optional<AttributeValue> sortKeyValue = key.sortKeyValue();
 
             if (sortKeyValue.isPresent()) {
-                Optional<String> sortKey = tableSchema.getTableMetadata().getIndexSortKey(indexName);
+                Optional<String> sortKey = tableSchema.tableMetadata().indexSortKey(indexName);
 
                 if (!sortKey.isPresent()) {
                     throw new IllegalArgumentException("A sort key was supplied as part of a query conditional "
@@ -97,17 +97,17 @@ public abstract class QueryConditional {
                                                        + indexName);
                 }
 
-                return getPartitionAndSortExpression(partitionKey,
-                                                     sortKey.get(),
-                                                     partitionValue,
-                                                     sortKeyValue.get());
+                return partitionAndSortExpression(partitionKey,
+                                                  sortKey.get(),
+                                                  partitionValue,
+                                                  sortKeyValue.get());
             } else {
-                return getPartitionOnlyExpression(partitionKey, partitionValue);
+                return partitionOnlyExpression(partitionKey, partitionValue);
             }
         }
 
-        private Expression getPartitionOnlyExpression(String partitionKey,
-                                                      AttributeValue partitionValue) {
+        private Expression partitionOnlyExpression(String partitionKey,
+                                                   AttributeValue partitionValue) {
 
             String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(partitionKey);
             String partitionKeyValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(partitionKey);
@@ -120,15 +120,15 @@ public abstract class QueryConditional {
                              .build();
         }
 
-        private Expression getPartitionAndSortExpression(String partitionKey,
-                                                         String sortKey,
-                                                         AttributeValue partitionValue,
-                                                         AttributeValue sortKeyValue) {
+        private Expression partitionAndSortExpression(String partitionKey,
+                                                      String sortKey,
+                                                      AttributeValue partitionValue,
+                                                      AttributeValue sortKeyValue) {
 
 
             // When a sort key is explicitly provided as null treat as partition only expression
             if (sortKeyValue.equals(nullAttributeValue())) {
-                return getPartitionOnlyExpression(partitionKey, partitionValue);
+                return partitionOnlyExpression(partitionKey, partitionValue);
             }
 
             String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(partitionKey);
@@ -173,33 +173,33 @@ public abstract class QueryConditional {
         }
 
         private static ExpressionParameters from(Key key, TableSchema tableSchema, String indexName) {
-            String partitionKey = tableSchema.getTableMetadata().getIndexPartitionKey(indexName);
-            AttributeValue partitionValue = key.getPartitionKeyValue();
-            String sortKey = tableSchema.getTableMetadata().getIndexSortKey(indexName).orElseThrow(
+            String partitionKey = tableSchema.tableMetadata().indexPartitionKey(indexName);
+            AttributeValue partitionValue = key.partitionKeyValue();
+            String sortKey = tableSchema.tableMetadata().indexSortKey(indexName).orElseThrow(
                 () -> new IllegalArgumentException("A query conditional requires a sort key to be present on the table "
                                                    + "or index being queried, yet none have been defined in the "
                                                    + "model"));
             AttributeValue sortValue =
-                key.getSortKeyValue().orElseThrow(
+                key.sortKeyValue().orElseThrow(
                     () -> new IllegalArgumentException("A query conditional requires a sort key to compare with, "
                                                        + "however one was not provided."));
 
             return new ExpressionParameters(partitionKey, partitionValue, sortKey, sortValue);
         }
 
-        String getPartitionKey() {
+        String partitionKey() {
             return partitionKey;
         }
 
-        AttributeValue getPartitionValue() {
+        AttributeValue partitionValue() {
             return partitionValue;
         }
 
-        String getSortKey() {
+        String sortKey() {
             return sortKey;
         }
 
-        AttributeValue getSortValue() {
+        AttributeValue sortValue() {
             return sortValue;
         }
     }
@@ -214,18 +214,18 @@ public abstract class QueryConditional {
         }
 
         @Override
-        public Expression getExpression(TableSchema<?> tableSchema, String indexName) {
+        public Expression expression(TableSchema<?> tableSchema, String indexName) {
             ExpressionParameters expressionParameters = ExpressionParameters.from(key, tableSchema, indexName);
 
-            if (expressionParameters.getSortValue().equals(nullAttributeValue())) {
+            if (expressionParameters.sortValue().equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Attempt to query using a relative condition operator against a "
                                                    + "null sort key.");
             }
 
-            String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.getPartitionKey());
-            String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.getPartitionKey());
-            String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.getSortKey());
-            String sortValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.getSortKey());
+            String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.partitionKey());
+            String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.partitionKey());
+            String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.sortKey());
+            String sortValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.sortKey());
 
             String queryExpression = String.format("%s = %s AND %s %s %s",
                                                    partitionKeyToken,
@@ -234,11 +234,11 @@ public abstract class QueryConditional {
                                                    operator,
                                                    sortValueToken);
             Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-            expressionAttributeValues.put(partitionValueToken, expressionParameters.getPartitionValue());
-            expressionAttributeValues.put(sortValueToken, expressionParameters.getSortValue());
+            expressionAttributeValues.put(partitionValueToken, expressionParameters.partitionValue());
+            expressionAttributeValues.put(sortValueToken, expressionParameters.sortValue());
             Map<String, String> expressionAttributeNames = new HashMap<>();
-            expressionAttributeNames.put(partitionKeyToken, expressionParameters.getPartitionKey());
-            expressionAttributeNames.put(sortKeyToken, expressionParameters.getSortKey());
+            expressionAttributeNames.put(partitionKeyToken, expressionParameters.partitionKey());
+            expressionAttributeNames.put(sortKeyToken, expressionParameters.sortKey());
 
             return Expression.builder()
                              .expression(queryExpression)
@@ -280,23 +280,23 @@ public abstract class QueryConditional {
         }
 
         @Override
-        public Expression getExpression(TableSchema<?> tableSchema, String indexName) {
+        public Expression expression(TableSchema<?> tableSchema, String indexName) {
             ExpressionParameters expressionParameters = ExpressionParameters.from(key, tableSchema, indexName);
 
-            if (expressionParameters.getSortValue().equals(nullAttributeValue())) {
+            if (expressionParameters.sortValue().equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Attempt to query using a 'beginsWith' condition operator against a "
                                                    + "null sort key.");
             }
 
-            if (expressionParameters.getSortValue().n() != null) {
+            if (expressionParameters.sortValue().n() != null) {
                 throw new IllegalArgumentException("Attempt to query using a 'beginsWith' condition operator against "
                                                    + "a numeric sort key.");
             }
 
-            String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.getPartitionKey());
-            String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.getPartitionKey());
-            String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.getSortKey());
-            String sortValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.getSortKey());
+            String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.partitionKey());
+            String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.partitionKey());
+            String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters.sortKey());
+            String sortValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters.sortKey());
 
             String queryExpression = String.format("%s = %s AND begins_with ( %s, %s )",
                                                    partitionKeyToken,
@@ -304,11 +304,11 @@ public abstract class QueryConditional {
                                                    sortKeyToken,
                                                    sortValueToken);
             Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-            expressionAttributeValues.put(partitionValueToken, expressionParameters.getPartitionValue());
-            expressionAttributeValues.put(sortValueToken, expressionParameters.getSortValue());
+            expressionAttributeValues.put(partitionValueToken, expressionParameters.partitionValue());
+            expressionAttributeValues.put(sortValueToken, expressionParameters.sortValue());
             Map<String, String> expressionAttributeNames = new HashMap<>();
-            expressionAttributeNames.put(partitionKeyToken, expressionParameters.getPartitionKey());
-            expressionAttributeNames.put(sortKeyToken, expressionParameters.getSortKey());
+            expressionAttributeNames.put(partitionKeyToken, expressionParameters.partitionKey());
+            expressionAttributeNames.put(sortKeyToken, expressionParameters.sortKey());
 
             return Expression.builder()
                              .expression(queryExpression)
@@ -347,21 +347,21 @@ public abstract class QueryConditional {
         }
 
         @Override
-        public Expression getExpression(TableSchema<?> tableSchema, String indexName) {
+        public Expression expression(TableSchema<?> tableSchema, String indexName) {
             ExpressionParameters expressionParameters1 = ExpressionParameters.from(key1, tableSchema, indexName);
             ExpressionParameters expressionParameters2 = ExpressionParameters.from(key2, tableSchema, indexName);
 
-            if (expressionParameters1.getSortValue().equals(nullAttributeValue()) ||
-                expressionParameters2.getSortValue().equals(nullAttributeValue())) {
+            if (expressionParameters1.sortValue().equals(nullAttributeValue()) ||
+                expressionParameters2.sortValue().equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Attempt to query using a 'between' condition operator where one "
                                                    + "of the items has a null sort key.");
             }
 
-            String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters1.getPartitionKey());
-            String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters1.getPartitionKey());
-            String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters1.getSortKey());
-            String sortKeyValueToken1 = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters1.getSortKey());
-            String sortKeyValueToken2 = EXPRESSION_OTHER_VALUE_KEY_MAPPER.apply(expressionParameters2.getSortKey());
+            String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters1.partitionKey());
+            String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters1.partitionKey());
+            String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(expressionParameters1.sortKey());
+            String sortKeyValueToken1 = EXPRESSION_VALUE_KEY_MAPPER.apply(expressionParameters1.sortKey());
+            String sortKeyValueToken2 = EXPRESSION_OTHER_VALUE_KEY_MAPPER.apply(expressionParameters2.sortKey());
 
             String queryExpression = String.format("%s = %s AND %s BETWEEN %s AND %s",
                                                    partitionKeyToken,
@@ -370,12 +370,12 @@ public abstract class QueryConditional {
                                                    sortKeyValueToken1,
                                                    sortKeyValueToken2);
             Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-            expressionAttributeValues.put(partitionValueToken, expressionParameters1.getPartitionValue());
-            expressionAttributeValues.put(sortKeyValueToken1, expressionParameters1.getSortValue());
-            expressionAttributeValues.put(sortKeyValueToken2, expressionParameters2.getSortValue());
+            expressionAttributeValues.put(partitionValueToken, expressionParameters1.partitionValue());
+            expressionAttributeValues.put(sortKeyValueToken1, expressionParameters1.sortValue());
+            expressionAttributeValues.put(sortKeyValueToken2, expressionParameters2.sortValue());
             Map<String, String> expressionAttributeNames = new HashMap<>();
-            expressionAttributeNames.put(partitionKeyToken, expressionParameters1.getPartitionKey());
-            expressionAttributeNames.put(sortKeyToken, expressionParameters1.getSortKey());
+            expressionAttributeNames.put(partitionKeyToken, expressionParameters1.partitionKey());
+            expressionAttributeNames.put(sortKeyToken, expressionParameters1.sortKey());
 
             return Expression.builder()
                              .expression(queryExpression)

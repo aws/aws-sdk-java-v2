@@ -202,8 +202,8 @@ public class IndexQueryTest extends LocalDynamoDbTestBase {
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.getItems(), is(KEYS_ONLY_RECORDS));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.items(), is(KEYS_ONLY_RECORDS));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -217,9 +217,9 @@ public class IndexQueryTest extends LocalDynamoDbTestBase {
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.getItems(),
+        assertThat(page.items(),
                    is(KEYS_ONLY_RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -250,12 +250,12 @@ public class IndexQueryTest extends LocalDynamoDbTestBase {
         expectedLastEvaluatedKey2.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(9).getGsiId()));
         expectedLastEvaluatedKey2.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(9).getGsiSort()));
 
-        assertThat(page1.getItems(), is(KEYS_ONLY_RECORDS.subList(0, 5)));
-        assertThat(page1.getLastEvaluatedKey(), is(expectedLastEvaluatedKey1));
-        assertThat(page2.getItems(), is(KEYS_ONLY_RECORDS.subList(5, 10)));
-        assertThat(page2.getLastEvaluatedKey(), is(expectedLastEvaluatedKey2));
-        assertThat(page3.getItems(), is(empty()));
-        assertThat(page3.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page1.items(), is(KEYS_ONLY_RECORDS.subList(0, 5)));
+        assertThat(page1.lastEvaluatedKey(), is(expectedLastEvaluatedKey1));
+        assertThat(page2.items(), is(KEYS_ONLY_RECORDS.subList(5, 10)));
+        assertThat(page2.lastEvaluatedKey(), is(expectedLastEvaluatedKey2));
+        assertThat(page3.items(), is(empty()));
+        assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -265,8 +265,8 @@ public class IndexQueryTest extends LocalDynamoDbTestBase {
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.getItems(), is(empty()));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.items(), is(empty()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -286,7 +286,7 @@ public class IndexQueryTest extends LocalDynamoDbTestBase {
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.getItems(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.items(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 }

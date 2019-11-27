@@ -85,11 +85,11 @@ public class BatchGetItem
     }
 
     @Override
-    public Function<BatchGetItemRequest, BatchGetItemIterable> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<BatchGetItemRequest, BatchGetItemIterable> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::batchGetItemPaginator;
     }
 
-    public Collection<ReadBatch> getReadBatches() {
+    public Collection<ReadBatch> readBatches() {
         return readBatches;
     }
 
@@ -140,12 +140,12 @@ public class BatchGetItem
         public <T> List<T> getResultsForTable(MappedTable<T> mappedTable) {
             List<Map<String, AttributeValue>> results =
                 batchGetItemResponse.responses()
-                                    .getOrDefault(mappedTable.getTableName(), emptyList());
+                                    .getOrDefault(mappedTable.tableName(), emptyList());
 
             return results.stream()
                           .map(itemMap -> readAndTransformSingleItem(itemMap,
-                                                                     mappedTable.getTableSchema(),
-                                                                     OperationContext.of(mappedTable.getTableName()),
+                                                                     mappedTable.tableSchema(),
+                                                                     OperationContext.of(mappedTable.tableName()),
                                                                      mapperExtension))
                           .collect(Collectors.toList());
         }

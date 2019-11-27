@@ -55,25 +55,25 @@ public class QueryConditionalTest {
 
     @Test
     public void equalTo_hashOnly() {
-        Expression expression = QueryConditional.equalTo(getKey(fakeItem)).getExpression(FakeItem.getTableSchema(),
-                                                                                         TableMetadata.getPrimaryIndexName());
+        Expression expression = QueryConditional.equalTo(getKey(fakeItem)).expression(FakeItem.getTableSchema(),
+                                                                                      TableMetadata.primaryIndexName());
 
-        assertThat(expression.getExpression(), is(ID_KEY + " = " + ID_VALUE));
-        assertThat(expression.getExpressionNames(), hasEntry(ID_KEY, "id"));
-        assertThat(expression.getExpressionValues(), hasEntry(ID_VALUE, fakeItemHashValue));
+        assertThat(expression.expression(), is(ID_KEY + " = " + ID_VALUE));
+        assertThat(expression.expressionNames(), hasEntry(ID_KEY, "id"));
+        assertThat(expression.expressionValues(), hasEntry(ID_VALUE, fakeItemHashValue));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void equalTo_hashOnly_notSet_throwsIllegalArgumentException() {
         fakeItem.setId(null);
         QueryConditional.equalTo(getKey(fakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
     public void equalTo_hashAndRangeKey_bothSet() {
         Expression expression = QueryConditional.equalTo(getKey(fakeItemWithSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         verifyExpression(expression, "=");
     }
@@ -82,23 +82,23 @@ public class QueryConditionalTest {
     public void equalTo_hashAndRangeKey_hashNotSet_throwsIllegalArgumentException() {
         fakeItemWithSort.setId(null);
         QueryConditional.equalTo(getKey(fakeItemWithSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
     public void equalTo_hashAndRangeKey_hashOnlySet() {
         Expression expression = QueryConditional.equalTo(getKey(fakeItemWithoutSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
-        assertThat(expression.getExpression(), is(ID_KEY + " = " + ID_VALUE));
-        assertThat(expression.getExpressionNames(), hasEntry(ID_KEY, "id"));
-        assertThat(expression.getExpressionValues(), hasEntry(ID_VALUE, fakeItemWithoutSortHashValue));
+        assertThat(expression.expression(), is(ID_KEY + " = " + ID_VALUE));
+        assertThat(expression.expressionNames(), hasEntry(ID_KEY, "id"));
+        assertThat(expression.expressionValues(), hasEntry(ID_VALUE, fakeItemWithoutSortHashValue));
     }
 
     @Test
     public void greaterThan_hashAndRangeKey_bothSet() {
         Expression expression = QueryConditional.greaterThan(getKey(fakeItemWithSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         verifyExpression(expression, ">");
     }
@@ -106,19 +106,19 @@ public class QueryConditionalTest {
     @Test(expected = IllegalArgumentException.class)
     public void greaterThan_hashOnly_throwsIllegalArgumentException() {
         QueryConditional.greaterThan(getKey(fakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void greaterThan_hashAndSort_onlyHashSet_throwsIllegalArgumentException() {
         QueryConditional.greaterThan(getKey(fakeItemWithoutSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
     public void greaterThanOrEqualTo_hashAndRangeKey_bothSet() {
         Expression expression = QueryConditional.greaterThanOrEqualTo(getKey(fakeItemWithSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         verifyExpression(expression, ">=");
     }
@@ -126,19 +126,19 @@ public class QueryConditionalTest {
     @Test(expected = IllegalArgumentException.class)
     public void greaterThanOrEqualTo_hashOnly_throwsIllegalArgumentException() {
         QueryConditional.greaterThanOrEqualTo(getKey(fakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void greaterThanOrEqualTo_hashAndSort_onlyHashSet_throwsIllegalArgumentException() {
         QueryConditional.greaterThanOrEqualTo(getKey(fakeItemWithoutSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
     public void lessThan_hashAndRangeKey_bothSet() {
         Expression expression = QueryConditional.lessThan(getKey(fakeItemWithSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         verifyExpression(expression, "<");
     }
@@ -146,19 +146,19 @@ public class QueryConditionalTest {
     @Test(expected = IllegalArgumentException.class)
     public void lessThan_hashOnly_throwsIllegalArgumentException() {
         QueryConditional.lessThan(getKey(fakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void lessThan_hashAndSort_onlyHashSet_throwsIllegalArgumentException() {
         QueryConditional.lessThan(getKey(fakeItemWithoutSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
     public void lessThanOrEqualTo_hashAndRangeKey_bothSet() {
         Expression expression = QueryConditional.lessThanOrEqualTo(getKey(fakeItemWithSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         verifyExpression(expression, "<=");
     }
@@ -166,45 +166,45 @@ public class QueryConditionalTest {
     @Test(expected = IllegalArgumentException.class)
     public void lessThanOrEqualTo_hashOnly_throwsIllegalArgumentException() {
         QueryConditional.lessThanOrEqualTo(getKey(fakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void lessThanOrEqualTo_hashAndSort_onlyHashSet_throwsIllegalArgumentException() {
         QueryConditional.lessThanOrEqualTo(getKey(fakeItemWithoutSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
     public void beginsWith_hashAndRangeKey_bothSet() {
         Expression expression = QueryConditional.beginsWith(getKey(fakeItemWithSort))
-                                                .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                                                .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         String expectedExpression = String.format("%s = %s AND begins_with ( %s, %s )", ID_KEY, ID_VALUE, SORT_KEY,
                                                   SORT_VALUE);
-        assertThat(expression.getExpression(), is(expectedExpression));
-        assertThat(expression.getExpressionValues(), hasEntry(ID_VALUE, fakeItemWithSortHashValue));
-        assertThat(expression.getExpressionValues(), hasEntry(SORT_VALUE, fakeItemWithSortSortValue));
-        assertThat(expression.getExpressionNames(), hasEntry(ID_KEY, "id"));
-        assertThat(expression.getExpressionNames(), hasEntry(SORT_KEY, "sort"));
+        assertThat(expression.expression(), is(expectedExpression));
+        assertThat(expression.expressionValues(), hasEntry(ID_VALUE, fakeItemWithSortHashValue));
+        assertThat(expression.expressionValues(), hasEntry(SORT_VALUE, fakeItemWithSortSortValue));
+        assertThat(expression.expressionNames(), hasEntry(ID_KEY, "id"));
+        assertThat(expression.expressionNames(), hasEntry(SORT_KEY, "sort"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void beginsWith_hashOnly_throwsIllegalArgumentException() {
         QueryConditional.beginsWith(getKey(fakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void beginsWith_hashAndSort_onlyHashSet_throwsIllegalArgumentException() {
         QueryConditional.beginsWith(getKey(fakeItemWithoutSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void beginsWith_numericRange_throwsIllegalArgumentException() {
         FakeItemWithNumericSort fakeItemWithNumericSort = FakeItemWithNumericSort.createUniqueFakeItemWithSort();
-        QueryConditional.beginsWith(getKey(fakeItemWithNumericSort)).getExpression(FakeItemWithNumericSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+        QueryConditional.beginsWith(getKey(fakeItemWithNumericSort)).expression(FakeItemWithNumericSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
@@ -215,57 +215,57 @@ public class QueryConditionalTest {
             AttributeValue.builder().s(otherFakeItemWithSort.getSort()).build();
 
         Expression expression = QueryConditional.between(getKey(fakeItemWithSort), getKey(otherFakeItemWithSort))
-            .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+            .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
 
         String expectedExpression = String.format("%s = %s AND %s BETWEEN %s AND %s", ID_KEY, ID_VALUE, SORT_KEY,
                                                   SORT_VALUE, SORT_OTHER_VALUE);
-        assertThat(expression.getExpression(), is(expectedExpression));
-        assertThat(expression.getExpressionValues(), hasEntry(ID_VALUE, fakeItemWithSortHashValue));
-        assertThat(expression.getExpressionValues(), hasEntry(SORT_VALUE, fakeItemWithSortSortValue));
-        assertThat(expression.getExpressionValues(), hasEntry(SORT_OTHER_VALUE, otherFakeItemWithSortSortValue));
-        assertThat(expression.getExpressionNames(), hasEntry(ID_KEY, "id"));
-        assertThat(expression.getExpressionNames(), hasEntry(SORT_KEY, "sort"));
+        assertThat(expression.expression(), is(expectedExpression));
+        assertThat(expression.expressionValues(), hasEntry(ID_VALUE, fakeItemWithSortHashValue));
+        assertThat(expression.expressionValues(), hasEntry(SORT_VALUE, fakeItemWithSortSortValue));
+        assertThat(expression.expressionValues(), hasEntry(SORT_OTHER_VALUE, otherFakeItemWithSortSortValue));
+        assertThat(expression.expressionNames(), hasEntry(ID_KEY, "id"));
+        assertThat(expression.expressionNames(), hasEntry(SORT_KEY, "sort"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void between_hashOnly_throwsIllegalArgumentException() {
         FakeItem otherFakeItem = createUniqueFakeItem();
         QueryConditional.between(getKey(fakeItem), getKey(otherFakeItem))
-                        .getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void between_hashAndSort_onlyFirstSortSet_throwsIllegalArgumentException() {
         QueryConditional.between(getKey(fakeItemWithSort), getKey(fakeItemWithoutSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void between_hashAndSort_onlySecondSortSet_throwsIllegalArgumentException() {
         QueryConditional.between(getKey(fakeItemWithoutSort), getKey(fakeItemWithSort))
-                        .getExpression(FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+                        .expression(FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     private void verifyExpression(Expression expression, String condition) {
-        assertThat(expression.getExpression(), is(ID_KEY + " = " + ID_VALUE + " AND " + SORT_KEY + " " + condition +
-                                                  " " + SORT_VALUE));
-        assertThat(expression.getExpressionNames(), hasEntry(ID_KEY, "id"));
-        assertThat(expression.getExpressionNames(), hasEntry(SORT_KEY, "sort"));
-        assertThat(expression.getExpressionValues(), hasEntry(ID_VALUE, fakeItemWithSortHashValue));
-        assertThat(expression.getExpressionValues(), hasEntry(SORT_VALUE, fakeItemWithSortSortValue));
+        assertThat(expression.expression(), is(ID_KEY + " = " + ID_VALUE + " AND " + SORT_KEY + " " + condition +
+                                               " " + SORT_VALUE));
+        assertThat(expression.expressionNames(), hasEntry(ID_KEY, "id"));
+        assertThat(expression.expressionNames(), hasEntry(SORT_KEY, "sort"));
+        assertThat(expression.expressionValues(), hasEntry(ID_VALUE, fakeItemWithSortHashValue));
+        assertThat(expression.expressionValues(), hasEntry(SORT_VALUE, fakeItemWithSortSortValue));
     }
     
     private Key getKey(FakeItem item) {
-        return Utils.createKeyFromItem(item, FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+        return Utils.createKeyFromItem(item, FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     private Key getKey(FakeItemWithSort item) {
-        return Utils.createKeyFromItem(item, FakeItemWithSort.getTableSchema(), TableMetadata.getPrimaryIndexName());
+        return Utils.createKeyFromItem(item, FakeItemWithSort.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     private Key getKey(FakeItemWithNumericSort item) {
         return Utils.createKeyFromItem(item,
                                        FakeItemWithNumericSort.getTableSchema(),
-                                       TableMetadata.getPrimaryIndexName());
+                                       TableMetadata.primaryIndexName());
     }
 }

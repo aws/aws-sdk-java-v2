@@ -56,19 +56,19 @@ public interface MappedTable<T> {
      * Gets the {@link MapperExtension} associated with this mapped resource.
      * @return The {@link MapperExtension} associated with this mapped resource.
      */
-    MapperExtension getMapperExtension();
+    MapperExtension mapperExtension();
 
     /**
      * Gets the {@link TableSchema} object that this mapped table was built with.
      * @return The {@link TableSchema} object for this mapped table.
      */
-    TableSchema<T> getTableSchema();
+    TableSchema<T> tableSchema();
 
     /**
      * Gets the physical table name that operations performed by this object will be executed against.
      * @return The physical table name.
      */
-    String getTableName();
+    String tableName();
 
     /**
      * Creates a {@link Key} object from a modelled item. This key can be used in query conditionals and get

@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableWriteOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
@@ -44,13 +45,15 @@ public class DeleteItem<T>
                BatchableWriteOperation<T> {
 
     private final Key key;
+    private final Expression conditionExpression;
 
-    private DeleteItem(Key key) {
-        this.key = key;
+    private DeleteItem(Builder b) {
+        this.key = b.key;
+        this.conditionExpression = b.conditionExpression;
     }
 
     public static <T> DeleteItem<T> of(Key key) {
-        return new DeleteItem<>(key);
+        return DeleteItem.builder().key(key).build();
     }
 
     public static Builder builder() {
@@ -66,15 +69,30 @@ public class DeleteItem<T>
                                              OperationContext operationContext,
                                              MapperExtension mapperExtension) {
 
-        if (!TableMetadata.getPrimaryIndexName().equals(operationContext.getIndexName())) {
+        if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             throw new IllegalArgumentException("DeleteItem cannot be executed against a secondary index.");
         }
 
-        return DeleteItemRequest.builder()
-                                .tableName(operationContext.getTableName())
-                                .key(key.getKeyMap(tableSchema, operationContext.getIndexName()))
-                                .returnValues(ReturnValue.ALL_OLD)
-                                .build();
+        DeleteItemRequest.Builder requestBuilder =
+            DeleteItemRequest.builder()
+                             .tableName(operationContext.tableName())
+                             .key(key.keyMap(tableSchema, operationContext.indexName()))
+                             .returnValues(ReturnValue.ALL_OLD);
+
+        if (conditionExpression != null) {
+            requestBuilder = requestBuilder.conditionExpression(conditionExpression.expression());
+
+            // Avoid adding empty collections
+            if (!conditionExpression.expressionNames().isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeNames(conditionExpression.expressionNames());
+            }
+
+            if (!conditionExpression.expressionValues().isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeValues(conditionExpression.expressionValues());
+            }
+        }
+
+        return requestBuilder.build();
     }
 
     @Override
@@ -86,7 +104,7 @@ public class DeleteItem<T>
     }
 
     @Override
-    public Function<DeleteItemRequest, DeleteItemResponse> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<DeleteItemRequest, DeleteItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::deleteItem;
     }
 
@@ -120,7 +138,7 @@ public class DeleteItem<T>
                                 .build();
     }
 
-    public Key getKey() {
+    public Key key() {
         return key;
     }
 
@@ -145,6 +163,7 @@ public class DeleteItem<T>
 
     public static final class Builder {
         private Key key;
+        private Expression conditionExpression;
 
         private Builder() {
         }
@@ -154,8 +173,13 @@ public class DeleteItem<T>
             return this;
         }
 
+        public Builder conditionExpression(Expression conditionExpression) {
+            this.conditionExpression = conditionExpression;
+            return this;
+        }
+
         public <T> DeleteItem<T> build() {
-            return new DeleteItem<>(key);
+            return new DeleteItem<>(this);
         }
     }
 }

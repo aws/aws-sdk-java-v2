@@ -51,14 +51,14 @@ public final class Expression {
 
         return Expression.builder()
                          .expression(coalesceExpressions(condition1.expression, condition2.expression, joinToken))
-                         .expressionValues(coalesceValues(condition1.getExpressionValues(),
-                                                          condition2.getExpressionValues()))
-                         .expressionNames(coalesceNames(condition1.getExpressionNames(),
-                                                        condition2.getExpressionNames()))
+                         .expressionValues(coalesceValues(condition1.expressionValues(),
+                                                          condition2.expressionValues()))
+                         .expressionNames(coalesceNames(condition1.expressionNames(),
+                                                        condition2.expressionNames()))
                          .build();
     }
 
-    private static String coalesceExpressions(String expression1, String expression2, String joinToken) {
+    public static String coalesceExpressions(String expression1, String expression2, String joinToken) {
         if (expression1 == null) {
             return expression2;
         }
@@ -67,7 +67,7 @@ public final class Expression {
             return expression1;
         }
 
-        return expression1 + joinToken + expression2;
+        return "(" + expression1 + ")" + joinToken + "(" + expression2 + ")";
     }
 
     public static Map<String, AttributeValue> coalesceValues(Map<String, AttributeValue> expressionValues1,
@@ -118,15 +118,15 @@ public final class Expression {
         return Collections.unmodifiableMap(result);
     }
 
-    public String getExpression() {
+    public String expression() {
         return expression;
     }
 
-    public Map<String, AttributeValue> getExpressionValues() {
+    public Map<String, AttributeValue> expressionValues() {
         return expressionValues;
     }
 
-    public Map<String, String> getExpressionNames() {
+    public Map<String, String> expressionNames() {
         return expressionNames;
     }
 
@@ -173,12 +173,30 @@ public final class Expression {
         }
 
         public Builder expressionValues(Map<String, AttributeValue> expressionValues) {
-            this.expressionValues = expressionValues;
+            this.expressionValues = expressionValues == null ? null : new HashMap<>(expressionValues);
+            return this;
+        }
+
+        public Builder putExpressionValue(String key, AttributeValue value) {
+            if (this.expressionValues == null) {
+                this.expressionValues = new HashMap<>();
+            }
+
+            this.expressionValues.put(key, value);
             return this;
         }
 
         public Builder expressionNames(Map<String, String> expressionNames) {
-            this.expressionNames = expressionNames;
+            this.expressionNames = expressionNames == null ? null : new HashMap<>(expressionNames);
+            return this;
+        }
+
+        public Builder putExpressionName(String key, String value) {
+            if (this.expressionNames == null) {
+                this.expressionNames = new HashMap<>();
+            }
+
+            this.expressionNames.put(key, value);
             return this;
         }
 

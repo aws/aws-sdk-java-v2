@@ -79,8 +79,8 @@ public class VersionedRecordExtension implements MapperExtension {
         }
 
         @Override
-        public Map<String, Object> getCustomMetadataForAttribute(String attributeName,
-                                                                 AttributeValueType attributeValueType) {
+        public Map<String, Object> customMetadataForAttribute(String attributeName,
+                                                              AttributeValueType attributeValueType) {
             if (!AttributeValueType.N.equals(attributeValueType)) {
                 throw new IllegalArgumentException(String.format("Attribute '%s' of type %s is not a suitable type to"
                     + " be used as a version attribute. Only type 'N' is supported.", attributeName,
@@ -95,7 +95,7 @@ public class VersionedRecordExtension implements MapperExtension {
     public WriteModification beforeWrite(Map<String, AttributeValue> item,
                                          OperationContext operationContext,
                                          TableMetadata tableMetadata) {
-        Optional<String> versionAttributeKey = tableMetadata.getCustomMetadataObject(CUSTOM_METADATA_KEY, String.class);
+        Optional<String> versionAttributeKey = tableMetadata.customMetadataObject(CUSTOM_METADATA_KEY, String.class);
 
         if (!versionAttributeKey.isPresent()) {
             return WriteModification.builder().build();

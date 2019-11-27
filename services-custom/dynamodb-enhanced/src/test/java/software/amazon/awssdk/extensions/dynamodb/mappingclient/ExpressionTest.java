@@ -16,25 +16,22 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class OperationContextTest {
+public class ExpressionTest {
     @Test
-    public void createWithTableNameAndIndexName() {
-        OperationContext context = OperationContext.of("table_name", "index_name");
+    public void coalesce_correctlyWrapsExpressions() {
+        Expression expression1 = Expression.builder().expression("one").build();
+        Expression expression2 = Expression.builder().expression("two").build();
+        Expression expression3 = Expression.builder().expression("three").build();
 
-        assertThat(context.tableName(), is("table_name"));
-        assertThat(context.indexName(), is("index_name"));
-    }
+        Expression coalescedExpression = Expression.coalesce(Expression.coalesce(expression1, expression2, " AND "),
+                                                             expression3, " AND ");
 
-    @Test
-    public void createWithTableName() {
-        OperationContext context = OperationContext.of("table_name");
-
-        assertThat(context.tableName(), is("table_name"));
-        assertThat(context.indexName(), is(TableMetadata.primaryIndexName()));
+        String expectedExpression = "((one) AND (two)) AND (three)";
+        assertThat(coalescedExpression.expression(), is(expectedExpression));
     }
 
 }

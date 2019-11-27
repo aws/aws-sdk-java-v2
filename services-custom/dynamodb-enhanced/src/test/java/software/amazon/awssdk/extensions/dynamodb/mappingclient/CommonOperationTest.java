@@ -52,7 +52,7 @@ public class CommonOperationTest {
     @Before
     public void stubSpy() {
         when(spyCommonOperation.generateRequest(any(), any(), any())).thenReturn(FAKE_REQUEST);
-        when(spyCommonOperation.getServiceCall(any())).thenReturn(s -> {
+        when(spyCommonOperation.serviceCall(any())).thenReturn(s -> {
             if (!FAKE_REQUEST.equals(s)) {
                 throw new RuntimeException("Did not receive expected request");
             }
@@ -72,7 +72,7 @@ public class CommonOperationTest {
 
         assertThat(result, is(FAKE_RESULT));
         verify(spyCommonOperation).generateRequest(FakeItem.getTableSchema(), operationContext, mockMapperExtension);
-        verify(spyCommonOperation).getServiceCall(mockDynamoDbClient);
+        verify(spyCommonOperation).serviceCall(mockDynamoDbClient);
         verify(spyCommonOperation).transformResponse(FAKE_RESPONSE, FakeItem.getTableSchema(), operationContext,
                                                      mockMapperExtension);
     }

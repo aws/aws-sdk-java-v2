@@ -83,18 +83,18 @@ public class Query<T> implements TableOperation<T, QueryRequest, QueryIterable, 
     public QueryRequest generateRequest(TableSchema<T> tableSchema,
                                         OperationContext operationContext,
                                         MapperExtension mapperExtension) {
-        Expression queryExpression = queryConditional.getExpression(tableSchema, operationContext.getIndexName());
-        Map<String, AttributeValue> expressionValues = queryExpression.getExpressionValues();
-        Map<String, String> expressionNames = queryExpression.getExpressionNames();
+        Expression queryExpression = queryConditional.expression(tableSchema, operationContext.indexName());
+        Map<String, AttributeValue> expressionValues = queryExpression.expressionValues();
+        Map<String, String> expressionNames = queryExpression.expressionNames();
 
         if (filterExpression != null) {
-            expressionValues = Expression.coalesceValues(expressionValues, filterExpression.getExpressionValues());
-            expressionNames = Expression.coalesceNames(expressionNames, filterExpression.getExpressionNames());
+            expressionValues = Expression.coalesceValues(expressionValues, filterExpression.expressionValues());
+            expressionNames = Expression.coalesceNames(expressionNames, filterExpression.expressionNames());
         }
 
         QueryRequest.Builder queryRequest = QueryRequest.builder()
-                                                        .tableName(operationContext.getTableName())
-                                                        .keyConditionExpression(queryExpression.getExpression())
+                                                        .tableName(operationContext.tableName())
+                                                        .keyConditionExpression(queryExpression.expression())
                                                         .expressionAttributeValues(expressionValues)
                                                         .expressionAttributeNames(expressionNames)
                                                         .scanIndexForward(scanIndexForward)
@@ -102,12 +102,12 @@ public class Query<T> implements TableOperation<T, QueryRequest, QueryIterable, 
                                                         .exclusiveStartKey(exclusiveStartKey)
                                                         .consistentRead(consistentRead);
 
-        if (!TableMetadata.getPrimaryIndexName().equals(operationContext.getIndexName())) {
-            queryRequest = queryRequest.indexName(operationContext.getIndexName());
+        if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
+            queryRequest = queryRequest.indexName(operationContext.indexName());
         }
 
         if (filterExpression != null) {
-            queryRequest = queryRequest.filterExpression(filterExpression.getExpression());
+            queryRequest = queryRequest.filterExpression(filterExpression.expression());
         }
 
         return queryRequest.build();
@@ -122,7 +122,7 @@ public class Query<T> implements TableOperation<T, QueryRequest, QueryIterable, 
     }
 
     @Override
-    public Function<QueryRequest, QueryIterable> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<QueryRequest, QueryIterable> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::queryPaginator;
     }
 
@@ -133,27 +133,27 @@ public class Query<T> implements TableOperation<T, QueryRequest, QueryIterable, 
                                               QueryResponse::lastEvaluatedKey);
     }
 
-    public QueryConditional getQueryConditional() {
+    public QueryConditional queryConditional() {
         return queryConditional;
     }
 
-    public Map<String, AttributeValue> getExclusiveStartKey() {
+    public Map<String, AttributeValue> exclusiveStartKey() {
         return exclusiveStartKey;
     }
 
-    public Boolean getScanIndexForward() {
+    public Boolean scanIndexForward() {
         return scanIndexForward;
     }
 
-    public Integer getLimit() {
+    public Integer limit() {
         return limit;
     }
 
-    public Boolean getConsistentRead() {
+    public Boolean consistentRead() {
         return consistentRead;
     }
 
-    public Expression getFilterExpression() {
+    public Expression filterExpression() {
         return filterExpression;
     }
 

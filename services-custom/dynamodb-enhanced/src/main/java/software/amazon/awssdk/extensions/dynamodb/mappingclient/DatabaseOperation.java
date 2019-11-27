@@ -48,7 +48,7 @@ public interface DatabaseOperation<RequestT, ResponseT, ResultT> {
      * @param dynamoDbClient A low level {@link DynamoDbClient} to make the call against.
      * @return A function that calls DynamoDb with a provided request object and returns the response object.
      */
-    Function<RequestT, ResponseT> getServiceCall(DynamoDbClient dynamoDbClient);
+    Function<RequestT, ResponseT> serviceCall(DynamoDbClient dynamoDbClient);
 
     /**
      * Takes the response object returned by the actual DynamoDb call and maps it into a higher level abstracted
@@ -73,7 +73,7 @@ public interface DatabaseOperation<RequestT, ResponseT, ResultT> {
      */
     default ResultT execute(DynamoDbClient dynamoDbClient, MapperExtension mapperExtension) {
         RequestT request = generateRequest(mapperExtension);
-        ResponseT response = getServiceCall(dynamoDbClient).apply(request);
+        ResponseT response = serviceCall(dynamoDbClient).apply(request);
         return transformResponse(response, mapperExtension);
     }
 }

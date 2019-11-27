@@ -50,7 +50,7 @@ public class AttributeType<T> {
         return this.attributeValueTransformer.apply(attributeValue);
     }
 
-    AttributeValueType getAttributeValueType() {
+    AttributeValueType attributeValueType() {
         return attributeValueType;
     }
 }

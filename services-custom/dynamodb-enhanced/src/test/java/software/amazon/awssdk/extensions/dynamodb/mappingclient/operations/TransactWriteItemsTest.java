@@ -131,7 +131,7 @@ public class TransactWriteItemsTest {
                                                                                 .build();
         when(mockDynamoDbClient.transactWriteItems(any(TransactWriteItemsRequest.class))).thenReturn(expectedResponse);
 
-        TransactWriteItemsResponse actualResponse = operation.getServiceCall(mockDynamoDbClient).apply(request);
+        TransactWriteItemsResponse actualResponse = operation.serviceCall(mockDynamoDbClient).apply(request);
 
         assertThat(actualResponse, is(sameInstance(expectedResponse)));
         verify(mockDynamoDbClient).transactWriteItems(request);

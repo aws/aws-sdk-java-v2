@@ -27,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
@@ -40,6 +41,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
@@ -60,9 +62,24 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class DeleteItemTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
+    private static final Expression CONDITION_EXPRESSION;
+
+    static {
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#test_field_1", "test_field_1");
+        expressionNames.put("#test_field_2", "test_field_2");
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":test_value_1", numberValue(1));
+        expressionValues.put(":test_value_2", numberValue(2));
+        CONDITION_EXPRESSION = Expression.builder()
+                                         .expression("#test_field_1 = :test_value_1 OR #test_field_2 = :test_value_2")
+                                         .expressionNames(Collections.unmodifiableMap(expressionNames))
+                                         .expressionValues(Collections.unmodifiableMap(expressionValues))
+                                         .build();
+    }
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -78,7 +95,7 @@ public class DeleteItemTest {
         DeleteItemResponse expectedResponse = DeleteItemResponse.builder().build();
         when(mockDynamoDbClient.deleteItem(any(DeleteItemRequest.class))).thenReturn(expectedResponse);
 
-        DeleteItemResponse response = deleteItemOperation.getServiceCall(mockDynamoDbClient).apply(deleteItemRequest);
+        DeleteItemResponse response = deleteItemOperation.serviceCall(mockDynamoDbClient).apply(deleteItemRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).deleteItem(deleteItemRequest);
@@ -122,6 +139,24 @@ public class DeleteItemTest {
                                                        .returnValues(ReturnValue.ALL_OLD)
                                                        .build();
         assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withConditionExpression() {
+        FakeItem keyItem = createUniqueFakeItem();
+        DeleteItem<FakeItem> deleteItemOperation =
+            DeleteItem.builder()
+                      .key(Key.of(stringValue(keyItem.getId())))
+                      .conditionExpression(CONDITION_EXPRESSION)
+                      .build();
+
+        DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request.conditionExpression(), is(CONDITION_EXPRESSION.expression()));
+        assertThat(request.expressionAttributeNames(), is(CONDITION_EXPRESSION.expressionNames()));
+        assertThat(request.expressionAttributeValues(), is(CONDITION_EXPRESSION.expressionValues()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -216,7 +251,7 @@ public class DeleteItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         DeleteItem<FakeItem> deleteItemOperation = spy(DeleteItem.of(Key.of(stringValue(fakeItem.getId()))));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
 
         DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
                                                                .tableName(TABLE_NAME)
@@ -243,7 +278,7 @@ public class DeleteItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         DeleteItem<FakeItem> deleteItemOperation = spy(DeleteItem.of(Key.of(stringValue(fakeItem.getId()))));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));

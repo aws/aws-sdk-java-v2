@@ -70,7 +70,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class QueryTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
 
@@ -91,7 +91,7 @@ public class QueryTest {
         QueryIterable mockQueryIterable = mock(QueryIterable.class);
         when(mockDynamoDbClient.queryPaginator(any(QueryRequest.class))).thenReturn(mockQueryIterable);
 
-        QueryIterable response = queryOperation.getServiceCall(mockDynamoDbClient).apply(queryRequest);
+        QueryIterable response = queryOperation.serviceCall(mockDynamoDbClient).apply(queryRequest);
 
         assertThat(response, is(mockQueryIterable));
         verify(mockDynamoDbClient).queryPaginator(queryRequest);
@@ -101,7 +101,7 @@ public class QueryTest {
     public void generateRequest_nonDefault_usesQueryConditional() {
         Map<String, AttributeValue> keyItemMap = getAttributeValueMap(keyItem);
         Expression expression = Expression.builder().expression("test-expression").expressionValues(keyItemMap).build();
-        when(mockQueryConditional.getExpression(any(), anyString())).thenReturn(expression);
+        when(mockQueryConditional.expression(any(), anyString())).thenReturn(expression);
 
         Query<FakeItem> query = Query.of(mockQueryConditional);
         QueryRequest queryRequest = query.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
@@ -112,7 +112,7 @@ public class QueryTest {
                                                         .expressionAttributeValues(keyItemMap)
                                                         .build();
         assertThat(queryRequest, is(expectedQueryRequest));
-        verify(mockQueryConditional).getExpression(FakeItem.getTableSchema(), TableMetadata.getPrimaryIndexName());
+        verify(mockQueryConditional).expression(FakeItem.getTableSchema(), TableMetadata.primaryIndexName());
     }
 
     @Test
@@ -258,7 +258,7 @@ public class QueryTest {
             Query.builder()
                  .queryConditional(QueryConditional.equalTo(Key.of(stringValue(keyItem.getId()))))
                  .exclusiveStartKey(FakeItem.getTableSchema().itemToMap(exclusiveStartKey,
-                                                                        FakeItem.getTableMetadata().getPrimaryKeys()))
+                                                                        FakeItem.getTableMetadata().primaryKeys()))
                  .build();
 
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
@@ -272,8 +272,8 @@ public class QueryTest {
     @Test
     public void generateRequest_secondaryIndex_exclusiveStartKeyUsesPrimaryAndSecondaryIndex() {
         FakeItemWithIndices exclusiveStartKey = createUniqueFakeItemWithIndices();
-        Set<String> keyFields = new HashSet<>(FakeItemWithIndices.getTableSchema().getTableMetadata().getPrimaryKeys());
-        keyFields.addAll(FakeItemWithIndices.getTableSchema().getTableMetadata().getIndexKeys("gsi_1"));
+        Set<String> keyFields = new HashSet<>(FakeItemWithIndices.getTableSchema().tableMetadata().primaryKeys());
+        keyFields.addAll(FakeItemWithIndices.getTableSchema().tableMetadata().indexKeys("gsi_1"));
 
         Query<FakeItemWithIndices> queryToTest =
             Query.builder()
@@ -305,7 +305,7 @@ public class QueryTest {
                      FakeItemWithSort.getTableSchema()
                                         .itemToMap(
                                             exclusiveStartKey,
-                                            FakeItemWithSort.getTableSchema().getTableMetadata().getPrimaryKeys()))
+                                            FakeItemWithSort.getTableSchema().tableMetadata().primaryKeys()))
                  .build();
 
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithSort.getTableSchema(),
@@ -334,7 +334,7 @@ public class QueryTest {
         assertThat(queryResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page = queryResultPageIterator.next();
         assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page.getItems(), is(queryResultItems));
+        assertThat(page.items(), is(queryResultItems));
     }
 
     @Test
@@ -355,8 +355,8 @@ public class QueryTest {
         assertThat(queryResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page = queryResultPageIterator.next();
         assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page.getItems(), is(queryResultItems));
-        assertThat(page.getLastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
+        assertThat(page.items(), is(queryResultItems));
+        assertThat(page.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
     }
 
     @Test
@@ -381,8 +381,8 @@ public class QueryTest {
         assertThat(queryResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page2 = queryResultPageIterator.next();
         assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page1.getItems(), is(queryResultItems1));
-        assertThat(page2.getItems(), is(queryResultItems2));
+        assertThat(page1.items(), is(queryResultItems1));
+        assertThat(page2.items(), is(queryResultItems2));
     }
 
     @Test
@@ -419,8 +419,8 @@ public class QueryTest {
         assertThat(queryResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page2 = queryResultPageIterator.next();
         assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page1.getItems(), is(modifiedResultItems1));
-        assertThat(page2.getItems(), is(modifiedResultItems2));
+        assertThat(page1.items(), is(modifiedResultItems1));
+        assertThat(page2.items(), is(modifiedResultItems2));
 
         InOrder inOrder = Mockito.inOrder(mockMapperExtension);
         Stream.concat(queryResultMaps1.stream(), queryResultMaps2.stream())

@@ -62,10 +62,10 @@ public class DynamoDbMappedDatabaseTest {
     public void table() {
         DynamoDbMappedTable<Object> mappedTable = dynamoDbMappedDatabase.table("table-name", mockTableSchema);
 
-        assertThat(mappedTable.getDynamoDbClient(), is(mockDynamoDbClient));
-        assertThat(mappedTable.getMapperExtension(), is(mockMapperExtension));
-        assertThat(mappedTable.getTableSchema(), is(mockTableSchema));
-        assertThat(mappedTable.getTableName(), is("table-name"));
+        assertThat(mappedTable.dynamoDbClient(), is(mockDynamoDbClient));
+        assertThat(mappedTable.mapperExtension(), is(mockMapperExtension));
+        assertThat(mappedTable.tableSchema(), is(mockTableSchema));
+        assertThat(mappedTable.tableName(), is("table-name"));
     }
 
     @Test
@@ -74,8 +74,8 @@ public class DynamoDbMappedDatabaseTest {
                                                                    .dynamoDbClient(mockDynamoDbClient)
                                                                    .build();
 
-        assertThat(builtObject.getDynamoDbClient(), is(mockDynamoDbClient));
-        assertThat(builtObject.getMapperExtension(), is(nullValue()));
+        assertThat(builtObject.dynamoDbClient(), is(mockDynamoDbClient));
+        assertThat(builtObject.mapperExtension(), is(nullValue()));
     }
 
     @Test
@@ -85,8 +85,8 @@ public class DynamoDbMappedDatabaseTest {
                                                                    .extendWith(mockMapperExtension)
                                                                    .build();
 
-        assertThat(builtObject.getDynamoDbClient(), is(mockDynamoDbClient));
-        assertThat(builtObject.getMapperExtension(), is(mockMapperExtension));
+        assertThat(builtObject.dynamoDbClient(), is(mockDynamoDbClient));
+        assertThat(builtObject.mapperExtension(), is(mockMapperExtension));
     }
 
     @Test(expected = IllegalArgumentException.class)

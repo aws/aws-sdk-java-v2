@@ -29,8 +29,11 @@ import java.util.Objects;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
@@ -41,6 +44,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetIt
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GlobalSecondaryIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
@@ -197,6 +201,8 @@ public class BasicCrudTest extends LocalDynamoDbTestBase {
     private MappedTable<ShortRecord> mappedShortTable = mappedDatabase.table(getConcreteTableName("table-name"),
                                                                              SHORT_TABLE_SCHEMA);
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @Before
     public void createTable() {
@@ -298,9 +304,110 @@ public class BasicCrudTest extends LocalDynamoDbTestBase {
     }
 
     @Test
+    public void putWithConditionThatSucceeds() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.execute(PutItem.of(record));
+        record.setAttribute("four");
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build());
+
+        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id-value"), stringValue("sort-value"))));
+        assertThat(result, is(record));
+    }
+
+    @Test
+    public void putWithConditionThatFails() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.execute(PutItem.of(record));
+        record.setAttribute("four");
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("wrong"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build());
+    }
+
+    @Test
     public void deleteNonExistentItem() {
         Record result = mappedTable.execute(DeleteItem.of(Key.of(stringValue("id-value"), stringValue("sort-value"))));
         assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void deleteWithConditionThatSucceeds() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.execute(PutItem.of(record));
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        Key key = mappedTable.keyFrom(record);
+        mappedTable.execute(DeleteItem.builder().key(key).conditionExpression(conditionExpression).build());
+
+        Record result = mappedTable.execute(GetItem.of(key));
+        assertThat(result, is(nullValue()));
+    }
+
+    @Test
+    public void deleteWithConditionThatFails() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.execute(PutItem.of(record));
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("wrong"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(DeleteItem.builder().key(mappedTable.keyFrom(record))
+                                      .conditionExpression(conditionExpression)
+                                      .build());
     }
 
     @Test
@@ -433,6 +540,56 @@ public class BasicCrudTest extends LocalDynamoDbTestBase {
         Record result = mappedTable.execute(UpdateItem.builder().item(updateRecord).ignoreNulls(true).build());
 
         assertThat(result, is(record));
+    }
+
+    @Test
+    public void updateWithConditionThatSucceeds() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.execute(PutItem.of(record));
+        record.setAttribute("four");
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("three"))
+                                                   .build();
+
+        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build());
+
+        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id-value"), stringValue("sort-value"))));
+        assertThat(result, is(record));
+    }
+
+    @Test
+    public void updateWithConditionThatFails() {
+        Record record = new Record()
+            .setId("id-value")
+            .setSort("sort-value")
+            .setAttribute("one")
+            .setAttribute2("two")
+            .setAttribute3("three");
+
+        mappedTable.execute(PutItem.of(record));
+        record.setAttribute("four");
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#key = :value OR #key1 = :value1")
+                                                   .putExpressionName("#key", "attribute")
+                                                   .putExpressionName("#key1", "attribute3")
+                                                   .putExpressionValue(":value", stringValue("wrong"))
+                                                   .putExpressionValue(":value1", stringValue("wrong"))
+                                                   .build();
+
+        exception.expect(ConditionalCheckFailedException.class);
+        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build());
     }
 
     @Test

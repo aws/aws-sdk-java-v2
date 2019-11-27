@@ -76,14 +76,14 @@ public interface TableSchema<T> {
      * @return A single {@link AttributeValue} representing the requested modelled attribute in the model object or
      * null if the attribute has not been set with a value in the modelled object.
      */
-    AttributeValue getAttributeValue(T item, String key);
+    AttributeValue attributeValue(T item, String key);
 
     /**
      * Returns the object that describes the structure of the table being modelled by the mapper. This includes
      * information such as the table name, index keys and attribute tags.
      * @return A {@link TableMetadata} object that contains structural information about the table being modelled.
      */
-    TableMetadata getTableMetadata();
+    TableMetadata tableMetadata();
 
     /**
      * Returns a builder for the default implementation of this interface which is an immutable, declarative, type-safe
