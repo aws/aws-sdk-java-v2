@@ -213,6 +213,7 @@
         <module>elasticinference</module>
         <module>imagebuilder</module>
         <module>schemas</module>
+        <module>accessanalyzer</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
