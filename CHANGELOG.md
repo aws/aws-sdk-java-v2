@@ -1,3 +1,8 @@
+# __2.10.27__ __2019-12-02__
+## __Access Analyzer__
+  - ### Features
+    - Introducing AWS IAM Access Analyzer, an IAM feature that makes it easy for AWS customers to ensure that their resource-based policies provide only the intended access to resources outside their AWS accounts.
+
 # __2.10.26__ __2019-12-02__
 ## __AWS License Manager__
   - ### Features
