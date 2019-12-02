@@ -211,6 +211,7 @@
         <module>appconfig</module>
         <module>iotsecuretunneling</module>
         <module>elasticinference</module>
+        <module>imagebuilder</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
