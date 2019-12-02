@@ -60,7 +60,7 @@ public class FakeItemWithSort {
     }
 
     public static TableMetadata getTableMetadata() {
-        return FAKE_ITEM_MAPPER.getTableMetadata();
+        return FAKE_ITEM_MAPPER.tableMetadata();
     }
 
     public static FakeItemWithSort createUniqueFakeItemWithSort() {

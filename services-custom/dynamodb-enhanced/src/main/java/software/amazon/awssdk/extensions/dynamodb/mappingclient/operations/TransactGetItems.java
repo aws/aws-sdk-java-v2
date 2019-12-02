@@ -63,7 +63,7 @@ public class TransactGetItems
     }
 
     @Override
-    public Function<TransactGetItemsRequest, TransactGetItemsResponse> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<TransactGetItemsRequest, TransactGetItemsResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::transactGetItems;
     }
 
@@ -75,7 +75,7 @@ public class TransactGetItems
                        .collect(Collectors.toList());
     }
 
-    public List<ReadTransaction> getReadTransactions() {
+    public List<ReadTransaction> readTransactions() {
         return readTransactions;
     }
 

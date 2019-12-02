@@ -55,7 +55,7 @@ public interface TableOperation<ItemT, RequestT, ResponseT, ResultT>
                                           String tableName,
                                           MapperExtension mapperExtension,
                                           DynamoDbClient dynamoDbClient) {
-        OperationContext context = OperationContext.of(tableName, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(tableName, TableMetadata.primaryIndexName());
         return execute(tableSchema, context, mapperExtension, dynamoDbClient);
     }
 }

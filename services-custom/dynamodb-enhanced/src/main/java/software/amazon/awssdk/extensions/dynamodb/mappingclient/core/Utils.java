@@ -68,10 +68,10 @@ public final class Utils {
         if (mapperExtension != null) {
             ReadModification readModification = mapperExtension.afterRead(itemMap,
                                                                           operationContext,
-                                                                          tableSchema.getTableMetadata());
+                                                                          tableSchema.tableMetadata());
 
-            if (readModification != null && readModification.getTransformedItem() != null) {
-                return tableSchema.mapToItem(readModification.getTransformedItem());
+            if (readModification != null && readModification.transformedItem() != null) {
+                return tableSchema.mapToItem(readModification.transformedItem());
             }
         }
 
@@ -110,10 +110,10 @@ public final class Utils {
     }
 
     public static <T> Key createKeyFromItem(T item, TableSchema<T> tableSchema, String indexName) {
-        String partitionKeyName = tableSchema.getTableMetadata().getIndexPartitionKey(indexName);
-        Optional<String> sortKeyName = tableSchema.getTableMetadata().getIndexSortKey(indexName);
-        AttributeValue partitionKeyValue = tableSchema.getAttributeValue(item, partitionKeyName);
-        Optional<AttributeValue> sortKeyValue = sortKeyName.map(key -> tableSchema.getAttributeValue(item, key));
+        String partitionKeyName = tableSchema.tableMetadata().indexPartitionKey(indexName);
+        Optional<String> sortKeyName = tableSchema.tableMetadata().indexSortKey(indexName);
+        AttributeValue partitionKeyValue = tableSchema.attributeValue(item, partitionKeyName);
+        Optional<AttributeValue> sortKeyValue = sortKeyName.map(key -> tableSchema.attributeValue(item, key));
 
         return sortKeyValue.map(attributeValue -> Key.of(partitionKeyValue, attributeValue))
                            .orElseGet(() -> Key.of(partitionKeyValue));

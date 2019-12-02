@@ -64,7 +64,7 @@ public class TransactGetItemsTest {
         IntStream.range(0, 6).mapToObj($ -> createUniqueFakeItem()).collect(toList());
     private static final List<Map<String, AttributeValue>> FAKE_ITEM_MAPS =
         FAKE_ITEMS.stream()
-                  .map(item -> FakeItem.getTableSchema().itemToMap(item, FakeItem.getTableMetadata().getPrimaryKeys()))
+                  .map(item -> FakeItem.getTableSchema().itemToMap(item, FakeItem.getTableMetadata().primaryKeys()))
                   .collect(toList());
     private static final List<Key> FAKE_ITEM_KEYS =
         FAKE_ITEMS.stream().map(fakeItem -> Key.of(stringValue(fakeItem.getId()))).collect(toList());
@@ -76,7 +76,7 @@ public class TransactGetItemsTest {
     private static final List<Map<String, AttributeValue>> FAKESORT_ITEM_MAPS =
         FAKESORT_ITEMS.stream()
                       .map(item -> FakeItemWithSort.getTableSchema()
-                                                   .itemToMap(item, FakeItemWithSort.getTableMetadata().getPrimaryKeys()))
+                                                   .itemToMap(item, FakeItemWithSort.getTableMetadata().primaryKeys()))
                       .collect(toList());
     private static final List<Key> FAKESORT_ITEM_KEYS =
         FAKESORT_ITEMS.stream().map(fakeItemWithSort -> Key.of(stringValue(fakeItemWithSort.getId()),
@@ -148,7 +148,7 @@ public class TransactGetItemsTest {
         TransactGetItemsResponse expectedResponse = TransactGetItemsResponse.builder().build();
         when(mockDynamoDbClient.transactGetItems(any(TransactGetItemsRequest.class))).thenReturn(expectedResponse);
 
-        TransactGetItemsResponse response = operation.getServiceCall(mockDynamoDbClient).apply(transactGetItemsRequest);
+        TransactGetItemsResponse response = operation.serviceCall(mockDynamoDbClient).apply(transactGetItemsRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).transactGetItems(transactGetItemsRequest);

@@ -59,7 +59,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class CreateTableTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
 
@@ -381,7 +381,7 @@ public class CreateTableTest {
         CreateTableResponse expectedResponse = CreateTableResponse.builder().build();
         when(mockDynamoDbClient.createTable(any(CreateTableRequest.class))).thenReturn(expectedResponse);
 
-        CreateTableResponse actualResponse = operation.getServiceCall(mockDynamoDbClient).apply(createTableRequest);
+        CreateTableResponse actualResponse = operation.serviceCall(mockDynamoDbClient).apply(createTableRequest);
 
         assertThat(actualResponse, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).createTable(same(createTableRequest));

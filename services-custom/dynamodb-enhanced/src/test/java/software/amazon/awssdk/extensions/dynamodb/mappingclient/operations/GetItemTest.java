@@ -54,7 +54,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class GetItemTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
 
@@ -72,7 +72,7 @@ public class GetItemTest {
         GetItemResponse expectedResponse = GetItemResponse.builder().build();
         when(mockDynamoDbClient.getItem(any(GetItemRequest.class))).thenReturn(expectedResponse);
 
-        GetItemResponse response = getItemOperation.getServiceCall(mockDynamoDbClient).apply(getItemRequest);
+        GetItemResponse response = getItemOperation.serviceCall(mockDynamoDbClient).apply(getItemRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).getItem(getItemRequest);

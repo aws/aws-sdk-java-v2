@@ -34,11 +34,11 @@ public class LocalSecondaryIndex {
         return new LocalSecondaryIndex(indexName, projection);
     }
 
-    public String getIndexName() {
+    public String indexName() {
         return indexName;
     }
 
-    public Projection getProjection() {
+    public Projection projection() {
         return projection;
     }
 

@@ -48,11 +48,11 @@ public class WriteBatch<T> {
         return new WriteBatch<>(mappedTable, Arrays.asList(writeOperations));
     }
 
-    public MappedTable<T> getMappedTable() {
+    public MappedTable<T> mappedTable() {
         return mappedTable;
     }
 
-    public Collection<BatchableWriteOperation<T>> getWriteOperations() {
+    public Collection<BatchableWriteOperation<T>> writeOperations() {
         return writeOperations;
     }
 
@@ -90,13 +90,13 @@ public class WriteBatch<T> {
         writeRequestsForTable.addAll(
             writeOperations.stream()
                            .map(writeOperation ->
-                                    writeOperation.generateWriteRequest(mappedTable.getTableSchema(),
-                                                                        OperationContext.of(mappedTable.getTableName()),
-                                                                        mappedTable.getMapperExtension()))
+                                    writeOperation.generateWriteRequest(mappedTable.tableSchema(),
+                                                                        OperationContext.of(mappedTable.tableName()),
+                                                                        mappedTable.mapperExtension()))
                            .collect(Collectors.toList()));
     }
 
     String getTableName() {
-        return mappedTable.getTableName();
+        return mappedTable.tableName();
     }
 }

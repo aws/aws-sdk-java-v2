@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public interface BatchableReadOperation {
-    Boolean getConsistentRead();
+    Boolean consistentRead();
 
-    Key getKey();
+    Key key();
 }

@@ -48,7 +48,7 @@ public class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public <T> Optional<T> getCustomMetadataObject(String key, Class<? extends T> objectClass) {
+    public <T> Optional<T> customMetadataObject(String key, Class<? extends T> objectClass) {
         Object genericObject = customMetadata.get(key);
 
         if (genericObject == null) {
@@ -66,13 +66,13 @@ public class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public String getIndexPartitionKey(String indexName) {
+    public String indexPartitionKey(String indexName) {
         Index index = getIndex(indexName);
 
         if (index.getIndexPartitionKey() == null) {
-            if (!TableMetadata.getPrimaryIndexName().equals(indexName) && index.getIndexSortKey() != null) {
+            if (!TableMetadata.primaryIndexName().equals(indexName) && index.getIndexSortKey() != null) {
                 // Local secondary index, use primary partition key
-                return getPrimaryPartitionKey();
+                return primaryPartitionKey();
             }
 
             throw new IllegalArgumentException("Attempt to execute an operation against an index that requires a "
@@ -84,20 +84,20 @@ public class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public Optional<String> getIndexSortKey(String indexName) {
+    public Optional<String> indexSortKey(String indexName) {
         Index index = getIndex(indexName);
 
         return Optional.ofNullable(index.getIndexSortKey());
     }
 
     @Override
-    public Collection<String> getIndexKeys(String indexName) {
+    public Collection<String> indexKeys(String indexName) {
         Index index = getIndex(indexName);
 
         if (index.getIndexSortKey() != null) {
-            if (!TableMetadata.getPrimaryIndexName().equals(indexName) && index.getIndexPartitionKey() == null) {
+            if (!TableMetadata.primaryIndexName().equals(indexName) && index.getIndexPartitionKey() == null) {
                 // Local secondary index, use primary index for partition key
-                return Collections.unmodifiableList(Arrays.asList(getPrimaryPartitionKey(), index.getIndexSortKey()));
+                return Collections.unmodifiableList(Arrays.asList(primaryPartitionKey(), index.getIndexSortKey()));
             }
             return Collections.unmodifiableList(Arrays.asList(index.getIndexPartitionKey(), index.getIndexSortKey()));
         } else {
@@ -106,7 +106,7 @@ public class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public Collection<String> getAllKeys() {
+    public Collection<String> allKeys() {
         return this.keyAttributes.keySet();
     }
 
@@ -114,7 +114,7 @@ public class StaticTableMetadata implements TableMetadata {
         Index index = indexByNameMap.get(indexName);
 
         if (index == null) {
-            if (TableMetadata.getPrimaryIndexName().equals(indexName)) {
+            if (TableMetadata.primaryIndexName().equals(indexName)) {
                 throw new IllegalArgumentException("Attempt to execute an operation that requires a primary index "
                                                    + "without defining any primary key attributes in the table "
                                                    + "metadata.");
@@ -129,14 +129,14 @@ public class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public Optional<ScalarAttributeType> getScalarAttributeType(String keyAttribute) {
+    public Optional<ScalarAttributeType> scalarAttributeType(String keyAttribute) {
         AttributeValueType attributeValueType = this.keyAttributes.get(keyAttribute);
 
         if (attributeValueType == null) {
             throw new IllegalArgumentException("Key attribute '" + keyAttribute + "' not found in table metadata.");
         }
 
-        return Optional.ofNullable(attributeValueType.getScalarAttributeType());
+        return Optional.ofNullable(attributeValueType.scalarAttributeType());
     }
 
     @Override

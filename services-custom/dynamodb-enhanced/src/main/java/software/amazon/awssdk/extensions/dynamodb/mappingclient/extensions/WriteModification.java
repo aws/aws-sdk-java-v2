@@ -44,11 +44,11 @@ public class WriteModification {
         return new Builder();
     }
 
-    public Map<String, AttributeValue> getTransformedItem() {
+    public Map<String, AttributeValue> transformedItem() {
         return transformedItem;
     }
 
-    public Expression getAdditionalConditionalExpression() {
+    public Expression additionalConditionalExpression() {
         return additionalConditionalExpression;
     }
 

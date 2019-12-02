@@ -81,11 +81,11 @@ public class BatchWriteItem
     }
 
     @Override
-    public Function<BatchWriteItemRequest, BatchWriteItemResponse> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<BatchWriteItemRequest, BatchWriteItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::batchWriteItem;
     }
 
-    public Collection<WriteBatch> getWriteBatches() {
+    public Collection<WriteBatch> writeBatches() {
         return writeBatches;
     }
 
@@ -133,7 +133,7 @@ public class BatchWriteItem
 
         public <T> List<T> unprocessedPutItemsForTable(MappedTable<T> mappedTable) {
             List<WriteRequest> writeRequests =
-                unprocessedRequests.getOrDefault(mappedTable.getTableName(),
+                unprocessedRequests.getOrDefault(mappedTable.tableName(),
                                                  Collections.emptyList());
 
             return writeRequests.stream()
@@ -141,22 +141,22 @@ public class BatchWriteItem
                                 .map(WriteRequest::putRequest)
                                 .map(PutRequest::item)
                                 .map(item -> readAndTransformSingleItem(item,
-                                                                        mappedTable.getTableSchema(),
-                                                                        OperationContext.of(mappedTable.getTableName()),
-                                                                        mappedTable.getMapperExtension()))
+                                                                        mappedTable.tableSchema(),
+                                                                        OperationContext.of(mappedTable.tableName()),
+                                                                        mappedTable.mapperExtension()))
                                 .collect(Collectors.toList());
         }
 
         public <T> List<T> unprocessedDeleteItemsForTable(MappedTable<T> mappedTable) {
             List<WriteRequest> writeRequests =
-                unprocessedRequests.getOrDefault(mappedTable.getTableName(),
+                unprocessedRequests.getOrDefault(mappedTable.tableName(),
                                                  Collections.emptyList());
 
             return writeRequests.stream()
                                 .filter(writeRequest -> writeRequest.deleteRequest() != null)
                                 .map(WriteRequest::deleteRequest)
                                 .map(DeleteRequest::key)
-                                .map(itemMap -> mappedTable.getTableSchema().mapToItem(itemMap))
+                                .map(itemMap -> mappedTable.tableSchema().mapToItem(itemMap))
                                 .collect(Collectors.toList());
         }
     }

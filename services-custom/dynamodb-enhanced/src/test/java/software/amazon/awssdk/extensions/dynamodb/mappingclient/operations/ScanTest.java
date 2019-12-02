@@ -65,7 +65,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class ScanTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
 
@@ -83,7 +83,7 @@ public class ScanTest {
         ScanIterable mockScanIterable = mock(ScanIterable.class);
         when(mockDynamoDbClient.scanPaginator(any(ScanRequest.class))).thenReturn(mockScanIterable);
 
-        ScanIterable response = scanOperation.getServiceCall(mockDynamoDbClient).apply(scanRequest);
+        ScanIterable response = scanOperation.serviceCall(mockDynamoDbClient).apply(scanRequest);
 
         assertThat(response, is(mockScanIterable));
         verify(mockDynamoDbClient).scanPaginator(scanRequest);
@@ -191,7 +191,7 @@ public class ScanTest {
         FakeItemWithSort exclusiveStartKey = createUniqueFakeItemWithSort();
         Map<String, AttributeValue> keyMap =
             FakeItemWithSort.getTableSchema().itemToMap(exclusiveStartKey,
-                                                        FakeItemWithSort.getTableMetadata().getPrimaryKeys());
+                                                        FakeItemWithSort.getTableMetadata().primaryKeys());
 
         Scan<FakeItemWithSort> scanToTest = Scan.builder().exclusiveStartKey(keyMap).build();
 
@@ -222,7 +222,7 @@ public class ScanTest {
         assertThat(scanResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page = scanResultPageIterator.next();
         assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page.getItems(), is(scanResultItems));
+        assertThat(page.items(), is(scanResultItems));
     }
 
     @Test
@@ -244,8 +244,8 @@ public class ScanTest {
         assertThat(scanResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page = scanResultPageIterator.next();
         assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page.getItems(), is(scanResultItems));
-        assertThat(page.getLastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
+        assertThat(page.items(), is(scanResultItems));
+        assertThat(page.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
     }
 
     @Test
@@ -271,8 +271,8 @@ public class ScanTest {
         assertThat(scanResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page2 = scanResultPageIterator.next();
         assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page1.getItems(), is(scanResultItems1));
-        assertThat(page2.getItems(), is(scanResultItems2));
+        assertThat(page1.items(), is(scanResultItems1));
+        assertThat(page2.items(), is(scanResultItems2));
     }
 
     @Test
@@ -309,8 +309,8 @@ public class ScanTest {
         assertThat(scanResultPageIterator.hasNext(), is(true));
         Page<FakeItem> page2 = scanResultPageIterator.next();
         assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page1.getItems(), is(modifiedResultItems1));
-        assertThat(page2.getItems(), is(modifiedResultItems2));
+        assertThat(page1.items(), is(modifiedResultItems1));
+        assertThat(page2.items(), is(modifiedResultItems2));
 
         InOrder inOrder = Mockito.inOrder(mockMapperExtension);
         Stream.concat(scanResultMaps1.stream(), scanResultMaps2.stream())

@@ -38,8 +38,8 @@ public abstract class AttributeTag {
      * {@link software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata} object for the table being mapped.
      * Your extension should know what to do with these custom metadata entries.
      */
-    protected abstract Map<String, Object> getCustomMetadataForAttribute(String attributeName,
-                                                                         AttributeValueType attributeValueType);
+    protected abstract Map<String, Object> customMetadataForAttribute(String attributeName,
+                                                                      AttributeValueType attributeValueType);
 
     /**
      * Returns a boolean that indicates whether this attribute tag qualifies the attribute that has been tagged with
@@ -56,7 +56,7 @@ public abstract class AttributeTag {
             tableMetadataBuilder.markAttributeAsKey(attributeName, attributeValueType);
         }
 
-        getCustomMetadataForAttribute(attributeName, attributeValueType)
+        customMetadataForAttribute(attributeName, attributeValueType)
             .forEach(tableMetadataBuilder::addCustomMetadataObject);
     }
 }

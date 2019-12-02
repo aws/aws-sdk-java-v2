@@ -53,21 +53,21 @@ public class ReadBatch<T> {
 
     void addReadRequestsToMap(Map<String, KeysAndAttributes> readRequestMap) {
         KeysAndAttributes newKeysAndAttributes = generateKeysAndAttributes();
-        KeysAndAttributes existingKeysAndAttributes = readRequestMap.get(getTableName());
+        KeysAndAttributes existingKeysAndAttributes = readRequestMap.get(tableName());
 
         if (existingKeysAndAttributes == null) {
-            readRequestMap.put(getTableName(), newKeysAndAttributes);
+            readRequestMap.put(tableName(), newKeysAndAttributes);
             return;
         }
 
         KeysAndAttributes mergedKeysAndAttributes = mergeKeysAndAttributes(existingKeysAndAttributes,
                                                                            newKeysAndAttributes);
 
-        readRequestMap.put(getTableName(), mergedKeysAndAttributes);
+        readRequestMap.put(tableName(), mergedKeysAndAttributes);
     }
 
-    String getTableName() {
-        return mappedTable.getTableName();
+    String tableName() {
+        return mappedTable.tableName();
     }
 
     private KeysAndAttributes generateKeysAndAttributes() {
@@ -81,18 +81,18 @@ public class ReadBatch<T> {
             readOperations.stream()
                           .peek(operation -> {
                               if (firstRecord.getAndSet(false)) {
-                                  consistentRead.set(operation.getConsistentRead());
+                                  consistentRead.set(operation.consistentRead());
                               } else {
-                                  if (!compareNullableBooleans(consistentRead.get(), operation.getConsistentRead())) {
+                                  if (!compareNullableBooleans(consistentRead.get(), operation.consistentRead())) {
                                       throw new IllegalArgumentException("All batchable read requests for the same "
                                                                          + "table must have the same 'consistentRead' "
                                                                          + "setting.");
                                   }
                               }
                           })
-                          .map(BatchableReadOperation::getKey)
-                          .map(key -> key.getKeyMap(mappedTable.getTableSchema(),
-                                                    TableMetadata.getPrimaryIndexName()))
+                          .map(BatchableReadOperation::key)
+                          .map(key -> key.keyMap(mappedTable.tableSchema(),
+                                                 TableMetadata.primaryIndexName()))
                           .collect(Collectors.toList());
 
         return KeysAndAttributes.builder()
@@ -101,11 +101,11 @@ public class ReadBatch<T> {
                                 .build();
     }
 
-    public MappedTable<T> getMappedTable() {
+    public MappedTable<T> mappedTable() {
         return mappedTable;
     }
 
-    public Collection<BatchableReadOperation> getReadOperations() {
+    public Collection<BatchableReadOperation> readOperations() {
         return readOperations;
     }
 

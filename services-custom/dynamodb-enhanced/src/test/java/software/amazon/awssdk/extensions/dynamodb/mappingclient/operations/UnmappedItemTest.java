@@ -81,7 +81,7 @@ public class UnmappedItemTest {
         MappedTable<FakeItem> mappedTable = createMappedTable(mockMapperExtension);
         assertThat(unmappedItem.getItem(mappedTable), is(fakeItem2));
         verify(mockMapperExtension).afterRead(fakeItemMap,
-                                              OperationContext.of(mappedTable.getTableName()),
+                                              OperationContext.of(mappedTable.tableName()),
                                               FakeItem.getTableMetadata());
     }
 

@@ -27,12 +27,12 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.AttributeVa
 public final class AttributeTags {
     private static final AttributeTag PRIMARY_PARTITION_KEY_SINGLETON =
         new KeyAttribute((tableMetadataBuilder, attribute) ->
-            tableMetadataBuilder.addIndexPartitionKey(TableMetadata.getPrimaryIndexName(),
+            tableMetadataBuilder.addIndexPartitionKey(TableMetadata.primaryIndexName(),
                                                       attribute.getAttributeName(),
                                                       attribute.getAttributeValueType()));
     private static final AttributeTag PRIMARY_SORT_KEY_SINGLETON =
         new KeyAttribute((tableMetadataBuilder, attribute) ->
-            tableMetadataBuilder.addIndexSortKey(TableMetadata.getPrimaryIndexName(),
+            tableMetadataBuilder.addIndexSortKey(TableMetadata.primaryIndexName(),
                                                  attribute.getAttributeName(),
                                                  attribute.getAttributeValueType()));
 
@@ -74,8 +74,8 @@ public final class AttributeTags {
         }
 
         @Override
-        public Map<String, Object> getCustomMetadataForAttribute(String attributeName,
-                                                                 AttributeValueType attributeValueType) {
+        public Map<String, Object> customMetadataForAttribute(String attributeName,
+                                                              AttributeValueType attributeValueType) {
             return Collections.emptyMap();
         }
 
@@ -84,7 +84,7 @@ public final class AttributeTags {
                                                  AttributeValueType attributeValueType,
                                                  StaticTableMetadata.Builder tableMetadataBuilder) {
 
-            if (attributeValueType.getScalarAttributeType() == null) {
+            if (attributeValueType.scalarAttributeType() == null) {
                 throw new IllegalArgumentException(String.format("Attribute '%s' of type %s is not a suitable type to "
                     + "be used as a key.", attributeName, attributeValueType.name()));
             }

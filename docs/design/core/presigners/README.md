@@ -1,4 +1,6 @@
-## Feature Overview
+**Design:** New Feature, **Status:** [Released](../../../README.md)
+
+# Request Presigners
 
 "Presigned URLs" are a generic term usually used for an AWS request that has been signed using
 [SigV4's query parameter signing](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html) so that it can be

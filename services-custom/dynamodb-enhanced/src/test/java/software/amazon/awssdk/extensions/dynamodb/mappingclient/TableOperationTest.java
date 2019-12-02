@@ -54,7 +54,7 @@ public class TableOperationTest {
         assertThat(fakeTableOperation.lastMapperExtension, sameInstance(mockMapperExtension));
         assertThat(fakeTableOperation.lastTableSchema, sameInstance(FakeItem.getTableSchema()));
         assertThat(fakeTableOperation.lastOperationContext, is(
-            OperationContext.of(FAKE_TABLE_NAME, TableMetadata.getPrimaryIndexName())));
+            OperationContext.of(FAKE_TABLE_NAME, TableMetadata.primaryIndexName())));
     }
 
     private static class FakeTableOperation implements TableOperation<FakeItem, String, String, String> {
@@ -70,7 +70,7 @@ public class TableOperationTest {
         }
 
         @Override
-        public Function<String, String> getServiceCall(DynamoDbClient dynamoDbClient) {
+        public Function<String, String> serviceCall(DynamoDbClient dynamoDbClient) {
             return null;
         }
 
