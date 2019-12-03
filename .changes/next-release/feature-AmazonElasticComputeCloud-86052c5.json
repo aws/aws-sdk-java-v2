@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release adds support for the following features: 1. An option to enable acceleration for Site-to-Site VPN connections; 2. Inf1 instances featuring up to 16 AWS Inferentia chips; 3. The ability to associate route tables with internet gateways and virtual private gateways; 4. AWS Local Zones that place compute, storage, database, and other select services; 5. Launching and viewing EC2 instances and EBS volumes running locally in Outposts; 6. Peering Transit Gateways between regions simplifying creation of secure and private global networks on AWS; 7. Transit Gateway Multicast, enabling multicast routing within and between VPCs using Transit Gateway as a multicast router."
+}
