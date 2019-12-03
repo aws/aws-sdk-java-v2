@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Textract",
+    "description": "This SDK Release introduces Amazon Augmented AI support for Amazon Textract AnalyzeDocument API. Image byte payloads for synchronous operations have increased from 5 MB to 10 MB."
+}
