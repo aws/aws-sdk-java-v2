@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Network Manager",
+    "description": "This is the initial SDK release for AWS Network Manager."
+}
