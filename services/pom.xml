@@ -217,6 +217,7 @@
         <module>computeoptimizer</module>
         <module>networkmanager</module>
         <module>kendra</module>
+        <module>frauddetector</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
