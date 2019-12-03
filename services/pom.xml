@@ -221,6 +221,7 @@
         <module>codegurureviewer</module>
         <module>codeguruprofiler</module>
         <module>outposts</module>
+        <module>sagemakera2iruntime</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

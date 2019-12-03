@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Augmented AI Runtime",
+    "description": "This release adds support for Amazon Augmented AI, which makes it easy to build workflows for human review of machine learning predictions."
+}
