@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "description": "This release supports ECS Capacity Providers, Fargate Spot, and ECS Cluster Auto Scaling. These features enable new ways for ECS to manage compute capacity used by tasks."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Compute Optimizer",
-    "description": "Initial release of AWS Compute Optimizer. AWS Compute Optimizer recommends optimal AWS Compute resources to reduce costs and improve performance for your workloads."
-}

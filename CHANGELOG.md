@@ -1,3 +1,64 @@
+# __2.10.28__ __2019-12-03__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Initial release of AWS Compute Optimizer. AWS Compute Optimizer recommends optimal AWS Compute resources to reduce costs and improve performance for your workloads.
+
+## __AWS Network Manager__
+  - ### Features
+    - This is the initial SDK release for AWS Network Manager.
+
+## __AWS Outposts__
+  - ### Features
+    - This is the initial release for AWS Outposts, a fully managed service that extends AWS infrastructure, services, APIs, and tools to customer sites. AWS Outposts enables you to launch and run EC2 instances and EBS volumes locally at your on-premises location. This release introduces new APIs for creating and viewing Outposts.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Access Points is a new S3 feature that simplifies managing data access at scale for shared data sets on Amazon S3. Access Points provide a customizable way to access the objects in a bucket, with a unique hostname and access policy that enforces the specific permissions and network controls for any request made through the access point. This represents a new way of provisioning access to shared data sets.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - It is a preview launch of Amazon Kendra. Amazon Kendra is a managed, highly accurate and easy to use enterprise search service that is powered by machine learning.
+
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - This release adds support for Amazon Augmented AI, which makes it easy to build workflows for human review of machine learning predictions.
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - (New Service) Amazon CodeGuru Profiler analyzes application CPU utilization and latency characteristics to show you where you are spending the most cycles in your application. This analysis is presented in an interactive flame graph that helps you easily understand which paths consume the most resources, verify that your application is performing as expected, and uncover areas that can be optimized further.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - This is the preview release of Amazon CodeGuru Reviewer.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports ECS Capacity Providers, Fargate Spot, and ECS Cluster Auto Scaling. These features enable new ways for ECS to manage compute capacity used by tasks.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the following features: 1. An option to enable acceleration for Site-to-Site VPN connections; 2. Inf1 instances featuring up to 16 AWS Inferentia chips; 3. The ability to associate route tables with internet gateways and virtual private gateways; 4. AWS Local Zones that place compute, storage, database, and other select services; 5. Launching and viewing EC2 instances and EBS volumes running locally in Outposts; 6. Peering Transit Gateways between regions simplifying creation of secure and private global networks on AWS; 7. Transit Gateway Multicast, enabling multicast routing within and between VPCs using Transit Gateway as a multicast router.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introducing Amazon EKS with Fargate. Customers can now use Amazon EKS to launch pods directly onto AWS Fargate, the serverless compute engine built for containers on AWS.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - UltraWarm storage provides a cost-effective way to store large amounts of read-only data on Amazon Elasticsearch Service. Rather than attached storage, UltraWarm nodes use Amazon S3 and a sophisticated caching solution to improve performance. For indices that you are not actively writing to and query less frequently, UltraWarm storage offers significantly lower costs per GiB. In Elasticsearch, these warm indices behave just like any other index. You can query them using the same APIs or use them to create dashboards in Kibana.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Amazon Fraud Detector is a fully managed service that makes it easy to identify potentially fraudulent online activities such as online payment fraud and the creation of fake accounts. Amazon Fraud Detector uses your data, machine learning (ML), and more than 20 years of fraud detection expertise from Amazon to automatically identify potentially fraudulent online activity so you can catch more fraud faster.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Access Points is a new S3 feature that simplifies managing data access at scale for shared data sets on Amazon S3. Access Points provide a customizable way to access the objects in a bucket, with a unique hostname and access policy that enforces the specific permissions and network controls for any request made through the access point. This represents a new way of provisioning access to shared data sets.
+
+## __Amazon Textract__
+  - ### Features
+    - This SDK Release introduces Amazon Augmented AI support for Amazon Textract AnalyzeDocument API. Image byte payloads for synchronous operations have increased from 5 MB to 10 MB.
+
 # __2.10.27__ __2019-12-02__
 ## __Access Analyzer__
   - ### Features
