@@ -45,11 +45,13 @@ import software.amazon.awssdk.services.ec2.transform.CopySnapshotRequestMarshall
 @SdkInternalApi
 public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
 
+    private static final URI CUSTOM_ENDPOINT_LOCALHOST = URI.create("http://localhost");
+
     private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory
         .builder()
         // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                                   .option(SdkClientOption.ENDPOINT, CUSTOM_ENDPOINT_LOCALHOST)
                                                    .build())
         .build();
 

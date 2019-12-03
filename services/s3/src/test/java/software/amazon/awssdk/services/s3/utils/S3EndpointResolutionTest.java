@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.utils;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListBucketsResponse;
 import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResponse;
 
@@ -110,6 +111,53 @@ public class S3EndpointResolutionTest {
         assertThat(mockHttpClient.getLastRequest().getUri())
                 .as("Uses custom endpoint")
                 .isEqualTo(URI.create(customEndpoint + "/"));
+    }
+
+    @Test
+    public void accessPointArn_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
+        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("endpoint override");
+    }
+
+    @Test
+    public void accessPointArn_differentRegion_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().build();
+        String accessPointArn = "arn:aws:s3:us-west-2:12345678910:accesspoint:foobar";
+
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("region");
+    }
+
+    @Test
+    public void accessPointArn_differentRegion_useArnRegionTrue() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.us-west-2.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
+        String accessPointArn = "arn:aws:s3:us-west-2:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
     }
 
     /**

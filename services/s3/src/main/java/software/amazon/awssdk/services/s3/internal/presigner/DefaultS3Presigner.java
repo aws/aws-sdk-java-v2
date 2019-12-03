@@ -138,19 +138,18 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.ENDPOINT, resolveEndpoint())
-                                     .build();
-    }
-
-    private URI resolveEndpoint() {
         if (endpointOverride() != null) {
-            return endpointOverride();
+            return SdkClientConfiguration.builder()
+                                         .option(SdkClientOption.ENDPOINT, endpointOverride())
+                                         .option(SdkClientOption.ENDPOINT_OVERRIDDEN, true)
+                                         .build();
+        } else {
+            URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https").withRegion(region())
+                                                                                          .getServiceEndpoint();
+            return SdkClientConfiguration.builder()
+                                         .option(SdkClientOption.ENDPOINT, defaultEndpoint)
+                                         .build();
         }
-
-        return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-            .withRegion(region())
-            .getServiceEndpoint();
     }
 
     @Override
