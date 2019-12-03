@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "description": "It is a preview launch of Amazon Kendra. Amazon Kendra is a managed, highly accurate and easy to use enterprise search service that is powered by machine learning."
+}
