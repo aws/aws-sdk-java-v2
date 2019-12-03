@@ -34,13 +34,13 @@
 
     <modules>
         <module>annotations</module>
+        <module>arns</module>
         <module>auth</module>
         <module>sdk-core</module>
         <module>aws-core</module>
         <module>profiles</module>
         <module>regions</module>
         <module>protocols</module>
-        <module>arns</module>
     </modules>
 
     <dependencyManagement>

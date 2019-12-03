@@ -35,6 +35,7 @@ import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.Validate;
 
@@ -140,14 +141,20 @@ public final class S3Utilities {
     public URL getUrl(GetUrlRequest getUrlRequest) {
         Region resolvedRegion = resolveRegionForGetUrl(getUrlRequest);
         URI resolvedEndpoint = resolveEndpoint(getUrlRequest.endpoint(), resolvedRegion);
+        boolean endpointOverridden = getUrlRequest.endpoint() != null;
 
         SdkHttpFullRequest marshalledRequest = createMarshalledRequest(getUrlRequest, resolvedEndpoint);
 
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket(getUrlRequest.bucket())
+                                                            .key(getUrlRequest.key())
+                                                            .build();
+
         SdkHttpRequest httpRequest = S3EndpointUtils.applyEndpointConfiguration(marshalledRequest,
-                                                                                getUrlRequest,
+                                                                                getObjectRequest,
                                                                                 resolvedRegion,
                                                                                 s3Configuration,
-                                                                                getUrlRequest.bucket());
+                                                                                endpointOverridden);
 
         try {
             return httpRequest.getUri().toURL();
