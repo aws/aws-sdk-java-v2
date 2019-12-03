@@ -37,6 +37,7 @@ import software.amazon.awssdk.utils.Platform;
 public class ProcessCredentialsProviderTest {
 
     private final static String PROCESS_RESOURCE_PATH = "/resources/process/";
+    private final static String RANDOM_SESSION_TOKEN = "RANDOM_TOKEN";
     private static String scriptLocation;
  
     @BeforeClass
@@ -102,8 +103,10 @@ public class ProcessCredentialsProviderTest {
     public void expirationBufferOverrideIsApplied() {
         ProcessCredentialsProvider credentialsProvider =
                 ProcessCredentialsProvider.builder()
-                                          .command(scriptLocation + " accessKeyId secretAccessKey sessionToken " +
-                                                   DateUtils.formatIso8601Date(Instant.now().plusSeconds(20)))
+                                          .command(String.format("%s accessKeyId secretAccessKey %s %s",
+                                                         scriptLocation,
+                                                         RANDOM_SESSION_TOKEN,
+                                                         DateUtils.formatIso8601Date(Instant.now().plusSeconds(20))))
                                           .credentialRefreshThreshold(Duration.ofSeconds(20))
                                           .build();
 

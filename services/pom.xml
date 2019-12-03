@@ -4,7 +4,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.10.27</version>
+        <version>2.10.28</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -214,6 +214,14 @@
         <module>imagebuilder</module>
         <module>schemas</module>
         <module>accessanalyzer</module>
+        <module>computeoptimizer</module>
+        <module>networkmanager</module>
+        <module>kendra</module>
+        <module>frauddetector</module>
+        <module>codegurureviewer</module>
+        <module>codeguruprofiler</module>
+        <module>outposts</module>
+        <module>sagemakera2iruntime</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
