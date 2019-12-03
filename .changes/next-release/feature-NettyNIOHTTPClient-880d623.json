@@ -1,0 +1,5 @@
+{
+    "category": "Netty NIO HTTP Client", 
+    "type": "feature", 
+    "description": "Close HTTP/2 connections if they have had 0 streams for 5 seconds. This can be disabled using `useIdleConnectionReaper(false)` or have the time period adjusted using `connectionMaxIdleTime(...)` on the `NettyNioAsyncHttpClient.Builder`."
+}

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
+import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import io.netty.channel.Channel;
@@ -41,7 +42,7 @@ import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayEventListener;
-import software.amazon.awssdk.http.nio.netty.internal.http2.Http2PingFrameHandler;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2PingHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
 
 /**
@@ -137,7 +138,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         pipeline.addLast(codec);
         pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
-        pipeline.addLast(Http2PingFrameHandler.create());
+        pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
     }
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {

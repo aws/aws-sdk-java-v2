@@ -20,12 +20,10 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PING_TRACKER;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.SocketChannel;
@@ -34,7 +32,6 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.FailedFuture;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.ScheduledFuture;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -44,8 +41,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
-import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
 /**
  * Tests for {@link Http2MultiplexedChannelPool}.
@@ -69,7 +64,7 @@ public class Http2MultiplexedChannelPoolTest {
         ChannelPool connectionPool = mock(ChannelPool.class);
         when(connectionPool.acquire()).thenReturn(new FailedFuture<>(loopGroup.next(), exception));
 
-        ChannelPool pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next());
+        ChannelPool pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), null);
 
         Future<Channel> acquirePromise = pool.acquire().await();
         assertThat(acquirePromise.isSuccess()).isFalse();
@@ -77,7 +72,7 @@ public class Http2MultiplexedChannelPoolTest {
     }
 
     @Test
-    public void releaseParentChannelIfReleasingLastChildChannelOnGoAwayChannel() throws InterruptedException {
+    public void releaseParentChannelIfReleasingLastChildChannelOnGoAwayChannel() {
         SocketChannel channel = new NioSocketChannel();
         try {
             loopGroup.register(channel).awaitUninterruptibly();
@@ -90,9 +85,9 @@ public class Http2MultiplexedChannelPoolTest {
                 return promise;
             });
 
-            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8);
+            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8, null);
             Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup,
-                                                                                 Collections.singleton(record));
+                                                                                 Collections.singleton(record), null);
 
             h2Pool.close();
 
@@ -107,7 +102,7 @@ public class Http2MultiplexedChannelPoolTest {
     @Test
     public void acquireAfterCloseFails() throws InterruptedException {
         ChannelPool connectionPool = mock(ChannelPool.class);
-        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next());
+        Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup.next(), null);
 
         h2Pool.close();
 
@@ -130,9 +125,9 @@ public class Http2MultiplexedChannelPoolTest {
                 return promise;
             });
 
-            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8);
+            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8, null);
             Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup,
-                                                                                 Collections.singleton(record));
+                                                                                 Collections.singleton(record), null);
 
             h2Pool.close();
 
@@ -146,11 +141,10 @@ public class Http2MultiplexedChannelPoolTest {
 
     @Test
     public void acquire_shouldAcquireAgainIfExistingNotReusable() throws Exception {
-        Channel channel = new MockChannel();
+        Channel channel = new EmbeddedChannel();
 
         try {
             ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
-            channel.attr(PING_TRACKER).set(new PingTracker(() -> Mockito.mock(ScheduledFuture.class)));
 
             loopGroup.register(channel).awaitUninterruptibly();
             Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
@@ -158,12 +152,10 @@ public class Http2MultiplexedChannelPoolTest {
 
             Mockito.when(connectionPool.acquire()).thenReturn(channelPromise);
 
-            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup, Collections.emptySet());
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup,
+                                                                                 Collections.emptySet(), null);
 
             h2Pool.acquire().awaitUninterruptibly();
-
-            channel.attr(PING_TRACKER).set(new PingTracker(() -> Mockito.mock(ScheduledFuture.class)));
-
             h2Pool.acquire().awaitUninterruptibly();
 
             Mockito.verify(connectionPool, Mockito.times(2)).acquire();
@@ -185,9 +177,9 @@ public class Http2MultiplexedChannelPoolTest {
 
             when(connectionPool.release(eq(channel))).thenReturn(releasePromise);
 
-            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8);
+            MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 8, null);
             Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup,
-                                                                                 Collections.singleton(record));
+                                                                                 Collections.singleton(record), null);
 
             CompletableFuture<Boolean> interrupteFlagPreserved = new CompletableFuture<>();
 
