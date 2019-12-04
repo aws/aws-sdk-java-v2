@@ -1,3 +1,7 @@
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - The period, solidus, at-sign, and percent sign are now allowed in profile names and property names.
+
 # __2.10.29__ __2019-12-03__
 ## __AWS Lambda__
   - ### Features
