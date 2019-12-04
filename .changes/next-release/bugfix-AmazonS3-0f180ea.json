@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "description": "Interacting with an access point in a different region to the one the S3 client is configured for will no longer result in the request being signed for the wrong region and rejected by S3."
-}
