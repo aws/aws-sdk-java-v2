@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "description": "- Added the ProvisionedConcurrency type and operations. Allocate provisioned concurrency to enable your function to scale up without fluctuations in latency. Use PutProvisionedConcurrencyConfig to configure provisioned concurrency on a version of a function, or on an alias."
+}
