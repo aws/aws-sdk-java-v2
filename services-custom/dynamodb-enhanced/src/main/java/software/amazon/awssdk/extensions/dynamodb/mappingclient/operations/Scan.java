@@ -73,19 +73,19 @@ public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Ite
                                        OperationContext operationContext,
                                        MapperExtension mapperExtension) {
         ScanRequest.Builder scanRequest = ScanRequest.builder()
-            .tableName(operationContext.getTableName())
+            .tableName(operationContext.tableName())
             .limit(limit)
             .exclusiveStartKey(exclusiveStartKey)
             .consistentRead(consistentRead);
 
-        if (!TableMetadata.getPrimaryIndexName().equals(operationContext.getIndexName())) {
-            scanRequest = scanRequest.indexName(operationContext.getIndexName());
+        if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
+            scanRequest = scanRequest.indexName(operationContext.indexName());
         }
 
         if (filterExpression != null) {
-            scanRequest = scanRequest.filterExpression(filterExpression.getExpression())
-                                     .expressionAttributeValues(filterExpression.getExpressionValues())
-                                     .expressionAttributeNames(filterExpression.getExpressionNames());
+            scanRequest = scanRequest.filterExpression(filterExpression.expression())
+                                     .expressionAttributeValues(filterExpression.expressionValues())
+                                     .expressionAttributeNames(filterExpression.expressionNames());
         }
 
         return scanRequest.build();
@@ -100,23 +100,23 @@ public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Ite
     }
 
     @Override
-    public Function<ScanRequest, ScanIterable> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<ScanRequest, ScanIterable> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::scanPaginator;
     }
 
-    public Map<String, AttributeValue> getExclusiveStartKey() {
+    public Map<String, AttributeValue> exclusiveStartKey() {
         return exclusiveStartKey;
     }
 
-    public Integer getLimit() {
+    public Integer limit() {
         return limit;
     }
 
-    public Boolean getConsistentRead() {
+    public Boolean consistentRead() {
         return consistentRead;
     }
 
-    public Expression getFilterExpression() {
+    public Expression filterExpression() {
         return filterExpression;
     }
 

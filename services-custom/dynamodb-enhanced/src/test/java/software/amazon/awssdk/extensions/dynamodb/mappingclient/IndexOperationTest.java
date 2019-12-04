@@ -71,7 +71,7 @@ public class IndexOperationTest {
         }
 
         @Override
-        public Function<String, String> getServiceCall(DynamoDbClient dynamoDbClient) {
+        public Function<String, String> serviceCall(DynamoDbClient dynamoDbClient) {
             return null;
         }
 

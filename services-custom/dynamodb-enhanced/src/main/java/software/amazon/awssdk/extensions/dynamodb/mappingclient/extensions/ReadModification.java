@@ -36,7 +36,7 @@ public class ReadModification {
         return new Builder();
     }
 
-    public Map<String, AttributeValue> getTransformedItem() {
+    public Map<String, AttributeValue> transformedItem() {
         return transformedItem;
     }
 

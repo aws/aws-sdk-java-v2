@@ -57,7 +57,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
         indexedMappers =
             unmodifiableMap(
                 attributeMappers.stream()
-                                .collect(Collectors.toMap(Attribute::getAttributeName, Function.identity())));
+                                .collect(Collectors.toMap(Attribute::attributeName, Function.identity())));
     }
 
     public static GenericBuilder builder() {
@@ -191,7 +191,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
         }
 
         private void mergeAttribute(Attribute<T> attributeToMerge) {
-            String attributeName = attributeToMerge.getAttributeName();
+            String attributeName = attributeToMerge.attributeName();
 
             if (this.indexedMappers.containsKey(attributeName)) {
                 throw new IllegalArgumentException("Attempt to add an attribute to a mapper that already has one "
@@ -200,7 +200,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
 
             this.mappedAttributes.add(attributeToMerge);
             this.indexedMappers.put(attributeName, attributeToMerge);
-            this.tableMetadataBuilder.mergeWith(attributeToMerge.getTableMetadata());
+            this.tableMetadataBuilder.mergeWith(attributeToMerge.tableMetadata());
         }
 
         private static <T extends R, R> Stream<Attribute<T>> upcastingTransformForAttributes(
@@ -210,7 +210,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
     }
 
     @Override
-    public StaticTableMetadata getTableMetadata() {
+    public StaticTableMetadata tableMetadata() {
         return tableMetadata;
     }
 
@@ -228,7 +228,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
                         item.set(constructNewItem());
                     }
 
-                    attributeMapper.getUpdateItemMethod().accept(item.get(), value);
+                    attributeMapper.updateItemMethod().accept(item.get(), value);
                 }
             }
         });
@@ -241,8 +241,8 @@ public class StaticTableSchema<T> implements TableSchema<T> {
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
 
         attributeMappers.forEach(attributeMapper -> {
-            String attributeKey = attributeMapper.getAttributeName();
-            AttributeValue attributeValue = attributeMapper.getGetAttributeMethod().apply(item);
+            String attributeKey = attributeMapper.attributeName();
+            AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
             if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
                 attributeValueMap.put(attributeKey, attributeValue);
@@ -257,7 +257,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
 
         attributes.forEach(key -> {
-            AttributeValue attributeValue = getAttributeValue(item, key);
+            AttributeValue attributeValue = attributeValue(item, key);
 
             if (attributeValue == null || !isNullAttributeValue(attributeValue)) {
                 attributeValueMap.put(key, attributeValue);
@@ -268,7 +268,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
     }
 
     @Override
-    public AttributeValue getAttributeValue(T item, String key) {
+    public AttributeValue attributeValue(T item, String key) {
         Attribute<T> attributeMapper = indexedMappers.get(key);
 
         if (attributeMapper == null) {
@@ -276,7 +276,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
                                                              + "attribute '%s' from mapped object.", key));
         }
 
-        AttributeValue attributeValue = attributeMapper.getGetAttributeMethod().apply(item);
+        AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
         return isNullAttributeValue(attributeValue) ? null : attributeValue;
     }

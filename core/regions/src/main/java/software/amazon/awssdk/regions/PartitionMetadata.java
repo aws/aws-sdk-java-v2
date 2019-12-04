@@ -71,4 +71,15 @@ public interface PartitionMetadata {
     static PartitionMetadata of(String partition) {
         return MetadataLoader.partitionMetadata(partition);
     }
+
+    /**
+     * Retrieves the partition metadata for a given region.
+     *
+     * @param region The region to get the partition metadata for.
+     *
+     * @return {@link PartitionMetadata} for the given region.
+     */
+    static PartitionMetadata of(Region region) {
+        return MetadataLoader.partitionMetadata(region);
+    }
 }

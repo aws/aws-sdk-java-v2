@@ -61,7 +61,7 @@ public class FakeItem extends FakeItemAbstractSubclass {
     }
 
     public static TableMetadata getTableMetadata() {
-        return FAKE_ITEM_MAPPER.getTableMetadata();
+        return FAKE_ITEM_MAPPER.tableMetadata();
     }
 
     public static FakeItem createUniqueFakeItem() {

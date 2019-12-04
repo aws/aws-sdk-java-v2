@@ -38,15 +38,15 @@ public class GlobalSecondaryIndex {
         return new GlobalSecondaryIndex(indexName, projection, provisionedThroughput);
     }
 
-    public String getIndexName() {
+    public String indexName() {
         return indexName;
     }
 
-    public Projection getProjection() {
+    public Projection projection() {
         return projection;
     }
 
-    public ProvisionedThroughput getProvisionedThroughput() {
+    public ProvisionedThroughput provisionedThroughput() {
         return provisionedThroughput;
     }
 

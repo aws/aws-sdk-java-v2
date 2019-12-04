@@ -33,9 +33,9 @@ public abstract class TableTag {
      * {@link software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata} object for the table being mapped.
      * Your extension should know what to do with these custom metadata entries.
      */
-    protected abstract Map<String, Object> getCustomMetadata();
+    protected abstract Map<String, Object> customMetadata();
 
     void setTableMetadata(StaticTableMetadata.Builder tableMetadataBuilder) {
-        getCustomMetadata().forEach(tableMetadataBuilder::addCustomMetadataObject);
+        customMetadata().forEach(tableMetadataBuilder::addCustomMetadataObject);
     }
 }

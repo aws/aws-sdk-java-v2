@@ -35,18 +35,18 @@ public class ReadTransaction<T> {
         return new ReadTransaction<>(mappedTable, readOperation);
     }
 
-    public MappedTable<T> getMappedTable() {
+    public MappedTable<T> mappedTable() {
         return mappedTable;
     }
 
-    public TransactableReadOperation<T> getReadOperation() {
+    public TransactableReadOperation<T> readOperation() {
         return readOperation;
     }
 
     TransactGetItem generateTransactGetItem() {
-        return readOperation.generateTransactGetItem(mappedTable.getTableSchema(),
-                                                     OperationContext.of(mappedTable.getTableName()),
-                                                     mappedTable.getMapperExtension());
+        return readOperation.generateTransactGetItem(mappedTable.tableSchema(),
+                                                     OperationContext.of(mappedTable.tableName()),
+                                                     mappedTable.mapperExtension());
     }
 
     @Override

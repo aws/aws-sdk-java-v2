@@ -1,3 +1,123 @@
+# __2.10.29__ __2019-12-03__
+## __AWS Lambda__
+  - ### Features
+    - - Added the ProvisionedConcurrency type and operations. Allocate provisioned concurrency to enable your function to scale up without fluctuations in latency. Use PutProvisionedConcurrencyConfig to configure provisioned concurrency on a version of a function, or on an alias.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release of the AWS Step Functions SDK introduces support for Express Workflows.
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - This release introduces the EBS direct APIs for Snapshots: 1. ListSnapshotBlocks, which lists the block indexes and block tokens for blocks in an Amazon EBS snapshot. 2. ListChangedBlocks, which lists the block indexes and block tokens for blocks that are different between two snapshots of the same volume/snapshot lineage. 3. GetSnapshotBlock, which returns the data in a block of an Amazon EBS snapshot.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This SDK Release introduces APIs for Amazon Rekognition Custom Labels feature (CreateProjects, CreateProjectVersion,DescribeProjects, DescribeProjectVersions, StartProjectVersion, StopProjectVersion and DetectCustomLabels). Also new is AugmentedAI (Human In The Loop) Support for DetectModerationLabels in Amazon Rekognition.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for the Amazon RDS Proxy
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Interacting with an access point in a different region to the one the S3 client is configured for will no longer result in the request being signed for the wrong region and rejected by S3.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - You can now use SageMaker Autopilot for automatically training and tuning candidate models using a combination of various feature engineering, ML algorithms, and hyperparameters determined from the user's input data. SageMaker Automatic Model Tuning now supports tuning across multiple algorithms. With Amazon SageMaker Experiments users can create Experiments, ExperimentTrials, and ExperimentTrialComponents to track, organize, and evaluate their ML training jobs. With Amazon SageMaker Debugger, users can easily debug training jobs using a number of pre-built rules provided by Amazon SageMaker, or build custom rules. With Amazon SageMaker Processing, users can run on-demand, distributed, and fully managed jobs for data pre- or post- processing or model evaluation. With Amazon SageMaker Model Monitor, a user can create MonitoringSchedules to automatically monitor endpoints to detect data drift and other issues and get alerted on them. This release also includes the preview version of Amazon SageMaker Studio with Domains, UserProfiles, and Apps. This release also includes the preview version of Amazon Augmented AI to easily implement human review of machine learning predictions by creating FlowDefinitions, HumanTaskUis, and HumanLoops.
+
+## __Application Auto Scaling__
+  - ### Features
+    - This release supports auto scaling of provisioned concurrency for AWS Lambda.
+
+# __2.10.28__ __2019-12-03__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Initial release of AWS Compute Optimizer. AWS Compute Optimizer recommends optimal AWS Compute resources to reduce costs and improve performance for your workloads.
+
+## __AWS Network Manager__
+  - ### Features
+    - This is the initial SDK release for AWS Network Manager.
+
+## __AWS Outposts__
+  - ### Features
+    - This is the initial release for AWS Outposts, a fully managed service that extends AWS infrastructure, services, APIs, and tools to customer sites. AWS Outposts enables you to launch and run EC2 instances and EBS volumes locally at your on-premises location. This release introduces new APIs for creating and viewing Outposts.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 Access Points is a new S3 feature that simplifies managing data access at scale for shared data sets on Amazon S3. Access Points provide a customizable way to access the objects in a bucket, with a unique hostname and access policy that enforces the specific permissions and network controls for any request made through the access point. This represents a new way of provisioning access to shared data sets.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - It is a preview launch of Amazon Kendra. Amazon Kendra is a managed, highly accurate and easy to use enterprise search service that is powered by machine learning.
+
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - This release adds support for Amazon Augmented AI, which makes it easy to build workflows for human review of machine learning predictions.
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - (New Service) Amazon CodeGuru Profiler analyzes application CPU utilization and latency characteristics to show you where you are spending the most cycles in your application. This analysis is presented in an interactive flame graph that helps you easily understand which paths consume the most resources, verify that your application is performing as expected, and uncover areas that can be optimized further.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - This is the preview release of Amazon CodeGuru Reviewer.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports ECS Capacity Providers, Fargate Spot, and ECS Cluster Auto Scaling. These features enable new ways for ECS to manage compute capacity used by tasks.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the following features: 1. An option to enable acceleration for Site-to-Site VPN connections; 2. Inf1 instances featuring up to 16 AWS Inferentia chips; 3. The ability to associate route tables with internet gateways and virtual private gateways; 4. AWS Local Zones that place compute, storage, database, and other select services; 5. Launching and viewing EC2 instances and EBS volumes running locally in Outposts; 6. Peering Transit Gateways between regions simplifying creation of secure and private global networks on AWS; 7. Transit Gateway Multicast, enabling multicast routing within and between VPCs using Transit Gateway as a multicast router.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introducing Amazon EKS with Fargate. Customers can now use Amazon EKS to launch pods directly onto AWS Fargate, the serverless compute engine built for containers on AWS.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - UltraWarm storage provides a cost-effective way to store large amounts of read-only data on Amazon Elasticsearch Service. Rather than attached storage, UltraWarm nodes use Amazon S3 and a sophisticated caching solution to improve performance. For indices that you are not actively writing to and query less frequently, UltraWarm storage offers significantly lower costs per GiB. In Elasticsearch, these warm indices behave just like any other index. You can query them using the same APIs or use them to create dashboards in Kibana.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Amazon Fraud Detector is a fully managed service that makes it easy to identify potentially fraudulent online activities such as online payment fraud and the creation of fake accounts. Amazon Fraud Detector uses your data, machine learning (ML), and more than 20 years of fraud detection expertise from Amazon to automatically identify potentially fraudulent online activity so you can catch more fraud faster.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Access Points is a new S3 feature that simplifies managing data access at scale for shared data sets on Amazon S3. Access Points provide a customizable way to access the objects in a bucket, with a unique hostname and access policy that enforces the specific permissions and network controls for any request made through the access point. This represents a new way of provisioning access to shared data sets.
+
+## __Amazon Textract__
+  - ### Features
+    - This SDK Release introduces Amazon Augmented AI support for Amazon Textract AnalyzeDocument API. Image byte payloads for synchronous operations have increased from 5 MB to 10 MB.
+
+# __2.10.27__ __2019-12-02__
+## __Access Analyzer__
+  - ### Features
+    - Introducing AWS IAM Access Analyzer, an IAM feature that makes it easy for AWS customers to ensure that their resource-based policies provide only the intended access to resources outside their AWS accounts.
+
+# __2.10.26__ __2019-12-02__
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now automates discovery of bring-your-own-license usage across the customers organization. With few simple settings, customers can add bring your own license product information along with licensing rules, which would enable License Manager to automatically track the instances that have the specified products installed. If License Manager detects any violation of licensing rules, it would notify the customers designated license administrator to take corrective action.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Write operations (put, get, delete) now support 'conditionExpression'
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS now provides a new BYOL experience for software licenses, such as Windows and SQL Server, that require a dedicated physical server. You can now enjoy the flexibility and cost effectiveness of using your own licenses on Amazon EC2 Dedicated Hosts, but with the simplicity, resiliency, and elasticity of AWS. You can specify your Dedicated Host management preferences, such as host allocation, host capacity utilization, and instance placement in AWS License Manager. Once set up, AWS takes care of these administrative tasks on your behalf, so that you can seamlessly launch virtual machines (instances) on Dedicated Hosts just like you would launch an EC2 instance with AWS provided licenses.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This is the first release of EC2 Image Builder, a service that provides a managed experience for automating the creation of EC2 AMIs.
+
+## __Schemas__
+  - ### Features
+    - This release introduces support for Amazon EventBridge schema registry, making it easy to discover and write code for events in EventBridge.
+
 # __2.10.25__ __2019-11-26__
 ## __AWS Directory Service__
   - ### Features

@@ -31,6 +31,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
@@ -71,9 +72,39 @@ public class UpdateItemTest {
     private static final String SUBCLASS_ATTRIBUTE_VALUE = ":AMZN_MAPPED_subclass_attribute";
 
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.of(TABLE_NAME, "gsi_1");
+    private static final Expression CONDITION_EXPRESSION;
+    private static final Expression CONDITION_EXPRESSION_2;
+
+    static {
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#test_field_1", "test_field_1");
+        expressionNames.put("#test_field_2", "test_field_2");
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":test_value_1", numberValue(1));
+        expressionValues.put(":test_value_2", numberValue(2));
+        CONDITION_EXPRESSION = Expression.builder()
+                                         .expression("#test_field_1 = :test_value_1 OR #test_field_2 = :test_value_2")
+                                         .expressionNames(Collections.unmodifiableMap(expressionNames))
+                                         .expressionValues(Collections.unmodifiableMap(expressionValues))
+                                         .build();
+    }
+
+    static {
+        Map<String, String> expressionNames = new HashMap<>();
+        expressionNames.put("#test_field_3", "test_field_3");
+        expressionNames.put("#test_field_4", "test_field_4");
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":test_value_3", numberValue(3));
+        expressionValues.put(":test_value_4", numberValue(4));
+        CONDITION_EXPRESSION_2 = Expression.builder()
+                                           .expression("#test_field_3 = :test_value_3 OR #test_field_4 = :test_value_4")
+                                           .expressionNames(Collections.unmodifiableMap(expressionNames))
+                                           .expressionValues(Collections.unmodifiableMap(expressionValues))
+                                           .build();
+    }
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -89,7 +120,7 @@ public class UpdateItemTest {
         UpdateItemResponse expectedResponse = UpdateItemResponse.builder().build();
         when(mockDynamoDbClient.updateItem(any(UpdateItemRequest.class))).thenReturn(expectedResponse);
 
-        UpdateItemResponse response = updateItemOperation.getServiceCall(mockDynamoDbClient).apply(updateItemRequest);
+        UpdateItemResponse response = updateItemOperation.serviceCall(mockDynamoDbClient).apply(updateItemRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).updateItem(updateItemRequest);
@@ -122,6 +153,40 @@ public class UpdateItemTest {
                                                                          .expressionAttributeNames(expectedNames)
                                                                          .key(expectedKey)
                                                                          .returnValues(ReturnValue.ALL_NEW);
+        UpdateItemRequest expectedRequest =
+            baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
+                                                 " REMOVE " + OTHER_ATTRIBUTE_2_NAME)
+                               .build();
+
+        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+
+        assertThat(request, is(expectedRequest));
+    }
+
+    @Test
+    public void generateRequest_withConditionExpression() {
+        FakeItemWithSort item = createUniqueFakeItemWithSort();
+        item.setOtherAttribute1("value-1");
+        UpdateItem<FakeItemWithSort> updateItemOperation =
+            UpdateItem.builder().item(item).conditionExpression(CONDITION_EXPRESSION).build();
+        Map<String, AttributeValue> expectedKey = new HashMap<>();
+        expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
+        expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
+        Map<String, AttributeValue> expectedValues = new HashMap<>(CONDITION_EXPRESSION.expressionValues());
+        expectedValues.put(OTHER_ATTRIBUTE_1_VALUE, AttributeValue.builder().s("value-1").build());
+        Map<String, String> expectedNames = new HashMap<>(CONDITION_EXPRESSION.expressionNames());
+        expectedNames.put(OTHER_ATTRIBUTE_1_NAME, "other_attribute_1");
+        expectedNames.put(OTHER_ATTRIBUTE_2_NAME, "other_attribute_2");
+        UpdateItemRequest.Builder baseExpectedRequest =
+            UpdateItemRequest.builder()
+                             .tableName(TABLE_NAME)
+                             .expressionAttributeValues(expectedValues)
+                             .expressionAttributeNames(expectedNames)
+                             .conditionExpression(CONDITION_EXPRESSION.expression())
+                             .key(expectedKey)
+                             .returnValues(ReturnValue.ALL_NEW);
         UpdateItemRequest expectedRequest =
             baseExpectedRequest.updateExpression("SET " + OTHER_ATTRIBUTE_1_NAME + " = " + OTHER_ATTRIBUTE_1_VALUE +
                                                  " REMOVE " + OTHER_ATTRIBUTE_2_NAME)
@@ -578,7 +643,7 @@ public class UpdateItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItem<FakeItem> updateItemOperation = spy(UpdateItem.of(fakeItem));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
         String updateExpression = "update-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
         Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
@@ -614,7 +679,7 @@ public class UpdateItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItem<FakeItem> updateItemOperation = spy(UpdateItem.of(fakeItem));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
         String updateExpression = "update-expression";
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));

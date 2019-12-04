@@ -48,11 +48,11 @@ public class WriteTransaction<T> {
         return new WriteTransaction<>(mappedTable, writeOperation);
     }
 
-    public MappedTable<T> getMappedTable() {
+    public MappedTable<T> mappedTable() {
         return mappedTable;
     }
 
-    public TransactableWriteOperation<T> getWriteOperation() {
+    public TransactableWriteOperation<T> writeOperation() {
         return writeOperation;
     }
 
@@ -81,8 +81,8 @@ public class WriteTransaction<T> {
     }
 
     TransactWriteItem generateRequest() {
-        return writeOperation.generateTransactWriteItem(mappedTable.getTableSchema(),
-                                                        OperationContext.of(mappedTable.getTableName()),
-                                                        mappedTable.getMapperExtension());
+        return writeOperation.generateTransactWriteItem(mappedTable.tableSchema(),
+                                                        OperationContext.of(mappedTable.tableName()),
+                                                        mappedTable.mapperExtension());
     }
 }

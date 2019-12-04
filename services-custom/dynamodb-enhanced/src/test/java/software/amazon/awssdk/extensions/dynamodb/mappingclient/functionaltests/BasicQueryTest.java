@@ -149,8 +149,8 @@ public class BasicQueryTest extends LocalDynamoDbTestBase {
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.getItems(), is(RECORDS));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.items(), is(RECORDS));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -176,9 +176,9 @@ public class BasicQueryTest extends LocalDynamoDbTestBase {
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.getItems(),
+        assertThat(page.items(),
                    is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -192,9 +192,9 @@ public class BasicQueryTest extends LocalDynamoDbTestBase {
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.getItems(),
+        assertThat(page.items(),
                    is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -220,12 +220,12 @@ public class BasicQueryTest extends LocalDynamoDbTestBase {
         Map<String, AttributeValue> expectedLastEvaluatedKey2 = new HashMap<>();
         expectedLastEvaluatedKey2.put("id", stringValue("id-value"));
         expectedLastEvaluatedKey2.put("sort", numberValue(9));
-        assertThat(page1.getItems(), is(RECORDS.subList(0, 5)));
-        assertThat(page1.getLastEvaluatedKey(), is(expectedLastEvaluatedKey1));
-        assertThat(page2.getItems(), is(RECORDS.subList(5, 10)));
-        assertThat(page2.getLastEvaluatedKey(), is(expectedLastEvaluatedKey2));
-        assertThat(page3.getItems(), is(empty()));
-        assertThat(page3.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page1.items(), is(RECORDS.subList(0, 5)));
+        assertThat(page1.lastEvaluatedKey(), is(expectedLastEvaluatedKey1));
+        assertThat(page2.items(), is(RECORDS.subList(5, 10)));
+        assertThat(page2.lastEvaluatedKey(), is(expectedLastEvaluatedKey2));
+        assertThat(page3.items(), is(empty()));
+        assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -235,8 +235,8 @@ public class BasicQueryTest extends LocalDynamoDbTestBase {
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.getItems(), is(empty()));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.items(), is(empty()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
@@ -255,7 +255,7 @@ public class BasicQueryTest extends LocalDynamoDbTestBase {
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.getItems(), is(RECORDS.subList(8, 10)));
-        assertThat(page.getLastEvaluatedKey(), is(nullValue()));
+        assertThat(page.items(), is(RECORDS.subList(8, 10)));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 }

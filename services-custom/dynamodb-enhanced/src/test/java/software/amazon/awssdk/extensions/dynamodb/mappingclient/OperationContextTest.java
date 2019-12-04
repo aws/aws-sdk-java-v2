@@ -25,16 +25,16 @@ public class OperationContextTest {
     public void createWithTableNameAndIndexName() {
         OperationContext context = OperationContext.of("table_name", "index_name");
 
-        assertThat(context.getTableName(), is("table_name"));
-        assertThat(context.getIndexName(), is("index_name"));
+        assertThat(context.tableName(), is("table_name"));
+        assertThat(context.indexName(), is("index_name"));
     }
 
     @Test
     public void createWithTableName() {
         OperationContext context = OperationContext.of("table_name");
 
-        assertThat(context.getTableName(), is("table_name"));
-        assertThat(context.getIndexName(), is(TableMetadata.getPrimaryIndexName()));
+        assertThat(context.tableName(), is("table_name"));
+        assertThat(context.indexName(), is(TableMetadata.primaryIndexName()));
     }
 
 }

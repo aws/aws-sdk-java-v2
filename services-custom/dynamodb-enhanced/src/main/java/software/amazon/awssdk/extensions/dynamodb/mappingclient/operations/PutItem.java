@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableWriteOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
@@ -43,13 +44,15 @@ public class PutItem<T>
                TableOperation<T, PutItemRequest, PutItemResponse, Void> {
 
     private final T item;
+    private final Expression conditionExpression;
 
-    private PutItem(T item) {
-        this.item = item;
+    private PutItem(Builder<T> b) {
+        this.item = b.item;
+        this.conditionExpression = b.conditionExpression;
     }
 
     public static <T> PutItem<T> of(T item) {
-        return new PutItem<>(item);
+        return PutItem.builder().item(item).build();
     }
 
     public static GenericBuilder builder() {
@@ -57,44 +60,60 @@ public class PutItem<T>
     }
 
     public Builder<T> toBuilder() {
-        return new Builder<T>().item(item);
+        return new Builder<T>().item(item).conditionExpression(conditionExpression);
     }
 
     @Override
     public PutItemRequest generateRequest(TableSchema<T> tableSchema,
                                           OperationContext operationContext,
                                           MapperExtension mapperExtension) {
-        if (!TableMetadata.getPrimaryIndexName().equals(operationContext.getIndexName())) {
+        if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             throw new IllegalArgumentException("PutItem cannot be executed against a secondary index.");
         }
 
         // Redundant check for the existence of a partition key to avoid the call to DynamoDb and having it complain
         // instead
-        tableSchema.getTableMetadata().getPrimaryPartitionKey();
+        tableSchema.tableMetadata().primaryPartitionKey();
 
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, true);     // always ignore nulls for putItem
-        TableMetadata tableMetadata = tableSchema.getTableMetadata();
+        TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         // Allow a command mapperExtension to modify the attribute values of the item in the PutItemRequest and
         // add a conditional statement
         WriteModification transformation =
             mapperExtension != null ? mapperExtension.beforeWrite(itemMap, operationContext, tableMetadata) : null;
 
-        if (transformation != null && transformation.getTransformedItem() != null) {
-            itemMap = transformation.getTransformedItem();
+        if (transformation != null && transformation.transformedItem() != null) {
+            itemMap = transformation.transformedItem();
         }
 
         PutItemRequest.Builder baseRequest = PutItemRequest.builder()
-                             .tableName(operationContext.getTableName())
+                             .tableName(operationContext.tableName())
                              .item(itemMap);
 
-        if (transformation != null && transformation.getAdditionalConditionalExpression() != null) {
-            baseRequest = baseRequest.conditionExpression(
-                transformation.getAdditionalConditionalExpression().getExpression())
-                                     .expressionAttributeValues(
-                    transformation.getAdditionalConditionalExpression().getExpressionValues())
-                                     .expressionAttributeNames(
-                    transformation.getAdditionalConditionalExpression().getExpressionNames());
+        Expression mergedConditionExpression;
+
+        if (transformation != null && transformation.additionalConditionalExpression() != null) {
+            mergedConditionExpression = Expression.coalesce(conditionExpression,
+                                                            transformation.additionalConditionalExpression(), " AND ");
+        } else {
+            mergedConditionExpression = conditionExpression;
+        }
+
+        if (mergedConditionExpression != null) {
+            baseRequest = baseRequest.conditionExpression(mergedConditionExpression.expression());
+
+            // Avoid adding empty collections
+            if (mergedConditionExpression.expressionValues() != null &&
+                !mergedConditionExpression.expressionValues().isEmpty()) {
+                baseRequest = baseRequest.expressionAttributeValues(mergedConditionExpression.expressionValues());
+
+            }
+
+            if (mergedConditionExpression.expressionNames() != null &&
+                !mergedConditionExpression.expressionNames().isEmpty()) {
+                baseRequest = baseRequest.expressionAttributeNames(mergedConditionExpression.expressionNames());
+            }
         }
 
         return baseRequest.build();
@@ -110,7 +129,7 @@ public class PutItem<T>
     }
 
     @Override
-    public Function<PutItemRequest, PutItemResponse> getServiceCall(DynamoDbClient dynamoDbClient) {
+    public Function<PutItemRequest, PutItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::putItem;
     }
 
@@ -151,8 +170,12 @@ public class PutItem<T>
                                 .build();
     }
 
-    public T getItem() {
+    public T item() {
         return item;
+    }
+
+    public Expression conditionExpression() {
+        return conditionExpression;
     }
 
     @Override
@@ -175,11 +198,18 @@ public class PutItem<T>
     }
 
     public static class GenericBuilder {
+        private Expression conditionExpression;
+
         private GenericBuilder() {
         }
 
         public <T> Builder<T> item(T item) {
-            return new Builder<T>().item(item);
+            return new Builder<T>().item(item).conditionExpression(conditionExpression);
+        }
+
+        public GenericBuilder conditionExpression(Expression conditionExpression) {
+            this.conditionExpression = conditionExpression;
+            return this;
         }
 
         public PutItem<?> build() {
@@ -189,6 +219,7 @@ public class PutItem<T>
 
     public static final class Builder<T> {
         private T item;
+        private Expression conditionExpression;
 
         private Builder() {
         }
@@ -198,8 +229,13 @@ public class PutItem<T>
             return this;
         }
 
+        public Builder<T> conditionExpression(Expression conditionExpression) {
+            this.conditionExpression = conditionExpression;
+            return this;
+        }
+
         public PutItem<T> build() {
-            return new PutItem<>(item);
+            return new PutItem<>(this);
         }
     }
 }

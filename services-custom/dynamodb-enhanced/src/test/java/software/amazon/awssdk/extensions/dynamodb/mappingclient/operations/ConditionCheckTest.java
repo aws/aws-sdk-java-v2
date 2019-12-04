@@ -53,7 +53,7 @@ public class ConditionCheckTest {
                                                    .build();
         ConditionCheck<FakeItem> operation =
             ConditionCheck.of(Key.of(stringValue(fakeItem.getId())), conditionExpression);
-        OperationContext context = OperationContext.of("table-name", TableMetadata.getPrimaryIndexName());
+        OperationContext context = OperationContext.of("table-name", TableMetadata.primaryIndexName());
 
         TransactWriteItem result = operation.generateTransactWriteItem(FakeItem.getTableSchema(), context,
                                                                                   mockMapperExtension);
@@ -65,9 +65,9 @@ public class ConditionCheckTest {
                                      .builder()
                                      .tableName("table-name")
                                      .key(keyMap)
-                                     .conditionExpression(conditionExpression.getExpression())
-                                     .expressionAttributeValues(conditionExpression.getExpressionValues())
-                                     .expressionAttributeNames(conditionExpression.getExpressionNames())
+                                     .conditionExpression(conditionExpression.expression())
+                                     .expressionAttributeValues(conditionExpression.expressionValues())
+                                     .expressionAttributeNames(conditionExpression.expressionNames())
                                      .build())
                              .build();
         assertThat(result, is(expectedResult));

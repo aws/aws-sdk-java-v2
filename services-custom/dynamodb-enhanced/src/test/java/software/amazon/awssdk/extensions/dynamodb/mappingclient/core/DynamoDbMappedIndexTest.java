@@ -32,7 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
@@ -80,8 +79,8 @@ public class DynamoDbMappedIndexTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.getPartitionKeyValue(), is(stringValue(item.getGsiId())));
-        assertThat(key.getSortKeyValue(), is(Optional.of(stringValue(item.getGsiSort()))));
+        assertThat(key.partitionKeyValue(), is(stringValue(item.getGsiId())));
+        assertThat(key.sortKeyValue(), is(Optional.of(stringValue(item.getGsiSort()))));
     }
 
     @Test
@@ -96,7 +95,7 @@ public class DynamoDbMappedIndexTest {
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
-        assertThat(key.getPartitionKeyValue(), is(stringValue(item.getGsiId())));
-        assertThat(key.getSortKeyValue(), is(Optional.empty()));
+        assertThat(key.partitionKeyValue(), is(stringValue(item.getGsiId())));
+        assertThat(key.sortKeyValue(), is(Optional.empty()));
     }
 }
