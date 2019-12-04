@@ -84,4 +84,25 @@ public class AccessPointsIntegrationTest extends S3IntegrationTestBase {
 
         assertThat(objectContent).isEqualTo("helloworld");
     }
+
+    @Test
+    public void transfer_Succeeds_UsingAccessPoint_CrossRegion() {
+        S3Client s3DifferentRegion =
+            s3ClientBuilder().region(Region.US_EAST_1).serviceConfiguration(c -> c.useArnRegionEnabled(true)).build();
+
+        StringJoiner apArn = new StringJoiner(":");
+        apArn.add("arn").add("aws").add("s3").add("us-west-2").add(accountId).add("accesspoint").add(AP_NAME);
+
+        s3DifferentRegion.putObject(PutObjectRequest.builder()
+                                                    .bucket(apArn.toString())
+                                                    .key(KEY)
+                                                    .build(), RequestBody.fromString("helloworld"));
+
+        String objectContent = s3DifferentRegion.getObjectAsBytes(GetObjectRequest.builder()
+                                                                                  .bucket(apArn.toString())
+                                                                                  .key(KEY)
+                                                                                  .build()).asUtf8String();
+
+        assertThat(objectContent).isEqualTo("helloworld");
+    }
 }
