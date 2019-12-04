@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.awscore.AwsExecutionAttribute.AWS_REGION;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
@@ -24,6 +25,8 @@ import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncode;
 import java.net.URI;
 import java.util.Optional;
 import org.junit.Test;
+
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -131,6 +134,7 @@ public class EndpointAddressInterceptorTest {
         verifyAccesspointArn("http",
                              "arn:aws:s3:us-future-1:12345678910:accesspoint:foobar",
                              "http://foobar-12345678910.s3-accesspoint.us-future-1.amazonaws.com",
+                             Region.of("us-future-1"),
                              S3Configuration.builder(),
                              Region.of("us-future-1"));
     }
@@ -140,6 +144,7 @@ public class EndpointAddressInterceptorTest {
         verifyAccesspointArn("http",
                              "arn:aws:s3:us-future-2:12345678910:accesspoint:foobar",
                              "http://foobar-12345678910.s3-accesspoint.us-future-2.amazonaws.com",
+                             Region.of("us-future-2"),
                              S3Configuration.builder().useArnRegionEnabled(true),
                              Region.of("us-future-1"));
     }
@@ -149,6 +154,7 @@ public class EndpointAddressInterceptorTest {
         verifyAccesspointArn("http",
                              "arn:aws-cn:s3:cn-future-1:12345678910:accesspoint:foobar",
                              "http://foobar-12345678910.s3-accesspoint.cn-future-1.amazonaws.com.cn",
+                             Region.of("cn-future-1"),
                              S3Configuration.builder(),
                              Region.of("cn-future-1"));
     }
@@ -158,6 +164,7 @@ public class EndpointAddressInterceptorTest {
         verifyAccesspointArn("http",
                              "arn:aws:s3:unknown:12345678910:accesspoint:foobar",
                              "http://foobar-12345678910.s3-accesspoint.unknown.amazonaws.com",
+                             Region.of("unknown"),
                              S3Configuration.builder(),
                              Region.of("unknown"));
     }
@@ -232,11 +239,13 @@ public class EndpointAddressInterceptorTest {
         verifyAccesspointArn("http",
                              "arn:aws-cn:s3:cn-north-1:12345678910:accesspoint:foobar",
                              "http://foobar-12345678910.s3-accesspoint.cn-north-1.amazonaws.com.cn",
+                             Region.of("cn-north-1"),
                              S3Configuration.builder(),
                              Region.of("cn-north-1"));
         verifyAccesspointArn("https",
                              "arn:aws-cn:s3:cn-north-1:12345678910:accesspoint:foobar",
                              "https://foobar-12345678910.s3-accesspoint.cn-north-1.amazonaws.com.cn",
+                             Region.of("cn-north-1"),
                              S3Configuration.builder(),
                              Region.of("cn-north-1"));
     }
@@ -246,6 +255,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws-cn:s3:cn-north-1:12345678910:accesspoint:foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.cn-north-1.amazonaws.com.cn",
+                                                      Region.of("cn-north-1"),
                                                       S3Configuration.builder().useArnRegionEnabled(true),
                                                       Region.of("us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -257,6 +267,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                              "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                              "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
                              S3Configuration.builder().useArnRegionEnabled(true),
                              Region.of("fips-us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -264,6 +275,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("https",
                              "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                              "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                             Region.of("us-east-1"),
                              S3Configuration.builder().useArnRegionEnabled(true),
                              Region.of("fips-us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -275,6 +287,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder(),
                                                       Region.of("fips-us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -282,6 +295,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("https",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder(),
                                                       Region.of("fips-us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -293,6 +307,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder().useArnRegionEnabled(true),
                                                       Region.of("us-east-1-fips")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -300,6 +315,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("https",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder().useArnRegionEnabled(true),
                                                       Region.of("us-east-1-fips")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -311,6 +327,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder(),
                                                       Region.of("us-east-1-fips")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -318,6 +335,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("https",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "https://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder(),
                                                       Region.of("us-east-1-fips")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -329,6 +347,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder().accelerateModeEnabled(true),
                                                       Region.of("us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -341,6 +360,7 @@ public class EndpointAddressInterceptorTest {
         assertThatThrownBy(() -> verifyAccesspointArn("http",
                                                       "arn:aws:s3:us-east-1:12345678910:accesspoint/foobar",
                                                       "http://foobar-12345678910.s3-accesspoint.us-east-1.amazonaws.com",
+                                                      Region.of("us-east-1"),
                                                       S3Configuration.builder().pathStyleAccessEnabled(true),
                                                       Region.of("us-east-1")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -410,6 +430,7 @@ public class EndpointAddressInterceptorTest {
     }
 
     private void verifyAccesspointArn(String protocol, String accessPointArn, String expectedEndpoint,
+                                      Region expectedSigningRegion,
                                       S3Configuration.Builder builder, Region region) {
         String key = "test-key";
 
@@ -425,16 +446,19 @@ public class EndpointAddressInterceptorTest {
 
         executionAttributes.putAttribute(SERVICE_CONFIG, s3Configuration);
         executionAttributes.putAttribute(AWS_REGION, region);
+        executionAttributes.putAttribute(SIGNING_REGION, region);
 
         SdkHttpRequest sdkHttpFullRequest = interceptor.modifyHttpRequest(ctx, executionAttributes);
 
+        assertThat(executionAttributes.getAttribute(SIGNING_REGION))
+            .isEqualTo(expectedSigningRegion);
         assertThat(sdkHttpFullRequest.getUri()).isEqualTo(expectedUri);
     }
 
 
     private void verifyAccesspointArn(String protocol, String accessPointArn, String expectedEndpoint,
                                       S3Configuration.Builder builder) {
-        verifyAccesspointArn(protocol, accessPointArn, expectedEndpoint, builder, Region.US_EAST_1);
+        verifyAccesspointArn(protocol, accessPointArn, expectedEndpoint, Region.US_EAST_1, builder, Region.US_EAST_1);
     }
 
     private Context.ModifyHttpRequest context(SdkRequest request, SdkHttpRequest sdkHttpRequest) {

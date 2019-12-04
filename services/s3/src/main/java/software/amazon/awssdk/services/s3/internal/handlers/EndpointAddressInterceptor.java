@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.ConfiguredS3SdkHttpRequest;
 import software.amazon.awssdk.services.s3.internal.S3EndpointUtils;
 
 @SdkInternalApi
@@ -32,11 +33,17 @@ public final class EndpointAddressInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
-        return S3EndpointUtils.applyEndpointConfiguration(
-            context.httpRequest(),
-            context.request(),
-            executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION),
-            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG),
-            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN)));
+        ConfiguredS3SdkHttpRequest configuredRequest =
+            S3EndpointUtils.applyEndpointConfiguration(
+                    context.httpRequest(),
+                    context.request(),
+                    executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION),
+                    (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG),
+                    Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN)));
+
+        configuredRequest.signingRegionModification().ifPresent(
+            region -> executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region));
+
+        return configuredRequest.sdkHttpRequest();
     }
 }
