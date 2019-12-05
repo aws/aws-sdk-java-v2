@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Video Streams",
+    "description": "Introduces management of signaling channels for Kinesis Video Streams."
+}
