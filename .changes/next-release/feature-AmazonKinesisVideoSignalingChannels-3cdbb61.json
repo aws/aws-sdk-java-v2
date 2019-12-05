@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Signaling Channels",
-    "description": "Announcing support for WebRTC in Kinesis Video Streams, as fully managed capability. You can now use simple APIs to enable your connected devices, web, and mobile apps with real-time two-way media streaming capabilities."
-}

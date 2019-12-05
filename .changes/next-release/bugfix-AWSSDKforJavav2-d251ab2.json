@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client",
-    "type": "bugfix", 
-    "description": "Fixed an issue where receiving a GOAWAY that would cause the closing of all streams could cause all outstanding streams to be completed successfully instead of exceptionally."
-}
