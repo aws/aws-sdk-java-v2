@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.SdkRequest;
@@ -56,11 +57,11 @@ public final class S3EndpointUtils {
      * Returns a new instance of the given {@link SdkHttpRequest} by applying any endpoint changes based on
      * the given {@link S3Configuration} options.
      */
-    public static SdkHttpRequest applyEndpointConfiguration(SdkHttpRequest request,
-                                                            SdkRequest originalRequest,
-                                                            Region region,
-                                                            S3Configuration serviceConfiguration,
-                                                            boolean endpointOverridden) {
+    public static ConfiguredS3SdkHttpRequest applyEndpointConfiguration(SdkHttpRequest request,
+                                                                        SdkRequest originalRequest,
+                                                                        Region region,
+                                                                        S3Configuration serviceConfiguration,
+                                                                        boolean endpointOverridden) {
         String bucketName = originalRequest.getValueForField("Bucket", String.class).orElse(null);
         String key = originalRequest.getValueForField("Key", String.class).orElse(null);
 
@@ -82,15 +83,19 @@ public final class S3EndpointUtils {
             }
         }
 
-        return mutableRequest.build();
+        return ConfiguredS3SdkHttpRequest.builder()
+                                         .sdkHttpRequest(mutableRequest.build())
+                                         .build();
     }
 
-    private static SdkHttpRequest applyEndpointConfigurationForAccessPointArn(SdkHttpRequest request,
-                                                                              Region region,
-                                                                              boolean endpointOverridden,
-                                                                              S3Configuration serviceConfiguration,
-                                                                              String bucketName,
-                                                                              String key) {
+    private static ConfiguredS3SdkHttpRequest applyEndpointConfigurationForAccessPointArn(
+            SdkHttpRequest request,
+            Region region,
+            boolean endpointOverridden,
+            S3Configuration serviceConfiguration,
+            String bucketName,
+            String key) {
+
         Arn resourceArn = Arn.fromString(bucketName);
         S3Resource s3Resource = S3ArnConverter.create().convertArn(resourceArn);
 
@@ -169,12 +174,17 @@ public final class S3EndpointUtils {
                                 .dualstackEnabled(dualstackEnabled)
                                 .toUri();
 
-        return request.toBuilder()
-                      .protocol(accessPointUri.getScheme())
-                      .host(accessPointUri.getHost())
-                      .port(accessPointUri.getPort())
-                      .encodedPath(key)
-                      .build();
+        SdkHttpRequest httpRequest = request.toBuilder()
+                                            .protocol(accessPointUri.getScheme())
+                                            .host(accessPointUri.getHost())
+                                            .port(accessPointUri.getPort())
+                                            .encodedPath(key)
+                                            .build();
+
+        return ConfiguredS3SdkHttpRequest.builder()
+                                         .sdkHttpRequest(httpRequest)
+                                         .signingRegionModification(Region.of(arnRegion))
+                                         .build();
     }
 
     /**
