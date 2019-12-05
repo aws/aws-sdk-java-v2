@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -23,40 +25,44 @@ import static org.mockito.Mockito.when;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http2.DefaultHttp2GoAwayFrame;
 import io.netty.util.Attribute;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 
-public class Http2GoAwayFrameHandlerTest {
-    private static final DefaultHttp2GoAwayFrame GO_AWAY_FRAME = new DefaultHttp2GoAwayFrame(0, Unpooled.EMPTY_BUFFER);
+public class Http2GoAwayEventListenerTest {
     private ChannelHandlerContext ctx;
     private Channel channel;
-    private Attribute<MultiplexedChannelRecord> attribute;
+    private ChannelPipeline channelPipeline;
+    private Attribute<Http2MultiplexedChannelPool> attribute;
 
     @Before
     public void setup() {
         this.ctx = mock(ChannelHandlerContext.class);
         this.channel = mock(Channel.class);
+        this.channelPipeline = mock(ChannelPipeline.class);
         this.attribute = mock(Attribute.class);
 
         when(ctx.channel()).thenReturn(channel);
-        when(channel.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD)).thenReturn(attribute);
+        when(channel.pipeline()).thenReturn(channelPipeline);
+        when(channel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL)).thenReturn(attribute);
     }
 
     @Test
-    public void goAwayWithNoChannelPoolRecordRaisesNoExceptions() {
+    public void goAwayWithNoChannelPoolRecordRaisesNoExceptions() throws Exception {
         when(attribute.get()).thenReturn(null);
-        new Http2GoAwayFrameHandler().channelRead0(ctx, GO_AWAY_FRAME);
+        new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, Unpooled.EMPTY_BUFFER);
+        verify(channelPipeline).fireExceptionCaught(isA(GoAwayException.class));
     }
 
     @Test
-    public void goAwayWithChannelPoolRecordPassesAlongTheFrame() {
-        MultiplexedChannelRecord record = mock(MultiplexedChannelRecord.class);
+    public void goAwayWithChannelPoolRecordPassesAlongTheFrame() throws Exception {
+        Http2MultiplexedChannelPool record = mock(Http2MultiplexedChannelPool.class);
         when(attribute.get()).thenReturn(record);
-        new Http2GoAwayFrameHandler().channelRead0(ctx, GO_AWAY_FRAME);
-        verify(record).goAway(GO_AWAY_FRAME);
+        new Http2GoAwayEventListener(channel).onGoAwayReceived(0, 0, Unpooled.EMPTY_BUFFER);
+        verify(record).handleGoAway(eq(channel), eq(0), isA(GoAwayException.class));
         verifyNoMoreInteractions(record);
     }
 }

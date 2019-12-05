@@ -28,7 +28,8 @@ class GoAwayException extends IOException {
     private final String message;
 
     GoAwayException(long errorCode, ByteBuf debugData) {
-        this.message = String.format("GOAWAY received. Error Code = %d, Debug Data = %s",
+        this.message = String.format("GOAWAY received from service, requesting this stream be closed. "
+                                     + "Error Code = %d, Debug Data = %s",
                                      errorCode, debugData.toString(StandardCharsets.UTF_8));
     }
 
