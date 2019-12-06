@@ -17,6 +17,8 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -138,9 +140,21 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
     }
 
     /**
+     * Returns true if the ListOfListOfStrings property was specified by the sender (it may be empty), or false if the
+     * sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
+     * service.
+     */
+    public boolean hasListOfListOfStrings() {
+        return listOfListOfStrings != null && !(listOfListOfStrings instanceof SdkAutoConstructList);
+    }
+
+    /**
      * Returns the value of the ListOfListOfStrings property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * You can use {@link #hasListOfListOfStrings()} to see if a value was sent in this field.
      * </p>
      *
      * @return The value of the ListOfListOfStrings property for this object.
@@ -150,9 +164,21 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
     }
 
     /**
+     * Returns true if the ListOfListOfListOfStrings property was specified by the sender (it may be empty), or false if
+     * the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS
+     * service.
+     */
+    public boolean hasListOfListOfListOfStrings() {
+        return listOfListOfListOfStrings != null && !(listOfListOfListOfStrings instanceof SdkAutoConstructList);
+    }
+
+    /**
      * Returns the value of the ListOfListOfListOfStrings property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * You can use {@link #hasListOfListOfListOfStrings()} to see if a value was sent in this field.
      * </p>
      *
      * @return The value of the ListOfListOfListOfStrings property for this object.
@@ -162,9 +188,21 @@ public final class NestedContainersResponse extends JsonProtocolTestsResponse im
     }
 
     /**
+     * Returns true if the MapOfStringToListOfListOfStrings property was specified by the sender (it may be empty), or
+     * false if the sender did not specify the value (it will be empty). For responses returned by the SDK, the sender
+     * is the AWS service.
+     */
+    public boolean hasMapOfStringToListOfListOfStrings() {
+        return mapOfStringToListOfListOfStrings != null && !(mapOfStringToListOfListOfStrings instanceof SdkAutoConstructMap);
+    }
+
+    /**
      * Returns the value of the MapOfStringToListOfListOfStrings property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * You can use {@link #hasMapOfStringToListOfListOfStrings()} to see if a value was sent in this field.
      * </p>
      *
      * @return The value of the MapOfStringToListOfListOfStrings property for this object.
