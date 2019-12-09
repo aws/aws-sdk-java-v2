@@ -31,6 +31,7 @@ import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.PromiseCombiner;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -76,23 +77,26 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     private final ChannelPool connectionPool;
     private final EventLoopGroup eventLoopGroup;
     private final Set<MultiplexedChannelRecord> connections;
+    private final Duration idleConnectionTimeout;
 
     private AtomicBoolean closed = new AtomicBoolean(false);
 
     /**
      * @param connectionPool Connection pool for parent channels (i.e. the socket channel).
      */
-    Http2MultiplexedChannelPool(ChannelPool connectionPool, EventLoopGroup eventLoopGroup) {
+    Http2MultiplexedChannelPool(ChannelPool connectionPool, EventLoopGroup eventLoopGroup, Duration idleConnectionTimeout) {
         this.connectionPool = connectionPool;
         this.eventLoopGroup = eventLoopGroup;
         this.connections = ConcurrentHashMap.newKeySet();
+        this.idleConnectionTimeout = idleConnectionTimeout;
     }
 
     @SdkTestInternalApi
     Http2MultiplexedChannelPool(ChannelPool connectionPool,
                                 EventLoopGroup eventLoopGroup,
-                                Set<MultiplexedChannelRecord> connections) {
-        this(connectionPool, eventLoopGroup);
+                                Set<MultiplexedChannelRecord> connections,
+                                Duration idleConnectionTimeout) {
+        this(connectionPool, eventLoopGroup, idleConnectionTimeout);
         this.connections.addAll(connections);
     }
 
@@ -153,7 +157,8 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
                             + "streams was not initialized.", parentChannel);
             Validate.isTrue(maxStreams > 0, "Maximum streams were not positive on channel (%s).", parentChannel);
 
-            MultiplexedChannelRecord multiplexedChannel = new MultiplexedChannelRecord(parentChannel, maxStreams);
+            MultiplexedChannelRecord multiplexedChannel = new MultiplexedChannelRecord(parentChannel, maxStreams,
+                                                                                       idleConnectionTimeout);
             parentChannel.attr(MULTIPLEXED_CHANNEL).set(multiplexedChannel);
 
             Promise<Channel> streamPromise = parentChannel.eventLoop().newPromise();

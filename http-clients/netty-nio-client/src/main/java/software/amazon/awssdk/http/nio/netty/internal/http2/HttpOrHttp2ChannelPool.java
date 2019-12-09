@@ -25,6 +25,7 @@ import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
@@ -150,7 +151,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .maxPendingAcquires(configuration.maxPendingConnectionAcquires())
                                                  .build();
         } else {
-            ChannelPool h2Pool = new Http2MultiplexedChannelPool(delegatePool, eventLoopGroup);
+            Duration idleConnectionTimeout = configuration.reapIdleConnections()
+                                             ? Duration.ofMillis(configuration.idleTimeoutMillis()) : null;
+            ChannelPool h2Pool = new Http2MultiplexedChannelPool(delegatePool, eventLoopGroup, idleConnectionTimeout);
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)

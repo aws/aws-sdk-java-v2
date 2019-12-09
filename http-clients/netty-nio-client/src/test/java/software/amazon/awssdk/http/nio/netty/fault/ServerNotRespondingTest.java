@@ -107,26 +107,6 @@ public class ServerNotRespondingTest {
     }
 
     @Test
-    public void connectionNotRespond_doesNotAckPing_shouldNotReuse() throws Exception {
-
-        // The first request picks up a non-responding channel and should fail. Channel 1
-        CompletableFuture<Void> firstRequest = sendGetRequest();
-        assertThatThrownBy(() -> firstRequest.join()).hasCauseInstanceOf(IOException.class);
-
-        // The second request should pick up a new healthy channel - Channel 2
-        sendGetRequest().join();
-
-        // The third request should reuse the previous channel - Channel 2
-        sendGetRequest().join();
-
-        assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
-
-        Thread.sleep(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1000 + 100);
-        // ping timed out.
-        assertThat(server.h2ConnectionCount.get()).isEqualTo(1);
-    }
-
-    @Test
     public void connectionNotRespond_pingAck_shouldReuse() throws InterruptedException {
         server.ackPingOnFirstChannel = true;
         // The first request picks up a non-responding channel and should fail. Channel 1
