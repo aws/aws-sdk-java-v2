@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 
 /**
  * Configure channel based on the {@link Http2SettingsFrame} received from server
@@ -56,22 +55,19 @@ public final class Http2SettingsFrameHandler extends SimpleChannelInboundHandler
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
         if (!channel.attr(PROTOCOL_FUTURE).get().isDone()) {
-            channelError(new IOException("The channel was closed before the protocol could be determined."), channel);
+            channelError(new IOException("The channel was closed before the protocol could be determined."), channel, ctx);
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        channelError(cause, channel);
+        channelError(cause, channel, ctx);
     }
 
-    private void channelError(Throwable cause, Channel ch) {
+    private void channelError(Throwable cause, Channel ch, ChannelHandlerContext ctx) {
         ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
-        MultiplexedChannelRecord record = ch.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD).get();
-        // Deliver the exception to any child channels registered to this connection.
-        if (record != null) {
-            record.shutdownChildChannels(cause);
-        }
+        ctx.fireExceptionCaught(cause);
+
         // Channel status may still be active at this point even if it's not so queue up the close so that status is
         // accurately updated
         ch.eventLoop().submit(() -> {

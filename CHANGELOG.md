@@ -1,3 +1,43 @@
+# __2.10.31__ __2019-12-09__
+## __AWS Key Management Service__
+  - ### Features
+    - The Verify operation now returns KMSInvalidSignatureException on invalid signatures. The Sign and Verify operations now return KMSInvalidStateException when a request is made against a CMK pending deletion.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Documentation updates for QuickSight
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adds the SSM GetCalendarState API and ChangeCalendar SSM Document type. These features enable the forthcoming Systems Manager Change Calendar feature, which will allow you to schedule events during which actions should (or should not) be performed.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - AWS MSK has added support for Open Monitoring with Prometheus.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Close HTTP/2 connections if they have had 0 streams for 5 seconds. This can be disabled using `useIdleConnectionReaper(false)` or have the time period adjusted using `connectionMaxIdleTime(...)` on the `NettyNioAsyncHttpClient.Builder`.
+    - Periodically ping HTTP/2 connections and close them if the service does not respond. The ping periodicity and timeout time is not currently configurable.
+
+# __2.10.30__ __2019-12-04__
+## __Amazon Kinesis Video Signaling Channels__
+  - ### Features
+    - Announcing support for WebRTC in Kinesis Video Streams, as fully managed capability. You can now use simple APIs to enable your connected devices, web, and mobile apps with real-time two-way media streaming capabilities.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Introduces management of signaling channels for Kinesis Video Streams.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Amazon API Gateway now supports HTTP APIs (beta), enabling customers to quickly build high performance RESTful APIs that are up to 71% cheaper than REST APIs also available from API Gateway. HTTP APIs are optimized for building APIs that proxy to AWS Lambda functions or HTTP backends, making them ideal for serverless workloads. Using HTTP APIs, you can secure your APIs using OIDC and OAuth 2 out of box, quickly build web applications using a simple CORS experience, and get started immediately with automatic deployment and simple create workflows.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where closing the last stream on a connection that had been closed or received a GOAWAY did not close the connection.
+    - Fixed an issue where receiving a GOAWAY that would cause the closing of all streams could cause all outstanding streams to be completed successfully instead of exceptionally.
+
 # __2.10.29__ __2019-12-03__
 ## __AWS Lambda__
   - ### Features
