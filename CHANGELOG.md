@@ -1,3 +1,25 @@
+# __2.10.31__ __2019-12-09__
+## __AWS Key Management Service__
+  - ### Features
+    - The Verify operation now returns KMSInvalidSignatureException on invalid signatures. The Sign and Verify operations now return KMSInvalidStateException when a request is made against a CMK pending deletion.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Documentation updates for QuickSight
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adds the SSM GetCalendarState API and ChangeCalendar SSM Document type. These features enable the forthcoming Systems Manager Change Calendar feature, which will allow you to schedule events during which actions should (or should not) be performed.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - AWS MSK has added support for Open Monitoring with Prometheus.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Close HTTP/2 connections if they have had 0 streams for 5 seconds. This can be disabled using `useIdleConnectionReaper(false)` or have the time period adjusted using `connectionMaxIdleTime(...)` on the `NettyNioAsyncHttpClient.Builder`.
+    - Periodically ping HTTP/2 connections and close them if the service does not respond. The ping periodicity and timeout time is not currently configurable.
+
 # __2.10.30__ __2019-12-04__
 ## __Amazon Kinesis Video Signaling Channels__
   - ### Features
