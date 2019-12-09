@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Key Management Service",
+    "description": "The Verify operation now returns KMSInvalidSignatureException on invalid signatures. The Sign and Verify operations now return KMSInvalidStateException when a request is made against a CMK pending deletion."
+}
