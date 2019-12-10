@@ -50,6 +50,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -355,16 +356,27 @@ public class AwsServiceModel implements ClassSpec {
 
         methodBuilder.beginControlFlow("switch ($L)", "fieldName");
 
-        shapeModel.getNonStreamingMembers().forEach(m -> methodBuilder.addCode("case $S:", m.getC2jName())
-                                                                      .addStatement("return $T.ofNullable(clazz.cast($L()))",
-                                                                                    Optional.class,
-                                                                                    m.getFluentGetterMethodName()));
+        shapeModel.getNonStreamingMembers().forEach(m -> addCasesForMember(methodBuilder, m));
 
         methodBuilder.addCode("default:");
         methodBuilder.addStatement("return $T.empty()", Optional.class);
         methodBuilder.endControlFlow();
 
         return methodBuilder.build();
+    }
+
+    private void addCasesForMember(MethodSpec.Builder methodBuilder, MemberModel member) {
+        methodBuilder.addCode("case $S:", member.getC2jName())
+                     .addStatement("return $T.ofNullable(clazz.cast($L()))",
+                                   Optional.class,
+                                   member.getFluentGetterMethodName());
+
+        if (shouldGenerateDeprecatedNameGetter(member)) {
+            methodBuilder.addCode("case $S:", member.getDeprecatedName())
+                         .addStatement("return $T.ofNullable(clazz.cast($L()))",
+                                       Optional.class,
+                                       member.getFluentGetterMethodName());
+        }
     }
 
     private List<MethodSpec> memberGetters() {
@@ -384,9 +396,17 @@ public class AwsServiceModel implements ClassSpec {
         member.getAutoConstructClassIfExists()
               .ifPresent(autoConstructClass -> result.add(existenceCheckGetter(member, autoConstructClass)));
 
+        if (shouldGenerateDeprecatedNameGetter(member)) {
+            result.add(deprecatedMemberGetter(member));
+        }
+
         result.add(memberGetter(member));
 
         return result.stream();
+    }
+
+    private boolean shouldGenerateDeprecatedNameGetter(MemberModel member) {
+        return StringUtils.isNotBlank(member.getDeprecatedName());
     }
 
     private boolean shouldGenerateEnumGetter(MemberModel member) {
@@ -423,6 +443,16 @@ public class AwsServiceModel implements ClassSpec {
     private CodeBlock existenceCheckStatement(MemberModel member, ClassName autoConstructClass) {
         String variableName = member.getVariable().getVariableName();
         return CodeBlock.of("return $N != null && !($N instanceof $T);", variableName, variableName, autoConstructClass);
+    }
+
+    private MethodSpec deprecatedMemberGetter(MemberModel member) {
+        return MethodSpec.methodBuilder(member.getDeprecatedFluentGetterMethodName())
+                         .addJavadoc("$L", member.getDeprecatedGetterDocumentation())
+                         .addModifiers(PUBLIC)
+                         .addAnnotation(Deprecated.class)
+                         .returns(typeProvider.returnType(member))
+                         .addCode(getterStatement(member))
+                         .build();
     }
 
     private CodeBlock enumGetterStatement(MemberModel member) {

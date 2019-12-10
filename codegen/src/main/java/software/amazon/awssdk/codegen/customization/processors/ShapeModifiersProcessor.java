@@ -219,6 +219,10 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                 member.setLocationName(memberToModify);
             }
 
+            if (modifyModel.isExistingNameDeprecated()) {
+                member.setDeprecatedName(memberToModify);
+            }
+
             shape.getMembers().put(modifyModel.getEmitPropertyName(), member);
         }
         if (modifyModel.getEmitAsType() != null) {

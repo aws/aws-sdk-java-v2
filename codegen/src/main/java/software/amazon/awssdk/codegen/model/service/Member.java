@@ -61,6 +61,8 @@ public class Member {
 
     private boolean xmlAttribute;
 
+    private String deprecatedName;
+
     public String getShape() {
         return shape;
     }
@@ -211,5 +213,13 @@ public class Member {
 
     public void setXmlAttribute(boolean xmlAttribute) {
         this.xmlAttribute = xmlAttribute;
+    }
+
+    public void setDeprecatedName(String deprecatedName) {
+        this.deprecatedName = deprecatedName;
+    }
+
+    public String getDeprecatedName() {
+        return deprecatedName;
     }
 }

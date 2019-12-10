@@ -19,6 +19,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -75,11 +76,11 @@ class MapSetters extends AbstractMemberSetters {
     }
 
     @Override
-    public MethodSpec beanStyle() {
+    public List<MethodSpec> beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
                 .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
 
-        return builder.build();
+        return Collections.singletonList(builder.build());
     }
 
     private ParameterSpec mapWithEnumAsParameter() {

@@ -1,0 +1,14 @@
+{
+  "shapeModifiers": {
+    "EnumDeprecationFailureRequest": {
+      "modify": [
+        {
+          "CannotDeprecateEnum": {
+            "emitPropertyName": "ShouldNotWork",
+            "existingNameDeprecated": true
+          }
+        }
+      ]
+    }
+  }
+}
