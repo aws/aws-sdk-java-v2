@@ -1,0 +1,11 @@
+{
+    "version": "2.10.32",
+    "date": "2019-12-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "description": "1. Adding DocumentTitleFieldName as an optional configuration for SharePoint. 2. updating s3 object pattern to support all s3 keys."
+        }
+    ]
+}
