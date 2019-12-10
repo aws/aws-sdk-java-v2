@@ -22,7 +22,7 @@ public final class ResponseHandlerTestUtils {
     private ResponseHandlerTestUtils() {
     }
 
-    public static HttpResponseHandler noOpResponseHandler() {
+    public static HttpResponseHandler<?> noOpResponseHandler() {
         return (response, executionAttributes) -> null;
     }
 
