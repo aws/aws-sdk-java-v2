@@ -233,12 +233,12 @@ public class AwsServiceModel implements ClassSpec {
         return MethodSpec.methodBuilder("accept")
                          .addModifiers(PUBLIC)
                          .addJavadoc(new DocumentationBuilder()
-                                             .description("Calls the appropriate visit method depending on "
-                                                          + "the subtype of {@link $T}.")
-                                             .param("visitor", "Visitor to invoke.")
-                                             .build(), modelClass)
+                                         .description("Calls the appropriate visit method depending on "
+                                                      + "the subtype of {@link $T}.")
+                                         .param("visitor", "Visitor to invoke.")
+                                         .build(), modelClass)
                          .addParameter(responseHandlerClass
-                                               .nestedClass("Visitor"), "visitor");
+                                           .nestedClass("Visitor"), "visitor");
     }
 
     @Override
@@ -295,7 +295,7 @@ public class AwsServiceModel implements ClassSpec {
 
     private ClassName exceptionBaseClass() {
         String customExceptionBase = intermediateModel.getCustomizationConfig()
-                .getSdkModeledExceptionBaseClassName();
+                                                      .getSdkModeledExceptionBaseClassName();
         if (customExceptionBase != null) {
             return poetExtensions.getModelClass(customExceptionBase);
         }
@@ -304,8 +304,8 @@ public class AwsServiceModel implements ClassSpec {
 
     private TypeName toCopyableBuilderInterface() {
         return ParameterizedTypeName.get(ClassName.get(ToCopyableBuilder.class),
-                className().nestedClass("Builder"),
-                className());
+                                         className().nestedClass("Builder"),
+                                         className());
     }
 
     private List<MethodSpec> modelClassMethods() {
@@ -381,6 +381,9 @@ public class AwsServiceModel implements ClassSpec {
             result.add(enumMemberGetter(member));
         }
 
+        member.getAutoConstructClassIfExists()
+              .ifPresent(autoConstructClass -> result.add(existenceCheckGetter(member, autoConstructClass)));
+
         result.add(memberGetter(member));
 
         return result.stream();
@@ -388,7 +391,6 @@ public class AwsServiceModel implements ClassSpec {
 
     private boolean shouldGenerateEnumGetter(MemberModel member) {
         return member.getEnumType() != null || MemberCopierSpec.isEnumCopyAvailable(member);
-
     }
 
     private MethodSpec enumMemberGetter(MemberModel member) {
@@ -407,6 +409,20 @@ public class AwsServiceModel implements ClassSpec {
                          .returns(typeProvider.returnType(member))
                          .addCode(getterStatement(member))
                          .build();
+    }
+
+    private MethodSpec existenceCheckGetter(MemberModel member, ClassName autoConstructClass) {
+        return MethodSpec.methodBuilder(member.getExistenceCheckMethodName())
+                         .addJavadoc("$L", member.getExistenceCheckDocumentation())
+                         .addModifiers(PUBLIC)
+                         .returns(TypeName.BOOLEAN)
+                         .addCode(existenceCheckStatement(member, autoConstructClass))
+                         .build();
+    }
+
+    private CodeBlock existenceCheckStatement(MemberModel member, ClassName autoConstructClass) {
+        String variableName = member.getVariable().getVariableName();
+        return CodeBlock.of("return $N != null && !($N instanceof $T);", variableName, variableName, autoConstructClass);
     }
 
     private CodeBlock enumGetterStatement(MemberModel member) {
