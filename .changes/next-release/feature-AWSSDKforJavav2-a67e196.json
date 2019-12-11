@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Adds a `has*` method to requests and responses that have a List or Map property."
-}
