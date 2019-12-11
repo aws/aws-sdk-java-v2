@@ -293,6 +293,13 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getExistenceCheckMethodName(String memberName, Shape parentShape) {
+        String existenceCheckMethodName = Utils.unCapitalize(memberName);
+        existenceCheckMethodName = rewriteInvalidMemberName(existenceCheckMethodName, parentShape);
+        return String.format("has%s", Utils.capitalize(existenceCheckMethodName));
+    }
+
+    @Override
     public String getBeanStyleGetterMethodName(String memberName, Shape parentShape, Shape c2jShape) {
         String fluentGetterMethodName = getFluentGetterMethodName(memberName, parentShape, c2jShape);
         return String.format("get%s", Utils.capitalize(fluentGetterMethodName));

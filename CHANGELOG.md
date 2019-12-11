@@ -1,3 +1,12 @@
+# __2.10.33__ __2019-12-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds a `has*` method to requests and responses that have a List or Map property.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows customers to attach multiple Elastic Inference Accelerators to a single EC2 instance. It adds support for a Count parameter for each Elastic Inference Accelerator type you specify on the RunInstances and LaunchTemplate APIs.
+
 # __2.10.32__ __2019-12-10__
 ## __AWSKendraFrontendService__
   - ### Features
