@@ -195,8 +195,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
-     * Optionally overidden by child implementations to derive implementation-specific configuration from the default-applied
-     * configuration. (eg. AWS's endpoint, derived from the region).
+     * Optionally overridden by child implementations to derive implementation-specific configuration from the
+     * default-applied configuration. (eg. AWS's endpoint, derived from the region).
      */
     protected SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         return configuration;
@@ -309,6 +309,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         Validate.paramNotNull(endpointOverride, "endpointOverride");
         Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
         clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
+        clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
         return thisBuilder();
     }
 

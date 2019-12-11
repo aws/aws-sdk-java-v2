@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.StringUtils.replacePrefixIgnoreCase;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -134,5 +135,20 @@ public class StringUtilsTest {
     @Test
     public void findFirstOccurrence_NoMatch() {
         assertNull(StringUtils.findFirstOccurrence("abc", ':'));
+    }
+
+    @Test
+    public void safeStringTooBoolean_mixedSpaceTrue_shouldReturnTrue() {
+        assertTrue(StringUtils.safeStringToBoolean("TrUe"));
+    }
+
+    @Test
+    public void safeStringTooBoolean_mixedSpaceFalse_shouldReturnFalse() {
+        assertFalse(StringUtils.safeStringToBoolean("fAlSE"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void safeStringTooBoolean_invalidValue_shouldThrowException() {
+        assertFalse(StringUtils.safeStringToBoolean("foobar"));
     }
 }

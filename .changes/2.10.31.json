@@ -1,0 +1,36 @@
+{
+    "version": "2.10.31",
+    "date": "2019-12-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "description": "AWS MSK has added support for Open Monitoring with Prometheus."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "description": "The Verify operation now returns KMSInvalidSignatureException on invalid signatures. The Sign and Verify operations now return KMSInvalidStateException when a request is made against a CMK pending deletion."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "description": "Close HTTP/2 connections if they have had 0 streams for 5 seconds. This can be disabled using `useIdleConnectionReaper(false)` or have the time period adjusted using `connectionMaxIdleTime(...)` on the `NettyNioAsyncHttpClient.Builder`."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "description": "Periodically ping HTTP/2 connections and close them if the service does not respond. The ping periodicity and timeout time is not currently configurable."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Adds the SSM GetCalendarState API and ChangeCalendar SSM Document type. These features enable the forthcoming Systems Manager Change Calendar feature, which will allow you to schedule events during which actions should (or should not) be performed."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Documentation updates for QuickSight"
+        }
+    ]
+}
