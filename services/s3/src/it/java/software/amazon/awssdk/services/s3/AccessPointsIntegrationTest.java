@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.StringJoiner;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -25,14 +26,13 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
-import software.amazon.awssdk.services.s3control.model.S3ControlException;
 import software.amazon.awssdk.services.sts.StsClient;
 
 public class AccessPointsIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String BUCKET = temporaryBucketName(AclIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(AccessPointsIntegrationTest.class);
 
-    private static final String AP_NAME = "java-sdk";
+    private static final String AP_NAME = "java-sdk-" + System.currentTimeMillis();
 
     private static final String KEY = "some-key";
 
@@ -57,14 +57,15 @@ public class AccessPointsIntegrationTest extends S3IntegrationTestBase {
                        .build();
 
         accountId = sts.getCallerIdentity().account();
+        s3control.createAccessPoint(r -> r.accountId(accountId)
+                                          .bucket(BUCKET)
+                                          .name(AP_NAME));
+    }
 
-        try {
-            s3control.createAccessPoint(r -> r.accountId(accountId)
-                                              .bucket(BUCKET)
-                                              .name(AP_NAME));
-        } catch (S3ControlException e) {
-            // Do nothing as the access point is already created
-        }
+    @AfterClass
+    public static void tearDown() {
+        deleteBucketAndAllContents(BUCKET);
+        s3control.deleteAccessPoint(b -> b.accountId(accountId).name(AP_NAME));
     }
 
     @Test
