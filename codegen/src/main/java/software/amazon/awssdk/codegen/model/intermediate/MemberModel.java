@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import static software.amazon.awssdk.codegen.internal.Constant.LF;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultExistenceCheck;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultFluentReturn;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultGetter;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultGetterParam;
@@ -24,11 +25,15 @@ import static software.amazon.awssdk.codegen.internal.DocumentationUtils.default
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.squareup.javapoet.ClassName;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -69,6 +74,8 @@ public class MemberModel extends DocumentationModel {
     private String fluentSetterMethodName;
 
     private String fluentEnumSetterMethodName;
+
+    private String existenceCheckMethodName;
 
     private String beanStyleGetterName;
 
@@ -247,6 +254,19 @@ public class MemberModel extends DocumentationModel {
         return this;
     }
 
+    public String getExistenceCheckMethodName() {
+        return existenceCheckMethodName;
+    }
+
+    public void setExistenceCheckMethodName(String existenceCheckMethodName) {
+        this.existenceCheckMethodName = existenceCheckMethodName;
+    }
+
+    public MemberModel withExistenceCheckMethodName(String existenceCheckMethodName) {
+        setExistenceCheckMethodName(existenceCheckMethodName);
+        return this;
+    }
+
     public ReturnTypeModel getGetterModel() {
         return getterModel;
     }
@@ -408,6 +428,12 @@ public class MemberModel extends DocumentationModel {
             }
         }
 
+        if (getAutoConstructClassIfExists().isPresent()) {
+            appendParagraph(docBuilder,
+                            "You can use {@link #%s()} to see if a value was sent in this field.",
+                            getExistenceCheckMethodName());
+        }
+
         String variableDesc = StringUtils.isNotBlank(documentation) ? documentation : defaultGetterParam().replace("%s", name);
 
         docBuilder.append("@return ")
@@ -427,6 +453,10 @@ public class MemberModel extends DocumentationModel {
                + LF
                + "@return " + stripHtmlTags(defaultFluentReturn())
                + getEnumDoc();
+    }
+
+    public String getExistenceCheckDocumentation() {
+        return defaultExistenceCheck().replace("%s", name) + LF;
     }
 
     public String getDefaultConsumerFluentSetterDocumentation() {
@@ -612,5 +642,15 @@ public class MemberModel extends DocumentationModel {
                .append(LF)
                .append("</p>")
                .append(LF);
+    }
+
+    public Optional<ClassName> getAutoConstructClassIfExists() {
+        if (isList()) {
+            return Optional.of(ClassName.get(SdkAutoConstructList.class));
+        } else if (isMap()) {
+            return Optional.of(ClassName.get(SdkAutoConstructMap.class));
+        }
+
+        return Optional.empty();
     }
 }
