@@ -59,6 +59,11 @@ public final class TimestampFormatTrait implements Trait {
         RFC_822,
 
         /**
+         * See {@link DateUtils#parseAsctimeDate(String)}
+         */
+        ASC_TIME,
+
+        /**
          * See {@link DateUtils#parseUnixTimestampInstant(String)}
          */
         UNIX_TIMESTAMP,
@@ -80,6 +85,8 @@ public final class TimestampFormatTrait implements Trait {
                     return ISO_8601;
                 case "rfc822":
                     return RFC_822;
+                case "asctime":
+                    return ASC_TIME;
                 case "unixTimestamp":
                     return UNIX_TIMESTAMP;
                 // UNIX_TIMESTAMP_MILLIS does not have a defined string format so intentionally omitted here.

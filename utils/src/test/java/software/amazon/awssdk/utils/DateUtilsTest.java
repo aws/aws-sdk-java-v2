@@ -20,6 +20,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
+import static software.amazon.awssdk.utils.DateUtils.ASCTIME_DATE_FORMAT;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,10 +43,13 @@ public class DateUtilsTest {
             new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private static final SimpleDateFormat LONG_DATE_FORMAT =
             new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+    private static final SimpleDateFormat ASC_TIME_FORMAT =
+            new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
 
     static {
         COMMON_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(UTC));
         LONG_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(UTC));
+        ASC_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone(UTC));
     }
 
     private static final Instant INSTANT = Instant.ofEpochMilli(1400284606000L);
@@ -89,6 +93,14 @@ public class DateUtilsTest {
     }
 
     @Test
+    public void parseAsctimeDate() throws ParseException {
+        String formatted = LONG_DATE_FORMAT.format(Date.from(INSTANT));
+        Instant expected = LONG_DATE_FORMAT.parse(formatted).toInstant();
+        Instant actual = DateUtils.parseRfc1123Date(formatted);
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void parseIso8601Date() throws ParseException {
         checkParsing(DateTimeFormatter.ISO_INSTANT, COMMON_DATE_FORMAT);
     }
@@ -98,12 +110,26 @@ public class DateUtilsTest {
         checkParsing(ALTERNATE_ISO_8601_DATE_FORMAT, COMMON_DATE_FORMAT);
     }
 
+    @Test
+    public void parseAsctimeFormat() throws ParseException {
+        checkAsctimeParsing(ASCTIME_DATE_FORMAT, ASC_TIME_FORMAT);
+    }
+
     private void checkParsing(DateTimeFormatter dateTimeFormatter, SimpleDateFormat dateFormat) throws ParseException {
         String formatted = dateFormat.format(Date.from(INSTANT));
         String alternative = dateTimeFormatter.format(INSTANT);
         assertEquals(formatted, alternative);
         Instant expected = dateFormat.parse(formatted).toInstant();
         Instant actualDate = DateUtils.parseIso8601Date(formatted);
+        assertEquals(expected, actualDate);
+    }
+
+    private void checkAsctimeParsing(DateTimeFormatter dateTimeFormatter, SimpleDateFormat dateFormat) throws ParseException {
+        String formatted = dateFormat.format(Date.from(INSTANT));
+        String alternative = dateTimeFormatter.format(INSTANT);
+        assertEquals(formatted, alternative);
+        Instant expected = dateFormat.parse(formatted).toInstant();
+        Instant actualDate = DateUtils.parseAsctimeDate(formatted);
         assertEquals(expected, actualDate);
     }
 

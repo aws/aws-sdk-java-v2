@@ -46,6 +46,15 @@ public final class DateUtils {
             .toFormatter()
             .withZone(UTC);
 
+    /**
+     * Asctime format.
+     */
+    static final DateTimeFormatter ASCTIME_DATE_FORMAT =
+            new DateTimeFormatterBuilder()
+                    .appendPattern("EEE MMM dd HH:mm:ss 'UTC' yyyy")
+                    .toFormatter()
+                    .withZone(UTC);
+
     private static final int MILLI_SECOND_PRECISION = 3;
 
     private DateUtils() {
@@ -111,6 +120,35 @@ public final class DateUtils {
      */
     public static String formatRfc1123Date(Instant instant) {
         return RFC_1123_DATE_TIME.format(ZonedDateTime.ofInstant(instant, UTC));
+    }
+
+    /**
+     * Parses the specified date string as an Asctime date and returns the Date
+     * object.
+     *
+     * @param dateString
+     *            The date string to parse.
+     *
+     * @return The parsed Date object.
+     */
+    public static Instant parseAsctimeDate(String dateString) {
+        if (dateString == null) {
+            return null;
+        }
+
+        return parseInstant(dateString, ASCTIME_DATE_FORMAT);
+    }
+
+    /**
+     * Formats the specified date as an Asctime string.
+     *
+     * @param instant
+     *            The instant to format.
+     *
+     * @return The Asctime string representing the specified date.
+     */
+    public static String formatAsctimeDate(Instant instant) {
+        return  ASCTIME_DATE_FORMAT.format(ZonedDateTime.ofInstant(instant, UTC));
     }
 
     /**

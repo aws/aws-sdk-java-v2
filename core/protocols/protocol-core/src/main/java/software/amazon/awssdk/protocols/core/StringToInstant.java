@@ -56,6 +56,8 @@ public final class StringToInstant implements StringToValueConverter.StringToVal
                 return safeParseDate(DateUtils::parseUnixTimestampMillisInstant).apply(value);
             case RFC_822:
                 return DateUtils.parseRfc1123Date(value);
+            case ASC_TIME:
+                return DateUtils.parseAsctimeDate(value);
             default:
                 throw SdkClientException.create("Unrecognized timestamp format - " + format);
         }
