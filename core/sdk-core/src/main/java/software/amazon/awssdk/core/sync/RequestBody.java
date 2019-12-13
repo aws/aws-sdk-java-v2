@@ -119,7 +119,9 @@ public final class RequestBody {
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
         return fromContentProvider(() -> {
-            invokeSafely(nonCloseable::reset);
+            if (nonCloseable.markSupported()) {
+                invokeSafely(nonCloseable::reset);
+            }
             return nonCloseable;
         }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
