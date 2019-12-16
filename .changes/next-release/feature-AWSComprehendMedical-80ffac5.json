@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Comprehend Medical",
-    "description": "New Ontology linking APIs will provides medication concepts normalization and Diagnoses codes from input text. In this release we will provide two APIs - RxNorm and ICD10-CM."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMQ",
-    "description": "Amazon MQ now supports throughput-optimized message brokers, backed by Amazon EBS."
-}

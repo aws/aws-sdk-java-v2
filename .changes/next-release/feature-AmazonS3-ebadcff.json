@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "feature", 
-    "description": "CopyObjectRequest now has `destinationBucket` and `destinationKey` properties for clarity.\nThe existing names, `bucket` and `key`, are deprecated."
-}
