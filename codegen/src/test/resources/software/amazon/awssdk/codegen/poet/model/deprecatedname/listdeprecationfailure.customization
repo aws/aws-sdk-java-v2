@@ -1,0 +1,14 @@
+{
+  "shapeModifiers": {
+    "ListDeprecationFailureRequest": {
+      "modify": [
+        {
+          "CannotDeprecateList": {
+            "emitPropertyName": "ShouldNotWork",
+            "existingNameDeprecated": true
+          }
+        }
+      ]
+    }
+  }
+}
