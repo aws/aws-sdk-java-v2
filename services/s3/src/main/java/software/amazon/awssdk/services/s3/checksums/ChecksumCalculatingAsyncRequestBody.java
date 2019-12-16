@@ -54,6 +54,9 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                                       SdkChecksum sdkChecksum) {
             this.wrapped = wrapped;
             this.checksum = sdkChecksum;
+            // Note: there may be multiple places that hold references to this checksum object, but assumption is that in cse of
+            // retry all 'writes' to this will be done before new attempt to upload is run.
+            checksum.reset();
         }
 
         @Override
