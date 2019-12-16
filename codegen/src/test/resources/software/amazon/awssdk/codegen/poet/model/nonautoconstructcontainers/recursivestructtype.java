@@ -21,6 +21,8 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -107,9 +109,20 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
     }
 
     /**
+     * Returns true if the RecursiveList property was specified by the sender (it may be empty), or false if the sender
+     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     */
+    public boolean hasRecursiveList() {
+        return recursiveList != null && !(recursiveList instanceof SdkAutoConstructList);
+    }
+
+    /**
      * Returns the value of the RecursiveList property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * You can use {@link #hasRecursiveList()} to see if a value was sent in this field.
      * </p>
      *
      * @return The value of the RecursiveList property for this object.
@@ -119,9 +132,20 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
     }
 
     /**
+     * Returns true if the RecursiveMap property was specified by the sender (it may be empty), or false if the sender
+     * did not specify the value (it will be empty). For responses returned by the SDK, the sender is the AWS service.
+     */
+    public boolean hasRecursiveMap() {
+        return recursiveMap != null && !(recursiveMap instanceof SdkAutoConstructMap);
+    }
+
+    /**
      * Returns the value of the RecursiveMap property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     * <p>
+     * You can use {@link #hasRecursiveMap()} to see if a value was sent in this field.
      * </p>
      *
      * @return The value of the RecursiveMap property for this object.
@@ -395,4 +419,3 @@ public final class RecursiveStructType implements SdkPojo, Serializable,
         }
     }
 }
-

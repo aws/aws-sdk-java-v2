@@ -1,3 +1,39 @@
+# __2.10.35__ __2019-12-13__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild adds support for cross account
+
+## __Amazon Detective__
+  - ### Features
+    - This is the initial release of Amazon Detective.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added the ability to use your own public-private key pair to configure DKIM authentication for a domain identity.
+
+# __2.10.34__ __2019-12-12__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixing exception using `RequestBody.fromInputStream` on non-resettable `InputStreams` by making `reset` conditional on `markSupported`. See [#1544](https://github.com/aws/aws-sdk-java-v2/issues/1544) / [#1545](https://github.com/aws/aws-sdk-java-v2/issues/1545)
+
+## __Access Analyzer__
+  - ### Features
+    - This release includes improvements and fixes bugs for the IAM Access Analyzer feature.
+
+# __2.10.33__ __2019-12-11__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds a `has*` method to requests and responses that have a List or Map property.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows customers to attach multiple Elastic Inference Accelerators to a single EC2 instance. It adds support for a Count parameter for each Elastic Inference Accelerator type you specify on the RunInstances and LaunchTemplate APIs.
+
+# __2.10.32__ __2019-12-10__
+## __AWSKendraFrontendService__
+  - ### Features
+    - 1. Adding DocumentTitleFieldName as an optional configuration for SharePoint. 2. updating s3 object pattern to support all s3 keys.
+
 # __2.10.31__ __2019-12-09__
 ## __AWS Key Management Service__
   - ### Features
