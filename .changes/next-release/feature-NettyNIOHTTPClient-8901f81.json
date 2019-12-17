@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Netty NIO HTTP Client",
+    "description": "`SETTINGS_INITIAL_WINDOW_SIZE` is now configurable on HTTP/2 connections opened by the Netty client using `Http2Configuration#initialWindowSize(Integer)` along with `NettyNioAsyncHttpClient.Builder#http2Configuration(Http2Configuration)`. See https://tools.ietf.org/html/rfc7540#section-6.5.2 for more information."
+}

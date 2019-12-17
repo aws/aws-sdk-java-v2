@@ -81,6 +81,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private final NettyConfiguration configuration;
     private final Protocol protocol;
     private final long maxStreams;
+    private final int initialWindowSize;
     private final SslProvider sslProvider;
     private final ProxyConfiguration proxyConfiguration;
 
@@ -90,6 +91,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         this.configuration = builder.configuration;
         this.protocol = builder.protocol;
         this.maxStreams = builder.maxStreams;
+        this.initialWindowSize = builder.initialWindowSize;
         this.sslProvider = builder.sslProvider;
         this.proxyConfiguration = builder.proxyConfiguration;
     }
@@ -112,8 +114,13 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
 
-        ChannelPipelineInitializer pipelineInitializer =
-            new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration, key);
+        ChannelPipelineInitializer pipelineInitializer = new ChannelPipelineInitializer(protocol,
+                                                                                        sslContext,
+                                                                                        maxStreams,
+                                                                                        initialWindowSize,
+                                                                                        channelPoolRef,
+                                                                                        configuration,
+                                                                                        key);
 
         BetterSimpleChannelPool tcpChannelPool;
         ChannelPool baseChannelPool;
@@ -289,6 +296,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         private NettyConfiguration configuration;
         private Protocol protocol;
         private long maxStreams;
+        private int initialWindowSize;
         private SslProvider sslProvider;
         private ProxyConfiguration proxyConfiguration;
 
@@ -317,6 +325,11 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         public Builder maxStreams(long maxStreams) {
             this.maxStreams = maxStreams;
+            return this;
+        }
+
+        public Builder initialWindowSize(int initialWindowSize) {
+            this.initialWindowSize = initialWindowSize;
             return this;
         }
 
