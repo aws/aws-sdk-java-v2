@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Analytics",
-    "description": "Kinesis Data Analytics service now supports running Java applications using Flink 1.8."
-}
