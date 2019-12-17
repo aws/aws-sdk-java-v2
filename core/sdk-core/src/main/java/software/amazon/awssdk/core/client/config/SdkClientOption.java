@@ -96,7 +96,7 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * The type of client used to make requests.
      */
-    public static final SdkClientOption<ClientType> CLIENT_TYPE = new SdkClientOption<ClientType>(ClientType.class);
+    public static final SdkClientOption<ClientType> CLIENT_TYPE = new SdkClientOption<>(ClientType.class);
 
     /**
      * @see ClientOverrideConfiguration#apiCallAttemptTimeout()

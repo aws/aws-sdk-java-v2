@@ -58,7 +58,7 @@ public final class WaiterParameters<InputT> {
      * @return WaiterParameters Object
      */
     public WaiterParameters<InputT> withRequest(InputT request) {
-        return new WaiterParameters<InputT>(request, this.pollingStrategy);
+        return new WaiterParameters<>(request, this.pollingStrategy);
     }
 
     /**
@@ -68,7 +68,7 @@ public final class WaiterParameters<InputT> {
      * @return WaiterParameters Object
      */
     public WaiterParameters<InputT> withPollingStrategy(PollingStrategy pollingStrategy) {
-        return new WaiterParameters<InputT>(this.request, pollingStrategy);
+        return new WaiterParameters<>(this.request, pollingStrategy);
     }
 
     /**

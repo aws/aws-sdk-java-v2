@@ -100,12 +100,11 @@ public class IntermediateModelBuilder {
 
         customization.preprocess(service);
 
-        Map<String, OperationModel> operations = new TreeMap<>();
         Map<String, ShapeModel> shapes = new HashMap<>();
-        Map<String, AuthorizerModel> authorizers = new HashMap<>();
 
-        operations.putAll(new AddOperations(this).constructOperations());
-        authorizers.putAll(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
+        Map<String, OperationModel> operations = new TreeMap<>(new AddOperations(this).constructOperations());
+        Map<String, AuthorizerModel> authorizers =
+            new HashMap<>(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
 
         OperationModel endpointOperation = null;
 

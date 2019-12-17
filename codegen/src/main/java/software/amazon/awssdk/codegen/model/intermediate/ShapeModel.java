@@ -165,7 +165,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      */
     @JsonIgnore
     public List<MemberModel> getUnboundMembers() {
-        List<MemberModel> unboundMembers = new ArrayList<MemberModel>();
+        List<MemberModel> unboundMembers = new ArrayList<>();
         if (members != null) {
             for (MemberModel member : members) {
                 if (member.getHttp().getLocation() == null) {
@@ -227,7 +227,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      * If all members in shape have eventheader trait, then there is no payload
      */
     public boolean hasNoEventPayload() {
-        return members == null || members.stream().allMatch(m -> m.isEventHeader());
+        return members == null || members.stream().allMatch(MemberModel::isEventHeader);
     }
 
     public boolean isHasStreamingMember() {
@@ -350,7 +350,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void addMember(MemberModel member) {
         if (this.members == null) {
-            this.members = new ArrayList<MemberModel>();
+            this.members = new ArrayList<>();
         }
         members.add(member);
     }
@@ -365,7 +365,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void addEnum(EnumModel enumModel) {
         if (this.enums == null) {
-            this.enums = new ArrayList<EnumModel>();
+            this.enums = new ArrayList<>();
         }
         this.enums.add(enumModel);
     }
@@ -403,7 +403,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     }
 
     public Map<String, MemberModel> getMembersAsMap() {
-        Map<String, MemberModel> shapeMembers = new HashMap<String, MemberModel>();
+        Map<String, MemberModel> shapeMembers = new HashMap<>();
 
         // Creating a map of shape's members. This map is used below when
         // fetching the details of a member.

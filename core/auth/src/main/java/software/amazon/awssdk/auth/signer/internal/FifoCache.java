@@ -43,7 +43,7 @@ public final class FifoCache<T> {
             throw new IllegalArgumentException("maxSize " + maxSize
                                                + " must be at least 1");
         }
-        map = new BoundedLinkedHashMap<String, T>(maxSize);
+        map = new BoundedLinkedHashMap<>(maxSize);
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         rlock = lock.readLock();
         wlock = lock.writeLock();

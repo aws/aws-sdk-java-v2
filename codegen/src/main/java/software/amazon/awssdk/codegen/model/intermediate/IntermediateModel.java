@@ -212,15 +212,11 @@ public final class IntermediateModel {
 
     public boolean containsRequestSigners() {
         return getShapes().values().stream()
-                          .filter(ShapeModel::isRequestSignerAware)
-                          .findAny()
-                          .isPresent();
+                          .anyMatch(ShapeModel::isRequestSignerAware);
     }
 
     public boolean containsRequestEventStreams() {
         return getOperations().values().stream()
-                              .filter(opModel -> opModel.hasEventStreamInput())
-                              .findAny()
-                              .isPresent();
+                              .anyMatch(OperationModel::hasEventStreamInput);
     }
 }

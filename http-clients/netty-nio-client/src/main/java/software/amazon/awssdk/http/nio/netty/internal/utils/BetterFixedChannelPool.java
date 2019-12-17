@@ -70,7 +70,7 @@ public class BetterFixedChannelPool implements ChannelPool {
 
     // There is no need to worry about synchronization as everything that modified the queue or counts is done
     // by the above EventExecutor.
-    private final Queue<AcquireTask> pendingAcquireQueue = new ArrayDeque<AcquireTask>();
+    private final Queue<AcquireTask> pendingAcquireQueue = new ArrayDeque<>();
     private final int maxConnections;
     private final int maxPendingAcquires;
     private int acquiredChannelCount;
@@ -137,12 +137,7 @@ public class BetterFixedChannelPool implements ChannelPool {
             if (executor.inEventLoop()) {
                 acquire0(promise);
             } else {
-                executor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        acquire0(promise);
-                    }
-                });
+                executor.execute(() -> acquire0(promise));
             }
         } catch (Throwable cause) {
             promise.setFailure(cause);
@@ -348,12 +343,7 @@ public class BetterFixedChannelPool implements ChannelPool {
         if (executor.inEventLoop()) {
             close0();
         } else {
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    close0();
-                }
-            }).awaitUninterruptibly();
+            executor.submit(() -> close0()).awaitUninterruptibly();
         }
     }
 
@@ -376,12 +366,7 @@ public class BetterFixedChannelPool implements ChannelPool {
 
             // Ensure we dispatch this on another Thread as close0 will be called from the EventExecutor and we need
             // to ensure we will not block in a EventExecutor.
-            GlobalEventExecutor.INSTANCE.execute(new Runnable() {
-                @Override
-                public void run() {
-                    delegateChannelPool.close();
-                }
-            });
+            GlobalEventExecutor.INSTANCE.execute(() -> delegateChannelPool.close());
         }
     }
 

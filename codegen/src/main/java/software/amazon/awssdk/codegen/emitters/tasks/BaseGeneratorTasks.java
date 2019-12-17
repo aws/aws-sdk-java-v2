@@ -71,7 +71,7 @@ public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
             if (hasTasks()) {
                 return createTasks().iterator();
             } else {
-                return Collections.<GeneratorTask>emptyList().iterator();
+                return Collections.emptyIterator();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

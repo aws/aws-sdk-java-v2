@@ -92,7 +92,7 @@ public class RegionGenerationMojo extends AbstractMojo {
     public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(SERVICE_METADATA_BASE.replace(".", "/"));
         Set<String> services = new HashSet<>();
-        partitions.getPartitions().stream().forEach(p -> services.addAll(p.getServices().keySet()));
+        partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
 
         services.stream()
                 // Use hardcoded file for elasticache until the incorrect fips endpoint is fixed

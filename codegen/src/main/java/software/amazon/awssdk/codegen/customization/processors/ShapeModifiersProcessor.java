@@ -199,7 +199,7 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
         if (modifier.getInject() != null) {
             for (Map<String, Member> injects : modifier.getInject()) {
                 if (shape.getMembers() == null) {
-                    shape.setMembers(new HashMap<String, Member>());
+                    shape.setMembers(new HashMap<>());
                 }
                 shape.getMembers().putAll(injects);
             }

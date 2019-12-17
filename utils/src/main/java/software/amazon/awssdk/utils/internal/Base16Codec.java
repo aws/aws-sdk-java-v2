@@ -77,7 +77,7 @@ public final class Base16Codec {
         if (pos > -1) {
             return pos;
         }
-        throw new IllegalArgumentException("Invalid base 16 character: \'" + (char) in + "\'");
+        throw new IllegalArgumentException("Invalid base 16 character: '" + (char) in + "'");
     }
 
     private static class LazyHolder {

@@ -51,13 +51,13 @@ public class HeadersAssertion extends MarshallingAssertion {
     }
 
     private void assertHeadersContains(HttpHeaders actual) {
-        contains.entrySet().stream().forEach(e -> {
+        contains.entrySet().forEach(e -> {
             assertEquals(e.getValue(), actual.getHeader(e.getKey()).firstValue());
         });
     }
 
     private void assertDoesNotContainHeaders(HttpHeaders actual) {
-        doesNotContain.stream().forEach(headerName -> {
+        doesNotContain.forEach(headerName -> {
             assertFalse(String.format("Header '%s' was expected to be absent", headerName),
                         actual.getHeader(headerName).isPresent());
         });

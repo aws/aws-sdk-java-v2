@@ -303,7 +303,7 @@ public class JsonPolicyReader {
         Iterator<JsonNode> elements;
 
         while (mapOfFields.hasNext()) {
-            values = new LinkedList<String>();
+            values = new LinkedList<>();
             field = mapOfFields.next();
             fieldValue = field.getValue();
 

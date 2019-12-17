@@ -234,7 +234,7 @@ public class SyncClientClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addStatement("return $T.create($L)",
                                        returnType,
-                                       config.getCreateMethodParams().stream().collect(Collectors.joining(",")))
+                                       String.join(",", config.getCreateMethodParams()))
                          .build();
     }
 

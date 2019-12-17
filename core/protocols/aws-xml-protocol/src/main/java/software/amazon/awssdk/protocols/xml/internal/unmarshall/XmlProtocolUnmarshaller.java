@@ -100,9 +100,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     private boolean hasPayloadMembers(SdkPojo sdkPojo) {
         return sdkPojo.sdkFields().stream()
-                      .filter(f -> f.location() == MarshallLocation.PAYLOAD)
-                      .findAny()
-                      .isPresent();
+                      .anyMatch(f -> f.location() == MarshallLocation.PAYLOAD);
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
