@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "Added support for Cloud Watch Output and Document Version to the Run Command tasks in Maintenance Windows."
+}
