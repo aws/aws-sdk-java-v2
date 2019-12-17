@@ -80,7 +80,7 @@ class AccessorsFactory {
         return new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider).fluent(returnType);
     }
 
-    public MethodSpec beanStyleSetter(MemberModel memberModel) {
+    public List<MethodSpec> beanStyleSetters(MemberModel memberModel) {
         if (memberModel.isList()) {
             return new ListSetters(intermediateModel, shapeModel, memberModel, typeProvider).beanStyle();
         }

@@ -197,6 +197,20 @@ abstract class AddShapes {
         fillContainerTypeMemberMetadata(allC2jShapes, c2jMemberDefinition.getShape(), memberModel,
                                         protocol);
 
+
+        String deprecatedName = c2jMemberDefinition.getDeprecatedName();
+        if (StringUtils.isNotBlank(deprecatedName)) {
+            checkForValidDeprecatedName(c2jMemberName, shape);
+
+            memberModel.setDeprecatedName(deprecatedName);
+            memberModel.setDeprecatedFluentGetterMethodName(
+                namingStrategy.getFluentGetterMethodName(deprecatedName, parentShape, shape));
+            memberModel.setDeprecatedFluentSetterMethodName(
+                namingStrategy.getFluentSetterMethodName(deprecatedName, parentShape, shape));
+            memberModel.setDeprecatedBeanStyleSetterMethodName(
+                namingStrategy.getBeanStyleSetterMethodName(deprecatedName, parentShape, shape));
+        }
+
         ParameterHttpMapping httpMapping = generateParameterHttpMapping(parentShape,
                                                                               c2jMemberName,
                                                                               c2jMemberDefinition,
@@ -217,6 +231,26 @@ abstract class AddShapes {
         memberModel.setHttp(httpMapping);
 
         return memberModel;
+    }
+
+    private void checkForValidDeprecatedName(String c2jMemberName, Shape memberShape) {
+        if (memberShape.getEnumValues() != null) {
+            throw new IllegalStateException(String.format(
+                "Member %s has enum values and a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
+
+        if (isListShape(memberShape)) {
+            throw new IllegalStateException(String.format(
+                "Member %s is a list and has a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
+
+        if (isMapShape(memberShape)) {
+            throw new IllegalStateException(String.format(
+                "Member %s is a map and has a deprecated name. Codegen does not support this.",
+                c2jMemberName));
+        }
     }
 
     private boolean isSensitiveShapeOrContainer(Member member, Map<String, Shape> allC2jShapes) {

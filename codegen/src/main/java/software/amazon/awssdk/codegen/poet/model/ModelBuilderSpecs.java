@@ -204,7 +204,7 @@ class ModelBuilderSpecs {
                   .forEach(m -> {
                       accessors.add(accessorsFactory.beanStyleGetter(m));
                       accessors.addAll(accessorsFactory.fluentSetters(m, builderInterfaceName()));
-                      accessors.add(accessorsFactory.beanStyleSetter(m));
+                      accessors.addAll(accessorsFactory.beanStyleSetters(m));
                       accessors.addAll(accessorsFactory.convenienceSetters(m, builderInterfaceName()));
                   });
 
