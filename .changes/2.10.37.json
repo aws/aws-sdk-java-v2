@@ -1,0 +1,36 @@
+{
+    "version": "2.10.37",
+    "date": "2019-12-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Added support for Cloud Watch Output and Document Version to the Run Command tasks in Maintenance Windows."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "description": "Added a new Over-the-Air (OTA) Update feature that allows you to use different, or multiple, protocols to transfer an image from the AWS cloud to IoT devices."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "description": "Kinesis Data Analytics service now supports running Java applications using Flink 1.8."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "description": "AWS Elemental MediaLive now supports HLS ID3 segment tagging, HLS redundant manifests for CDNs that support different publishing/viewing endpoints, fragmented MP4 (fMP4), and frame capture intervals specified in milliseconds."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "Documentation updates for Amazon ECS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Documentation updates for Amazon EC2"
+        }
+    ]
+}
