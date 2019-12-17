@@ -112,7 +112,7 @@ public final class AsyncResponseHandler<T> implements TransformingAsyncResponseH
         public void onNext(ByteBuffer byteBuffer) {
             try {
                 baos.write(BinaryUtils.copyBytesFrom(byteBuffer));
-                this.subscription.request(Long.MAX_VALUE);
+                this.subscription.request(1);
             } catch (IOException e) {
                 // Should never happen
                 streamFuture.completeExceptionally(e);
