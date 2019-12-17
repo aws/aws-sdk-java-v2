@@ -86,7 +86,7 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
 
     @Override
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
-        if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpResponse())) {
+        if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpRequest())) {
             validatePutObjectChecksum((PutObjectResponse) context.response(), executionAttributes);
         }
     }
