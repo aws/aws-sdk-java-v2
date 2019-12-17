@@ -47,7 +47,7 @@ final class AddOutputShapes extends AddShapes implements IntermediateModelShapeP
         Map<String, Shape> c2jShapes = getServiceModel().getShapes();
 
         // Java shape models, to be constructed
-        Map<String, ShapeModel> javaShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> javaShapes = new HashMap<>();
 
         for (Map.Entry<String, Operation> entry : operations.entrySet()) {
 

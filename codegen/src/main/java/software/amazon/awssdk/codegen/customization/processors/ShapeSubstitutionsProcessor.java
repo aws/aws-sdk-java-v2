@@ -46,12 +46,12 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
     /**
      * parentShapeName -> {memberName -> originalShape}
      */
-    private final Map<String, Map<String, String>> substitutedShapeMemberReferences = new HashMap<String, Map<String, String>>();
+    private final Map<String, Map<String, String>> substitutedShapeMemberReferences = new HashMap<>();
 
     /**
      * parentShapeName -> {listTypeMemberName -> originalShapeOfTheMemberOfTheListTypeMember...}
      */
-    private final Map<String, Map<String, String>> substitutedListMemberReferences = new HashMap<String, Map<String, String>>();
+    private final Map<String, Map<String, String>> substitutedListMemberReferences = new HashMap<>();
 
     ShapeSubstitutionsProcessor(
             Map<String, ShapeSubstitution> shapeSubstitutions) {

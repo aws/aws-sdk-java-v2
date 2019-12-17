@@ -17,7 +17,6 @@ package software.amazon.awssdk.auth.credentials;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableSet;
-import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
 import java.net.URI;
@@ -138,7 +137,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
                                                  uri,
                                                  SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI
                                                                  .environmentVariable(),
-                                                 ALLOWED_HOSTS.stream().collect(joining(","))))
+                                                               String.join(",", ALLOWED_HOSTS)))
                                         .build();
             }
             return uri;

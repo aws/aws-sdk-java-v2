@@ -44,7 +44,7 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
 
     @Override
     public Optional<Long> contentLength() {
-        return Optional.of(Long.valueOf(length));
+        return Optional.of((long) length);
     }
 
     @Override

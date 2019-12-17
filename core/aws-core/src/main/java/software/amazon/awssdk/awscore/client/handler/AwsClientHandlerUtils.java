@@ -30,6 +30,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -127,7 +128,7 @@ public final class AwsClientHandlerUtils {
     private static Signer computeSigner(SdkRequest originalRequest,
                                         SdkClientConfiguration clientConfiguration) {
         return originalRequest.overrideConfiguration()
-                              .flatMap(config -> config.signer())
+                              .flatMap(RequestOverrideConfiguration::signer)
                               .orElse(clientConfiguration.option(AwsAdvancedClientOption.SIGNER));
     }
 }

@@ -200,7 +200,7 @@ class ModelBuilderSpecs {
 
     private List<MethodSpec> accessors() {
         List<MethodSpec> accessors = new ArrayList<>();
-        shapeModel.getNonStreamingMembers().stream()
+        shapeModel.getNonStreamingMembers()
                   .forEach(m -> {
                       accessors.add(accessorsFactory.beanStyleGetter(m));
                       accessors.addAll(accessorsFactory.fluentSetters(m, builderInterfaceName()));

@@ -54,7 +54,7 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
             Map<String, OperationModel> javaOperationMap) {
         Map<String, Operation> operations = serviceModel.getOperations();
 
-        Map<String, ShapeModel> emptyInputShapes = new HashMap<String, ShapeModel>();
+        Map<String, ShapeModel> emptyInputShapes = new HashMap<>();
 
         for (Map.Entry<String, Operation> entry : operations.entrySet()) {
             String operationName = entry.getKey();

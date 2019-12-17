@@ -63,9 +63,9 @@ public final class XmlAsserts {
         Diff diff = new Diff(expectedXml, actualXml);
         diff.overrideElementQualifier(new RecursiveElementNameAndTextQualifier());
         if (!diff.similar()) {
-            fail(String.format("\nExpected the following XML\n" + formatXml(expectedXml) +
-                               "\nbut actual XML was\n\n" +
-                               formatXml(actualXml)));
+            fail("\nExpected the following XML\n" + formatXml(expectedXml) +
+                 "\nbut actual XML was\n\n" +
+                 formatXml(actualXml));
         }
     }
 

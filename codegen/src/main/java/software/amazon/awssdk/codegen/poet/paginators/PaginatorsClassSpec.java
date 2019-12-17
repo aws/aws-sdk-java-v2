@@ -212,11 +212,9 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
      * return client.listTables(firstRequest.toBuilder().exclusiveStartTableName(response.lastEvaluatedTableName()).build());
      */
     protected String codeToGetNextPageIfOldResponseIsNotNull() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("return %s.%s(%s)", CLIENT_MEMBER,
-                                operationModel.getMethodName(),
-                                constructRequestFromLastPage(PREVIOUS_PAGE_METHOD_ARGUMENT)));
-        return sb.toString();
+        return String.format("return %s.%s(%s)", CLIENT_MEMBER,
+                                  operationModel.getMethodName(),
+                                  constructRequestFromLastPage(PREVIOUS_PAGE_METHOD_ARGUMENT));
     }
 
     /**

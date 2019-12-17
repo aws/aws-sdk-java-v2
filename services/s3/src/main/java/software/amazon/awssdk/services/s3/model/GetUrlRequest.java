@@ -42,14 +42,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class GetUrlRequest implements SdkPojo, ToCopyableBuilder<GetUrlRequest.Builder, GetUrlRequest> {
     private static final SdkField<String> BUCKET_FIELD = SdkField
-        .<String>builder(MarshallingType.STRING)
+        .builder(MarshallingType.STRING)
         .getter(getter(GetUrlRequest::bucket))
         .setter(setter(Builder::bucket))
         .traits(LocationTrait.builder().location(MarshallLocation.PATH).locationName("Bucket")
                              .unmarshallLocationName("Bucket").build()).build();
 
     private static final SdkField<String> KEY_FIELD = SdkField
-        .<String>builder(MarshallingType.STRING)
+        .builder(MarshallingType.STRING)
         .getter(getter(GetUrlRequest::key))
         .setter(setter(Builder::key))
         .traits(LocationTrait.builder().location(MarshallLocation.GREEDY_PATH).locationName("Key")

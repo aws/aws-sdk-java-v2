@@ -82,7 +82,6 @@ public class PartitionMetadataProviderGenerator implements PoetClass {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, PartitionMetadata>builder()", ImmutableMap.class);
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> builder.add(".put($S, new $T())", p.getPartition(), partitionMetadataClass(p.getPartition())));
 
         return builder.add(".build()").build();

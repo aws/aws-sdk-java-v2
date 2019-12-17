@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -42,7 +42,8 @@ public class BaseExceptionClassGeneratorTasks extends BaseGeneratorTasks {
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting Base Service Exception class");
-        return Arrays.asList(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new BaseExceptionClass(model)));
+        return Collections.singletonList(
+            new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new BaseExceptionClass(model)));
     }
 
 }

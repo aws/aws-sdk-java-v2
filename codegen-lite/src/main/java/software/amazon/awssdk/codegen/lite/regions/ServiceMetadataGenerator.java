@@ -131,7 +131,6 @@ public class ServiceMetadataGenerator implements PoetClass {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
         services.entrySet()
-                .stream()
                 .forEach(s -> s.getValue().getEndpoints()
                                .entrySet()
                                .stream()
@@ -173,7 +172,6 @@ public class ServiceMetadataGenerator implements PoetClass {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, String>builder()", ImmutableMap.class);
 
         serviceData.entrySet()
-                   .stream()
                    .forEach(s -> s.getValue().getEndpoints()
                                   .entrySet()
                                   .stream()
@@ -225,7 +223,6 @@ public class ServiceMetadataGenerator implements PoetClass {
         Map<Partition, Service> serviceData = new TreeMap<>(Comparator.comparing(Partition::getPartition));
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> p.getServices()
                                  .entrySet()
                                  .stream()

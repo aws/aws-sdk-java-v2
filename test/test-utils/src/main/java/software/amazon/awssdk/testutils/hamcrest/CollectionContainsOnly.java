@@ -30,7 +30,7 @@ public final class CollectionContainsOnly<T> extends TypeSafeMatcher<Collection<
     }
 
     static <T> TypeSafeMatcher<Collection<T>> containsOnly(List<Matcher<? extends T>> matchers) {
-        return new CollectionContainsOnly<T>(matchers);
+        return new CollectionContainsOnly<>(matchers);
     }
 
     @Override

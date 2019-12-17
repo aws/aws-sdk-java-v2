@@ -24,14 +24,11 @@ import software.amazon.awssdk.protocols.core.Marshaller;
  *
  * @param <T> Type to marshall.
  */
+@FunctionalInterface
 @SdkInternalApi
 public interface JsonMarshaller<T> extends Marshaller<T> {
 
-    JsonMarshaller<Void> NULL = new JsonMarshaller<Void>() {
-        @Override
-        public void marshall(Void val, JsonMarshallerContext context, String paramName, SdkField<Void> sdkField) {
-        }
-    };
+    JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> { };
 
     /**
      * Marshall the data into the request.

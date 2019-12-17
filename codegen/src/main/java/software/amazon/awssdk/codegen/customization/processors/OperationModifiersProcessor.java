@@ -42,7 +42,7 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
 
     private final Map<String, OperationModifier> operationModifiers;
 
-    private final Set<String> createdWrapperShapes = new HashSet<String>();
+    private final Set<String> createdWrapperShapes = new HashSet<>();
 
     OperationModifiersProcessor(Map<String, OperationModifier> operationModifiers) {
         this.operationModifiers = operationModifiers;
@@ -69,7 +69,6 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
                         serviceModel, operationName, modifier);
                 // Keep track of all the wrappers we created
                 createdWrapperShapes.add(createdWrapperShape);
-                continue;
             }
         }
 

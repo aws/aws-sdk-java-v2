@@ -149,9 +149,7 @@ public class EventStreamUtils {
             ShapeModel eventStreamShape = getBaseEventStreamShape(model, eventShape);
             return model.getOperations().values()
                         .stream()
-                        .filter(o -> doesShapeContainsEventStream(o.getInputShape(), eventStreamShape))
-                        .findAny()
-                        .isPresent();
+                        .anyMatch(o -> doesShapeContainsEventStream(o.getInputShape(), eventStreamShape));
         } catch (IllegalStateException e) {
             return false;
         }

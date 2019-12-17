@@ -71,7 +71,7 @@ public class IpAddressCondition extends Condition {
     public IpAddressCondition(IpAddressComparisonType type, String ipAddressRange) {
         super.type = type.toString();
         super.conditionKey = ConditionFactory.SOURCE_IP_CONDITION_KEY;
-        super.values = Arrays.asList(new String[] {ipAddressRange});
+        super.values = Arrays.asList(ipAddressRange);
     }
 
     /**
