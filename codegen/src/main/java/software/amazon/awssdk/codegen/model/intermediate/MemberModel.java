@@ -95,6 +95,14 @@ public class MemberModel extends DocumentationModel {
 
     private boolean xmlAttribute;
 
+    private String deprecatedName;
+
+    private String fluentDeprecatedGetterMethodName;
+
+    private String fluentDeprecatedSetterMethodName;
+
+    private String deprecatedBeanStyleSetterMethodName;
+
     public String getName() {
         return name;
     }
@@ -443,6 +451,14 @@ public class MemberModel extends DocumentationModel {
         return docBuilder.toString();
     }
 
+    public String getDeprecatedGetterDocumentation() {
+        String getterDocumentation = getGetterDocumentation();
+        return getterDocumentation
+               + LF
+               + "@deprecated Use {@link #" + getFluentGetterMethodName() + "()}"
+               + LF;
+    }
+
     private boolean returnTypeIs(Class<?> clazz) {
         String returnType = this.getGetterModel().getReturnType();
         return returnType != null && returnType.startsWith(clazz.getName()); // Use startsWith in case it's parametrized
@@ -457,6 +473,13 @@ public class MemberModel extends DocumentationModel {
 
     public String getExistenceCheckDocumentation() {
         return defaultExistenceCheck().replace("%s", name) + LF;
+    }
+
+    public String getDeprecatedSetterDocumentation() {
+        return getFluentSetterDocumentation()
+            + LF
+            + "@deprecated Use {@link #" + getFluentSetterMethodName() + "(" + setterModel.getSimpleType() + ")}"
+            + LF;
     }
 
     public String getDefaultConsumerFluentSetterDocumentation() {
@@ -589,6 +612,19 @@ public class MemberModel extends DocumentationModel {
         return this;
     }
 
+    public String getDeprecatedName() {
+        return deprecatedName;
+    }
+
+    public void setDeprecatedName(String deprecatedName) {
+        this.deprecatedName = deprecatedName;
+    }
+
+    public MemberModel withDeprecatedName(String deprecatedName) {
+        this.deprecatedName = deprecatedName;
+        return this;
+    }
+
     @JsonIgnore
     public boolean hasBuilder() {
         return !(isSimple() || isList() || isMap());
@@ -652,5 +688,29 @@ public class MemberModel extends DocumentationModel {
         }
 
         return Optional.empty();
+    }
+
+    public void setDeprecatedFluentGetterMethodName(String fluentDeprecatedGetterMethodName) {
+        this.fluentDeprecatedGetterMethodName = fluentDeprecatedGetterMethodName;
+    }
+
+    public String getDeprecatedFluentGetterMethodName() {
+        return fluentDeprecatedGetterMethodName;
+    }
+
+    public void setDeprecatedFluentSetterMethodName(String fluentDeprecatedSetterMethodName) {
+        this.fluentDeprecatedSetterMethodName = fluentDeprecatedSetterMethodName;
+    }
+
+    public String getDeprecatedFluentSetterMethodName() {
+        return fluentDeprecatedSetterMethodName;
+    }
+
+    public String getDeprecatedBeanStyleSetterMethodName() {
+        return deprecatedBeanStyleSetterMethodName;
+    }
+
+    public void setDeprecatedBeanStyleSetterMethodName(String deprecatedBeanStyleSetterMethodName) {
+        this.deprecatedBeanStyleSetterMethodName = deprecatedBeanStyleSetterMethodName;
     }
 }

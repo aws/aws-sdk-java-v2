@@ -28,6 +28,6 @@ interface MemberSetters {
 
     List<MethodSpec> fluent(TypeName returnType);
 
-    MethodSpec beanStyle();
+    List<MethodSpec> beanStyle();
 }
 
