@@ -42,7 +42,6 @@ public final class AsyncChecksumValidationInterceptor implements ExecutionInterc
     @Override
     public Optional<AsyncRequestBody> modifyAsyncHttpContent(Context.ModifyHttpRequest context,
                                                              ExecutionAttributes executionAttributes) {
-
         boolean putObjectTrailingChecksumsEnabled =
             putObjectChecksumEnabled(context.request(), ASYNC, executionAttributes, context.httpRequest());
 
@@ -58,7 +57,6 @@ public final class AsyncChecksumValidationInterceptor implements ExecutionInterc
     @Override
     public Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(Context.ModifyHttpResponse context,
                                                                           ExecutionAttributes executionAttributes) {
-
         if (getObjectChecksumEnabledPerResponse(context.request(), context.httpResponse())
             && context.responsePublisher().isPresent()) {
             long contentLength = context.httpResponse()
@@ -78,7 +76,6 @@ public final class AsyncChecksumValidationInterceptor implements ExecutionInterc
 
     @Override
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
-
         boolean putObjectChecksumsEnabled =
             putObjectChecksumEnabled(context.request(), ASYNC, executionAttributes, context.httpRequest());
 
