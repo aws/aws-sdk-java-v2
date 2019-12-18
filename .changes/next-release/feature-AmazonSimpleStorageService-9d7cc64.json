@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "description": "Updates Amazon S3 endpoints allowing you to configure your client to opt-in to using S3 with the us-east-1 regional endpoint, instead of global."
+}
