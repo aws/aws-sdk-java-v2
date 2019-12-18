@@ -131,7 +131,9 @@ public final class ChecksumsEnabledValidator {
             byte[] ssHash = Base16Lower.decode(response.eTag().replace("\"", ""));
 
             if (!Arrays.equals(digest, ssHash)) {
-                throw SdkClientException.create("Data read has a different checksum than expected.");
+                throw SdkClientException.create(
+                    String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
+                                  BinaryUtils.toHex(digest), BinaryUtils.toHex(ssHash)));
             }
         }
     }
