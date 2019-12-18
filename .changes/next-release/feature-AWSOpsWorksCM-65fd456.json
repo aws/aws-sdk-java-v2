@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS OpsWorks CM",
+    "description": "AWS OpsWorks CM now supports tagging, and tag-based access control, of servers and backups."
+}
