@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "Fixed an issue where a 'checksum mismatch' error is raised whenever a PutObject request is retried while using an async client."
-}
