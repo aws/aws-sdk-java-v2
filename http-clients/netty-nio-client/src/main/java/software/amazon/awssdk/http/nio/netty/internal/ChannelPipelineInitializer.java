@@ -53,6 +53,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final Protocol protocol;
     private final SslContext sslCtx;
     private final long clientMaxStreams;
+    private final int clientInitialWindowSize;
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
     private final URI poolKey;
@@ -60,12 +61,14 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     public ChannelPipelineInitializer(Protocol protocol,
                                       SslContext sslCtx,
                                       long clientMaxStreams,
+                                      int clientInitialWindowSize,
                                       AtomicReference<ChannelPool> channelPoolRef,
                                       NettyConfiguration configuration,
                                       URI poolKey) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
+        this.clientInitialWindowSize = clientInitialWindowSize;
         this.channelPoolRef = channelPoolRef;
         this.configuration = configuration;
         this.poolKey = poolKey;
@@ -125,7 +128,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         Http2FrameCodec codec =
             Http2FrameCodecBuilder.forClient()
                                   .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
-                                  .initialSettings(Http2Settings.defaultSettings().initialWindowSize(1_048_576))
+                                  .initialSettings(Http2Settings.defaultSettings().initialWindowSize(clientInitialWindowSize))
                                   .frameLogger(new Http2FrameLogger(LogLevel.DEBUG))
                                   .build();
 

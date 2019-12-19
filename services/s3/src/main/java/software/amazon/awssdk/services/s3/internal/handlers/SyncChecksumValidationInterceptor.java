@@ -43,7 +43,6 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
-
         if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpRequest())
             && context.requestBody().isPresent()) {
             SdkChecksum checksum = new Md5Checksum();
@@ -65,7 +64,6 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
     @Override
     public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
                                                            ExecutionAttributes executionAttributes) {
-
         if (getObjectChecksumEnabledPerResponse(context.request(), context.httpResponse())
             && context.responseBody().isPresent()) {
 

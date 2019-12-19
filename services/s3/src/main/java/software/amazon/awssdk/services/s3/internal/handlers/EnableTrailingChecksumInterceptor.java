@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class EnableTrailingChecksumInterceptor implements ExecutionInterceptor {
@@ -60,7 +61,11 @@ public final class EnableTrailingChecksumInterceptor implements ExecutionInterce
 
         if (getObjectChecksumEnabledPerResponse(context.request(), httpResponse)) {
             GetObjectResponse getResponse = (GetObjectResponse) response;
-            return getResponse.toBuilder().contentLength(getResponse.contentLength() - S3_MD5_CHECKSUM_LENGTH).build();
+            Long contentLength = getResponse.contentLength();
+            Validate.notNull(contentLength, "Service returned null 'Content-Length'.");
+            return getResponse.toBuilder()
+                              .contentLength(contentLength - S3_MD5_CHECKSUM_LENGTH)
+                              .build();
         }
 
         return response;

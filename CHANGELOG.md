@@ -1,3 +1,44 @@
+# __2.10.39__ __2019-12-19__
+## __AWS CodeStar connections__
+  - ### Features
+    - Public beta for Bitbucket Cloud support in AWS CodePipeline through integration with AWS CodeStar connections.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - You can now copy snapshots across regions using Data Lifecycle Manager (DLM). You can enable policies which, along with create, can now also copy snapshots to one or more AWS region(s). Copies can be scheduled for up to three regions from a single policy and retention periods are set for each region separately.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - We are updating the supportedRootDevices field to supportedRootDeviceTypes for DescribeInstanceTypes API to ensure that the actual value is returned, correcting a previous error in the model.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift now supports ARNs for all key GameLift resources, tagging for GameLift resource authorization management, and updated documentation that articulates GameLift's resource authorization strategy.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Amazon Lex now supports conversation logs and slot obfuscation.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Add context map to get-recommendations and get-personalized-ranking request objects to provide contextual metadata at inference time
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where a 'checksum mismatch' error is raised whenever a PutObject request is retried while using an async client.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release allows customers to add tags to Automation execution, enabling them to sort and filter executions in different ways, such as by resource, purpose, owner, or environment.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe supports job queuing for the StartTranscriptionJob API.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - `SETTINGS_INITIAL_WINDOW_SIZE` is now configurable on HTTP/2 connections opened by the Netty client using `Http2Configuration#initialWindowSize(Integer)` along with `NettyNioAsyncHttpClient.Builder#http2Configuration(Http2Configuration)`. See https://tools.ietf.org/html/rfc7540#section-6.5.2 for more information.
+
 # __2.10.38__ __2019-12-18__
 ## __AWS OpsWorks CM__
   - ### Features
