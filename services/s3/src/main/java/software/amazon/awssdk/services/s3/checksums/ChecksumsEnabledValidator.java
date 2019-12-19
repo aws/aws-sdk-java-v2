@@ -32,6 +32,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpHeaders;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor;
@@ -84,14 +86,13 @@ public final class ChecksumsEnabledValidator {
      *
      * @param expectedClientType - The expected client type for enabling checksums
      * @param executionAttributes - {@link ExecutionAttributes} to determine the actual client type
-     * @param sdkHttpHeaders A map of headers for a given request
      * @return If trailing checksums should be enabled for this request.
      */
-    public static boolean putObjectChecksumEnabled(SdkRequest request,
-                                                   ClientType expectedClientType,
-                                                   ExecutionAttributes executionAttributes,
-                                                   SdkHttpHeaders sdkHttpHeaders) {
-        if (!(request instanceof PutObjectRequest)) {
+    public static boolean shouldRecordChecksum(SdkRequest sdkRequest,
+                                               ClientType expectedClientType,
+                                               ExecutionAttributes executionAttributes,
+                                               SdkHttpRequest httpRequest) {
+        if (!(sdkRequest instanceof PutObjectRequest)) {
             return false;
         }
 
@@ -101,19 +102,31 @@ public final class ChecksumsEnabledValidator {
             return false;
         }
 
-        // S3 doesn't support trailing checksums for customer encryption
-        if (sdkHttpHeaders.firstMatchingHeader(SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
-            return false;
-        }
 
-        // S3 doesn't support trailing checksums for KMS encrypted objects
-        if (sdkHttpHeaders.firstMatchingHeader(SERVER_SIDE_ENCRYPTION_HEADER)
-                          .filter(h -> h.contains(AWS_KMS.toString()))
-                          .isPresent()) {
+        if (hasServerSideEncryptionHeader(httpRequest)) {
             return false;
         }
 
         return checksumEnabledPerConfig(executionAttributes);
+    }
+
+    public static boolean responseChecksumIsValid(SdkHttpResponse httpResponse) {
+        return !hasServerSideEncryptionHeader(httpResponse);
+    }
+
+    private static boolean hasServerSideEncryptionHeader(SdkHttpHeaders httpRequest) {
+        // S3 doesn't support trailing checksums for customer encryption
+        if (httpRequest.firstMatchingHeader(SERVER_SIDE_CUSTOMER_ENCRYPTION_HEADER).isPresent()) {
+            return true;
+        }
+
+        // S3 doesn't support trailing checksums for KMS encrypted objects
+        if (httpRequest.firstMatchingHeader(SERVER_SIDE_ENCRYPTION_HEADER)
+                       .filter(h -> h.contains(AWS_KMS.toString()))
+                       .isPresent()) {
+            return true;
+        }
+        return false;
     }
 
     /**
