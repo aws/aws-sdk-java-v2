@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon GameLift",
+    "description": "Amazon GameLift now supports ARNs for all key GameLift resources, tagging for GameLift resource authorization management, and updated documentation that articulates GameLift's resource authorization strategy."
+}
