@@ -172,7 +172,7 @@ public class AsyncChecksumValidationInterceptorTest {
             InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
 
         assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum()))
-                .hasMessage("Data read has a different checksum than expected.");
+                .hasMessageContaining("Data read has a different checksum than expected.");
     }
 
     @Test

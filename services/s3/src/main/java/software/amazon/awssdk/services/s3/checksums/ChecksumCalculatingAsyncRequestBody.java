@@ -42,6 +42,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
+        sdkChecksum.reset();
         wrapped.subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum));
     }
 
