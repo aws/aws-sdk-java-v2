@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "description": "You can now copy snapshots across regions using Data Lifecycle Manager (DLM). You can enable policies which, along with create, can now also copy snapshots to one or more AWS region(s). Copies can be scheduled for up to three regions from a single policy and retention periods are set for each region separately."
+}
