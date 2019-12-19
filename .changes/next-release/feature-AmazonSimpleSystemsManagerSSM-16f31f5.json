@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "This release allows customers to add tags to Automation execution, enabling them to sort and filter executions in different ways, such as by resource, purpose, owner, or environment."
-}

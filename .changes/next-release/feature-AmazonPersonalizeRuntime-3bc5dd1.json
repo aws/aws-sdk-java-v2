@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize Runtime",
-    "description": "Add context map to get-recommendations and get-personalized-ranking request objects to provide contextual metadata at inference time"
-}

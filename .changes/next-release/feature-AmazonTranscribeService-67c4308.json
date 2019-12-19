@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "description": "Amazon Transcribe supports job queuing for the StartTranscriptionJob API."
-}

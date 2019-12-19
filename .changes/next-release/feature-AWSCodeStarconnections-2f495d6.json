@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeStar connections",
-    "description": "Public beta for Bitbucket Cloud support in AWS CodePipeline through integration with AWS CodeStar connections."
-}
