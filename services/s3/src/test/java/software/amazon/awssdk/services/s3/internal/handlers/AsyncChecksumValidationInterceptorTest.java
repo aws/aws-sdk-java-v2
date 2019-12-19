@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -169,10 +170,18 @@ public class AsyncChecksumValidationInterceptorTest {
                                                           .build();
 
         Context.AfterUnmarshalling afterUnmarshallingContext =
-            InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
+            InterceptorContext.builder()
+                              .request(putObjectRequest)
+                              .httpRequest(sdkHttpRequest)
+                              .response(response)
+                              .httpResponse(sdkHttpResponse)
+                              .asyncRequestBody(AsyncRequestBody.fromString("Test"))
+                              .build();
 
-        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum()))
-                .hasMessageContaining("Data read has a different checksum than expected.");
+        ExecutionAttributes attributes = getExecutionAttributesWithChecksum();
+        interceptor.modifyAsyncHttpContent(afterUnmarshallingContext, attributes);
+        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, attributes))
+            .hasMessageContaining("Data read has a different checksum than expected.");
     }
 
     @Test
