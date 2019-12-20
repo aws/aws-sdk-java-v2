@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "description": "Requests that return an error response in the body of the HTTP response with a successful (200) status code will now correctly be handled as a failed request by the SDK."
+}

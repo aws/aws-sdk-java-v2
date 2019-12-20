@@ -194,9 +194,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .beginControlFlow("try")
                .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-               .addCode(protocolSpec.responseHandler(model, opModel))
-               .addCode(protocolSpec.errorResponseHandler(opModel))
-               .addCode(eventToByteBufferPublisher(opModel));
+               .addCode(protocolSpec.responseHandler(model, opModel));
+        protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
+        builder.addCode(eventToByteBufferPublisher(opModel));
 
         if (opModel.getEndpointDiscovery() != null) {
             builder.addStatement("$T cachedEndpoint = null", URI.class);

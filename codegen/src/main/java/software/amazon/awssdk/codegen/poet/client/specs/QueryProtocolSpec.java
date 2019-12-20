@@ -35,7 +35,7 @@ import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 public class QueryProtocolSpec implements ProtocolSpec {
 
     protected final PoetExtensions poetExtensions;
-    private final IntermediateModel intermediateModel;
+    protected final IntermediateModel intermediateModel;
 
     public QueryProtocolSpec(IntermediateModel intermediateModel, PoetExtensions poetExtensions) {
         this.intermediateModel = intermediateModel;
@@ -84,10 +84,12 @@ public class QueryProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock errorResponseHandler(OperationModel opModel) {
-        return CodeBlock.builder().add("\n\n$T errorResponseHandler = protocolFactory.createErrorResponseHandler();",
-                                       ParameterizedTypeName.get(HttpResponseHandler.class, AwsServiceException.class))
-                        .build();
+    public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
+        return Optional.of(
+            CodeBlock.builder()
+                     .add("\n\n$T errorResponseHandler = protocolFactory.createErrorResponseHandler();",
+                          ParameterizedTypeName.get(HttpResponseHandler.class, AwsServiceException.class))
+                     .build());
     }
 
     @Override

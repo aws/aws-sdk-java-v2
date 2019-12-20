@@ -143,14 +143,14 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock errorResponseHandler(OperationModel opModel) {
+    public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
-        return CodeBlock
-            .builder()
-            .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
-                 HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
-            .build();
+        return Optional.of(
+            CodeBlock.builder()
+                     .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
+                          HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
+                     .build());
     }
 
     @Override
