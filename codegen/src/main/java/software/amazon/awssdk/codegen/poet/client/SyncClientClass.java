@@ -167,8 +167,9 @@ public class SyncClientClass implements ClassSpec {
                                                        .addAnnotation(Override.class)
                                                        .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
                                                        .addCode(ClientClassUtils.addEndpointTraitCode(opModel))
-                                                       .addCode(protocolSpec.responseHandler(model, opModel))
-                                                       .addCode(protocolSpec.errorResponseHandler(opModel));
+                                                       .addCode(protocolSpec.responseHandler(model, opModel));
+
+        protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
 
         if (opModel.getEndpointDiscovery() != null) {
             method.addStatement("$T cachedEndpoint = null", URI.class);

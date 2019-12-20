@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOptionValidation;
+import software.amazon.awssdk.core.internal.handler.BaseAsyncClientHandler;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 
 /**
