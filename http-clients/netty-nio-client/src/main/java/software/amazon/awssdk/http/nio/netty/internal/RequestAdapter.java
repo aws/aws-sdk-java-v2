@@ -22,7 +22,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.HttpConversionUtil.ExtensionHeaderNames;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public final class RequestAdapter {
 
     private static final String HOST = "Host";
-    private static final List<String> IGNORE_HEADERS = Arrays.asList(HOST);
+    private static final List<String> IGNORE_HEADERS = Collections.singletonList(HOST);
 
     private final Protocol protocol;
 

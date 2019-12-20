@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.wa
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
+import io.netty.channel.ChannelOutboundInvoker;
 import io.netty.handler.codec.http2.Http2GoAwayFrame;
 import io.netty.handler.codec.http2.Http2StreamChannel;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
@@ -164,7 +165,7 @@ public class MultiplexedChannelRecord {
      * Close all registered child channels, and prohibit new streams from being created on this connection.
      */
     void closeChildChannels() {
-        closeAndExecuteOnChildChannels(ch -> ch.close());
+        closeAndExecuteOnChildChannels(ChannelOutboundInvoker::close);
     }
 
     /**

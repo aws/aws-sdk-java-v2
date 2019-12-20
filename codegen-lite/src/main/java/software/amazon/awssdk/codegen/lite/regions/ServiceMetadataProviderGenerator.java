@@ -86,10 +86,8 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
         Set<String> seenServices = new HashSet<>();
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> p.getServices()
                                  .keySet()
-                                 .stream()
                                  .forEach(s -> {
                                      if (!seenServices.contains(s)) {
                                          builder.add(".put($S, new $T())", s, serviceMetadataClass(s));

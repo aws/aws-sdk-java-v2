@@ -161,7 +161,7 @@ public final class S3Utilities {
         try {
             return httpRequest.getUri().toURL();
         } catch (MalformedURLException exception) {
-            throw SdkException.create(String.format("Generated URI is malformed: " + httpRequest.getUri()),
+            throw SdkException.create("Generated URI is malformed: " + httpRequest.getUri(),
                                       exception);
         }
     }

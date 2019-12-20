@@ -32,7 +32,7 @@ public final class CollectionContainsOnlyInOrder<T> extends TypeSafeMatcher<Coll
     }
 
     static <T> TypeSafeMatcher<Collection<T>> containsOnlyInOrder(List<Matcher<? extends T>> matchers) {
-        return new CollectionContainsOnlyInOrder<T>(matchers);
+        return new CollectionContainsOnlyInOrder<>(matchers);
     }
 
     @Override

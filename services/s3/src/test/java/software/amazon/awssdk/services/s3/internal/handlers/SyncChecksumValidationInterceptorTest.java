@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -198,12 +199,21 @@ public class SyncChecksumValidationInterceptorTest {
         SdkHttpRequest sdkHttpRequest = SdkHttpFullRequest.builder()
                                                           .uri(URI.create("http://localhost:8080"))
                                                           .method(SdkHttpMethod.PUT)
+                                                          .contentStreamProvider(() -> new StringInputStream("Test"))
                                                           .build();
 
         Context.AfterUnmarshalling afterUnmarshallingContext =
-            InterceptorTestUtils.afterUnmarshallingContext(putObjectRequest, sdkHttpRequest, response, sdkHttpResponse);
+            InterceptorContext.builder()
+                              .request(putObjectRequest)
+                              .httpRequest(sdkHttpRequest)
+                              .response(response)
+                              .httpResponse(sdkHttpResponse)
+                              .requestBody(RequestBody.fromString("Test"))
+                              .build();
 
-        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, getExecutionAttributesWithChecksum()))
+        ExecutionAttributes attributes = getExecutionAttributesWithChecksum();
+        interceptor.modifyHttpContent(afterUnmarshallingContext, attributes);
+        assertThatThrownBy(() -> interceptor.afterUnmarshalling(afterUnmarshallingContext, attributes))
             .hasMessageContaining("Data read has a different checksum than expected.");
     }
 

@@ -279,7 +279,7 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
         private final Map<K, V> entries;
 
         public Builder() {
-            this.entries = new HashMap<K, V>();
+            this.entries = new HashMap<>();
         }
 
         /**

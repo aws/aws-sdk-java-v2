@@ -143,7 +143,7 @@ final class AddOperations {
 
     public Map<String, OperationModel> constructOperations() {
 
-        Map<String, OperationModel> javaOperationModels = new TreeMap<String, OperationModel>();
+        Map<String, OperationModel> javaOperationModels = new TreeMap<>();
         Map<String, Shape> c2jShapes = serviceModel.getShapes();
 
         for (Map.Entry<String, Operation> entry : serviceModel.getOperations().entrySet()) {
@@ -234,6 +234,6 @@ final class AddOperations {
     }
 
     private boolean isPaginated(Operation op) {
-        return paginators.keySet().contains(op.getName()) && paginators.get(op.getName()).isValid();
+        return paginators.containsKey(op.getName()) && paginators.get(op.getName()).isValid();
     }
 }

@@ -49,7 +49,7 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
                                                                .build())
                                             .addMethod(setup());
 
-        model.simpleMethodsRequiringTesting().stream().map(o -> simpleMethodsTest(o)).forEach(builder::addMethod);
+        model.simpleMethodsRequiringTesting().stream().map(this::simpleMethodsTest).forEach(builder::addMethod);
 
         return builder.build();
     }

@@ -260,7 +260,7 @@ public final class DocumentationBuilder {
 
     private StringBuilder formatTag(StringBuilder str, String tagName, List<String> tagVals) {
         return str.append("@").append(tagName).append(" ")
-                  .append(tagVals.stream().collect(Collectors.joining(" ")))
+                  .append(String.join(" ", tagVals))
                   .append(LF);
     }
 

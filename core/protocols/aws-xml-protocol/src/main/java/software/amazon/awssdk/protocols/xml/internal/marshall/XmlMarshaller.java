@@ -24,6 +24,7 @@ import software.amazon.awssdk.protocols.core.Marshaller;
  *
  * @param <T> Type to marshall.
  */
+@FunctionalInterface
 @SdkInternalApi
 public interface XmlMarshaller<T> extends Marshaller<T> {
 

@@ -41,7 +41,7 @@ public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public Optional<Long> contentLength() {
-        return Optional.of(Long.valueOf(bytes.length));
+        return Optional.of((long) bytes.length);
     }
 
     @Override

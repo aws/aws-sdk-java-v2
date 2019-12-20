@@ -66,7 +66,7 @@ public class ArnCondition extends Condition {
     public ArnCondition(ArnComparisonType type, String key, String value) {
         super.type = type.toString();
         super.conditionKey = key;
-        super.values = Arrays.asList(new String[] {value});
+        super.values = Arrays.asList(value);
     }
 
     ;

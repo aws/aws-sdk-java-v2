@@ -19,7 +19,8 @@ import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.CHECKSUM;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.getObjectChecksumEnabledPerResponse;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.putObjectChecksumEnabled;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.responseChecksumIsValid;
+import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.shouldRecordChecksum;
 import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.validatePutObjectChecksum;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -29,6 +30,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.Md5Checksum;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -39,14 +41,16 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @SdkInternalApi
 public final class SyncChecksumValidationInterceptor implements ExecutionInterceptor {
+    private static ExecutionAttribute<Boolean> SYNC_RECORDING_CHECKSUM = new ExecutionAttribute<>("syncRecordingChecksum");
 
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
-        if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpRequest())
+        if (shouldRecordChecksum(context.request(), SYNC, executionAttributes, context.httpRequest())
             && context.requestBody().isPresent()) {
             SdkChecksum checksum = new Md5Checksum();
             executionAttributes.putAttribute(CHECKSUM, checksum);
+            executionAttributes.putAttribute(SYNC_RECORDING_CHECKSUM, true);
 
             RequestBody requestBody = context.requestBody().get();
 
@@ -84,7 +88,10 @@ public final class SyncChecksumValidationInterceptor implements ExecutionInterce
 
     @Override
     public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
-        if (putObjectChecksumEnabled(context.request(), SYNC, executionAttributes, context.httpRequest())) {
+        boolean recordingChecksum = Boolean.TRUE.equals(executionAttributes.getAttribute(SYNC_RECORDING_CHECKSUM));
+        boolean responseChecksumIsValid = responseChecksumIsValid(context.httpResponse());
+
+        if (recordingChecksum && responseChecksumIsValid) {
             validatePutObjectChecksum((PutObjectResponse) context.response(), executionAttributes);
         }
     }

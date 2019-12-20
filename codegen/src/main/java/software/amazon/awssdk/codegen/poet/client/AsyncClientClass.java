@@ -298,7 +298,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addAnnotation(Override.class)
                          .addStatement("return $T.create($L)",
                                        returnType,
-                                       config.getCreateMethodParams().stream().collect(Collectors.joining(",")))
+                                       String.join(",", config.getCreateMethodParams()))
                          .build();
     }
 }

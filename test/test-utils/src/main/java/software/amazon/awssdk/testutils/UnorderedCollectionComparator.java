@@ -54,10 +54,8 @@ public final class UnorderedCollectionComparator {
         }
 
         // Add all elements into sets to remove duplicates.
-        Set<A> setA = new HashSet<A>();
-        setA.addAll(colA);
-        Set<B> setB = new HashSet<B>();
-        setB.addAll(colB);
+        Set<A> setA = new HashSet<>(colA);
+        Set<B> setB = new HashSet<>(colB);
 
         if (setA.size() != setB.size()) {
             return false;

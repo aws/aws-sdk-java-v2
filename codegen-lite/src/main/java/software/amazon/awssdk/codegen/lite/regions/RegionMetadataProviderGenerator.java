@@ -83,7 +83,6 @@ public class RegionMetadataProviderGenerator implements PoetClass {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<Region, RegionMetadata>builder()", ImmutableMap.class);
 
         partitions.getPartitions()
-                  .stream()
                   .forEach(p -> p.getRegions()
                                  .keySet()
                                  .forEach(r -> builder.add(".put(Region.$L, new $T())", regionClass(r), regionMetadataClass(r))));
