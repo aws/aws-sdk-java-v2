@@ -1,5 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "type": "bugfix", 
-    "description": "Fixed an issue where the SDK would attempt to validate the checksum on a PutObjectRequest when S3 was returning invalid checksums. This would cause all requests to buckets with customer-managed-key service-side encryption to fail."
-}

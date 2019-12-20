@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "description": "Amazon EKS now supports restricting access to the API server public endpoint by applying CIDR blocks"
-}

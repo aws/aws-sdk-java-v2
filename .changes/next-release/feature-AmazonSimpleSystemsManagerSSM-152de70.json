@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "description": "This release updates the attachments support to include AttachmentReference source for Automation documents."
-}
