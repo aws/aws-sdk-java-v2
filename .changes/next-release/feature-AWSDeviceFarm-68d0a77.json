@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Device Farm",
+    "description": "Introduced browser testing support through AWS Device Farm"
+}
