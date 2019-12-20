@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release introduces the ability to tag key pairs, placement groups, export tasks, import image tasks, import snapshot tasks and export image tasks. You can use tags to organize and identify your resources for cost allocation."
+}
