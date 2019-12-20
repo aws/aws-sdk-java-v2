@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Service",
+    "description": "AWS Transcribe now supports vocabulary filtering that allows customers to input words to the service that they don't want to see in the output transcript."
+}
