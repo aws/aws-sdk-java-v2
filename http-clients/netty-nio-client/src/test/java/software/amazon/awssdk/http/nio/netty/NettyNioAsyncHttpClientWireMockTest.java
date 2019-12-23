@@ -130,6 +130,16 @@ public class NettyNioAsyncHttpClientWireMockTest {
     }
 
     @Test
+    public void invalidMaxPendingConnectionAcquireConfig_shouldPropagateException() {
+        try (SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConcurrency(1)
+                                                                 .maxPendingConnectionAcquires(0)
+                                                                 .build()) {
+            assertThatThrownBy(() -> makeSimpleRequest(customClient)).hasMessageContaining("java.lang.IllegalArgumentException: maxPendingAcquires: 0 (expected: >= 1)");
+        }
+    }
+
+    @Test
     public void customFactoryIsUsed() throws Exception {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         SdkAsyncHttpClient customClient =
