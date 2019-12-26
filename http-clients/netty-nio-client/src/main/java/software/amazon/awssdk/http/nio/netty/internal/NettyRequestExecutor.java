@@ -62,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
@@ -172,6 +173,9 @@ public final class NettyRequestExecutor {
         }
 
         pipeline.addLast(LastHttpContentHandler.create());
+        if (Protocol.HTTP2.equals(protocol)) {
+            pipeline.addLast(FlushOnReadHandler.getInstance());
+        }
         pipeline.addLast(new HttpStreamsClientHandler());
         pipeline.addLast(ResponseHandler.getInstance());
 

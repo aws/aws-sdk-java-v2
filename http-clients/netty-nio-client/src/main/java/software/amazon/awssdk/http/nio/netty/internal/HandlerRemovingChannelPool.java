@@ -27,6 +27,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
 
 /**
  * Removes any per request {@link ChannelHandler} from the pipeline prior to releasing
@@ -79,6 +80,7 @@ public class HandlerRemovingChannelPool implements ChannelPool {
             removeIfExists(channel.pipeline(),
                            HttpStreamsClientHandler.class,
                            LastHttpContentHandler.class,
+                           FlushOnReadHandler.class,
                            ResponseHandler.class,
                            ReadTimeoutHandler.class,
                            WriteTimeoutHandler.class);
