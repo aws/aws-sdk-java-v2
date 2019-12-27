@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.XmlAttributeTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -79,12 +80,18 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
-                List<XmlElement> element = isExplicitPayloadMember(field) ?
-                                           singletonList(root) :
-                                           root.getElementsByName(field.unmarshallLocationName());
-                if (!CollectionUtils.isNullOrEmpty(element)) {
-                    Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
-                    field.set(sdkPojo, unmarshalled);
+                if (isAttribute(field)) {
+                    root.getOptionalAttributeByName(field.unmarshallLocationName())
+                        .ifPresent(e -> field.set(sdkPojo, e));
+                } else {
+                    List<XmlElement> element = isExplicitPayloadMember(field) ?
+                                               singletonList(root) :
+                                               root.getElementsByName(field.unmarshallLocationName());
+
+                    if (!CollectionUtils.isNullOrEmpty(element)) {
+                        Object unmarshalled = unmarshaller.unmarshall(context, element, (SdkField<Object>) field);
+                        field.set(sdkPojo, unmarshalled);
+                    }
                 }
             } else {
                 Object unmarshalled = unmarshaller.unmarshall(context, null, (SdkField<Object>) field);
@@ -92,6 +99,10 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             }
         }
         return (SdkPojo) ((Buildable) sdkPojo).build();
+    }
+
+    private boolean isAttribute(SdkField<?> field) {
+        return field.containsTrait(XmlAttributeTrait.class);
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
