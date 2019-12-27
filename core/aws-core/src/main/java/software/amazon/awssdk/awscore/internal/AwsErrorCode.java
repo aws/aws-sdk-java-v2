@@ -44,6 +44,7 @@ public final class AwsErrorCode {
         throttlingErrorCodes.add("BandwidthLimitExceeded");
         throttlingErrorCodes.add("RequestThrottled");
         throttlingErrorCodes.add("RequestThrottledException");
+        throttlingErrorCodes.add("LimitExceededException");
         THROTTLING_ERROR_CODES = unmodifiableSet(throttlingErrorCodes);
 
         Set<String> definiteClockSkewErrorCodes = new HashSet<>(3);
@@ -60,6 +61,8 @@ public final class AwsErrorCode {
 
         Set<String> retryableErrorCodes = new HashSet<>(1);
         retryableErrorCodes.add("PriorRequestNotComplete");
+        retryableErrorCodes.add("RequestTimeout");
+        retryableErrorCodes.add("RequestTimeoutException");
         RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
     }
 
