@@ -8,7 +8,7 @@ install: /bin/true
 notifications:
   email:
     - github-awsforjava@amazon.com
-script: mvn -q -e install
+script: mvn -q -e install -pl :applicationinsights -am
 
 after_success:
     - bash <(curl -s https://codecov.io/bash) -F unittests
