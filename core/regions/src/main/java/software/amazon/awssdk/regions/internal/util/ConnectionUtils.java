@@ -36,8 +36,8 @@ public class ConnectionUtils {
 
     public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
-        connection.setConnectTimeout(1000 * 2);
-        connection.setReadTimeout(1000 * 5);
+        connection.setConnectTimeout(1000);
+        connection.setReadTimeout(1000);
         connection.setRequestMethod(method);
         connection.setDoOutput(true);
         headers.forEach(connection::addRequestProperty);
