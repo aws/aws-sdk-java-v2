@@ -90,7 +90,7 @@ public class EC2MetadataUtilsServer {
         if (parts.length != 3) {
             throw new RuntimeException("Bogus request: " + line);
         }
-        if (!"GET".equals(parts[0])) {
+        if (!"GET".equals(parts[0]) && !"PUT".equals(parts[0])) {
             throw new RuntimeException("Bogus verb: " + line);
         }
 
@@ -107,13 +107,13 @@ public class EC2MetadataUtilsServer {
             .startsWith("/latest/meta-data/iam/security-credentials/")) {
 
             outputIamCred(output);
-
         } else if (path.equals("/latest/dynamic/instance-identity/document")) {
             outputInstanceInfo(output);
 
         } else if (path.equals("/latest/dynamic/instance-identity/signature")) {
             outputInstanceSignature(output);
-
+        } else if (path.equals("/latest/api/token")) {
+            outputToken(output);
         } else {
             throw new RuntimeException("Unknown path: " + path);
         }
@@ -130,6 +130,18 @@ public class EC2MetadataUtilsServer {
                 return;
             }
         }
+    }
+
+    private void outputToken(PrintWriter output) {
+        String payload = "test-token";
+
+        output.println("HTTP/1.1 200 OK");
+        output.println("Connection: close");
+        output.println("Content-Length: " + payload.length());
+        output.println();
+
+        output.print(payload);
+        output.flush();
     }
 
     private void outputIamInfo(PrintWriter output) throws IOException {
