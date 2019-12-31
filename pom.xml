@@ -183,7 +183,7 @@
                         <encoding>UTF-8</encoding>
                         <forceJavacCompilerUse>true</forceJavacCompilerUse>
                         <compilerArgument>-proc:none</compilerArgument>
-                        <fork>false</fork>
+                        <fork>true</fork>
                         <compilerArgument>-proc:none</compilerArgument>
                         <excludes>
                             <exclude>software/amazon/awssdk/services/kinesis/model/SubscribeToShardEvent.java</exclude>
