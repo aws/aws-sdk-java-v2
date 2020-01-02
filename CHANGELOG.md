@@ -1,3 +1,28 @@
+# __2.10.42__ __2020-01-02__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Documentation updates for GetReservationUtilization for the Cost Explorer API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix unmarshalling for models with xml attributes. See [#1488](https://github.com/aws/aws-sdk-java-v2/issues/1488).
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - Adds waiters for ImageScanComplete and LifecyclePolicyPreviewComplete
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Documentation updates for Amazon Lex.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Certificate Authority (CA) certificate identifier to managed databases in Amazon Lightsail.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Propagate exception properly when an exception is thrown from protocol initialization.
+
 # __2.10.41__ __2019-12-23__
 ## __AWS Health APIs and Notifications__
   - ### Features
