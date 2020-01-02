@@ -34,6 +34,22 @@ public class XmlDomParserTest {
     }
 
     @Test
+    public void xmlWithAttributes_ParsedCorrectly() {
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                     + "<Struct xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"foo\" xsi:nil=\"bar\">"
+                     + " <stringMember>stringVal</stringMember>"
+                     + "</Struct>";
+        XmlElement element = XmlDomParser.parse(new StringInputStream(xml));
+        assertThat(element.elementName()).isEqualTo("Struct");
+        assertThat(element.children()).hasSize(1);
+        assertThat(element.getElementsByName("stringMember"))
+            .hasSize(1);
+        assertThat(element.attributes()).hasSize(2);
+        assertThat(element.getOptionalAttributeByName("xsi:type").get()).isEqualTo("foo");
+        assertThat(element.getOptionalAttributeByName("xsi:nil").get()).isEqualTo("bar");
+    }
+
+    @Test
     public void multipleElementsWithSameName_ParsedCorrectly() {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                      + "<Struct>"

@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.reactivex.Flowable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,8 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.nio.netty.Http2Configuration;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.Record;
@@ -80,6 +83,38 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     public void tearDown() {
         asyncClient.deleteStream(r -> r.streamName(streamName)
                                        .enforceConsumerDeletion(true)).join();
+    }
+
+    @Test
+    public void subscribeToShard_smallWindow_doesNotTimeOutReads() {
+        // We want sufficiently large records (relative to the initial window
+        // size we're choosing) so the client has to send multiple
+        // WINDOW_UPDATEs to receive them
+        for (int i = 0; i < 16; ++i) {
+            putRecord(64 * 1024);
+        }
+
+        KinesisAsyncClient smallWindowAsyncClient = KinesisAsyncClient.builder()
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                .httpClientBuilder(NettyNioAsyncHttpClient.builder()
+                    .http2Configuration(Http2Configuration.builder()
+                            .initialWindowSize(16384)
+                            .build()))
+                .build();
+
+        try {
+            smallWindowAsyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                            .shardId(shardId)
+                            .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
+                    SubscribeToShardResponseHandler.builder()
+                            .onEventStream(es -> Flowable.fromPublisher(es).forEach(e -> {}))
+                            .onResponse(this::verifyHttpMetadata)
+                            .build())
+                    .join();
+
+        } finally {
+            smallWindowAsyncClient.close();
+        }
     }
 
     @Test
@@ -178,14 +213,25 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
               .orFailAfter(Duration.ofMinutes(5));
     }
 
+
     /**
      * Puts a random record to the stream.
      *
      * @return Record data that was put.
      */
     private Optional<SdkBytes> putRecord() {
+        return putRecord(50);
+    }
+
+    /**
+     * Puts a random record to the stream.
+     *
+     * @param len The number of bytes to generate for the record.
+     * @return Record data that was put.
+     */
+    private Optional<SdkBytes> putRecord(int len) {
         try {
-            SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(50));
+            SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(len));
             asyncClient.putRecord(PutRecordRequest.builder()
                                                   .streamName(streamName)
                                                   .data(data)
