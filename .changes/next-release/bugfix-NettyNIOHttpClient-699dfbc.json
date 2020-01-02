@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO Http Client", 
-    "type": "bugfix", 
-    "description": "Propagate exception properly when an exception is thrown from protocol initialization."
-}
