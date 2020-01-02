@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lightsail",
+    "description": "This release adds support for Certificate Authority (CA) certificate identifier to managed databases in Amazon Lightsail."
+}
