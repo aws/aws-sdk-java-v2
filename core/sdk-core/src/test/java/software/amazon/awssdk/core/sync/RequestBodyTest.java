@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,5 +102,24 @@ public class RequestBodyTest {
     public void emptyBytesConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.empty();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void remainingByteBufferConstructorOnlyRemainingBytesCopied() throws IOException {
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.put(new byte[]{1, 2, 3, 4});
+        bb.flip();
+
+        bb.get();
+        bb.get();
+
+        int originalRemaining = bb.remaining();
+
+        RequestBody requestBody = RequestBody.fromRemainingByteBuffer(bb);
+
+        assertThat(requestBody.contentLength()).isEqualTo(originalRemaining);
+
+        byte[] requestBodyBytes = IoUtils.toByteArray(requestBody.contentStreamProvider().newStream());
+        assertThat(ByteBuffer.wrap(requestBodyBytes)).isEqualTo(bb);
     }
 }
