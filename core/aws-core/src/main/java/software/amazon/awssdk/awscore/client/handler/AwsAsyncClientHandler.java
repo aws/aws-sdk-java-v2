@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Async client handler for AWS SDK clients.
@@ -60,8 +61,8 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
-        ClientExecutionParams<InputT, OutputT> executionParams) {
-        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration);
+        ClientExecutionParams<InputT, OutputT> executionParams, ExecutionAttributes executionAttributes) {
+        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration, executionAttributes);
     }
 
 }

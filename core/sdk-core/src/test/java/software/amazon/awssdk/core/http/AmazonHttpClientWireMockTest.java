@@ -24,9 +24,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -84,8 +86,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
            .request(request)
            .originalRequest(NoopTestRequest.builder().build())
            .executionContext(executionContext(request))
-           .errorResponseHandler(new NullErrorResponseHandler())
-           .execute();
+           .execute(combinedSyncResponseHandler(null, new NullErrorResponseHandler()));
     }
 
     private AmazonSyncHttpClient createClient(String headerName, String headerValue) {

@@ -46,7 +46,7 @@ public interface ProtocolSpec {
 
     CodeBlock responseHandler(IntermediateModel model, OperationModel opModel);
 
-    CodeBlock errorResponseHandler(OperationModel opModel);
+    Optional<CodeBlock> errorResponseHandler(OperationModel opModel);
 
     CodeBlock executionHandler(OperationModel opModel);
 

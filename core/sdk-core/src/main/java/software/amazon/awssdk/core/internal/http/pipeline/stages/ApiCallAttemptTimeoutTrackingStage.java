@@ -21,13 +21,14 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkInterruptedException;
-import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;

@@ -168,7 +168,7 @@ public class InstanceProfileCredentialsProviderTest {
     @Test
     public void resolveCredentials_queriesTokenResource_400Error_throws() {
         thrown.expect(SdkClientException.class);
-        thrown.expectMessage("Unable to load credentials");
+        thrown.expectMessage("token");
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(400).withBody("oops")));
 

@@ -64,13 +64,19 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
-        ClientExecutionParams<InputT, OutputT> executionParams) {
-        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration);
+        ClientExecutionParams<InputT, OutputT> executionParams, ExecutionAttributes executionAttributes) {
+        return AwsClientHandlerUtils.createExecutionContext(executionParams, clientConfiguration, executionAttributes);
     }
 
     private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addCrc32Validation(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return executionParams.withResponseHandler(new Crc32ValidationResponseHandler<>(executionParams.getResponseHandler()));
+        if (executionParams.getCombinedResponseHandler() != null) {
+            return executionParams.withCombinedResponseHandler(
+                new Crc32ValidationResponseHandler<>(executionParams.getCombinedResponseHandler()));
+        } else {
+            return executionParams.withResponseHandler(
+                new Crc32ValidationResponseHandler<>(executionParams.getResponseHandler()));
+        }
     }
 
     /**

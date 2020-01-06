@@ -1,5 +1,4 @@
-**Design:** New Feature, **Status:**
-[In Development](../../../README.md)
+**Design:** New Feature, **Status:** [Public Preview](../../../../../services-custom/dynamodb-enhanced/README.md)
 
 ## Tenets (unless you know better ones)
 
@@ -38,182 +37,22 @@ including AWS's own Document and Mapper Clients.
 
 The AWS SDK for Java will add a new "enhanced DynamoDB client" that
 provides an alternative to the data-access portion of the generated
-DynamoDB APIs. Control-plane operations like "create table" will not be
-supported at launch, but may be added at a later time.
+DynamoDB APIs. Only limited control-plane operations will be available,
+specifically 'createTable'.
 
 This enhanced client will make DynamoDB easier to use for Java customers
 by:
 1. Supporting conversions between Java objects and DynamoDB items
-2. Supporting conversions between Java built-in types (eg. `Instant`)
-   and DynamoDB attribute value types
-3. Directly supporting every data-plane operation of DynamoDB
-4. Using the same verbs and nouns of DynamoDB
+2. Directly supporting every data-plane operation of DynamoDB
+3. Using the same verbs and nouns of DynamoDB
+4. Support for tests, such as the ability to create tables using the
+   same models as the data plane operations.
 
-## Implementation Overview
-
-**New Clients**
-
-Two new client classes will be added:
-`DynamoDbEnhancedClient` and `DynamoDbEnhancedAsyncClient`. These
-classes act as a wrapper around the generated `DynamoDbClient` and
-`DynamoDbAsyncClient` classes, to provide additional functionality on
-top of that which can be provided by the generated clients.
-
-```java
-DynamoDbEnhancedClient enhancedClient = 
-    DynamoDbEnhancedClient.builder()
-                          .dynamoDbClient(DynamoDbClient.create())
-                          .build();
-```
-
-**Table Abstraction**
-
-`DynamoDbEnhancedClient` provides access to `Table` and `MappedTable`,
-and `DynamoDbEnhancedAsyncClient`provides access to `AsyncTable`, and
-`AsyncMappedTable` abstractions.
-
-The operations on these "tables" match the data-plane operations in the
-low-level DynamoDB client. For example, because `DynamoDbClient.putItem`
-exists, `Table.putItem` will also exist.
-
-`Table` and `AsyncTable` work with "items", described below.
-`MappedTable` and `AsyncMappedTable` work with "objects", described
-below. `Table` and `MappedTable` returning results synchronously, and
-`AsyncTable` and `AsyncMappedTable` returning results asynchronously.
-
-```java
-Table booksTable = enhancedClient.table("books");
-booksTable.putItem(...);
-
-MappedTable mappedBooksTable = enhancedClient.mappedTable("books");
-mappedBooksTable.putItem(...);
-```
- 
-**Item Abstraction**
-
-The operations on `Table` and `AsyncTable` work on `Item`s. An `Item` is
-a user-friendly representation of the generated `Map<String,
-AttributeValue>`. `Item`s support automatic type conversion between Java
-built-in types and DynamoDB-specific `AttributeValue` types.
-
-```java
-booksTable.putItem(Item.builder()
-                       .putAttribute("isbn", "0-330-25864-8")
-                       .putAttribute("title", "The Hitchhiker's Guide to the Galaxy")
-                       .putAttribute("creationDate", Instant.now())
-                       .build());
-```
-
-The `Table` and `AsyncTable` abstractions can be seen as a replacement
-for the 1.11.x DynamoDB Document client.
-
-**Object Abstraction**
-
-The operations on `MappedTable` and `AsyncMappedTable` work on Java
-objects (at launch, Java beans). These objects are automatically
-converted by the enhanced client to the generated `Map<String,
-AttributeValue>`. It's likely that the `MappedTable` and
-`AsyncMappedTable` will use the `Table` and `AsyncTable` as an
-implementation detail.
-
-```java
-Book book = new Book();
-book.setIsbn("0-330-25864-8");
-book.setTitle("The Hitchhiker's Guide to the Galaxy");
-book.setCreationDate(Instant.now());
-mappedBooksTable.putItem(book);
-```
-
-The `MappedTable` and `AsyncMappedTable` abstractions can be seen as a
-replacement for the 1.11.x DynamoDB Mapper client.
-
-**Type Conversion**
-
-The core feature of the mapper is the ability to convert common Java
-structures (e.g. Java beans) and types (e.g. `Instant`, `Number`) into
-DynamoDB attribute values. 
-
-These conversions are performed based on the types specified by the
-customer. For example, the SDK will automatically convert any `Number`
-types specified by the customer (as an Item attribute) into a DynamoDB
-number.
-
-The customer has the ability to configure the type converters used at
-the `Item` or `DynamoDbEnhanced[Async]Client`-level. This allows the
-customer to add support for unsupported types, change the DynamoDB type
-associated with a Java type (e.g. storing an `Instant` as a DynamoDB
-string instead of a number), or to add support for custom POJO
-conversion logic (i.e. other than Java beans). This also allows the
-customer to provide a hard-coded converter for a specific object type
-that performs more efficiently than the built-in reflection-based object
-converter.
-
-## Features
-
-**Launch Features**
-
-These features are intended for inclusion at launch of the library.
-
-1. Support for all existing data plane operations: get, put, query,
-   update, scan, delete, batch get, batch put, transaction get, and
-   transaction put.
-2. Support for `[Async]Table` and `[Async]MappedTable`, as described
-   above.
-3. Support for bean-based representations in `[Async]MappedTable`.
-4. Type converters for all Java built-in types that are currently 
-   supported by [Joda Convert](https://www.joda.org/joda-convert/).
-
-| API | Feature | Development | Usability Study |
-| --- | --- | --- | --- |
-| Item | Get | Done | |
-| | Put | Done | |
-| | Query | | |
-| | Update | | |
-| | Scan | | |
-| | Delete | | |
-| | Batch Get | | |
-| | Batch Put | | |
-| | Transaction Get | | |
-| | Transaction Put | | |
-| Object | Get | | |
-| | Put | | |
-| | Query | | |
-| | Update | | |
-| | Scan | | |
-| | Delete | | |
-| | Batch Get | | |
-| | Batch Put | | |
-| | Transaction Get | | |
-| | Transaction Put | | |
-| All | Type Support | In Progress | |
-
-**Post-Launch Features**
-
-1. Support for inheritance in `[Async]MappedTable`.
-2. Support for immutable objects in `[Async]MappedTable`.
-3. Support for projection statements in `[Async]Table` and
-   `[Async]MappedTable`.
-4. Support for DynamoDB-provided API metrics (e.g. consumed capacity).
-5. A `software.amazon.aws:dynamodb-all` module that automatically
-   includes all AWS DynamoDB artifacts, to enhance client
-   discoverability.
-
-**Missing Features**
-
-These features are not intended for inclusion at launch of the library
-(but may be added at a future time).
-
-1. Support for control-plane operations, like create or delete table.
-   *Justification for exclusion:* For testing purposes, this can be done
-   through the AWS console or low-level SDK. For production purposes,
-   this should be done through the AWS CDK or cloud formation.
-2. Versioning and UUID annotations. *Justification for exclusion:* This
-   is a higher-level concern than the "type converter" goal that the
-   enhanced client is attempting to deliver on. This is a piece of
-   functionality that will be built on-top of the enhanced client, not
-   in it.
+A fully functional public preview is available for this library. See
+[DynamoDb Enhanced Public Preview
+Library](../../../../../services-custom/dynamodb-enhanced/README.md).
    
-**Requested Features**
+## Appendix A: Requested Features
 
 * [Immutable classes](https://github.com/aws/aws-sdk-java-v2/issues/35#issuecomment-315049138)
 * [Getter/setter-less fields](https://github.com/aws/aws-sdk-java/issues/547)
@@ -257,7 +96,7 @@ These features are not intended for inclusion at launch of the library
   runtime (from email)
 * Structure versioning (from email)
 
-## Appendix A: Alternative Solutions
+## Appendix B: Alternative Solutions
 
 ### Alternative Solution 1: Level 3 Storage Library
 

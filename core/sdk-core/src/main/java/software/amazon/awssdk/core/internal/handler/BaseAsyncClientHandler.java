@@ -13,36 +13,45 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.client.handler;
+package software.amazon.awssdk.core.internal.handler;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.Crc32Validation;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.core.internal.http.IdempotentAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncAfterTransmissionInterceptorCallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncStreamingResponseHandler;
+import software.amazon.awssdk.core.internal.http.async.CombinedResponseAsyncHttpResponseHandler;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
-@SdkProtectedApi
+@SdkInternalApi
 public abstract class BaseAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
     private static final Logger log = Logger.loggerFor(BaseAsyncClientHandler.class);
     private final SdkClientConfiguration clientConfiguration;
@@ -60,17 +69,22 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        ExecutionContext executionContext = createExecutionContext(executionParams);
 
-        HttpResponseHandler<OutputT> decoratedResponseHandlers =
-            decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
+        validateExecutionParams(executionParams);
+        ExecutionContext executionContext = createExecutionContext(executionParams, createInitialExecutionAttributes());
+        TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler;
 
-        TransformingAsyncResponseHandler<OutputT> asyncResponseHandler =
-            new AsyncResponseHandler<>(decoratedResponseHandlers,
-                                       crc32Validator,
-                                       executionContext.executionAttributes());
+        /* Decorate and combine provided response handlers into a single decorated response handler */
+        if (executionParams.getCombinedResponseHandler() == null) {
+            combinedResponseHandler = createDecoratedHandler(executionParams.getResponseHandler(),
+                                                             executionParams.getErrorResponseHandler(),
+                                                             executionContext);
+        } else {
+            combinedResponseHandler = createDecoratedHandler(executionParams.getCombinedResponseHandler(),
+                                                             executionContext);
+        }
 
-        return doExecute(executionParams, executionContext, asyncResponseHandler);
+        return doExecute(executionParams, executionContext, combinedResponseHandler);
     }
 
     @Override
@@ -78,26 +92,90 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
-        // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
-        // See https://github.com/aws/aws-sdk-java-v2/issues/1268
+        validateExecutionParams(executionParams);
+
+        if (executionParams.getCombinedResponseHandler() != null) {
+            // There is no support for catching errors in a body for streaming responses. Our codegen must never
+            // attempt to do this.
+            throw new IllegalArgumentException("A streaming 'asyncResponseTransformer' may not be used when a "
+                                               + "'combinedResponseHandler' has been specified in a "
+                                               + "ClientExecutionParams object.");
+        }
+
+        ExecutionAttributes executionAttributes = createInitialExecutionAttributes();
+
         AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
             new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
-        CompletableFuture<ReturnT> asyncTransformerFuture = asyncStreamingResponseHandler.prepare();
 
-        ExecutionContext context = createExecutionContext(executionParams);
-        context.executionAttributes().putAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE, asyncTransformerFuture);
+        // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
+        // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare
+        // result until the execution attempt number changes. This guarantees that prepare is only called once per
+        // execution.
+        TransformingAsyncResponseHandler<ReturnT> wrappedAsyncStreamingResponseHandler =
+            IdempotentAsyncResponseHandler.create(
+                asyncStreamingResponseHandler,
+                () -> executionAttributes.getAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT),
+                Integer::equals);
+        wrappedAsyncStreamingResponseHandler.prepare();
+
+        ExecutionContext context = createExecutionContext(executionParams, executionAttributes);
 
         HttpResponseHandler<OutputT> decoratedResponseHandlers =
             decorateResponseHandlers(executionParams.getResponseHandler(), context);
+
         asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
 
-        return doExecute(executionParams, context, asyncStreamingResponseHandler);
+        TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
+            resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
+
+        TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
+            new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
+
+        return doExecute(executionParams, context, combinedResponseHandler);
+    }
+
+    /**
+     * Combines and decorates separate success and failure response handlers into a single combined response handler
+     * that handles both cases and produces a {@link Response} object that wraps the result. The handlers are
+     * decorated with additional behavior (such as CRC32 validation).
+     */
+    private <OutputT extends SdkResponse> TransformingAsyncResponseHandler<Response<OutputT>> createDecoratedHandler(
+        HttpResponseHandler<OutputT> successHandler,
+        HttpResponseHandler<? extends SdkException> errorHandler,
+        ExecutionContext executionContext) {
+
+        HttpResponseHandler<OutputT> decoratedResponseHandlers =
+            decorateResponseHandlers(successHandler, executionContext);
+
+        TransformingAsyncResponseHandler<OutputT> decoratedSuccessHandler =
+            new AsyncResponseHandler<>(decoratedResponseHandlers,
+                                       crc32Validator,
+                                       executionContext.executionAttributes());
+
+        TransformingAsyncResponseHandler<? extends SdkException> decoratedErrorHandler =
+            resolveErrorResponseHandler(errorHandler, executionContext, crc32Validator);
+        return new CombinedResponseAsyncHttpResponseHandler<>(decoratedSuccessHandler, decoratedErrorHandler);
+    }
+
+    /**
+     * Decorates a combined response handler with additional behavior (such as CRC32 validation).
+     */
+    private <OutputT extends SdkResponse> TransformingAsyncResponseHandler<Response<OutputT>> createDecoratedHandler(
+        HttpResponseHandler<Response<OutputT>> combinedResponseHandler,
+        ExecutionContext executionContext) {
+
+        HttpResponseHandler<Response<OutputT>> decoratedResponseHandlers =
+            decorateSuccessResponseHandlers(combinedResponseHandler, executionContext);
+
+        return new AsyncResponseHandler<>(decoratedResponseHandlers,
+                                          crc32Validator,
+                                          executionContext.executionAttributes());
     }
 
     private <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> doExecute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
-        TransformingAsyncResponseHandler<ReturnT> asyncResponseHandler) {
+        TransformingAsyncResponseHandler<Response<ReturnT>> asyncResponseHandler) {
 
         try {
 
@@ -113,29 +191,23 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                                                           clientConfiguration);
 
             SdkHttpFullRequest marshalled = (SdkHttpFullRequest) finalizeSdkHttpRequestContext.httpRequest();
+            Optional<RequestBody> requestBody = finalizeSdkHttpRequestContext.requestBody();
 
             // For non-streaming requests, RequestBody can be modified in the interceptors. eg:
             // CreateMultipartUploadRequestInterceptor
-            if (!finalizeSdkHttpRequestContext.asyncRequestBody().isPresent() &&
-                finalizeSdkHttpRequestContext.requestBody().isPresent()) {
+            if (!finalizeSdkHttpRequestContext.asyncRequestBody().isPresent() && requestBody.isPresent()) {
                 marshalled = marshalled.toBuilder()
-                                       .contentStreamProvider(
-                                           finalizeSdkHttpRequestContext.requestBody().get().contentStreamProvider())
+                                       .contentStreamProvider(requestBody.get().contentStreamProvider())
                                        .build();
             }
 
-            TransformingAsyncResponseHandler<ReturnT> successResponseHandler =
-                new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(asyncResponseHandler, executionContext);
-
-            TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
-                resolveErrorResponseHandler(executionParams, executionContext, crc32Validator);
-
-            CompletableFuture<ReturnT> invokeFuture = invoke(marshalled,
-                                                             finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null),
-                                                             inputT,
-                                                             executionContext,
-                                                             successResponseHandler,
-                                                             errorHandler);
+            CompletableFuture<ReturnT> invokeFuture =
+                invoke(marshalled,
+                       finalizeSdkHttpRequestContext.asyncRequestBody().orElse(null),
+                       inputT,
+                       executionContext,
+                       new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(asyncResponseHandler,
+                                                                                     executionContext));
 
             CompletableFuture<ReturnT> exceptionTranslatedFuture = invokeFuture.handle((resp, err) -> {
                 if (err != null) {
@@ -165,14 +237,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
      * @return Async handler for error responses.
      */
     private TransformingAsyncResponseHandler<? extends SdkException> resolveErrorResponseHandler(
-        ClientExecutionParams<?, ?> executionParams,
+        HttpResponseHandler<? extends SdkException> errorHandler,
         ExecutionContext executionContext,
         Function<SdkHttpFullResponse, SdkHttpFullResponse> responseAdapter) {
-        AsyncResponseHandler<? extends SdkException> result =
-            new AsyncResponseHandler<>(executionParams.getErrorResponseHandler(),
-                                       responseAdapter,
-                                       executionContext.executionAttributes());
-        return new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(result, executionContext);
+        return new AsyncResponseHandler<>(errorHandler,
+                                          responseAdapter,
+                                          executionContext.executionAttributes());
     }
 
     /**
@@ -184,14 +254,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         AsyncRequestBody requestProvider,
         InputT originalRequest,
         ExecutionContext executionContext,
-        TransformingAsyncResponseHandler<OutputT> responseHandler,
-        TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler) {
+        TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
         return client.requestExecutionBuilder()
                      .requestProvider(requestProvider)
                      .request(request)
                      .originalRequest(originalRequest)
                      .executionContext(executionContext)
-                     .errorResponseHandler(errorResponseHandler)
                      .execute(responseHandler);
     }
 }
