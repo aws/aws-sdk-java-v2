@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Comprehend",
+    "description": "Amazon Comprehend now supports Multilabel document classification"
+}
