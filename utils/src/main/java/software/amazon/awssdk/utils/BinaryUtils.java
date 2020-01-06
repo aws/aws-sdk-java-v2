@@ -28,6 +28,7 @@ import software.amazon.awssdk.utils.internal.Base16Lower;
  */
 @SdkProtectedApi
 public final class BinaryUtils {
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     private BinaryUtils() {
     }
@@ -147,6 +148,29 @@ public final class BinaryUtils {
 
         byte[] dst = new byte[copy.remaining()];
         copy.get(dst);
+        return dst;
+    }
+
+    public static byte[] copyRemainingBytesFrom(ByteBuffer bb) {
+        if (bb == null) {
+            return null;
+        }
+
+        if (!bb.hasRemaining()) {
+            return EMPTY_BYTE_ARRAY;
+        }
+
+        if (bb.hasArray()) {
+            int endIdx = bb.arrayOffset() + bb.limit();
+            int startIdx = endIdx - bb.remaining();
+            return Arrays.copyOfRange(bb.array(), startIdx, endIdx);
+        }
+
+        ByteBuffer copy = bb.asReadOnlyBuffer();
+
+        byte[] dst = new byte[copy.remaining()];
+        copy.get(dst);
+
         return dst;
     }
 
