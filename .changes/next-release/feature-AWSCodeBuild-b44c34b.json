@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "description": "Add encryption key override to StartBuild API in AWS CodeBuild."
-}
