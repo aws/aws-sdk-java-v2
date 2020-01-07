@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub",
+    "description": "ListApplicationStates API provides a list of all application migration states"
+}
