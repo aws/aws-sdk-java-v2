@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon EC2",
-    "description": "Fix NPE when calling `CopySnapshot`. Fixes [#1564](https://github.com/aws/aws-sdk-java-v2/issues/1564)"
-}

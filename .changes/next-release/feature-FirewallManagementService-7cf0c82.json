@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Firewall Management Service",
-    "description": "AWS Firewall Manager now supports tagging, and tag-based access control, of policies."
-}
