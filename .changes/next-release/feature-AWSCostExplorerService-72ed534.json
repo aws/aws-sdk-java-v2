@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "description": "Documentation updates for CreateCostCategoryDefinition and UpdateCostCategoryDefinition API"
+}
