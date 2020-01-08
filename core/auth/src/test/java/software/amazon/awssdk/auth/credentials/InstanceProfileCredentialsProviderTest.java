@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ public class InstanceProfileCredentialsProviderTest {
     @Test
     public void resolveCredentials_queriesTokenResource_400Error_throws() {
         thrown.expect(SdkClientException.class);
-        thrown.expectMessage("Unable to load credentials");
+        thrown.expectMessage("token");
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(400).withBody("oops")));
 

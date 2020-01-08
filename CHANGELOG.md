@@ -1,3 +1,65 @@
+# __2.10.44__ __2020-01-07__
+## __AWS CodeBuild__
+  - ### Features
+    - Add encryption key override to StartBuild API in AWS CodeBuild.
+
+## __AWS Migration Hub__
+  - ### Features
+    - ListApplicationStates API provides a list of all application migration states
+
+## __AWS X-Ray__
+  - ### Features
+    - Documentation updates for xray
+
+# __2.10.43__ __2020-01-06__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - You can now restrict direct access to AWS Elemental MediaPackage by securing requests for live content using CDN authorization. With CDN authorization, content requests require a specific HTTP header and authorization code.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add `RequestBody.fromRemainingByteBuffer(ByteBuffer)` that copies only the remaining readable bytes of the buffer. See [#1534](https://github.com/aws/aws-sdk-java-v2/issues/1534)
+
+  - ### Bugfixes
+    - Reduce ReadTimeout and ConnectTimeout for accessing EC2 metadata instance service
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports Multilabel document classification
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release supports service providers configuring a private DNS name for services other than AWS services and services available in the AWS marketplace. This feature allows consumers to access the service using an existing DNS name without making changes to their applications.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Requests that return an error response in the body of the HTTP response with a successful (200) status code will now correctly be handled as a failed request by the SDK.
+
+# __2.10.42__ __2020-01-02__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Documentation updates for GetReservationUtilization for the Cost Explorer API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix unmarshalling for models with xml attributes. See [#1488](https://github.com/aws/aws-sdk-java-v2/issues/1488).
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - Adds waiters for ImageScanComplete and LifecyclePolicyPreviewComplete
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Documentation updates for Amazon Lex.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Certificate Authority (CA) certificate identifier to managed databases in Amazon Lightsail.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Propagate exception properly when an exception is thrown from protocol initialization.
+
 # __2.10.41__ __2019-12-23__
 ## __AWS Health APIs and Notifications__
   - ### Features
