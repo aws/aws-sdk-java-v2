@@ -28,7 +28,9 @@
         {"shape":"ResourceShareInvitationAlreadyRejectedException"},
         {"shape":"ResourceShareInvitationExpiredException"},
         {"shape":"ServerInternalException"},
-        {"shape":"ServiceUnavailableException"}
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"InvalidClientTokenException"},
+        {"shape":"IdempotentParameterMismatchException"}
       ],
       "documentation":"<p>Accepts an invitation to a resource share from another AWS account.</p>"
     },
@@ -56,6 +58,25 @@
       ],
       "documentation":"<p>Associates the specified resource share with the specified principals and resources.</p>"
     },
+    "AssociateResourceSharePermission":{
+      "name":"AssociateResourceSharePermission",
+      "http":{
+        "method":"POST",
+        "requestUri":"/associateresourcesharepermission"
+      },
+      "input":{"shape":"AssociateResourceSharePermissionRequest"},
+      "output":{"shape":"AssociateResourceSharePermissionResponse"},
+      "errors":[
+        {"shape":"MalformedArnException"},
+        {"shape":"UnknownResourceException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"InvalidClientTokenException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"OperationNotPermittedException"}
+      ],
+      "documentation":"<p>Associates a permission with a resource share.</p>"
+    },
     "CreateResourceShare":{
       "name":"CreateResourceShare",
       "http":{
@@ -73,6 +94,7 @@
         {"shape":"InvalidParameterException"},
         {"shape":"OperationNotPermittedException"},
         {"shape":"ResourceShareLimitExceededException"},
+        {"shape":"TagPolicyViolationException"},
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
@@ -121,6 +143,25 @@
       ],
       "documentation":"<p>Disassociates the specified principals or resources from the specified resource share.</p>"
     },
+    "DisassociateResourceSharePermission":{
+      "name":"DisassociateResourceSharePermission",
+      "http":{
+        "method":"POST",
+        "requestUri":"/disassociateresourcesharepermission"
+      },
+      "input":{"shape":"DisassociateResourceSharePermissionRequest"},
+      "output":{"shape":"DisassociateResourceSharePermissionResponse"},
+      "errors":[
+        {"shape":"MalformedArnException"},
+        {"shape":"UnknownResourceException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"InvalidClientTokenException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"OperationNotPermittedException"}
+      ],
+      "documentation":"<p>Disassociates an AWS RAM permission from a resource share.</p>"
+    },
     "EnableSharingWithAwsOrganization":{
       "name":"EnableSharingWithAwsOrganization",
       "http":{
@@ -134,7 +175,25 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Enables resource sharing within your organization.</p>"
+      "documentation":"<p>Enables resource sharing within your AWS Organization.</p> <p>The caller must be the master account for the AWS Organization.</p>"
+    },
+    "GetPermission":{
+      "name":"GetPermission",
+      "http":{
+        "method":"POST",
+        "requestUri":"/getpermission"
+      },
+      "input":{"shape":"GetPermissionRequest"},
+      "output":{"shape":"GetPermissionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"MalformedArnException"},
+        {"shape":"UnknownResourceException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"OperationNotPermittedException"}
+      ],
+      "documentation":"<p>Gets the contents of an AWS RAM permission in JSON format.</p>"
     },
     "GetResourcePolicies":{
       "name":"GetResourcePolicies",
@@ -151,7 +210,7 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Gets the policies for the specifies resources.</p>"
+      "documentation":"<p>Gets the policies for the specified resources that you own and have shared.</p>"
     },
     "GetResourceShareAssociations":{
       "name":"GetResourceShareAssociations",
@@ -170,7 +229,7 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Gets the associations for the specified resource share.</p>"
+      "documentation":"<p>Gets the resources or principals for the resource shares that you own.</p>"
     },
     "GetResourceShareInvitations":{
       "name":"GetResourceShareInvitations",
@@ -189,7 +248,7 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Gets the specified invitations for resource sharing.</p>"
+      "documentation":"<p>Gets the invitations for resource sharing that you've received.</p>"
     },
     "GetResourceShares":{
       "name":"GetResourceShares",
@@ -207,7 +266,45 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Gets the specified resource shares or all of your resource shares.</p>"
+      "documentation":"<p>Gets the resource shares that you own or the resource shares that are shared with you.</p>"
+    },
+    "ListPendingInvitationResources":{
+      "name":"ListPendingInvitationResources",
+      "http":{
+        "method":"POST",
+        "requestUri":"/listpendinginvitationresources"
+      },
+      "input":{"shape":"ListPendingInvitationResourcesRequest"},
+      "output":{"shape":"ListPendingInvitationResourcesResponse"},
+      "errors":[
+        {"shape":"MalformedArnException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ResourceShareInvitationArnNotFoundException"},
+        {"shape":"MissingRequiredParameterException"},
+        {"shape":"ResourceShareInvitationAlreadyRejectedException"},
+        {"shape":"ResourceShareInvitationExpiredException"}
+      ],
+      "documentation":"<p>Lists the resources in a resource share that is shared with you but that the invitation is still pending for.</p>"
+    },
+    "ListPermissions":{
+      "name":"ListPermissions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/listpermissions"
+      },
+      "input":{"shape":"ListPermissionsRequest"},
+      "output":{"shape":"ListPermissionsResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"OperationNotPermittedException"}
+      ],
+      "documentation":"<p>Lists the AWS RAM permissions.</p>"
     },
     "ListPrincipals":{
       "name":"ListPrincipals",
@@ -225,7 +322,26 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Lists the principals with access to the specified resource.</p>"
+      "documentation":"<p>Lists the principals that you have shared resources with or that have shared resources with you.</p>"
+    },
+    "ListResourceSharePermissions":{
+      "name":"ListResourceSharePermissions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/listresourcesharepermissions"
+      },
+      "input":{"shape":"ListResourceSharePermissionsRequest"},
+      "output":{"shape":"ListResourceSharePermissionsResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"MalformedArnException"},
+        {"shape":"UnknownResourceException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"OperationNotPermittedException"}
+      ],
+      "documentation":"<p>Lists the AWS RAM permissions that are associated with a resource share.</p>"
     },
     "ListResources":{
       "name":"ListResources",
@@ -244,7 +360,25 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Lists the resources that the specified principal can access.</p>"
+      "documentation":"<p>Lists the resources that you added to a resource shares or the resources that are shared with you.</p>"
+    },
+    "PromoteResourceShareCreatedFromPolicy":{
+      "name":"PromoteResourceShareCreatedFromPolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/promoteresourcesharecreatedfrompolicy"
+      },
+      "input":{"shape":"PromoteResourceShareCreatedFromPolicyRequest"},
+      "output":{"shape":"PromoteResourceShareCreatedFromPolicyResponse"},
+      "errors":[
+        {"shape":"MalformedArnException"},
+        {"shape":"OperationNotPermittedException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"MissingRequiredParameterException"},
+        {"shape":"ServerInternalException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Resource shares that were created by attaching a policy to a resource are visible only to the resource share owner, and the resource share cannot be modified in AWS RAM.</p> <p>Use this API action to promote the resource share. When you promote the resource share, it becomes:</p> <ul> <li> <p>Visible to all principals that it is shared with.</p> </li> <li> <p>Modifiable in AWS RAM.</p> </li> </ul>"
     },
     "RejectResourceShareInvitation":{
       "name":"RejectResourceShareInvitation",
@@ -262,7 +396,9 @@
         {"shape":"ResourceShareInvitationAlreadyRejectedException"},
         {"shape":"ResourceShareInvitationExpiredException"},
         {"shape":"ServerInternalException"},
-        {"shape":"ServiceUnavailableException"}
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"InvalidClientTokenException"},
+        {"shape":"IdempotentParameterMismatchException"}
       ],
       "documentation":"<p>Rejects an invitation to a resource share from another AWS account.</p>"
     },
@@ -279,10 +415,11 @@
         {"shape":"MalformedArnException"},
         {"shape":"TagLimitExceededException"},
         {"shape":"ResourceArnNotFoundException"},
+        {"shape":"TagPolicyViolationException"},
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Adds the specified tags to the specified resource share.</p>"
+      "documentation":"<p>Adds the specified tags to the specified resource share that you own.</p>"
     },
     "UntagResource":{
       "name":"UntagResource",
@@ -297,7 +434,7 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Removes the specified tags from the specified resource share.</p>"
+      "documentation":"<p>Removes the specified tags from the specified resource share that you own.</p>"
     },
     "UpdateResourceShare":{
       "name":"UpdateResourceShare",
@@ -318,7 +455,7 @@
         {"shape":"ServerInternalException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Updates the specified resource share.</p>"
+      "documentation":"<p>Updates the specified resource share that you own.</p>"
     }
   },
   "shapes":{
@@ -342,6 +479,44 @@
         "resourceShareInvitation":{
           "shape":"ResourceShareInvitation",
           "documentation":"<p>Information about the invitation.</p>"
+        },
+        "clientToken":{
+          "shape":"String",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        }
+      }
+    },
+    "AssociateResourceSharePermissionRequest":{
+      "type":"structure",
+      "required":[
+        "resourceShareArn",
+        "permissionArn"
+      ],
+      "members":{
+        "resourceShareArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource share.</p>"
+        },
+        "permissionArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the AWS RAM permission to associate with the resource share.</p>"
+        },
+        "replace":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the permission should replace the permissions that are currently associated with the resource share. Use <code>true</code> to replace the current permissions. Use <code>false</code> to add the permission to the current permission.</p>"
+        },
+        "clientToken":{
+          "shape":"String",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        }
+      }
+    },
+    "AssociateResourceSharePermissionResponse":{
+      "type":"structure",
+      "members":{
+        "returnValue":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the request succeeded.</p>"
         },
         "clientToken":{
           "shape":"String",
@@ -407,11 +582,15 @@
         },
         "allowExternalPrincipals":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether principals outside your organization can be associated with a resource share.</p>"
+          "documentation":"<p>Indicates whether principals outside your AWS organization can be associated with a resource share.</p>"
         },
         "clientToken":{
           "shape":"String",
           "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        },
+        "permissionArns":{
+          "shape":"PermissionArnList",
+          "documentation":"<p>The ARNs of the permissions to associate with the resource share. If you do not specify an ARN for the permission, AWS RAM automatically attaches the default version of the permission for each resource type.</p>"
         }
       }
     },
@@ -460,6 +639,40 @@
         }
       }
     },
+    "DisassociateResourceSharePermissionRequest":{
+      "type":"structure",
+      "required":[
+        "resourceShareArn",
+        "permissionArn"
+      ],
+      "members":{
+        "resourceShareArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource share.</p>"
+        },
+        "permissionArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the permission to disassociate from the resource share.</p>"
+        },
+        "clientToken":{
+          "shape":"String",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        }
+      }
+    },
+    "DisassociateResourceSharePermissionResponse":{
+      "type":"structure",
+      "members":{
+        "returnValue":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the request succeeded.</p>"
+        },
+        "clientToken":{
+          "shape":"String",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>"
+        }
+      }
+    },
     "DisassociateResourceShareRequest":{
       "type":"structure",
       "required":["resourceShareArn"],
@@ -470,7 +683,7 @@
         },
         "resourceArns":{
           "shape":"ResourceArnList",
-          "documentation":"<p>The Amazon Resource Names (ARN) of the resources.</p>"
+          "documentation":"<p>The Amazon Resource Names (ARNs) of the resources.</p>"
         },
         "principals":{
           "shape":"PrincipalArnOrIdList",
@@ -506,6 +719,29 @@
         "returnValue":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the request succeeded.</p>"
+        }
+      }
+    },
+    "GetPermissionRequest":{
+      "type":"structure",
+      "required":["permissionArn"],
+      "members":{
+        "permissionArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the permission.</p>"
+        },
+        "permissionVersion":{
+          "shape":"Integer",
+          "documentation":"<p>The identifier for the version of the permission.</p>"
+        }
+      }
+    },
+    "GetPermissionResponse":{
+      "type":"structure",
+      "members":{
+        "permission":{
+          "shape":"ResourceSharePermissionDetail",
+          "documentation":"<p>Information about the permission.</p>"
         }
       }
     },
@@ -550,7 +786,7 @@
       "members":{
         "associationType":{
           "shape":"ResourceShareAssociationType",
-          "documentation":"<p>The association type.</p>"
+          "documentation":"<p>The association type. Specify <code>PRINCIPAL</code> to list the principals that are associated with the specified resource share. Specify <code>RESOURCE</code> to list the resources that are associated with the specified resource share.</p>"
         },
         "resourceShareArns":{
           "shape":"ResourceShareArnList",
@@ -558,15 +794,15 @@
         },
         "resourceArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the resource.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource. You cannot specify this parameter if the association type is <code>PRINCIPAL</code>.</p>"
         },
         "principal":{
           "shape":"String",
-          "documentation":"<p>The principal.</p>"
+          "documentation":"<p>The principal. You cannot specify this parameter if the association type is <code>RESOURCE</code>.</p>"
         },
         "associationStatus":{
           "shape":"ResourceShareAssociationStatus",
-          "documentation":"<p>The status of the association.</p>"
+          "documentation":"<p>The association status.</p>"
         },
         "nextToken":{
           "shape":"String",
@@ -583,7 +819,7 @@
       "members":{
         "resourceShareAssociations":{
           "shape":"ResourceShareAssociationList",
-          "documentation":"<p>Information about the association.</p>"
+          "documentation":"<p>Information about the associations.</p>"
         },
         "nextToken":{
           "shape":"String",
@@ -682,6 +918,7 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "Integer":{"type":"integer"},
     "InvalidClientTokenException":{
       "type":"structure",
       "required":["message"],
@@ -742,6 +979,67 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "ListPendingInvitationResourcesRequest":{
+      "type":"structure",
+      "required":["resourceShareInvitationArn"],
+      "members":{
+        "resourceShareInvitationArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the invitation.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next page of results.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
+        }
+      }
+    },
+    "ListPendingInvitationResourcesResponse":{
+      "type":"structure",
+      "members":{
+        "resources":{
+          "shape":"ResourceList",
+          "documentation":"<p>Information about the resources included the resource share.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "ListPermissionsRequest":{
+      "type":"structure",
+      "members":{
+        "resourceType":{
+          "shape":"String",
+          "documentation":"<p>Specifies the resource type for which to list permissions. For example, to list only permissions that apply to EC2 subnets, specify <code>ec2:Subnet</code>.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next page of results.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
+        }
+      }
+    },
+    "ListPermissionsResponse":{
+      "type":"structure",
+      "members":{
+        "permissions":{
+          "shape":"ResourceSharePermissionList",
+          "documentation":"<p>Information about the permissions.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
     "ListPrincipalsRequest":{
       "type":"structure",
       "required":["resourceOwner"],
@@ -760,7 +1058,7 @@
         },
         "resourceType":{
           "shape":"String",
-          "documentation":"<p>The resource type.</p>"
+          "documentation":"<p>The resource type.</p> <p>Valid values: <code>ec2:CapacityReservation</code> | <code>ec2:Subnet</code> | <code>ec2:TrafficMirrorTarget</code> | <code>ec2:TransitGateway</code> | <code>license-manager:LicenseConfiguration</code> | <code>rds:Cluster</code> | <code>route53resolver:ResolverRule</code> I <code>resource-groups:Group</code> </p>"
         },
         "resourceShareArns":{
           "shape":"ResourceShareArnList",
@@ -789,6 +1087,37 @@
         }
       }
     },
+    "ListResourceSharePermissionsRequest":{
+      "type":"structure",
+      "required":["resourceShareArn"],
+      "members":{
+        "resourceShareArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource share.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next page of results.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
+        }
+      }
+    },
+    "ListResourceSharePermissionsResponse":{
+      "type":"structure",
+      "members":{
+        "permissions":{
+          "shape":"ResourceSharePermissionList",
+          "documentation":"<p>The permissions associated with the resource share.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
     "ListResourcesRequest":{
       "type":"structure",
       "required":["resourceOwner"],
@@ -803,7 +1132,7 @@
         },
         "resourceType":{
           "shape":"String",
-          "documentation":"<p>The resource type.</p>"
+          "documentation":"<p>The resource type.</p> <p>Valid values: <code>ec2:CapacityReservation</code> | <code>ec2:Subnet</code> | <code>ec2:TrafficMirrorTarget</code> | <code>ec2:TransitGateway</code> | <code>license-manager:LicenseConfiguration</code> | <code>rds:Cluster</code> | <code>route53resolver:ResolverRule</code> | <code>resource-groups:Group</code> </p>"
         },
         "resourceArns":{
           "shape":"ResourceArnList",
@@ -871,6 +1200,10 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "PermissionArnList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "Policy":{"type":"string"},
     "PolicyList":{
       "type":"list",
@@ -897,7 +1230,7 @@
         },
         "external":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the principal belongs to the same organization as the AWS account that owns the resource share.</p>"
+          "documentation":"<p>Indicates whether the principal belongs to the same AWS organization as the AWS account that owns the resource share.</p>"
         }
       },
       "documentation":"<p>Describes a principal for use with AWS Resource Access Manager.</p>"
@@ -909,6 +1242,27 @@
     "PrincipalList":{
       "type":"list",
       "member":{"shape":"Principal"}
+    },
+    "PromoteResourceShareCreatedFromPolicyRequest":{
+      "type":"structure",
+      "required":["resourceShareArn"],
+      "members":{
+        "resourceShareArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the resource share to promote.</p>",
+          "location":"querystring",
+          "locationName":"resourceShareArn"
+        }
+      }
+    },
+    "PromoteResourceShareCreatedFromPolicyResponse":{
+      "type":"structure",
+      "members":{
+        "returnValue":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the request succeeded.</p>"
+        }
+      }
     },
     "RejectResourceShareInvitationRequest":{
       "type":"structure",
@@ -951,6 +1305,10 @@
         "resourceShareArn":{
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the resource share.</p>"
+        },
+        "resourceGroupArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the resource group. This value is returned only if the resource is a resource group.</p>"
         },
         "status":{
           "shape":"ResourceStatus",
@@ -1013,7 +1371,7 @@
         },
         "allowExternalPrincipals":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether principals outside your organization can be associated with a resource share.</p>"
+          "documentation":"<p>Indicates whether principals outside your AWS organization can be associated with a resource share.</p>"
         },
         "status":{
           "shape":"ResourceShareStatus",
@@ -1034,6 +1392,10 @@
         "lastUpdatedTime":{
           "shape":"DateTime",
           "documentation":"<p>The time when the resource share was last updated.</p>"
+        },
+        "featureSet":{
+          "shape":"ResourceShareFeatureSet",
+          "documentation":"<p>Indicates how the resource share was created. Possible values include:</p> <ul> <li> <p> <code>CREATED_FROM_POLICY</code> - Indicates that the resource share was created from an AWS Identity and Access Management (AWS IAM) policy attached to a resource. These resource shares are visible only to the AWS account that created it. They cannot be modified in AWS RAM.</p> </li> <li> <p> <code>PROMOTING_TO_STANDARD</code> - The resource share is in the process of being promoted. For more information, see <a>PromoteResourceShareCreatedFromPolicy</a>.</p> </li> <li> <p> <code>STANDARD</code> - Indicates that the resource share was created in AWS RAM using the console or APIs. These resource shares are visible to all principals. They can be modified in AWS RAM.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Describes a resource share.</p>"
@@ -1048,6 +1410,10 @@
         "resourceShareArn":{
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the resource share.</p>"
+        },
+        "resourceShareName":{
+          "shape":"String",
+          "documentation":"<p>The name of the resource share.</p>"
         },
         "associatedEntity":{
           "shape":"String",
@@ -1075,7 +1441,7 @@
         },
         "external":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the principal belongs to the same organization as the AWS account that owns the resource share.</p>"
+          "documentation":"<p>Indicates whether the principal belongs to the same AWS organization as the AWS account that owns the resource share.</p>"
         }
       },
       "documentation":"<p>Describes an association with a resource share.</p>"
@@ -1099,6 +1465,14 @@
       "enum":[
         "PRINCIPAL",
         "RESOURCE"
+      ]
+    },
+    "ResourceShareFeatureSet":{
+      "type":"string",
+      "enum":[
+        "CREATED_FROM_POLICY",
+        "PROMOTING_TO_STANDARD",
+        "STANDARD"
       ]
     },
     "ResourceShareInvitation":{
@@ -1134,7 +1508,9 @@
         },
         "resourceShareAssociations":{
           "shape":"ResourceShareAssociationList",
-          "documentation":"<p>The resources associated with the resource share.</p>"
+          "documentation":"<p>To view the resources associated with a pending resource share invitation, use <a href=\"https://docs.aws.amazon.com/ram/latest/APIReference/API_ListPendingInvitationResources.html\"> ListPendingInvitationResources</a>.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"This member has been deprecated. Use ListPendingInvitationResources."
         }
       },
       "documentation":"<p>Describes an invitation to join a resource share.</p>"
@@ -1210,6 +1586,86 @@
       "type":"list",
       "member":{"shape":"ResourceShare"}
     },
+    "ResourceSharePermissionDetail":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the permission.</p>"
+        },
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The identifier for the version of the permission.</p>"
+        },
+        "defaultVersion":{
+          "shape":"Boolean",
+          "documentation":"<p>The identifier for the version of the permission that is set as the default version.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the permission.</p>"
+        },
+        "resourceType":{
+          "shape":"String",
+          "documentation":"<p>The resource type to which the permission applies.</p>"
+        },
+        "permission":{
+          "shape":"String",
+          "documentation":"<p>The permission's effect and actions in JSON format. The <code>effect</code> indicates whether the actions are allowed or denied. The <code>actions</code> list the API actions to which the principal is granted or denied access.</p>"
+        },
+        "creationTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time when the permission was created.</p>"
+        },
+        "lastUpdatedTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time when the permission was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Information about an AWS RAM permission.</p>"
+    },
+    "ResourceSharePermissionList":{
+      "type":"list",
+      "member":{"shape":"ResourceSharePermissionSummary"}
+    },
+    "ResourceSharePermissionSummary":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the permission.</p>"
+        },
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The identifier for the version of the permission.</p>"
+        },
+        "defaultVersion":{
+          "shape":"Boolean",
+          "documentation":"<p>The identifier for the version of the permission that is set as the default version.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the permission.</p>"
+        },
+        "resourceType":{
+          "shape":"String",
+          "documentation":"<p>The type of resource to which the permission applies.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The current status of the permission.</p>"
+        },
+        "creationTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time when the permission was created.</p>"
+        },
+        "lastUpdatedTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time when the permission was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Information about a permission that is associated with a resource share.</p>"
+    },
     "ResourceShareStatus":{
       "type":"string",
       "enum":[
@@ -1226,7 +1682,8 @@
         "AVAILABLE",
         "ZONAL_RESOURCE_INACCESSIBLE",
         "LIMIT_EXCEEDED",
-        "UNAVAILABLE"
+        "UNAVAILABLE",
+        "PENDING"
       ]
     },
     "ServerInternalException":{
@@ -1301,6 +1758,16 @@
       "type":"list",
       "member":{"shape":"Tag"}
     },
+    "TagPolicyViolationException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified tag is a reserved word and cannot be used.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TagResourceRequest":{
       "type":"structure",
       "required":[
@@ -1374,7 +1841,7 @@
         },
         "allowExternalPrincipals":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether principals outside your organization can be associated with a resource share.</p>"
+          "documentation":"<p>Indicates whether principals outside your AWS organization can be associated with a resource share.</p>"
         },
         "clientToken":{
           "shape":"String",
@@ -1396,5 +1863,5 @@
       }
     }
   },
-  "documentation":"<p>Use AWS Resource Access Manager to share AWS resources between AWS accounts. To share a resource, you create a resource share, associate the resource with the resource share, and specify the principals that can access the resource. The following principals are supported:</p> <ul> <li> <p>The ID of an AWS account</p> </li> <li> <p>The Amazon Resource Name (ARN) of an OU from AWS Organizations</p> </li> <li> <p>The Amazon Resource Name (ARN) of an organization from AWS Organizations</p> </li> </ul> <p>If you specify an AWS account that doesn't exist in the same organization as the account that owns the resource share, the owner of the specified account receives an invitation to accept the resource share. After the owner accepts the invitation, they can access the resources in the resource share. An administrator of the specified account can use IAM policies to restrict access resources in the resource share.</p>"
+  "documentation":"<p>Use AWS Resource Access Manager to share AWS resources between AWS accounts. To share a resource, you create a resource share, associate the resource with the resource share, and specify the principals that can access the resources associated with the resource share. The following principals are supported: AWS accounts, organizational units (OU) from AWS Organizations, and organizations from AWS Organizations.</p> <p>For more information, see the <a href=\"https://docs.aws.amazon.com/ram/latest/userguide/\">AWS Resource Access Manager User Guide</a>.</p>"
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,6 +41,21 @@ public enum SdkSystemSetting implements SystemSetting {
      * Configure the AWS session token.
      */
     AWS_SESSION_TOKEN("aws.sessionToken", null),
+
+    /**
+     * Configure the AWS web identity token file path.
+     */
+    AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
+
+    /**
+     * Configure the AWS role arn.
+     */
+    AWS_ROLE_ARN("aws.roleArn", null),
+
+    /**
+     * Configure the session name for a role.
+     */
+    AWS_ROLE_SESSION_NAME("aws.roleSessionName", null),
 
     /**
      * Configure the default region.
@@ -127,7 +142,14 @@ public enum SdkSystemSetting implements SystemSetting {
     /**
      * Whether endpoint discovery should be enabled.
      */
-    AWS_ENDPOINT_DISCOVERY_ENABLED("aws.endpointDiscoveryEnabled", "false");
+    AWS_ENDPOINT_DISCOVERY_ENABLED("aws.endpointDiscoveryEnabled", "false"),
+
+    /**
+     * The S3 regional endpoint setting for the {@code us-east-1} region. Setting the value to {@code regional} causes
+     * the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the {@code US_EAST_1} region instead of
+     * the global {@code s3.amazonaws.com}. Using the regional endpoint is disabled by default.
+     */
+    AWS_S3_US_EAST_1_REGIONAL_ENDPOINT(null, null);
 
     private final String systemProperty;
     private final String defaultValue;

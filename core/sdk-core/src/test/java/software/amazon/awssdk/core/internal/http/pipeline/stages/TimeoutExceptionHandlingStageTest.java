@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,18 +23,20 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.ScheduledFuture;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;

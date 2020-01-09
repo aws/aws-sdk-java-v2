@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -58,7 +59,8 @@ public final class AwsClientHandlerUtils {
 
     static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext createExecutionContext(
         ClientExecutionParams<InputT, OutputT> executionParams,
-        SdkClientConfiguration clientConfig) {
+        SdkClientConfiguration clientConfig,
+        ExecutionAttributes executionAttributes) {
 
         SdkRequest originalRequest = executionParams.getInput();
         AwsCredentialsProvider clientCredentials = clientConfig.option(AwsClientOption.CREDENTIALS_PROVIDER);
@@ -72,7 +74,7 @@ public final class AwsClientHandlerUtils {
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
-        ExecutionAttributes executionAttributes = new ExecutionAttributes()
+        executionAttributes
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
@@ -87,7 +89,8 @@ public final class AwsClientHandlerUtils {
                           clientConfig.option(SdkClientOption.METRIC_CONFIGURATION_PROVIDER))
             .putAttribute(MetricExecutionAttribute.METRIC_PUBLISHER_CONFIGURATION,
                           clientConfig.option(SdkClientOption.METRIC_PUBLISHER_CONFIGURATION))
-            ;
+            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
+                          clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -131,7 +134,7 @@ public final class AwsClientHandlerUtils {
     private static Signer computeSigner(SdkRequest originalRequest,
                                         SdkClientConfiguration clientConfiguration) {
         return originalRequest.overrideConfiguration()
-                              .flatMap(config -> config.signer())
+                              .flatMap(RequestOverrideConfiguration::signer)
                               .orElse(clientConfiguration.option(AwsAdvancedClientOption.SIGNER));
     }
 }

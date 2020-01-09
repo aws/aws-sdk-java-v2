@@ -88,7 +88,7 @@ Please keep the following in mind when considering a code contribution:
 
    Any code you submit will be released under this license. If you are
    contributing a large/substantial feature, you may be asked to sign a
-   [Contributor License Agreement (CLA)][cla].
+   Contributor License Agreement (CLA).
 * For anything but very small or quick changes, you should always start by
   checking the [Issues][issues] page to see if the work is already being done
   by another person.
@@ -165,7 +165,6 @@ when contributing to the SDK.
 [markdown]: https://guides.github.com/features/mastering-markdown/
 [issues]: https://github.com/aws/aws-sdk-java-v2/issues
 [pull-requests]: https://github.com/aws/aws-sdk-java-v2/pulls
-[cla]: https://github.com/aws/aws-cla
 [label-bug]: https://github.com/aws/aws-sdk-java-v2/labels/Bug
 [label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/Documentation%20Issue
 [label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/Feature%20Request

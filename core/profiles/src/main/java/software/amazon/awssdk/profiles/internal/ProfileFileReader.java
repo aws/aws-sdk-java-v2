@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public final class ProfileFileReader {
 
     private static final Pattern EMPTY_LINE = Pattern.compile("^[\t ]*$");
 
-    private static final Pattern VALID_IDENTIFIER = Pattern.compile("^[A-Za-z0-9_\\-]*$");
+    private static final Pattern VALID_IDENTIFIER = Pattern.compile("^[A-Za-z0-9_\\-/.%@]*$");
 
     private ProfileFileReader() {}
 
@@ -213,7 +213,7 @@ public final class ProfileFileReader {
         // If the profile name includes invalid characters, it should be ignored.
         if (!isValidIdentifier(profileName)) {
             log.warn(() -> "Ignoring profile '" + standardizedProfileName + "' on line " + state.currentLineNumber + " because " +
-                           "it was not alphanumeric with dashes or underscores.");
+                           "it was not alphanumeric with only these special characters: - / . % @ _");
             return Optional.empty();
         }
 
@@ -256,7 +256,7 @@ public final class ProfileFileReader {
         // If the profile name includes invalid characters, it should be ignored.
         if (!isValidIdentifier(propertyKey)) {
             log.warn(() -> "Ignoring property '" + propertyKey + "' on line " + state.currentLineNumber + " because " +
-                           "its name was not alphanumeric with dashes or underscores.");
+                           "its name was not alphanumeric with only these special characters: - / . % @ _");
             return Optional.empty();
         }
 
