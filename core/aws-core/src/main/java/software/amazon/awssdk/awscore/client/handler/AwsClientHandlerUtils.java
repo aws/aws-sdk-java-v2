@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
@@ -84,6 +85,10 @@ public final class AwsClientHandlerUtils {
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
+            .putAttribute(MetricExecutionAttribute.METRIC_CONFIGURATION_PROVIDER,
+                          clientConfig.option(SdkClientOption.METRIC_CONFIGURATION_PROVIDER))
+            .putAttribute(MetricExecutionAttribute.METRIC_PUBLISHER_CONFIGURATION,
+                          clientConfig.option(SdkClientOption.METRIC_PUBLISHER_CONFIGURATION))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
                           clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN));
 

@@ -138,11 +138,11 @@ public class HttpClientApiCallTimeoutTest {
                               .request(NoopTestRequest.builder().build())
                               .httpRequest(generateRequest())
                               .build();
-        return ExecutionContext.builder()
-                               .signer(new NoOpSigner())
-                               .interceptorChain(interceptors)
-                               .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(incerceptorContext)
-                               .build();
+
+        return ClientExecutionAndRequestTimerTestUtils.executionContext(null)
+                                                      .toBuilder()
+                                                      .interceptorChain(interceptors)
+                                                      .interceptorContext(incerceptorContext)
+                                                      .build();
     }
 }

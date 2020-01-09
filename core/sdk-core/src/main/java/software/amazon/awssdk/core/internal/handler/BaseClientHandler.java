@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.handler;
 
+import static software.amazon.awssdk.core.interceptor.MetricExecutionAttribute.METRIC_REGISTRY;
+
 import java.net.URI;
 import java.util.function.BiFunction;
 
@@ -31,10 +33,19 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
+import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
+import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
+import software.amazon.awssdk.metrics.registry.MetricCategoryAwareRegistry;
+import software.amazon.awssdk.metrics.registry.MetricRegistry;
+import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
@@ -66,7 +77,15 @@ public abstract class BaseClientHandler {
         SdkClientConfiguration clientConfiguration) {
 
         runBeforeMarshallingInterceptors(executionContext);
+
+        Timer marshallTimer = MetricUtils.timer(executionContext.executionAttributes()
+                                                                .getAttribute(METRIC_REGISTRY),
+                                                SdkDefaultMetric.MARSHALLING_LATENCY);
+
+        marshallTimer.start();
         SdkHttpFullRequest request = executionParams.getMarshaller().marshall(inputT);
+        marshallTimer.end();
+
         request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
 
         addHttpRequest(executionContext, request);
@@ -271,5 +290,39 @@ public abstract class BaseClientHandler {
     private static <T, R> BiFunction<T, R, T> composeResponseFunctions(BiFunction<T, R, T> function1,
                                                                        BiFunction<T, R, T> function2) {
         return (x, y) -> function2.apply(function1.apply(x, y), y);
+    }
+
+    /**
+     * Sets the metrics registry instance in execution attributes.
+     * Register some constant metrics regarding the client and the API
+     */
+    protected void initializeMetrics(ExecutionContext executionContext) {
+        MetricRegistry metricRegistry;
+        MetricConfigurationProvider metricProvider = executionContext.executionAttributes()
+                                                                     .getAttribute(MetricExecutionAttribute
+                                                                                       .METRIC_CONFIGURATION_PROVIDER);
+
+        if (metricProvider != null && metricProvider.enabled()) {
+            metricRegistry = MetricCategoryAwareRegistry.builder()
+                                                        .metricRegistry(DefaultMetricRegistry.create())
+                                                        .categories(metricProvider.metricCategories())
+                                                        .build();
+        } else {
+            metricRegistry = NoOpMetricRegistry.getInstance();
+        }
+
+        executionContext.executionAttributes().putAttribute(METRIC_REGISTRY, metricRegistry);
+
+        MetricUtils.registerConstantGauge(executionContext.executionAttributes()
+                                                          .getAttribute(SdkExecutionAttribute.SERVICE_NAME),
+                                          metricRegistry,
+                                          SdkDefaultMetric.SERVICE);
+
+        MetricUtils.registerConstantGauge(executionContext.executionAttributes()
+                                                          .getAttribute(SdkExecutionAttribute.OPERATION_NAME),
+                                          metricRegistry,
+                                          SdkDefaultMetric.OPERATION);
+
+        MetricUtils.timer(metricRegistry, SdkDefaultMetric.API_CALL).start();
     }
 }
