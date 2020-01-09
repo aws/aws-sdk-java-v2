@@ -102,12 +102,11 @@ public class AsyncHttpClientApiCallTimeoutTests {
                               .httpRequest(request)
                               .build();
 
-        ExecutionContext executionContext = ExecutionContext.builder()
-                                                            .signer(new NoOpSigner())
-                                                            .interceptorChain(interceptors)
-                                                            .executionAttributes(new ExecutionAttributes())
-                                                            .interceptorContext(incerceptorContext)
-                                                            .build();
+        ExecutionContext executionContext = ClientExecutionAndRequestTimerTestUtils.executionContext(null)
+                                                      .toBuilder()
+                                                      .interceptorChain(interceptors)
+                                                      .interceptorContext(incerceptorContext)
+                                                      .build();
 
         CompletableFuture future =
             httpClient.requestExecutionBuilder()
@@ -176,11 +175,11 @@ public class AsyncHttpClientApiCallTimeoutTests {
                               .request(NoopTestRequest.builder().build())
                               .httpRequest(generateRequest())
                               .build();
-        return ExecutionContext.builder()
-                               .signer(new NoOpSigner())
-                               .interceptorChain(interceptors)
-                               .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(incerceptorContext)
-                               .build();
+
+        return ClientExecutionAndRequestTimerTestUtils.executionContext(null)
+                                                      .toBuilder()
+                                                      .interceptorChain(interceptors)
+                                                      .interceptorContext(incerceptorContext)
+                                                      .build();
     }
 }

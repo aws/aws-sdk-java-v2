@@ -32,6 +32,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -41,8 +42,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.metrics.MetricsExecutionInterceptor;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -181,6 +184,22 @@ public class DefaultClientBuilderTest {
             });
         });
 
+    }
+
+    @Test
+    public void syncClientConfig_AlwaysHas_MetricsInterceptor_AtTheEndOfChain() {
+        TestClient client = testClientBuilder().buildClient();
+
+        List<ExecutionInterceptor> interceptors = client.clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
+        assertThat(interceptors.get(interceptors.size() - 1)).isInstanceOf(MetricsExecutionInterceptor.class);
+    }
+
+    @Test
+    public void asyncClientConfig_AlwaysHas_MetricsInterceptor_AtTheEndOfChain() {
+        TestAsyncClient client = testAsyncClientBuilder().buildClient();
+
+        List<ExecutionInterceptor> interceptors = client.clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
+        assertThat(interceptors.get(interceptors.size() - 1)).isInstanceOf(MetricsExecutionInterceptor.class);
     }
 
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
