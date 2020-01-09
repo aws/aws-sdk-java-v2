@@ -1,3 +1,20 @@
+# __2.10.46__ __2020-01-09__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Increase the priority of the AWS_WEB_IDENTITY_TOKEN_FILE/AWS_ROLE_ARN/AWS_ROLE_SESSION_NAME environment variables when loading credentials so that they are considered before web_identity_token_file/role_arn/role_session_name profile properties. This is consistent with the other AWS SDKs, including the CLI.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for sts
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation updates for logs
+
+## __Amazon S3__
+  - ### Features
+    - Add support for Tagging builder in `CreateMultipartUploadRequest`. See [#1440](https://github.com/aws/aws-sdk-java-v2/issues/1440)
+
 # __2.10.45__ __2020-01-08__
 ## __AWS Cost Explorer Service__
   - ### Features
