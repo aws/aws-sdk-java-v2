@@ -109,6 +109,11 @@ public final class InputEventTwo implements SdkPojo, Serializable, ToCopyableBui
 
     @Override
     public boolean equals(Object obj) {
+        return equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -259,4 +264,3 @@ public final class InputEventTwo implements SdkPojo, Serializable, ToCopyableBui
         }
     }
 }
-

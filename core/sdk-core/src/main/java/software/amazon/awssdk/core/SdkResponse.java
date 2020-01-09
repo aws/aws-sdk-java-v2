@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -60,6 +61,23 @@ public abstract class SdkResponse implements SdkPojo {
     }
 
     public abstract Builder toBuilder();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SdkResponse that = (SdkResponse) o;
+        return Objects.equals(sdkHttpResponse, that.sdkHttpResponse);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(sdkHttpResponse);
+    }
 
     public interface Builder {
 

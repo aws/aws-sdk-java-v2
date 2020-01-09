@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ public class ModelMethodOverrides {
         this.poetExtensions = poetExtensions;
     }
 
-    public MethodSpec equalsMethod(ShapeModel shapeModel) {
+    public MethodSpec equalsBySdkFieldsMethod(ShapeModel shapeModel) {
         ClassName className = poetExtensions.getModelClass(shapeModel.getShapeName());
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equals")
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equalsBySdkFields")
                                                      .returns(boolean.class)
                                                      .addAnnotation(Override.class)
                                                      .addModifiers(Modifier.PUBLIC)
@@ -74,6 +74,25 @@ public class ModelMethodOverrides {
             memberEqualsStmt.add(";");
         }
 
+        return methodBuilder.addCode(memberEqualsStmt.build()).build();
+    }
+
+    public MethodSpec equalsMethod(ShapeModel shapeModel) {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("equals")
+                                                     .returns(boolean.class)
+                                                     .addAnnotation(Override.class)
+                                                     .addModifiers(Modifier.PUBLIC)
+                                                     .addParameter(Object.class, "obj");
+
+
+        CodeBlock.Builder memberEqualsStmt = CodeBlock.builder();
+        memberEqualsStmt.add("return ");
+
+        if (poetExtensions.isRequest(shapeModel) || poetExtensions.isResponse(shapeModel)) {
+            memberEqualsStmt.add("super.equals(obj) && ");
+        }
+
+        memberEqualsStmt.add("equalsBySdkFields(obj);");
         return methodBuilder.addCode(memberEqualsStmt.build()).build();
     }
 
@@ -114,6 +133,11 @@ public class ModelMethodOverrides {
                                                      .addAnnotation(Override.class)
                                                      .addModifiers(Modifier.PUBLIC)
                                                      .addStatement("int hashCode = 1");
+
+
+        if (poetExtensions.isRequest(shapeModel) || poetExtensions.isResponse(shapeModel)) {
+            methodBuilder.addStatement("hashCode = 31 * hashCode + super.hashCode()");
+        }
 
         shapeModel.getNonStreamingMembers()
                   .forEach(m -> methodBuilder.addStatement(

@@ -1,0 +1,26 @@
+{
+    "version": "2.6.0",
+    "date": "2019-06-26",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Modify the types of Part#size and ObjectVersion#size from Integer to Long. This is a breaking change for customers who are using the size() method."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "description": "You can now perform tag operations on ApiGatewayV2 Resources (typically associated with WebSocket APIs)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeCommit",
+            "description": "This release supports better exception handling for merges."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO Http Client",
+            "description": "Completes the response normally when subscription is cancelled from the subscriber and not invoke `SdkAsyncHttpResponseHandler#onError` from the publisher."
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "version": "2.10.45",
+    "date": "2020-01-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "description": "This release adds a new family of APIs for asynchronous batch translation service that provides option to translate large collection of text or HTML documents stored in Amazon S3 folder. This service accepts a batch of up to 5 GB in size per API call with each document not exceeding 1 MB size and the number of documents not exceeding 1 million per batch. See documentation for more information."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "description": "AWS Firewall Manager now supports tagging, and tag-based access control, of policies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "description": "Add sfn specific http configurations. See [#1325](https://github.com/aws/aws-sdk-java-v2/issues/1325)"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon EC2",
+            "description": "Fix NPE when calling `CopySnapshot`. Fixes [#1564](https://github.com/aws/aws-sdk-java-v2/issues/1564)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "description": "Documentation updates for CreateCostCategoryDefinition and UpdateCostCategoryDefinition API"
+        }
+    ]
+}

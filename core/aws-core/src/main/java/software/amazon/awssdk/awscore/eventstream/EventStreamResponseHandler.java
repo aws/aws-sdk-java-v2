@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public interface EventStreamResponseHandler<ResponseT, EventT> {
      *
      * <p>
      * If at any time the subscriber wishes to stop receiving data, it may call {@link Subscription#cancel()}. This
-     * will be treated as a failure of the response and the {@link #exceptionOccurred(Throwable)} callback will be invoked.
+     * will <b>NOT</b> be treated as a failure of the response and the response will be completed normally.
      * </p>
      *
      * <p>This callback may never be called if the response has no content or if an error occurs.</p>
@@ -102,7 +102,8 @@ public interface EventStreamResponseHandler<ResponseT, EventT> {
         SubBuilderT onError(Consumer<Throwable> consumer);
 
         /**
-         * Action to invoke when the event stream completes.
+         * Action to invoke when the event stream completes. This will only be invoked
+         * when all events are being received.
          *
          * @param runnable Action to run on the completion of the event stream.
          * @return This builder for method chaining.

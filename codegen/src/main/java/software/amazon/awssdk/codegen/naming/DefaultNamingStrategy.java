@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -216,7 +216,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
     public String getVariableName(String name) {
         // Exclude keywords because they will not compile, and exclude reserved method names because they're frequently
         // used for local variable names.
-        if (RESERVED_KEYWORDS.contains(name) ||
+        if (isJavaKeyword(name) ||
             RESERVED_STRUCTURE_METHOD_NAMES.contains(name) ||
             RESERVED_EXCEPTION_METHOD_NAMES.contains(name)) {
             return unCapitalize(name + CONFLICTING_NAME_SUFFIX);
@@ -290,6 +290,13 @@ public class DefaultNamingStrategy implements NamingStrategy {
         String getterMethodName = Utils.unCapitalize(memberName);
         getterMethodName = rewriteInvalidMemberName(getterMethodName, parentShape);
         return getterMethodName;
+    }
+
+    @Override
+    public String getExistenceCheckMethodName(String memberName, Shape parentShape) {
+        String existenceCheckMethodName = Utils.unCapitalize(memberName);
+        existenceCheckMethodName = rewriteInvalidMemberName(existenceCheckMethodName, parentShape);
+        return String.format("has%s", Utils.capitalize(existenceCheckMethodName));
     }
 
     @Override

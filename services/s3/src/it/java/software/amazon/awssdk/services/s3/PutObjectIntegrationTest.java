@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * Integration tests for {@code PutObject}.
@@ -58,6 +60,19 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
 
         for (CloseTrackingInputStream is : provider.getCreatedStreams()) {
             assertThat(is.isClosed()).isTrue();
+        }
+    }
+
+    @Test
+    public void s3Client_usingHttpAndDisableChunkedEncoding() {
+        try (S3Client s3Client = s3ClientBuilder()
+            .endpointOverride(URI.create("http://s3.us-west-2.amazonaws.com"))
+            .serviceConfiguration(S3Configuration.builder()
+                                                 .chunkedEncodingEnabled(false)
+                                                 .build())
+            .build()) {
+            assertThat(s3Client.putObject(b -> b.bucket(BUCKET).key(KEY), RequestBody.fromBytes(
+                "helloworld".getBytes()))).isNotNull();
         }
     }
 

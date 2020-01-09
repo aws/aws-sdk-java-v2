@@ -84,6 +84,24 @@
       ],
       "documentation":"<p>Stop the service update. For more information on service updates and stopping them, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/stopping-self-service-updates.html\">Stopping Service Updates</a>.</p>"
     },
+    "CompleteMigration":{
+      "name":"CompleteMigration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CompleteMigrationMessage"},
+      "output":{
+        "shape":"CompleteMigrationResponse",
+        "resultWrapper":"CompleteMigrationResult"
+      },
+      "errors":[
+        {"shape":"ReplicationGroupNotFoundFault"},
+        {"shape":"InvalidReplicationGroupStateFault"},
+        {"shape":"ReplicationGroupNotUnderMigrationFault"}
+      ],
+      "documentation":"<p>Complete the migration of data.</p>"
+    },
     "CopySnapshot":{
       "name":"CopySnapshot",
       "http":{
@@ -103,7 +121,7 @@
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
-      "documentation":"<p>Makes a copy of an existing snapshot.</p> <note> <p>This operation is valid for Redis only.</p> </note> <important> <p>Users or groups that have permissions to use the <code>CopySnapshot</code> operation can create their own Amazon S3 buckets and copy snapshots to it. To control access to your snapshots, use an IAM policy to control who has the ability to use the <code>CopySnapshot</code> operation. For more information about using IAM to control the use of ElastiCache operations, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html\">Exporting Snapshots</a> and <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/IAM.html\">Authentication &amp; Access Control</a>.</p> </important> <p>You could receive the following error messages.</p> <p class=\"title\"> <b>Error Messages</b> </p> <ul> <li> <p> <b>Error Message:</b> The S3 bucket %s is outside of the region.</p> <p> <b>Solution:</b> Create an Amazon S3 bucket in the same region as your snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-create-s3-bucket\">Step 1: Create an Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message:</b> The S3 bucket %s does not exist.</p> <p> <b>Solution:</b> Create an Amazon S3 bucket in the same region as your snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-create-s3-bucket\">Step 1: Create an Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message:</b> The S3 bucket %s is not owned by the authenticated user.</p> <p> <b>Solution:</b> Create an Amazon S3 bucket in the same region as your snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-create-s3-bucket\">Step 1: Create an Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message:</b> The authenticated user does not have sufficient permissions to perform the desired activity.</p> <p> <b>Solution:</b> Contact your system administrator to get the needed permissions.</p> </li> <li> <p> <b>Error Message:</b> The S3 bucket %s already contains an object with key %s.</p> <p> <b>Solution:</b> Give the <code>TargetSnapshotName</code> a new and unique value. If exporting a snapshot, you could alternatively create a new Amazon S3 bucket and use this same value for <code>TargetSnapshotName</code>.</p> </li> <li> <p> <b>Error Message: </b> ElastiCache has not been granted READ permissions %s on the S3 Bucket.</p> <p> <b>Solution:</b> Add List and Read permissions on the bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access.html\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message: </b> ElastiCache has not been granted WRITE permissions %s on the S3 Bucket.</p> <p> <b>Solution:</b> Add Upload/Delete permissions on the bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access.html\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message: </b> ElastiCache has not been granted READ_ACP permissions %s on the S3 Bucket.</p> <p> <b>Solution:</b> Add View Permissions on the bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access.html\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> </ul>"
+      "documentation":"<p>Makes a copy of an existing snapshot.</p> <note> <p>This operation is valid for Redis only.</p> </note> <important> <p>Users or groups that have permissions to use the <code>CopySnapshot</code> operation can create their own Amazon S3 buckets and copy snapshots to it. To control access to your snapshots, use an IAM policy to control who has the ability to use the <code>CopySnapshot</code> operation. For more information about using IAM to control the use of ElastiCache operations, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html\">Exporting Snapshots</a> and <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/IAM.html\">Authentication &amp; Access Control</a>.</p> </important> <p>You could receive the following error messages.</p> <p class=\"title\"> <b>Error Messages</b> </p> <ul> <li> <p> <b>Error Message:</b> The S3 bucket %s is outside of the region.</p> <p> <b>Solution:</b> Create an Amazon S3 bucket in the same region as your snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-create-s3-bucket\">Step 1: Create an Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message:</b> The S3 bucket %s does not exist.</p> <p> <b>Solution:</b> Create an Amazon S3 bucket in the same region as your snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-create-s3-bucket\">Step 1: Create an Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message:</b> The S3 bucket %s is not owned by the authenticated user.</p> <p> <b>Solution:</b> Create an Amazon S3 bucket in the same region as your snapshot. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-create-s3-bucket\">Step 1: Create an Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message:</b> The authenticated user does not have sufficient permissions to perform the desired activity.</p> <p> <b>Solution:</b> Contact your system administrator to get the needed permissions.</p> </li> <li> <p> <b>Error Message:</b> The S3 bucket %s already contains an object with key %s.</p> <p> <b>Solution:</b> Give the <code>TargetSnapshotName</code> a new and unique value. If exporting a snapshot, you could alternatively create a new Amazon S3 bucket and use this same value for <code>TargetSnapshotName</code>.</p> </li> <li> <p> <b>Error Message: </b> ElastiCache has not been granted READ permissions %s on the S3 Bucket.</p> <p> <b>Solution:</b> Add List and Read permissions on the bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message: </b> ElastiCache has not been granted WRITE permissions %s on the S3 Bucket.</p> <p> <b>Solution:</b> Add Upload/Delete permissions on the bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> <li> <p> <b>Error Message: </b> ElastiCache has not been granted READ_ACP permissions %s on the S3 Bucket.</p> <p> <b>Solution:</b> Add View Permissions on the bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the ElastiCache User Guide.</p> </li> </ul>"
     },
     "CreateCacheCluster":{
       "name":"CreateCacheCluster",
@@ -220,7 +238,7 @@
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
-      "documentation":"<p>Creates a Redis (cluster mode disabled) or a Redis (cluster mode enabled) replication group.</p> <p>A Redis (cluster mode disabled) replication group is a collection of clusters, where one of the clusters is a read/write primary and the others are read-only replicas. Writes to the primary are asynchronously propagated to the replicas.</p> <p>A Redis (cluster mode enabled) replication group is a collection of 1 to 15 node groups (shards). Each node group (shard) has one read/write primary node and up to 5 read-only replica nodes. Writes to the primary are asynchronously propagated to the replicas. Redis (cluster mode enabled) replication groups partition the data across node groups (shards).</p> <p>When a Redis (cluster mode disabled) replication group has been successfully created, you can add one or more read replicas to it, up to a total of 5 read replicas. You cannot alter a Redis (cluster mode enabled) replication group after it has been created. However, if you need to increase or decrease the number of node groups (console: shards), you can avail yourself of ElastiCache for Redis' enhanced backup and restore. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-restoring.html\">Restoring From a Backup with Cluster Resizing</a> in the <i>ElastiCache User Guide</i>.</p> <note> <p>This operation is valid for Redis only.</p> </note>"
+      "documentation":"<p>Creates a Redis (cluster mode disabled) or a Redis (cluster mode enabled) replication group.</p> <p>A Redis (cluster mode disabled) replication group is a collection of clusters, where one of the clusters is a read/write primary and the others are read-only replicas. Writes to the primary are asynchronously propagated to the replicas.</p> <p>A Redis (cluster mode enabled) replication group is a collection of 1 to 90 node groups (shards). Each node group (shard) has one read/write primary node and up to 5 read-only replica nodes. Writes to the primary are asynchronously propagated to the replicas. Redis (cluster mode enabled) replication groups partition the data across node groups (shards).</p> <p>When a Redis (cluster mode disabled) replication group has been successfully created, you can add one or more read replicas to it, up to a total of 5 read replicas. You cannot alter a Redis (cluster mode enabled) replication group after it has been created. However, if you need to increase or decrease the number of node groups (console: shards), you can avail yourself of ElastiCache for Redis' enhanced backup and restore. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-restoring.html\">Restoring From a Backup with Cluster Resizing</a> in the <i>ElastiCache User Guide</i>.</p> <note> <p>This operation is valid for Redis only.</p> </note>"
     },
     "CreateSnapshot":{
       "name":"CreateSnapshot",
@@ -643,6 +661,7 @@
         {"shape":"NodeGroupsPerReplicationGroupQuotaExceededFault"},
         {"shape":"NodeQuotaForCustomerExceededFault"},
         {"shape":"NoOperationFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -665,7 +684,7 @@
         {"shape":"InvalidParameterCombinationException"},
         {"shape":"InvalidParameterValueException"}
       ],
-      "documentation":"<p>Lists all available node types that you can scale your Redis cluster's or replication group's current node type up to.</p> <p>When you use the <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code> operations to scale up your cluster or replication group, the value of the <code>CacheNodeType</code> parameter must be one of the node types returned by this operation.</p>"
+      "documentation":"<p>Lists all available node types that you can scale your Redis cluster's or replication group's current node type.</p> <p>When you use the <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code> operations to scale your cluster or replication group, the value of the <code>CacheNodeType</code> parameter must be one of the node types returned by this operation.</p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -772,6 +791,7 @@
         {"shape":"CacheSecurityGroupNotFoundFault"},
         {"shape":"CacheParameterGroupNotFoundFault"},
         {"shape":"InvalidVPCNetworkStateFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -796,6 +816,7 @@
         {"shape":"InsufficientCacheClusterCapacityFault"},
         {"shape":"NodeGroupsPerReplicationGroupQuotaExceededFault"},
         {"shape":"NodeQuotaForCustomerExceededFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -896,6 +917,25 @@
       ],
       "documentation":"<p>Revokes ingress from a cache security group. Use this operation to disallow access from an Amazon EC2 security group that had been previously authorized.</p>"
     },
+    "StartMigration":{
+      "name":"StartMigration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartMigrationMessage"},
+      "output":{
+        "shape":"StartMigrationResponse",
+        "resultWrapper":"StartMigrationResult"
+      },
+      "errors":[
+        {"shape":"ReplicationGroupNotFoundFault"},
+        {"shape":"InvalidReplicationGroupStateFault"},
+        {"shape":"ReplicationGroupAlreadyUnderMigrationFault"},
+        {"shape":"InvalidParameterValueException"}
+      ],
+      "documentation":"<p>Start the migration of data.</p>"
+    },
     "TestFailover":{
       "name":"TestFailover",
       "http":{
@@ -914,6 +954,7 @@
         {"shape":"NodeGroupNotFoundFault"},
         {"shape":"ReplicationGroupNotFoundFault"},
         {"shape":"TestFailoverNotAvailableFault"},
+        {"shape":"InvalidKMSKeyFault"},
         {"shape":"InvalidParameterValueException"},
         {"shape":"InvalidParameterCombinationException"}
       ],
@@ -970,9 +1011,27 @@
         "ScaleUpModifications":{
           "shape":"NodeTypeList",
           "documentation":"<p>A string list, each element of which specifies a cache node type which you can use to scale your cluster or replication group.</p> <p>When scaling up a Redis cluster or replication group using <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code>, use a value from this list for the <code>CacheNodeType</code> parameter.</p>"
+        },
+        "ScaleDownModifications":{
+          "shape":"NodeTypeList",
+          "documentation":"<p>A string list, each element of which specifies a cache node type which you can use to scale your cluster or replication group.</p> <p>When scaling down on a Redis cluster or replication group using <code>ModifyCacheCluster</code> or <code>ModifyReplicationGroup</code>, use a value from this list for the <code>CacheNodeType</code> parameter.</p>"
         }
       },
       "documentation":"<p>Represents the allowed node types you can use to modify your cluster or replication group.</p>"
+    },
+    "AuthTokenUpdateStatus":{
+      "type":"string",
+      "enum":[
+        "SETTING",
+        "ROTATING"
+      ]
+    },
+    "AuthTokenUpdateStrategyType":{
+      "type":"string",
+      "enum":[
+        "SET",
+        "ROTATE"
+      ]
     },
     "AuthorizationAlreadyExistsFault":{
       "type":"structure",
@@ -1057,14 +1116,15 @@
     "AwsQueryErrorMessage":{"type":"string"},
     "BatchApplyUpdateActionMessage":{
       "type":"structure",
-      "required":[
-        "ReplicationGroupIds",
-        "ServiceUpdateName"
-      ],
+      "required":["ServiceUpdateName"],
       "members":{
         "ReplicationGroupIds":{
           "shape":"ReplicationGroupIdList",
           "documentation":"<p>The replication group IDs</p>"
+        },
+        "CacheClusterIds":{
+          "shape":"CacheClusterIdList",
+          "documentation":"<p>The cache cluster IDs</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -1074,14 +1134,15 @@
     },
     "BatchStopUpdateActionMessage":{
       "type":"structure",
-      "required":[
-        "ReplicationGroupIds",
-        "ServiceUpdateName"
-      ],
+      "required":["ServiceUpdateName"],
       "members":{
         "ReplicationGroupIds":{
           "shape":"ReplicationGroupIdList",
           "documentation":"<p>The replication group IDs</p>"
+        },
+        "CacheClusterIds":{
+          "shape":"CacheClusterIdList",
+          "documentation":"<p>The cache cluster IDs</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -1183,13 +1244,17 @@
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables using an <code>AuthToken</code> (password) when issuing Redis commands.</p> <p>Default: <code>false</code> </p>"
         },
+        "AuthTokenLastModifiedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date the auth token was last modified</p>"
+        },
         "TransitEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code> or <code>4.x</code>.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
         },
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable at-rest encryption on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code> or <code>4.x</code>.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable at-rest encryption on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
         }
       },
       "documentation":"<p>Contains all of the attributes of a specific cluster.</p>",
@@ -1206,6 +1271,11 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "CacheClusterIdList":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "max":20
     },
     "CacheClusterList":{
       "type":"list",
@@ -1403,6 +1473,51 @@
       "member":{
         "shape":"CacheNodeTypeSpecificValue",
         "locationName":"CacheNodeTypeSpecificValue"
+      }
+    },
+    "CacheNodeUpdateStatus":{
+      "type":"structure",
+      "members":{
+        "CacheNodeId":{
+          "shape":"String",
+          "documentation":"<p>The node ID of the cache cluster</p>"
+        },
+        "NodeUpdateStatus":{
+          "shape":"NodeUpdateStatus",
+          "documentation":"<p>The update status of the node</p>"
+        },
+        "NodeDeletionDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The deletion date of the node</p>"
+        },
+        "NodeUpdateStartDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The start date of the update for a node</p>"
+        },
+        "NodeUpdateEndDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The end date of the update for a node</p>"
+        },
+        "NodeUpdateInitiatedBy":{
+          "shape":"NodeUpdateInitiatedBy",
+          "documentation":"<p>Reflects whether the update was initiated by the customer or automatically applied</p>"
+        },
+        "NodeUpdateInitiatedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date when the update is triggered</p>"
+        },
+        "NodeUpdateStatusModifiedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date when the NodeUpdateStatus was last modified&gt;</p>"
+        }
+      },
+      "documentation":"<p>The status of the service update on the cache node</p>"
+    },
+    "CacheNodeUpdateStatusList":{
+      "type":"list",
+      "member":{
+        "shape":"CacheNodeUpdateStatus",
+        "locationName":"CacheNodeUpdateStatus"
       }
     },
     "CacheParameterGroup":{
@@ -1765,6 +1880,26 @@
       },
       "exception":true
     },
+    "CompleteMigrationMessage":{
+      "type":"structure",
+      "required":["ReplicationGroupId"],
+      "members":{
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the replication group to which data is being migrated.</p>"
+        },
+        "Force":{
+          "shape":"Boolean",
+          "documentation":"<p>Forces the migration to stop without ensuring that data is in sync. It is recommended to use this option only to abort the migration and not recommended when application wants to continue migration to ElastiCache.</p>"
+        }
+      }
+    },
+    "CompleteMigrationResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationGroup":{"shape":"ReplicationGroup"}
+      }
+    },
     "ConfigureShard":{
       "type":"structure",
       "required":[
@@ -1805,6 +1940,10 @@
         "TargetBucket":{
           "shape":"String",
           "documentation":"<p>The Amazon S3 bucket to which the snapshot is exported. This parameter is used only when exporting a snapshot for external access.</p> <p>When using this parameter to export a snapshot, be sure Amazon ElastiCache has the needed permissions to this S3 bucket. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/backups-exporting.html#backups-exporting-grant-access\">Step 2: Grant ElastiCache Access to Your Amazon S3 Bucket</a> in the <i>Amazon ElastiCache User Guide</i>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Snapshots.Exporting.html\">Exporting a Snapshot</a> in the <i>Amazon ElastiCache User Guide</i>.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the target snapshot.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CopySnapshotMessage</code> operation.</p>"
@@ -1821,7 +1960,7 @@
       "members":{
         "CacheClusterId":{
           "shape":"String",
-          "documentation":"<p>The node group (shard) identifier. This parameter is stored as a lowercase string.</p> <p> <b>Constraints:</b> </p> <ul> <li> <p>A name must contain from 1 to 20 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
+          "documentation":"<p>The node group (shard) identifier. This parameter is stored as a lowercase string.</p> <p> <b>Constraints:</b> </p> <ul> <li> <p>A name must contain from 1 to 50 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
         },
         "ReplicationGroupId":{
           "shape":"String",
@@ -1909,7 +2048,7 @@
         },
         "AuthToken":{
           "shape":"String",
-          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@'. </p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
+          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>The only permitted printable special characters are !, &amp;, #, $, ^, &lt;, &gt;, and -. Other printable special characters cannot be used in the AUTH token.</p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
         }
       },
       "documentation":"<p>Represents the input of a CreateCacheCluster operation.</p>"
@@ -2011,7 +2150,7 @@
       "members":{
         "ReplicationGroupId":{
           "shape":"String",
-          "documentation":"<p>The replication group identifier. This parameter is stored as a lowercase string.</p> <p>Constraints:</p> <ul> <li> <p>A name must contain from 1 to 20 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
+          "documentation":"<p>The replication group identifier. This parameter is stored as a lowercase string.</p> <p>Constraints:</p> <ul> <li> <p>A name must contain from 1 to 40 alphanumeric characters or hyphens.</p> </li> <li> <p>The first character must be a letter.</p> </li> <li> <p>A name cannot end with a hyphen or contain two consecutive hyphens.</p> </li> </ul>"
         },
         "ReplicationGroupDescription":{
           "shape":"String",
@@ -2111,15 +2250,19 @@
         },
         "AuthToken":{
           "shape":"String",
-          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p> <code>AuthToken</code> can be specified only on replication groups where <code>TransitEncryptionEnabled</code> is <code>true</code>.</p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@'. </p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
+          "documentation":"<p> <b>Reserved parameter.</b> The password used to access a password protected server.</p> <p> <code>AuthToken</code> can be specified only on replication groups where <code>TransitEncryptionEnabled</code> is <code>true</code>.</p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important> <p>Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters.</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length.</p> </li> <li> <p>The only permitted printable special characters are !, &amp;, #, $, ^, &lt;, &gt;, and -. Other printable special characters cannot be used in the AUTH token.</p> </li> </ul> <p>For more information, see <a href=\"http://redis.io/commands/AUTH\">AUTH password</a> at http://redis.io/commands/AUTH.</p>"
         },
         "TransitEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p>This parameter is valid only if the <code>Engine</code> parameter is <code>redis</code>, the <code>EngineVersion</code> parameter is <code>3.2.6</code> or <code>4.x</code>, and the cluster is being created in an Amazon VPC.</p> <p>If you enable in-transit encryption, you must also specify a value for <code>CacheSubnetGroup</code>.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code> or <code>4.x</code>.</p> <p>Default: <code>false</code> </p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important>"
+          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p>This parameter is valid only if the <code>Engine</code> parameter is <code>redis</code>, the <code>EngineVersion</code> parameter is <code>3.2.6</code>, <code>4.x</code> or later, and the cluster is being created in an Amazon VPC.</p> <p>If you enable in-transit encryption, you must also specify a value for <code>CacheSubnetGroup</code>.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p> <important> <p>For HIPAA compliance, you must specify <code>TransitEncryptionEnabled</code> as <code>true</code>, an <code>AuthToken</code>, and a <code>CacheSubnetGroup</code>.</p> </important>"
         },
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables encryption at rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the replication group is created. To enable encryption at rest on a replication group you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create the replication group. </p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code> or <code>4.x</code>.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>A flag that enables encryption at rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the replication group is created. To enable encryption at rest on a replication group you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create the replication group. </p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the disk on the cluster.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CreateReplicationGroup</code> operation.</p>"
@@ -2145,6 +2288,10 @@
         "SnapshotName":{
           "shape":"String",
           "documentation":"<p>A name for the snapshot being created.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the snapshot.</p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>CreateSnapshot</code> operation.</p>"
@@ -2154,6 +2301,24 @@
       "members":{
         "Snapshot":{"shape":"Snapshot"}
       }
+    },
+    "CustomerNodeEndpoint":{
+      "type":"structure",
+      "members":{
+        "Address":{
+          "shape":"String",
+          "documentation":"<p>The address of the node endpoint</p>"
+        },
+        "Port":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The port of the node endpoint</p>"
+        }
+      },
+      "documentation":"<p>The endpoint from which data should be migrated.</p>"
+    },
+    "CustomerNodeEndpointList":{
+      "type":"list",
+      "member":{"shape":"CustomerNodeEndpoint"}
     },
     "DecreaseReplicaCountMessage":{
       "type":"structure",
@@ -2648,6 +2813,14 @@
           "shape":"ReplicationGroupIdList",
           "documentation":"<p>The replication group IDs</p>"
         },
+        "CacheClusterIds":{
+          "shape":"CacheClusterIdList",
+          "documentation":"<p>The cache cluster IDs</p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The Elasticache engine to which the update applies. Either Redis or Memcached </p>"
+        },
         "ServiceUpdateStatus":{
           "shape":"ServiceUpdateStatusList",
           "documentation":"<p>The status of the service update</p>"
@@ -2873,6 +3046,18 @@
       },
       "exception":true
     },
+    "InvalidKMSKeyFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The KMS key supplied is not valid.</p>",
+      "error":{
+        "code":"InvalidKMSKeyFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "InvalidParameterCombinationException":{
       "type":"structure",
       "members":{
@@ -3002,11 +3187,11 @@
         },
         "AZMode":{
           "shape":"AZMode",
-          "documentation":"<p>Specifies whether the new nodes in this Memcached cluster are all created in a single Availability Zone or created across multiple Availability Zones.</p> <p>Valid values: <code>single-az</code> | <code>cross-az</code>.</p> <p>This option is only supported for Memcached clusters.</p> <note> <p>You cannot specify <code>single-az</code> if the Memcached cluster already has cache nodes in different Availability Zones. If <code>cross-az</code> is specified, existing Memcached nodes remain in their current Availability Zone.</p> <p>Only newly created nodes are located in different Availability Zones. For instructions on how to move existing Memcached nodes to different Availability Zones, see the <b>Availability Zone Considerations</b> section of <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/CacheNode.Memcached.html\">Cache Node Considerations for Memcached</a>.</p> </note>"
+          "documentation":"<p>Specifies whether the new nodes in this Memcached cluster are all created in a single Availability Zone or created across multiple Availability Zones.</p> <p>Valid values: <code>single-az</code> | <code>cross-az</code>.</p> <p>This option is only supported for Memcached clusters.</p> <note> <p>You cannot specify <code>single-az</code> if the Memcached cluster already has cache nodes in different Availability Zones. If <code>cross-az</code> is specified, existing Memcached nodes remain in their current Availability Zone.</p> <p>Only newly created nodes are located in different Availability Zones. </p> </note>"
         },
         "NewAvailabilityZones":{
           "shape":"PreferredAvailabilityZoneList",
-          "documentation":"<p>The list of Availability Zones where the new Memcached cache nodes are created.</p> <p>This parameter is only valid when <code>NumCacheNodes</code> in the request is greater than the sum of the number of active cache nodes and the number of cache nodes pending creation (which may be zero). The number of Availability Zones supplied in this list must match the cache nodes being added in this request.</p> <p>This option is only supported on Memcached clusters.</p> <p>Scenarios:</p> <ul> <li> <p> <b>Scenario 1:</b> You have 3 active nodes and wish to add 2 nodes. Specify <code>NumCacheNodes=5</code> (3 + 2) and optionally specify two Availability Zones for the two new nodes.</p> </li> <li> <p> <b>Scenario 2:</b> You have 3 active nodes and 2 nodes pending creation (from the scenario 1 call) and want to add 1 more node. Specify <code>NumCacheNodes=6</code> ((3 + 2) + 1) and optionally specify an Availability Zone for the new node.</p> </li> <li> <p> <b>Scenario 3:</b> You want to cancel all pending operations. Specify <code>NumCacheNodes=3</code> to cancel all pending operations.</p> </li> </ul> <p>The Availability Zone placement of nodes pending creation cannot be modified. If you wish to cancel any nodes pending creation, add 0 nodes by setting <code>NumCacheNodes</code> to the number of current nodes.</p> <p>If <code>cross-az</code> is specified, existing Memcached nodes remain in their current Availability Zone. Only newly created nodes can be located in different Availability Zones. For guidance on how to move existing Memcached nodes to different Availability Zones, see the <b>Availability Zone Considerations</b> section of <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/CacheNode.Memcached.html\">Cache Node Considerations for Memcached</a>.</p> <p> <b>Impact of new add/remove requests upon pending requests</b> </p> <ul> <li> <p>Scenario-1</p> <ul> <li> <p>Pending Action: Delete</p> </li> <li> <p>New Request: Delete</p> </li> <li> <p>Result: The new delete, pending or immediate, replaces the pending delete.</p> </li> </ul> </li> <li> <p>Scenario-2</p> <ul> <li> <p>Pending Action: Delete</p> </li> <li> <p>New Request: Create</p> </li> <li> <p>Result: The new create, pending or immediate, replaces the pending delete.</p> </li> </ul> </li> <li> <p>Scenario-3</p> <ul> <li> <p>Pending Action: Create</p> </li> <li> <p>New Request: Delete</p> </li> <li> <p>Result: The new delete, pending or immediate, replaces the pending create.</p> </li> </ul> </li> <li> <p>Scenario-4</p> <ul> <li> <p>Pending Action: Create</p> </li> <li> <p>New Request: Create</p> </li> <li> <p>Result: The new create is added to the pending create.</p> <important> <p> <b>Important:</b> If the new create request is <b>Apply Immediately - Yes</b>, all creates are performed immediately. If the new create request is <b>Apply Immediately - No</b>, all creates are pending.</p> </important> </li> </ul> </li> </ul>"
+          "documentation":"<p>The list of Availability Zones where the new Memcached cache nodes are created.</p> <p>This parameter is only valid when <code>NumCacheNodes</code> in the request is greater than the sum of the number of active cache nodes and the number of cache nodes pending creation (which may be zero). The number of Availability Zones supplied in this list must match the cache nodes being added in this request.</p> <p>This option is only supported on Memcached clusters.</p> <p>Scenarios:</p> <ul> <li> <p> <b>Scenario 1:</b> You have 3 active nodes and wish to add 2 nodes. Specify <code>NumCacheNodes=5</code> (3 + 2) and optionally specify two Availability Zones for the two new nodes.</p> </li> <li> <p> <b>Scenario 2:</b> You have 3 active nodes and 2 nodes pending creation (from the scenario 1 call) and want to add 1 more node. Specify <code>NumCacheNodes=6</code> ((3 + 2) + 1) and optionally specify an Availability Zone for the new node.</p> </li> <li> <p> <b>Scenario 3:</b> You want to cancel all pending operations. Specify <code>NumCacheNodes=3</code> to cancel all pending operations.</p> </li> </ul> <p>The Availability Zone placement of nodes pending creation cannot be modified. If you wish to cancel any nodes pending creation, add 0 nodes by setting <code>NumCacheNodes</code> to the number of current nodes.</p> <p>If <code>cross-az</code> is specified, existing Memcached nodes remain in their current Availability Zone. Only newly created nodes can be located in different Availability Zones. For guidance on how to move existing Memcached nodes to different Availability Zones, see the <b>Availability Zone Considerations</b> section of <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/CacheNodes.SupportedTypes.html\">Cache Node Considerations for Memcached</a>.</p> <p> <b>Impact of new add/remove requests upon pending requests</b> </p> <ul> <li> <p>Scenario-1</p> <ul> <li> <p>Pending Action: Delete</p> </li> <li> <p>New Request: Delete</p> </li> <li> <p>Result: The new delete, pending or immediate, replaces the pending delete.</p> </li> </ul> </li> <li> <p>Scenario-2</p> <ul> <li> <p>Pending Action: Delete</p> </li> <li> <p>New Request: Create</p> </li> <li> <p>Result: The new create, pending or immediate, replaces the pending delete.</p> </li> </ul> </li> <li> <p>Scenario-3</p> <ul> <li> <p>Pending Action: Create</p> </li> <li> <p>New Request: Delete</p> </li> <li> <p>Result: The new delete, pending or immediate, replaces the pending create.</p> </li> </ul> </li> <li> <p>Scenario-4</p> <ul> <li> <p>Pending Action: Create</p> </li> <li> <p>New Request: Create</p> </li> <li> <p>Result: The new create is added to the pending create.</p> <important> <p> <b>Important:</b> If the new create request is <b>Apply Immediately - Yes</b>, all creates are performed immediately. If the new create request is <b>Apply Immediately - No</b>, all creates are pending.</p> </important> </li> </ul> </li> </ul>"
         },
         "CacheSecurityGroupNames":{
           "shape":"CacheSecurityGroupNameList",
@@ -3055,6 +3240,14 @@
         "CacheNodeType":{
           "shape":"String",
           "documentation":"<p>A valid cache node type that you want to scale this cluster up to.</p>"
+        },
+        "AuthToken":{
+          "shape":"String",
+          "documentation":"<p>Reserved parameter. The password used to access a password protected server. This parameter must be specified with the <code>auth-token-update</code> parameter. Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@', '%'</p> </li> </ul> <p> For more information, see AUTH password at <a href=\"http://redis.io/commands/AUTH\">AUTH</a>.</p>"
+        },
+        "AuthTokenUpdateStrategy":{
+          "shape":"AuthTokenUpdateStrategyType",
+          "documentation":"<p>Specifies the strategy to use to update the AUTH token. This parameter must be specified with the <code>auth-token</code> parameter. Possible values:</p> <ul> <li> <p>Rotate</p> </li> <li> <p>Set</p> </li> </ul> <p> For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/auth.html\">Authenticating Users with Redis AUTH</a> </p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>ModifyCacheCluster</code> operation.</p>"
@@ -3132,6 +3325,11 @@
           "shape":"BooleanOptional",
           "documentation":"<p>Determines whether a read replica is automatically promoted to read/write primary if the existing primary encounters a failure.</p> <p>Valid values: <code>true</code> | <code>false</code> </p> <p>Amazon ElastiCache for Redis does not support Multi-AZ with automatic failover on:</p> <ul> <li> <p>Redis versions earlier than 2.8.6.</p> </li> <li> <p>Redis (cluster mode disabled): T1 node types.</p> </li> <li> <p>Redis (cluster mode enabled): T1 node types.</p> </li> </ul>"
         },
+        "NodeGroupId":{
+          "shape":"String",
+          "documentation":"<p>Deprecated. This parameter is not used.</p>",
+          "deprecated":true
+        },
         "CacheSecurityGroupNames":{
           "shape":"CacheSecurityGroupNameList",
           "documentation":"<p>A list of cache security group names to authorize for the clusters in this replication group. This change is asynchronously applied as soon as possible.</p> <p>This parameter can be used only with replication group containing clusters running outside of an Amazon Virtual Private Cloud (Amazon VPC).</p> <p>Constraints: Must contain no more than 255 alphanumeric characters. Must not be <code>Default</code>.</p>"
@@ -3180,10 +3378,13 @@
           "shape":"String",
           "documentation":"<p>A valid cache node type that you want to scale this replication group to.</p>"
         },
-        "NodeGroupId":{
+        "AuthToken":{
           "shape":"String",
-          "documentation":"<p>Deprecated. This parameter is not used.</p>",
-          "deprecated":true
+          "documentation":"<p>Reserved parameter. The password used to access a password protected server. This parameter must be specified with the <code>auth-token-update-strategy </code> parameter. Password constraints:</p> <ul> <li> <p>Must be only printable ASCII characters</p> </li> <li> <p>Must be at least 16 characters and no more than 128 characters in length</p> </li> <li> <p>Cannot contain any of the following characters: '/', '\"', or '@', '%'</p> </li> </ul> <p> For more information, see AUTH password at <a href=\"http://redis.io/commands/AUTH\">AUTH</a>.</p>"
+        },
+        "AuthTokenUpdateStrategy":{
+          "shape":"AuthTokenUpdateStrategyType",
+          "documentation":"<p>Specifies the strategy to use to update the AUTH token. This parameter must be specified with the <code>auth-token</code> parameter. Possible values:</p> <ul> <li> <p>Rotate</p> </li> <li> <p>Set</p> </li> </ul> <p> For more information, see <a href=\"https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/auth.html\">Authenticating Users with Redis AUTH</a> </p>"
         }
       },
       "documentation":"<p>Represents the input of a <code>ModifyReplicationGroups</code> operation.</p>"
@@ -3252,7 +3453,7 @@
       "members":{
         "NodeGroupId":{
           "shape":"String",
-          "documentation":"<p>The identifier for the node group (shard). A Redis (cluster mode disabled) replication group contains only 1 node group; therefore, the node group ID is 0001. A Redis (cluster mode enabled) replication group contains 1 to 15 node groups numbered 0001 to 0015. Optionally, the user can provide the id for a node group. </p>"
+          "documentation":"<p>The identifier for the node group (shard). A Redis (cluster mode disabled) replication group contains only 1 node group; therefore, the node group ID is 0001. A Redis (cluster mode enabled) replication group contains 1 to 90 node groups numbered 0001 to 0090. Optionally, the user can provide the id for a node group. </p>"
         },
         "Status":{
           "shape":"String",
@@ -3436,7 +3637,7 @@
       "type":"structure",
       "members":{
       },
-      "documentation":"<p>The request cannot be processed because it would exceed the maximum allowed number of node groups (shards) in a single replication group. The default maximum is 15</p>",
+      "documentation":"<p>The request cannot be processed because it would exceed the maximum allowed number of node groups (shards) in a single replication group. The default maximum is 90</p>",
       "error":{
         "code":"NodeGroupsPerReplicationGroupQuotaExceeded",
         "httpStatusCode":400,
@@ -3655,6 +3856,10 @@
         "CacheNodeType":{
           "shape":"String",
           "documentation":"<p>The cache node type that this cluster or replication group is scaled to.</p>"
+        },
+        "AuthTokenStatus":{
+          "shape":"AuthTokenUpdateStatus",
+          "documentation":"<p>The auth token status</p>"
         }
       },
       "documentation":"<p>A group of settings that are applied to the cluster in the future, or that are currently being applied.</p>"
@@ -3672,6 +3877,10 @@
         "ReplicationGroupId":{
           "shape":"String",
           "documentation":"<p>The ID of the replication group</p>"
+        },
+        "CacheClusterId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the cache cluster</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -3850,13 +4059,21 @@
           "shape":"BooleanOptional",
           "documentation":"<p>A flag that enables using an <code>AuthToken</code> (password) when issuing Redis commands.</p> <p>Default: <code>false</code> </p>"
         },
+        "AuthTokenLastModifiedDate":{
+          "shape":"TStamp",
+          "documentation":"<p>The date the auth token was last modified</p>"
+        },
         "TransitEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code> or <code>4.x</code>.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>A flag that enables in-transit encryption when set to <code>true</code>.</p> <p>You cannot modify the value of <code>TransitEncryptionEnabled</code> after the cluster is created. To enable in-transit encryption on a cluster you must set <code>TransitEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
         },
         "AtRestEncryptionEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable encryption at-rest on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code> or <code>4.x</code>.</p> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>A flag that enables encryption at-rest when set to <code>true</code>.</p> <p>You cannot modify the value of <code>AtRestEncryptionEnabled</code> after the cluster is created. To enable encryption at-rest on a cluster you must set <code>AtRestEncryptionEnabled</code> to <code>true</code> when you create a cluster.</p> <p> <b>Required:</b> Only available when creating a replication group in an Amazon VPC using redis version <code>3.2.6</code>, <code>4.x</code> or later.</p> <p>Default: <code>false</code> </p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the disk in the cluster.</p>"
         }
       },
       "documentation":"<p>Contains all of the attributes of a specific Redis replication group.</p>",
@@ -3869,6 +4086,18 @@
       "documentation":"<p>The specified replication group already exists.</p>",
       "error":{
         "code":"ReplicationGroupAlreadyExists",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "ReplicationGroupAlreadyUnderMigrationFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The targeted replication group is not available. </p>",
+      "error":{
+        "code":"ReplicationGroupAlreadyUnderMigrationFault",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -3912,6 +4141,18 @@
       },
       "exception":true
     },
+    "ReplicationGroupNotUnderMigrationFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The designated replication group is not available for data migration.</p>",
+      "error":{
+        "code":"ReplicationGroupNotUnderMigrationFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "ReplicationGroupPendingModifiedValues":{
       "type":"structure",
       "members":{
@@ -3926,6 +4167,10 @@
         "Resharding":{
           "shape":"ReshardingStatus",
           "documentation":"<p>The status of an online resharding operation.</p>"
+        },
+        "AuthTokenStatus":{
+          "shape":"AuthTokenUpdateStatus",
+          "documentation":"<p>The auth token status</p>"
         }
       },
       "documentation":"<p>The settings to be applied to the Redis replication group, either immediately or during the next maintenance window.</p>"
@@ -4271,11 +4516,11 @@
         },
         "Engine":{
           "shape":"String",
-          "documentation":"<p>The Redis engine to which the service update applies</p>"
+          "documentation":"<p>The Elasticache engine to which the update applies. Either Redis or Memcached</p>"
         },
         "EngineVersion":{
           "shape":"String",
-          "documentation":"<p>The Redis engine version to which the service update applies</p>"
+          "documentation":"<p>The Elasticache engine version to which the update applies. Either Redis or Memcached engine version</p>"
         },
         "AutoUpdateAfterRecommendedApplyByDate":{
           "shape":"BooleanOptional",
@@ -4462,6 +4707,10 @@
         "NodeSnapshots":{
           "shape":"NodeSnapshotList",
           "documentation":"<p>A list of the cache nodes in the source cluster.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the KMS key used to encrypt the snapshot.</p>"
         }
       },
       "documentation":"<p>Represents a copy of an entire Redis cluster as of the time when the snapshot was taken.</p>",
@@ -4538,6 +4787,29 @@
         "cache-subnet-group",
         "replication-group"
       ]
+    },
+    "StartMigrationMessage":{
+      "type":"structure",
+      "required":[
+        "ReplicationGroupId",
+        "CustomerNodeEndpointList"
+      ],
+      "members":{
+        "ReplicationGroupId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the replication group to which data should be migrated.</p>"
+        },
+        "CustomerNodeEndpointList":{
+          "shape":"CustomerNodeEndpointList",
+          "documentation":"<p>List of endpoints from which data should be migrated. For Redis (cluster mode disabled), list should have only one element.</p>"
+        }
+      }
+    },
+    "StartMigrationResponse":{
+      "type":"structure",
+      "members":{
+        "ReplicationGroup":{"shape":"ReplicationGroup"}
+      }
     },
     "String":{"type":"string"},
     "Subnet":{
@@ -4692,6 +4964,10 @@
           "shape":"String",
           "documentation":"<p>The replication group ID</p>"
         },
+        "CacheClusterId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the cache cluster</p>"
+        },
         "ServiceUpdateName":{
           "shape":"String",
           "documentation":"<p>The unique ID of the service update</p>"
@@ -4720,6 +4996,10 @@
         "ReplicationGroupId":{
           "shape":"String",
           "documentation":"<p>The ID of the replication group</p>"
+        },
+        "CacheClusterId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the cache cluster</p>"
         },
         "ServiceUpdateName":{
           "shape":"String",
@@ -4769,9 +5049,17 @@
           "shape":"NodeGroupUpdateStatusList",
           "documentation":"<p>The status of the service update on the node group</p>"
         },
+        "CacheNodeUpdateStatus":{
+          "shape":"CacheNodeUpdateStatusList",
+          "documentation":"<p>The status of the service update on the cache node</p>"
+        },
         "EstimatedUpdateTime":{
           "shape":"String",
           "documentation":"<p>The estimated length of time for the update to complete</p>"
+        },
+        "Engine":{
+          "shape":"String",
+          "documentation":"<p>The Elasticache engine to which the update applies. Either Redis or Memcached</p>"
         }
       },
       "documentation":"<p>The status of the service update for a specific replication group</p>"

@@ -1,0 +1,16 @@
+{
+    "version": "2.7.16",
+    "date": "2019-08-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "description": "Documentation updates for sts"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "description": "Fix the issue where the `content-length` set on the request is not honored for streaming operations."
+        }
+    ]
+}

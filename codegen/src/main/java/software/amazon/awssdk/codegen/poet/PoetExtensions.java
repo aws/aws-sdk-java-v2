@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 
 /**
  * Extension and convenience methods to Poet that use the intermediate model.
@@ -143,5 +144,13 @@ public class PoetExtensions {
      */
     public ClassName getModelClassFromShape(ShapeModel shapeModel) {
         return getModelClass(shapeModel.getShapeName());
+    }
+
+    public boolean isResponse(ShapeModel shapeModel) {
+        return shapeModel.getShapeType() == ShapeType.Response;
+    }
+
+    public boolean isRequest(ShapeModel shapeModel) {
+        return shapeModel.getShapeType() == ShapeType.Request;
     }
 }

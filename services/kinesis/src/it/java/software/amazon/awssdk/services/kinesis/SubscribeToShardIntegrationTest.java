@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,20 +16,18 @@
 package software.amazon.awssdk.services.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
+import io.reactivex.Flowable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -39,8 +37,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.nio.netty.Http2Configuration;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.Record;
@@ -50,6 +49,7 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
+import software.amazon.awssdk.testutils.Waiter;
 
 public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
@@ -86,6 +86,38 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     }
 
     @Test
+    public void subscribeToShard_smallWindow_doesNotTimeOutReads() {
+        // We want sufficiently large records (relative to the initial window
+        // size we're choosing) so the client has to send multiple
+        // WINDOW_UPDATEs to receive them
+        for (int i = 0; i < 16; ++i) {
+            putRecord(64 * 1024);
+        }
+
+        KinesisAsyncClient smallWindowAsyncClient = KinesisAsyncClient.builder()
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                .httpClientBuilder(NettyNioAsyncHttpClient.builder()
+                    .http2Configuration(Http2Configuration.builder()
+                            .initialWindowSize(16384)
+                            .build()))
+                .build();
+
+        try {
+            smallWindowAsyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                            .shardId(shardId)
+                            .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
+                    SubscribeToShardResponseHandler.builder()
+                            .onEventStream(es -> Flowable.fromPublisher(es).forEach(e -> {}))
+                            .onResponse(this::verifyHttpMetadata)
+                            .build())
+                    .join();
+
+        } finally {
+            smallWindowAsyncClient.close();
+        }
+    }
+
+    @Test
     public void subscribeToShard_ReceivesAllData() {
         List<SdkBytes> producedData = new ArrayList<>();
         ScheduledExecutorService producer = Executors.newScheduledThreadPool(1);
@@ -114,90 +146,73 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
     }
 
     @Test
-    public void cancelledSubscription_DoesNotCallTerminalMethods() {
-        AtomicBoolean terminalCalled = new AtomicBoolean(false);
-        AtomicReference<Throwable> exceptionOccurredThrowable = new AtomicReference<>();
-        try {
-            asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
-                                               .shardId(shardId)
-                                               .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
-                                         new SubscribeToShardResponseHandler() {
-                                             @Override
-                                             public void responseReceived(SubscribeToShardResponse response) {
-                                                 verifyHttpMetadata(response);
-                                             }
+    public void cancelledSubscription_doesNotCallTerminalMethods() {
+        AtomicBoolean terminalMethodsCalled = new AtomicBoolean(false);
+        AtomicBoolean errorOccurred = new AtomicBoolean(false);
+        List<SubscribeToShardEventStream> events = new ArrayList<>();
+        asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
+                                           .shardId(shardId)
+                                           .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                                     new SubscribeToShardResponseHandler() {
+                                         @Override
+                                         public void responseReceived(SubscribeToShardResponse response) {
+                                             verifyHttpMetadata(response);
+                                         }
 
-                                             @Override
-                                             public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
-                                                 publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
-                                                     @Override
-                                                     public void onSubscribe(Subscription subscription) {
-                                                         subscription.request(10);
-                                                     }
+                                         @Override
+                                         public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
+                                             publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
+                                                 @Override
+                                                 public void onSubscribe(Subscription subscription) {
+                                                     subscription.request(10);
+                                                 }
 
-                                                     @Override
-                                                     public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
-                                                     }
+                                                 @Override
+                                                 public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
+                                                     events.add(subscribeToShardEventStream);
+                                                 }
 
-                                                     @Override
-                                                     public void onError(Throwable throwable) {
-                                                         terminalCalled.set(true);
-                                                     }
+                                                 @Override
+                                                 public void onError(Throwable throwable) {
+                                                     errorOccurred.set(true);
+                                                 }
 
-                                                     @Override
-                                                     public void onComplete() {
-                                                         terminalCalled.set(true);
-                                                     }
-                                                 });
-                                             }
+                                                 @Override
+                                                 public void onComplete() {
+                                                     terminalMethodsCalled.set(true);
+                                                 }
+                                             });
+                                         }
 
-                                             @Override
-                                             public void exceptionOccurred(Throwable throwable) {
-                                                 // Expected to be called
-                                                 exceptionOccurredThrowable.set(throwable);
-                                             }
+                                         @Override
+                                         public void exceptionOccurred(Throwable throwable) {
+                                             errorOccurred.set(true);
+                                         }
 
-                                             @Override
-                                             public void complete() {
-                                                 terminalCalled.set(true);
-                                             }
-                                         }).join();
-            fail("Expected exception");
-        } catch (CompletionException e) {
-            assertThat(e.getCause().getCause()).isInstanceOf(SdkCancellationException.class);
-            assertThat(exceptionOccurredThrowable.get().getCause().getCause()).isInstanceOf(SdkCancellationException.class);
-            assertThat(terminalCalled).as("complete or onComplete was called when it shouldn't have been")
-                                      .isFalse();
-        }
+                                         @Override
+                                         public void complete() {
+                                             terminalMethodsCalled.set(true);
+                                         }
+                                     }).join();
+
+        assertThat(terminalMethodsCalled).isFalse();
+        assertThat(errorOccurred).isFalse();
+        assertThat(events.size()).isEqualTo(3);
+
     }
 
-    private static void waitForConsumerToBeActive() throws InterruptedException {
-        waitUntilTrue(() -> ConsumerStatus.ACTIVE == asyncClient.describeStreamConsumer(r -> r.consumerARN(consumerArn))
-                                                                .join()
-                                                                .consumerDescription()
-                                                                .consumerStatus());
+    private static void waitForConsumerToBeActive() {
+        Waiter.run(() -> asyncClient.describeStreamConsumer(r -> r.consumerARN(consumerArn)).join())
+              .until(b -> b.consumerDescription().consumerStatus().equals(ConsumerStatus.ACTIVE))
+              .orFailAfter(Duration.ofMinutes(5));
     }
 
-    private void waitForStreamToBeActive() throws InterruptedException {
-        waitUntilTrue(() -> StreamStatus.ACTIVE == asyncClient.describeStream(r -> r.streamName(streamName))
-                                                              .join()
-                                                              .streamDescription()
-                                                              .streamStatus());
+    private void waitForStreamToBeActive() {
+        Waiter.run(() -> asyncClient.describeStream(r -> r.streamName(streamName)).join())
+              .until(b -> b.streamDescription().streamStatus().equals(StreamStatus.ACTIVE))
+              .orFailAfter(Duration.ofMinutes(5));
     }
 
-    private static void waitUntilTrue(Supplier<Boolean> state) throws InterruptedException {
-        int attempt = 0;
-        do {
-            if (attempt > 10) {
-                throw new IllegalStateException("State never transitioned");
-            }
-            Thread.sleep(5000);
-            attempt++;
-            if (state.get()) {
-                return;
-            }
-        } while (true);
-    }
 
     /**
      * Puts a random record to the stream.
@@ -205,8 +220,18 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
      * @return Record data that was put.
      */
     private Optional<SdkBytes> putRecord() {
+        return putRecord(50);
+    }
+
+    /**
+     * Puts a random record to the stream.
+     *
+     * @param len The number of bytes to generate for the record.
+     * @return Record data that was put.
+     */
+    private Optional<SdkBytes> putRecord(int len) {
         try {
-            SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(50));
+            SdkBytes data = SdkBytes.fromByteArray(RandomUtils.nextBytes(len));
             asyncClient.putRecord(PutRecordRequest.builder()
                                                   .streamName(streamName)
                                                   .data(data)

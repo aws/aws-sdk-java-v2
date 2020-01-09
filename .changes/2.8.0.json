@@ -1,0 +1,31 @@
+{
+    "version": "2.8.0",
+    "date": "2019-09-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Upgrade Netty version to 4.1.39.Final, netty reactive streams version to 2.0.3, netty open ssl version to 2.0.25.Final"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release of Amazon Elastic Container Service (Amazon ECS) introduces support for attaching Amazon Elastic Inference accelerators to your containers. This enables you to run deep learning inference workloads with hardware acceleration in a more efficient way."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "description": "Documentation updates for resourcegroupstaggingapi"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Bump minor version to 2.8.0-SNAPSHOT because of [#1391](https://github.com/aws/aws-sdk-java-v2/issues/1391)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "description": "You can now make use of PKI resources to provide more secure connections between your game clients and servers. To learn more, please refer to the public Amazon GameLift documentation."
+        }
+    ]
+}

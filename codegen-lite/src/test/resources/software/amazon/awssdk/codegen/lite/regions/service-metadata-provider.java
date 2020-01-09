@@ -1,5 +1,4 @@
 package software.amazon.awssdk.regions;
-
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -56,6 +55,7 @@ import software.amazon.awssdk.regions.servicemetadata.ElasticloadbalancingServic
 import software.amazon.awssdk.regions.servicemetadata.ElasticmapreduceServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.ElastictranscoderServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.EmailServiceMetadata;
+import software.amazon.awssdk.regions.servicemetadata.EnhancedS3ServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.EntitlementMarketplaceServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.EsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.EventsServiceMetadata;
@@ -107,7 +107,6 @@ import software.amazon.awssdk.regions.servicemetadata.Route53ServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.Route53domainsServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.RuntimeLexServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.RuntimeSagemakerServiceMetadata;
-import software.amazon.awssdk.regions.servicemetadata.S3ServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.SagemakerServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.SdbServiceMetadata;
 import software.amazon.awssdk.regions.servicemetadata.SecretsmanagerServiceMetadata;
@@ -196,7 +195,7 @@ public final class GeneratedServiceMetadataProvider implements ServiceMetadataPr
             .put("redshift", new RedshiftServiceMetadata()).put("rekognition", new RekognitionServiceMetadata())
             .put("resource-groups", new ResourceGroupsServiceMetadata()).put("route53", new Route53ServiceMetadata())
             .put("route53domains", new Route53domainsServiceMetadata()).put("runtime.lex", new RuntimeLexServiceMetadata())
-            .put("runtime.sagemaker", new RuntimeSagemakerServiceMetadata()).put("s3", new S3ServiceMetadata())
+            .put("runtime.sagemaker", new RuntimeSagemakerServiceMetadata()).put("s3", new EnhancedS3ServiceMetadata())
             .put("sagemaker", new SagemakerServiceMetadata()).put("sdb", new SdbServiceMetadata())
             .put("secretsmanager", new SecretsmanagerServiceMetadata())
             .put("serverlessrepo", new ServerlessrepoServiceMetadata())
