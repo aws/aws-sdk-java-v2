@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "description": "Fixed bug prevent GetBucketBolicy from ever being successful using the asynchronous S3 client."
+}
