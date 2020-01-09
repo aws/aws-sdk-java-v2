@@ -150,7 +150,7 @@
         {"shape":"ResourceLimitExceededException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Creates a new maintenance window.</p>"
+      "documentation":"<p>Creates a new maintenance window.</p> <note> <p>The value you specify for <code>Duration</code> determines the specific end time for the maintenance window based on the time it begins. No maintenance window tasks are permitted to start after the resulting endtime minus the number of hours you specify for <code>Cutoff</code>. For example, if the maintenance window starts at 3 PM, the duration is three hours, and the value you specify for <code>Cutoff</code> is one hour, no maintenance window tasks can start after 5 PM.</p> </note>"
     },
     "CreateOpsItem":{
       "name":"CreateOpsItem",
@@ -197,7 +197,7 @@
         {"shape":"ResourceDataSyncAlreadyExistsException"},
         {"shape":"ResourceDataSyncInvalidConfigurationException"}
       ],
-      "documentation":"<p>Creates a resource data sync configuration to a single bucket in Amazon S3. This is an asynchronous operation that returns immediately. After a successful initial sync is completed, the system continuously syncs data to the Amazon S3 bucket. To check the status of the sync, use the <a>ListResourceDataSync</a>.</p> <p>By default, data is not encrypted in Amazon S3. We strongly recommend that you enable encryption in Amazon S3 to ensure secure data storage. We also recommend that you secure access to the Amazon S3 bucket by creating a restrictive bucket policy. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-datasync.html\">Configuring Resource Data Sync for Inventory</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
+      "documentation":"<p>A resource data sync helps you view data from multiple sources in a single location. Systems Manager offers two types of resource data sync: <code>SyncToDestination</code> and <code>SyncFromSource</code>.</p> <p>You can configure Systems Manager Inventory to use the <code>SyncToDestination</code> type to synchronize Inventory data from multiple AWS Regions to a single Amazon S3 bucket. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-datasync.html\">Configuring Resource Data Sync for Inventory</a> in the <i>AWS Systems Manager User Guide</i>.</p> <p>You can configure Systems Manager Explorer to use the <code>SyncToDestination</code> type to synchronize operational work items (OpsItems) and operational data (OpsData) from multiple AWS Regions to a single Amazon S3 bucket. You can also configure Explorer to use the <code>SyncFromSource</code> type. This type synchronizes OpsItems and OpsData from multiple AWS accounts and Regions by using AWS Organizations. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/Explorer-resource-data-sync.html\">Setting Up Explorer to Display Data from Multiple Accounts and Regions</a> in the <i>AWS Systems Manager User Guide</i>.</p> <p>A resource data sync is an asynchronous operation that returns immediately. After a successful initial sync is completed, the system continuously syncs data. To check the status of a sync, use the <a>ListResourceDataSync</a>.</p> <note> <p>By default, data is not encrypted in Amazon S3. We strongly recommend that you enable encryption in Amazon S3 to ensure secure data storage. We also recommend that you secure access to the Amazon S3 bucket by creating a restrictive bucket policy. </p> </note>"
     },
     "DeleteActivation":{
       "name":"DeleteActivation",
@@ -329,9 +329,10 @@
       "output":{"shape":"DeleteResourceDataSyncResult"},
       "errors":[
         {"shape":"InternalServerError"},
-        {"shape":"ResourceDataSyncNotFoundException"}
+        {"shape":"ResourceDataSyncNotFoundException"},
+        {"shape":"ResourceDataSyncInvalidConfigurationException"}
       ],
-      "documentation":"<p>Deletes a Resource Data Sync configuration. After the configuration is deleted, changes to inventory data on managed instances are no longer synced with the target Amazon S3 bucket. Deleting a sync configuration does not delete data in the target Amazon S3 bucket.</p>"
+      "documentation":"<p>Deletes a Resource Data Sync configuration. After the configuration is deleted, changes to data on managed instances are no longer synced to or from the target. Deleting a sync configuration does not delete data.</p>"
     },
     "DeregisterManagedInstance":{
       "name":"DeregisterManagedInstance",
@@ -789,7 +790,7 @@
         {"shape":"InvalidFilterValue"},
         {"shape":"InvalidNextToken"}
       ],
-      "documentation":"<p>Get information about a parameter.</p> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p>"
+      "documentation":"<p>Get information about a parameter.</p> <note> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p> </note>"
     },
     "DescribePatchBaselines":{
       "name":"DescribePatchBaselines",
@@ -872,6 +873,22 @@
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Get detailed information about a particular Automation execution.</p>"
+    },
+    "GetCalendarState":{
+      "name":"GetCalendarState",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetCalendarStateRequest"},
+      "output":{"shape":"GetCalendarStateResponse"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidDocument"},
+        {"shape":"InvalidDocumentType"},
+        {"shape":"UnsupportedCalendarException"}
+      ],
+      "documentation":"<p>Gets the state of the AWS Systems Manager Change Calendar at an optional, specified time. If you specify a time, <code>GetCalendarState</code> returns the state of the calendar at a specific time, and returns the next time that the Change Calendar state will transition. If you do not specify a time, <code>GetCalendarState</code> assumes the current time. Change Calendar entries have two possible states: <code>OPEN</code> or <code>CLOSED</code>. For more information about Systems Manager Change Calendar, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-change-calendar.html\">AWS Systems Manager Change Calendar</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
     },
     "GetCommandInvocation":{
       "name":"GetCommandInvocation",
@@ -1074,6 +1091,7 @@
       "output":{"shape":"GetOpsSummaryResult"},
       "errors":[
         {"shape":"InternalServerError"},
+        {"shape":"ResourceDataSyncNotFoundException"},
         {"shape":"InvalidFilter"},
         {"shape":"InvalidNextToken"},
         {"shape":"InvalidTypeNameException"},
@@ -1143,7 +1161,7 @@
         {"shape":"InvalidKeyId"},
         {"shape":"InvalidNextToken"}
       ],
-      "documentation":"<p>Retrieve parameters in a specific hierarchy. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working.html\">Working with Systems Manager Parameters</a> in the <i>AWS Systems Manager User Guide</i>. </p> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p> <note> <p>This API action doesn't support filtering by tags. </p> </note>"
+      "documentation":"<p>Retrieve information about one or more parameters in a specific hierarchy. </p> <note> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p> </note>"
     },
     "GetPatchBaseline":{
       "name":"GetPatchBaseline",
@@ -1370,6 +1388,7 @@
       "input":{"shape":"ListResourceDataSyncRequest"},
       "output":{"shape":"ListResourceDataSyncResult"},
       "errors":[
+        {"shape":"ResourceDataSyncInvalidConfigurationException"},
         {"shape":"InternalServerError"},
         {"shape":"InvalidNextToken"}
       ],
@@ -1672,7 +1691,7 @@
         {"shape":"TargetNotConnected"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Initiates a connection to a target (for example, an instance) for a Session Manager session. Returns a URL and token that can be used to open a WebSocket connection for sending input and receiving outputs.</p> <note> <p>AWS CLI usage: <code>start-session</code> is an interactive command that requires the Session Manager plugin to be installed on the client machine making the call. For information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html\"> Install the Session Manager Plugin for the AWS CLI</a> in the <i>AWS Systems Manager User Guide</i>.</p> </note>"
+      "documentation":"<p>Initiates a connection to a target (for example, an instance) for a Session Manager session. Returns a URL and token that can be used to open a WebSocket connection for sending input and receiving outputs.</p> <note> <p>AWS CLI usage: <code>start-session</code> is an interactive command that requires the Session Manager plugin to be installed on the client machine making the call. For information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html\"> Install the Session Manager Plugin for the AWS CLI</a> in the <i>AWS Systems Manager User Guide</i>.</p> <p>AWS Tools for PowerShell usage: Start-SSMSession is not currently supported by AWS Tools for PowerShell on Windows local machines.</p> </note>"
     },
     "StopAutomationExecution":{
       "name":"StopAutomationExecution",
@@ -1725,7 +1744,7 @@
         {"shape":"InvalidAssociationVersion"},
         {"shape":"AssociationVersionLimitExceeded"}
       ],
-      "documentation":"<p>Updates an association. You can update the association name and version, the document version, schedule, parameters, and Amazon S3 output.</p> <important> <p>When you update an association, the association immediately runs against the specified targets.</p> </important>"
+      "documentation":"<p>Updates an association. You can update the association name and version, the document version, schedule, parameters, and Amazon S3 output. </p> <p>In order to call this API action, your IAM user account, group, or role must be configured with permission to call the <a>DescribeAssociation</a> API action. If you don't have permission to call DescribeAssociation, then you receive the following error: <code>An error occurred (AccessDeniedException) when calling the UpdateAssociation operation: User: &lt;user_arn&gt; is not authorized to perform: ssm:DescribeAssociation on resource: &lt;resource_arn&gt;</code> </p> <important> <p>When you update an association, the association immediately runs against the specified targets.</p> </important>"
     },
     "UpdateAssociationStatus":{
       "name":"UpdateAssociationStatus",
@@ -1795,7 +1814,7 @@
         {"shape":"DoesNotExistException"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Updates an existing maintenance window. Only specified parameters are modified.</p>"
+      "documentation":"<p>Updates an existing maintenance window. Only specified parameters are modified.</p> <note> <p>The value you specify for <code>Duration</code> determines the specific end time for the maintenance window based on the time it begins. No maintenance window tasks are permitted to start after the resulting endtime minus the number of hours you specify for <code>Cutoff</code>. For example, if the maintenance window starts at 3 PM, the duration is three hours, and the value you specify for <code>Cutoff</code> is one hour, no maintenance window tasks can start after 5 PM.</p> </note>"
     },
     "UpdateMaintenanceWindowTarget":{
       "name":"UpdateMaintenanceWindowTarget",
@@ -1870,6 +1889,22 @@
       ],
       "documentation":"<p>Modifies an existing patch baseline. Fields not specified in the request are left unchanged.</p> <note> <p>For information about valid key and value pairs in <code>PatchFilters</code> for each supported operating system type, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/APIReference/API_PatchFilter.html\">PatchFilter</a>.</p> </note>"
     },
+    "UpdateResourceDataSync":{
+      "name":"UpdateResourceDataSync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateResourceDataSyncRequest"},
+      "output":{"shape":"UpdateResourceDataSyncResult"},
+      "errors":[
+        {"shape":"ResourceDataSyncNotFoundException"},
+        {"shape":"ResourceDataSyncInvalidConfigurationException"},
+        {"shape":"ResourceDataSyncConflictException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Update a resource data sync. After you create a resource data sync for a Region, you can't change the account options for that sync. For example, if you create a sync in the us-east-2 (Ohio) Region and you choose the Include only the current account option, you can't edit that sync later and choose the Include all accounts from my AWS Organizations configuration option. Instead, you must delete the first resource data sync, and create a new one.</p>"
+    },
     "UpdateServiceSetting":{
       "name":"UpdateServiceSetting",
       "http":{
@@ -1896,6 +1931,25 @@
       "type":"list",
       "member":{"shape":"AccountId"},
       "max":20
+    },
+    "AccountSharingInfo":{
+      "type":"structure",
+      "members":{
+        "AccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The AWS account ID where the current document is shared.</p>"
+        },
+        "SharedDocumentVersion":{
+          "shape":"SharedDocumentVersion",
+          "documentation":"<p>The version of the current document shared with the account.</p>"
+        }
+      },
+      "documentation":"<p>Information includes the AWS account ID where the current document is shared and the version shared with that account.</p>"
+    },
+    "AccountSharingInfoList":{
+      "type":"list",
+      "member":{"shape":"AccountSharingInfo"},
+      "documentation":"<p>A list of of AWS accounts where the current document is shared and the version shared with each account.</p>"
     },
     "Accounts":{
       "type":"list",
@@ -2613,6 +2667,10 @@
       "type":"string",
       "enum":["Sha256"]
     },
+    "AttachmentIdentifier":{
+      "type":"string",
+      "pattern":"^[a-zA-Z0-9_\\-.]{3,128}$"
+    },
     "AttachmentInformation":{
       "type":"structure",
       "members":{
@@ -2637,23 +2695,31 @@
       "members":{
         "Key":{
           "shape":"AttachmentsSourceKey",
-          "documentation":"<p>The key of a key and value pair that identifies the location of an attachment to a document.</p>"
+          "documentation":"<p>The key of a key-value pair that identifies the location of an attachment to a document.</p>"
         },
         "Values":{
           "shape":"AttachmentsSourceValues",
-          "documentation":"<p>The URL of the location of a document attachment, such as the URL of an Amazon S3 bucket.</p>"
+          "documentation":"<p>The value of a key-value pair that identifies the location of an attachment to a document. The format for <b>Value</b> depends on the type of key you specify.</p> <ul> <li> <p>For the key <i>SourceUrl</i>, the value is an S3 bucket location. For example:</p> <p> <code>\"Values\": [ \"s3://my-bucket/my-folder\" ]</code> </p> </li> <li> <p>For the key <i>S3FileUrl</i>, the value is a file in an S3 bucket. For example:</p> <p> <code>\"Values\": [ \"s3://my-bucket/my-folder/my-file.py\" ]</code> </p> </li> <li> <p>For the key <i>AttachmentReference</i>, the value is constructed from the name of another SSM document in your account, a version number of that document, and a file attached to that document version that you want to reuse. For example:</p> <p> <code>\"Values\": [ \"MyOtherDocument/3/my-other-file.py\" ]</code> </p> <p>However, if the SSM document is shared with you from another account, the full SSM document ARN must be specified instead of the document name only. For example:</p> <p> <code>\"Values\": [ \"arn:aws:ssm:us-east-2:111122223333:document/OtherAccountDocument/3/their-file.py\" ]</code> </p> </li> </ul>"
+        },
+        "Name":{
+          "shape":"AttachmentIdentifier",
+          "documentation":"<p>The name of the document attachment file.</p>"
         }
       },
-      "documentation":"<p>A key and value pair that identifies the location of an attachment to a document.</p>"
+      "documentation":"<p>Identifying information about a document attachment, including the file name and a key-value pair that identifies the location of an attachment to a document.</p>"
     },
     "AttachmentsSourceKey":{
       "type":"string",
-      "enum":["SourceUrl"]
+      "enum":[
+        "SourceUrl",
+        "S3FileUrl",
+        "AttachmentReference"
+      ]
     },
     "AttachmentsSourceList":{
       "type":"list",
       "member":{"shape":"AttachmentsSource"},
-      "max":1,
+      "max":20,
       "min":0
     },
     "AttachmentsSourceValue":{
@@ -2832,7 +2898,8 @@
         "CurrentAction",
         "StartTimeBefore",
         "StartTimeAfter",
-        "AutomationType"
+        "AutomationType",
+        "TagKey"
       ]
     },
     "AutomationExecutionFilterList":{
@@ -3046,6 +3113,18 @@
     },
     "BatchErrorMessage":{"type":"string"},
     "Boolean":{"type":"boolean"},
+    "CalendarNameOrARN":{"type":"string"},
+    "CalendarNameOrARNList":{
+      "type":"list",
+      "member":{"shape":"CalendarNameOrARN"}
+    },
+    "CalendarState":{
+      "type":"string",
+      "enum":[
+        "OPEN",
+        "CLOSED"
+      ]
+    },
     "CancelCommandRequest":{
       "type":"structure",
       "required":["CommandId"],
@@ -3094,8 +3173,7 @@
     "CloudWatchLogGroupName":{
       "type":"string",
       "max":512,
-      "min":1,
-      "pattern":"[\\.\\-_/#A-Za-z0-9]+"
+      "min":1
     },
     "CloudWatchOutputConfig":{
       "type":"structure",
@@ -3556,11 +3634,7 @@
       "max":10000,
       "min":0
     },
-    "ComplianceItemId":{
-      "type":"string",
-      "max":100,
-      "min":1
-    },
+    "ComplianceItemId":{"type":"string"},
     "ComplianceItemList":{
       "type":"list",
       "member":{"shape":"ComplianceItem"}
@@ -3855,7 +3929,7 @@
         },
         "InstanceId":{
           "shape":"InstanceId",
-          "documentation":"<p>The instance ID.</p>"
+          "documentation":"<p>The instance ID.</p> <note> <p> <code>InstanceId</code> has been deprecated. To specify an instance ID for an association, use the <code>Targets</code> parameter. Requests that include the parameter <code>InstanceID</code> with SSM documents that use schema version 2.0 or later will fail. In addition, if you use the parameter <code>InstanceId</code>, you cannot use the parameters <code>AssociationName</code>, <code>DocumentVersion</code>, <code>MaxErrors</code>, <code>MaxConcurrency</code>, <code>OutputLocation</code>, or <code>ScheduleExpression</code>. To use these parameters, you must use the <code>Targets</code> parameter.</p> </note>"
         },
         "Parameters":{
           "shape":"Parameters",
@@ -3863,7 +3937,7 @@
         },
         "Targets":{
           "shape":"Targets",
-          "documentation":"<p>The targets (either instances or tags) for the association.</p>"
+          "documentation":"<p>The targets (either instances or tags) for the association. You must specify a value for <code>Targets</code> if you don't specify a value for <code>InstanceId</code>.</p>"
         },
         "ScheduleExpression":{
           "shape":"ScheduleExpression",
@@ -3915,6 +3989,10 @@
           "shape":"DocumentContent",
           "documentation":"<p>A valid JSON or YAML string.</p>"
         },
+        "Requires":{
+          "shape":"DocumentRequiresList",
+          "documentation":"<p>A list of SSM documents required by a document. For example, an <code>ApplicationConfiguration</code> document requires an <code>ApplicationConfigurationSchema</code> document.</p>"
+        },
         "Attachments":{
           "shape":"AttachmentsSourceList",
           "documentation":"<p>A list of key and value pairs that describe attachments to a version of a document.</p>"
@@ -3933,7 +4011,7 @@
         },
         "DocumentFormat":{
           "shape":"DocumentFormat",
-          "documentation":"<p>Specify the document format for the request. The document format can be either JSON or YAML. JSON is the default format.</p>"
+          "documentation":"<p>Specify the document format for the request. The document format can be JSON, YAML, or TEXT. JSON is the default format.</p>"
         },
         "TargetType":{
           "shape":"TargetType",
@@ -4059,6 +4137,14 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Optional metadata that you assign to a resource. You can restrict access to OpsItems by using an inline IAM policy that specifies tags. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html#OpsCenter-getting-started-user-permissions\">Getting Started with OpsCenter</a> in the <i>AWS Systems Manager User Guide</i>.</p> <p>Tags use a key-value pair. For example:</p> <p> <code>Key=Department,Value=Finance</code> </p> <note> <p>To add tags to an existing OpsItem, use the <a>AddTagsToResource</a> action.</p> </note>"
+        },
+        "Category":{
+          "shape":"OpsItemCategory",
+          "documentation":"<p>Specify a category to assign to an OpsItem. </p>"
+        },
+        "Severity":{
+          "shape":"OpsItemSeverity",
+          "documentation":"<p>Specify a severity to assign to an OpsItem.</p>"
         }
       }
     },
@@ -4142,10 +4228,7 @@
     },
     "CreateResourceDataSyncRequest":{
       "type":"structure",
-      "required":[
-        "SyncName",
-        "S3Destination"
-      ],
+      "required":["SyncName"],
       "members":{
         "SyncName":{
           "shape":"ResourceDataSyncName",
@@ -4154,6 +4237,14 @@
         "S3Destination":{
           "shape":"ResourceDataSyncS3Destination",
           "documentation":"<p>Amazon S3 configuration details for the sync.</p>"
+        },
+        "SyncType":{
+          "shape":"ResourceDataSyncType",
+          "documentation":"<p>Specify <code>SyncToDestination</code> to create a resource data sync that synchronizes data from multiple AWS Regions to an Amazon S3 bucket. Specify <code>SyncFromSource</code> to synchronize data from multiple AWS accounts and Regions, as listed in AWS Organizations.</p>"
+        },
+        "SyncSource":{
+          "shape":"ResourceDataSyncSource",
+          "documentation":"<p>Specify information about the data sources to synchronize.</p>"
         }
       }
     },
@@ -4231,6 +4322,10 @@
         "VersionName":{
           "shape":"DocumentVersionName",
           "documentation":"<p>The version name of the document that you want to delete. If not provided, all versions of the document are deleted.</p>"
+        },
+        "Force":{
+          "shape":"Boolean",
+          "documentation":"<p>Some SSM document types require that you specify a <code>Force</code> flag before you can delete the document. For example, you must specify a <code>Force</code> flag to delete a document of type <code>ApplicationConfigurationSchema</code>. You can restrict access to the <code>Force</code> flag in an AWS Identity and Access Management (IAM) policy.</p>"
         }
       }
     },
@@ -4362,6 +4457,10 @@
         "SyncName":{
           "shape":"ResourceDataSyncName",
           "documentation":"<p>The name of the configuration to delete.</p>"
+        },
+        "SyncType":{
+          "shape":"ResourceDataSyncType",
+          "documentation":"<p>Specify the type of resource data sync to delete.</p>"
         }
       }
     },
@@ -4773,6 +4872,10 @@
         "AccountIds":{
           "shape":"AccountIdList",
           "documentation":"<p>The account IDs that have permission to use this document. The ID can be either an AWS account or <i>All</i>.</p>"
+        },
+        "AccountSharingInfoList":{
+          "shape":"AccountSharingInfoList",
+          "documentation":"<p>A list of of AWS accounts where the current document is shared and the version shared with each account.</p>"
         }
       }
     },
@@ -5012,7 +5115,7 @@
         },
         "Filters":{
           "shape":"PatchOrchestratorFilterList",
-          "documentation":"<p>Each entry in the array is a structure containing:</p> <p>Key (string, between 1 and 128 characters)</p> <p>Values (array of strings, each string between 1 and 256 characters)</p>"
+          "documentation":"<p>An array of structures. Each entry in the array is a structure containing a Key, Value combination. Valid values for Key are <code>Classification</code> | <code>KBId</code> | <code>Severity</code> | <code>State</code>.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -5404,7 +5507,7 @@
       "members":{
         "Filters":{
           "shape":"ParametersFilterList",
-          "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
+          "documentation":"<p>This data type is deprecated. Instead, use <code>ParameterFilters</code>.</p>"
         },
         "ParameterFilters":{
           "shape":"ParameterStringFilterList",
@@ -5489,6 +5592,11 @@
         "InstancesWithInstalledOtherPatches":{
           "shape":"Integer",
           "documentation":"<p>The number of instances with patches installed that aren't defined in the patch baseline.</p>"
+        },
+        "InstancesWithInstalledPendingRebootPatches":{
+          "shape":"InstancesCount",
+          "documentation":"<p>Reserved for future use. </p>",
+          "box":true
         },
         "InstancesWithInstalledRejectedPatches":{
           "shape":"InstancesCount",
@@ -5745,6 +5853,10 @@
         "AttachmentsInformation":{
           "shape":"AttachmentInformationList",
           "documentation":"<p>Details about the document attachments, including names, locations, sizes, etc.</p>"
+        },
+        "Requires":{
+          "shape":"DocumentRequiresList",
+          "documentation":"<p>A list of SSM documents required by a document. For example, an <code>ApplicationConfiguration</code> document requires an <code>ApplicationConfigurationSchema</code> document.</p>"
         }
       },
       "documentation":"<p>Describes a Systems Manager document. </p>"
@@ -5789,7 +5901,8 @@
       "type":"string",
       "enum":[
         "YAML",
-        "JSON"
+        "JSON",
+        "TEXT"
       ]
     },
     "DocumentHash":{
@@ -5845,6 +5958,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>The tags, or metadata, that have been applied to the document.</p>"
+        },
+        "Requires":{
+          "shape":"DocumentRequiresList",
+          "documentation":"<p>A list of SSM documents required by a document. For example, an <code>ApplicationConfiguration</code> document requires an <code>ApplicationConfigurationSchema</code> document.</p>"
         }
       },
       "documentation":"<p>Describes the name of a Systems Manager document.</p>"
@@ -5948,6 +6065,26 @@
       "type":"string",
       "enum":["Share"]
     },
+    "DocumentRequires":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"DocumentARN",
+          "documentation":"<p>The name of the required SSM document. The name can be an Amazon Resource Name (ARN).</p>"
+        },
+        "Version":{
+          "shape":"DocumentVersion",
+          "documentation":"<p>The document version required by the current document.</p>"
+        }
+      },
+      "documentation":"<p>An SSM document required by the current document.</p>"
+    },
+    "DocumentRequiresList":{
+      "type":"list",
+      "member":{"shape":"DocumentRequires"},
+      "min":1
+    },
     "DocumentSchemaVersion":{
       "type":"string",
       "pattern":"([0-9]+)\\.([0-9]+)"
@@ -5972,7 +6109,11 @@
         "Policy",
         "Automation",
         "Session",
-        "Package"
+        "Package",
+        "ApplicationConfiguration",
+        "ApplicationConfigurationSchema",
+        "DeploymentStrategy",
+        "ChangeCalendar"
       ]
     },
     "DocumentVersion":{
@@ -6043,7 +6184,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>Error returned when the ID specified for a resource, such as a maintenance window or Patch baseline, doesn't exist.</p> <p>For information about resource limits in Systems Manager, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html#limits_ssm\">AWS Systems Manager Limits</a>.</p>",
+      "documentation":"<p>Error returned when the ID specified for a resource, such as a maintenance window or Patch baseline, doesn't exist.</p> <p>For information about resource quotas in Systems Manager, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/ssm.html#limits_ssm\">Systems Manager Service Quotas</a> in the <i>AWS General Reference</i>.</p>",
       "exception":true
     },
     "DryRun":{"type":"boolean"},
@@ -6179,6 +6320,37 @@
         "AutomationExecution":{
           "shape":"AutomationExecution",
           "documentation":"<p>Detailed information about the current state of an automation execution.</p>"
+        }
+      }
+    },
+    "GetCalendarStateRequest":{
+      "type":"structure",
+      "required":["CalendarNames"],
+      "members":{
+        "CalendarNames":{
+          "shape":"CalendarNameOrARNList",
+          "documentation":"<p>The names or Amazon Resource Names (ARNs) of the Systems Manager documents that represent the calendar entries for which you want to get the state.</p>"
+        },
+        "AtTime":{
+          "shape":"ISO8601String",
+          "documentation":"<p>(Optional) The specific time for which you want to get calendar state information, in <a href=\"https://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> format. If you do not add <code>AtTime</code>, the current time is assumed.</p>"
+        }
+      }
+    },
+    "GetCalendarStateResponse":{
+      "type":"structure",
+      "members":{
+        "State":{
+          "shape":"CalendarState",
+          "documentation":"<p>The state of the calendar. An <code>OPEN</code> calendar indicates that actions are allowed to proceed, and a <code>CLOSED</code> calendar indicates that actions are not allowed to proceed.</p>"
+        },
+        "AtTime":{
+          "shape":"ISO8601String",
+          "documentation":"<p>The time, as an <a href=\"https://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> string, that you specified in your command. If you did not specify a time, <code>GetCalendarState</code> uses the current time.</p>"
+        },
+        "NextTransitionTime":{
+          "shape":"ISO8601String",
+          "documentation":"<p>The time, as an <a href=\"https://en.wikipedia.org/wiki/ISO_8601\">ISO 8601</a> string, that the calendar state will change. If the current calendar state is <code>OPEN</code>, <code>NextTransitionTime</code> indicates when the calendar state changes to <code>CLOSED</code>, and vice-versa.</p>"
         }
       }
     },
@@ -6415,6 +6587,10 @@
         "DocumentFormat":{
           "shape":"DocumentFormat",
           "documentation":"<p>The document format, either JSON or YAML.</p>"
+        },
+        "Requires":{
+          "shape":"DocumentRequiresList",
+          "documentation":"<p>A list of SSM documents required by a document. For example, an <code>ApplicationConfiguration</code> document requires an <code>ApplicationConfigurationSchema</code> document.</p>"
         },
         "AttachmentsContent":{
           "shape":"AttachmentContentList",
@@ -6864,8 +7040,11 @@
     },
     "GetOpsSummaryRequest":{
       "type":"structure",
-      "required":["Aggregators"],
       "members":{
+        "SyncName":{
+          "shape":"ResourceDataSyncName",
+          "documentation":"<p>Specify the name of a resource data sync to get.</p>"
+        },
         "Filters":{
           "shape":"OpsFilterList",
           "documentation":"<p>Optional filters used to scope down the returned OpsItems. </p>"
@@ -6873,6 +7052,10 @@
         "Aggregators":{
           "shape":"OpsAggregatorList",
           "documentation":"<p>Optional aggregators that return counts of OpsItems based on one or more expressions.</p>"
+        },
+        "ResultAttributes":{
+          "shape":"OpsResultAttributeList",
+          "documentation":"<p>The OpsItem data type to return.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -6979,7 +7162,7 @@
         },
         "ParameterFilters":{
           "shape":"ParameterStringFilterList",
-          "documentation":"<p>Filters to limit the request results.</p> <note> <p>You can't filter using the parameter name.</p> </note>"
+          "documentation":"<p>Filters to limit the request results.</p>"
         },
         "WithDecryption":{
           "shape":"Boolean",
@@ -7193,6 +7376,7 @@
       "max":46,
       "min":1
     },
+    "ISO8601String":{"type":"string"},
     "IamRole":{
       "type":"string",
       "max":64
@@ -7386,7 +7570,7 @@
         },
         "IsLatestVersion":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether latest version of SSM Agent is running on your instance. Some older versions of Windows Server use the EC2Config service to process SSM requests. For this reason, this field does not indicate whether or not the latest version is installed on Windows managed instances.</p>",
+          "documentation":"<p>Indicates whether the latest version of SSM Agent is running on your Linux Managed Instance. This field does not indicate whether or not the latest version is installed on Windows managed instances, because some older versions of Windows Server use the EC2Config service to process SSM requests.</p>",
           "box":true
         },
         "PlatformType":{
@@ -7569,6 +7753,11 @@
           "shape":"PatchInstalledOtherCount",
           "documentation":"<p>The number of patches not specified in the patch baseline that are installed on the instance.</p>"
         },
+        "InstalledPendingRebootCount":{
+          "shape":"PatchInstalledPendingRebootCount",
+          "documentation":"<p>Reserved for future use.</p>",
+          "box":true
+        },
         "InstalledRejectedCount":{
           "shape":"PatchInstalledRejectedCount",
           "documentation":"<p>The number of instances with patches installed that are specified in a RejectedPatches list. Patches with a status of <i>InstalledRejected</i> were typically installed before they were added to a RejectedPatches list.</p> <note> <p>If ALLOW_AS_DEPENDENCY is the specified option for RejectedPatchesAction, the value of InstalledRejectedCount will always be 0 (zero).</p> </note>",
@@ -7602,6 +7791,14 @@
         "Operation":{
           "shape":"PatchOperationType",
           "documentation":"<p>The type of patching operation that was performed: SCAN (assess patch compliance state) or INSTALL (install missing patches).</p>"
+        },
+        "LastNoRebootInstallOperationTime":{
+          "shape":"DateTime",
+          "documentation":"<p>Reserved for future use. </p>"
+        },
+        "RebootOption":{
+          "shape":"RebootOption",
+          "documentation":"<p>Reserved for future use. </p>"
         }
       },
       "documentation":"<p>Defines the high-level patch compliance state for a managed instance, providing information about the number of installed, missing, not applicable, and failed patches along with metadata about the operation when this information was gathered for the instance.</p>"
@@ -7814,6 +8011,14 @@
         "Message":{"shape":"String"}
       },
       "documentation":"<p>The version of the document schema is not supported.</p>",
+      "exception":true
+    },
+    "InvalidDocumentType":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The document type is not valid. Valid document types are described in the <code>DocumentType</code> property.</p>",
       "exception":true
     },
     "InvalidDocumentVersion":{
@@ -8509,7 +8714,7 @@
         },
         "ParameterVersion":{
           "shape":"PSParameterVersion",
-          "documentation":"<p>The specific version of the parameter on which you want to attach one or more labels. If no version is specified, the system attaches the label to the latest version.)</p>",
+          "documentation":"<p>The specific version of the parameter on which you want to attach one or more labels. If no version is specified, the system attaches the label to the latest version.</p>",
           "box":true
         },
         "Labels":{
@@ -8524,6 +8729,10 @@
         "InvalidLabels":{
           "shape":"ParameterLabelList",
           "documentation":"<p>The label does not meet the requirements. For information about parameter label requirements, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-labels.html\">Labeling Parameters</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
+        },
+        "ParameterVersion":{
+          "shape":"PSParameterVersion",
+          "documentation":"<p>The version of the parameter that has been labeled.</p>"
         }
       }
     },
@@ -8623,7 +8832,7 @@
         },
         "Filters":{
           "shape":"CommandFilterList",
-          "documentation":"<p>(Optional) One or more filters. Use a filter to return a more specific list of results.</p>"
+          "documentation":"<p>(Optional) One or more filters. Use a filter to return a more specific list of results. Note that the <code>DocumentName</code> filter is not supported for ListCommandInvocations.</p>"
         },
         "Details":{
           "shape":"Boolean",
@@ -8758,8 +8967,8 @@
       "required":["Name"],
       "members":{
         "Name":{
-          "shape":"DocumentName",
-          "documentation":"<p>The name of the document about which you want version information.</p>"
+          "shape":"DocumentARN",
+          "documentation":"<p>The name of the document. You can specify an Amazon Resource Name (ARN).</p>"
         },
         "MaxResults":{
           "shape":"MaxResults",
@@ -8913,6 +9122,10 @@
     "ListResourceDataSyncRequest":{
       "type":"structure",
       "members":{
+        "SyncType":{
+          "shape":"ResourceDataSyncType",
+          "documentation":"<p>View a list of resource data syncs according to the sync type. Specify <code>SyncToDestination</code> to view resource data syncs that synchronize data to an Amazon S3 buckets. Specify <code>SyncFromSource</code> to view resource data syncs from AWS Organizations or from multiple AWS Regions. </p>"
+        },
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>A token to start the list. Use this token to get the next set of results. </p>"
@@ -9363,6 +9576,7 @@
           "shape":"Comment",
           "documentation":"<p>Information about the commands to run.</p>"
         },
+        "CloudWatchOutputConfig":{"shape":"CloudWatchOutputConfig"},
         "DocumentHash":{
           "shape":"DocumentHash",
           "documentation":"<p>The SHA-256 or SHA-1 hash created by the system when the document was created. SHA-1 hashes have been deprecated.</p>"
@@ -9370,6 +9584,10 @@
         "DocumentHashType":{
           "shape":"DocumentHashType",
           "documentation":"<p>SHA-256 or SHA-1. SHA-1 hashes have been deprecated.</p>"
+        },
+        "DocumentVersion":{
+          "shape":"DocumentVersion",
+          "documentation":"<p>The SSM document version to use in the request. You can specify $DEFAULT, $LATEST, or a specific version number. If you run commands by using the AWS CLI, then you must escape the first two options by using a backslash. If you specify a version number, then you don't need to use the backslash. For example:</p> <p>--document-version \"\\$DEFAULT\"</p> <p>--document-version \"\\$LATEST\"</p> <p>--document-version \"3\"</p>"
         },
         "NotificationConfig":{
           "shape":"NotificationConfig",
@@ -9688,6 +9906,10 @@
         "AccountIdsToRemove":{
           "shape":"AccountIdList",
           "documentation":"<p>The AWS user accounts that should no longer have access to the document. The AWS user account can either be a group of account IDs or <i>All</i>. This action has a higher priority than <i>AccountIdsToAdd</i>. If you specify an account ID to add and the same ID to remove, the system removes access to the document.</p>"
+        },
+        "SharedDocumentVersion":{
+          "shape":"SharedDocumentVersion",
+          "documentation":"<p>(Optional) The version of the document to share. If it's not specified, the system choose the <code>Default</code> version to share.</p>"
         }
       }
     },
@@ -9809,11 +10031,11 @@
       "type":"string",
       "max":20,
       "min":1,
-      "pattern":"^(range|count)"
+      "pattern":"^(range|count|sum)"
     },
     "OpsAggregatorValue":{
       "type":"string",
-      "max":512,
+      "max":2048,
       "min":0
     },
     "OpsAggregatorValueKey":{
@@ -9853,12 +10075,20 @@
     "OpsEntityItem":{
       "type":"structure",
       "members":{
+        "CaptureTime":{
+          "shape":"OpsEntityItemCaptureTime",
+          "documentation":"<p>The time OpsItem data was captured.</p>"
+        },
         "Content":{
           "shape":"OpsEntityItemEntryList",
           "documentation":"<p>The detailed data content for an OpsItem summaries result item.</p>"
         }
       },
       "documentation":"<p>The OpsItem summaries result item.</p>"
+    },
+    "OpsEntityItemCaptureTime":{
+      "type":"string",
+      "pattern":"^(20)[0-9][0-9]-(0[1-9]|1[012])-([12][0-9]|3[01]|0[1-9])(T)(2[0-3]|[0-1][0-9])(:[0-5][0-9])(:[0-5][0-9])(Z)$"
     },
     "OpsEntityItemEntry":{
       "type":"map",
@@ -9992,6 +10222,14 @@
         "OperationalData":{
           "shape":"OpsItemOperationalData",
           "documentation":"<p>Operational data is custom data that provides useful reference details about the OpsItem. For example, you can specify log files, error strings, license keys, troubleshooting tips, or other relevant data. You enter operational data as key-value pairs. The key has a maximum length of 128 characters. The value has a maximum size of 20 KB.</p> <important> <p>Operational data keys <i>can't</i> begin with the following: amazon, aws, amzn, ssm, /amazon, /aws, /amzn, /ssm.</p> </important> <p>You can choose to make the data searchable by other users in the account or you can restrict search access. Searchable data means that all users with access to the OpsItem Overview page (as provided by the <a>DescribeOpsItems</a> API action) can view and search on the specified data. Operational data that is not searchable is only viewable by users who have access to the OpsItem (as provided by the <a>GetOpsItem</a> API action).</p> <p>Use the <code>/aws/resources</code> key in OperationalData to specify a related resource in the request. Use the <code>/aws/automations</code> key in OperationalData to associate an Automation runbook with the OpsItem. To view AWS CLI example commands that use these keys, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-creating-OpsItems.html#OpsCenter-manually-create-OpsItems\">Creating OpsItems Manually</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
+        },
+        "Category":{
+          "shape":"OpsItemCategory",
+          "documentation":"<p>An OpsItem category. Category options include: Availability, Cost, Performance, Recovery, Security.</p>"
+        },
+        "Severity":{
+          "shape":"OpsItemSeverity",
+          "documentation":"<p>The severity of the OpsItem. Severity options range from 1 to 4.</p>"
         }
       },
       "documentation":"<p>Operations engineers and IT professionals use OpsCenter to view, investigate, and remediate operational issues impacting the performance and health of their AWS resources. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html\">AWS Systems Manager OpsCenter</a> in the <i>AWS Systems Manager User Guide</i>. </p>"
@@ -10004,6 +10242,11 @@
       },
       "documentation":"<p>The OpsItem already exists.</p>",
       "exception":true
+    },
+    "OpsItemCategory":{
+      "type":"string",
+      "max":64,
+      "min":1
     },
     "OpsItemDataKey":{
       "type":"string",
@@ -10075,7 +10318,9 @@
         "OperationalDataKey",
         "OperationalDataValue",
         "ResourceId",
-        "AutomationId"
+        "AutomationId",
+        "Category",
+        "Severity"
       ]
     },
     "OpsItemFilterOperator":{
@@ -10117,7 +10362,7 @@
         "LimitType":{"shape":"String"},
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>The request caused OpsItems to exceed one or more limits. For information about OpsItem limits, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-learn-more.html#OpsCenter-learn-more-limits\">What are the resource limits for OpsCenter?</a>.</p>",
+      "documentation":"<p>The request caused OpsItems to exceed one or more quotas. For information about OpsItem quotas, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-learn-more.html#OpsCenter-learn-more-limits\">What are the resource limits for OpsCenter?</a>.</p>",
       "exception":true
     },
     "OpsItemMaxResults":{
@@ -10163,6 +10408,11 @@
     "OpsItemPriority":{
       "type":"integer",
       "max":5,
+      "min":1
+    },
+    "OpsItemSeverity":{
+      "type":"string",
+      "max":64,
       "min":1
     },
     "OpsItemSource":{
@@ -10224,6 +10474,14 @@
         "OperationalData":{
           "shape":"OpsItemOperationalData",
           "documentation":"<p>Operational data is custom data that provides useful reference details about the OpsItem. </p>"
+        },
+        "Category":{
+          "shape":"OpsItemCategory",
+          "documentation":"<p>A list of OpsItems by category.</p>"
+        },
+        "Severity":{
+          "shape":"OpsItemSeverity",
+          "documentation":"<p>A list of OpsItems by severity.</p>"
         }
       },
       "documentation":"<p>A count of OpsItems.</p>"
@@ -10231,6 +10489,23 @@
     "OpsItemTitle":{
       "type":"string",
       "max":1024,
+      "min":1
+    },
+    "OpsResultAttribute":{
+      "type":"structure",
+      "required":["TypeName"],
+      "members":{
+        "TypeName":{
+          "shape":"OpsDataTypeName",
+          "documentation":"<p>Name of the data type. Valid value: AWS:OpsItem, AWS:EC2InstanceInformation, AWS:OpsItemTrendline, or AWS:ComplianceSummary.</p>"
+        }
+      },
+      "documentation":"<p>The OpsItem data type to return.</p>"
+    },
+    "OpsResultAttributeList":{
+      "type":"list",
+      "member":{"shape":"OpsResultAttribute"},
+      "max":1,
       "min":1
     },
     "OutputSource":{
@@ -10530,14 +10805,14 @@
         },
         "Option":{
           "shape":"ParameterStringQueryOption",
-          "documentation":"<p>Valid options are Equals and BeginsWith. For Path filter, valid options are Recursive and OneLevel.</p>"
+          "documentation":"<p>For all filters used with <a>DescribeParameters</a>, valid options include <code>Equals</code> and <code>BeginsWith</code>. The <code>Name</code> filter additionally supports the <code>Contains</code> option. (Exception: For filters using the key <code>Path</code>, valid options include <code>Recursive</code> and <code>OneLevel</code>.)</p> <p>For filters used with <a>GetParametersByPath</a>, valid options include <code>Equals</code> and <code>BeginsWith</code>. (Exception: For filters using the key <code>Label</code>, the only valid option is <code>Equals</code>.)</p>"
         },
         "Values":{
           "shape":"ParameterStringFilterValueList",
           "documentation":"<p>The value you want to search for.</p>"
         }
       },
-      "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p> <note> <p>The <code>Name</code> and <code>Tier</code> filter keys can't be used with the <a>GetParametersByPath</a> API action. Also, the <code>Label</code> filter key can't be used with the <a>DescribeParameters</a> API action.</p> </note>"
+      "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p> <important> <p>The <code>ParameterStringFilter</code> object is used by the <a>DescribeParameters</a> and <a>GetParametersByPath</a> API actions. However, not all of the pattern values listed for <code>Key</code> can be used with both actions.</p> <p>For <code>DescribeActions</code>, all of the listed patterns are valid, with the exception of <code>Label</code>.</p> <p>For <code>GetParametersByPath</code>, the following patterns listed for <code>Key</code> are not valid: <code>Name</code>, <code>Path</code>, and <code>Tier</code>.</p> <p>For examples of CLI commands demonstrating valid parameter filter constructions, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-search.html\">Searching for Systems Manager Parameters</a> in the <i>AWS Systems Manager User Guide</i>.</p> </important>"
     },
     "ParameterStringFilterKey":{
       "type":"string",
@@ -10569,7 +10844,8 @@
       "type":"string",
       "enum":[
         "Standard",
-        "Advanced"
+        "Advanced",
+        "Intelligent-Tiering"
       ]
     },
     "ParameterType":{
@@ -10795,6 +11071,7 @@
       "enum":[
         "INSTALLED",
         "INSTALLED_OTHER",
+        "INSTALLED_PENDING_REBOOT",
         "INSTALLED_REJECTED",
         "MISSING",
         "NOT_APPLICABLE",
@@ -10930,6 +11207,7 @@
     },
     "PatchInstalledCount":{"type":"integer"},
     "PatchInstalledOtherCount":{"type":"integer"},
+    "PatchInstalledPendingRebootCount":{"type":"integer"},
     "PatchInstalledRejectedCount":{"type":"integer"},
     "PatchKbNumber":{"type":"string"},
     "PatchLanguage":{"type":"string"},
@@ -11082,7 +11360,7 @@
     },
     "PatchSourceConfiguration":{
       "type":"string",
-      "max":512,
+      "max":1024,
       "min":1,
       "sensitive":true
     },
@@ -11233,7 +11511,7 @@
       "members":{
         "InstanceId":{
           "shape":"InstanceId",
-          "documentation":"<p>One or more instance IDs where you want to add or update inventory items.</p>"
+          "documentation":"<p>An instance ID where you want to add or update inventory items.</p>"
         },
         "Items":{
           "shape":"InventoryItemList",
@@ -11260,7 +11538,7 @@
       "members":{
         "Name":{
           "shape":"PSParameterName",
-          "documentation":"<p>The fully qualified name of the parameter that you want to add to the system. The fully qualified name includes the complete hierarchy of the parameter path and name. For example: <code>/Dev/DBServer/MySQL/db-string13</code> </p> <p>Naming Constraints:</p> <ul> <li> <p>Parameter names are case sensitive.</p> </li> <li> <p>A parameter name must be unique within an AWS Region</p> </li> <li> <p>A parameter name can't be prefixed with \"aws\" or \"ssm\" (case-insensitive).</p> </li> <li> <p>Parameter names can include only the following symbols and letters: <code>a-zA-Z0-9_.-/</code> </p> </li> <li> <p>A parameter name can't include spaces.</p> </li> <li> <p>Parameter hierarchies are limited to a maximum depth of fifteen levels.</p> </li> </ul> <p>For additional information about valid values for parameter names, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-parameter-name-constraints.html\">Requirements and Constraints for Parameter Names</a> in the <i>AWS Systems Manager User Guide</i>.</p> <note> <p>The maximum length constraint listed below includes capacity for additional system attributes that are not part of the name. The maximum length for the fully qualified parameter name is 1011 characters. </p> </note>"
+          "documentation":"<p>The fully qualified name of the parameter that you want to add to the system. The fully qualified name includes the complete hierarchy of the parameter path and name. For example: <code>/Dev/DBServer/MySQL/db-string13</code> </p> <p>Naming Constraints:</p> <ul> <li> <p>Parameter names are case sensitive.</p> </li> <li> <p>A parameter name must be unique within an AWS Region</p> </li> <li> <p>A parameter name can't be prefixed with \"aws\" or \"ssm\" (case-insensitive).</p> </li> <li> <p>Parameter names can include only the following symbols and letters: <code>a-zA-Z0-9_.-/</code> </p> </li> <li> <p>A parameter name can't include spaces.</p> </li> <li> <p>Parameter hierarchies are limited to a maximum depth of fifteen levels.</p> </li> </ul> <p>For additional information about valid values for parameter names, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-parameter-name-constraints.html\">Requirements and Constraints for Parameter Names</a> in the <i>AWS Systems Manager User Guide</i>.</p> <note> <p>The maximum length constraint listed below includes capacity for additional system attributes that are not part of the name. The maximum length for the fully qualified parameter name is 1011 characters, including the full length of the parameter ARN. For example, the following fully qualified parameter name is 65 characters, not 20 characters:</p> <p> <code>arn:aws:ssm:us-east-2:111122223333:parameter/ExampleParameterName</code> </p> </note>"
         },
         "Description":{
           "shape":"ParameterDescription",
@@ -11293,7 +11571,7 @@
         },
         "Tier":{
           "shape":"ParameterTier",
-          "documentation":"<p>Parameter Store offers a standard tier and an advanced tier for parameters. Standard parameters have a value limit of 4 KB and can't be configured to use parameter policies. You can create a maximum of 10,000 standard parameters per account and per Region. Standard parameters are offered at no additional cost.</p> <p>Advanced parameters have a value limit of 8 KB and can be configured to use parameter policies. You can create a maximum of 100,000 advanced parameters per account and per Region. Advanced parameters incur a charge.</p> <p>If you don't specify a parameter tier when you create a new parameter, the parameter defaults to using the standard tier. You can change a standard parameter to an advanced parameter at any time. But you can't revert an advanced parameter to a standard parameter. Reverting an advanced parameter to a standard parameter would result in data loss because the system would truncate the size of the parameter from 8 KB to 4 KB. Reverting would also remove any policies attached to the parameter. Lastly, advanced parameters use a different form of encryption than standard parameters.</p> <p>If you no longer need an advanced parameter, or if you no longer want to incur charges for an advanced parameter, you must delete it and recreate it as a new standard parameter. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html\">About Advanced Parameters</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
+          "documentation":"<p>The parameter tier to assign to a parameter.</p> <p>Parameter Store offers a standard tier and an advanced tier for parameters. Standard parameters have a content size limit of 4 KB and can't be configured to use parameter policies. You can create a maximum of 10,000 standard parameters for each Region in an AWS account. Standard parameters are offered at no additional cost. </p> <p>Advanced parameters have a content size limit of 8 KB and can be configured to use parameter policies. You can create a maximum of 100,000 advanced parameters for each Region in an AWS account. Advanced parameters incur a charge. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/parameter-store-advanced-parameters.html\">About Advanced Parameters</a> in the <i>AWS Systems Manager User Guide</i>.</p> <p>You can change a standard parameter to an advanced parameter any time. But you can't revert an advanced parameter to a standard parameter. Reverting an advanced parameter to a standard parameter would result in data loss because the system would truncate the size of the parameter from 8 KB to 4 KB. Reverting would also remove any policies attached to the parameter. Lastly, advanced parameters use a different form of encryption than standard parameters. </p> <p>If you no longer need an advanced parameter, or if you no longer want to incur charges for an advanced parameter, you must delete it and recreate it as a new standard parameter. </p> <p> <b>Using the Default Tier Configuration</b> </p> <p>In <code>PutParameter</code> requests, you can specify the tier to create the parameter in. Whenever you specify a tier in the request, Parameter Store creates or updates the parameter according to that request. However, if you do not specify a tier in a request, Parameter Store assigns the tier based on the current Parameter Store default tier configuration.</p> <p>The default tier when you begin using Parameter Store is the standard-parameter tier. If you use the advanced-parameter tier, you can specify one of the following as the default:</p> <ul> <li> <p> <b>Advanced</b>: With this option, Parameter Store evaluates all requests as advanced parameters. </p> </li> <li> <p> <b>Intelligent-Tiering</b>: With this option, Parameter Store evaluates each request to determine if the parameter is standard or advanced. </p> <p>If the request doesn't include any options that require an advanced parameter, the parameter is created in the standard-parameter tier. If one or more options requiring an advanced parameter are included in the request, Parameter Store create a parameter in the advanced-parameter tier.</p> <p>This approach helps control your parameter-related costs by always creating standard parameters unless an advanced parameter is necessary. </p> </li> </ul> <p>Options that require an advanced parameter include the following:</p> <ul> <li> <p>The content size of the parameter is more than 4 KB.</p> </li> <li> <p>The parameter uses a parameter policy.</p> </li> <li> <p>More than 10,000 parameters already exist in your AWS account in the current Region.</p> </li> </ul> <p>For more information about configuring the default tier option, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/ps-default-tier.html\">Specifying a Default Parameter Tier</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
         },
         "Policies":{
           "shape":"ParameterPolicies",
@@ -11307,8 +11585,19 @@
         "Version":{
           "shape":"PSParameterVersion",
           "documentation":"<p>The new version number of a parameter. If you edit a parameter value, Parameter Store automatically creates a new version and assigns this new version a unique ID. You can reference a parameter version ID in API actions or in Systems Manager documents (SSM documents). By default, if you don't specify a specific version, the system returns the latest parameter value when a parameter is called.</p>"
+        },
+        "Tier":{
+          "shape":"ParameterTier",
+          "documentation":"<p>The tier assigned to the parameter.</p>"
         }
       }
+    },
+    "RebootOption":{
+      "type":"string",
+      "enum":[
+        "RebootIfNeeded",
+        "NoReboot"
+      ]
     },
     "Region":{"type":"string"},
     "Regions":{
@@ -11640,6 +11929,29 @@
       "documentation":"<p>A sync configuration with the same name already exists.</p>",
       "exception":true
     },
+    "ResourceDataSyncAwsOrganizationsSource":{
+      "type":"structure",
+      "required":["OrganizationSourceType"],
+      "members":{
+        "OrganizationSourceType":{
+          "shape":"ResourceDataSyncOrganizationSourceType",
+          "documentation":"<p>If an AWS Organization is present, this is either <code>OrganizationalUnits</code> or <code>EntireOrganization</code>. For <code>OrganizationalUnits</code>, the data is aggregated from a set of organization units. For <code>EntireOrganization</code>, the data is aggregated from the entire AWS Organization. </p>"
+        },
+        "OrganizationalUnits":{
+          "shape":"ResourceDataSyncOrganizationalUnitList",
+          "documentation":"<p>The AWS Organizations organization units included in the sync.</p>"
+        }
+      },
+      "documentation":"<p>Information about the AwsOrganizationsSource resource data sync source. A sync source of this type can synchronize data from AWS Organizations or, if an AWS Organization is not present, from multiple AWS Regions.</p>"
+    },
+    "ResourceDataSyncConflictException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>Another <code>UpdateResourceDataSync</code> request is being processed. Wait a few minutes and try again.</p>",
+      "exception":true
+    },
     "ResourceDataSyncCountExceededException":{
       "type":"structure",
       "members":{
@@ -11649,6 +11961,7 @@
       "exception":true
     },
     "ResourceDataSyncCreatedTime":{"type":"timestamp"},
+    "ResourceDataSyncIncludeFutureRegions":{"type":"boolean"},
     "ResourceDataSyncInvalidConfigurationException":{
       "type":"structure",
       "members":{
@@ -11664,6 +11977,14 @@
           "shape":"ResourceDataSyncName",
           "documentation":"<p>The name of the Resource Data Sync.</p>"
         },
+        "SyncType":{
+          "shape":"ResourceDataSyncType",
+          "documentation":"<p>The type of resource data sync. If <code>SyncType</code> is <code>SyncToDestination</code>, then the resource data sync synchronizes data to an Amazon S3 bucket. If the <code>SyncType</code> is <code>SyncFromSource</code> then the resource data sync synchronizes data from AWS Organizations or from multiple AWS Regions.</p>"
+        },
+        "SyncSource":{
+          "shape":"ResourceDataSyncSourceWithState",
+          "documentation":"<p>Information about the source where the data was synchronized. </p>"
+        },
         "S3Destination":{
           "shape":"ResourceDataSyncS3Destination",
           "documentation":"<p>Configuration information for the target Amazon S3 bucket.</p>"
@@ -11675,6 +11996,10 @@
         "LastSuccessfulSyncTime":{
           "shape":"LastSuccessfulResourceDataSyncTime",
           "documentation":"<p>The last time the sync operations returned a status of <code>SUCCESSFUL</code> (UTC).</p>"
+        },
+        "SyncLastModifiedTime":{
+          "shape":"ResourceDataSyncLastModifiedTime",
+          "documentation":"<p>The date and time the resource data sync was changed. </p>"
         },
         "LastStatus":{
           "shape":"LastResourceDataSyncStatus",
@@ -11695,6 +12020,7 @@
       "type":"list",
       "member":{"shape":"ResourceDataSyncItem"}
     },
+    "ResourceDataSyncLastModifiedTime":{"type":"timestamp"},
     "ResourceDataSyncName":{
       "type":"string",
       "max":64,
@@ -11703,10 +12029,39 @@
     "ResourceDataSyncNotFoundException":{
       "type":"structure",
       "members":{
-        "SyncName":{"shape":"ResourceDataSyncName"}
+        "SyncName":{"shape":"ResourceDataSyncName"},
+        "SyncType":{"shape":"ResourceDataSyncType"},
+        "Message":{"shape":"String"}
       },
       "documentation":"<p>The specified sync name was not found.</p>",
       "exception":true
+    },
+    "ResourceDataSyncOrganizationSourceType":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "ResourceDataSyncOrganizationalUnit":{
+      "type":"structure",
+      "members":{
+        "OrganizationalUnitId":{
+          "shape":"ResourceDataSyncOrganizationalUnitId",
+          "documentation":"<p>The AWS Organization unit ID data source for the sync.</p>"
+        }
+      },
+      "documentation":"<p>The AWS Organizations organizational unit data source for the sync.</p>"
+    },
+    "ResourceDataSyncOrganizationalUnitId":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^ou-[0-9a-z]{4,32}-[a-z0-9]{8,32}$"
+    },
+    "ResourceDataSyncOrganizationalUnitList":{
+      "type":"list",
+      "member":{"shape":"ResourceDataSyncOrganizationalUnit"},
+      "max":1000,
+      "min":1
     },
     "ResourceDataSyncS3BucketName":{
       "type":"string",
@@ -11758,6 +12113,82 @@
       "max":64,
       "min":1
     },
+    "ResourceDataSyncSource":{
+      "type":"structure",
+      "required":[
+        "SourceType",
+        "SourceRegions"
+      ],
+      "members":{
+        "SourceType":{
+          "shape":"ResourceDataSyncSourceType",
+          "documentation":"<p>The type of data source for the resource data sync. <code>SourceType</code> is either <code>AwsOrganizations</code> (if an organization is present in AWS Organizations) or <code>singleAccountMultiRegions</code>.</p>"
+        },
+        "AwsOrganizationsSource":{
+          "shape":"ResourceDataSyncAwsOrganizationsSource",
+          "documentation":"<p>The field name in <code>SyncSource</code> for the <code>ResourceDataSyncAwsOrganizationsSource</code> type.</p>"
+        },
+        "SourceRegions":{
+          "shape":"ResourceDataSyncSourceRegionList",
+          "documentation":"<p>The <code>SyncSource</code> AWS Regions included in the resource data sync.</p>"
+        },
+        "IncludeFutureRegions":{
+          "shape":"ResourceDataSyncIncludeFutureRegions",
+          "documentation":"<p>Whether to automatically synchronize and aggregate data from new AWS Regions when those Regions come online.</p>"
+        }
+      },
+      "documentation":"<p>Information about the source of the data included in the resource data sync.</p>"
+    },
+    "ResourceDataSyncSourceRegion":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "ResourceDataSyncSourceRegionList":{
+      "type":"list",
+      "member":{"shape":"ResourceDataSyncSourceRegion"}
+    },
+    "ResourceDataSyncSourceType":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "ResourceDataSyncSourceWithState":{
+      "type":"structure",
+      "members":{
+        "SourceType":{
+          "shape":"ResourceDataSyncSourceType",
+          "documentation":"<p>The type of data source for the resource data sync. <code>SourceType</code> is either <code>AwsOrganizations</code> (if an organization is present in AWS Organizations) or <code>singleAccountMultiRegions</code>.</p>"
+        },
+        "AwsOrganizationsSource":{
+          "shape":"ResourceDataSyncAwsOrganizationsSource",
+          "documentation":"<p>The field name in <code>SyncSource</code> for the <code>ResourceDataSyncAwsOrganizationsSource</code> type.</p>"
+        },
+        "SourceRegions":{
+          "shape":"ResourceDataSyncSourceRegionList",
+          "documentation":"<p>The <code>SyncSource</code> AWS Regions included in the resource data sync.</p>"
+        },
+        "IncludeFutureRegions":{
+          "shape":"ResourceDataSyncIncludeFutureRegions",
+          "documentation":"<p>Whether to automatically synchronize and aggregate data from new AWS Regions when those Regions come online.</p>"
+        },
+        "State":{
+          "shape":"ResourceDataSyncState",
+          "documentation":"<p>The data type name for including resource data sync state. There are four sync states:</p> <p> <code>OrganizationNotExists</code>: Your organization doesn't exist.</p> <p> <code>NoPermissions</code>: The system can't locate the service-linked role. This role is automatically created when a user creates a resource data sync in Explorer.</p> <p> <code>InvalidOrganizationalUnit</code>: You specified or selected an invalid unit in the resource data sync configuration.</p> <p> <code>TrustedAccessDisabled</code>: You disabled Systems Manager access in the organization in AWS Organizations.</p>"
+        }
+      },
+      "documentation":"<p>The data type name for including resource data sync state. There are four sync states:</p> <p> <code>OrganizationNotExists</code> (Your organization doesn't exist)</p> <p> <code>NoPermissions</code> (The system can't locate the service-linked role. This role is automatically created when a user creates a resource data sync in Explorer.)</p> <p> <code>InvalidOrganizationalUnit</code> (You specified or selected an invalid unit in the resource data sync configuration.)</p> <p> <code>TrustedAccessDisabled</code> (You disabled Systems Manager access in the organization in AWS Organizations.)</p>"
+    },
+    "ResourceDataSyncState":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "ResourceDataSyncType":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
     "ResourceId":{"type":"string"},
     "ResourceInUseException":{
       "type":"structure",
@@ -11772,7 +12203,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>Error returned when the caller has exceeded the default resource limits. For example, too many maintenance windows or patch baselines have been created.</p> <p>For information about resource limits in Systems Manager, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/aws_service_limits.html#limits_ssm\">AWS Systems Manager Limits</a>.</p>",
+      "documentation":"<p>Error returned when the caller has exceeded the default resource quotas. For example, too many maintenance windows or patch baselines have been created.</p> <p>For information about resource quotas in Systems Manager, see <a href=\"http://docs.aws.amazon.com/general/latest/gr/ssm.html#limits_ssm\">Systems Manager Service Quotas</a> in the <i>AWS General Reference</i>.</p>",
       "exception":true
     },
     "ResourceType":{
@@ -11835,7 +12266,7 @@
         },
         "StreamUrl":{
           "shape":"StreamUrl",
-          "documentation":"<p>A URL back to SSM Agent on the instance that the Session Manager client uses to send commands and receive output from the instance. Format: <code>wss://ssmmessages.<b>region</b>.amazonaws.com/v1/data-channel/<b>session-id</b>?stream=(input|output)</code>.</p> <p> <b>region</b> represents the Region identifier for an AWS Region supported by AWS Systems Manager, such as <code>us-east-2</code> for the US East (Ohio) Region. For a list of supported <b>region</b> values, see the <b>Region</b> column in the <a href=\"http://docs.aws.amazon.com/general/latest/gr/rande.html#ssm_region\">AWS Systems Manager table of regions and endpoints</a> in the <i>AWS General Reference</i>.</p> <p> <b>session-id</b> represents the ID of a Session Manager session, such as <code>1a2b3c4dEXAMPLE</code>.</p>"
+          "documentation":"<p>A URL back to SSM Agent on the instance that the Session Manager client uses to send commands and receive output from the instance. Format: <code>wss://ssmmessages.<b>region</b>.amazonaws.com/v1/data-channel/<b>session-id</b>?stream=(input|output)</code>.</p> <p> <b>region</b> represents the Region identifier for an AWS Region supported by AWS Systems Manager, such as <code>us-east-2</code> for the US East (Ohio) Region. For a list of supported <b>region</b> values, see the <b>Region</b> column in <a href=\"http://docs.aws.amazon.com/general/latest/gr/ssm.html#ssm_region\">Systems Manager Service Endpoints</a> in the <i>AWS General Reference</i>.</p> <p> <b>session-id</b> represents the ID of a Session Manager session, such as <code>1a2b3c4dEXAMPLE</code>.</p>"
         }
       }
     },
@@ -12150,7 +12581,7 @@
     },
     "SessionFilterValue":{
       "type":"string",
-      "max":200,
+      "max":400,
       "min":1
     },
     "SessionId":{
@@ -12235,7 +12666,7 @@
     },
     "SessionTarget":{
       "type":"string",
-      "max":50,
+      "max":400,
       "min":1
     },
     "SeveritySummary":{
@@ -12267,6 +12698,12 @@
         }
       },
       "documentation":"<p>The number of managed instances found for each patch severity level defined in the request filter.</p>"
+    },
+    "SharedDocumentVersion":{
+      "type":"string",
+      "documentation":"<p>The document version shared with other accounts. You can share <code>Latest</code>, <code>Default</code> or <code>All versions</code>.</p>",
+      "max":8,
+      "pattern":"([$]LATEST|[$]DEFAULT|[$]ALL)"
     },
     "SignalType":{
       "type":"string",
@@ -12357,6 +12794,10 @@
           "shape":"TargetLocations",
           "documentation":"<p>A location is a combination of AWS Regions and/or AWS accounts where you want to run the Automation. Use this action to start an Automation in multiple Regions and multiple accounts. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-automation-multiple-accounts-and-regions.html\">Executing Automations in Multiple AWS Regions and Accounts</a> in the <i>AWS Systems Manager User Guide</i>. </p>",
           "box":true
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Optional metadata that you assign to a resource. You can specify a maximum of five tags for an automation. Tags enable you to categorize a resource in different ways, such as by purpose, owner, or environment. For example, you might want to tag an automation to identify an environment or operating system. In this case, you could specify the following key name/value pairs:</p> <ul> <li> <p> <code>Key=environment,Value=test</code> </p> </li> <li> <p> <code>Key=OS,Value=Windows</code> </p> </li> </ul> <note> <p>To add tags to an existing patch baseline, use the <a>AddTagsToResource</a> action.</p> </note>"
         }
       }
     },
@@ -12400,7 +12841,7 @@
         },
         "StreamUrl":{
           "shape":"StreamUrl",
-          "documentation":"<p>A URL back to SSM Agent on the instance that the Session Manager client uses to send commands and receive output from the instance. Format: <code>wss://ssmmessages.<b>region</b>.amazonaws.com/v1/data-channel/<b>session-id</b>?stream=(input|output)</code> </p> <p> <b>region</b> represents the Region identifier for an AWS Region supported by AWS Systems Manager, such as <code>us-east-2</code> for the US East (Ohio) Region. For a list of supported <b>region</b> values, see the <b>Region</b> column in the <a href=\"http://docs.aws.amazon.com/general/latest/gr/rande.html#ssm_region\">AWS Systems Manager table of regions and endpoints</a> in the <i>AWS General Reference</i>.</p> <p> <b>session-id</b> represents the ID of a Session Manager session, such as <code>1a2b3c4dEXAMPLE</code>.</p>"
+          "documentation":"<p>A URL back to SSM Agent on the instance that the Session Manager client uses to send commands and receive output from the instance. Format: <code>wss://ssmmessages.<b>region</b>.amazonaws.com/v1/data-channel/<b>session-id</b>?stream=(input|output)</code> </p> <p> <b>region</b> represents the Region identifier for an AWS Region supported by AWS Systems Manager, such as <code>us-east-2</code> for the US East (Ohio) Region. For a list of supported <b>region</b> values, see the <b>Region</b> column in <a href=\"http://docs.aws.amazon.com/general/latest/gr/ssm.html#ssm_region\">Systems Manager Service Endpoints</a> in the <i>AWS General Reference</i>.</p> <p> <b>session-id</b> represents the ID of a Session Manager session, such as <code>1a2b3c4dEXAMPLE</code>.</p>"
         }
       }
     },
@@ -12668,7 +13109,7 @@
           "documentation":"<p>User-defined criteria that maps to <code>Key</code>. For example, if you specified <code>tag:ServerRole</code>, you could specify <code>value:WebServer</code> to run a command on instances that include Amazon EC2 tags of <code>ServerRole,WebServer</code>. </p>"
         }
       },
-      "documentation":"<p>An array of search criteria that targets instances using a Key,Value combination that you specify. </p> <p>Supported formats include the following.</p> <ul> <li> <p> <code>Key=InstanceIds,Values=<i>instance-id-1</i>,<i>instance-id-2</i>,<i>instance-id-3</i> </code> </p> </li> <li> <p> <code>Key=tag:<i>my-tag-key</i>,Values=<i>my-tag-value-1</i>,<i>my-tag-value-2</i> </code> </p> </li> <li> <p> <code>Key=tag-key,Values=<i>my-tag-key-1</i>,<i>my-tag-key-2</i> </code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:Name,Values=<i>resource-group-name</i> </code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:ResourceTypeFilters,Values=<i>resource-type-1</i>,<i>resource-type-2</i> </code> </p> </li> </ul> <p>For example:</p> <ul> <li> <p> <code>Key=InstanceIds,Values=i-02573cafcfEXAMPLE,i-0471e04240EXAMPLE,i-07782c72faEXAMPLE</code> </p> </li> <li> <p> <code>Key=tag:CostCenter,Values=CostCenter1,CostCenter2,CostCenter3</code> </p> </li> <li> <p> <code>Key=tag-key,Values=Name,Instance-Type,CostCenter</code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:Name,Values=ProductionResourceGroup</code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:ResourceTypeFilters,Values=<i>AWS::EC2::INSTANCE</i>,<i>AWS::EC2::VPC</i> </code> </p> </li> </ul> <p>For information about how to send commands that target instances using <code>Key,Value</code> parameters, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/send-commands-multiple.html#send-commands-targeting\">Using Targets and Rate Controls to Send Commands to a Fleet</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
+      "documentation":"<p>An array of search criteria that targets instances using a Key,Value combination that you specify. </p> <p>Supported formats include the following.</p> <ul> <li> <p> <code>Key=InstanceIds,Values=<i>instance-id-1</i>,<i>instance-id-2</i>,<i>instance-id-3</i> </code> </p> </li> <li> <p> <code>Key=tag:<i>my-tag-key</i>,Values=<i>my-tag-value-1</i>,<i>my-tag-value-2</i> </code> </p> </li> <li> <p> <code>Key=tag-key,Values=<i>my-tag-key-1</i>,<i>my-tag-key-2</i> </code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:Name,Values=<i>resource-group-name</i> </code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:ResourceTypeFilters,Values=<i>resource-type-1</i>,<i>resource-type-2</i> </code> </p> </li> </ul> <p>For example:</p> <ul> <li> <p> <code>Key=InstanceIds,Values=i-02573cafcfEXAMPLE,i-0471e04240EXAMPLE,i-07782c72faEXAMPLE</code> </p> </li> <li> <p> <code>Key=tag:CostCenter,Values=CostCenter1,CostCenter2,CostCenter3</code> </p> </li> <li> <p> <code>Key=tag-key,Values=Name,Instance-Type,CostCenter</code> </p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:Name,Values=ProductionResourceGroup</code> </p> <p>This example demonstrates how to target all resources in the resource group <b>ProductionResourceGroup</b> in your maintenance window.</p> </li> <li> <p>(Maintenance window targets only) <code>Key=resource-groups:ResourceTypeFilters,Values=<i>AWS::EC2::INSTANCE</i>,<i>AWS::EC2::VPC</i> </code> </p> <p>This example demonstrates how to target only Amazon EC2 instances and VPCs in your maintenance window.</p> </li> <li> <p>(State Manager association targets only) <code>Key=InstanceIds,Values=<i>*</i> </code> </p> <p>This example demonstrates how to target all managed instances in the AWS Region where the association was created.</p> </li> </ul> <p>For information about how to send commands that target instances using <code>Key,Value</code> parameters, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/send-commands-multiple.html#send-commands-targeting\">Using Targets and Rate Controls to Send Commands to a Fleet</a> in the <i>AWS Systems Manager User Guide</i>.</p>"
     },
     "TargetCount":{"type":"integer"},
     "TargetInUseException":{
@@ -12830,6 +13271,14 @@
         "Message":{"shape":"String"}
       },
       "documentation":"<p>The size of inventory data has exceeded the total size limit for the resource.</p>",
+      "exception":true
+    },
+    "UnsupportedCalendarException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The calendar entry contained in the specified Systems Manager document is not supported.</p>",
       "exception":true
     },
     "UnsupportedFeatureRequiredException":{
@@ -13030,7 +13479,7 @@
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
-          "documentation":"<p>The version of the document that you want to update.</p>"
+          "documentation":"<p>(Required) The version of the document that you want to update. </p>"
         },
         "DocumentFormat":{
           "shape":"DocumentFormat",
@@ -13411,6 +13860,14 @@
         "Title":{
           "shape":"OpsItemTitle",
           "documentation":"<p>A short heading that describes the nature of the OpsItem and the impacted resource.</p>"
+        },
+        "Category":{
+          "shape":"OpsItemCategory",
+          "documentation":"<p>Specify a new category for an OpsItem.</p>"
+        },
+        "Severity":{
+          "shape":"OpsItemSeverity",
+          "documentation":"<p>Specify a new severity for an OpsItem.</p>"
         }
       }
     },
@@ -13535,6 +13992,33 @@
           "shape":"PatchSourceList",
           "documentation":"<p>Information about the patches to use to update the instances, including target operating systems and source repositories. Applies to Linux instances only.</p>"
         }
+      }
+    },
+    "UpdateResourceDataSyncRequest":{
+      "type":"structure",
+      "required":[
+        "SyncName",
+        "SyncType",
+        "SyncSource"
+      ],
+      "members":{
+        "SyncName":{
+          "shape":"ResourceDataSyncName",
+          "documentation":"<p>The name of the resource data sync you want to update.</p>"
+        },
+        "SyncType":{
+          "shape":"ResourceDataSyncType",
+          "documentation":"<p>The type of resource data sync. If <code>SyncType</code> is <code>SyncToDestination</code>, then the resource data sync synchronizes data to an Amazon S3 bucket. If the <code>SyncType</code> is <code>SyncFromSource</code> then the resource data sync synchronizes data from AWS Organizations or from multiple AWS Regions.</p>"
+        },
+        "SyncSource":{
+          "shape":"ResourceDataSyncSource",
+          "documentation":"<p>Specify information about the data sources to synchronize.</p>"
+        }
+      }
+    },
+    "UpdateResourceDataSyncResult":{
+      "type":"structure",
+      "members":{
       }
     },
     "UpdateServiceSettingRequest":{

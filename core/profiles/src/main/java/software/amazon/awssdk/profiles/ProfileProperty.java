@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -85,6 +85,13 @@ public final class ProfileProperty {
     public static final String CREDENTIAL_PROCESS = "credential_process";
 
     public static final String WEB_IDENTITY_TOKEN_FILE = "web_identity_token_file";
+
+    /**
+     * The S3 regional endpoint setting for the {@code us-east-1} region. Setting the value to {@code regional} causes
+     * the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the {@code US_EAST_1} region instead of
+     * the global {@code s3.amazonaws.com}. Using the regional endpoint is disabled by default.
+     */
+    public static final String S3_US_EAST_1_REGIONAL_ENDPOINT = "s3_us_east_1_regional_endpoint";
 
     private ProfileProperty() {}
 }

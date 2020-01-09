@@ -1,0 +1,11 @@
+{
+    "version": "2.10.3",
+    "date": "2019-10-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Adding support in SelectObjectContent for scanning a portion of an object specified by a scan range."
+        }
+    ]
+}

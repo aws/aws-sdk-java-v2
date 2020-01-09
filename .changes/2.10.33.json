@@ -1,0 +1,16 @@
+{
+    "version": "2.10.33",
+    "date": "2019-12-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release allows customers to attach multiple Elastic Inference Accelerators to a single EC2 instance. It adds support for a Count parameter for each Elastic Inference Accelerator type you specify on the RunInstances and LaunchTemplate APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Adds a `has*` method to requests and responses that have a List or Map property."
+        }
+    ]
+}

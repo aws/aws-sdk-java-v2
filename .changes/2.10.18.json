@@ -1,0 +1,66 @@
+{
+    "version": "2.10.18",
+    "date": "2019-11-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "description": "Documentation updates for logs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "This release updates AWS Systems Manager Parameter Store documentation for the enhanced search capability."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "You can now add tags while copying snapshots. Previously, a user had to first copy the snapshot and then add tags to the copied snapshot manually. Moving forward, you can specify the list of tags you wish to be applied to the copied snapshot as a parameter on the Copy Snapshot API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "description": "This release adds support for Chime Room Management APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "When SdkException or one of its children is created without a 'message', inherit the message from the exception 'cause' (if any). This should reduce the chance of an exception being raised by the SDK with a null message."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "description": "This release adds a new option in the User Pool to allow specifying sender's name in the emails sent by Amazon Cognito. This release also adds support to add SES Configuration Set to the emails sent by Amazon Cognito."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "description": "Added APIs to register your directories with Amazon WorkSpaces and to modify directory details."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic MapReduce",
+            "description": "Access to the cluster ARN makes it easier for you to author resource-level permissions policies in AWS Identity and Access Management. To simplify the process of obtaining the cluster ARN, Amazon EMR has added a new field containing the cluster ARN to all API responses that include the cluster ID."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert SDK has added support for DolbyVision encoding, and SCTE35 & ESAM insertion to DASH ISO EMSG."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "description": "Introducing Amazon EKS managed node groups, a new feature that lets you easily provision worker nodes for Amazon EKS clusters and keep them up to date using the Amazon EKS management console, CLI, and APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "Documentation-only change to the default value of the routing.http.drop_invalid_header_fields.enabled attribute."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "description": "This release includes new operations related to findings export, including: CreatePublishingDestination, UpdatePublishingDestination, DescribePublishingDestination, DeletePublishingDestination and ListPublishingDestinations."
+        }
+    ]
+}

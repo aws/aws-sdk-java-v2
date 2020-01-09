@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
 
 /**
  * Removes any per request {@link ChannelHandler} from the pipeline prior to releasing
@@ -78,6 +79,8 @@ public class HandlerRemovingChannelPool implements ChannelPool {
         if (channel.isOpen() || channel.isRegistered()) {
             removeIfExists(channel.pipeline(),
                            HttpStreamsClientHandler.class,
+                           LastHttpContentHandler.class,
+                           FlushOnReadHandler.class,
                            ResponseHandler.class,
                            ReadTimeoutHandler.class,
                            WriteTimeoutHandler.class);

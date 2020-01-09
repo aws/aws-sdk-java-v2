@@ -6,10 +6,10 @@
     "serviceFullName": "AWS Elemental MediaLive",
     "serviceId": "MediaLive",
     "protocol": "rest-json",
-    "jsonVersion": "1.1",
     "uid": "medialive-2017-10-14",
     "signatureVersion": "v4",
-    "serviceAbbreviation": "MediaLive"
+    "serviceAbbreviation": "MediaLive",
+    "jsonVersion": "1.1"
   },
   "operations": {
     "BatchUpdateSchedule": {
@@ -196,6 +196,106 @@
       ],
       "documentation": "Creates a Input Security Group"
     },
+    "CreateMultiplex": {
+      "name": "CreateMultiplex",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/multiplexes",
+        "responseCode": 201
+      },
+      "input": {
+        "shape": "CreateMultiplexRequest"
+      },
+      "output": {
+        "shape": "CreateMultiplexResponse",
+        "documentation": "Creation of the multiplex is in progress."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "The Multiplex failed validation and could not be created."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to create the multiplex."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on create multiplex calls to multiplex service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex is unable to create due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Create a new multiplex."
+    },
+    "CreateMultiplexProgram": {
+      "name": "CreateMultiplexProgram",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/multiplexes/{multiplexId}/programs",
+        "responseCode": 201
+      },
+      "input": {
+        "shape": "CreateMultiplexProgramRequest"
+      },
+      "output": {
+        "shape": "CreateMultiplexProgramResponse",
+        "documentation": "Creation of the program is in progress."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "The Multiplex program failed validation and could not be created."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to create a program."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on create multiplex program calls to multiplex service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex program is unable to create due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Create a new program in the multiplex."
+    },
     "CreateTags": {
       "name": "CreateTags",
       "http": {
@@ -371,6 +471,106 @@
         }
       ],
       "documentation": "Deletes an Input Security Group"
+    },
+    "DeleteMultiplex": {
+      "name": "DeleteMultiplex",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/prod/multiplexes/{multiplexId}",
+        "responseCode": 202
+      },
+      "input": {
+        "shape": "DeleteMultiplexRequest"
+      },
+      "output": {
+        "shape": "DeleteMultiplexResponse",
+        "documentation": "Deletion of the multiplex is in progress."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to delete the multiplex."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The multiplex that you are trying to delete doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on delete multiplex calls to multiplex service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex is unable to delete due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Delete a multiplex. The multiplex must be idle."
+    },
+    "DeleteMultiplexProgram": {
+      "name": "DeleteMultiplexProgram",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/prod/multiplexes/{multiplexId}/programs/{programName}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DeleteMultiplexProgramRequest"
+      },
+      "output": {
+        "shape": "DeleteMultiplexProgramResponse",
+        "documentation": "Deletion of the program is in progress."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to delete the multiplex program."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The program that you are trying to delete doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on delete multiplex program calls to multiplex service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex program is unable to delete due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Delete a program from a multiplex."
     },
     "DeleteReservation": {
       "name": "DeleteReservation",
@@ -636,6 +836,98 @@
       ],
       "documentation": "Produces a summary of an Input Security Group"
     },
+    "DescribeMultiplex": {
+      "name": "DescribeMultiplex",
+      "http": {
+        "method": "GET",
+        "requestUri": "/prod/multiplexes/{multiplexId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DescribeMultiplexRequest"
+      },
+      "output": {
+        "shape": "DescribeMultiplexResponse",
+        "documentation": "Details for one multiplex."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to describe the multiplex."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The multiplex that you are trying to describe doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on describe multiplex calls to multiplex service."
+        }
+      ],
+      "documentation": "Gets details about a multiplex."
+    },
+    "DescribeMultiplexProgram": {
+      "name": "DescribeMultiplexProgram",
+      "http": {
+        "method": "GET",
+        "requestUri": "/prod/multiplexes/{multiplexId}/programs/{programName}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DescribeMultiplexProgramRequest"
+      },
+      "output": {
+        "shape": "DescribeMultiplexProgramResponse",
+        "documentation": "The details of one program."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "This request was invalid."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to describe the multiplex program."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "MediaLive can't describe the program. The multiplex or the program that you specified doesn\u2019t exist. Check the IDs and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on describe multiplex program calls to multiplex service."
+        }
+      ],
+      "documentation": "Get the details for a program in a multiplex."
+    },
     "DescribeOffering": {
       "name": "DescribeOffering",
       "http": {
@@ -900,6 +1192,94 @@
       ],
       "documentation": "Produces list of inputs that have been created"
     },
+    "ListMultiplexPrograms": {
+      "name": "ListMultiplexPrograms",
+      "http": {
+        "method": "GET",
+        "requestUri": "/prod/multiplexes/{multiplexId}/programs",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "ListMultiplexProgramsRequest"
+      },
+      "output": {
+        "shape": "ListMultiplexProgramsResponse",
+        "documentation": "An array of the programs for one multiplex."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You do not have permission to list multiplex programs."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "MediaLive can't provide the list of programs. The multiplex that you specified doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on list multiplex calls to multiplex service."
+        }
+      ],
+      "documentation": "List the programs that currently exist for a specific multiplex."
+    },
+    "ListMultiplexes": {
+      "name": "ListMultiplexes",
+      "http": {
+        "method": "GET",
+        "requestUri": "/prod/multiplexes",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "ListMultiplexesRequest"
+      },
+      "output": {
+        "shape": "ListMultiplexesResponse",
+        "documentation": "An array of multiplexes."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to list multiplexes."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on list multiplex calls to multiplex service."
+        }
+      ],
+      "documentation": "Retrieve a list of the existing multiplexes."
+    },
     "ListOfferings": {
       "name": "ListOfferings",
       "http": {
@@ -1118,6 +1498,56 @@
       ],
       "documentation": "Starts an existing channel"
     },
+    "StartMultiplex": {
+      "name": "StartMultiplex",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/multiplexes/{multiplexId}/start",
+        "responseCode": 202
+      },
+      "input": {
+        "shape": "StartMultiplexRequest"
+      },
+      "output": {
+        "shape": "StartMultiplexResponse",
+        "documentation": "The action to start the multiplex is in progress."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to start the multiplex."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The multiplex that you are trying to start doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on start multiplex calls to multiplex service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex is unable to start due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Start (run) the multiplex. Starting the multiplex does not start the channels. You must explicitly start each channel."
+    },
     "StopChannel": {
       "name": "StopChannel",
       "http": {
@@ -1167,6 +1597,56 @@
         }
       ],
       "documentation": "Stops a running channel"
+    },
+    "StopMultiplex": {
+      "name": "StopMultiplex",
+      "http": {
+        "method": "POST",
+        "requestUri": "/prod/multiplexes/{multiplexId}/stop",
+        "responseCode": 202
+      },
+      "input": {
+        "shape": "StopMultiplexRequest"
+      },
+      "output": {
+        "shape": "StopMultiplexResponse",
+        "documentation": "The action to stop the multiplex is in progress."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to stop the multiplex."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The multiplex that you are trying to stop doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "Request limit exceeded on stop multiplex calls to multiplex service."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex is unable to stop due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Stops a running multiplex. If the multiplex isn't running, this action has no effect."
     },
     "UpdateChannel": {
       "name": "UpdateChannel",
@@ -1359,6 +1839,106 @@
         }
       ],
       "documentation": "Update an Input Security Group's Whilelists."
+    },
+    "UpdateMultiplex": {
+      "name": "UpdateMultiplex",
+      "http": {
+        "method": "PUT",
+        "requestUri": "/prod/multiplexes/{multiplexId}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateMultiplexRequest"
+      },
+      "output": {
+        "shape": "UpdateMultiplexResponse",
+        "documentation": "The update to the multiplex has succeeded."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "The multiplex configuration failed validation and could not be updated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to update the multiplex."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "The multiplex that you are trying to update doesn\u2019t exist. Check the ID and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex is unable to update due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Updates a multiplex."
+    },
+    "UpdateMultiplexProgram": {
+      "name": "UpdateMultiplexProgram",
+      "http": {
+        "method": "PUT",
+        "requestUri": "/prod/multiplexes/{multiplexId}/programs/{programName}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "UpdateMultiplexProgramRequest"
+      },
+      "output": {
+        "shape": "UpdateMultiplexProgramResponse",
+        "documentation": "The update to the program has succeeded."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "MediaLive can't process your request because of a problem in the request. Please check your request form and syntax."
+        },
+        {
+          "shape": "UnprocessableEntityException",
+          "documentation": "The multiplex program failed validation and could not be updated."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "Unexpected internal service error."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have permission to update the multiplex program."
+        },
+        {
+          "shape": "BadGatewayException",
+          "documentation": "Bad Gateway Error."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "MediaLive can't update the program. The multiplex or the program that you specified doesn\u2019t exist. Check the IDs and try again."
+        },
+        {
+          "shape": "GatewayTimeoutException",
+          "documentation": "Gateway Timeout Error."
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "The multiplex program is unable to update due to an issue with multiplex resources."
+        }
+      ],
+      "documentation": "Update a program in a multiplex."
     },
     "UpdateReservation": {
       "name": "UpdateReservation",
@@ -1883,6 +2463,14 @@
       },
       "documentation": "Audio Normalization Settings"
     },
+    "AudioOnlyHlsSegmentType": {
+      "type": "string",
+      "documentation": "Audio Only Hls Segment Type",
+      "enum": [
+        "AAC",
+        "FMP4"
+      ]
+    },
     "AudioOnlyHlsSettings": {
       "type": "structure",
       "members": {
@@ -1894,12 +2482,17 @@
         "AudioOnlyImage": {
           "shape": "InputLocation",
           "locationName": "audioOnlyImage",
-          "documentation": "For use with an audio only Stream. Must be a .jpg or .png file. If given, this image will be used as the cover-art for the audio only output. Ideally, it should be formatted for an iPhone screen for two reasons. The iPhone does not resize the image, it crops a centered image on the top/bottom and left/right. Additionally, this image file gets saved bit-for-bit into every 10-second segment file, so will increase bandwidth by {image file size} * {segment count} * {user count.}."
+          "documentation": "Optional. Specifies the .jpg or .png image to use as the cover art for an audio-only output. We recommend a low bit-size file because the image increases the output audio bandwidth.\n\nThe image is attached to the audio as an ID3 tag, frame type APIC, picture type 0x10, as per the \"ID3 tag version 2.4.0 - Native Frames\" standard."
         },
         "AudioTrackType": {
           "shape": "AudioOnlyHlsTrackType",
           "locationName": "audioTrackType",
           "documentation": "Four types of audio-only tracks are supported:\n\nAudio-Only Variant Stream\nThe client can play back this audio-only stream instead of video in low-bandwidth scenarios. Represented as an EXT-X-STREAM-INF in the HLS manifest.\n\nAlternate Audio, Auto Select, Default\nAlternate rendition that the client should try to play back by default. Represented as an EXT-X-MEDIA in the HLS manifest with DEFAULT=YES, AUTOSELECT=YES\n\nAlternate Audio, Auto Select, Not Default\nAlternate rendition that the client may try to play back by default. Represented as an EXT-X-MEDIA in the HLS manifest with DEFAULT=NO, AUTOSELECT=YES\n\nAlternate Audio, not Auto Select\nAlternate rendition that the client will not try to play back by default. Represented as an EXT-X-MEDIA in the HLS manifest with DEFAULT=NO, AUTOSELECT=NO"
+        },
+        "SegmentType": {
+          "shape": "AudioOnlyHlsSegmentType",
+          "locationName": "segmentType",
+          "documentation": "Specifies the segment type."
         }
       },
       "documentation": "Audio Only Hls Settings"
@@ -2395,7 +2988,7 @@
           "documentation": "Name of the caption description.  Used to associate a caption description with an output.  Names must be unique within an event."
         }
       },
-      "documentation": "Output groups for this Live Event. Output groups contain information about where streams should be distributed.",
+      "documentation": "Caption Description",
       "required": [
         "CaptionSelectorName",
         "Name"
@@ -2733,6 +3326,12 @@
       },
       "documentation": "Placeholder documentation for ChannelSummary"
     },
+    "ColorSpacePassthroughSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Passthrough applies no color space conversion to the output"
+    },
     "ConflictException": {
       "type": "structure",
       "members": {
@@ -3055,6 +3654,187 @@
       },
       "documentation": "Placeholder documentation for CreateInputSecurityGroupResultModel"
     },
+    "CreateMultiplex": {
+      "type": "structure",
+      "members": {
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex. You must specify exactly two."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "Name of multiplex."
+        },
+        "RequestId": {
+          "shape": "__string",
+          "locationName": "requestId",
+          "documentation": "Unique request ID. This prevents retries from creating multiple\nresources.\n",
+          "idempotencyToken": true
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "required": [
+        "RequestId",
+        "MultiplexSettings",
+        "AvailabilityZones",
+        "Name"
+      ],
+      "documentation": "Placeholder documentation for CreateMultiplex"
+    },
+    "CreateMultiplexProgram": {
+      "type": "structure",
+      "members": {
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The settings for this multiplex program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "Name of multiplex program."
+        },
+        "RequestId": {
+          "shape": "__string",
+          "locationName": "requestId",
+          "documentation": "Unique request ID. This prevents retries from creating multiple\nresources.\n",
+          "idempotencyToken": true
+        }
+      },
+      "required": [
+        "RequestId",
+        "MultiplexProgramSettings",
+        "ProgramName"
+      ],
+      "documentation": "Placeholder documentation for CreateMultiplexProgram"
+    },
+    "CreateMultiplexProgramRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "ID of the multiplex where the program is to be created."
+        },
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The settings for this multiplex program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "Name of multiplex program."
+        },
+        "RequestId": {
+          "shape": "__string",
+          "locationName": "requestId",
+          "documentation": "Unique request ID. This prevents retries from creating multiple\nresources.\n",
+          "idempotencyToken": true
+        }
+      },
+      "documentation": "A request to create a program in a multiplex.",
+      "required": [
+        "MultiplexId",
+        "RequestId",
+        "MultiplexProgramSettings",
+        "ProgramName"
+      ]
+    },
+    "CreateMultiplexProgramResponse": {
+      "type": "structure",
+      "members": {
+        "MultiplexProgram": {
+          "shape": "MultiplexProgram",
+          "locationName": "multiplexProgram",
+          "documentation": "The newly created multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for CreateMultiplexProgramResponse"
+    },
+    "CreateMultiplexProgramResultModel": {
+      "type": "structure",
+      "members": {
+        "MultiplexProgram": {
+          "shape": "MultiplexProgram",
+          "locationName": "multiplexProgram",
+          "documentation": "The newly created multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for CreateMultiplexProgramResultModel"
+    },
+    "CreateMultiplexRequest": {
+      "type": "structure",
+      "members": {
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex. You must specify exactly two."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "Name of multiplex."
+        },
+        "RequestId": {
+          "shape": "__string",
+          "locationName": "requestId",
+          "documentation": "Unique request ID. This prevents retries from creating multiple\nresources.\n",
+          "idempotencyToken": true
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "A request to create a multiplex.",
+      "required": [
+        "RequestId",
+        "MultiplexSettings",
+        "AvailabilityZones",
+        "Name"
+      ]
+    },
+    "CreateMultiplexResponse": {
+      "type": "structure",
+      "members": {
+        "Multiplex": {
+          "shape": "Multiplex",
+          "locationName": "multiplex",
+          "documentation": "The newly created multiplex."
+        }
+      },
+      "documentation": "Placeholder documentation for CreateMultiplexResponse"
+    },
+    "CreateMultiplexResultModel": {
+      "type": "structure",
+      "members": {
+        "Multiplex": {
+          "shape": "Multiplex",
+          "locationName": "multiplex",
+          "documentation": "The newly created multiplex."
+        }
+      },
+      "documentation": "Placeholder documentation for CreateMultiplexResultModel"
+    },
     "CreateTagsRequest": {
       "type": "structure",
       "members": {
@@ -3207,6 +3987,125 @@
       "members": {
       },
       "documentation": "Placeholder documentation for DeleteInputSecurityGroupResponse"
+    },
+    "DeleteMultiplexProgramRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex that the program belongs to."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "programName",
+          "documentation": "The multiplex program name."
+        }
+      },
+      "required": [
+        "MultiplexId",
+        "ProgramName"
+      ],
+      "documentation": "Placeholder documentation for DeleteMultiplexProgramRequest"
+    },
+    "DeleteMultiplexProgramResponse": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__string",
+          "locationName": "channelId",
+          "documentation": "The MediaLive channel associated with the program."
+        },
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The settings for this multiplex program."
+        },
+        "PacketIdentifiersMap": {
+          "shape": "MultiplexProgramPacketIdentifiersMap",
+          "locationName": "packetIdentifiersMap",
+          "documentation": "The packet identifier map for this multiplex program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "The name of the multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for DeleteMultiplexProgramResponse"
+    },
+    "DeleteMultiplexRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex."
+        }
+      },
+      "required": [
+        "MultiplexId"
+      ],
+      "documentation": "Placeholder documentation for DeleteMultiplexRequest"
+    },
+    "DeleteMultiplexResponse": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "locationName": "arn",
+          "documentation": "The unique arn of the multiplex."
+        },
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex."
+        },
+        "Destinations": {
+          "shape": "__listOfMultiplexOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of the multiplex output destinations."
+        },
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique id of the multiplex."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the multiplex."
+        },
+        "PipelinesRunningCount": {
+          "shape": "__integer",
+          "locationName": "pipelinesRunningCount",
+          "documentation": "The number of currently healthy pipelines."
+        },
+        "ProgramCount": {
+          "shape": "__integer",
+          "locationName": "programCount",
+          "documentation": "The number of programs in the multiplex."
+        },
+        "State": {
+          "shape": "MultiplexState",
+          "locationName": "state",
+          "documentation": "The current state of the multiplex."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "Placeholder documentation for DeleteMultiplexResponse"
     },
     "DeleteReservationRequest": {
       "type": "structure",
@@ -3593,6 +4492,125 @@
         }
       },
       "documentation": "Placeholder documentation for DescribeInputSecurityGroupResponse"
+    },
+    "DescribeMultiplexProgramRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex that the program belongs to."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "programName",
+          "documentation": "The name of the program."
+        }
+      },
+      "required": [
+        "MultiplexId",
+        "ProgramName"
+      ],
+      "documentation": "Placeholder documentation for DescribeMultiplexProgramRequest"
+    },
+    "DescribeMultiplexProgramResponse": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__string",
+          "locationName": "channelId",
+          "documentation": "The MediaLive channel associated with the program."
+        },
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The settings for this multiplex program."
+        },
+        "PacketIdentifiersMap": {
+          "shape": "MultiplexProgramPacketIdentifiersMap",
+          "locationName": "packetIdentifiersMap",
+          "documentation": "The packet identifier map for this multiplex program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "The name of the multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for DescribeMultiplexProgramResponse"
+    },
+    "DescribeMultiplexRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex."
+        }
+      },
+      "required": [
+        "MultiplexId"
+      ],
+      "documentation": "Placeholder documentation for DescribeMultiplexRequest"
+    },
+    "DescribeMultiplexResponse": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "locationName": "arn",
+          "documentation": "The unique arn of the multiplex."
+        },
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex."
+        },
+        "Destinations": {
+          "shape": "__listOfMultiplexOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of the multiplex output destinations."
+        },
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique id of the multiplex."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the multiplex."
+        },
+        "PipelinesRunningCount": {
+          "shape": "__integer",
+          "locationName": "pipelinesRunningCount",
+          "documentation": "The number of currently healthy pipelines."
+        },
+        "ProgramCount": {
+          "shape": "__integer",
+          "locationName": "programCount",
+          "documentation": "The number of programs in the multiplex."
+        },
+        "State": {
+          "shape": "MultiplexState",
+          "locationName": "state",
+          "documentation": "The current state of the multiplex."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "Placeholder documentation for DescribeMultiplexResponse"
     },
     "DescribeOfferingRequest": {
       "type": "structure",
@@ -4381,6 +5399,11 @@
           "locationName": "globalConfiguration",
           "documentation": "Configuration settings that apply to the event as a whole."
         },
+        "NielsenConfiguration": {
+          "shape": "NielsenConfiguration",
+          "locationName": "nielsenConfiguration",
+          "documentation": "Nielsen configuration settings."
+        },
         "OutputGroups": {
           "shape": "__listOfOutputGroup",
           "locationName": "outputGroups"
@@ -4463,6 +5486,17 @@
         "Time"
       ]
     },
+    "Fmp4HlsSettings": {
+      "type": "structure",
+      "members": {
+        "AudioRenditionSets": {
+          "shape": "__string",
+          "locationName": "audioRenditionSets",
+          "documentation": "List all the audio groups that are used with the video output stream. Input all the audio GROUP-IDs that are associated to the video, separate by ','."
+        }
+      },
+      "documentation": "Fmp4 Hls Settings"
+    },
     "FollowModeScheduleActionStartSettings": {
       "type": "structure",
       "members": {
@@ -4519,6 +5553,14 @@
         "Destination"
       ]
     },
+    "FrameCaptureIntervalUnit": {
+      "type": "string",
+      "documentation": "Frame Capture Interval Unit",
+      "enum": [
+        "MILLISECONDS",
+        "SECONDS"
+      ]
+    },
     "FrameCaptureOutputSettings": {
       "type": "structure",
       "members": {
@@ -4534,9 +5576,14 @@
       "type": "structure",
       "members": {
         "CaptureInterval": {
-          "shape": "__integerMin1Max3600",
+          "shape": "__integerMin1Max3600000",
           "locationName": "captureInterval",
-          "documentation": "The frequency, in seconds, for capturing frames for inclusion in the output.  For example, \"10\" means capture a frame every 10 seconds."
+          "documentation": "The frequency at which to capture frames for inclusion in the output. May be specified in either seconds or milliseconds, as specified by captureIntervalUnits."
+        },
+        "CaptureIntervalUnits": {
+          "shape": "FrameCaptureIntervalUnit",
+          "locationName": "captureIntervalUnits",
+          "documentation": "Unit for the frame capture interval."
         }
       },
       "documentation": "Frame Capture Settings",
@@ -4646,6 +5693,24 @@
         "INSERT"
       ]
     },
+    "H264ColorSpaceSettings": {
+      "type": "structure",
+      "members": {
+        "ColorSpacePassthroughSettings": {
+          "shape": "ColorSpacePassthroughSettings",
+          "locationName": "colorSpacePassthroughSettings"
+        },
+        "Rec601Settings": {
+          "shape": "Rec601Settings",
+          "locationName": "rec601Settings"
+        },
+        "Rec709Settings": {
+          "shape": "Rec709Settings",
+          "locationName": "rec709Settings"
+        }
+      },
+      "documentation": "H264 Color Space Settings"
+    },
     "H264EntropyEncoding": {
       "type": "string",
       "documentation": "H264 Entropy Encoding",
@@ -4743,6 +5808,7 @@
       "documentation": "H264 Rate Control Mode",
       "enum": [
         "CBR",
+        "MULTIPLEX",
         "QVBR",
         "VBR"
       ]
@@ -4789,12 +5855,17 @@
         "BufSize": {
           "shape": "__integerMin0",
           "locationName": "bufSize",
-          "documentation": "Size of buffer (HRD buffer model) in bits/second."
+          "documentation": "Size of buffer (HRD buffer model) in bits."
         },
         "ColorMetadata": {
           "shape": "H264ColorMetadata",
           "locationName": "colorMetadata",
           "documentation": "Includes colorspace metadata in the output."
+        },
+        "ColorSpaceSettings": {
+          "shape": "H264ColorSpaceSettings",
+          "locationName": "colorSpaceSettings",
+          "documentation": "Color Space settings"
         },
         "EntropyEncoding": {
           "shape": "H264EntropyEncoding",
@@ -4842,9 +5913,9 @@
           "documentation": "Number of B-frames between reference frames."
         },
         "GopSize": {
-          "shape": "__doubleMin1",
+          "shape": "__double",
           "locationName": "gopSize",
-          "documentation": "GOP size (keyframe interval) in units of either frames or seconds per gopSizeUnits. Must be greater than zero."
+          "documentation": "GOP size (keyframe interval) in units of either frames or seconds per gopSizeUnits.\nIf gopSizeUnits is frames, gopSize must be an integer and must be greater than or equal to 1.\nIf gopSizeUnits is seconds, gopSize must be greater than 0, but need not be an integer."
         },
         "GopSizeUnits": {
           "shape": "H264GopSizeUnits",
@@ -4864,12 +5935,12 @@
         "MaxBitrate": {
           "shape": "__integerMin1000",
           "locationName": "maxBitrate",
-          "documentation": "For QVBR: See the tooltip for Quality level \n\nFor VBR: Set the maximum bitrate in order to accommodate expected spikes in the complexity of the video."
+          "documentation": "For QVBR: See the tooltip for Quality level\n\nFor VBR: Set the maximum bitrate in order to accommodate expected spikes in the complexity of the video."
         },
         "MinIInterval": {
           "shape": "__integerMin0Max30",
           "locationName": "minIInterval",
-          "documentation": "Only meaningful if sceneChangeDetect is set to enabled.  Enforces separation between repeated (cadence) I-frames and I-frames inserted by Scene Change Detection. If a scene change I-frame is within I-interval frames of a cadence I-frame, the GOP is shrunk and/or stretched to the scene change I-frame. GOP stretch requires enabling lookahead as well as setting I-interval. The normal cadence resumes for the next GOP. Note: Maximum GOP stretch = GOP size + Min-I-interval - 1"
+          "documentation": "Only meaningful if sceneChangeDetect is set to enabled.  Defaults to 5 if multiplex rate control is used.  Enforces separation between repeated (cadence) I-frames and I-frames inserted by Scene Change Detection. If a scene change I-frame is within I-interval frames of a cadence I-frame, the GOP is shrunk and/or stretched to the scene change I-frame. GOP stretch requires enabling lookahead as well as setting I-interval. The normal cadence resumes for the next GOP. Note: Maximum GOP stretch = GOP size + Min-I-interval - 1"
         },
         "NumRefFrames": {
           "shape": "__integerMin1Max6",
@@ -4904,7 +5975,7 @@
         "RateControlMode": {
           "shape": "H264RateControlMode",
           "locationName": "rateControlMode",
-          "documentation": "Rate control mode. \n\nQVBR: Quality will match the specified quality level except when it is constrained by the\nmaximum bitrate.  Recommended if you or your viewers pay for bandwidth.\n\nVBR: Quality and bitrate vary, depending on the video complexity. Recommended instead of QVBR\nif you want to maintain a specific average bitrate over the duration of the channel.\n\nCBR: Quality varies, depending on the video complexity. Recommended only if you distribute\nyour assets to devices that cannot handle variable bitrates."
+          "documentation": "Rate control mode.\n\nQVBR: Quality will match the specified quality level except when it is constrained by the\nmaximum bitrate.  Recommended if you or your viewers pay for bandwidth.\n\nVBR: Quality and bitrate vary, depending on the video complexity. Recommended instead of QVBR\nif you want to maintain a specific average bitrate over the duration of the channel.\n\nCBR: Quality varies, depending on the video complexity. Recommended only if you distribute\nyour assets to devices that cannot handle variable bitrates.\n\nMultiplex: This rate control mode is only supported (and is required) when the video is being\ndelivered to a MediaLive Multiplex in which case the rate control configuration is controlled\nby the properties within the Multiplex Program."
         },
         "ScanType": {
           "shape": "H264ScanType",
@@ -4993,6 +6064,315 @@
         "DISABLED",
         "PIC_TIMING_SEI"
       ]
+    },
+    "H265AdaptiveQuantization": {
+      "type": "string",
+      "documentation": "H265 Adaptive Quantization",
+      "enum": [
+        "HIGH",
+        "HIGHER",
+        "LOW",
+        "MAX",
+        "MEDIUM",
+        "OFF"
+      ]
+    },
+    "H265AlternativeTransferFunction": {
+      "type": "string",
+      "documentation": "H265 Alternative Transfer Function",
+      "enum": [
+        "INSERT",
+        "OMIT"
+      ]
+    },
+    "H265ColorMetadata": {
+      "type": "string",
+      "documentation": "H265 Color Metadata",
+      "enum": [
+        "IGNORE",
+        "INSERT"
+      ]
+    },
+    "H265ColorSpaceSettings": {
+      "type": "structure",
+      "members": {
+        "ColorSpacePassthroughSettings": {
+          "shape": "ColorSpacePassthroughSettings",
+          "locationName": "colorSpacePassthroughSettings"
+        },
+        "Hdr10Settings": {
+          "shape": "Hdr10Settings",
+          "locationName": "hdr10Settings"
+        },
+        "Rec601Settings": {
+          "shape": "Rec601Settings",
+          "locationName": "rec601Settings"
+        },
+        "Rec709Settings": {
+          "shape": "Rec709Settings",
+          "locationName": "rec709Settings"
+        }
+      },
+      "documentation": "H265 Color Space Settings"
+    },
+    "H265FlickerAq": {
+      "type": "string",
+      "documentation": "H265 Flicker Aq",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "H265GopSizeUnits": {
+      "type": "string",
+      "documentation": "H265 Gop Size Units",
+      "enum": [
+        "FRAMES",
+        "SECONDS"
+      ]
+    },
+    "H265Level": {
+      "type": "string",
+      "documentation": "H265 Level",
+      "enum": [
+        "H265_LEVEL_1",
+        "H265_LEVEL_2",
+        "H265_LEVEL_2_1",
+        "H265_LEVEL_3",
+        "H265_LEVEL_3_1",
+        "H265_LEVEL_4",
+        "H265_LEVEL_4_1",
+        "H265_LEVEL_5",
+        "H265_LEVEL_5_1",
+        "H265_LEVEL_5_2",
+        "H265_LEVEL_6",
+        "H265_LEVEL_6_1",
+        "H265_LEVEL_6_2",
+        "H265_LEVEL_AUTO"
+      ]
+    },
+    "H265LookAheadRateControl": {
+      "type": "string",
+      "documentation": "H265 Look Ahead Rate Control",
+      "enum": [
+        "HIGH",
+        "LOW",
+        "MEDIUM"
+      ]
+    },
+    "H265Profile": {
+      "type": "string",
+      "documentation": "H265 Profile",
+      "enum": [
+        "MAIN",
+        "MAIN_10BIT"
+      ]
+    },
+    "H265RateControlMode": {
+      "type": "string",
+      "documentation": "H265 Rate Control Mode",
+      "enum": [
+        "CBR",
+        "MULTIPLEX",
+        "QVBR"
+      ]
+    },
+    "H265ScanType": {
+      "type": "string",
+      "documentation": "H265 Scan Type",
+      "enum": [
+        "PROGRESSIVE"
+      ]
+    },
+    "H265SceneChangeDetect": {
+      "type": "string",
+      "documentation": "H265 Scene Change Detect",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
+    "H265Settings": {
+      "type": "structure",
+      "members": {
+        "AdaptiveQuantization": {
+          "shape": "H265AdaptiveQuantization",
+          "locationName": "adaptiveQuantization",
+          "documentation": "Adaptive quantization. Allows intra-frame quantizers to vary to improve visual quality."
+        },
+        "AfdSignaling": {
+          "shape": "AfdSignaling",
+          "locationName": "afdSignaling",
+          "documentation": "Indicates that AFD values will be written into the output stream.  If afdSignaling is \"auto\", the system will try to preserve the input AFD value (in cases where multiple AFD values are valid). If set to \"fixed\", the AFD value will be the value configured in the fixedAfd parameter."
+        },
+        "AlternativeTransferFunction": {
+          "shape": "H265AlternativeTransferFunction",
+          "locationName": "alternativeTransferFunction",
+          "documentation": "Whether or not EML should insert an Alternative Transfer Function SEI message to support backwards compatibility with non-HDR decoders and displays."
+        },
+        "Bitrate": {
+          "shape": "__integerMin100000Max40000000",
+          "locationName": "bitrate",
+          "documentation": "Average bitrate in bits/second. Required when the rate control mode is VBR or CBR. Not used for QVBR. In an MS Smooth output group, each output must have a unique value when its bitrate is rounded down to the nearest multiple of 1000."
+        },
+        "BufSize": {
+          "shape": "__integerMin100000Max80000000",
+          "locationName": "bufSize",
+          "documentation": "Size of buffer (HRD buffer model) in bits."
+        },
+        "ColorMetadata": {
+          "shape": "H265ColorMetadata",
+          "locationName": "colorMetadata",
+          "documentation": "Includes colorspace metadata in the output."
+        },
+        "ColorSpaceSettings": {
+          "shape": "H265ColorSpaceSettings",
+          "locationName": "colorSpaceSettings",
+          "documentation": "Color Space settings"
+        },
+        "FixedAfd": {
+          "shape": "FixedAfd",
+          "locationName": "fixedAfd",
+          "documentation": "Four bit AFD value to write on all frames of video in the output stream. Only valid when afdSignaling is set to 'Fixed'."
+        },
+        "FlickerAq": {
+          "shape": "H265FlickerAq",
+          "locationName": "flickerAq",
+          "documentation": "If set to enabled, adjust quantization within each frame to reduce flicker or 'pop' on I-frames."
+        },
+        "FramerateDenominator": {
+          "shape": "__integerMin1Max3003",
+          "locationName": "framerateDenominator",
+          "documentation": "Framerate denominator."
+        },
+        "FramerateNumerator": {
+          "shape": "__integerMin1",
+          "locationName": "framerateNumerator",
+          "documentation": "Framerate numerator - framerate is a fraction, e.g. 24000 / 1001 = 23.976 fps."
+        },
+        "GopClosedCadence": {
+          "shape": "__integerMin0",
+          "locationName": "gopClosedCadence",
+          "documentation": "Frequency of closed GOPs. In streaming applications, it is recommended that this be set to 1 so a decoder joining mid-stream will receive an IDR frame as quickly as possible. Setting this value to 0 will break output segmenting."
+        },
+        "GopSize": {
+          "shape": "__double",
+          "locationName": "gopSize",
+          "documentation": "GOP size (keyframe interval) in units of either frames or seconds per gopSizeUnits.\nIf gopSizeUnits is frames, gopSize must be an integer and must be greater than or equal to 1.\nIf gopSizeUnits is seconds, gopSize must be greater than 0, but need not be an integer."
+        },
+        "GopSizeUnits": {
+          "shape": "H265GopSizeUnits",
+          "locationName": "gopSizeUnits",
+          "documentation": "Indicates if the gopSize is specified in frames or seconds. If seconds the system will convert the gopSize into a frame count at run time."
+        },
+        "Level": {
+          "shape": "H265Level",
+          "locationName": "level",
+          "documentation": "H.265 Level."
+        },
+        "LookAheadRateControl": {
+          "shape": "H265LookAheadRateControl",
+          "locationName": "lookAheadRateControl",
+          "documentation": "Amount of lookahead. A value of low can decrease latency and memory usage, while high can produce better quality for certain content."
+        },
+        "MaxBitrate": {
+          "shape": "__integerMin100000Max40000000",
+          "locationName": "maxBitrate",
+          "documentation": "For QVBR: See the tooltip for Quality level"
+        },
+        "MinIInterval": {
+          "shape": "__integerMin0Max30",
+          "locationName": "minIInterval",
+          "documentation": "Only meaningful if sceneChangeDetect is set to enabled.  Defaults to 5 if multiplex rate control is used.  Enforces separation between repeated (cadence) I-frames and I-frames inserted by Scene Change Detection. If a scene change I-frame is within I-interval frames of a cadence I-frame, the GOP is shrunk and/or stretched to the scene change I-frame. GOP stretch requires enabling lookahead as well as setting I-interval. The normal cadence resumes for the next GOP. Note: Maximum GOP stretch = GOP size + Min-I-interval - 1"
+        },
+        "ParDenominator": {
+          "shape": "__integerMin1",
+          "locationName": "parDenominator",
+          "documentation": "Pixel Aspect Ratio denominator."
+        },
+        "ParNumerator": {
+          "shape": "__integerMin1",
+          "locationName": "parNumerator",
+          "documentation": "Pixel Aspect Ratio numerator."
+        },
+        "Profile": {
+          "shape": "H265Profile",
+          "locationName": "profile",
+          "documentation": "H.265 Profile."
+        },
+        "QvbrQualityLevel": {
+          "shape": "__integerMin1Max10",
+          "locationName": "qvbrQualityLevel",
+          "documentation": "Controls the target quality for the video encode. Applies only when the rate control mode is QVBR. Set values for the QVBR quality level field and Max bitrate field that suit your most important viewing devices. Recommended values are:\n- Primary screen: Quality level: 8 to 10. Max bitrate: 4M\n- PC or tablet: Quality level: 7. Max bitrate: 1.5M to 3M\n- Smartphone: Quality level: 6. Max bitrate: 1M to 1.5M"
+        },
+        "RateControlMode": {
+          "shape": "H265RateControlMode",
+          "locationName": "rateControlMode",
+          "documentation": "Rate control mode.\n\nQVBR: Quality will match the specified quality level except when it is constrained by the\nmaximum bitrate.  Recommended if you or your viewers pay for bandwidth.\n\nCBR: Quality varies, depending on the video complexity. Recommended only if you distribute\nyour assets to devices that cannot handle variable bitrates."
+        },
+        "ScanType": {
+          "shape": "H265ScanType",
+          "locationName": "scanType",
+          "documentation": "Sets the scan type of the output to progressive or top-field-first interlaced."
+        },
+        "SceneChangeDetect": {
+          "shape": "H265SceneChangeDetect",
+          "locationName": "sceneChangeDetect",
+          "documentation": "Scene change detection."
+        },
+        "Slices": {
+          "shape": "__integerMin1Max16",
+          "locationName": "slices",
+          "documentation": "Number of slices per picture. Must be less than or equal to the number of macroblock rows for progressive pictures, and less than or equal to half the number of macroblock rows for interlaced pictures.\nThis field is optional; when no value is specified the encoder will choose the number of slices based on encode resolution."
+        },
+        "Tier": {
+          "shape": "H265Tier",
+          "locationName": "tier",
+          "documentation": "H.265 Tier."
+        },
+        "TimecodeInsertion": {
+          "shape": "H265TimecodeInsertionBehavior",
+          "locationName": "timecodeInsertion",
+          "documentation": "Determines how timecodes should be inserted into the video elementary stream.\n- 'disabled': Do not include timecodes\n- 'picTimingSei': Pass through picture timing SEI messages from the source specified in Timecode Config"
+        }
+      },
+      "documentation": "H265 Settings",
+      "required": [
+        "FramerateNumerator",
+        "FramerateDenominator"
+      ]
+    },
+    "H265Tier": {
+      "type": "string",
+      "documentation": "H265 Tier",
+      "enum": [
+        "HIGH",
+        "MAIN"
+      ]
+    },
+    "H265TimecodeInsertionBehavior": {
+      "type": "string",
+      "documentation": "H265 Timecode Insertion Behavior",
+      "enum": [
+        "DISABLED",
+        "PIC_TIMING_SEI"
+      ]
+    },
+    "Hdr10Settings": {
+      "type": "structure",
+      "members": {
+        "MaxCll": {
+          "shape": "__integerMin0Max32768",
+          "locationName": "maxCll",
+          "documentation": "Maximum Content Light Level\nAn integer metadata value defining the maximum light level, in nits,\nof any single pixel within an encoded HDR video stream or file."
+        },
+        "MaxFall": {
+          "shape": "__integerMin0Max32768",
+          "locationName": "maxFall",
+          "documentation": "Maximum Frame Average Light Level\nAn integer metadata value defining the maximum average light level, in nits,\nfor any single frame within an encoded HDR video stream or file."
+        }
+      },
+      "documentation": "Hdr10 Settings"
     },
     "HlsAdMarkers": {
       "type": "string",
@@ -5154,10 +6534,20 @@
           "locationName": "baseUrlContent",
           "documentation": "A partial URI prefix that will be prepended to each output in the media .m3u8 file. Can be used if base manifest is delivered from a different URL than the main .m3u8 file."
         },
+        "BaseUrlContent1": {
+          "shape": "__string",
+          "locationName": "baseUrlContent1",
+          "documentation": "Optional. One value per output group.\n\nThis field is required only if you are completing Base URL content A, and the downstream system has notified you that the media files for pipeline 1 of all outputs are in a location different from the media files for pipeline 0."
+        },
         "BaseUrlManifest": {
           "shape": "__string",
           "locationName": "baseUrlManifest",
           "documentation": "A partial URI prefix that will be prepended to each output in the media .m3u8 file. Can be used if base manifest is delivered from a different URL than the main .m3u8 file."
+        },
+        "BaseUrlManifest1": {
+          "shape": "__string",
+          "locationName": "baseUrlManifest1",
+          "documentation": "Optional. One value per output group.\n\nComplete this field only if you are completing Base URL manifest A, and the downstream system has notified you that the child manifest files for pipeline 1 of all outputs are in a location different from the child manifest files for pipeline 0."
         },
         "CaptionLanguageMappings": {
           "shape": "__listOfCaptionLanguageMapping",
@@ -5203,6 +6593,11 @@
           "shape": "HlsCdnSettings",
           "locationName": "hlsCdnSettings",
           "documentation": "Parameters that control interactions with the CDN."
+        },
+        "HlsId3SegmentTagging": {
+          "shape": "HlsId3SegmentTaggingState",
+          "locationName": "hlsId3SegmentTagging",
+          "documentation": "State of HLS ID3 Segment Tagging"
         },
         "IFrameOnlyPlaylists": {
           "shape": "IFrameOnlyPlaylistType",
@@ -5335,6 +6730,36 @@
         "Destination"
       ]
     },
+    "HlsH265PackagingType": {
+      "type": "string",
+      "documentation": "Hls H265 Packaging Type",
+      "enum": [
+        "HEV1",
+        "HVC1"
+      ]
+    },
+    "HlsId3SegmentTaggingScheduleActionSettings": {
+      "type": "structure",
+      "members": {
+        "Tag": {
+          "shape": "__string",
+          "locationName": "tag",
+          "documentation": "ID3 tag to insert into each segment. Supports special keyword identifiers to substitute in segment-related values.\\nSupported keyword identifiers: https://docs.aws.amazon.com/medialive/latest/ug/variable-data-identifiers.html"
+        }
+      },
+      "documentation": "Settings for the action to insert a user-defined ID3 tag in each HLS segment",
+      "required": [
+        "Tag"
+      ]
+    },
+    "HlsId3SegmentTaggingState": {
+      "type": "string",
+      "documentation": "State of HLS ID3 Segment Tagging",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
     "HlsInputSettings": {
       "type": "structure",
       "members": {
@@ -5450,6 +6875,11 @@
     "HlsOutputSettings": {
       "type": "structure",
       "members": {
+        "H265PackagingType": {
+          "shape": "HlsH265PackagingType",
+          "locationName": "h265PackagingType",
+          "documentation": "Only applicable when this output is referencing an H.265 video description.\nSpecifies whether MP4 segments should be packaged as HEV1 or HVC1."
+        },
         "HlsSettings": {
           "shape": "HlsSettings",
           "locationName": "hlsSettings",
@@ -5501,6 +6931,10 @@
         "AudioOnlyHlsSettings": {
           "shape": "AudioOnlyHlsSettings",
           "locationName": "audioOnlyHlsSettings"
+        },
+        "Fmp4HlsSettings": {
+          "shape": "Fmp4HlsSettings",
+          "locationName": "fmp4HlsSettings"
         },
         "StandardHlsSettings": {
           "shape": "StandardHlsSettings",
@@ -6433,6 +7867,115 @@
       },
       "documentation": "Placeholder documentation for ListInputsResultModel"
     },
+    "ListMultiplexProgramsRequest": {
+      "type": "structure",
+      "members": {
+        "MaxResults": {
+          "shape": "MaxResults",
+          "location": "querystring",
+          "locationName": "maxResults",
+          "documentation": "The maximum number of items to return."
+        },
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex that the programs belong to."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "nextToken",
+          "documentation": "The token to retrieve the next page of results."
+        }
+      },
+      "required": [
+        "MultiplexId"
+      ],
+      "documentation": "Placeholder documentation for ListMultiplexProgramsRequest"
+    },
+    "ListMultiplexProgramsResponse": {
+      "type": "structure",
+      "members": {
+        "MultiplexPrograms": {
+          "shape": "__listOfMultiplexProgramSummary",
+          "locationName": "multiplexPrograms",
+          "documentation": "List of multiplex programs."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "Token for the next ListMultiplexProgram request."
+        }
+      },
+      "documentation": "Placeholder documentation for ListMultiplexProgramsResponse"
+    },
+    "ListMultiplexProgramsResultModel": {
+      "type": "structure",
+      "members": {
+        "MultiplexPrograms": {
+          "shape": "__listOfMultiplexProgramSummary",
+          "locationName": "multiplexPrograms",
+          "documentation": "List of multiplex programs."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "Token for the next ListMultiplexProgram request."
+        }
+      },
+      "documentation": "Placeholder documentation for ListMultiplexProgramsResultModel"
+    },
+    "ListMultiplexesRequest": {
+      "type": "structure",
+      "members": {
+        "MaxResults": {
+          "shape": "MaxResults",
+          "location": "querystring",
+          "locationName": "maxResults",
+          "documentation": "The maximum number of items to return."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "nextToken",
+          "documentation": "The token to retrieve the next page of results."
+        }
+      },
+      "documentation": "Placeholder documentation for ListMultiplexesRequest"
+    },
+    "ListMultiplexesResponse": {
+      "type": "structure",
+      "members": {
+        "Multiplexes": {
+          "shape": "__listOfMultiplexSummary",
+          "locationName": "multiplexes",
+          "documentation": "List of multiplexes."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "Token for the next ListMultiplexes request."
+        }
+      },
+      "documentation": "Placeholder documentation for ListMultiplexesResponse"
+    },
+    "ListMultiplexesResultModel": {
+      "type": "structure",
+      "members": {
+        "Multiplexes": {
+          "shape": "__listOfMultiplexSummary",
+          "locationName": "multiplexes",
+          "documentation": "List of multiplexes."
+        },
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "Token for the next ListMultiplexes request."
+        }
+      },
+      "documentation": "Placeholder documentation for ListMultiplexesResultModel"
+    },
     "ListOfferingsRequest": {
       "type": "structure",
       "members": {
@@ -6453,6 +7996,12 @@
           "location": "querystring",
           "locationName": "codec",
           "documentation": "Filter by codec, 'AVC', 'HEVC', 'MPEG2', or 'AUDIO'"
+        },
+        "Duration": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "duration",
+          "documentation": "Filter by offering duration, e.g. '12'"
         },
         "MaxResults": {
           "shape": "MaxResults",
@@ -6480,13 +8029,13 @@
           "shape": "__string",
           "location": "querystring",
           "locationName": "resolution",
-          "documentation": "Filter by resolution, 'SD', 'HD', or 'UHD'"
+          "documentation": "Filter by resolution, 'SD', 'HD', 'FHD', or 'UHD'"
         },
         "ResourceType": {
           "shape": "__string",
           "location": "querystring",
           "locationName": "resourceType",
-          "documentation": "Filter by resource type, 'INPUT', 'OUTPUT', or 'CHANNEL'"
+          "documentation": "Filter by resource type, 'INPUT', 'OUTPUT', 'MULTIPLEX', or 'CHANNEL'"
         },
         "SpecialFeature": {
           "shape": "__string",
@@ -6576,13 +8125,13 @@
           "shape": "__string",
           "location": "querystring",
           "locationName": "resolution",
-          "documentation": "Filter by resolution, 'SD', 'HD', or 'UHD'"
+          "documentation": "Filter by resolution, 'SD', 'HD', 'FHD', or 'UHD'"
         },
         "ResourceType": {
           "shape": "__string",
           "location": "querystring",
           "locationName": "resourceType",
-          "documentation": "Filter by resource type, 'INPUT', 'OUTPUT', or 'CHANNEL'"
+          "documentation": "Filter by resource type, 'INPUT', 'OUTPUT', 'MULTIPLEX', or 'CHANNEL'"
         },
         "SpecialFeature": {
           "shape": "__string",
@@ -6759,6 +8308,14 @@
       "documentation": "M2ts Klv",
       "enum": [
         "NONE",
+        "PASSTHROUGH"
+      ]
+    },
+    "M2tsNielsenId3Behavior": {
+      "type": "string",
+      "documentation": "M2ts Nielsen Id3 Behavior",
+      "enum": [
+        "NO_PASSTHROUGH",
         "PASSTHROUGH"
       ]
     },
@@ -6944,6 +8501,11 @@
           "locationName": "klvDataPids",
           "documentation": "Packet Identifier (PID) for input source KLV data to this output. Multiple values are accepted, and can be entered in ranges and/or by comma separation. Can be entered as decimal or hexadecimal values.  Each PID specified must be in the range of 32 (or 0x20)..8182 (or 0x1ff6)."
         },
+        "NielsenId3Behavior": {
+          "shape": "M2tsNielsenId3Behavior",
+          "locationName": "nielsenId3Behavior",
+          "documentation": "If set to passthrough, Nielsen inaudible tones for media tracking will be detected in the input audio and an equivalent ID3 tag will be inserted in the output."
+        },
         "NullPacketBitrate": {
           "shape": "__doubleMin0",
           "locationName": "nullPacketBitrate",
@@ -7050,6 +8612,14 @@
         "PASSTHROUGH"
       ]
     },
+    "M3u8NielsenId3Behavior": {
+      "type": "string",
+      "documentation": "M3u8 Nielsen Id3 Behavior",
+      "enum": [
+        "NO_PASSTHROUGH",
+        "PASSTHROUGH"
+      ]
+    },
     "M3u8PcrControl": {
       "type": "string",
       "documentation": "M3u8 Pcr Control",
@@ -7083,6 +8653,11 @@
           "shape": "__string",
           "locationName": "ecmPid",
           "documentation": "This parameter is unused and deprecated."
+        },
+        "NielsenId3Behavior": {
+          "shape": "M3u8NielsenId3Behavior",
+          "locationName": "nielsenId3Behavior",
+          "documentation": "If set to passthrough, Nielsen inaudible tones for media tracking will be detected in the input audio and an equivalent ID3 tag will be inserted in the output."
         },
         "PatInterval": {
           "shape": "__integerMin0Max1000",
@@ -7352,9 +8927,22 @@
         "Destination"
       ]
     },
+    "MsSmoothH265PackagingType": {
+      "type": "string",
+      "documentation": "Ms Smooth H265 Packaging Type",
+      "enum": [
+        "HEV1",
+        "HVC1"
+      ]
+    },
     "MsSmoothOutputSettings": {
       "type": "structure",
       "members": {
+        "H265PackagingType": {
+          "shape": "MsSmoothH265PackagingType",
+          "locationName": "h265PackagingType",
+          "documentation": "Only applicable when this output is referencing an H.265 video description.\nSpecifies whether MP4 segments should be packaged as HEV1 or HVC1."
+        },
         "NameModifier": {
           "shape": "__string",
           "locationName": "nameModifier",
@@ -7362,6 +8950,435 @@
         }
       },
       "documentation": "Ms Smooth Output Settings"
+    },
+    "Multiplex": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "locationName": "arn",
+          "documentation": "The unique arn of the multiplex."
+        },
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex."
+        },
+        "Destinations": {
+          "shape": "__listOfMultiplexOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of the multiplex output destinations."
+        },
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique id of the multiplex."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the multiplex."
+        },
+        "PipelinesRunningCount": {
+          "shape": "__integer",
+          "locationName": "pipelinesRunningCount",
+          "documentation": "The number of currently healthy pipelines."
+        },
+        "ProgramCount": {
+          "shape": "__integer",
+          "locationName": "programCount",
+          "documentation": "The number of programs in the multiplex."
+        },
+        "State": {
+          "shape": "MultiplexState",
+          "locationName": "state",
+          "documentation": "The current state of the multiplex."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "The multiplex object."
+    },
+    "MultiplexConfigurationValidationError": {
+      "type": "structure",
+      "members": {
+        "Message": {
+          "shape": "__string",
+          "locationName": "message",
+          "documentation": "The error message."
+        },
+        "ValidationErrors": {
+          "shape": "__listOfMultiplexValidationError",
+          "locationName": "validationErrors",
+          "documentation": "A collection of validation error responses."
+        }
+      },
+      "documentation": "Placeholder documentation for MultiplexConfigurationValidationError"
+    },
+    "MultiplexGroupSettings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Multiplex Group Settings"
+    },
+    "MultiplexMediaConnectOutputDestinationSettings": {
+      "type": "structure",
+      "members": {
+        "EntitlementArn": {
+          "shape": "__stringMin1",
+          "locationName": "entitlementArn",
+          "documentation": "The MediaConnect entitlement ARN available as a Flow source."
+        }
+      },
+      "documentation": "Multiplex MediaConnect output destination settings."
+    },
+    "MultiplexOutputDestination": {
+      "type": "structure",
+      "members": {
+        "MediaConnectSettings": {
+          "shape": "MultiplexMediaConnectOutputDestinationSettings",
+          "locationName": "mediaConnectSettings",
+          "documentation": "Multiplex MediaConnect output destination settings."
+        }
+      },
+      "documentation": "Multiplex output destination settings"
+    },
+    "MultiplexOutputSettings": {
+      "type": "structure",
+      "members": {
+        "Destination": {
+          "shape": "OutputLocationRef",
+          "locationName": "destination",
+          "documentation": "Destination is a Multiplex."
+        }
+      },
+      "documentation": "Multiplex Output Settings",
+      "required": [
+        "Destination"
+      ]
+    },
+    "MultiplexProgram": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__string",
+          "locationName": "channelId",
+          "documentation": "The MediaLive channel associated with the program."
+        },
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The settings for this multiplex program."
+        },
+        "PacketIdentifiersMap": {
+          "shape": "MultiplexProgramPacketIdentifiersMap",
+          "locationName": "packetIdentifiersMap",
+          "documentation": "The packet identifier map for this multiplex program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "The name of the multiplex program."
+        }
+      },
+      "documentation": "The multiplex program object."
+    },
+    "MultiplexProgramChannelDestinationSettings": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__stringMin1",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the Multiplex that the encoder is providing output to. You do not need to specify the individual inputs to the Multiplex; MediaLive will handle the connection of the two MediaLive pipelines to the two Multiplex instances.\nThe Multiplex must be in the same region as the Channel."
+        },
+        "ProgramName": {
+          "shape": "__stringMin1",
+          "locationName": "programName",
+          "documentation": "The program name of the Multiplex program that the encoder is providing output to."
+        }
+      },
+      "documentation": "Multiplex Program Input Destination Settings for outputting a Channel to a Multiplex"
+    },
+    "MultiplexProgramPacketIdentifiersMap": {
+      "type": "structure",
+      "members": {
+        "AudioPids": {
+          "shape": "__listOf__integer",
+          "locationName": "audioPids"
+        },
+        "DvbSubPids": {
+          "shape": "__listOf__integer",
+          "locationName": "dvbSubPids"
+        },
+        "DvbTeletextPid": {
+          "shape": "__integer",
+          "locationName": "dvbTeletextPid"
+        },
+        "EtvPlatformPid": {
+          "shape": "__integer",
+          "locationName": "etvPlatformPid"
+        },
+        "EtvSignalPid": {
+          "shape": "__integer",
+          "locationName": "etvSignalPid"
+        },
+        "KlvDataPids": {
+          "shape": "__listOf__integer",
+          "locationName": "klvDataPids"
+        },
+        "PcrPid": {
+          "shape": "__integer",
+          "locationName": "pcrPid"
+        },
+        "PmtPid": {
+          "shape": "__integer",
+          "locationName": "pmtPid"
+        },
+        "PrivateMetadataPid": {
+          "shape": "__integer",
+          "locationName": "privateMetadataPid"
+        },
+        "Scte27Pids": {
+          "shape": "__listOf__integer",
+          "locationName": "scte27Pids"
+        },
+        "Scte35Pid": {
+          "shape": "__integer",
+          "locationName": "scte35Pid"
+        },
+        "TimedMetadataPid": {
+          "shape": "__integer",
+          "locationName": "timedMetadataPid"
+        },
+        "VideoPid": {
+          "shape": "__integer",
+          "locationName": "videoPid"
+        }
+      },
+      "documentation": "Packet identifiers map for a given Multiplex program."
+    },
+    "MultiplexProgramServiceDescriptor": {
+      "type": "structure",
+      "members": {
+        "ProviderName": {
+          "shape": "__stringMax256",
+          "locationName": "providerName",
+          "documentation": "Name of the provider."
+        },
+        "ServiceName": {
+          "shape": "__stringMax256",
+          "locationName": "serviceName",
+          "documentation": "Name of the service."
+        }
+      },
+      "documentation": "Transport stream service descriptor configuration for the Multiplex program.",
+      "required": [
+        "ProviderName",
+        "ServiceName"
+      ]
+    },
+    "MultiplexProgramSettings": {
+      "type": "structure",
+      "members": {
+        "ProgramNumber": {
+          "shape": "__integerMin0Max65535",
+          "locationName": "programNumber",
+          "documentation": "Unique program number."
+        },
+        "ServiceDescriptor": {
+          "shape": "MultiplexProgramServiceDescriptor",
+          "locationName": "serviceDescriptor",
+          "documentation": "Transport stream service descriptor configuration for the Multiplex program."
+        },
+        "VideoSettings": {
+          "shape": "MultiplexVideoSettings",
+          "locationName": "videoSettings",
+          "documentation": "Program video settings configuration."
+        }
+      },
+      "documentation": "Multiplex Program settings configuration.",
+      "required": [
+        "ProgramNumber"
+      ]
+    },
+    "MultiplexProgramSummary": {
+      "type": "structure",
+      "members": {
+        "ChannelId": {
+          "shape": "__string",
+          "locationName": "channelId",
+          "documentation": "The MediaLive Channel associated with the program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "The name of the multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for MultiplexProgramSummary"
+    },
+    "MultiplexSettings": {
+      "type": "structure",
+      "members": {
+        "MaximumVideoBufferDelayMilliseconds": {
+          "shape": "__integerMin1000Max3000",
+          "locationName": "maximumVideoBufferDelayMilliseconds",
+          "documentation": "Maximum video buffer delay in milliseconds."
+        },
+        "TransportStreamBitrate": {
+          "shape": "__integerMin1000000Max100000000",
+          "locationName": "transportStreamBitrate",
+          "documentation": "Transport stream bit rate."
+        },
+        "TransportStreamId": {
+          "shape": "__integerMin0Max65535",
+          "locationName": "transportStreamId",
+          "documentation": "Transport stream ID."
+        },
+        "TransportStreamReservedBitrate": {
+          "shape": "__integerMin0Max100000000",
+          "locationName": "transportStreamReservedBitrate",
+          "documentation": "Transport stream reserved bit rate."
+        }
+      },
+      "documentation": "Contains configuration for a Multiplex event",
+      "required": [
+        "TransportStreamBitrate",
+        "TransportStreamId"
+      ]
+    },
+    "MultiplexSettingsSummary": {
+      "type": "structure",
+      "members": {
+        "TransportStreamBitrate": {
+          "shape": "__integerMin1000000Max100000000",
+          "locationName": "transportStreamBitrate",
+          "documentation": "Transport stream bit rate."
+        }
+      },
+      "documentation": "Contains summary configuration for a Multiplex event."
+    },
+    "MultiplexState": {
+      "type": "string",
+      "documentation": "The current state of the multiplex.",
+      "enum": [
+        "CREATING",
+        "CREATE_FAILED",
+        "IDLE",
+        "STARTING",
+        "RUNNING",
+        "RECOVERING",
+        "STOPPING",
+        "DELETING",
+        "DELETED"
+      ]
+    },
+    "MultiplexStatmuxVideoSettings": {
+      "type": "structure",
+      "members": {
+        "MaximumBitrate": {
+          "shape": "__integerMin100000Max100000000",
+          "locationName": "maximumBitrate",
+          "documentation": "Maximum statmux bitrate."
+        },
+        "MinimumBitrate": {
+          "shape": "__integerMin100000Max100000000",
+          "locationName": "minimumBitrate",
+          "documentation": "Minimum statmux bitrate."
+        }
+      },
+      "documentation": "Statmux rate control settings"
+    },
+    "MultiplexSummary": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "locationName": "arn",
+          "documentation": "The unique arn of the multiplex."
+        },
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex."
+        },
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique id of the multiplex."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettingsSummary",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the multiplex."
+        },
+        "PipelinesRunningCount": {
+          "shape": "__integer",
+          "locationName": "pipelinesRunningCount",
+          "documentation": "The number of currently healthy pipelines."
+        },
+        "ProgramCount": {
+          "shape": "__integer",
+          "locationName": "programCount",
+          "documentation": "The number of programs in the multiplex."
+        },
+        "State": {
+          "shape": "MultiplexState",
+          "locationName": "state",
+          "documentation": "The current state of the multiplex."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "Placeholder documentation for MultiplexSummary"
+    },
+    "MultiplexValidationError": {
+      "type": "structure",
+      "members": {
+        "ElementPath": {
+          "shape": "__string",
+          "locationName": "elementPath",
+          "documentation": "Path to the source of the error."
+        },
+        "ErrorMessage": {
+          "shape": "__string",
+          "locationName": "errorMessage",
+          "documentation": "The error message."
+        }
+      },
+      "documentation": "Placeholder documentation for MultiplexValidationError"
+    },
+    "MultiplexVideoSettings": {
+      "type": "structure",
+      "members": {
+        "ConstantBitrate": {
+          "shape": "__integerMin100000Max100000000",
+          "locationName": "constantBitrate",
+          "documentation": "The constant bitrate configuration for the video encode.\nWhen this field is defined, StatmuxSettings must be undefined."
+        },
+        "StatmuxSettings": {
+          "shape": "MultiplexStatmuxVideoSettings",
+          "locationName": "statmuxSettings",
+          "documentation": "Statmux rate control settings.\nWhen this field is defined, ConstantBitrate must be undefined."
+        }
+      },
+      "documentation": "The video configuration for each program in a multiplex."
     },
     "NetworkInputServerValidation": {
       "type": "string",
@@ -7386,6 +9403,30 @@
         }
       },
       "documentation": "Network source to transcode. Must be accessible to the Elemental Live node that is running the live event through a network connection."
+    },
+    "NielsenConfiguration": {
+      "type": "structure",
+      "members": {
+        "DistributorId": {
+          "shape": "__string",
+          "locationName": "distributorId",
+          "documentation": "Enter the Distributor ID assigned to your organization by Nielsen."
+        },
+        "NielsenPcmToId3Tagging": {
+          "shape": "NielsenPcmToId3TaggingState",
+          "locationName": "nielsenPcmToId3Tagging",
+          "documentation": "Enables Nielsen PCM to ID3 tagging"
+        }
+      },
+      "documentation": "Nielsen Configuration"
+    },
+    "NielsenPcmToId3TaggingState": {
+      "type": "string",
+      "documentation": "State of Nielsen PCM to ID3 tagging",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
     },
     "NotFoundException": {
       "type": "structure",
@@ -7523,6 +9564,11 @@
           "locationName": "mediaPackageSettings",
           "documentation": "Destination settings for a MediaPackage output; one destination for both encoders."
         },
+        "MultiplexSettings": {
+          "shape": "MultiplexProgramChannelDestinationSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Destination settings for a Multiplex output; one destination for both encoders."
+        },
         "Settings": {
           "shape": "__listOfOutputDestinationSettings",
           "locationName": "settings",
@@ -7604,6 +9650,10 @@
           "shape": "MsSmoothGroupSettings",
           "locationName": "msSmoothGroupSettings"
         },
+        "MultiplexGroupSettings": {
+          "shape": "MultiplexGroupSettings",
+          "locationName": "multiplexGroupSettings"
+        },
         "RtmpGroupSettings": {
           "shape": "RtmpGroupSettings",
           "locationName": "rtmpGroupSettings"
@@ -7647,6 +9697,10 @@
         "MsSmoothOutputSettings": {
           "shape": "MsSmoothOutputSettings",
           "locationName": "msSmoothOutputSettings"
+        },
+        "MultiplexOutputSettings": {
+          "shape": "MultiplexOutputSettings",
+          "locationName": "multiplexOutputSettings"
         },
         "RtmpOutputSettings": {
           "shape": "RtmpOutputSettings",
@@ -7815,6 +9869,18 @@
       },
       "documentation": "PurchaseOffering response"
     },
+    "Rec601Settings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Rec601 Settings"
+    },
+    "Rec709Settings": {
+      "type": "structure",
+      "members": {
+      },
+      "documentation": "Rec709 Settings"
+    },
     "RemixSettings": {
       "type": "structure",
       "members": {
@@ -7964,10 +10030,11 @@
     },
     "ReservationResolution": {
       "type": "string",
-      "documentation": "Resolution based on lines of vertical resolution; SD is less than 720 lines, HD is 720 to 1080 lines, UHD is greater than 1080 lines\n",
+      "documentation": "Resolution based on lines of vertical resolution; SD is less than 720 lines, HD is 720 to 1080 lines, FHD is 1080 lines, UHD is greater than 1080 lines\n",
       "enum": [
         "SD",
         "HD",
+        "FHD",
         "UHD"
       ]
     },
@@ -8002,7 +10069,7 @@
         "ResourceType": {
           "shape": "ReservationResourceType",
           "locationName": "resourceType",
-          "documentation": "Resource type, 'INPUT', 'OUTPUT', or 'CHANNEL'"
+          "documentation": "Resource type, 'INPUT', 'OUTPUT', 'MULTIPLEX', or 'CHANNEL'"
         },
         "SpecialFeature": {
           "shape": "ReservationSpecialFeature",
@@ -8019,10 +10086,11 @@
     },
     "ReservationResourceType": {
       "type": "string",
-      "documentation": "Resource type, 'INPUT', 'OUTPUT', or 'CHANNEL'",
+      "documentation": "Resource type, 'INPUT', 'OUTPUT', 'MULTIPLEX', or 'CHANNEL'",
       "enum": [
         "INPUT",
         "OUTPUT",
+        "MULTIPLEX",
         "CHANNEL"
       ]
     },
@@ -8198,6 +10266,11 @@
     "ScheduleActionSettings": {
       "type": "structure",
       "members": {
+        "HlsId3SegmentTaggingSettings": {
+          "shape": "HlsId3SegmentTaggingScheduleActionSettings",
+          "locationName": "hlsId3SegmentTaggingSettings",
+          "documentation": "Action to insert HLS ID3 segment tagging"
+        },
         "HlsTimedMetadataSettings": {
           "shape": "HlsTimedMetadataScheduleActionSettings",
           "locationName": "hlsTimedMetadataSettings",
@@ -8622,26 +10695,6 @@
         "WEB_DELIVERY_ALLOWED"
       ]
     },
-    "ServiceDescriptor": {
-      "type": "structure",
-      "members": {
-        "ProviderName": {
-          "shape": "__stringMax256",
-          "locationName": "providerName",
-          "documentation": "Name of provider"
-        },
-        "ServiceName": {
-          "shape": "__stringMax256",
-          "locationName": "serviceName",
-          "documentation": "Name of service"
-        }
-      },
-      "documentation": "Program configuration.",
-      "required": [
-        "ProviderName",
-        "ServiceName"
-      ]
-    },
     "SmoothGroupAudioOnlyTimecodeControl": {
       "type": "string",
       "documentation": "Smooth Group Audio Only Timecode Control",
@@ -8823,6 +10876,77 @@
         }
       },
       "documentation": "Placeholder documentation for StartChannelResponse"
+    },
+    "StartMultiplexRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex."
+        }
+      },
+      "required": [
+        "MultiplexId"
+      ],
+      "documentation": "Placeholder documentation for StartMultiplexRequest"
+    },
+    "StartMultiplexResponse": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "locationName": "arn",
+          "documentation": "The unique arn of the multiplex."
+        },
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex."
+        },
+        "Destinations": {
+          "shape": "__listOfMultiplexOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of the multiplex output destinations."
+        },
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique id of the multiplex."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the multiplex."
+        },
+        "PipelinesRunningCount": {
+          "shape": "__integer",
+          "locationName": "pipelinesRunningCount",
+          "documentation": "The number of currently healthy pipelines."
+        },
+        "ProgramCount": {
+          "shape": "__integer",
+          "locationName": "programCount",
+          "documentation": "The number of programs in the multiplex."
+        },
+        "State": {
+          "shape": "MultiplexState",
+          "locationName": "state",
+          "documentation": "The current state of the multiplex."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "Placeholder documentation for StartMultiplexResponse"
     },
     "StartTimecode": {
       "type": "structure",
@@ -9021,6 +11145,77 @@
         }
       },
       "documentation": "Placeholder documentation for StopChannelResponse"
+    },
+    "StopMultiplexRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex."
+        }
+      },
+      "required": [
+        "MultiplexId"
+      ],
+      "documentation": "Placeholder documentation for StopMultiplexRequest"
+    },
+    "StopMultiplexResponse": {
+      "type": "structure",
+      "members": {
+        "Arn": {
+          "shape": "__string",
+          "locationName": "arn",
+          "documentation": "The unique arn of the multiplex."
+        },
+        "AvailabilityZones": {
+          "shape": "__listOf__string",
+          "locationName": "availabilityZones",
+          "documentation": "A list of availability zones for the multiplex."
+        },
+        "Destinations": {
+          "shape": "__listOfMultiplexOutputDestination",
+          "locationName": "destinations",
+          "documentation": "A list of the multiplex output destinations."
+        },
+        "Id": {
+          "shape": "__string",
+          "locationName": "id",
+          "documentation": "The unique id of the multiplex."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "Configuration for a multiplex event."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the multiplex."
+        },
+        "PipelinesRunningCount": {
+          "shape": "__integer",
+          "locationName": "pipelinesRunningCount",
+          "documentation": "The number of currently healthy pipelines."
+        },
+        "ProgramCount": {
+          "shape": "__integer",
+          "locationName": "programCount",
+          "documentation": "The number of programs in the multiplex."
+        },
+        "State": {
+          "shape": "MultiplexState",
+          "locationName": "state",
+          "documentation": "The current state of the multiplex."
+        },
+        "Tags": {
+          "shape": "Tags",
+          "locationName": "tags",
+          "documentation": "A collection of key-value pairs."
+        }
+      },
+      "documentation": "Placeholder documentation for StopMultiplexResponse"
     },
     "StopTimecode": {
       "type": "structure",
@@ -9534,6 +11729,129 @@
       },
       "documentation": "Placeholder documentation for UpdateInputSecurityGroupResultModel"
     },
+    "UpdateMultiplex": {
+      "type": "structure",
+      "members": {
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "The new settings for a multiplex."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "Name of the multiplex."
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateMultiplex"
+    },
+    "UpdateMultiplexProgram": {
+      "type": "structure",
+      "members": {
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The new settings for a multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateMultiplexProgram"
+    },
+    "UpdateMultiplexProgramRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "The ID of the multiplex of the program to update."
+        },
+        "MultiplexProgramSettings": {
+          "shape": "MultiplexProgramSettings",
+          "locationName": "multiplexProgramSettings",
+          "documentation": "The new settings for a multiplex program."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "programName",
+          "documentation": "The name of the program to update."
+        }
+      },
+      "documentation": "A request to update a program in a multiplex.",
+      "required": [
+        "MultiplexId",
+        "ProgramName"
+      ]
+    },
+    "UpdateMultiplexProgramResponse": {
+      "type": "structure",
+      "members": {
+        "MultiplexProgram": {
+          "shape": "MultiplexProgram",
+          "locationName": "multiplexProgram",
+          "documentation": "The updated multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateMultiplexProgramResponse"
+    },
+    "UpdateMultiplexProgramResultModel": {
+      "type": "structure",
+      "members": {
+        "MultiplexProgram": {
+          "shape": "MultiplexProgram",
+          "locationName": "multiplexProgram",
+          "documentation": "The updated multiplex program."
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateMultiplexProgramResultModel"
+    },
+    "UpdateMultiplexRequest": {
+      "type": "structure",
+      "members": {
+        "MultiplexId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "multiplexId",
+          "documentation": "ID of the multiplex to update."
+        },
+        "MultiplexSettings": {
+          "shape": "MultiplexSettings",
+          "locationName": "multiplexSettings",
+          "documentation": "The new settings for a multiplex."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "Name of the multiplex."
+        }
+      },
+      "documentation": "A request to update a multiplex.",
+      "required": [
+        "MultiplexId"
+      ]
+    },
+    "UpdateMultiplexResponse": {
+      "type": "structure",
+      "members": {
+        "Multiplex": {
+          "shape": "Multiplex",
+          "locationName": "multiplex",
+          "documentation": "The updated multiplex."
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateMultiplexResponse"
+    },
+    "UpdateMultiplexResultModel": {
+      "type": "structure",
+      "members": {
+        "Multiplex": {
+          "shape": "Multiplex",
+          "locationName": "multiplex",
+          "documentation": "The updated multiplex."
+        }
+      },
+      "documentation": "Placeholder documentation for UpdateMultiplexResultModel"
+    },
     "UpdateReservation": {
       "type": "structure",
       "members": {
@@ -9609,6 +11927,10 @@
         "H264Settings": {
           "shape": "H264Settings",
           "locationName": "h264Settings"
+        },
+        "H265Settings": {
+          "shape": "H265Settings",
+          "locationName": "h265Settings"
         }
       },
       "documentation": "Video Codec Settings"
@@ -9680,7 +12002,7 @@
         "ColorSpace": {
           "shape": "VideoSelectorColorSpace",
           "locationName": "colorSpace",
-          "documentation": "Specifies the colorspace of an input. This setting works in tandem with colorSpaceConversion to determine if any conversion will be performed."
+          "documentation": "Specifies the color space of an input. This setting works in tandem with colorSpaceUsage and a video description's colorSpaceSettingsChoice to determine if any conversion will be performed."
         },
         "ColorSpaceUsage": {
           "shape": "VideoSelectorColorSpaceUsage",
@@ -9766,21 +12088,9 @@
       "type": "double",
       "documentation": "Placeholder documentation for __doubleMin0"
     },
-    "__doubleMin0Max1000000000": {
-      "type": "double",
-      "documentation": "Placeholder documentation for __doubleMin0Max1000000000"
-    },
-    "__doubleMin0Max65535": {
-      "type": "double",
-      "documentation": "Placeholder documentation for __doubleMin0Max65535"
-    },
     "__doubleMin1": {
       "type": "double",
       "documentation": "Placeholder documentation for __doubleMin1"
-    },
-    "__doubleMin10000Max1000000000": {
-      "type": "double",
-      "documentation": "Placeholder documentation for __doubleMin10000Max1000000000"
     },
     "__doubleMinNegative59Max0": {
       "type": "double",
@@ -9825,6 +12135,12 @@
       "max": 1000000,
       "documentation": "Placeholder documentation for __integerMin0Max1000000"
     },
+    "__integerMin0Max100000000": {
+      "type": "integer",
+      "min": 0,
+      "max": 100000000,
+      "documentation": "Placeholder documentation for __integerMin0Max100000000"
+    },
     "__integerMin0Max128": {
       "type": "integer",
       "min": 0,
@@ -9848,6 +12164,12 @@
       "min": 0,
       "max": 30,
       "documentation": "Placeholder documentation for __integerMin0Max30"
+    },
+    "__integerMin0Max32768": {
+      "type": "integer",
+      "min": 0,
+      "max": 32768,
+      "documentation": "Placeholder documentation for __integerMin0Max32768"
     },
     "__integerMin0Max3600": {
       "type": "integer",
@@ -9901,11 +12223,35 @@
       "min": 1000,
       "documentation": "Placeholder documentation for __integerMin1000"
     },
+    "__integerMin1000000Max100000000": {
+      "type": "integer",
+      "min": 1000000,
+      "max": 100000000,
+      "documentation": "Placeholder documentation for __integerMin1000000Max100000000"
+    },
     "__integerMin100000Max100000000": {
       "type": "integer",
       "min": 100000,
       "max": 100000000,
       "documentation": "Placeholder documentation for __integerMin100000Max100000000"
+    },
+    "__integerMin100000Max40000000": {
+      "type": "integer",
+      "min": 100000,
+      "max": 40000000,
+      "documentation": "Placeholder documentation for __integerMin100000Max40000000"
+    },
+    "__integerMin100000Max80000000": {
+      "type": "integer",
+      "min": 100000,
+      "max": 80000000,
+      "documentation": "Placeholder documentation for __integerMin100000Max80000000"
+    },
+    "__integerMin1000Max3000": {
+      "type": "integer",
+      "min": 1000,
+      "max": 3000,
+      "documentation": "Placeholder documentation for __integerMin1000Max3000"
     },
     "__integerMin1000Max30000": {
       "type": "integer",
@@ -9937,6 +12283,12 @@
       "max": 20,
       "documentation": "Placeholder documentation for __integerMin1Max20"
     },
+    "__integerMin1Max3003": {
+      "type": "integer",
+      "min": 1,
+      "max": 3003,
+      "documentation": "Placeholder documentation for __integerMin1Max3003"
+    },
     "__integerMin1Max31": {
       "type": "integer",
       "min": 1,
@@ -9949,11 +12301,11 @@
       "max": 32,
       "documentation": "Placeholder documentation for __integerMin1Max32"
     },
-    "__integerMin1Max3600": {
+    "__integerMin1Max3600000": {
       "type": "integer",
       "min": 1,
-      "max": 3600,
-      "documentation": "Placeholder documentation for __integerMin1Max3600"
+      "max": 3600000,
+      "documentation": "Placeholder documentation for __integerMin1Max3600000"
     },
     "__integerMin1Max4": {
       "type": "integer",
@@ -10185,6 +12537,34 @@
       },
       "documentation": "Placeholder documentation for __listOfMediaPackageOutputDestinationSettings"
     },
+    "__listOfMultiplexOutputDestination": {
+      "type": "list",
+      "member": {
+        "shape": "MultiplexOutputDestination"
+      },
+      "documentation": "Placeholder documentation for __listOfMultiplexOutputDestination"
+    },
+    "__listOfMultiplexProgramSummary": {
+      "type": "list",
+      "member": {
+        "shape": "MultiplexProgramSummary"
+      },
+      "documentation": "Placeholder documentation for __listOfMultiplexProgramSummary"
+    },
+    "__listOfMultiplexSummary": {
+      "type": "list",
+      "member": {
+        "shape": "MultiplexSummary"
+      },
+      "documentation": "Placeholder documentation for __listOfMultiplexSummary"
+    },
+    "__listOfMultiplexValidationError": {
+      "type": "list",
+      "member": {
+        "shape": "MultiplexValidationError"
+      },
+      "documentation": "Placeholder documentation for __listOfMultiplexValidationError"
+    },
     "__listOfOffering": {
       "type": "list",
       "member": {
@@ -10268,6 +12648,13 @@
         "shape": "VideoDescription"
       },
       "documentation": "Placeholder documentation for __listOfVideoDescription"
+    },
+    "__listOf__integer": {
+      "type": "list",
+      "member": {
+        "shape": "__integer"
+      },
+      "documentation": "Placeholder documentation for __listOf__integer"
     },
     "__listOf__string": {
       "type": "list",

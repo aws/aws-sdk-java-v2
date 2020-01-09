@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -265,6 +265,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             case V4:
                 return v4SignerDefinitionMethodBody();
             case S3:
+            case S3V4:
                 return s3SignerDefinitionMethodBody();
             default:
                 throw new UnsupportedOperationException("Unsupported signer type: " + authType);

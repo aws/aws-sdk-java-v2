@@ -1,0 +1,36 @@
+{
+    "version": "2.9.14",
+    "date": "2019-10-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "description": "Documentation updates for Systems Manager / StartSession."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Control",
+            "description": "Adds support for the Amazon S3 Control service to the SDK."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon CloudWatch",
+            "description": "Add cloudwatch specific http configurations, specifically reducing `connectionMaxIdleTime`. Related to [#1380](https://github.com/aws/aws-sdk-java-v2/issues/1380)"
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "description": "Add s3 specific http configurations, specifically reducing `connectionMaxIdleTime`. Related to [#1122](https://github.com/aws/aws-sdk-java-v2/issues/1122)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "description": "This release adds ClientMetadata input parameter to multiple Cognito User Pools operations, making this parameter available to the customer configured lambda triggers as applicable."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage",
+            "description": "New Harvest Job APIs to export segment-accurate content windows from MediaPackage Origin Endpoints to S3. See https://docs.aws.amazon.com/mediapackage/latest/ug/harvest-jobs.html for more info"
+        }
+    ]
+}

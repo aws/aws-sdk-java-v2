@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
@@ -38,7 +40,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
-import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -65,12 +66,6 @@ import software.amazon.awssdk.utils.async.DelegatingSubscription;
 @Sharable
 @SdkInternalApi
 public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
-
-    /**
-     * {@link AttributeKey} to keep track of whether we should close the connection after this request
-     * has completed.
-     */
-    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("aws.http.nio.netty.async.keepAlive");
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
@@ -144,12 +139,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext handlerCtx) throws Exception {
-        notifyIfResponseNotCompleted(handlerCtx);
-    }
-
-    @Override
-    public void channelUnregistered(ChannelHandlerContext handlerCtx) throws Exception {
+    public void channelInactive(ChannelHandlerContext handlerCtx) {
         notifyIfResponseNotCompleted(handlerCtx);
     }
 
@@ -164,6 +154,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      */
     private static void closeAndRelease(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
+        channel.attr(KEEP_ALIVE).set(false);
         RequestContext requestContext = channel.attr(REQUEST_CONTEXT_KEY).get();
         ctx.close();
         requestContext.channelPool().release(channel);
@@ -391,8 +382,11 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private void notifyIfResponseNotCompleted(ChannelHandlerContext handlerCtx) {
         RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
-        if (!responseCompleted) {
+        Boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
+        Boolean lastHttpContentReceived = handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get();
+        handlerCtx.channel().attr(KEEP_ALIVE).set(false);
+
+        if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(lastHttpContentReceived)) {
             IOException err = new IOException("Server failed to send complete response");
             runAndLogError("Fail to execute SdkAsyncHttpResponseHandler#onError", () -> requestCtx.handler().onError(err));
             executeFuture(handlerCtx).completeExceptionally(err);

@@ -1,0 +1,61 @@
+{
+    "version": "2.7.29",
+    "date": "2019-08-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Apache HTTP Client",
+            "description": "Enable TLS client authentication support for the Apache HTTP Client by allowing customers to specify a `TlsKeyManagersProvider` on the builder. The `KeyManger`s provided will be used when the remote server wants to authenticate the client."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "description": "Increased limits on number of items recommended and reranked: The maximum number of results returned from getRecommendations API has been increased to 200. The maximum number of items which can be reranked via getPersonalizedRanking API has been increased to 200."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "description": "Amazon SageMaker now supports Amazon EFS and Amazon FSx for Lustre file systems as data sources for training machine learning models. Amazon SageMaker now supports running training jobs on ml.p3dn.24xlarge instance type. This instance type is offered as a limited private preview for certain SageMaker customers. If you are interested in joining the private preview, please reach out to the SageMaker Product Management team via AWS Support.\""
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Query Service",
+            "description": "Amazon Forecast is a fully managed machine learning service that makes it easy for customers to generate accurate forecasts using their historical time-series data"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "description": "This release provides a way to add metadata tags to a queue when it is created. You can use tags to organize and identify your Amazon SQS queues for cost allocation."
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "description": "Add ability to to use HTTP proxies with the Netty async client."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "description": "Documentation updates for Amazon Rekognition."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "description": "Public preview version of 'dynamodb-enhanced' that has a new DynamoDb mapper library that can be used with the v2 SDK. See README.md in the module for more detailed information about this module."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "description": "Amazon Forecast is a fully managed machine learning service that makes it easy for customers to generate accurate forecasts using their historical time-series data"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "description": "ElastiCache extends support for Scale down for Redis Cluster-mode enabled and disabled replication groups"
+        },
+        {
+            "type": "feature",
+            "category": "HTTP Client SPI",
+            "description": "Add `TlsKeyManagersProvider` interface for supporting TLS client auth in HTTP client implementations."
+        }
+    ]
+}

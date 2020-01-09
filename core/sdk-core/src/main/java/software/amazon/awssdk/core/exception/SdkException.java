@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,22 @@ public class SdkException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     protected SdkException(Builder builder) {
-        super(builder.message(), builder.cause());
+        super(messageFromBuilder(builder), builder.cause());
+    }
+
+    /**
+     * Use the message from the builder, if it's specified, otherwise inherit the message from the "cause" exception.
+     */
+    private static String messageFromBuilder(Builder builder) {
+        if (builder.message() != null) {
+            return builder.message();
+        }
+
+        if (builder.cause() != null) {
+            return builder.cause().getMessage();
+        }
+
+        return null;
     }
 
     public static SdkException create(String message, Throwable cause) {
