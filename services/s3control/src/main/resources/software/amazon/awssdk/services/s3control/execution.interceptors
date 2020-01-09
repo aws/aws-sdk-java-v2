@@ -1,0 +1,2 @@
+software.amazon.awssdk.services.s3control.internal.interceptors.EndpointAddressInterceptor
+software.amazon.awssdk.services.s3control.internal.interceptors.PayloadSigningInterceptor

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
+import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import org.junit.Test;
+
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -82,8 +84,7 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
                       .request(request)
                       .originalRequest(NoopTestRequest.builder().build())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
-                      .errorResponseHandler(stubErrorHandler())
-                      .execute();
+                      .execute(combinedSyncResponseHandler(null, stubErrorHandler()));
             fail("Expected exception");
         } catch (SdkServiceException expected) {
             // Ignored or expected.

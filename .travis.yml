@@ -1,9 +1,9 @@
 language: java
 jdk:
-  - oraclejdk8
+  - openjdk8
   - openjdk11
 sudo: true
-dist: precise
+dist: xenial
 install: /bin/true
 notifications:
   email:
