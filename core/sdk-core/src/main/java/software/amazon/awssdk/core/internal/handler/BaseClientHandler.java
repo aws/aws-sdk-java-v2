@@ -35,8 +35,10 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.MetricExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.meter.Timer;
 import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
 import software.amazon.awssdk.metrics.provider.MetricConfigurationProvider;
@@ -44,8 +46,6 @@ import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
 import software.amazon.awssdk.metrics.registry.MetricCategoryAwareRegistry;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.metrics.registry.NoOpMetricRegistry;
-import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
-import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
