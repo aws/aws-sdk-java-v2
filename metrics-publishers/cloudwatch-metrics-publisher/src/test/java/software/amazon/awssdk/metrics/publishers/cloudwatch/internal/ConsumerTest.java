@@ -17,11 +17,12 @@ package software.amazon.awssdk.metrics.publishers.cloudwatch.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,13 +40,14 @@ public class ConsumerTest {
     @Mock
     private CloudWatchAsyncClient client;
 
-    @Mock
-    private BlockingQueue<MetricDatum> queue;
+    private BlockingQueue<MetricDatum> queue = new LinkedBlockingQueue<>();
 
     private MetricConsumer consumer;
 
     @Before
     public void setup() {
+        queue.clear();
+
         consumer = MetricConsumer.builder()
                                  .queue(queue)
                                  .cloudWatchClient(client)
@@ -54,20 +56,18 @@ public class ConsumerTest {
     }
 
     @Test
-    public void returnedFuture_isCompleted_IfQueueIsEmpty() throws Exception {
-        when(queue.poll()).thenReturn(null);
-        CompletableFuture<PutMetricDataResponse> future = consumer.call();
-
-        assertThat(future).isDone();
-        assertThat(future.get()).isNull();
+    public void returnedFuture_isCompleted_IfQueueIsEmpty() {
+        List<CompletableFuture<PutMetricDataResponse>> futures = consumer.call();
+        assertThat(futures).hasSize(0);
     }
 
     @Test
-    public void futureWithPutMetricDataResponse_isReturned_IfQueueIsNotEmpty() throws Exception {
-        CompletableFuture<PutMetricDataResponse> future = mock(CompletableFuture.class);
-        when(queue.poll()).thenReturn(MetricDatum.builder().build());
+    public void futureWithPutMetricDataResponse_isReturned_IfQueueIsNotEmpty() {
+        CompletableFuture<PutMetricDataResponse> future = new CompletableFuture<>();
+        queue.add(MetricDatum.builder().build());
+
         when(client.putMetricData(any(PutMetricDataRequest.class))).thenReturn(future);
 
-        assertThat(consumer.call()).isEqualTo(future);
+        assertThat(consumer.call()).containsExactly(future);
     }
 }

@@ -16,11 +16,7 @@
 package software.amazon.awssdk.metrics.publishers.cloudwatch.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.IntStream;
@@ -29,15 +25,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
+import software.amazon.awssdk.metrics.registry.MetricBuilderParams;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProducerTest {
     private static final int CAPACITY = 3;
-
-    @Mock
-    private MetricTransformer transformer;
 
     @Mock
     private MetricRegistry metricRegistry;
@@ -50,33 +45,24 @@ public class ProducerTest {
         queue = new LinkedBlockingDeque<>(CAPACITY);
         producer = MetricProducer.builder()
                                  .queue(queue)
-                                 .metricTransformer(transformer)
                                  .build();
 
-        when(metricRegistry.apiCallAttemptMetrics()).thenReturn(new ArrayList<>());
+        metricRegistry = DefaultMetricRegistry.create();
     }
 
     @Test
     public void addMetrics_withinQueueCapacity() {
-        List<MetricDatum> list = new ArrayList<>();
-        IntStream.range(0, CAPACITY - 1).forEach(i -> list.add(createDatum()));
-        when(transformer.transform(any())).thenReturn(list);
-
+        MetricBuilderParams params = MetricBuilderParams.builder().build();
+        IntStream.range(0, CAPACITY - 1).forEach(i -> metricRegistry.counter("m" + i, params).increment());
         producer.addMetrics(metricRegistry);
         assertThat(queue.size()).isEqualTo(CAPACITY - 1);
     }
 
     @Test
     public void addMetrics_onlyAddMetrics_upToQueueCapacity() {
-        List<MetricDatum> list = new ArrayList<>();
-        IntStream.range(0, CAPACITY + 1).forEach(i -> list.add(createDatum()));
-        when(transformer.transform(any())).thenReturn(list);
-
+        MetricBuilderParams params = MetricBuilderParams.builder().build();
+        IntStream.range(0, CAPACITY + 1).forEach(i -> metricRegistry.counter("m" + i, params).increment());
         producer.addMetrics(metricRegistry);
         assertThat(queue.size()).isEqualTo(CAPACITY);
-    }
-
-    private MetricDatum createDatum() {
-        return MetricDatum.builder().build();
     }
 }

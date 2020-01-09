@@ -20,11 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.Metric;
 import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
@@ -51,8 +51,8 @@ public final class MetricTransformer {
     public List<MetricDatum> transform(MetricRegistry metricRegistry) {
         List<MetricDatum> results = new ArrayList<>();
 
-        Optional<String> service = getValueFromGauge(metricRegistry, SdkMetric.Service);
-        Optional<String> operation = getValueFromGauge(metricRegistry, SdkMetric.Operation);
+        Optional<String> service = getValueFromGauge(metricRegistry, SdkDefaultMetric.SERVICE);
+        Optional<String> operation = getValueFromGauge(metricRegistry, SdkDefaultMetric.OPERATION);
 
         for (Map.Entry<String, Metric> entry : metricRegistry.metrics().entrySet()) {
             Metric metric = entry.getValue();
@@ -78,7 +78,7 @@ public final class MetricTransformer {
         return results;
     }
 
-    private Optional<String> getValueFromGauge(MetricRegistry registry, SdkMetric sdkMetric) {
+    private Optional<String> getValueFromGauge(MetricRegistry registry, SdkDefaultMetric sdkMetric) {
         return registry.metric(sdkMetric.name())
                        .filter(metric -> metric instanceof Gauge)
                        .map(metric -> (String) ((Gauge) metric).value());
@@ -89,14 +89,14 @@ public final class MetricTransformer {
 
         if (service.isPresent()) {
             dimensions.add(Dimension.builder()
-                                    .name(SdkMetric.Service.name())
+                                    .name(SdkDefaultMetric.SERVICE.name())
                                     .value(service.get())
                                     .build());
         }
 
         if (operation.isPresent()) {
             dimensions.add(Dimension.builder()
-                                    .name(SdkMetric.Operation.name())
+                                    .name(SdkDefaultMetric.OPERATION.name())
                                     .value(operation.get())
                                     .build());
         }

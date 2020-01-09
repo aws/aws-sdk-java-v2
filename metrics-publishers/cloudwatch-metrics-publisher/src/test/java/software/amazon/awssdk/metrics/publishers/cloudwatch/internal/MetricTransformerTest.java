@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,10 +30,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.MetricUtils;
 import software.amazon.awssdk.metrics.MetricCategory;
-import software.amazon.awssdk.metrics.internal.SdkMetric;
 import software.amazon.awssdk.metrics.meter.Counter;
 import software.amazon.awssdk.metrics.meter.Gauge;
 import software.amazon.awssdk.metrics.meter.Timer;
+import software.amazon.awssdk.metrics.metrics.SdkDefaultMetric;
 import software.amazon.awssdk.metrics.registry.DefaultMetricRegistry;
 import software.amazon.awssdk.metrics.registry.MetricRegistry;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
@@ -81,7 +82,7 @@ public class MetricTransformerTest {
         registry.register(gaugeName, gauge);
 
         List<MetricDatum> datums = transformer.transform(registry);
-        assertThat(datums.size()).isEqualTo(4);
+        assertThat(datums.size()).isEqualTo(6); // + 2 because of SERVICE and OPERATION
 
         List<String> names = new ArrayList<>();
         List<Double> values = new ArrayList<>();
@@ -95,13 +96,13 @@ public class MetricTransformerTest {
             dimensions.addAll(m.dimensions());
         });
 
-        assertThat(names).containsExactlyInAnyOrder(timer1, timer2, counterName, gaugeName);
-        assertThat(values).containsExactlyInAnyOrder(Double.valueOf(ONE_HOUR.toMillis()), 0.0, COUNT, VALUE);
+        assertThat(names).containsExactlyInAnyOrder(timer1, timer2, counterName, gaugeName, SdkDefaultMetric.SERVICE.name(), SdkDefaultMetric.OPERATION.name());
+        assertThat(values).containsExactlyInAnyOrder(Double.valueOf(ONE_HOUR.toMillis()), 0.0, COUNT, VALUE, null, null);
         assertThat(units).containsExactlyInAnyOrder(StandardUnit.MILLISECONDS, StandardUnit.MILLISECONDS,
-                                                    StandardUnit.COUNT, StandardUnit.COUNT);
+                                                    StandardUnit.COUNT, StandardUnit.COUNT, null, null);
 
         assertThat(dimensions.stream().map(d -> d.name()))
-            .containsOnly("MetricCategory", SdkMetric.Service.name(), SdkMetric.Operation.name());
+            .containsOnly("MetricCategory", SdkDefaultMetric.SERVICE.name(), SdkDefaultMetric.OPERATION.name());
         assertThat(dimensions.stream().map(d -> d.value()))
             .containsOnly(MetricCategory.DEFAULT.name(), SERVICE, OPERATION);
     }
@@ -114,12 +115,16 @@ public class MetricTransformerTest {
         MetricRegistry attemptMR = registry.registerApiCallAttemptMetrics();
         attemptMR.register("counter", counter);
 
-        List<MetricDatum> datums = transformer.transform(registry);
+        List<MetricDatum> datums = transformer.transform(registry).stream()
+                .filter(m -> !SdkDefaultMetric.OPERATION.name().equals(m.metricName()))
+                .filter(m -> !SdkDefaultMetric.SERVICE.name().equals(m.metricName()))
+                .collect(Collectors.toList());
+
         assertThat(datums).isEmpty();
     }
 
     private void addRequiredDimensions(MetricRegistry registry) {
-        MetricUtils.registerConstantGauge(SERVICE, registry, SdkMetric.Service);
-        MetricUtils.registerConstantGauge(OPERATION, registry, SdkMetric.Operation);
+        MetricUtils.registerConstantGauge(SERVICE, registry, SdkDefaultMetric.SERVICE);
+        MetricUtils.registerConstantGauge(OPERATION, registry, SdkDefaultMetric.OPERATION);
     }
 }
