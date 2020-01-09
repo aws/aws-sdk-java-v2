@@ -71,8 +71,8 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
             AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
                     SystemPropertyCredentialsProvider.create(),
                     EnvironmentVariableCredentialsProvider.create(),
-                    ProfileCredentialsProvider.create(),
                     WebIdentityTokenFileCredentialsProvider.create(),
+                    ProfileCredentialsProvider.create(),
                     ContainerCredentialsProvider.builder()
                                                 .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                 .build(),
