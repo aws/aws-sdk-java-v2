@@ -20,7 +20,7 @@ import org.junit.Test;
 import software.amazon.awssdk.protocol.ProtocolTestSuiteLoader;
 import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
-public class RestJsonProtocolTest {
+public class RestJsonProtocolTest extends ProtocolTestBase {
 
     private static final ProtocolTestSuiteLoader testSuiteLoader = new ProtocolTestSuiteLoader();
     private static ProtocolTestRunner testRunner;

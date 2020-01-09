@@ -16,22 +16,16 @@
 package software.amazon.awssdk.protocol.tests;
 
 import org.junit.BeforeClass;
-import org.junit.Test;
-import software.amazon.awssdk.protocol.ProtocolTestSuiteLoader;
-import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
-public class Ec2ProtocolTest extends ProtocolTestBase {
+import software.amazon.awssdk.core.util.IdempotentUtils;
 
-    private static final ProtocolTestSuiteLoader testSuiteLoader = new ProtocolTestSuiteLoader();
-    private static ProtocolTestRunner testRunner;
-
+/**
+ * All protocol tests should extend this class to ensure that the idempotency generator is overridden before the
+ * client class is loaded and the generator is cached, otherwise some tests in this suite can break.
+ */
+public class ProtocolTestBase {
     @BeforeClass
-    public static void setupFixture() {
-        testRunner = new ProtocolTestRunner("/models/ec2-2016-03-11-intermediate.json");
-    }
-
-    @Test
-    public void run() throws Exception {
-        testRunner.runTests(testSuiteLoader.load("ec2-suite.json"));
+    public static void overrideIdempotencyTokenGenerator() {
+        IdempotentUtils.setGenerator(() -> "00000000-0000-4000-8000-000000000000");
     }
 }
