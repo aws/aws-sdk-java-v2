@@ -17,7 +17,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements
-                                                                                   ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+        ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private StreamingInputOperationRequest(BuilderImpl builder) {
@@ -40,11 +40,17 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
     @Override
     public int hashCode() {
         int hashCode = 1;
+        hashCode = 31 * hashCode + super.hashCode();
         return hashCode;
     }
 
     @Override
     public boolean equals(Object obj) {
+        return super.equals(obj) && equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -76,7 +82,7 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
     }
 
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
-                                     CopyableBuilder<Builder, StreamingInputOperationRequest> {
+            CopyableBuilder<Builder, StreamingInputOperationRequest> {
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
@@ -115,4 +121,3 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
         }
     }
 }
-

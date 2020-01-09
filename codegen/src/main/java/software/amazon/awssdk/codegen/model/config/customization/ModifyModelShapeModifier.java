@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,14 @@ package software.amazon.awssdk.codegen.model.config.customization;
 
 public class ModifyModelShapeModifier {
 
+    /**
+     * Indicates whether a renamed member should create getters and setters under the existing name
+     */
+    private boolean existingNameDeprecated;
+
+    /**
+     * Sets a name for a member used by the SDK, eliminating the existing name
+     */
     private String emitPropertyName;
 
     /**
@@ -24,6 +32,12 @@ public class ModifyModelShapeModifier {
      * name computed by the code generator for the enum.
      */
     private String emitEnumName;
+
+    /**
+     * The value for the enum to be used in the java class. This overrides the
+     * values computed by the code generator for the enum.
+     */
+    private String emitEnumValue;
 
     /**
      * Emit as a different primitive type. Used by AWS Budget Service to change string
@@ -34,6 +48,14 @@ public class ModifyModelShapeModifier {
     private String marshallLocationName;
 
     private String unmarshallLocationName;
+
+    public boolean isExistingNameDeprecated() {
+        return existingNameDeprecated;
+    }
+
+    public void setExistingNameDeprecated(boolean existingNameDeprecated) {
+        this.existingNameDeprecated = existingNameDeprecated;
+    }
 
     public String getEmitPropertyName() {
         return emitPropertyName;
@@ -49,6 +71,14 @@ public class ModifyModelShapeModifier {
 
     public void setEmitEnumName(String emitEnumName) {
         this.emitEnumName = emitEnumName;
+    }
+
+    public String getEmitEnumValue() {
+        return emitEnumValue;
+    }
+
+    public void setEmitEnumValue(String emitEnumValue) {
+        this.emitEnumValue = emitEnumValue;
     }
 
     public String getMarshallLocationName() {

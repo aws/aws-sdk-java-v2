@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -99,7 +99,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     void onStream(SdkPublisher<ByteBuffer> publisher);
 
     /**
-     * Called when a error is encountered while making the request or receiving the response.
+     * Called when an error is encountered while making the request or receiving the response.
+     * Implementations should free up any resources in this method. This method may be called
+     * multiple times during the lifecycle of a request if automatic retries are enabled.
      *
      * @param error Error that occurred.
      */

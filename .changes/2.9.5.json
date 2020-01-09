@@ -1,0 +1,16 @@
+{
+    "version": "2.9.5",
+    "date": "2019-09-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "description": "RDS Data API now supports Amazon Aurora Serverless PostgreSQL databases."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "description": "Adds API operation DescribeNodeConfigurationOptions and associated data structures."
+        }
+    ]
+}

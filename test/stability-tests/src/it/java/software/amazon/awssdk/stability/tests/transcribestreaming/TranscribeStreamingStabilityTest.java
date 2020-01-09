@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -33,6 +33,8 @@ import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTran
 import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTranscriptionResponseHandler;
 import software.amazon.awssdk.services.transcribestreaming.model.TranscriptEvent;
 import software.amazon.awssdk.services.transcribestreaming.model.TranscriptResultStream;
+import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
+import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.stability.tests.utils.TestEventStreamingResponseHandler;
 import software.amazon.awssdk.stability.tests.utils.TestTranscribeStreamingSubscription;
@@ -62,7 +64,12 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
         }
     }
 
-    @Test
+    @AfterAll
+    public static void tearDown() {
+        transcribeStreamingClient.close();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void startTranscription() {
         IntFunction<CompletableFuture<?>> futureIntFunction = i ->
             transcribeStreamingClient.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)

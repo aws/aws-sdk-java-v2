@@ -1,0 +1,21 @@
+{
+    "version": "2.10.44",
+    "date": "2020-01-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "description": "Documentation updates for xray"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub",
+            "description": "ListApplicationStates API provides a list of all application migration states"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "Add encryption key override to StartBuild API in AWS CodeBuild."
+        }
+    ]
+}

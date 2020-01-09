@@ -463,6 +463,11 @@
           "locationName": "arn",
           "shape": "__string"
         },
+        "CreatedAt": {
+          "documentation": "The time the Asset was initially submitted for Ingest.",
+          "locationName": "createdAt",
+          "shape": "__string"
+        },
         "EgressEndpoints": {
           "documentation": "The list of egress endpoints available for the Asset.",
           "locationName": "egressEndpoints",
@@ -555,6 +560,11 @@
         "Arn": {
           "documentation": "The ARN of the Asset.",
           "locationName": "arn",
+          "shape": "__string"
+        },
+        "CreatedAt": {
+          "documentation": "The time the Asset was initially submitted for Ingest.",
+          "locationName": "createdAt",
           "shape": "__string"
         },
         "Id": {
@@ -663,6 +673,11 @@
         "Arn": {
           "documentation": "The ARN of the Asset.",
           "locationName": "arn",
+          "shape": "__string"
+        },
+        "CreatedAt": {
+          "documentation": "The time the Asset was initially submitted for Ingest.",
+          "locationName": "createdAt",
           "shape": "__string"
         },
         "EgressEndpoints": {
@@ -789,6 +804,11 @@
         "Arn": {
           "documentation": "The ARN of the PackagingGroup.",
           "locationName": "arn",
+          "shape": "__string"
+        },
+        "DomainName": {
+          "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
+          "locationName": "domainName",
           "shape": "__string"
         },
         "Id": {
@@ -935,6 +955,11 @@
           "locationName": "arn",
           "shape": "__string"
         },
+        "CreatedAt": {
+          "documentation": "The time the Asset was initially submitted for Ingest.",
+          "locationName": "createdAt",
+          "shape": "__string"
+        },
         "EgressEndpoints": {
           "documentation": "The list of egress endpoints available for the Asset.",
           "locationName": "egressEndpoints",
@@ -1039,6 +1064,11 @@
           "locationName": "arn",
           "shape": "__string"
         },
+        "DomainName": {
+          "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
+          "locationName": "domainName",
+          "shape": "__string"
+        },
         "Id": {
           "documentation": "The ID of the PackagingGroup.",
           "locationName": "id",
@@ -1087,6 +1117,11 @@
     "HlsEncryption": {
       "documentation": "An HTTP Live Streaming (HLS) encryption configuration.",
       "members": {
+        "ConstantInitializationVector": {
+          "documentation": "A constant initialization vector for encryption (optional).\nWhen not specified the initialization vector will be periodically rotated.\n",
+          "locationName": "constantInitializationVector",
+          "shape": "__string"
+        },
         "EncryptionMethod": {
           "documentation": "The encryption method to use.",
           "locationName": "encryptionMethod",
@@ -1452,6 +1487,11 @@
         "Arn": {
           "documentation": "The ARN of the PackagingGroup.",
           "locationName": "arn",
+          "shape": "__string"
+        },
+        "DomainName": {
+          "documentation": "The fully qualified domain name for Assets in the PackagingGroup.",
+          "locationName": "domainName",
           "shape": "__string"
         },
         "Id": {

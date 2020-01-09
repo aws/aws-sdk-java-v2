@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,26 +21,32 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.Promise;
+import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.Logger;
@@ -49,17 +55,35 @@ import software.amazon.awssdk.utils.Logger;
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
  */
 @SdkInternalApi
-public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
-    AwaitCloseChannelPoolMap.SimpleChannelPoolAwareChannelPool> {
+public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, SimpleChannelPoolAwareChannelPool> {
 
     private static final Logger log = Logger.loggerFor(AwaitCloseChannelPoolMap.class);
+
+    private static final ChannelPoolHandler NOOP_HANDLER = new ChannelPoolHandler() {
+        @Override
+        public void channelReleased(Channel ch) throws Exception {
+        }
+
+        @Override
+        public void channelAcquired(Channel ch) throws Exception {
+        }
+
+        @Override
+        public void channelCreated(Channel ch) throws Exception {
+        }
+    };
+
+    private final Map<URI, Boolean> shouldProxyForHostCache = new ConcurrentHashMap<>();
+
 
     private final SdkChannelOptions sdkChannelOptions;
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final NettyConfiguration configuration;
     private final Protocol protocol;
     private final long maxStreams;
+    private final int initialWindowSize;
     private final SslProvider sslProvider;
+    private final ProxyConfiguration proxyConfiguration;
 
     private AwaitCloseChannelPoolMap(Builder builder) {
         this.sdkChannelOptions = builder.sdkChannelOptions;
@@ -67,7 +91,15 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
         this.configuration = builder.configuration;
         this.protocol = builder.protocol;
         this.maxStreams = builder.maxStreams;
+        this.initialWindowSize = builder.initialWindowSize;
         this.sslProvider = builder.sslProvider;
+        this.proxyConfiguration = builder.proxyConfiguration;
+    }
+
+    @SdkTestInternalApi
+    AwaitCloseChannelPoolMap(Builder builder, Map<URI, Boolean> shouldProxyForHostCache) {
+        this(builder);
+        this.shouldProxyForHostCache.putAll(shouldProxyForHostCache);
     }
 
     public static Builder builder() {
@@ -76,24 +108,35 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
 
     @Override
     protected SimpleChannelPoolAwareChannelPool newPool(URI key) {
-        SslContext sslContext = sslContext(key.getScheme());
-        Bootstrap bootstrap =
-            new Bootstrap()
-                .group(sdkEventLoopGroup.eventLoopGroup())
-                .channelFactory(sdkEventLoopGroup.channelFactory())
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
-                // TODO run some performance tests with and without this.
-                .remoteAddress(key.getHost(), key.getPort());
-        sdkChannelOptions.channelOptions().forEach(bootstrap::option);
+        SslContext sslContext = sslContext(key);
+        
+        Bootstrap bootstrap = createBootstrap(key);
 
         AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
-        ChannelPipelineInitializer handler =
-            new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef, configuration, key);
 
-        BetterSimpleChannelPool simpleChannelPool = new BetterSimpleChannelPool(bootstrap, handler);
+        ChannelPipelineInitializer pipelineInitializer = new ChannelPipelineInitializer(protocol,
+                                                                                        sslContext,
+                                                                                        maxStreams,
+                                                                                        initialWindowSize,
+                                                                                        channelPoolRef,
+                                                                                        configuration,
+                                                                                        key);
 
-        channelPoolRef.set(wrapSimpleChannelPool(bootstrap, simpleChannelPool));
-        return new SimpleChannelPoolAwareChannelPool(simpleChannelPool, channelPoolRef.get());
+        BetterSimpleChannelPool tcpChannelPool;
+        ChannelPool baseChannelPool;
+        if (shouldUseProxyForHost(key)) {
+            tcpChannelPool = new BetterSimpleChannelPool(bootstrap, NOOP_HANDLER);
+            baseChannelPool = new Http1TunnelConnectionPool(bootstrap.config().group().next(), tcpChannelPool,
+                                                            sslContext, proxyAddress(key), key, pipelineInitializer);
+        } else {
+            tcpChannelPool = new BetterSimpleChannelPool(bootstrap, pipelineInitializer);
+            baseChannelPool = tcpChannelPool;
+        }
+
+        ChannelPool wrappedPool = wrapBaseChannelPool(bootstrap, baseChannelPool);
+
+        channelPoolRef.set(wrappedPool);
+        return new SimpleChannelPoolAwareChannelPool(wrappedPool, tcpChannelPool);
     }
 
     @Override
@@ -110,7 +153,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
 
         try {
             CompletableFuture.allOf(channelPools.stream()
-                                                .map(pool -> pool.underlyingSimpleChannelPool.closeFuture())
+                                                .map(pool -> pool.underlyingSimpleChannelPool().closeFuture())
                                                 .toArray(CompletableFuture[]::new))
                              .get(CHANNEL_POOL_CLOSE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -121,7 +164,67 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
         }
     }
 
-    private ChannelPool wrapSimpleChannelPool(Bootstrap bootstrap, ChannelPool channelPool) {
+    private Bootstrap createBootstrap(URI poolKey) {
+        String host = bootstrapHost(poolKey);
+        int port = bootstrapPort(poolKey);
+
+        Bootstrap bootstrap =
+                new Bootstrap()
+                        .group(sdkEventLoopGroup.eventLoopGroup())
+                        .channelFactory(sdkEventLoopGroup.channelFactory())
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
+                        // TODO run some performance tests with and without this.
+                        .remoteAddress(new InetSocketAddress(host, port));
+        sdkChannelOptions.channelOptions().forEach(bootstrap::option);
+
+        return bootstrap;
+    }
+
+
+    private boolean shouldUseProxyForHost(URI remoteAddr) {
+        if (proxyConfiguration == null) {
+            return false;
+        }
+
+
+        return shouldProxyForHostCache.computeIfAbsent(remoteAddr, (uri) ->
+           proxyConfiguration.nonProxyHosts().stream().noneMatch(h -> uri.getHost().matches(h))
+        );
+    }
+
+    private String bootstrapHost(URI remoteHost) {
+        if (shouldUseProxyForHost(remoteHost)) {
+            return proxyConfiguration.host();
+        }
+        return remoteHost.getHost();
+    }
+
+    private int bootstrapPort(URI remoteHost) {
+        if (shouldUseProxyForHost(remoteHost)) {
+            return proxyConfiguration.port();
+        }
+        return remoteHost.getPort();
+    }
+
+    private URI proxyAddress(URI remoteHost) {
+        if (!shouldUseProxyForHost(remoteHost)) {
+            return null;
+        }
+
+        String scheme = proxyConfiguration.scheme();
+        if (scheme == null) {
+            scheme = "http";
+        }
+
+        try {
+            return new URI(scheme, null, proxyConfiguration.host(), proxyConfiguration.port(), null, null,
+                    null);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Unable to construct proxy URI", e);
+        }
+    }
+
+    private ChannelPool wrapBaseChannelPool(Bootstrap bootstrap, ChannelPool channelPool) {
 
         // Wrap the channel pool such that the ChannelAttributeKey.CLOSE_ON_RELEASE flag is honored.
         channelPool = new HonorCloseOnReleaseChannelPool(channelPool);
@@ -150,15 +253,22 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
         return channelPool;
     }
 
-    private SslContext sslContext(String protocol) {
-        if (!protocol.equalsIgnoreCase("https")) {
+    private SslContext sslContext(URI targetAddress) {
+        URI proxyAddress = proxyAddress(targetAddress);
+
+        boolean needContext = targetAddress.getScheme().equalsIgnoreCase("https")
+                || proxyAddress != null && proxyAddress.getScheme().equalsIgnoreCase("https");
+
+        if (!needContext) {
             return null;
         }
+
         try {
             return SslContextBuilder.forClient()
                                     .sslProvider(sslProvider)
                                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                                     .trustManager(getTrustManager())
+                                    .keyManager(getKeyManager())
                                     .build();
         } catch (SSLException e) {
             throw new RuntimeException(e);
@@ -169,45 +279,14 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
         return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
     }
 
-    static final class SimpleChannelPoolAwareChannelPool implements ChannelPool {
-        private final BetterSimpleChannelPool underlyingSimpleChannelPool;
-        private final ChannelPool actualChannelPool;
-
-        private SimpleChannelPoolAwareChannelPool(BetterSimpleChannelPool underlyingSimpleChannelPool,
-                                                  ChannelPool actualChannelPool) {
-            this.underlyingSimpleChannelPool = underlyingSimpleChannelPool;
-            this.actualChannelPool = actualChannelPool;
+    private KeyManagerFactory getKeyManager() {
+        if (configuration.tlsKeyManagersProvider() != null) {
+            KeyManager[] keyManagers = configuration.tlsKeyManagersProvider().keyManagers();
+            if (keyManagers != null) {
+                return StaticKeyManagerFactory.create(keyManagers);
+            }
         }
-
-        @Override
-        public Future<Channel> acquire() {
-            return actualChannelPool.acquire();
-        }
-
-        @Override
-        public Future<Channel> acquire(Promise<Channel> promise) {
-            return actualChannelPool.acquire(promise);
-        }
-
-        @Override
-        public Future<Void> release(Channel channel) {
-            return actualChannelPool.release(channel);
-        }
-
-        @Override
-        public Future<Void> release(Channel channel, Promise<Void> promise) {
-            return actualChannelPool.release(channel, promise);
-        }
-
-        @Override
-        public void close() {
-            actualChannelPool.close();
-        }
-
-        @SdkTestInternalApi
-        BetterSimpleChannelPool underlyingSimpleChannelPool() {
-            return underlyingSimpleChannelPool;
-        }
+        return null;
     }
 
     public static class Builder {
@@ -217,7 +296,9 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
         private NettyConfiguration configuration;
         private Protocol protocol;
         private long maxStreams;
+        private int initialWindowSize;
         private SslProvider sslProvider;
+        private ProxyConfiguration proxyConfiguration;
 
         private Builder() {
         }
@@ -247,8 +328,18 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI,
             return this;
         }
 
+        public Builder initialWindowSize(int initialWindowSize) {
+            this.initialWindowSize = initialWindowSize;
+            return this;
+        }
+
         public Builder sslProvider(SslProvider sslProvider) {
             this.sslProvider = sslProvider;
+            return this;
+        }
+
+        public Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
+            this.proxyConfiguration = proxyConfiguration;
             return this;
         }
 

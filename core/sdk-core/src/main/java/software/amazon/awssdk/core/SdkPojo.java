@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,4 +30,20 @@ public interface SdkPojo {
      * @return List of {@link SdkField} in this POJO. May be empty list but should never be null.
      */
     List<SdkField<?>> sdkFields();
+
+    /**
+     * Indicates whether some other object is "equal to" this one by SDK fields.
+     * An SDK field is a modeled, non-inherited field in an {@link SdkPojo} class,
+     * and is generated based on a service model.
+     *
+     * <p>
+     * If an {@link SdkPojo} class does not have any inherited fields, {@code equalsBySdkFields}
+     * and {@code equals} are essentially the same.
+     *
+     * @param other the object to be compared with
+     * @return true if the other object equals to this object by sdk fields, false otherwise.
+     */
+    default boolean equalsBySdkFields(Object other) {
+        throw new UnsupportedOperationException();
+    }
 }

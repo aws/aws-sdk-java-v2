@@ -753,6 +753,16 @@
           "locationName" : "hostInstanceType",
           "documentation" : "The type of broker instance."
         },
+        "StorageType" : {
+          "shape" : "BrokerStorageType",
+          "locationName" : "storageType",
+          "documentation" : "The broker's storage type."
+        },
+        "SupportedDeploymentModes" : {
+          "shape" : "__listOfDeploymentMode",
+          "locationName" : "supportedDeploymentModes",
+          "documentation" : "The list of supported deployment modes."
+        },
         "SupportedEngineVersions" : {
           "shape" : "__listOf__string",
           "locationName" : "supportedEngineVersions",
@@ -786,6 +796,11 @@
       "type" : "string",
       "documentation" : "The status of the broker.",
       "enum" : [ "CREATION_IN_PROGRESS", "CREATION_FAILED", "DELETION_IN_PROGRESS", "RUNNING", "REBOOT_IN_PROGRESS" ]
+    },
+    "BrokerStorageType" : {
+      "type" : "string",
+      "documentation" : "The storage type of the broker.",
+      "enum" : [ "EBS", "EFS" ]
     },
     "BrokerSummary" : {
       "type" : "structure",
@@ -991,6 +1006,11 @@
           "locationName" : "deploymentMode",
           "documentation" : "Required. The deployment mode of the broker."
         },
+        "EncryptionOptions" : {
+          "shape" : "EncryptionOptions",
+          "locationName" : "encryptionOptions",
+          "documentation" : "Encryption options for the broker."
+        },
         "EngineType" : {
           "shape" : "EngineType",
           "locationName" : "engineType",
@@ -1024,7 +1044,12 @@
         "SecurityGroups" : {
           "shape" : "__listOf__string",
           "locationName" : "securityGroups",
-          "documentation" : "The list of rules (1 minimum, 125 maximum) that authorize connections to brokers."
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
+        },
+        "StorageType" : {
+          "shape" : "BrokerStorageType",
+          "locationName" : "storageType",
+          "documentation" : "The broker's storage type."
         },
         "SubnetIds" : {
           "shape" : "__listOf__string",
@@ -1042,7 +1067,7 @@
           "documentation" : "Required. The list of ActiveMQ users (persons or applications) who can access queues and topics. This value can contain only alphanumeric characters, dashes, periods, underscores, and tildes (- . _ ~). This value must be 2-100 characters long."
         }
       },
-      "documentation" : "Required. The time period during which Amazon MQ applies pending updates or patches to the broker."
+      "documentation" : "Required. The version of the broker engine. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
     },
     "CreateBrokerOutput" : {
       "type" : "structure",
@@ -1089,6 +1114,11 @@
           "locationName" : "deploymentMode",
           "documentation" : "Required. The deployment mode of the broker."
         },
+        "EncryptionOptions" : {
+          "shape" : "EncryptionOptions",
+          "locationName" : "encryptionOptions",
+          "documentation" : "Encryption options for the broker."
+        },
         "EngineType" : {
           "shape" : "EngineType",
           "locationName" : "engineType",
@@ -1122,7 +1152,12 @@
         "SecurityGroups" : {
           "shape" : "__listOf__string",
           "locationName" : "securityGroups",
-          "documentation" : "The list of rules (1 minimum, 125 maximum) that authorize connections to brokers."
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
+        },
+        "StorageType" : {
+          "shape" : "BrokerStorageType",
+          "locationName" : "storageType",
+          "documentation" : "The broker's storage type."
         },
         "SubnetIds" : {
           "shape" : "__listOf__string",
@@ -1498,6 +1533,12 @@
           "location" : "querystring",
           "locationName" : "nextToken",
           "documentation" : "The token that specifies the next page of results Amazon MQ should return. To request the first page, leave nextToken empty."
+        },
+        "StorageType" : {
+          "shape" : "__string",
+          "location" : "querystring",
+          "locationName" : "storageType",
+          "documentation" : "Filter response by storage type."
         }
       }
     },
@@ -1569,6 +1610,11 @@
           "locationName" : "deploymentMode",
           "documentation" : "Required. The deployment mode of the broker."
         },
+        "EncryptionOptions" : {
+          "shape" : "EncryptionOptions",
+          "locationName" : "encryptionOptions",
+          "documentation" : "Encryption options for the broker."
+        },
         "EngineType" : {
           "shape" : "EngineType",
           "locationName" : "engineType",
@@ -1599,6 +1645,16 @@
           "locationName" : "pendingEngineVersion",
           "documentation" : "The version of the broker engine to upgrade to. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
         },
+        "PendingHostInstanceType" : {
+          "shape" : "__string",
+          "locationName" : "pendingHostInstanceType",
+          "documentation" : "The host instance type of the broker to upgrade to. For a list of supported instance types, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide//broker.html#broker-instance-types"
+        },
+        "PendingSecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "pendingSecurityGroups",
+          "documentation" : "The list of pending security groups to authorize connections to brokers."
+        },
         "PubliclyAccessible" : {
           "shape" : "__boolean",
           "locationName" : "publiclyAccessible",
@@ -1607,7 +1663,12 @@
         "SecurityGroups" : {
           "shape" : "__listOf__string",
           "locationName" : "securityGroups",
-          "documentation" : "Required. The list of rules (1 minimum, 125 maximum) that authorize connections to brokers."
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
+        },
+        "StorageType" : {
+          "shape" : "BrokerStorageType",
+          "locationName" : "storageType",
+          "documentation" : "The broker's storage type."
         },
         "SubnetIds" : {
           "shape" : "__listOf__string",
@@ -1687,6 +1748,11 @@
           "locationName" : "deploymentMode",
           "documentation" : "Required. The deployment mode of the broker."
         },
+        "EncryptionOptions" : {
+          "shape" : "EncryptionOptions",
+          "locationName" : "encryptionOptions",
+          "documentation" : "Encryption options for the broker."
+        },
         "EngineType" : {
           "shape" : "EngineType",
           "locationName" : "engineType",
@@ -1717,6 +1783,16 @@
           "locationName" : "pendingEngineVersion",
           "documentation" : "The version of the broker engine to upgrade to. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
         },
+        "PendingHostInstanceType" : {
+          "shape" : "__string",
+          "locationName" : "pendingHostInstanceType",
+          "documentation" : "The host instance type of the broker to upgrade to. For a list of supported instance types, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide//broker.html#broker-instance-types"
+        },
+        "PendingSecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "pendingSecurityGroups",
+          "documentation" : "The list of pending security groups to authorize connections to brokers."
+        },
         "PubliclyAccessible" : {
           "shape" : "__boolean",
           "locationName" : "publiclyAccessible",
@@ -1725,7 +1801,12 @@
         "SecurityGroups" : {
           "shape" : "__listOf__string",
           "locationName" : "securityGroups",
-          "documentation" : "Required. The list of rules (1 minimum, 125 maximum) that authorize connections to brokers."
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
+        },
+        "StorageType" : {
+          "shape" : "BrokerStorageType",
+          "locationName" : "storageType",
+          "documentation" : "The broker's storage type."
         },
         "SubnetIds" : {
           "shape" : "__listOf__string",
@@ -1953,6 +2034,23 @@
           "documentation" : "Required. The username of the ActiveMQ user. This value can contain only alphanumeric characters, dashes, periods, underscores, and tildes (- . _ ~). This value must be 2-100 characters long."
         }
       }
+    },
+    "EncryptionOptions" : {
+      "type" : "structure",
+      "members" : {
+        "KmsKeyId" : {
+          "shape" : "__string",
+          "locationName" : "kmsKeyId",
+          "documentation" : "The customer master key (CMK) to use for the AWS Key Management Service (KMS). This key is used to encrypt your data at rest. If not provided, Amazon MQ will use a default CMK to encrypt your data."
+        },
+        "UseAwsOwnedKey" : {
+          "shape" : "__boolean",
+          "locationName" : "useAwsOwnedKey",
+          "documentation" : "Enables the use of an AWS owned CMK using AWS Key Management Service (KMS)."
+        }
+      },
+      "documentation" : "Encryption options for the broker.",
+      "required" : [ "UseAwsOwnedKey" ]
     },
     "EngineType" : {
       "type" : "string",
@@ -2483,10 +2581,20 @@
           "locationName" : "engineVersion",
           "documentation" : "The version of the broker engine. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
         },
+        "HostInstanceType" : {
+          "shape" : "__string",
+          "locationName" : "hostInstanceType",
+          "documentation" : "The host instance type of the broker to upgrade to. For a list of supported instance types, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide//broker.html#broker-instance-types"
+        },
         "Logs" : {
           "shape" : "Logs",
           "locationName" : "logs",
           "documentation" : "Enables Amazon CloudWatch logging for brokers."
+        },
+        "SecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "securityGroups",
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
         }
       },
       "documentation" : "Updates the broker using the specified properties."
@@ -2514,10 +2622,20 @@
           "locationName" : "engineVersion",
           "documentation" : "The version of the broker engine to upgrade to. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
         },
+        "HostInstanceType" : {
+          "shape" : "__string",
+          "locationName" : "hostInstanceType",
+          "documentation" : "The host instance type of the broker to upgrade to. For a list of supported instance types, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide//broker.html#broker-instance-types"
+        },
         "Logs" : {
           "shape" : "Logs",
           "locationName" : "logs",
           "documentation" : "The list of information about logs to be enabled for the specified broker."
+        },
+        "SecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "securityGroups",
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
         }
       },
       "documentation" : "Returns information about the updated broker."
@@ -2546,10 +2664,20 @@
           "locationName" : "engineVersion",
           "documentation" : "The version of the broker engine. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
         },
+        "HostInstanceType" : {
+          "shape" : "__string",
+          "locationName" : "hostInstanceType",
+          "documentation" : "The host instance type of the broker to upgrade to. For a list of supported instance types, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide//broker.html#broker-instance-types"
+        },
         "Logs" : {
           "shape" : "Logs",
           "locationName" : "logs",
           "documentation" : "Enables Amazon CloudWatch logging for brokers."
+        },
+        "SecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "securityGroups",
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
         }
       },
       "documentation" : "Updates the broker using the specified properties.",
@@ -2578,10 +2706,20 @@
           "locationName" : "engineVersion",
           "documentation" : "The version of the broker engine to upgrade to. For a list of supported engine versions, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/broker-engine.html"
         },
+        "HostInstanceType" : {
+          "shape" : "__string",
+          "locationName" : "hostInstanceType",
+          "documentation" : "The host instance type of the broker to upgrade to. For a list of supported instance types, see https://docs.aws.amazon.com/amazon-mq/latest/developer-guide//broker.html#broker-instance-types"
+        },
         "Logs" : {
           "shape" : "Logs",
           "locationName" : "logs",
           "documentation" : "The list of information about logs to be enabled for the specified broker."
+        },
+        "SecurityGroups" : {
+          "shape" : "__listOf__string",
+          "locationName" : "securityGroups",
+          "documentation" : "The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers."
         }
       }
     },
@@ -2900,6 +3038,12 @@
         "shape" : "ConfigurationRevision"
       }
     },
+    "__listOfDeploymentMode" : {
+      "type" : "list",
+      "member" : {
+        "shape" : "DeploymentMode"
+      }
+    },
     "__listOfEngineVersion" : {
       "type" : "list",
       "member" : {
@@ -2952,6 +3096,16 @@
     "__timestampUnix" : {
       "type" : "timestamp",
       "timestampFormat" : "unixTimestamp"
+    }
+  },
+  "authorizers" : {
+    "authorization_strategy" : {
+      "name" : "authorization_strategy",
+      "type" : "provided",
+      "placement" : {
+        "location" : "header",
+        "name" : "Authorization"
+      }
     }
   },
   "documentation" : "Amazon MQ is a managed message broker service for Apache ActiveMQ that makes it easy to set up and operate message brokers in the cloud. A message broker allows software applications and components to communicate using various programming languages, operating systems, and formal messaging protocols."

@@ -50,6 +50,8 @@
       "input":{"shape":"AllocateHostedConnectionRequest"},
       "output":{"shape":"Connection"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -64,6 +66,8 @@
       "input":{"shape":"AllocatePrivateVirtualInterfaceRequest"},
       "output":{"shape":"VirtualInterface"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -78,6 +82,8 @@
       "input":{"shape":"AllocatePublicVirtualInterfaceRequest"},
       "output":{"shape":"VirtualInterface"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -92,6 +98,8 @@
       "input":{"shape":"AllocateTransitVirtualInterfaceRequest"},
       "output":{"shape":"AllocateTransitVirtualInterfaceResult"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -218,6 +226,8 @@
       "input":{"shape":"CreateConnectionRequest"},
       "output":{"shape":"Connection"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -274,6 +284,8 @@
       "input":{"shape":"CreateInterconnectRequest"},
       "output":{"shape":"Interconnect"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -288,6 +300,8 @@
       "input":{"shape":"CreateLagRequest"},
       "output":{"shape":"Lag"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -302,6 +316,8 @@
       "input":{"shape":"CreatePrivateVirtualInterfaceRequest"},
       "output":{"shape":"VirtualInterface"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -316,6 +332,8 @@
       "input":{"shape":"CreatePublicVirtualInterfaceRequest"},
       "output":{"shape":"VirtualInterface"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
@@ -330,10 +348,12 @@
       "input":{"shape":"CreateTransitVirtualInterfaceRequest"},
       "output":{"shape":"CreateTransitVirtualInterfaceResult"},
       "errors":[
+        {"shape":"DuplicateTagKeysException"},
+        {"shape":"TooManyTagsException"},
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Creates a transit virtual interface. A transit virtual interface is a VLAN that transports traffic from a Direct Connect gateway to one or more transit gateways. A transit virtual interface enables the connection of multiple VPCs attached to a transit gateway to a Direct Connect gateway.</p>"
+      "documentation":"<p>Creates a transit virtual interface. A transit virtual interface should be used to access one or more transit gateways associated with Direct Connect gateways. A transit virtual interface enables the connection of multiple VPCs attached to a transit gateway to a Direct Connect gateway.</p> <important> <p>If you associate your transit gateway with one or more Direct Connect gateways, the Autonomous System Number (ASN) used by the transit gateway and the Direct Connect gateway must be different. For example, if you use the default ASN 64512 for both your the transit gateway and Direct Connect gateway, the association request fails.</p> </important>"
     },
     "DeleteBGPPeer":{
       "name":"DeleteBGPPeer",
@@ -375,7 +395,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Deletes the specified Direct Connect gateway. You must first delete all virtual interfaces that are attached to the Direct Connect gateway and disassociate all virtual private gateways that are associated with the Direct Connect gateway.</p>"
+      "documentation":"<p>Deletes the specified Direct Connect gateway. You must first delete all virtual interfaces that are attached to the Direct Connect gateway and disassociate all virtual private gateways associated with the Direct Connect gateway.</p>"
     },
     "DeleteDirectConnectGatewayAssociation":{
       "name":"DeleteDirectConnectGatewayAssociation",
@@ -389,7 +409,7 @@
         {"shape":"DirectConnectServerException"},
         {"shape":"DirectConnectClientException"}
       ],
-      "documentation":"<p>Deletes the association between the specified Direct Connect gateway and virtual private gateway.</p>"
+      "documentation":"<p>Deletes the association between the specified Direct Connect gateway and virtual private gateway.</p> <p>We recommend that you specify the <code>associationID</code> to delete the association. Alternatively, if you own virtual gateway and a Direct Connect gateway association, you can specify the <code>virtualGatewayId</code> and <code>directConnectGatewayId</code> to delete an association.</p>"
     },
     "DeleteDirectConnectGatewayAssociationProposal":{
       "name":"DeleteDirectConnectGatewayAssociationProposal",
@@ -783,7 +803,7 @@
         },
         "overrideAllowedPrefixesToDirectConnectGateway":{
           "shape":"RouteFilterPrefixList",
-          "documentation":"<p>Overrides the existing Amazon VPC prefixes advertised to the Direct Connect gateway.</p>"
+          "documentation":"<p>Overrides the Amazon VPC prefixes advertised to the Direct Connect gateway.</p> <p>For information about how to set the prefixes, see <a href=\"https://docs.aws.amazon.com/directconnect/latest/UserGuide/multi-account-associate-vgw.html#allowed-prefixes\">Allowed Prefixes</a> in the <i>AWS Direct Connect User Guide</i>.</p>"
         }
       }
     },
@@ -861,6 +881,10 @@
         "vlan":{
           "shape":"VLAN",
           "documentation":"<p>The dedicated VLAN provisioned to the hosted connection.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the connection.</p>"
         }
       }
     },
@@ -1034,7 +1058,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "addressFamily":{
           "shape":"AddressFamily",
@@ -1242,6 +1266,14 @@
         "hasLogicalRedundancy":{
           "shape":"HasLogicalRedundancy",
           "documentation":"<p>Indicates whether the connection supports a secondary BGP peer in the same address family (IPv4/IPv6).</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the connection.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the connection.</p>"
         }
       },
       "documentation":"<p>Information about an AWS Direct Connect connection.</p>"
@@ -1321,6 +1353,14 @@
         "lagId":{
           "shape":"LagId",
           "documentation":"<p>The ID of the LAG.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to associate with the lag.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the requested connection.</p>"
         }
       }
     },
@@ -1377,7 +1417,7 @@
         },
         "addAllowedPrefixesToDirectConnectGateway":{
           "shape":"RouteFilterPrefixList",
-          "documentation":"<p>The Amazon VPC prefixes to advertise to the Direct Connect gateway</p>"
+          "documentation":"<p>The Amazon VPC prefixes to advertise to the Direct Connect gateway</p> <p>This parameter is required when you create an association to a transit gateway.</p> <p>For information about how to set the prefixes, see <a href=\"https://docs.aws.amazon.com/directconnect/latest/UserGuide/multi-account-associate-vgw.html#allowed-prefixes\">Allowed Prefixes</a> in the <i>AWS Direct Connect User Guide</i>.</p>"
         },
         "virtualGatewayId":{
           "shape":"VirtualGatewayId",
@@ -1440,6 +1480,14 @@
         "lagId":{
           "shape":"LagId",
           "documentation":"<p>The ID of the LAG.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to associate with the interconnect.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the interconnect.</p>"
         }
       }
     },
@@ -1471,6 +1519,18 @@
         "connectionId":{
           "shape":"ConnectionId",
           "documentation":"<p>The ID of an existing connection to migrate to the LAG.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to associate with the LAG.</p>"
+        },
+        "childConnectionTags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to associate with the automtically created LAGs.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the LAG.</p>"
         }
       }
     },
@@ -2294,6 +2354,14 @@
         "hasLogicalRedundancy":{
           "shape":"HasLogicalRedundancy",
           "documentation":"<p>Indicates whether the interconnect supports a secondary BGP in the same address family (IPv4/IPv6).</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the interconnect.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the interconnect.</p>"
         }
       },
       "documentation":"<p>Information about an interconnect.</p>"
@@ -2388,6 +2456,14 @@
         "hasLogicalRedundancy":{
           "shape":"HasLogicalRedundancy",
           "documentation":"<p>Indicates whether the LAG supports a secondary BGP peer in the same address family (IPv4/IPv6).</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the LAG.</p>"
+        },
+        "providerName":{
+          "shape":"ProviderName",
+          "documentation":"<p>The name of the service provider associated with the LAG.</p>"
         }
       },
       "documentation":"<p>Information about a link aggregation group (LAG).</p>"
@@ -2457,6 +2533,10 @@
         "availablePortSpeeds":{
           "shape":"AvailablePortSpeeds",
           "documentation":"<p>The available port speeds for the location.</p>"
+        },
+        "availableProviders":{
+          "shape":"ProviderList",
+          "documentation":"<p>The name of the service provider for the location.</p>"
         }
       },
       "documentation":"<p>Information about an AWS Direct Connect location.</p>"
@@ -2491,7 +2571,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "addressFamily":{
           "shape":"AddressFamily",
@@ -2526,7 +2606,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
@@ -2534,7 +2614,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2555,6 +2635,10 @@
         "directConnectGatewayId":{
           "shape":"DirectConnectGatewayId",
           "documentation":"<p>The ID of the Direct Connect gateway.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the private virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a private virtual interface.</p>"
@@ -2577,7 +2661,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
@@ -2585,7 +2669,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2598,6 +2682,10 @@
         "customerAddress":{
           "shape":"CustomerAddress",
           "documentation":"<p>The IP address assigned to the customer interface.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the private virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a private virtual interface to be provisioned on a connection.</p>"
@@ -2620,11 +2708,11 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2641,6 +2729,10 @@
         "routeFilterPrefixes":{
           "shape":"RouteFilterPrefixList",
           "documentation":"<p>The routes to be advertised to the AWS network in this Region. Applies to public virtual interfaces.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the public virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a public virtual interface.</p>"
@@ -2663,11 +2755,11 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2684,6 +2776,10 @@
         "routeFilterPrefixes":{
           "shape":"RouteFilterPrefixList",
           "documentation":"<p>The routes to be advertised to the AWS network in this Region. Applies to public virtual interfaces.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the public virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a public virtual interface to be provisioned on a connection.</p>"
@@ -2701,7 +2797,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
@@ -2709,7 +2805,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2726,6 +2822,10 @@
         "directConnectGatewayId":{
           "shape":"DirectConnectGatewayId",
           "documentation":"<p>The ID of the Direct Connect gateway.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the transitive virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a transit virtual interface.</p>"
@@ -2743,7 +2843,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "mtu":{
           "shape":"MTU",
@@ -2751,7 +2851,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -2764,6 +2864,10 @@
         "addressFamily":{
           "shape":"AddressFamily",
           "documentation":"<p>The address family for the BGP peer.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the transitive virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a transit virtual interface to be provisioned on a connection.</p>"
@@ -2772,6 +2876,10 @@
     "PaginationToken":{"type":"string"},
     "PartnerName":{"type":"string"},
     "PortSpeed":{"type":"string"},
+    "ProviderList":{
+      "type":"list",
+      "member":{"shape":"ProviderName"}
+    },
     "ProviderName":{"type":"string"},
     "Region":{"type":"string"},
     "ResourceArn":{"type":"string"},
@@ -2970,10 +3078,7 @@
       },
       "documentation":"<p>Information about a virtual private gateway for a private virtual interface.</p>"
     },
-    "VirtualGatewayId":{
-      "type":"string",
-      "deprecated":true
-    },
+    "VirtualGatewayId":{"type":"string"},
     "VirtualGatewayList":{
       "type":"list",
       "member":{"shape":"VirtualGateway"}
@@ -3025,7 +3130,7 @@
         },
         "asn":{
           "shape":"ASN",
-          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p>"
+          "documentation":"<p>The autonomous system (AS) number for Border Gateway Protocol (BGP) configuration.</p> <p>The valid values are 1-2147483647.</p>"
         },
         "amazonSideAsn":{
           "shape":"LongAsn",
@@ -3033,7 +3138,7 @@
         },
         "authKey":{
           "shape":"BGPAuthKey",
-          "documentation":"<p>The authentication key for BGP configuration.</p>"
+          "documentation":"<p>The authentication key for BGP configuration. This string has a minimum length of 6 characters and and a maximun lenth of 80 characters.</p>"
         },
         "amazonAddress":{
           "shape":"AmazonAddress",
@@ -3086,6 +3191,10 @@
         "awsDeviceV2":{
           "shape":"AwsDeviceV2",
           "documentation":"<p>The Direct Connect endpoint on which the virtual interface terminates.</p>"
+        },
+        "tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the virtual interface.</p>"
         }
       },
       "documentation":"<p>Information about a virtual interface.</p>"

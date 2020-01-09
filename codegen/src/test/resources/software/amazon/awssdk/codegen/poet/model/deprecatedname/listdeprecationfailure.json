@@ -1,0 +1,40 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"restjson",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"JsonProtocolTests",
+    "serviceFullName":"AWS DR Tools JSON Protocol Tests",
+    "serviceId":"Json Protocol Tests",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsJsonRpcService",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "ListDeprecationFailure": {
+      "name": "ListDeprecationFailure",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "ListDeprecationFailureRequest"},
+      "output": {"shape": "String"}
+    }
+  },
+  "shapes":{
+    "ListDeprecationFailureRequest":{
+      "type": "structure",
+      "members": {
+        "CannotDeprecateList":{"shape": "ListOfStrings"}
+      }
+    },
+    "ListOfStrings":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "String":{"type":"string"}
+  }
+}

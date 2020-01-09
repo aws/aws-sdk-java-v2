@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package software.amazon.awssdk.stability.tests.s3;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +25,10 @@ import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
+import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Logger;
@@ -42,13 +45,60 @@ public class S3AsyncStabilityTest extends S3BaseStabilityTest {
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(bucketName);
+        s3NettyClient.close();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     @Override
-    public void putObject_getObject() {
+    public void putObject_getObject_highConcurrency() {
         putObject();
         getObject();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void largeObject_put_get_usingFile() {
+        uploadLargeObjectFromFile();
+        downloadLargeObjectToFile();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void getBucketAcl_lowTpsLongInterval() {
+        IntFunction<CompletableFuture<?>> future = i -> s3NettyClient.getBucketAcl(b -> b.bucket(bucketName));
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.getBucketAcl_lowTpsLongInterval")
+                           .futureFactory(future)
+                           .requestCountPerRun(10)
+                           .totalRuns(3)
+                           .delaysBetweenEachRun(Duration.ofSeconds(6))
+                           .run();
+    }
+
+    private void downloadLargeObjectToFile() {
+        File randomTempFile = RandomTempFile.randomUncreatedFile();
+        StabilityTestRunner.newRunner()
+                           .testName("S3AsyncStabilityTest.downloadLargeObjectToFile")
+                           .futures(s3NettyClient.getObject(b -> b.bucket(bucketName).key(LARGE_KEY_NAME),
+                                                            AsyncResponseTransformer.toFile(randomTempFile)))
+                           .run();
+        randomTempFile.delete();
+    }
+
+    private void uploadLargeObjectFromFile() {
+        RandomTempFile file = null;
+        try {
+            file = new RandomTempFile((long) 2e+9);
+            StabilityTestRunner.newRunner()
+                               .testName("S3AsyncStabilityTest.uploadLargeObjectFromFile")
+                               .futures(s3NettyClient.putObject(b -> b.bucket(bucketName).key(LARGE_KEY_NAME),
+                                                                AsyncRequestBody.fromFile(file)))
+                               .run();
+        } catch (IOException e) {
+            throw new RuntimeException("fail to create test file", e);
+        } finally {
+            if (file != null) {
+                file.delete();
+            }
+        }
     }
 
     private void putObject() {

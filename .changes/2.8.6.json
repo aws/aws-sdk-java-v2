@@ -1,0 +1,36 @@
+{
+    "version": "2.8.6",
+    "date": "2019-09-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release adds support for new data fields and log format in VPC flow logs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "description": "Adding input validation for the OrganizationConfigRuleName string."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release allows customers to specify a custom parameter group when creating a Read Replica, for DB engines which support this feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "description": "This release adds support for the RIST protocol on sources and outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "description": "Fixing letter case in Map history event details to be small case"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "description": "Updated API documentation to correct broken links, and to update content based on customer feedback."
+        }
+    ]
+}
