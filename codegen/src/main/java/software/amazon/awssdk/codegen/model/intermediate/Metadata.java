@@ -519,6 +519,11 @@ public class Metadata {
                protocol == Protocol.REST_XML;
     }
 
+    public boolean isQueryProtocol() {
+        return protocol == Protocol.EC2 ||
+               protocol == Protocol.QUERY;
+    }
+
     /**
      * @return True for RESTful protocols. False for all other protocols (RPC, Query, etc).
      */
