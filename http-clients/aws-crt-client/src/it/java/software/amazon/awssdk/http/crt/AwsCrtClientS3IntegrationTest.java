@@ -30,6 +30,8 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -50,6 +52,8 @@ public class AwsCrtClientS3IntegrationTest {
 
     private static Region REGION = Region.US_EAST_1;
 
+    private static EventLoopGroup eventLoopGroup;
+    private static HostResolver hostResolver;
     private static SdkAsyncHttpClient crtClient;
 
     private static S3AsyncClient s3;
@@ -58,8 +62,13 @@ public class AwsCrtClientS3IntegrationTest {
     public void setup() {
         CrtResource.waitForNoResources();
 
+        int numThreads = 4;
+        eventLoopGroup = new EventLoopGroup(numThreads);
+        hostResolver = new HostResolver(eventLoopGroup);
+
         crtClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopSize(4)
+                .eventLoopGroup(eventLoopGroup)
+                .hostResolver(hostResolver)
                 .build();
 
         s3 = S3AsyncClient.builder()
@@ -73,7 +82,8 @@ public class AwsCrtClientS3IntegrationTest {
     public void tearDown() {
         s3.close();
         crtClient.close();
-
+        hostResolver.close();
+        eventLoopGroup.close();
         CrtResource.waitForNoResources();
     }
 

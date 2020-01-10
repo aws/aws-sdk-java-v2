@@ -46,6 +46,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -64,19 +66,29 @@ public class AwsCrtHttpClientSpiVerificationTest {
             .dynamicPort()
             .dynamicHttpsPort());
 
+    private EventLoopGroup eventLoopGroup;
+    private HostResolver hostResolver;
     private SdkAsyncHttpClient client;
 
     @Before
     public void setup() throws Exception {
         CrtResource.waitForNoResources();
 
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        eventLoopGroup = new EventLoopGroup(numThreads);
+        hostResolver = new HostResolver(eventLoopGroup);
+
         client = AwsCrtAsyncHttpClient.builder()
+                .eventLoopGroup(eventLoopGroup)
+                .hostResolver(hostResolver)
                 .build();
     }
 
     @After
     public void tearDown() {
         client.close();
+        hostResolver.close();
+        eventLoopGroup.close();
         CrtResource.waitForNoResources();
     }
 

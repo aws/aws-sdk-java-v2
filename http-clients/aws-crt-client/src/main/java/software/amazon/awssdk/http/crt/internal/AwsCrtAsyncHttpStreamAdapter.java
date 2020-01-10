@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CRT;
-import software.amazon.awssdk.crt.http.CrtHttpStreamHandler;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.crt.http.HttpStream;
+import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.utils.Logger;
@@ -33,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
-public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
+public class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, HttpRequestBodyStream {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
 
     private final HttpClientConnection connection;
@@ -123,7 +124,7 @@ public class AwsCrtAsyncHttpStreamAdapter implements CrtHttpStreamHandler {
     }
 
     @Override
-    public boolean sendRequestBody(HttpStream stream, ByteBuffer bodyBytesOut) {
+    public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
         return requestBodySubscriber.transferRequestBody(bodyBytesOut);
     }
 }
