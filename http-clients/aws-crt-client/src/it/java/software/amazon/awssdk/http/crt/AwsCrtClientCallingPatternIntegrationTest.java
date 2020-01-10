@@ -32,6 +32,8 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -95,8 +97,12 @@ public class AwsCrtClientCallingPatternIntegrationTest {
     }
 
     private boolean testWithNewClient(int eventLoopSize, int numberOfRequests) {
-        try (SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                .eventLoopSize(eventLoopSize)
+
+        try (EventLoopGroup eventLoopGroup = new EventLoopGroup(eventLoopSize);
+             HostResolver hostResolver = new HostResolver(eventLoopGroup);
+             SdkAsyncHttpClient newAwsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
+                .eventLoopGroup(eventLoopGroup)
+                .hostResolver(hostResolver)
                 .build()) {
             try (KmsAsyncClient newAsyncKMSClient = KmsAsyncClient.builder()
                     .region(REGION)
@@ -156,9 +162,12 @@ public class AwsCrtClientCallingPatternIntegrationTest {
                     .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, connectionPoolSize)
                     .build();
 
+            EventLoopGroup eventLoopGroup = new EventLoopGroup(eventLoopSize);
+            HostResolver hostResolver = new HostResolver(eventLoopGroup);
 
             SdkAsyncHttpClient awsCrtHttpClient = AwsCrtAsyncHttpClient.builder()
-                    .eventLoopSize(eventLoopSize)
+                    .eventLoopGroup(eventLoopGroup)
+                    .hostResolver(hostResolver)
                     .buildWithDefaults(attributes);
 
             KmsAsyncClient sharedAsyncKMSClient = KmsAsyncClient.builder()
@@ -193,6 +202,9 @@ public class AwsCrtClientCallingPatternIntegrationTest {
             sharedAsyncKMSClient.close();
             awsCrtHttpClient.close();
             Assert.assertFalse(failed.get());
+
+            hostResolver.close();
+            eventLoopGroup.close();
 
             CrtResource.waitForNoResources();
 

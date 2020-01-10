@@ -1,5 +1,5 @@
 /*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.httpclient.SdkHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.utils.MockServer;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
@@ -59,14 +61,22 @@ public class AwsCrtClientBenchmark implements SdkHttpClientBenchmark {
     private MockServer mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
     private ProtocolRestJsonAsyncClient client;
+    private EventLoopGroup eventLoopGroup;
+    private HostResolver hostResolver;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         mockServer = new MockServer();
         mockServer.start();
 
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        eventLoopGroup = new EventLoopGroup(numThreads);
+        hostResolver = new HostResolver(eventLoopGroup);
+
         sdkHttpClient = AwsCrtAsyncHttpClient.builder()
                 .verifyPeer(false)
+                .eventLoopGroup(this.eventLoopGroup)
+                .hostResolver(this.hostResolver)
                 .build();
 
         client = ProtocolRestJsonAsyncClient.builder()
@@ -83,6 +93,8 @@ public class AwsCrtClientBenchmark implements SdkHttpClientBenchmark {
         mockServer.stop();
         client.close();
         sdkHttpClient.close();
+        hostResolver.close();
+        eventLoopGroup.close();
     }
 
     @Override
