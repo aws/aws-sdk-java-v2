@@ -59,6 +59,7 @@
         <module>codegen</module>
         <module>http-client-spi</module>
         <module>http-clients</module>
+        <module>metrics-publishers</module>
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
         <module>build-tools</module>
