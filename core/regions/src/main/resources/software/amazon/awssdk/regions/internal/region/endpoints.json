@@ -2979,6 +2979,7 @@
           "protocols" : [ "https" ]
         },
         "endpoints" : {
+          "ap-east-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-south-1" : { },
@@ -3105,8 +3106,8 @@
             "signatureVersions" : [ "s3", "s3v4" ]
           },
           "us-east-1" : {
-            "signatureVersions" : [ "s3", "s3v4" ],
-            "hostname" : "s3.amazonaws.com"
+            "hostname" : "s3.us-east-1.amazonaws.com",
+            "signatureVersions" : [ "s3", "s3v4" ]
           },
           "us-east-2" : { },
           "us-west-1" : {
@@ -3116,10 +3117,6 @@
           "us-west-2" : {
             "hostname" : "s3.us-west-2.amazonaws.com",
             "signatureVersions" : [ "s3", "s3v4" ]
-          },
-          "us-east-1-regional" : {
-            "signatureVersions" : [ "s3", "s3v4" ],
-            "hostname" : "s3.us-east-1.amazonaws.com"
           }
         },
         "isRegionalized" : true,
