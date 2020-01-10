@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "description": "Updated service endpoints and added global endpoints for iso and iso-b."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "description": "SageMaker ListTrialComponents API filter by TrialName and ExperimentName."
-}

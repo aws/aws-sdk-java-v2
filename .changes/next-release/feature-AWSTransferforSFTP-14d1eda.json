@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer for SFTP",
-    "description": "This release introduces a new endpoint type that allows you to attach Elastic IP addresses from your AWS account with your server's endpoint directly and whitelist access to your server by client's internet IP address(es) using VPC Security Groups."
-}
