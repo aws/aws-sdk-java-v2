@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,9 +30,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpClientConnectionManagerOptions;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
+import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
@@ -80,9 +83,10 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         int maxConns = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
 
         Validate.isPositive(maxConns, "maxConns");
-        Validate.isPositive(builder.eventLoopSize, "eventLoopSize");
         Validate.notNull(builder.cipherPreference, "cipherPreference");
         Validate.isPositive(builder.windowSize, "windowSize");
+        Validate.notNull(builder.eventLoopGroup, "eventLoopGroup");
+        Validate.notNull(builder.hostResolver, "hostResolver");
 
         /**
          * Must call own() in same order that CrtResources are created in, so that they will be closed in reverse order.
@@ -93,12 +97,16 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * in the correct order.
          */
 
-        bootstrap = own(new ClientBootstrap(builder.eventLoopSize));
-        socketOptions = own(new SocketOptions());
-        tlsContextOptions = own(TlsContextOptions.createDefaultClient().withCipherPreference(builder.cipherPreference));
-        tlsContextOptions.setVerifyPeer(builder.verifyPeer);
-        tlsContext = own(new TlsContext(tlsContextOptions));
+        this.bootstrap = own(new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver));
+        this.socketOptions = own(new SocketOptions());
 
+        try (TlsContextOptions defaultClientOptions = TlsContextOptions.createDefaultClient()
+                .withCipherPreference(builder.cipherPreference)
+                .withVerifyPeer(builder.verifyPeer)) {
+            this.tlsContextOptions = own(defaultClientOptions);
+        }
+
+        this.tlsContext = own(new TlsContext(this.tlsContextOptions));
         this.windowSize = builder.windowSize;
         this.maxConnectionsPerEndpoint = maxConns;
     }
@@ -135,8 +143,15 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.notNull(uri, "URI must not be null");
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        return new HttpClientConnectionManager(bootstrap, socketOptions, tlsContext, uri, windowSize,
-                                                maxConnectionsPerEndpoint);
+        HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions();
+        options.withClientBootstrap(bootstrap)
+               .withSocketOptions(socketOptions)
+               .withTlsContext(tlsContext)
+               .withUri(uri)
+               .withWindowSize(windowSize)
+               .withMaxConnections(maxConnectionsPerEndpoint);
+
+        return HttpClientConnectionManager.create(options);
     }
 
     private HttpClientConnectionManager getOrCreateConnectionPool(URI uri) {
@@ -194,7 +209,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         return crtHeaderList.toArray(new HttpHeader[crtHeaderList.size()]);
     }
 
-    private HttpRequest toCrtRequest(URI uri, AsyncExecuteRequest asyncRequest) {
+    private HttpRequest toCrtRequest(URI uri, AsyncExecuteRequest asyncRequest, AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
         Validate.notNull(uri, "URI must not be null");
         Validate.notNull(sdkRequest, "SdkHttpRequest must not be null");
@@ -207,7 +222,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(uri, asyncRequest));
 
-        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray);
+        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtToSdkAdapter);
     }
 
     @Override
@@ -222,13 +237,12 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         URI uri = toUri(asyncRequest.request());
         HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(uri);
-        HttpRequest crtRequest = toCrtRequest(uri, asyncRequest);
-
         CompletableFuture<Void> requestFuture = new CompletableFuture<>();
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         crtConnPool.acquireConnection()
             .whenComplete((crtConn, throwable) -> {
+
                 // If we didn't get a connection for some reason, fail the request
                 if (throwable != null) {
                     requestFuture.completeExceptionally(throwable);
@@ -237,6 +251,7 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
                 AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
                         new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, windowSize);
+                HttpRequest crtRequest = toCrtRequest(uri, asyncRequest, crtToSdkAdapter);
 
                 // Submit the Request on this Connection
                 invokeSafely(() -> crtConn.makeRequest(crtRequest, crtToSdkAdapter));
@@ -264,23 +279,16 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     public interface Builder extends SdkAsyncHttpClient.Builder<AwsCrtAsyncHttpClient.Builder> {
 
         /**
-         * The number of Threads to use in the EventLoop.
-         * @param eventLoopSize The number of Threads to use in the EventLoop.
-         * @return the builder of the method chaining.
-         */
-        Builder eventLoopSize(int eventLoopSize);
-
-        /**
          * The AWS CRT TlsCipherPreference to use for this Client
          * @param tlsCipherPreference The AWS Common Runtime TlsCipherPreference
-         * @return the builder of the method chaining.
+         * @return The builder of the method chaining.
          */
         Builder tlsCipherPreference(TlsCipherPreference tlsCipherPreference);
 
         /**
          * Whether or not to Verify the Peer's TLS Certificate Chain.
          * @param verifyPeer true if the Certificate Chain should be validated, false if validation should be skipped.
-         * @return the builder of the method chaining.
+         * @return The builder of the method chaining.
          */
         Builder verifyPeer(boolean verifyPeer);
 
@@ -290,9 +298,23 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * the Subscriber to read more data.
          *
          * @param windowSize The AWS Common Runtime WindowSize
-         * @return the builder of the method chaining.
+         * @return The builder of the method chaining.
          */
         Builder windowSize(int windowSize);
+
+        /**
+         * The AWS CRT EventLoopGroup to use for this Client.
+         * @param eventLoopGroup The AWS CRT EventLoopGroup to use for this client.
+         * @return The builder of the method chaining.
+         */
+        Builder eventLoopGroup(EventLoopGroup eventLoopGroup);
+
+        /**
+         * The AWS CRT HostResolver to use for this Client.
+         * @param hostResolver The AWS CRT HostResolver to use for this client.
+         * @return The builder of the method chaining.
+         */
+        Builder hostResolver(HostResolver hostResolver);
     }
 
     /**
@@ -301,10 +323,11 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      */
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private int eventLoopSize = Runtime.getRuntime().availableProcessors();
         private TlsCipherPreference cipherPreference = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         private int windowSize = DEFAULT_STREAM_WINDOW_SIZE;
         private boolean verifyPeer = true;
+        private EventLoopGroup eventLoopGroup;
+        private HostResolver hostResolver;
 
         private DefaultBuilder() {
         }
@@ -320,13 +343,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
                                                            .merge(serviceDefaults)
                                                            .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
-        }
-
-        @Override
-        public Builder eventLoopSize(int eventLoopSize) {
-            Validate.isPositive(eventLoopSize, "eventLoopSize");
-            this.eventLoopSize = eventLoopSize;
-            return this;
         }
 
         @Override
@@ -348,6 +364,18 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         public Builder windowSize(int windowSize) {
             Validate.isPositive(windowSize, "windowSize");
             this.windowSize = windowSize;
+            return this;
+        }
+
+        @Override
+        public Builder eventLoopGroup(EventLoopGroup eventLoopGroup) {
+            this.eventLoopGroup = eventLoopGroup;
+            return this;
+        }
+
+        @Override
+        public Builder hostResolver(HostResolver hostResolver) {
+            this.hostResolver = hostResolver;
             return this;
         }
     }
