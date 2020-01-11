@@ -1,4 +1,5 @@
-Here is the detailed list of metrics that SDK can collect. Each metric belongs to a category. If a category is enabled, then all metrics belonging to that category will be collected by the SDK.
+Here is the detailed list of metrics that SDK can collect. Each metric belongs to a category. If a category is enabled,
+then all metrics belonging to that category will be collected by the SDK.
 
 ## Category
 
@@ -6,7 +7,8 @@ Here is the detailed list of metrics that SDK can collect. Each metric belongs t
 2) HttpClient - Additional information collected for http client. The metrics collected for each http client can vary
 3) All - All metrics collected by the SDK comes under this category. This can be useful for debugging purposes.
 
-Note: When metrics feature is enabled, only the `Default` category metrics are collected. Other categories should be explicitly enabled.
+Note: When metrics feature is enabled, only the `Default` category metrics are collected. Other categories should be
+explicitly enabled.
 
 ## Information collected at application level (Category: Default)
 
