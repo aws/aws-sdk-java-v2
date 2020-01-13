@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup",
-    "description": "Cross-region backup is a new AWS Backup feature that allows enterprises to copy backups across multiple AWS services to different regions."
-}
