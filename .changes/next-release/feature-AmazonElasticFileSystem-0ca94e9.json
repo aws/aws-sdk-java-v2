@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic File System",
+    "description": "This release adds support for managing EFS file system policies and EFS Access Points."
+}
