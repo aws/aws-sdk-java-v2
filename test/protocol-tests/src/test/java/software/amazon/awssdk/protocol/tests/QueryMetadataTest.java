@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.protocolquery.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolquery.model.ProtocolQueryResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
-public class QueryMetadataTest {
+public class QueryMetadataTest extends ProtocolTestBase {
 
     private static final String REQUEST_ID = "abcd";
 
