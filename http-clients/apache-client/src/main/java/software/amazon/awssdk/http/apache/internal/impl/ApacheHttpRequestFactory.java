@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -85,6 +85,8 @@ public class ApacheHttpRequestFactory {
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()))
                 .setLocalAddress(requestConfig.localAddress());
+
+        ApacheUtils.disableNormalizeUri(requestConfigBuilder);
 
         /*
          * Enable 100-continue support for PUT operations, since this is

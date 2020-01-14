@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,22 +15,23 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.ASYNC_RESPONSE_TRANSFORMER_FUTURE;
-
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.internal.Response;
+import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -53,14 +54,14 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
     private static final Logger log = LoggerFactory.getLogger(AsyncRetryableStage.class);
 
-    private final TransformingAsyncResponseHandler<OutputT> responseHandler;
+    private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
     private final ScheduledExecutorService scheduledExecutor;
     private final HttpClientDependencies dependencies;
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
 
-    public AsyncRetryableStage(TransformingAsyncResponseHandler<OutputT> responseHandler,
+    public AsyncRetryableStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                HttpClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
         this.responseHandler = responseHandler;
@@ -203,13 +204,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             // Before each attempt, Modify the context to use original request body provider
             context.requestProvider(originalRequestBody);
 
-            // For streaming requests, future from the execution attributes (set in BaseAsyncClientHandler#execute method)
-            // should be used on first attempt. For all retry attempts, clear the value so that prepare() method is
-            // called (in MakeAsyncHttpRequestStage) to get a new future
-            if (requestCount > 1 && context.asyncResponseTransformerFuture() != null) {
-                context.executionAttributes().putAttribute(ASYNC_RESPONSE_TRANSFORMER_FUTURE, null);
-            }
-
+            context.executionAttributes().putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, requestCount);
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
     }

@@ -1,0 +1,36 @@
+{
+    "version": "2.7.0",
+    "date": "2019-07-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "description": "Add S3 x-amz-server-side-encryption-context support."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Update Apache http client version to `4.5.9`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release supports Cross-Account Cloning for Amazon Aurora clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Workflow Service",
+            "description": "This release adds APIs that allow adding and removing tags to a SWF domain, and viewing tags for a domain. It also enables adding tags when creating a domain."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "AssignPrivateIpAddresses response includes two new fields: AssignedPrivateIpAddresses, NetworkInterfaceId"
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache Http Client",
+            "description": "Disable apache normalization to handle breaking change introduced in apache httpclient `4.5.7`. See [aws/aws-sdk-java[#1919](https://github.com/aws/aws-sdk-java-v2/issues/1919)](https://github.com/aws/aws-sdk-java/issues/1919) for more information."
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -74,6 +76,8 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
@@ -374,6 +378,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * May not be used in conjunction with {@link ProxyConfiguration#username()} and {@link ProxyConfiguration#password()}.
          */
         Builder credentialsProvider(CredentialsProvider credentialsProvider);
+
+        /**
+         * Configure the {@link TlsKeyManagersProvider} that will provide the {@link javax.net.ssl.KeyManager}s to use
+         * when constructing the SSL context.
+         * <p>
+         * The default used by the client will be {@link SystemPropertyTlsKeyManagersProvider}. Configure an instance of
+         * {@link software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider} or another implementation of
+         * {@link TlsKeyManagersProvider} to override it.
+         */
+        Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -509,6 +523,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
             return this;
         }
 
+        @Override
+        public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
+            standardOptions.put(TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
+            return this;
+        }
+
+        public void setTlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
+            tlsKeyManagersProvider(tlsKeyManagersProvider);
+        }
+
         public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
             credentialsProvider(credentialsProvider);
         }
@@ -524,7 +548,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public HttpClientConnectionManager create(ApacheHttpClient.DefaultBuilder configuration,
                                                   AttributeMap standardOptions) {
-            ConnectionSocketFactory sslsf = getPreferredSocketFactory(standardOptions);
+            ConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
 
             PoolingHttpClientConnectionManager cm = new
                     PoolingHttpClientConnectionManager(
@@ -542,9 +566,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
             return cm;
         }
 
-        private ConnectionSocketFactory getPreferredSocketFactory(AttributeMap standardOptions) {
+        private ConnectionSocketFactory getPreferredSocketFactory(ApacheHttpClient.DefaultBuilder configuration,
+                                                                  AttributeMap standardOptions) {
             // TODO v2 custom socket factory
-            return new SdkTlsSocketFactory(getSslContext(standardOptions), getHostNameVerifier(standardOptions));
+            return new SdkTlsSocketFactory(getSslContext(standardOptions),
+                                           getHostNameVerifier(standardOptions));
         }
 
         private HostnameVerifier getHostNameVerifier(AttributeMap standardOptions) {
@@ -561,10 +587,13 @@ public final class ApacheHttpClient implements SdkHttpClient {
                 trustManagers = trustAllTrustManager();
             }
 
+            TlsKeyManagersProvider provider = standardOptions.get(TLS_KEY_MANAGERS_PROVIDER);
+            KeyManager[] keyManagers = provider.keyManagers();
+
             try {
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
                 // http://download.java.net/jdk9/docs/technotes/guides/security/jsse/JSSERefGuide.html
-                sslcontext.init(null, trustManagers, null);
+                sslcontext.init(keyManagers, trustManagers, null);
                 return sslcontext;
             } catch (final NoSuchAlgorithmException | KeyManagementException ex) {
                 throw new SSLInitializationException(ex.getMessage(), ex);

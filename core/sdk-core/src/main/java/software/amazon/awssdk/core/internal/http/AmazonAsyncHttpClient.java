@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package software.amazon.awssdk.core.internal.http;
 import static software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder.async;
 
 import java.util.concurrent.CompletableFuture;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
@@ -39,7 +40,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
@@ -107,15 +107,6 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         RequestExecutionBuilder request(SdkHttpFullRequest request);
 
         /**
-         * Fluent setter for the error response handler
-         *
-         * @param errorResponseHandler Error response handler
-         * @return This builder for method chaining.
-         */
-        RequestExecutionBuilder errorResponseHandler(
-                TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler);
-
-        /**
          * Fluent setter for the execution context
          *
          * @param executionContext Execution context
@@ -139,14 +130,13 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @param <OutputT>       Result type
          * @return Unmarshalled result type.
          */
-        <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<OutputT> responseHandler);
+        <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler);
     }
 
     private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
         private AsyncRequestBody requestProvider;
         private SdkHttpFullRequest request;
-        private TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
@@ -159,13 +149,6 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         @Override
         public RequestExecutionBuilder request(SdkHttpFullRequest request) {
             this.request = request;
-            return this;
-        }
-
-        @Override
-        public RequestExecutionBuilder errorResponseHandler(
-                TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler) {
-            this.errorResponseHandler = errorResponseHandler;
             return this;
         }
 
@@ -183,7 +166,9 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
-        public <OutputT> CompletableFuture<OutputT> execute(TransformingAsyncResponseHandler<OutputT> responseHandler) {
+        public <OutputT> CompletableFuture<OutputT> execute(
+            TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
+
             try {
                 return RequestPipelineBuilder
                         .first(RequestPipelineBuilder
@@ -192,12 +177,11 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(ApplyUserAgentStage::new)
                                 .then(MergeCustomHeadersStage::new)
                                 .then(MergeCustomQueryParamsStage::new)
-                                .then(MoveParametersToBodyStage::new)
                                 .then(MakeRequestImmutableStage::new)
                                 .then(RequestPipelineBuilder
                                         .first(SigningStage::new)
                                         .then(BeforeTransmissionExecutionInterceptorsStage::new)
-                                        .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
+                                        .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d))
                                         .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
@@ -221,5 +205,4 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         }
 
     }
-
 }

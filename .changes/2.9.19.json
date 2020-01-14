@@ -1,0 +1,11 @@
+{
+    "version": "2.9.19",
+    "date": "2019-10-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Greengrass",
+            "description": "Greengrass OTA service supports Raspbian/Armv6l platforms."
+        }
+    ]
+}

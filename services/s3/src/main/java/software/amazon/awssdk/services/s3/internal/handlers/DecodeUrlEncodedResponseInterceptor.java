@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public final class DecodeUrlEncodedResponseInterceptor implements ExecutionInter
     private static SdkResponse modifyListObjectsResponse(ListObjectsResponse response) {
         return response.toBuilder()
                 .delimiter(urlDecode(response.delimiter()))
-                .marker(urlDecode(response.delimiter()))
+                .marker(urlDecode(response.marker()))
                 .prefix(urlDecode(response.prefix()))
                 .nextMarker(urlDecode(response.nextMarker()))
                 .contents(decodeContents(response.contents()))

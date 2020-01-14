@@ -1,0 +1,26 @@
+{
+    "version": "2.7.22",
+    "date": "2019-08-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "description": "Adding new Emotion, Fear"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "description": "Documentation updates for monitoring"
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "description": "Documentation updates for Application Auto Scaling"
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "description": "Amazon EC2 Auto Scaling now supports a new Spot allocation strategy \"capacity-optimized\" that fulfills your request using Spot Instance pools that are optimally chosen based on the available Spot capacity."
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package software.amazon.awssdk.core.internal.http;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -40,7 +40,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
@@ -82,21 +81,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     }
 
     /**
-     * Ensures the response handler is not null. If it is this method returns a dummy response
-     * handler.
-     *
-     * @return Either original response handler or dummy response handler.
-     */
-    private <T> HttpResponseHandler<T> getNonNullResponseHandler(
-        HttpResponseHandler<T> responseHandler) {
-        if (responseHandler != null) {
-            return responseHandler;
-        } else {
-            return new NoOpResponseHandler<>();
-        }
-    }
-
-    /**
      * @return A builder used to configure and execute a HTTP request.
      */
     public RequestExecutionBuilder requestExecutionBuilder() {
@@ -119,15 +103,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         RequestExecutionBuilder originalRequest(SdkRequest originalRequest);
 
         /**
-         * Fluent setter for the error response handler
-         *
-         * @param errorResponseHandler Error response handler
-         * @return This builder for method chaining.
-         */
-        RequestExecutionBuilder errorResponseHandler(
-            HttpResponseHandler<? extends SdkException> errorResponseHandler);
-
-        /**
          * Fluent setter for the execution context
          *
          * @param executionContext Execution context
@@ -138,23 +113,17 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         /**
          * Executes the request with the given configuration.
          *
-         * @param responseHandler Response handler that outputs the actual result type which is
-         * preferred going forward.
+         * @param combinedResponseHandler response handler: converts an http request into a decorated Response object
+         *                               of the appropriate type.
          * @param <OutputT> Result type
          * @return Unmarshalled result type.
          */
-        <OutputT> OutputT execute(HttpResponseHandler<OutputT> responseHandler);
-
-        /**
-         * Executes the request with the given configuration; not handling response.
-         */
-        void execute();
-
+        <OutputT> OutputT execute(HttpResponseHandler<Response<OutputT>> combinedResponseHandler);
     }
 
     private static class NoOpResponseHandler<T> implements HttpResponseHandler<T> {
         @Override
-        public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+        public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
             return null;
         }
 
@@ -167,7 +136,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {
 
         private SdkHttpFullRequest request;
-        private HttpResponseHandler<? extends SdkException> errorResponseHandler;
         private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
@@ -185,20 +153,13 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
-        public RequestExecutionBuilder errorResponseHandler(
-            HttpResponseHandler<? extends SdkException> errorResponseHandler) {
-            this.errorResponseHandler = errorResponseHandler;
-            return this;
-        }
-
-        @Override
         public RequestExecutionBuilder executionContext(ExecutionContext executionContext) {
             this.executionContext = executionContext;
             return this;
         }
 
         @Override
-        public <OutputT> OutputT execute(HttpResponseHandler<OutputT> responseHandler) {
+        public <OutputT> OutputT execute(HttpResponseHandler<Response<OutputT>> responseHandler) {
             // TODO: We currently have two ways of passing messages to the HTTP client: through the request or through the
             // execution interceptor context. We should combine these two methods when we refactor the way request execution
             // contexts work.
@@ -216,7 +177,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
-                               .then(MoveParametersToBodyStage::new)
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder
@@ -225,9 +185,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .then(MakeHttpRequestStage::new)
                                          .then(AfterTransmissionExecutionInterceptorsStage::new)
                                          .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
-                                         .then(() -> new HandleResponseStage<>(
-                                             getNonNullResponseHandler(responseHandler),
-                                             getNonNullResponseHandler(errorResponseHandler)))
+                                         .then(() -> new HandleResponseStage<>(responseHandler))
                                          .wrappedWith(ApiCallAttemptTimeoutTrackingStage::new)
                                          .wrappedWith(TimeoutExceptionHandlingStage::new)
                                          .wrappedWith(RetryableStage::new)::build)
@@ -243,11 +201,6 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
             } catch (Exception e) {
                 throw SdkClientException.builder().cause(e).build();
             }
-        }
-
-        @Override
-        public void execute() {
-            execute(null);
         }
 
         private RequestExecutionContext createRequestExecutionDependencies() {

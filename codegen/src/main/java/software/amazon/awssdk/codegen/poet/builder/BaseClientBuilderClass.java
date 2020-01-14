@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,8 +24,12 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+
+import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -46,6 +50,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -177,6 +182,16 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
                                   CollectionUtils.class, SdkClientOption.class);
 
+        if (model.getMetadata().isQueryProtocol()) {
+            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
+                                 listType,
+                                 Collections.class,
+                                 QueryParametersToBodyInterceptor.class);
+            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
+                                 CollectionUtils.class);
+        }
+
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
                    .addStatement("endpointDiscoveryEnabled = CHAIN.resolveEndpointDiscovery()")
@@ -265,6 +280,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             case V4:
                 return v4SignerDefinitionMethodBody();
             case S3:
+            case S3V4:
                 return s3SignerDefinitionMethodBody();
             default:
                 throw new UnsupportedOperationException("Unsupported signer type: " + authType);

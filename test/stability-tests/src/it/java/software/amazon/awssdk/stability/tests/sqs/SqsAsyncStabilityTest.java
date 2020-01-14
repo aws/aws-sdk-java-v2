@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,9 +23,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
+import software.amazon.awssdk.stability.tests.utils.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.utils.Logger;
 
@@ -46,9 +47,10 @@ public class SqsAsyncStabilityTest extends SqsBaseStabilityTest {
         if (queueUrl != null) {
             sqsAsyncClient.deleteQueue(b -> b.queueUrl(queueUrl));
         }
+        sqsAsyncClient.close();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void sendMessage_receiveMessage() {
         sendMessage();
         receiveMessage();

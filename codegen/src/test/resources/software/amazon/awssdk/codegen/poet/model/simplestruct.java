@@ -23,8 +23,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-        .getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
+            .getter(getter(SimpleStruct::stringMember)).setter(setter(Builder::stringMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD));
 
@@ -38,7 +38,7 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
 
     /**
      * Returns the value of the StringMember property for this object.
-     *
+     * 
      * @return The value of the StringMember property for this object.
      */
     public String stringMember() {
@@ -67,6 +67,11 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
 
     @Override
     public boolean equals(Object obj) {
+        return equalsBySdkFields(obj);
+    }
+
+    @Override
+    public boolean equalsBySdkFields(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -157,4 +162,3 @@ public final class SimpleStruct implements SdkPojo, Serializable, ToCopyableBuil
         }
     }
 }
-
