@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "This release adds support for partition placement groups and instance metadata option in Launch Templates"
-}
