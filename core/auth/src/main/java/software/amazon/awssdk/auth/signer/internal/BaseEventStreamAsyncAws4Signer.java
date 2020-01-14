@@ -129,14 +129,13 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
                  */
                 Map<String, HeaderValue> nonSignatureHeaders = new HashMap<>();
                 Instant signingInstant = requestParams.getSigningClock().instant();
-                String signingDate = Aws4SignerUtils.formatTimestamp(signingInstant);
                 nonSignatureHeaders.put(EVENT_STREAM_DATE, HeaderValue.fromTimestamp(signingInstant));
 
                 /**
                  * Calculate rolling signature
                  */
                 byte[] payload = byteBuffer.array();
-                byte[] signatureBytes = signEventStream(priorSignature, key, signingDate, requestParams,
+                byte[] signatureBytes = signEventStream(priorSignature, key, signingInstant, requestParams,
                                                         nonSignatureHeaders, payload);
                 priorSignature = BinaryUtils.toHex(signatureBytes);
 
@@ -162,7 +161,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
      *
      * @param priorSignature signature of previous frame (Header frame is the 0th frame)
      * @param signingKey derived signing key
-     * @param date siging date
+     * @param signingInstant the instant at which this message is being signed
      * @param requestParams request parameters
      * @param nonSignatureHeaders non-signature headers
      * @param payload event stream payload
@@ -171,7 +170,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
     private byte[] signEventStream(
         String priorSignature,
         byte[] signingKey,
-        String date,
+        Instant signingInstant,
         Aws4SignerRequestParams requestParams,
         Map<String, HeaderValue> nonSignatureHeaders,
         byte[] payload) {
@@ -180,9 +179,9 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         String stringToSign =
             EVENT_STREAM_PAYLOAD +
             SignerConstant.LINE_SEPARATOR +
-            date +
+            Aws4SignerUtils.formatTimestamp(signingInstant) +
             SignerConstant.LINE_SEPARATOR +
-            requestParams.getScope() +
+            computeScope(signingInstant, requestParams) +
             SignerConstant.LINE_SEPARATOR +
             priorSignature +
             SignerConstant.LINE_SEPARATOR +
@@ -193,6 +192,13 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
         // calculate signature
         return sign(stringToSign.getBytes(StandardCharsets.UTF_8), signingKey,
                     SigningAlgorithm.HmacSHA256);
+    }
+
+    private String computeScope(Instant signingInstant, Aws4SignerRequestParams requestParams) {
+        return Aws4SignerUtils.formatDateStamp(signingInstant) + "/" +
+               requestParams.getRegionName() + "/" +
+               requestParams.getServiceSigningName() + "/" +
+               SignerConstant.AWS4_TERMINATOR;
     }
 
     /**

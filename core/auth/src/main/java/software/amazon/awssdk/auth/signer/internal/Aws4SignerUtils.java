@@ -46,6 +46,10 @@ public final class Aws4SignerUtils {
         return DATE_FORMATTER.format(Instant.ofEpochMilli(timeMilli));
     }
 
+    public static String formatDateStamp(Instant instant) {
+        return DATE_FORMATTER.format(instant);
+    }
+
     /**
      * Returns a string representation of the given date time in
      * yyyyMMdd'T'HHmmss'Z' format. The date returned is in the UTC zone.
