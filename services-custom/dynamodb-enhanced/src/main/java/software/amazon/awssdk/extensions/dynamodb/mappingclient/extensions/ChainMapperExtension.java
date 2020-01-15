@@ -64,7 +64,7 @@ public class ChainMapperExtension implements MapperExtension {
      * @param mapperExtensions A list of {@link MapperExtension} to chain together.
      * @return A constructed {@link ChainMapperExtension} object.
      */
-    public static ChainMapperExtension of(MapperExtension... mapperExtensions) {
+    public static ChainMapperExtension create(MapperExtension... mapperExtensions) {
         return new ChainMapperExtension(Arrays.asList(mapperExtensions));
     }
 

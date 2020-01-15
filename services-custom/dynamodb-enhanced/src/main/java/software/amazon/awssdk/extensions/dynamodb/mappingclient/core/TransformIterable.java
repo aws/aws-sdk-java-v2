@@ -38,6 +38,6 @@ public class TransformIterable<T, R> implements SdkIterable<R> {
 
     @Override
     public Iterator<R> iterator() {
-        return TransformIterator.of(wrappedIterable.iterator(), transformFunction);
+        return TransformIterator.create(wrappedIterable.iterator(), transformFunction);
     }
 }

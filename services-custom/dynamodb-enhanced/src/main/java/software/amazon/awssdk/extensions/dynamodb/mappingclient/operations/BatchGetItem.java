@@ -51,11 +51,11 @@ public class BatchGetItem
         this.readBatches = readBatches;
     }
 
-    public static BatchGetItem of(Collection<ReadBatch> readBatches) {
+    public static BatchGetItem create(Collection<ReadBatch> readBatches) {
         return new BatchGetItem(readBatches);
     }
 
-    public static BatchGetItem of(ReadBatch... readBatches) {
+    public static BatchGetItem create(ReadBatch... readBatches) {
         return new BatchGetItem(Arrays.asList(readBatches));
     }
 
@@ -150,7 +150,7 @@ public class BatchGetItem
             return results.stream()
                           .map(itemMap -> readAndTransformSingleItem(itemMap,
                                                                      mappedTable.tableSchema(),
-                                                                     OperationContext.of(mappedTable.tableName()),
+                                                                     OperationContext.create(mappedTable.tableName()),
                                                                      mapperExtension))
                           .collect(Collectors.toList());
         }

@@ -37,13 +37,13 @@ public final class AttributeTypes {
     }
 
     public static AttributeType<Boolean> booleanType() {
-        return AttributeType.of(obj -> AttributeValue.builder().bool(obj).build(),
+        return AttributeType.create(obj -> AttributeValue.builder().bool(obj).build(),
                                 AttributeValue::bool,
                                 AttributeValueType.BOOL);
     }
 
     public static AttributeType<String> stringType() {
-        return AttributeType.of(obj -> AttributeValue.builder().s(obj).build(),
+        return AttributeType.create(obj -> AttributeValue.builder().s(obj).build(),
                                 AttributeValue::s,
                                 AttributeValueType.S);
     }
@@ -97,13 +97,13 @@ public final class AttributeTypes {
     }
 
     public static AttributeType<ByteBuffer> binaryType() {
-        return AttributeType.of(byteBuffer -> AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build(),
+        return AttributeType.create(byteBuffer -> AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build(),
             attributeValue -> attributeValue.b().asByteBuffer(),
             AttributeValueType.B);
     }
 
     public static AttributeType<Set<ByteBuffer>> binarySetType() {
-        return AttributeType.of(
+        return AttributeType.create(
             bbSet -> AttributeValue.builder()
                                    .bs(bbSet.stream().map(SdkBytes::fromByteBuffer).collect(Collectors.toList()))
                                    .build(),
@@ -112,13 +112,13 @@ public final class AttributeTypes {
     }
 
     public static AttributeType<Set<String>> stringSetType() {
-        return AttributeType.of(stringSet -> AttributeValue.builder().ss(stringSet).build(),
+        return AttributeType.create(stringSet -> AttributeValue.builder().ss(stringSet).build(),
             attributeValue -> Collections.unmodifiableSet(new HashSet<>(attributeValue.ss())),
             AttributeValueType.SS);
     }
 
     public static <T> AttributeType<List<T>> listType(AttributeType<T> elementType) {
-        return AttributeType.of(
+        return AttributeType.create(
             list -> AttributeValue.builder()
                                   .l(list.stream()
                                          .map(elementType::objectToAttributeValue)
@@ -132,7 +132,7 @@ public final class AttributeTypes {
     }
 
     public static <T> AttributeType<Map<String, T>> mapType(AttributeType<T> mappedValueType) {
-        return AttributeType.of(
+        return AttributeType.create(
             map -> AttributeValue.builder()
                                  .m(map.entrySet()
                                        .stream()
@@ -150,20 +150,20 @@ public final class AttributeTypes {
     }
 
     public static <T> AttributeType<T> documentMapType(TableSchema<T> documentSchema) {
-        return AttributeType.of(
+        return AttributeType.create(
             document -> AttributeValue.builder().m(documentSchema.itemToMap(document, false)).build(),
             attributeValue -> documentSchema.mapToItem(attributeValue.m()),
             AttributeValueType.M);
     }
 
     public static <T extends Number> AttributeType<T> numberType(Function<String, T> stringToNumber) {
-        return AttributeType.of(obj -> AttributeValue.builder().n(obj.toString()).build(),
+        return AttributeType.create(obj -> AttributeValue.builder().n(obj.toString()).build(),
             attributeValue -> stringToNumber.apply(attributeValue.n()),
             AttributeValueType.N);
     }
 
     private static <T extends Number> AttributeType<Set<T>> numberSetType(Function<String, T> stringToNumber) {
-        return AttributeType.of(
+        return AttributeType.create(
             nSet -> AttributeValue.builder()
                                   .ns(nSet.stream().map(Number::toString).collect(Collectors.toList()))
                                   .build(),

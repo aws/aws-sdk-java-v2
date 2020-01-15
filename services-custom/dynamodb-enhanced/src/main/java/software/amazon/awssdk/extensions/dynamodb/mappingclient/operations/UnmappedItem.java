@@ -32,14 +32,14 @@ public class UnmappedItem {
         this.itemMap = itemMap;
     }
 
-    public static UnmappedItem of(Map<String, AttributeValue> itemMap) {
+    public static UnmappedItem create(Map<String, AttributeValue> itemMap) {
         return new UnmappedItem(itemMap);
     }
 
     public <T> T getItem(MappedTableResource<T> mappedTableResource) {
         return readAndTransformSingleItem(itemMap,
                                           mappedTableResource.tableSchema(),
-                                          OperationContext.of(mappedTableResource.tableName()),
+                                          OperationContext.create(mappedTableResource.tableName()),
                                           mappedTableResource.mapperExtension());
     }
 

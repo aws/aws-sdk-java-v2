@@ -57,7 +57,7 @@ public class IndexOperationTest {
         assertThat(fakeIndexOperation.lastDynamoDbClient, sameInstance(mockDynamoDbClient));
         assertThat(fakeIndexOperation.lastMapperExtension, sameInstance(mockMapperExtension));
         assertThat(fakeIndexOperation.lastTableSchema, sameInstance(FakeItem.getTableSchema()));
-        assertThat(fakeIndexOperation.lastOperationContext, is(OperationContext.of(FAKE_TABLE_NAME, FAKE_INDEX_NAME)));
+        assertThat(fakeIndexOperation.lastOperationContext, is(OperationContext.create(FAKE_TABLE_NAME, FAKE_INDEX_NAME)));
     }
 
     private static class FakeIndexOperation implements IndexOperation<FakeItem, String, String, String> {

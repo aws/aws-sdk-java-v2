@@ -49,7 +49,7 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
         this.consistentRead = consistentRead;
     }
 
-    public static <T> GetItem<T> of(Key key) {
+    public static <T> GetItem<T> create(Key key) {
         return new GetItem<>(key, null);
     }
 

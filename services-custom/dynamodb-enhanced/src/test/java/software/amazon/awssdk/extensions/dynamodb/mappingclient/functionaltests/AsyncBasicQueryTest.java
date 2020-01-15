@@ -25,8 +25,8 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.operation
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryConditional.equalTo;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,6 +51,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbAsy
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Query;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -104,12 +105,12 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        TableSchema.builder()
+        StaticTableSchema.builder()
                    .newItemSupplier(Record::new)
                    .attributes(
-                       string("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       integerNumber("sort", Record::getSort, Record::setSort).as(primarySortKey()),
-                       integerNumber("value", Record::getValue, Record::setValue))
+                       stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
+                       integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()),
+                       integerNumberAttribute("value", Record::getValue, Record::setValue))
         .build();
 
     private static final List<Record> RECORDS =
@@ -124,7 +125,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     private AsyncMappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.of(record)).join());
+        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)).join());
     }
 
     private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
@@ -141,7 +142,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.of(getDefaultProvisionedThroughput())).join();
+        mappedTable.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After
@@ -156,7 +157,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     public void queryAllRecordsDefaultSettings() {
         insertRecords();
 
-        SdkPublisher<Page<Record>> publisher = mappedTable.execute(Query.of(equalTo(Key.of(stringValue("id-value")))));
+        SdkPublisher<Page<Record>> publisher = mappedTable.execute(Query.create(equalTo(Key.create(stringValue("id-value")))));
         
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -179,7 +180,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
 
         SdkPublisher<Page<Record>> publisher =
             mappedTable.execute(Query.builder()
-                                     .queryConditional(equalTo(Key.of(stringValue("id-value"))))
+                                     .queryConditional(equalTo(Key.create(stringValue("id-value"))))
                                      .filterExpression(expression)
                                      .build());
 
@@ -194,9 +195,9 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryBetween() {
         insertRecords();
-        Key fromKey = Key.of(stringValue("id-value"), numberValue(3));
-        Key toKey = Key.of(stringValue("id-value"), numberValue(5));
-        SdkPublisher<Page<Record>> publisher = mappedTable.execute(Query.of(between(fromKey, toKey)));
+        Key fromKey = Key.create(stringValue("id-value"), numberValue(3));
+        Key toKey = Key.create(stringValue("id-value"), numberValue(5));
+        SdkPublisher<Page<Record>> publisher = mappedTable.execute(Query.create(between(fromKey, toKey)));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -211,7 +212,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             mappedTable.execute(Query.builder()
-                                     .queryConditional(equalTo(Key.of(stringValue("id-value"))))
+                                     .queryConditional(equalTo(Key.create(stringValue("id-value"))))
                                      .limit(5)
                                      .build());
 
@@ -237,7 +238,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.execute(Query.of(equalTo(Key.of(stringValue("id-value")))));
+            mappedTable.execute(Query.create(equalTo(Key.create(stringValue("id-value")))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -254,7 +255,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             mappedTable.execute(Query.builder()
-                                     .queryConditional(equalTo(Key.of(stringValue("id-value"))))
+                                     .queryConditional(equalTo(Key.create(stringValue("id-value"))))
                                      .exclusiveStartKey(exclusiveStartKey)
                                      .build());
 

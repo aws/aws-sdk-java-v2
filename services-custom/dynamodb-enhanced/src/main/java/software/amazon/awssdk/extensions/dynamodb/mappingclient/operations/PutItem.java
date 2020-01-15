@@ -53,7 +53,7 @@ public class PutItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> PutItem<T> of(T item) {
+    public static <T> PutItem<T> create(T item) {
         return PutItem.builder().item(item).build();
     }
 

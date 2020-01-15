@@ -38,13 +38,13 @@ public class WriteBatch<T> {
         this.writeOperations = writeOperations;
     }
 
-    public static <T> WriteBatch<T> of(MappedTableResource<T> mappedTableResource,
+    public static <T> WriteBatch<T> create(MappedTableResource<T> mappedTableResource,
                                        Collection<BatchableWriteOperation<T>> writeOperations) {
         return new WriteBatch<>(mappedTableResource, writeOperations);
     }
 
     @SafeVarargs
-    public static <T> WriteBatch<T> of(MappedTableResource<T> mappedTableResource,
+    public static <T> WriteBatch<T> create(MappedTableResource<T> mappedTableResource,
                                        BatchableWriteOperation<T>... writeOperations) {
         return new WriteBatch<>(mappedTableResource, Arrays.asList(writeOperations));
     }
@@ -94,7 +94,7 @@ public class WriteBatch<T> {
             writeOperations.stream()
                            .map(writeOperation ->
                                     writeOperation.generateWriteRequest(mappedTableResource.tableSchema(),
-                                                                        OperationContext.of(mappedTableResource.tableName()),
+                                                                        OperationContext.create(mappedTableResource.tableName()),
                                                                         mappedTableResource.mapperExtension()))
                            .collect(Collectors.toList()));
     }

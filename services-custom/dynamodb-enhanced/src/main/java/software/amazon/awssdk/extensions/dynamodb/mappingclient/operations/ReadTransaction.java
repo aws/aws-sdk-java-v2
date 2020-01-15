@@ -31,7 +31,7 @@ public class ReadTransaction<T> {
         this.readOperation = readOperation;
     }
 
-    public static <T> ReadTransaction<T> of(MappedTableResource<T> mappedTableResource,
+    public static <T> ReadTransaction<T> create(MappedTableResource<T> mappedTableResource,
                                             TransactableReadOperation<T> readOperation) {
 
         return new ReadTransaction<>(mappedTableResource, readOperation);
@@ -47,7 +47,7 @@ public class ReadTransaction<T> {
 
     TransactGetItem generateTransactGetItem() {
         return readOperation.generateTransactGetItem(mappedTableResource.tableSchema(),
-                                                     OperationContext.of(mappedTableResource.tableName()),
+                                                     OperationContext.create(mappedTableResource.tableName()),
                                                      mappedTableResource.mapperExtension());
     }
 

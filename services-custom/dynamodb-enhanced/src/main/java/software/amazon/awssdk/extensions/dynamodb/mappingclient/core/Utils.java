@@ -88,7 +88,7 @@ public final class Utils {
 
         if (getLastEvaluatedKey.apply(response) == null || getLastEvaluatedKey.apply(response).isEmpty()) {
             // Last page
-            return Page.of(getItems.apply(response)
+            return Page.create(getItems.apply(response)
                                    .stream()
                                    .map(itemMap -> readAndTransformSingleItem(itemMap,
                                                                               tableSchema,
@@ -97,7 +97,7 @@ public final class Utils {
                                    .collect(Collectors.toList()));
         } else {
             // More pages to come; add the lastEvaluatedKey
-            return Page.of(getItems.apply(response)
+            return Page.create(getItems.apply(response)
                                    .stream()
                                    .map(itemMap -> readAndTransformSingleItem(itemMap,
                                                                               tableSchema,
@@ -114,7 +114,7 @@ public final class Utils {
         AttributeValue partitionKeyValue = tableSchema.attributeValue(item, partitionKeyName);
         Optional<AttributeValue> sortKeyValue = sortKeyName.map(key -> tableSchema.attributeValue(item, key));
 
-        return sortKeyValue.map(attributeValue -> Key.of(partitionKeyValue, attributeValue))
-                           .orElseGet(() -> Key.of(partitionKeyValue));
+        return sortKeyValue.map(attributeValue -> Key.create(partitionKeyValue, attributeValue))
+                           .orElseGet(() -> Key.create(partitionKeyValue));
     }
 }

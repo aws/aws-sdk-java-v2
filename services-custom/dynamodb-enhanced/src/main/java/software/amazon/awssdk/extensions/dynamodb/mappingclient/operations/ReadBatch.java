@@ -41,12 +41,12 @@ public class ReadBatch<T> {
         this.readOperations = readOperations;
     }
 
-    public static <T> ReadBatch<T> of(MappedTableResource<T> mappedTableResource,
+    public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       Collection<BatchableReadOperation> readOperations) {
         return new ReadBatch<>(mappedTableResource, readOperations);
     }
 
-    public static <T> ReadBatch<T> of(MappedTableResource<T> mappedTableResource,
+    public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       BatchableReadOperation... readOperations) {
         return new ReadBatch<>(mappedTableResource, Arrays.asList(readOperations));
     }

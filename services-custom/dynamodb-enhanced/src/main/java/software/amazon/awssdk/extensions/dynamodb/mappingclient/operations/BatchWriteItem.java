@@ -52,11 +52,11 @@ public class BatchWriteItem
         this.writeBatches = writeBatches;
     }
 
-    public static BatchWriteItem of(Collection<WriteBatch> writeBatches) {
+    public static BatchWriteItem create(Collection<WriteBatch> writeBatches) {
         return new BatchWriteItem(writeBatches);
     }
 
-    public static BatchWriteItem of(WriteBatch... writeBatches) {
+    public static BatchWriteItem create(WriteBatch... writeBatches) {
         return new BatchWriteItem(Arrays.asList(writeBatches));
     }
 
@@ -151,7 +151,7 @@ public class BatchWriteItem
                                 .map(PutRequest::item)
                                 .map(item -> readAndTransformSingleItem(item,
                                                                         mappedTable.tableSchema(),
-                                                                        OperationContext.of(mappedTable.tableName()),
+                                                                        OperationContext.create(mappedTable.tableName()),
                                                                         mappedTable.mapperExtension()))
                                 .collect(Collectors.toList());
         }

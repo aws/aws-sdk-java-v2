@@ -43,7 +43,7 @@ public class WriteTransaction<T> {
         this.writeOperation = writeOperation;
     }
 
-    public static <T> WriteTransaction<T> of(MappedTableResource<T> mappedTableResource,
+    public static <T> WriteTransaction<T> create(MappedTableResource<T> mappedTableResource,
                                              TransactableWriteOperation<T> writeOperation) {
         return new WriteTransaction<>(mappedTableResource, writeOperation);
     }
@@ -84,7 +84,7 @@ public class WriteTransaction<T> {
 
     TransactWriteItem generateRequest() {
         return writeOperation.generateTransactWriteItem(mappedTableResource.tableSchema(),
-                                                        OperationContext.of(mappedTableResource.tableName()),
+                                                        OperationContext.create(mappedTableResource.tableName()),
                                                         mappedTableResource.mapperExtension());
     }
 }

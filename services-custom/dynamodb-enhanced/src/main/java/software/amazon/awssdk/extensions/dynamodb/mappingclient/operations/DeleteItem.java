@@ -54,7 +54,7 @@ public class DeleteItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> DeleteItem<T> of(Key key) {
+    public static <T> DeleteItem<T> create(Key key) {
         return DeleteItem.builder().key(key).build();
     }
 

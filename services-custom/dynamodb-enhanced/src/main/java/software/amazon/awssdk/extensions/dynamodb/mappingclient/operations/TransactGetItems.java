@@ -39,11 +39,11 @@ public class TransactGetItems
         this.readTransactions = readTransactions;
     }
 
-    public static TransactGetItems of(List<ReadTransaction> transactGetRequests) {
+    public static TransactGetItems create(List<ReadTransaction> transactGetRequests) {
         return new TransactGetItems(transactGetRequests);
     }
 
-    public static TransactGetItems of(ReadTransaction... readTransactions) {
+    public static TransactGetItems create(ReadTransaction... readTransactions) {
         return new TransactGetItems(Arrays.asList(readTransactions));
     }
 
@@ -80,7 +80,7 @@ public class TransactGetItems
     public List<UnmappedItem> transformResponse(TransactGetItemsResponse response, MapperExtension mapperExtension) {
         return response.responses()
                        .stream()
-                       .map(r -> r == null ? null : UnmappedItem.of(r.item()))
+                       .map(r -> r == null ? null : UnmappedItem.create(r.item()))
                        .collect(Collectors.toList());
     }
 
