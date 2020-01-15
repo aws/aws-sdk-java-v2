@@ -63,7 +63,7 @@ public class Query<T> implements PaginatedTableOperation<T, QueryRequest, QueryR
         this.filterExpression = filterExpression;
     }
 
-    public static <T> Query<T> of(QueryConditional queryConditional) {
+    public static <T> Query<T> create(QueryConditional queryConditional) {
         return new Query<>(queryConditional, null, null, null, null, null);
     }
 

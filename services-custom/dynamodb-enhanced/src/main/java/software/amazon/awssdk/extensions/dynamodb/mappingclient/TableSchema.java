@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -84,14 +83,4 @@ public interface TableSchema<T> {
      * @return A {@link TableMetadata} object that contains structural information about the table being modelled.
      */
     TableMetadata tableMetadata();
-
-    /**
-     * Returns a builder for the default implementation of this interface which is an immutable, declarative, type-safe
-     * mapper.
-     * See {@link StaticTableSchema} for more information.
-     * @return A default builder for a {@link StaticTableSchema}.
-     */
-    static StaticTableSchema.GenericBuilder builder() {
-        return StaticTableSchema.builder();
-    }
 }

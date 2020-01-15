@@ -26,8 +26,8 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +53,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutIt
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactWriteItems;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.WriteTransaction;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
@@ -132,19 +133,19 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
-        TableSchema.builder()
+        StaticTableSchema.builder()
                    .newItemSupplier(Record1::new)
                    .attributes(
-                       integerNumber("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()),
-                       string("attribute", Record1::getAttribute, Record1::setAttribute))
+                       integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()),
+                       stringAttribute("attribute", Record1::getAttribute, Record1::setAttribute))
                    .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
-        TableSchema.builder()
+        StaticTableSchema.builder()
                    .newItemSupplier(Record2::new)
                    .attributes(
-                       integerNumber("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()),
-                       string("attribute", Record2::getAttribute, Record2::setAttribute))
+                       integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()),
+                       stringAttribute("attribute", Record2::getAttribute, Record2::setAttribute))
                    .build();
 
     private AsyncMappedDatabase mappedDatabase = DynamoDbAsyncMappedDatabase.builder()
@@ -168,8 +169,8 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.execute(CreateTable.of(getDefaultProvisionedThroughput())).join();
-        mappedTable2.execute(CreateTable.of(getDefaultProvisionedThroughput())).join();
+        mappedTable1.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
+        mappedTable2.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After
@@ -185,24 +186,24 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void singlePut() {
         List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.of(mappedTable1, PutItem.of(RECORDS_1.get(0))));
+            singletonList(WriteTransaction.create(mappedTable1, PutItem.create(RECORDS_1.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        Record1 record = mappedTable1.execute(GetItem.of(Key.of(numberValue(0)))).join();
+        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
     @Test
     public void multiplePut() {
         List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.of(mappedTable1, PutItem.of(RECORDS_1.get(0))),
-                   WriteTransaction.of(mappedTable2, PutItem.of(RECORDS_2.get(0))));
+            asList(WriteTransaction.create(mappedTable1, PutItem.create(RECORDS_1.get(0))),
+                   WriteTransaction.create(mappedTable2, PutItem.create(RECORDS_2.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        Record1 record1 = mappedTable1.execute(GetItem.of(Key.of(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.execute(GetItem.of(Key.of(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
@@ -210,61 +211,61 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void singleUpdate() {
         List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.of(mappedTable1, UpdateItem.of(RECORDS_1.get(0))));
+            singletonList(WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        Record1 record = mappedTable1.execute(GetItem.of(Key.of(numberValue(0)))).join();
+        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
     @Test
     public void multipleUpdate() {
         List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.of(mappedTable1, UpdateItem.of(RECORDS_1.get(0))),
-                   WriteTransaction.of(mappedTable2, UpdateItem.of(RECORDS_2.get(0))));
+            asList(WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(0))),
+                   WriteTransaction.create(mappedTable2, UpdateItem.create(RECORDS_2.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        Record1 record1 = mappedTable1.execute(GetItem.of(Key.of(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.execute(GetItem.of(Key.of(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
 
     @Test
     public void singleDelete() {
-        mappedTable1.execute(PutItem.of(RECORDS_1.get(0))).join();
+        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
 
         List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.of(mappedTable1, DeleteItem.of(Key.of(numberValue(0)))));
+            singletonList(WriteTransaction.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        Record1 record = mappedTable1.execute(GetItem.of(Key.of(numberValue(0)))).join();
+        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(nullValue()));
     }
 
     @Test
     public void multipleDelete() {
-        mappedTable1.execute(PutItem.of(RECORDS_1.get(0))).join();
-        mappedTable2.execute(PutItem.of(RECORDS_2.get(0))).join();
+        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
+        mappedTable2.execute(PutItem.create(RECORDS_2.get(0))).join();
 
         List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.of(mappedTable1, DeleteItem.of(Key.of(numberValue(0)))),
-                   WriteTransaction.of(mappedTable2, DeleteItem.of(Key.of(numberValue(0)))));
+            asList(WriteTransaction.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))),
+                   WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        Record1 record1 = mappedTable1.execute(GetItem.of(Key.of(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.execute(GetItem.of(Key.of(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
     }
 
     @Test
     public void singleConditionCheck() {
-        mappedTable1.execute(PutItem.of(RECORDS_1.get(0))).join();
+        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
 
         Expression conditionExpression1 = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -272,17 +273,17 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key1 = Key.of(numberValue(0));
+        Key key1 = Key.create(numberValue(0));
         List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.of(mappedTable1, ConditionCheck.of(key1, conditionExpression1)));
+            singletonList(WriteTransaction.create(mappedTable1, ConditionCheck.create(key1, conditionExpression1)));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
     }
 
     @Test
     public void multiConditionCheck() {
-        mappedTable1.execute(PutItem.of(RECORDS_1.get(0))).join();
-        mappedTable2.execute(PutItem.of(RECORDS_2.get(0))).join();
+        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
+        mappedTable2.execute(PutItem.create(RECORDS_2.get(0))).join();
 
         Expression conditionExpression1 = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -290,20 +291,20 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key1 = Key.of(numberValue(0));
-        Key key2 = Key.of(numberValue(0));
+        Key key1 = Key.create(numberValue(0));
+        Key key2 = Key.create(numberValue(0));
 
         List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.of(mappedTable1, ConditionCheck.of(key1, conditionExpression1)),
-                   WriteTransaction.of(mappedTable2, ConditionCheck.of(key2, conditionExpression1)));
+            asList(WriteTransaction.create(mappedTable1, ConditionCheck.create(key1, conditionExpression1)),
+                   WriteTransaction.create(mappedTable2, ConditionCheck.create(key2, conditionExpression1)));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
     }
 
     @Test
     public void mixedCommands() {
-        mappedTable1.execute(PutItem.of(RECORDS_1.get(0))).join();
-        mappedTable2.execute(PutItem.of(RECORDS_2.get(0))).join();
+        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
+        mappedTable2.execute(PutItem.create(RECORDS_2.get(0))).join();
 
         Expression conditionExpression1 = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -311,25 +312,25 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key1 = Key.of(numberValue(0));
+        Key key1 = Key.create(numberValue(0));
 
         List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.of(mappedTable1, ConditionCheck.of(key1, conditionExpression1)),
-                   WriteTransaction.of(mappedTable2, PutItem.of(RECORDS_2.get(1))),
-                   WriteTransaction.of(mappedTable1, UpdateItem.of(RECORDS_1.get(1))),
-                   WriteTransaction.of(mappedTable2, DeleteItem.of(Key.of(numberValue(0)))));
+            asList(WriteTransaction.create(mappedTable1, ConditionCheck.create(key1, conditionExpression1)),
+                   WriteTransaction.create(mappedTable2, PutItem.create(RECORDS_2.get(1))),
+                   WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(1))),
+                   WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
 
-        mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
 
-        assertThat(mappedTable1.execute(GetItem.of(Key.of(numberValue(1)))).join(), is(RECORDS_1.get(1)));
-        assertThat(mappedTable2.execute(GetItem.of(Key.of(numberValue(0)))).join(), is(nullValue()));
-        assertThat(mappedTable2.execute(GetItem.of(Key.of(numberValue(1)))).join(), is(RECORDS_2.get(1)));
+        assertThat(mappedTable1.execute(GetItem.create(Key.create(numberValue(1)))).join(), is(RECORDS_1.get(1)));
+        assertThat(mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join(), is(nullValue()));
+        assertThat(mappedTable2.execute(GetItem.create(Key.create(numberValue(1)))).join(), is(RECORDS_2.get(1)));
     }
 
     @Test
     public void mixedCommands_conditionCheckFailsTransaction() {
-        mappedTable1.execute(PutItem.of(RECORDS_1.get(0))).join();
-        mappedTable2.execute(PutItem.of(RECORDS_2.get(0))).join();
+        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
+        mappedTable2.execute(PutItem.create(RECORDS_2.get(0))).join();
 
         Expression conditionExpression1 = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -337,24 +338,24 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key1 = Key.of(numberValue(0));
+        Key key1 = Key.create(numberValue(0));
 
         List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.of(mappedTable2, PutItem.of(RECORDS_2.get(1))),
-                   WriteTransaction.of(mappedTable1, UpdateItem.of(RECORDS_1.get(1))),
-                   WriteTransaction.of(mappedTable1, ConditionCheck.of(key1, conditionExpression1)),
-                   WriteTransaction.of(mappedTable2, DeleteItem.of(Key.of(numberValue(0)))));
+            asList(WriteTransaction.create(mappedTable2, PutItem.create(RECORDS_2.get(1))),
+                   WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(1))),
+                   WriteTransaction.create(mappedTable1, ConditionCheck.create(key1, conditionExpression1)),
+                   WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
 
         try {
-            mappedDatabase.execute(TransactWriteItems.of(writeTransactions)).join();
+            mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
             fail("Expected CompletionException to be thrown");
         } catch (CompletionException e) {
             assertThat(e.getCause(), instanceOf(TransactionCanceledException.class));
         }
 
-        assertThat(mappedTable1.execute(GetItem.of(Key.of(numberValue(1)))).join(), is(nullValue()));
-        assertThat(mappedTable2.execute(GetItem.of(Key.of(numberValue(0)))).join(), is(RECORDS_2.get(0)));
-        assertThat(mappedTable2.execute(GetItem.of(Key.of(numberValue(1)))).join(), is(nullValue()));
+        assertThat(mappedTable1.execute(GetItem.create(Key.create(numberValue(1)))).join(), is(nullValue()));
+        assertThat(mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join(), is(RECORDS_2.get(0)));
+        assertThat(mappedTable2.execute(GetItem.create(Key.create(numberValue(1)))).join(), is(nullValue()));
     }
 }
 

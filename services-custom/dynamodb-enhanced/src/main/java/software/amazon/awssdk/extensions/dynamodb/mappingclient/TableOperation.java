@@ -52,7 +52,7 @@ public interface TableOperation<ItemT, RequestT, ResponseT, ResultT>
                                           String tableName,
                                           MapperExtension mapperExtension,
                                           DynamoDbClient dynamoDbClient) {
-        OperationContext context = OperationContext.of(tableName, TableMetadata.primaryIndexName());
+        OperationContext context = OperationContext.create(tableName, TableMetadata.primaryIndexName());
         return execute(tableSchema, context, mapperExtension, dynamoDbClient);
     }
 
@@ -74,7 +74,7 @@ public interface TableOperation<ItemT, RequestT, ResponseT, ResultT>
                                                                   MapperExtension mapperExtension,
                                                                   DynamoDbAsyncClient dynamoDbAsyncClient) {
 
-        OperationContext context = OperationContext.of(tableName, TableMetadata.primaryIndexName());
+        OperationContext context = OperationContext.create(tableName, TableMetadata.primaryIndexName());
         return executeAsync(tableSchema, context, mapperExtension, dynamoDbAsyncClient);
     }
 }

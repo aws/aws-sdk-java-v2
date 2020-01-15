@@ -34,7 +34,7 @@ public class AttributeType<T> {
         this.attributeValueType = attributeValueType;
     }
 
-    public static <T> AttributeType<T> of(
+    public static <T> AttributeType<T> create(
         Function<T, AttributeValue> objectTransformer,
         Function<AttributeValue, T> attributeValueTransformer,
         AttributeValueType attributeValueType) {

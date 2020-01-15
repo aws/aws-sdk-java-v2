@@ -66,9 +66,9 @@ import software.amazon.awssdk.services.dynamodb.paginators.ScanPublisher;
 public class ScanTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.of(TABLE_NAME, "gsi_1");
+        OperationContext.create(TABLE_NAME, "gsi_1");
 
     private final Scan<FakeItem> scanOperation = Scan.create();
 

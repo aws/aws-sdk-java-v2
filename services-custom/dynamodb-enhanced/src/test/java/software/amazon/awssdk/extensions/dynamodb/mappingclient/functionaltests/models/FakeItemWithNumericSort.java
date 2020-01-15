@@ -17,8 +17,8 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Random;
 import java.util.UUID;
@@ -32,9 +32,9 @@ public class FakeItemWithNumericSort {
         StaticTableSchema.builder()
                          .newItemSupplier(FakeItemWithNumericSort::new)
                          .attributes(
-                            string("id", FakeItemWithNumericSort::getId, FakeItemWithNumericSort::setId)
+                            stringAttribute("id", FakeItemWithNumericSort::getId, FakeItemWithNumericSort::setId)
                                 .as(primaryPartitionKey()),
-                            integerNumber("sort", FakeItemWithNumericSort::getSort, FakeItemWithNumericSort::setSort)
+                            integerNumberAttribute("sort", FakeItemWithNumericSort::getSort, FakeItemWithNumericSort::setSort)
                                 .as(primarySortKey()))
                          .build();
 
