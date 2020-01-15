@@ -1,3 +1,8 @@
+# __2.10.49__ __2020-01-14__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for partition placement groups and instance metadata option in Launch Templates
+
 # __2.10.48__ __2020-01-13__
 ## __AWS Backup__
   - ### Features
