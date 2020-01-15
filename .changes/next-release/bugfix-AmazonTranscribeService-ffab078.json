@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Transcribe Service",
+    "description": "Fixed an issue where streaming transcriptions would fail with signature validation errors if the date changed during the request."
+}
