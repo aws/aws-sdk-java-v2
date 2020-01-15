@@ -1,3 +1,28 @@
+# __2.10.50__ __2020-01-15__
+## __AWS Organizations__
+  - ### Features
+    - Updated description for PolicyID parameter and ConstraintViolationException.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add support for DescribeStandardsControls and UpdateStandardsControl. These new Security Hub API operations are used to track and manage whether a compliance standards control is enabled.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - General Update to EC2 Docs and SDKs
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Document updates for Patch Manager 'NoReboot' feature.
+
+## __Amazon Transcribe Service__
+  - ### Bugfixes
+    - Fixed an issue where streaming transcriptions would fail with signature validation errors if the date changed during the request.
+
 # __2.10.49__ __2020-01-14__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
