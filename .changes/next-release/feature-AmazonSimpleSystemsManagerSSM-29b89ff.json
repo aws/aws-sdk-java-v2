@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "description": "Document updates for Patch Manager 'NoReboot' feature."
+}
