@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "Client VPN now supports Port Configuration for VPN Endpoints, allowing usage of either port 443 or port 1194."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Directory Service",
-    "description": "To reduce the number of errors our customers are facing, we have modified the requirements of input parameters for two of Directory Service APIs."
-}
