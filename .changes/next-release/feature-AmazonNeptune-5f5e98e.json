@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune",
+    "description": "This release includes Deletion Protection for Amazon Neptune databases."
+}
