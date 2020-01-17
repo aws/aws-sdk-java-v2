@@ -1,0 +1,41 @@
+{
+    "version": "2.10.52",
+    "date": "2020-01-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudHSM V2",
+            "description": "This release introduces resource-level and tag-based access control for AWS CloudHSM resources. You can now tag CloudHSM backups, tag CloudHSM clusters on creation, and tag a backup as you copy it to another region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune",
+            "description": "This release includes Deletion Protection for Amazon Neptune databases."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "description": "This release provides a public preview for specifying Amazon EFS file systems as volumes in your Amazon ECS task definitions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "description": "Documentation updates for redshift"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "description": "AWS Elemental MediaConvert SDK has added support for MP3 audio only outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "description": "This release ensures INACTIVE job definitions are permanently deleted after 180 days."
+        }
+    ]
+}
