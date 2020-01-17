@@ -149,7 +149,7 @@ public enum SdkSystemSetting implements SystemSetting {
      * the SDK to use the {@code s3.us-east-1.amazonaws.com} endpoint when using the {@code US_EAST_1} region instead of
      * the global {@code s3.amazonaws.com}. Using the regional endpoint is disabled by default.
      */
-    AWS_S3_US_EAST_1_REGIONAL_ENDPOINT(null, null);
+    AWS_S3_US_EAST_1_REGIONAL_ENDPOINT("aws.s3UseUsEast1RegionalEndpoint", null);
 
     private final String systemProperty;
     private final String defaultValue;
