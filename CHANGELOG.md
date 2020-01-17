@@ -1,3 +1,32 @@
+# __2.10.52__ __2020-01-17__
+## __AWS Batch__
+  - ### Features
+    - This release ensures INACTIVE job definitions are permanently deleted after 180 days.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - This release introduces resource-level and tag-based access control for AWS CloudHSM resources. You can now tag CloudHSM backups, tag CloudHSM clusters on creation, and tag a backup as you copy it to another region.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for MP3 audio only outputs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release provides a public preview for specifying Amazon EFS file systems as volumes in your Amazon ECS task definitions.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release includes Deletion Protection for Amazon Neptune databases.
+
+## __Amazon Redshift__
+  - ### Features
+    - Documentation updates for redshift
+
 # __2.10.51__ __2020-01-16__
 ## __AWS Directory Service__
   - ### Features

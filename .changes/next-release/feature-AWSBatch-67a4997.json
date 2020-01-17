@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "description": "This release ensures INACTIVE job definitions are permanently deleted after 180 days."
-}

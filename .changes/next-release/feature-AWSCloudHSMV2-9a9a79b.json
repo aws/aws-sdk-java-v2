@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudHSM V2",
-    "description": "This release introduces resource-level and tag-based access control for AWS CloudHSM resources. You can now tag CloudHSM backups, tag CloudHSM clusters on creation, and tag a backup as you copy it to another region."
-}
