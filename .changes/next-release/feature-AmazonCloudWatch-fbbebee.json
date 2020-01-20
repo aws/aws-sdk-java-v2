@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "description": "Updating DescribeAnomalyDetectors API to return AnomalyDetector Status value in response."
+}
