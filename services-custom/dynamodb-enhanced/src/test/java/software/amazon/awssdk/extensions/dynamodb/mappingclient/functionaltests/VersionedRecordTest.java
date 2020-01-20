@@ -44,7 +44,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Updat
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class VersionedRecordTest extends LocalDynamoDbTestBase {
+public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private String attribute;

@@ -17,12 +17,14 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsResponse;
@@ -65,6 +67,13 @@ public class TransactGetItems
     @Override
     public Function<TransactGetItemsRequest, TransactGetItemsResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::transactGetItems;
+    }
+
+    @Override
+    public Function<TransactGetItemsRequest, CompletableFuture<TransactGetItemsResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::transactGetItems;
     }
 
     @Override

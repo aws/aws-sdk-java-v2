@@ -39,7 +39,6 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functiona
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -50,12 +49,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchGetItem.ResultsPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -63,8 +65,6 @@ import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.paginators.BatchGetItemIterable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchGetItemTest {
@@ -119,7 +119,8 @@ public class BatchGetItemTest {
         BatchGetItemIterable expectedResponse = mock(BatchGetItemIterable.class);
         when(mockDynamoDbClient.batchGetItemPaginator(any(BatchGetItemRequest.class))).thenReturn(expectedResponse);
 
-        BatchGetItemIterable response = operation.serviceCall(mockDynamoDbClient).apply(batchGetItemRequest);
+        SdkIterable<BatchGetItemResponse> response =
+            operation.serviceCall(mockDynamoDbClient).apply(batchGetItemRequest);
 
         assertThat(response, sameInstance(expectedResponse));
         verify(mockDynamoDbClient).batchGetItemPaginator(batchGetItemRequest);
@@ -204,46 +205,30 @@ public class BatchGetItemTest {
     }
 
     @Test
-    public void transformResponse_multiplePages_multipleTables_multipleItems_noExtension() {
-        Map<String, List<Map<String, AttributeValue>>> page1 = new HashMap<>();
-        page1.put(TABLE_NAME, Arrays.asList(FAKE_ITEM_MAPS.get(0), FAKE_ITEM_MAPS.get(1)));
-        page1.put(TABLE_NAME_2, singletonList(FAKESORT_ITEM_MAPS.get(0)));
-        Map<String, List<Map<String, AttributeValue>>> page2 = new HashMap<>();
-        page2.put(TABLE_NAME_2, Arrays.asList(FAKESORT_ITEM_MAPS.get(1), FAKESORT_ITEM_MAPS.get(2)));
-        page2.put(TABLE_NAME, singletonList(FAKE_ITEM_MAPS.get(2)));
-        BatchGetItemIterable fakeResults = generateFakeResults(Arrays.asList(page1, page2));
+    public void transformResponse_multipleTables_multipleItems_noExtension() {
+        Map<String, List<Map<String, AttributeValue>>> page = new HashMap<>();
+        page.put(TABLE_NAME, Arrays.asList(FAKE_ITEM_MAPS.get(0), FAKE_ITEM_MAPS.get(1)));
+        page.put(TABLE_NAME_2, singletonList(FAKESORT_ITEM_MAPS.get(0)));
+
+        BatchGetItemResponse fakeResults = generateFakeResults(page);
         BatchGetItem operation = BatchGetItem.of();
 
-        Iterator<ResultsPage> results = operation.transformResponse(fakeResults, null).iterator();
+        ResultsPage resultsPage = operation.transformResponse(fakeResults, null);
 
-        assertThat(results.hasNext(), is(true));
-        ResultsPage resultsPage1 = results.next();
-        assertThat(results.hasNext(), is(true));
-        ResultsPage resultsPage2 = results.next();
-        assertThat(results.hasNext(), is(false));
+        List<FakeItem> fakeItemResultsPage = resultsPage.getResultsForTable(fakeItemMappedTable);
+        List<FakeItemWithSort> fakeItemWithSortResultsPage =
+            resultsPage.getResultsForTable(fakeItemWithSortMappedTable);
 
-        List<FakeItem> fakeItemResultsPage1 = resultsPage1.getResultsForTable(fakeItemMappedTable);
-        List<FakeItemWithSort> fakeItemWithSortResultsPage1 =
-            resultsPage1.getResultsForTable(fakeItemWithSortMappedTable);
-        List<FakeItem> fakeItemResultsPage2 = resultsPage2.getResultsForTable(fakeItemMappedTable);
-        List<FakeItemWithSort> fakeItemWithSortResultsPage2 =
-            resultsPage2.getResultsForTable(fakeItemWithSortMappedTable);
-
-        assertThat(fakeItemResultsPage1, containsInAnyOrder(FAKE_ITEMS.get(0), FAKE_ITEMS.get(1)));
-        assertThat(fakeItemResultsPage2, containsInAnyOrder(FAKE_ITEMS.get(2)));
-        assertThat(fakeItemWithSortResultsPage1, containsInAnyOrder(FAKESORT_ITEMS.get(0)));
-        assertThat(fakeItemWithSortResultsPage2, containsInAnyOrder(FAKESORT_ITEMS.get(1), FAKESORT_ITEMS.get(2)));
+        assertThat(fakeItemResultsPage, containsInAnyOrder(FAKE_ITEMS.get(0), FAKE_ITEMS.get(1)));
+        assertThat(fakeItemWithSortResultsPage, containsInAnyOrder(FAKESORT_ITEMS.get(0)));
     }
 
     @Test
-    public void transformResponse_multiplePages_multipleTables_multipleItems_extensionWithTransformation() {
-        Map<String, List<Map<String, AttributeValue>>> page1 = new HashMap<>();
-        page1.put(TABLE_NAME, Arrays.asList(FAKE_ITEM_MAPS.get(0), FAKE_ITEM_MAPS.get(1)));
-        page1.put(TABLE_NAME_2, singletonList(FAKESORT_ITEM_MAPS.get(0)));
-        Map<String, List<Map<String, AttributeValue>>> page2 = new HashMap<>();
-        page2.put(TABLE_NAME_2, Arrays.asList(FAKESORT_ITEM_MAPS.get(1), FAKESORT_ITEM_MAPS.get(2)));
-        page2.put(TABLE_NAME, singletonList(FAKE_ITEM_MAPS.get(2)));
-        BatchGetItemIterable fakeResults = generateFakeResults(Arrays.asList(page1, page2));
+    public void transformResponse_multipleTables_multipleItems_extensionWithTransformation() {
+        Map<String, List<Map<String, AttributeValue>>> page = new HashMap<>();
+        page.put(TABLE_NAME, Arrays.asList(FAKE_ITEM_MAPS.get(0), FAKE_ITEM_MAPS.get(1)));
+        page.put(TABLE_NAME_2, singletonList(FAKESORT_ITEM_MAPS.get(0)));
+        BatchGetItemResponse fakeResults = generateFakeResults(page);
         BatchGetItem operation = BatchGetItem.of();
 
         // Use the mock extension to transform every item based on table name
@@ -261,50 +246,32 @@ public class BatchGetItemTest {
                            any(TableMetadata.class));
         });
 
-        Iterator<ResultsPage> results = operation.transformResponse(fakeResults, mockExtension).iterator();
+        ResultsPage resultsPage = operation.transformResponse(fakeResults, mockExtension);
 
-        assertThat(results.hasNext(), is(true));
-        ResultsPage resultsPage1 = results.next();
-        assertThat(results.hasNext(), is(true));
-        ResultsPage resultsPage2 = results.next();
-        assertThat(results.hasNext(), is(false));
+        List<FakeItem> fakeItemResultsPage = resultsPage.getResultsForTable(fakeItemMappedTable);
+        List<FakeItemWithSort> fakeItemWithSortResultsPage =
+            resultsPage.getResultsForTable(fakeItemWithSortMappedTable);
 
-        List<FakeItem> fakeItemResultsPage1 = resultsPage1.getResultsForTable(fakeItemMappedTable);
-        List<FakeItemWithSort> fakeItemWithSortResultsPage1 =
-            resultsPage1.getResultsForTable(fakeItemWithSortMappedTable);
-        List<FakeItem> fakeItemResultsPage2 = resultsPage2.getResultsForTable(fakeItemMappedTable);
-        List<FakeItemWithSort> fakeItemWithSortResultsPage2 =
-            resultsPage2.getResultsForTable(fakeItemWithSortMappedTable);
 
-        assertThat(fakeItemResultsPage1, containsInAnyOrder(FAKE_ITEMS.get(3), FAKE_ITEMS.get(4)));
-        assertThat(fakeItemResultsPage2, containsInAnyOrder(FAKE_ITEMS.get(5)));
-        assertThat(fakeItemWithSortResultsPage1, containsInAnyOrder(FAKESORT_ITEMS.get(3)));
-        assertThat(fakeItemWithSortResultsPage2, containsInAnyOrder(FAKESORT_ITEMS.get(4), FAKESORT_ITEMS.get(5)));
+        assertThat(fakeItemResultsPage, containsInAnyOrder(FAKE_ITEMS.get(3), FAKE_ITEMS.get(4)));
+        assertThat(fakeItemWithSortResultsPage, containsInAnyOrder(FAKESORT_ITEMS.get(3)));
     }
 
     @Test
     public void transformResponse_queryingEmptyResults() {
-        BatchGetItemIterable fakeResults = generateFakeResults(singletonList(emptyMap()));
+        BatchGetItemResponse fakeResults = generateFakeResults(emptyMap());
         BatchGetItem operation = BatchGetItem.of();
 
-        Iterator<ResultsPage> results = operation.transformResponse(fakeResults, null).iterator();
+        ResultsPage resultsPage = operation.transformResponse(fakeResults, null);
 
-        assertThat(results.hasNext(), is(true));
-        ResultsPage resultsPage = results.next();
-        assertThat(results.hasNext(), is(false));
         assertThat(resultsPage.getResultsForTable(fakeItemMappedTable), is(emptyList()));
     }
 
-    private static BatchGetItemIterable generateFakeResults(
-        List<Map<String, List<Map<String, AttributeValue>>>> itemMapsPages) {
+    private static BatchGetItemResponse generateFakeResults(
+        Map<String, List<Map<String, AttributeValue>>> itemMapsPage) {
 
-        List<BatchGetItemResponse> responses =
-            itemMapsPages.stream()
-                         .map(page -> BatchGetItemResponse.builder().responses(page).build())
-                         .collect(toList());
-
-        BatchGetItemIterable mockIterable = mock(BatchGetItemIterable.class);
-        when(mockIterable.iterator()).thenReturn(responses.iterator());
-        return mockIterable;
+        return BatchGetItemResponse.builder()
+                                   .responses(itemMapsPage)
+                                   .build();
     }
 }

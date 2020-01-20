@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An object that represents a key that can be used to either identify a specific record or form part of a query
  * conditional. Keys are literal and hence not typed, and can be re-used in commands for different modelled types if
  * the literal values are to be the same.
- *
+ * <p>
  * A key will always have a single partition key value associated with it, and optionally will have a sort key value.
  * The names of the keys themselves are not part of this object.
  */

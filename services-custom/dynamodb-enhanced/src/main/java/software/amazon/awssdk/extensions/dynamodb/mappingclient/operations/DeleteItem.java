@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.readAndTransformSingleItem;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
@@ -106,6 +108,13 @@ public class DeleteItem<T>
     @Override
     public Function<DeleteItemRequest, DeleteItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::deleteItem;
+    }
+
+    @Override
+    public Function<DeleteItemRequest, CompletableFuture<DeleteItemResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::deleteItem;
     }
 
     @Override

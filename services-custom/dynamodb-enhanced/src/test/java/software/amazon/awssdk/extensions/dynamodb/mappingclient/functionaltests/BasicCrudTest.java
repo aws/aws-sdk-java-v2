@@ -49,7 +49,7 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
-public class BasicCrudTest extends LocalDynamoDbTestBase {
+public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private String sort;

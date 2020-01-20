@@ -34,7 +34,7 @@ public interface TableSchema<T> {
     /**
      * Takes a raw DynamoDb SDK representation of a record in a table and maps it to a Java object. A new object is
      * created to fulfil this operation.
-     *
+     * <p>
      * If attributes are missing from the map, that will not cause an error, however if attributes are found in the
      * map which the mapper does not know how to map, an exception will be thrown.
      *

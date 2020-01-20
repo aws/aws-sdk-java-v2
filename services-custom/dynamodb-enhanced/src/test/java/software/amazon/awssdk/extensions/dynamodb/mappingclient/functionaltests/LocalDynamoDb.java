@@ -24,6 +24,7 @@ import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
@@ -73,6 +74,16 @@ class LocalDynamoDb {
                              .credentialsProvider(StaticCredentialsProvider.create(
                                  AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                              .build();
+    }
+
+    DynamoDbAsyncClient createAsyncClient() {
+        String endpoint = String.format("http://localhost:%d", port);
+        return DynamoDbAsyncClient.builder()
+                                  .endpointOverride(URI.create(endpoint))
+                                  .region(Region.US_EAST_1)
+                                  .credentialsProvider(StaticCredentialsProvider.create(
+                                      AwsBasicCredentials.create("dummy-key", "dummy-secret")))
+                                  .build();
     }
 
     /**

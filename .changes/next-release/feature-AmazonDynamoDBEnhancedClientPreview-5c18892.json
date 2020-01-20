@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client [Preview]",
+    "description": "Support for non-blocking asynchronous calling of all mapper operations"
+}
