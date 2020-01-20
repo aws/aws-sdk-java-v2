@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Alexa For Business",
+    "description": "Add support for CreatedTime and ConnectionStatusUpdatedTime in response of SearchDevices API."
+}
