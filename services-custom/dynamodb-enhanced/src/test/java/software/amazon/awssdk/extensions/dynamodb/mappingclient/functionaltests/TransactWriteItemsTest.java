@@ -53,7 +53,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Write
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
-public class TransactWriteItemsTest extends LocalDynamoDbTestBase {
+public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
     private static class Record1 {
         private Integer id;
         private String attribute;

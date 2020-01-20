@@ -37,7 +37,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Updat
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class FlattenTest extends LocalDynamoDbTestBase {
+public class FlattenTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private Document document;

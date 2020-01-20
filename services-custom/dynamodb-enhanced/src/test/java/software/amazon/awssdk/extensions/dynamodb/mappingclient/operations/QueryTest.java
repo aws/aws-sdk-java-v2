@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,13 +33,11 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functiona
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +46,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
@@ -57,14 +55,16 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryIterable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueryTest {
@@ -81,6 +81,8 @@ public class QueryTest {
     @Mock
     private DynamoDbClient mockDynamoDbClient;
     @Mock
+    private DynamoDbAsyncClient mockDynamoDbAsyncClient;
+    @Mock
     private QueryConditional mockQueryConditional;
     @Mock
     private MapperExtension mockMapperExtension;
@@ -91,10 +93,23 @@ public class QueryTest {
         QueryIterable mockQueryIterable = mock(QueryIterable.class);
         when(mockDynamoDbClient.queryPaginator(any(QueryRequest.class))).thenReturn(mockQueryIterable);
 
-        QueryIterable response = queryOperation.serviceCall(mockDynamoDbClient).apply(queryRequest);
+        SdkIterable<QueryResponse> response = queryOperation.serviceCall(mockDynamoDbClient).apply(queryRequest);
 
         assertThat(response, is(mockQueryIterable));
         verify(mockDynamoDbClient).queryPaginator(queryRequest);
+    }
+
+    @Test
+    public void getAsyncServiceCall_makesTheRightCallAndReturnsResponse() {
+        QueryRequest queryRequest = QueryRequest.builder().build();
+        QueryPublisher mockQueryPublisher = mock(QueryPublisher.class);
+        when(mockDynamoDbAsyncClient.queryPaginator(any(QueryRequest.class))).thenReturn(mockQueryPublisher);
+
+        SdkPublisher<QueryResponse> response =
+            queryOperation.asyncServiceCall(mockDynamoDbAsyncClient).apply(queryRequest);
+
+        assertThat(response, is(mockQueryPublisher));
+        verify(mockDynamoDbAsyncClient).queryPaginator(queryRequest);
     }
 
     @Test
@@ -319,139 +334,79 @@ public class QueryTest {
     }
 
     @Test
-    public void transformResults_firstPageMultipleItems_iteratesAndReturnsCorrectItems() {
+    public void transformResults_multipleItems_returnsCorrectItems() {
         List<FakeItem> queryResultItems = generateFakeItemList();
         List<Map<String, AttributeValue>> queryResultMaps =
             queryResultItems.stream().map(QueryTest::getAttributeValueMap).collect(toList());
 
-        QueryIterable queryIterable = generateFakeQueryResults(singletonList(queryResultMaps));
+        QueryResponse queryResponse = generateFakeQueryResults(queryResultMaps);
 
-        Iterable<Page<FakeItem>> queryResultPages = queryOperation.transformResponse(queryIterable,
-                                                                                     FakeItem.getTableSchema(),
-                                                                                     PRIMARY_CONTEXT, null);
-        Iterator<Page<FakeItem>> queryResultPageIterator = queryResultPages.iterator();
+        Page<FakeItem> queryResultPage = queryOperation.transformResponse(queryResponse,
+                                                                          FakeItem.getTableSchema(),
+                                                                          PRIMARY_CONTEXT,
+                                                                          null);
 
-        assertThat(queryResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page = queryResultPageIterator.next();
-        assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page.items(), is(queryResultItems));
+        assertThat(queryResultPage.items(), is(queryResultItems));
     }
 
     @Test
-    public void transformResults_firstPageMultipleItems_setsLastEvaluatedKey() {
+    public void transformResults_multipleItems_setsLastEvaluatedKey() {
         List<FakeItem> queryResultItems = generateFakeItemList();
         FakeItem lastEvaluatedKey = createUniqueFakeItem();
         List<Map<String, AttributeValue>> queryResultMaps =
             queryResultItems.stream().map(QueryTest::getAttributeValueMap).collect(toList());
 
-        QueryIterable queryIterable = generateFakeQueryResults(singletonList(queryResultMaps),
+        QueryResponse queryResponse = generateFakeQueryResults(queryResultMaps,
                                                                getAttributeValueMap(lastEvaluatedKey));
 
-        Iterable<Page<FakeItem>> queryResultPages = queryOperation.transformResponse(queryIterable,
-                                                                                     FakeItem.getTableSchema(),
-                                                                                     PRIMARY_CONTEXT, null);
-        Iterator<Page<FakeItem>> queryResultPageIterator = queryResultPages.iterator();
+        Page<FakeItem> queryResultPage = queryOperation.transformResponse(queryResponse,
+                                                                          FakeItem.getTableSchema(),
+                                                                          PRIMARY_CONTEXT,
+                                                                          null);
 
-        assertThat(queryResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page = queryResultPageIterator.next();
-        assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page.items(), is(queryResultItems));
-        assertThat(page.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
+        assertThat(queryResultPage.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
     }
 
     @Test
-    public void queryItem_twoPagesMultipleItems_iteratesAndReturnsCorrectItems() {
-        List<FakeItem> queryResultItems1 = generateFakeItemList();
-        List<FakeItem> queryResultItems2 = generateFakeItemList();
+    public void queryItem_withExtension_correctlyTransformsItem() {
+        List<FakeItem> queryResultItems = generateFakeItemList();
+        List<FakeItem> modifiedResultItems = generateFakeItemList();
 
-        List<Map<String, AttributeValue>> queryResultMaps1 =
-            queryResultItems1.stream().map(QueryTest::getAttributeValueMap).collect(toList());
-        List<Map<String, AttributeValue>> queryResultMaps2 =
-            queryResultItems2.stream().map(QueryTest::getAttributeValueMap).collect(toList());
-
-        QueryIterable queryIterable = generateFakeQueryResults(asList(queryResultMaps1, queryResultMaps2));
-
-        Iterable<Page<FakeItem>> queryResultPages = queryOperation.transformResponse(queryIterable,
-                                                                                     FakeItem.getTableSchema(),
-                                                                                     PRIMARY_CONTEXT,  null);
-        Iterator<Page<FakeItem>> queryResultPageIterator = queryResultPages.iterator();
-
-        assertThat(queryResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page1 = queryResultPageIterator.next();
-        assertThat(queryResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page2 = queryResultPageIterator.next();
-        assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page1.items(), is(queryResultItems1));
-        assertThat(page2.items(), is(queryResultItems2));
-    }
-
-    @Test
-    public void queryItem_withExtension_correctlyTransformsItems() {
-        List<FakeItem> queryResultItems1 = generateFakeItemList();
-        List<FakeItem> queryResultItems2 = generateFakeItemList();
-        List<FakeItem> modifiedResultItems1 = generateFakeItemList();
-        List<FakeItem> modifiedResultItems2 = generateFakeItemList();
-
-        List<Map<String, AttributeValue>> queryResultMaps1 =
-            queryResultItems1.stream().map(QueryTest::getAttributeValueMap).collect(toList());
-        List<Map<String, AttributeValue>> queryResultMaps2 =
-            queryResultItems2.stream().map(QueryTest::getAttributeValueMap).collect(toList());
+        List<Map<String, AttributeValue>> queryResultMap =
+            queryResultItems.stream().map(QueryTest::getAttributeValueMap).collect(toList());
 
         ReadModification[] readModifications =
-            Stream.concat(modifiedResultItems1.stream(), modifiedResultItems2.stream())
-                  .map(QueryTest::getAttributeValueMap)
-                  .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
-                  .collect(Collectors.toList())
-                  .toArray(new ReadModification[]{});
+            modifiedResultItems.stream()
+                              .map(QueryTest::getAttributeValueMap)
+                              .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
+                              .collect(Collectors.toList())
+                              .toArray(new ReadModification[]{});
+
         when(mockMapperExtension.afterRead(anyMap(), any(), any()))
             .thenReturn(readModifications[0], Arrays.copyOfRange(readModifications, 1, readModifications.length));
 
-        QueryIterable queryIterable = generateFakeQueryResults(asList(queryResultMaps1, queryResultMaps2));
+        QueryResponse queryResponse = generateFakeQueryResults(queryResultMap);
 
-        Iterable<Page<FakeItem>> queryResultPages = queryOperation.transformResponse(queryIterable,
-                                                                                     FakeItem.getTableSchema(),
-                                                                                     PRIMARY_CONTEXT,
-                                                                                     mockMapperExtension);
-        Iterator<Page<FakeItem>> queryResultPageIterator = queryResultPages.iterator();
+        Page<FakeItem> queryResultPage = queryOperation.transformResponse(queryResponse,
+                                                                          FakeItem.getTableSchema(),
+                                                                          PRIMARY_CONTEXT,
+                                                                          mockMapperExtension);
 
-        assertThat(queryResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page1 = queryResultPageIterator.next();
-        assertThat(queryResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page2 = queryResultPageIterator.next();
-        assertThat(queryResultPageIterator.hasNext(), is(false));
-        assertThat(page1.items(), is(modifiedResultItems1));
-        assertThat(page2.items(), is(modifiedResultItems2));
-
+        assertThat(queryResultPage.items(), is(modifiedResultItems));
         InOrder inOrder = Mockito.inOrder(mockMapperExtension);
-        Stream.concat(queryResultMaps1.stream(), queryResultMaps2.stream())
-              .forEach(attributeMap ->
-                   inOrder.verify(mockMapperExtension).afterRead(attributeMap,
-                                                                 PRIMARY_CONTEXT,
-                                                                 FakeItem.getTableMetadata()));
+        queryResultMap.forEach(
+            attributeMap -> inOrder.verify(mockMapperExtension)
+                                   .afterRead(attributeMap, PRIMARY_CONTEXT, FakeItem.getTableMetadata()));
     }
 
-    private static QueryIterable generateFakeQueryResults(List<List<Map<String, AttributeValue>>> queryItemMapsPages) {
-        List<QueryResponse> queryResponses =
-            queryItemMapsPages.stream().map(page -> QueryResponse.builder().items(page).build()).collect(toList());
-
-        QueryIterable mockQueryIterable = mock(QueryIterable.class);
-        when(mockQueryIterable.iterator()).thenReturn(queryResponses.iterator());
-        return mockQueryIterable;
+    private static QueryResponse generateFakeQueryResults(List<Map<String, AttributeValue>> queryItemMapsPage) {
+        return QueryResponse.builder().items(queryItemMapsPage).build();
     }
 
-    private static QueryIterable generateFakeQueryResults(List<List<Map<String, AttributeValue>>> queryItemMapsPages,
-                                                   Map<String, AttributeValue> lastEvaluatedKey) {
-        List<QueryResponse> queryResponses =
-            queryItemMapsPages.stream()
-                              .map(page -> QueryResponse.builder()
-                                                        .items(page)
-                                                        .lastEvaluatedKey(lastEvaluatedKey)
-                                                        .build())
-                              .collect(toList());
+    private static QueryResponse generateFakeQueryResults(List<Map<String, AttributeValue>> queryItemMapsPage,
+                                                          Map<String, AttributeValue> lastEvaluatedKey) {
+        return QueryResponse.builder().items(queryItemMapsPage).lastEvaluatedKey(lastEvaluatedKey).build();
 
-        QueryIterable mockQueryIterable = mock(QueryIterable.class);
-        when(mockQueryIterable.iterator()).thenReturn(queryResponses.iterator());
-        return mockQueryIterable;
     }
 
     private static List<FakeItem> generateFakeItemList() {

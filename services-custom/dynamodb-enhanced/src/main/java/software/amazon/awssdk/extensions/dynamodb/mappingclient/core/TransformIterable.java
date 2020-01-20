@@ -19,9 +19,11 @@ import java.util.Iterator;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 
+// TODO: Consider moving to SDK core
 @SdkInternalApi
-public class TransformIterable<T, R> implements Iterable<R> {
+public class TransformIterable<T, R> implements SdkIterable<R> {
     private final Iterable<T> wrappedIterable;
     private final Function<T, R> transformFunction;
 
@@ -30,7 +32,7 @@ public class TransformIterable<T, R> implements Iterable<R> {
         this.transformFunction = transformFunction;
     }
 
-    public static <T, R> TransformIterable<T, R> of(Iterable<T> iterable, Function<T, R> transformFunction) {
+    public static <T, R> TransformIterable<T, R> of(SdkIterable<T> iterable, Function<T, R> transformFunction) {
         return new TransformIterable<>(iterable, transformFunction);
     }
 
