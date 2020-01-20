@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "description": "The ConnectCustomKeyStore operation now provides new error codes (USER_LOGGED_IN and USER_NOT_FOUND) for customers to better troubleshoot if their connect custom key store operation fails. Password length validation during CreateCustomKeyStore now also occurs on the client side."
-}
