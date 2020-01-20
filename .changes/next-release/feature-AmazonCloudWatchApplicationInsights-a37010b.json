@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Application Insights",
+    "description": "This release adds support for a list API to retrieve the configuration events logged during periodic updates to an application by Amazon CloudWatch Application Insights."
+}
