@@ -94,7 +94,11 @@ public class RegionGenerationMojo extends AbstractMojo {
         Set<String> services = new HashSet<>();
         partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
 
-        services.forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
+        services.stream()
+                // Use hardcoded file for elasticache until the incorrect fips endpoint is fixed
+                //TODO Remove once elasticache endpoints are fixed at source
+                .filter(s -> !"elasticache".equals(s))
+                .forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
                                                                                                           s,
                                                                                                           SERVICE_METADATA_BASE,
                                                                                                           REGION_BASE))
