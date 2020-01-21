@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,5 +53,10 @@ public class DefaultServiceMetadata implements ServiceMetadata {
     @Override
     public List<Region> regions() {
         return REGIONS;
+    }
+
+    @Override
+    public List<ServicePartitionMetadata> servicePartitions() {
+        return Collections.emptyList();
     }
 }

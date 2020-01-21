@@ -45,7 +45,7 @@ public final class Service {
     /**
      * Returns true if the service is regionalized.
      */
-    private boolean isRegionalized;
+    private Boolean isRegionalized;
 
     public Service() {}
 
@@ -99,7 +99,7 @@ public final class Service {
     /**
      * returns true if the service is regionalized.
      */
-    public boolean isRegionalized() {
+    public Boolean isRegionalized() {
         return isRegionalized;
     }
 
@@ -107,7 +107,7 @@ public final class Service {
      * sets the regionalized property for a service..
      */
     @JsonProperty(value = "isRegionalized")
-    public void setIsRegionalized(boolean regionalized) {
+    public void setIsRegionalized(Boolean regionalized) {
         isRegionalized = regionalized;
     }
 
