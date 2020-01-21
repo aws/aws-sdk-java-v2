@@ -1,3 +1,32 @@
+# __2.10.54__ __2020-01-21__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Documentation updates for the AWS Application Discovery Service.
+
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline enables an ability to stop pipeline executions.
+
+## __AWS IoT Events__
+  - ### Features
+    - Documentation updates for iotcolumbo
+
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - Remove 4 deprecated data sets, change some data sets available dates to 2017-09-15
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add an enum value to the result of DescribeByoipCidrs to support CIDRs that are not publicly advertisable.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Fixed a bug where an inactive http2 connection without `GOAWAY` frame received might get reused in a new request, causing `ClosedChannelException`
+
 # __2.10.53__ __2020-01-20__
 ## __AWS Key Management Service__
   - ### Features
