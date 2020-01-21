@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 public class PartitionServiceMetadataTest {
@@ -29,7 +31,7 @@ public class PartitionServiceMetadataTest {
             "acm", "apigateway", "application-autoscaling", "appstream2", "autoscaling", "batch",
             "cloudformation", "cloudhsm", "cloudsearch", "cloudtrail", "codebuild", "codecommit", "codedeploy",
             "codepipeline", "cognito-identity", "cognito-idp", "cognito-sync", "config", "cur", "data.iot",
-            "datapipeline", "directconnect", "dms", "ds", "dynamodb", "ec2", "ecr", "ecs", "elasticache",
+            "datapipeline", "directconnect", "dms", "ds", "dynamodb", "ec2", "ecs", "elasticache",
             "elasticbeanstalk", "elasticfilesystem", "elasticloadbalancing", "elasticmapreduce", "elastictranscoder",
             "email", "es", "events", "firehose", "gamelift", "glacier", "health", "inspector",
             "iot", "kinesis", "kinesisanalytics", "kms", "lambda", "lightsail", "logs", "machinelearning",
@@ -87,5 +89,49 @@ public class PartitionServiceMetadataTest {
     @Test
     public void regions_ReturnsGreaterThan15Regions_ForS3() {
         assertThat(ServiceMetadata.of("s3").regions().size()).isGreaterThan(15);
+    }
+
+    @Test
+    public void servicePartitions_ReturnsAllValidPartitions() {
+        validateServicesAreInPartition(AWS_PARTITION_GLOBAL_SERVICES, "aws");
+        validateServicesAreInPartition(AWS_PARTITION_REGIONALIZED_SERVICES, "aws");
+        validateServicesAreInPartition(AWS_CN_PARTITION_GLOBAL_SERVICES, "aws-cn");
+        validateServicesAreInPartition(AWS_CN_PARTITION_REGIONALIZED_SERVICES, "aws-cn");
+        validateServicesAreInPartition(AWS_US_GOV_PARTITION_GLOBAL_SERVICES, "aws-us-gov");
+        validateServicesAreInPartition(AWS_US_GOV_PARTITION_REGIONALIZED_SERVICES, "aws-us-gov");
+    }
+
+    @Test
+    public void servicePartitions_HasGlobalEndpoint_ForGlobalServices() {
+        validateHasGlobalEndpointInPartition(AWS_PARTITION_GLOBAL_SERVICES, "aws", true);
+        validateHasGlobalEndpointInPartition(AWS_CN_PARTITION_GLOBAL_SERVICES, "aws-cn", true);
+        validateHasGlobalEndpointInPartition(AWS_US_GOV_PARTITION_GLOBAL_SERVICES, "aws-us-gov", true);
+    }
+
+    @Test
+    public void servicePartitions_HasNoGlobalEndpoint_ForRegionalServices() {
+        validateHasGlobalEndpointInPartition(AWS_PARTITION_REGIONALIZED_SERVICES, "aws", false);
+        validateHasGlobalEndpointInPartition(AWS_CN_PARTITION_REGIONALIZED_SERVICES, "aws-cn", false);
+        validateHasGlobalEndpointInPartition(AWS_US_GOV_PARTITION_REGIONALIZED_SERVICES, "aws-us-gov", false);
+    }
+
+    private void validateHasGlobalEndpointInPartition(List<String> services, String partition, boolean hasGlobalEndpoint) {
+        services.forEach(s -> assertThat(ServiceMetadata.of(s)
+                                                        .servicePartitions()
+                                                        .stream()
+                                                        .filter(sp -> sp.partition().id().equals(partition))
+                                                        .anyMatch(sp -> sp.globalRegion().isPresent()))
+            .as(s + " is global in " + partition)
+            .isEqualTo(hasGlobalEndpoint));
+    }
+
+    private void validateServicesAreInPartition(List<String> services, String partition) {
+        services.forEach(s -> assertThat(ServiceMetadata.of(s)
+                                                        .servicePartitions()
+                                                        .stream()
+                                                        .map(p -> p.partition().id())
+                                                        .collect(Collectors.toList()))
+            .as(s + " is in " + partition)
+            .contains(partition));
     }
 }
