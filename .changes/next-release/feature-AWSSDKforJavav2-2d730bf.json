@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "Added ServiceMetadata.servicePartitions() to get partition metadata for a specific service"
+}
