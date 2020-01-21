@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "Add an enum value to the result of DescribeByoipCidrs to support CIDRs that are not publicly advertisable."
-}

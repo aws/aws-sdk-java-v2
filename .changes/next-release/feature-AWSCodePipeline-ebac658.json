@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodePipeline",
-    "description": "AWS CodePipeline enables an ability to stop pipeline executions."
-}
