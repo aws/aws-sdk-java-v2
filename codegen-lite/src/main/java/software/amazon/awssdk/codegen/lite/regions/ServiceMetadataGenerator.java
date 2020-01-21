@@ -50,16 +50,16 @@ import software.amazon.awssdk.utils.ImmutableMap;
 public class ServiceMetadataGenerator implements PoetClass {
 
     private final Partitions partitions;
-    private final String serviceEndpointPrefix;
+    private final String service;
     private final String basePackage;
     private final String regionBasePackage;
 
     public ServiceMetadataGenerator(Partitions partitions,
-                                    String serviceEndpointPrefix,
+                                    String service,
                                     String basePackage,
                                     String regionBasePackage) {
         this.partitions = partitions;
-        this.serviceEndpointPrefix = serviceEndpointPrefix;
+        this.service = service;
         this.basePackage = basePackage;
         this.regionBasePackage = regionBasePackage;
     }
@@ -68,8 +68,6 @@ public class ServiceMetadataGenerator implements PoetClass {
     public TypeSpec poetClass() {
         TypeName listOfRegions = ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(regionBasePackage, "Region"));
         TypeName mapOfStringString = ParameterizedTypeName.get(Map.class, String.class, String.class);
-        TypeName listOfServicePartitionMetadata =
-            ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(regionBasePackage, "ServicePartitionMetadata"));
 
         return TypeSpec.classBuilder(className())
                        .addModifiers(Modifier.PUBLIC)
@@ -81,7 +79,7 @@ public class ServiceMetadataGenerator implements PoetClass {
                        .addSuperinterface(ClassName.get(regionBasePackage, "ServiceMetadata"))
                        .addField(FieldSpec.builder(String.class, "ENDPOINT_PREFIX")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer("$S", serviceEndpointPrefix)
+                                          .initializer("$S", service)
                                           .build())
                        .addField(FieldSpec.builder(mapOfStringString, "PARTITION_OVERRIDDEN_ENDPOINTS")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
@@ -99,20 +97,15 @@ public class ServiceMetadataGenerator implements PoetClass {
                                           .addModifiers(PRIVATE, FINAL, STATIC)
                                           .initializer(signingRegionOverrides(partitions))
                                           .build())
-                       .addField(FieldSpec.builder(listOfServicePartitionMetadata, "PARTITIONS")
-                                          .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer(servicePartitions(partitions))
-                                          .build())
                        .addMethod(regions())
                        .addMethod(endpointFor())
                        .addMethod(signingRegion())
-                       .addMethod(partitions(listOfServicePartitionMetadata))
                        .build();
     }
 
     @Override
     public ClassName className() {
-        String sanitizedServiceName = serviceEndpointPrefix.replace(".", "-");
+        String sanitizedServiceName = service.replace(".", "-");
         return ClassName.get(basePackage, Stream.of(sanitizedServiceName.split("-"))
                                                 .map(Utils::capitalize)
                                                 .collect(Collectors.joining()) + "ServiceMetadata");
@@ -157,8 +150,8 @@ public class ServiceMetadataGenerator implements PoetClass {
 
         partitions.getPartitions()
                   .stream()
-                  .filter(p -> p.getServices().containsKey(serviceEndpointPrefix))
-                  .forEach(p -> regions.addAll(p.getServices().get(serviceEndpointPrefix).getEndpoints().keySet()
+                  .filter(p -> p.getServices().containsKey(service))
+                  .forEach(p -> regions.addAll(p.getServices().get(service).getEndpoints().keySet()
                                                 .stream()
                                                 .filter(r -> RegionValidationUtil.validRegion(r, p.getRegionRegex()))
                                                 .collect(Collectors.toList())));
@@ -190,39 +183,6 @@ public class ServiceMetadataGenerator implements PoetClass {
                                                            fm.getValue().getCredentialScope().getRegion() + "\")")));
 
         return builder.add(".build()").build();
-    }
-
-    private CodeBlock servicePartitions(Partitions partitions) {
-        return CodeBlock.builder()
-                        .add("$T.unmodifiableList($T.asList(", Collections.class, Arrays.class)
-                        .add(commaSeparatedServicePartitions(partitions))
-                        .add("))")
-                        .build();
-    }
-
-    private CodeBlock commaSeparatedServicePartitions(Partitions partitions) {
-        ClassName defaultServicePartitionMetadata = ClassName.get(regionBasePackage + ".internal",
-                                                                  "DefaultServicePartitionMetadata");
-        return partitions.getPartitions()
-                  .stream()
-                  .filter(p -> p.getServices().containsKey(serviceEndpointPrefix))
-                  .map(p -> CodeBlock.of("new $T($S, $L)",
-                                         defaultServicePartitionMetadata,
-                                         p.getPartition(),
-                                         globalRegion(p)))
-                  .collect(CodeBlock.joining(","));
-    }
-
-    private CodeBlock globalRegion(Partition partition) {
-        ClassName region = ClassName.get(regionBasePackage, "Region");
-        Service service = partition.getServices().get(this.serviceEndpointPrefix);
-        boolean hasGlobalRegionForPartition = service.isRegionalized() != null &&
-                                              !service.isRegionalized() &&
-                                              service.isPartitionWideEndpointAvailable();
-        String globalRegionForPartition = hasGlobalRegionForPartition ? service.getPartitionEndpoint() : null;
-        return globalRegionForPartition == null
-                                    ? CodeBlock.of("null")
-                                    : CodeBlock.of("$T.of($S)", region, globalRegionForPartition);
     }
 
     private MethodSpec regions() {
@@ -259,15 +219,6 @@ public class ServiceMetadataGenerator implements PoetClass {
                          .build();
     }
 
-    private MethodSpec partitions(TypeName listOfServicePartitionMetadata) {
-        return MethodSpec.methodBuilder("servicePartitions")
-                         .addModifiers(Modifier.PUBLIC)
-                         .addAnnotation(Override.class)
-                         .returns(listOfServicePartitionMetadata)
-                         .addStatement("return $L", "PARTITIONS")
-                         .build();
-    }
-
     private Map<Partition, Service> getServiceData(Partitions partitions) {
         Map<Partition, Service> serviceData = new TreeMap<>(Comparator.comparing(Partition::getPartition));
 
@@ -275,7 +226,7 @@ public class ServiceMetadataGenerator implements PoetClass {
                   .forEach(p -> p.getServices()
                                  .entrySet()
                                  .stream()
-                                 .filter(s -> s.getKey().equalsIgnoreCase(serviceEndpointPrefix))
+                                 .filter(s -> s.getKey().equalsIgnoreCase(service))
                                  .forEach(s -> serviceData.put(p, s.getValue())));
 
         return serviceData;

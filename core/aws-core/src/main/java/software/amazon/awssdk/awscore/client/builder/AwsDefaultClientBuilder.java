@@ -16,8 +16,6 @@
 package software.amazon.awssdk.awscore.client.builder;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -25,14 +23,12 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.interceptor.FriendlyUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.internal.EndpointUtils;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -41,7 +37,6 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.LazyAwsRegionProvider;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -119,8 +114,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                   .option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.defaultRetryPolicy())
                                   .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
                                   .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
-                                  .option(SdkClientOption.SERVICE_NAME, serviceName())
-                                  .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
+                                  .option(SdkClientOption.SERVICE_NAME, serviceName()));
     }
 
     /**
@@ -132,12 +126,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     protected final SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
-        SdkClientConfiguration config =
-            configuration.toBuilder()
-                         .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
-                         .option(SdkClientOption.EXECUTION_INTERCEPTORS, addAwsInterceptors(configuration))
-                         .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
-                         .build();
+        SdkClientConfiguration config = configuration.toBuilder()
+                                                     .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
+                                                     .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
+                                                     .build();
         return finalizeServiceConfiguration(config);
     }
 
@@ -204,15 +196,5 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     public final void setCredentialsProvider(AwsCredentialsProvider credentialsProvider) {
         credentialsProvider(credentialsProvider);
-    }
-
-    private List<ExecutionInterceptor> addAwsInterceptors(SdkClientConfiguration config) {
-        List<ExecutionInterceptor> interceptors = awsInterceptors();
-        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        return interceptors;
-    }
-
-    private List<ExecutionInterceptor> awsInterceptors() {
-        return Collections.singletonList(new FriendlyUnknownHostExceptionInterceptor());
     }
 }

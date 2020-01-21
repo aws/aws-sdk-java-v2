@@ -24,7 +24,6 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.ServicePartitionMetadata;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -57,11 +56,6 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
     @Override
     public List<Region> regions() {
         return S3_SERVICE_METADATA.regions();
-    }
-
-    @Override
-    public List<ServicePartitionMetadata> servicePartitions() {
-        return S3_SERVICE_METADATA.servicePartitions();
     }
 
     private boolean useUsEast1RegionalEndpoint() {
