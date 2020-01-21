@@ -74,6 +74,7 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         stop();
+        ctx.fireChannelInactive();
     }
 
     @Override

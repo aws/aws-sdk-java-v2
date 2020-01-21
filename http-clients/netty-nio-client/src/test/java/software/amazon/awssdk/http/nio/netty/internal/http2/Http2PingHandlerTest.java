@@ -36,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 
@@ -200,6 +201,17 @@ public class Http2PingHandlerTest {
         channel.runPendingTasks();
 
         assertThat(catcher.caughtPings).hasSize(1);
+    }
+
+    @Test
+    public void channelInactive_shouldCancelTaskAndForwardToOtherHandlers() {
+        EmbeddedChannel channel = createHttp2Channel(fastChecker);
+        ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
+        fastChecker.channelInactive(context);
+        Mockito.verify(context).fireChannelInactive();
+
+        channel.writeInbound(new DefaultHttp2PingFrame(0, false));
+        assertThat(channel.runScheduledPendingTasks()).isEqualTo(-1L);
     }
 
     private static final class PingReadCatcher extends SimpleChannelInboundHandler<Http2PingFrame> {
