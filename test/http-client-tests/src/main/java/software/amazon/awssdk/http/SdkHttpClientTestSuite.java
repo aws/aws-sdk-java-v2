@@ -25,6 +25,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -35,6 +36,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +61,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
-    public void supportsResponseCode200HEAD() throws Exception {
+    public void supportsResponseCode200Head() throws Exception {
         // HEAD is special due to closing of the connection immediately and streams are null
         testForResponseCode(HttpURLConnection.HTTP_FORBIDDEN, SdkHttpMethod.HEAD);
     }
@@ -74,7 +77,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
-    public void supportsResponseCode403HEAD() throws Exception {
+    public void supportsResponseCode403Head() throws Exception {
         testForResponseCode(HttpURLConnection.HTTP_FORBIDDEN, SdkHttpMethod.HEAD);
     }
 
@@ -101,6 +104,45 @@ public abstract class SdkHttpClientTestSuite {
 
         assertThatThrownBy(client.prepareRequest(HttpExecuteRequest.builder().request(request).build())::call)
                 .isInstanceOf(SSLHandshakeException.class);
+    }
+
+    @Test
+    public void testCustomTlsTrustManager() throws Exception {
+        WireMockServer selfSignedServer = HttpTestUtils.createSelfSignedServer();
+
+        TrustManagerFactory managerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        managerFactory.init(HttpTestUtils.getSelfSignedKeyStore());
+
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.tlsTrustManagersProvider(managerFactory::getTrustManagers);
+
+        selfSignedServer.start();
+
+        try {
+            SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+            SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + selfSignedServer.httpsPort(), SdkHttpMethod.POST);
+
+            client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call();
+        } finally {
+            selfSignedServer.stop();
+        }
+    }
+
+    @Test
+    public void testTrustAllWorks() throws Exception {
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+
+        testForResponseCodeUsingHttps(createSdkHttpClient(httpClientOptions), HttpURLConnection.HTTP_OK);
+    }
+
+    @Test
+    public void testCustomTlsTrustManagerAndTrustAllFails() throws Exception {
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.tlsTrustManagersProvider(() -> new TrustManager[0]);
+        httpClientOptions.trustAll(true);
+
+        assertThatThrownBy(() -> createSdkHttpClient(httpClientOptions)).isInstanceOf(IllegalArgumentException.class);
     }
 
     private void testForResponseCode(int returnCode) throws Exception {
@@ -206,6 +248,23 @@ public abstract class SdkHttpClientTestSuite {
      * The options that should be considered when creating the client via {@link #createSdkHttpClient(SdkHttpClientOptions)}.
      */
     protected static final class SdkHttpClientOptions {
+        private TlsTrustManagersProvider tlsTrustManagersProvider = null;
+        private boolean trustAll = false;
 
+        public TlsTrustManagersProvider tlsTrustManagersProvider() {
+            return tlsTrustManagersProvider;
+        }
+
+        public void tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            this.tlsTrustManagersProvider = tlsTrustManagersProvider;
+        }
+
+        public boolean trustAll() {
+            return trustAll;
+        }
+
+        public void trustAll(boolean trustAll) {
+            this.trustAll = trustAll;
+        }
     }
 }
