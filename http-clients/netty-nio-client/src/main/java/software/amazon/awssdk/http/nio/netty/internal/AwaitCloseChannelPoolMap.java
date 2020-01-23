@@ -178,7 +178,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                         .channelFactory(sdkEventLoopGroup.channelFactory())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
                         // TODO run some performance tests with and without this.
-                        .remoteAddress(new InetSocketAddress(host, port));
+                        .remoteAddress(InetSocketAddress.createUnresolved(host, port));
         sdkChannelOptions.channelOptions().forEach(bootstrap::option);
 
         return bootstrap;
