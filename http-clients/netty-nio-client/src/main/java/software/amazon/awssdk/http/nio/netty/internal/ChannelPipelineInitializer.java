@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import io.netty.channel.Channel;
@@ -147,8 +148,8 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
         if (healthCheckPingPeriod == null) {
             pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
-        } else if (healthCheckPingPeriod.toMillis() <= Integer.MAX_VALUE) {
-            pipeline.addLast(new Http2PingHandler((int) healthCheckPingPeriod.toMillis()));
+        } else if (healthCheckPingPeriod.toMillis() > 0) {
+            pipeline.addLast(new Http2PingHandler(saturatedCast(healthCheckPingPeriod.toMillis())));
         }
     }
 

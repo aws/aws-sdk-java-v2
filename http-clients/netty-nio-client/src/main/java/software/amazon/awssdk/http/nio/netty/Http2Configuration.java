@@ -122,7 +122,7 @@ public final class Http2Configuration implements ToCopyableBuilder<Http2Configur
          * Sets the period that the Netty client will send {@code PING} frames to the remote endpoint to check the
          * health of the connection. The default value is {@link
          * software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration#HTTP2_CONNECTION_PING_TIMEOUT_SECONDS}. To
-         * disable this feature, set a duration of {@link Integer#MAX_VALUE} milliseconds or greater.
+         * disable this feature, set a duration of 0.
          *
          * @param healthCheckPingPeriod The ping period.
          * @return This builder for method chaining.
