@@ -35,6 +35,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLEngine;
@@ -54,6 +55,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final SslContext sslCtx;
     private final long clientMaxStreams;
     private final int clientInitialWindowSize;
+    private final Duration healthCheckPingPeriod;
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
     private final URI poolKey;
@@ -62,6 +64,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                                       SslContext sslCtx,
                                       long clientMaxStreams,
                                       int clientInitialWindowSize,
+                                      Duration healthCheckPingPeriod,
                                       AtomicReference<ChannelPool> channelPoolRef,
                                       NettyConfiguration configuration,
                                       URI poolKey) {
@@ -69,6 +72,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
         this.clientInitialWindowSize = clientInitialWindowSize;
+        this.healthCheckPingPeriod = healthCheckPingPeriod;
         this.channelPoolRef = channelPoolRef;
         this.configuration = configuration;
         this.poolKey = poolKey;
@@ -141,7 +145,11 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         pipeline.addLast(codec);
         pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
         pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
-        pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
+        if (healthCheckPingPeriod == null) {
+            pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
+        } else if (healthCheckPingPeriod.toMillis() <= Integer.MAX_VALUE) {
+            pipeline.addLast(new Http2PingHandler((int) healthCheckPingPeriod.toMillis()));
+        }
     }
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {
