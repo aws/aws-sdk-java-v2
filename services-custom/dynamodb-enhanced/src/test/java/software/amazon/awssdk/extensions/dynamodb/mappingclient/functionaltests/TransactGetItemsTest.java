@@ -43,7 +43,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Trans
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UnmappedItem;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class TransactGetItemsTest extends LocalDynamoDbTestBase {
+public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
     private static class Record1 {
         private Integer id;
 

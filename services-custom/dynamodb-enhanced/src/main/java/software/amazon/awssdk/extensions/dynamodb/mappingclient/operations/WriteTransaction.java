@@ -16,7 +16,7 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
@@ -35,21 +35,21 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
  */
 @SdkPublicApi
 public class WriteTransaction<T> {
-    private final MappedTable<T> mappedTable;
+    private final MappedTableResource<T> mappedTableResource;
     private final TransactableWriteOperation<T> writeOperation;
 
-    private WriteTransaction(MappedTable<T> mappedTable, TransactableWriteOperation<T> writeOperation) {
-        this.mappedTable = mappedTable;
+    private WriteTransaction(MappedTableResource<T> mappedTableResource, TransactableWriteOperation<T> writeOperation) {
+        this.mappedTableResource = mappedTableResource;
         this.writeOperation = writeOperation;
     }
 
-    public static <T> WriteTransaction<T> of(MappedTable<T> mappedTable,
+    public static <T> WriteTransaction<T> of(MappedTableResource<T> mappedTableResource,
                                              TransactableWriteOperation<T> writeOperation) {
-        return new WriteTransaction<>(mappedTable, writeOperation);
+        return new WriteTransaction<>(mappedTableResource, writeOperation);
     }
 
-    public MappedTable<T> mappedTable() {
-        return mappedTable;
+    public MappedTableResource<T> mappedTableResource() {
+        return mappedTableResource;
     }
 
     public TransactableWriteOperation<T> writeOperation() {
@@ -67,7 +67,9 @@ public class WriteTransaction<T> {
 
         WriteTransaction<?> that = (WriteTransaction<?>) o;
 
-        if (mappedTable != null ? ! mappedTable.equals(that.mappedTable) : that.mappedTable != null) {
+        if (mappedTableResource != null ? !mappedTableResource.equals(that.mappedTableResource) :
+            that.mappedTableResource != null) {
+
             return false;
         }
         return writeOperation != null ? writeOperation.equals(that.writeOperation) : that.writeOperation == null;
@@ -75,14 +77,14 @@ public class WriteTransaction<T> {
 
     @Override
     public int hashCode() {
-        int result = mappedTable != null ? mappedTable.hashCode() : 0;
+        int result = mappedTableResource != null ? mappedTableResource.hashCode() : 0;
         result = 31 * result + (writeOperation != null ? writeOperation.hashCode() : 0);
         return result;
     }
 
     TransactWriteItem generateRequest() {
-        return writeOperation.generateTransactWriteItem(mappedTable.tableSchema(),
-                                                        OperationContext.of(mappedTable.tableName()),
-                                                        mappedTable.mapperExtension());
+        return writeOperation.generateTransactWriteItem(mappedTableResource.tableSchema(),
+                                                        OperationContext.of(mappedTableResource.tableName()),
+                                                        mappedTableResource.mapperExtension());
     }
 }

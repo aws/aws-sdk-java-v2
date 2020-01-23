@@ -50,7 +50,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Scan;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class BasicScanTest extends LocalDynamoDbTestBase {
+public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;

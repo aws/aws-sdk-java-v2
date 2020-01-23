@@ -78,35 +78,34 @@ public final class Utils {
         return tableSchema.mapToItem(itemMap);
     }
 
-    public static <ResponseT, ItemT> Function<ResponseT, Page<ItemT>> readAndTransformPaginatedItems(
+    public static <ResponseT, ItemT> Page<ItemT> readAndTransformPaginatedItems(
+        ResponseT response,
         TableSchema<ItemT> tableSchema,
         OperationContext operationContext,
         MapperExtension mapperExtension,
         Function<ResponseT, List<Map<String, AttributeValue>>> getItems,
         Function<ResponseT, Map<String, AttributeValue>> getLastEvaluatedKey) {
 
-        return response -> {
-            if (getLastEvaluatedKey.apply(response) == null || getLastEvaluatedKey.apply(response).isEmpty()) {
-                // Last page
-                return Page.of(getItems.apply(response)
-                                       .stream()
-                                       .map(itemMap -> readAndTransformSingleItem(itemMap,
-                                                                                  tableSchema,
-                                                                                  operationContext,
-                                                                                  mapperExtension))
-                                       .collect(Collectors.toList()));
-            } else {
-                // More pages to come; add the lastEvaluatedKey
-                return Page.of(getItems.apply(response)
-                                       .stream()
-                                       .map(itemMap -> readAndTransformSingleItem(itemMap,
-                                                                                  tableSchema,
-                                                                                  operationContext,
-                                                                                  mapperExtension))
-                                       .collect(Collectors.toList()),
-                               getLastEvaluatedKey.apply(response));
-            }
-        };
+        if (getLastEvaluatedKey.apply(response) == null || getLastEvaluatedKey.apply(response).isEmpty()) {
+            // Last page
+            return Page.of(getItems.apply(response)
+                                   .stream()
+                                   .map(itemMap -> readAndTransformSingleItem(itemMap,
+                                                                              tableSchema,
+                                                                              operationContext,
+                                                                              mapperExtension))
+                                   .collect(Collectors.toList()));
+        } else {
+            // More pages to come; add the lastEvaluatedKey
+            return Page.of(getItems.apply(response)
+                                   .stream()
+                                   .map(itemMap -> readAndTransformSingleItem(itemMap,
+                                                                              tableSchema,
+                                                                              operationContext,
+                                                                              mapperExtension))
+                                   .collect(Collectors.toList()),
+                           getLastEvaluatedKey.apply(response));
+        }
     }
 
     public static <T> Key createKeyFromItem(T item, TableSchema<T> tableSchema, String indexName) {

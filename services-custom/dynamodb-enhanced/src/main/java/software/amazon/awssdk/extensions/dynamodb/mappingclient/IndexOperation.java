@@ -15,19 +15,16 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
+import java.util.concurrent.CompletableFuture;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
  * Interface for a single operation that can be executed against a secondary index of a mapped database table.
  * Conceptually an operation maps 1:1 with an actual DynamoDb call.
- *
- * Typically a table operation will be executed by a {@link MappedIndex}:
- *
- * {@code
- * mappedDatabase.table(tableSchema).index("an_index_name").execute(indexOperation);      // For secondary index
- * }
- *
+ * <p>
  * A concrete implementation of this interface should also implement {@link TableOperation} with the same types if
  * the operation supports being executed against both the primary index and secondary indices.
  *
@@ -40,8 +37,8 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 public interface IndexOperation<ItemT, RequestT, ResponseT, ResultT>
     extends CommonOperation<ItemT, RequestT, ResponseT, ResultT> {
     /**
-     * Default implementation of a complete execution of this operation against a secondary index. It will construct
-     * a context based on the given table name and secondary index name and then call execute() on the
+     * Default implementation of a complete synchronous execution of this operation against a secondary index. It will
+     * construct a context based on the given table name and secondary index name and then call execute() on the
      * {@link CommonOperation} interface to perform the operation.
      *
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
@@ -60,5 +57,28 @@ public interface IndexOperation<ItemT, RequestT, ResponseT, ResultT>
                                             DynamoDbClient dynamoDbClient) {
         OperationContext context = OperationContext.of(tableName, indexName);
         return execute(tableSchema, context, mapperExtension, dynamoDbClient);
+    }
+
+    /**
+     * Default implementation of a complete non-blocking asynchronous execution of this operation against a secondary
+     * index. It will construct a context based on the given table name and secondary index name and then call
+     * executeAsync() on the {@link CommonOperation} interface to perform the operation.
+     *
+     * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
+     * @param tableName The physical name of the table that contains the secondary index to execute the operation
+     *                  against.
+     * @param indexName The physical name of the secondary index to execute the operation against.
+     * @param dynamoDbAsyncClient A {@link DynamoDbAsyncClient} to make the call against.
+     * @param mapperExtension A {@link MapperExtension} that may modify the request or result of this operation. A
+     *                        null value here will result in no modifications.
+     * @return A high level result object as specified by the implementation of this operation.
+     */
+    default CompletableFuture<ResultT> executeOnSecondaryIndexAsync(TableSchema<ItemT> tableSchema,
+                                                                    String tableName,
+                                                                    String indexName,
+                                                                    MapperExtension mapperExtension,
+                                                                    DynamoDbAsyncClient dynamoDbAsyncClient) {
+        OperationContext context = OperationContext.of(tableName, indexName);
+        return executeAsync(tableSchema, context, mapperExtension, dynamoDbAsyncClient);
     }
 }

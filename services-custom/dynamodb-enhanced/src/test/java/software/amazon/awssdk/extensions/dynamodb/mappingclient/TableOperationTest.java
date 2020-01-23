@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import org.junit.Test;
@@ -27,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -71,6 +73,11 @@ public class TableOperationTest {
 
         @Override
         public Function<String, String> serviceCall(DynamoDbClient dynamoDbClient) {
+            return null;
+        }
+
+        @Override
+        public Function<String, CompletableFuture<String>> asyncServiceCall(DynamoDbAsyncClient dynamoDbAsyncClient) {
             return null;
         }
 

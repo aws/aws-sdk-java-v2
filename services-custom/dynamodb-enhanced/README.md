@@ -59,9 +59,9 @@ values used are also completely arbitrary.
 3. Create a MappedDatabase object that you will use to repeatedly
    execute operations against all your tables :- 
    ```java
-   MappedDatabase database = MappedDatabase.builder()
-                                           .dynamoDbClient(dynamoDbClient)
-                                           .build();
+   MappedDatabase database = DynamoDbMappedDatabase.builder()
+                                                   .dynamoDbClient(dynamoDbClient)
+                                                   .build();
    ```
 4. Create a MappedTable object that you will use to repeatedly execute
   operations against a specific table :-
@@ -122,6 +122,42 @@ index. Here's an example of how to do this:
        
    Iterable<Page<Customer>> customersWithName = customersByName.query(equalTo(Key.of(stringValue("Smith"))));
    ```
+
+### Non-blocking asynchronous operations
+If your application requires non-blocking asynchronous calls to
+DynamoDb, then you can use the asynchronous implementation of the
+mapper. It's very similar to the synchronous implementation with a few
+key differences:
+
+1. When instantiating the mapped database, use the asynchronous version
+   of the library instead of the synchronous one (you will need to use
+   an asynchronous DynamoDb client from the SDK as well):
+   ```java
+    AsyncMappedDatabase database = DynamoDbAsyncMappedDatabase.builder()
+                                                              .dynamoDbAsyncClient(dynamoDbAsyncClient)
+                                                              .build();
+   ```
+
+2. Operations that return a single data item will return a
+   CompletableFuture of the result instead of just the result. Your
+   application can then do other work without having to block on the
+   result:
+   ```java
+   CompletableFuture<Customer> result = mappedTable.execute(GetItem.of(customerKey));
+   // Perform other work here
+   return result.join();   // now block and wait for the result
+   ```
+
+3. Operations that return paginated lists of results will return an
+   SdkPublisher of the results instead of an SdkIterable. Your
+   application can then subscribe a handler to that publisher and deal
+   with the results asynchronously without having to block:
+   ```java
+   SdkPublisher<Customer> results = mappedTable.execute(myQueryCommand);
+   results.subscribe(myCustomerResultsProcessor);
+   // Perform other work and let the processor handle the results asynchronously
+   ```
+
 
 ### Using extensions
 The mapper supports plugin extensions to provide enhanced functionality
