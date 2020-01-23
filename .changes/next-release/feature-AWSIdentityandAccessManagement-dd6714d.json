@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "description": "This release enables the Identity and Access Management policy simulator to simulate permissions boundary policies."
+}
