@@ -316,7 +316,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     }
 
     public void handleGoAway(Channel parentChannel, int lastStreamId, GoAwayException exception) {
-        log.warn(() -> "Received GOAWAY on " + parentChannel + " with lastStreamId of " + lastStreamId);
+        log.debug(() -> "Received GOAWAY on " + parentChannel + " with lastStreamId of " + lastStreamId);
         try {
             MultiplexedChannelRecord multiplexedChannel = parentChannel.attr(MULTIPLEXED_CHANNEL).get();
 
