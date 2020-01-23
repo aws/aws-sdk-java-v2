@@ -37,14 +37,12 @@ import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
-import io.netty.handler.codec.http2.Http2PingFrame;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -109,9 +107,9 @@ public class PingTimeoutTest {
     }
 
     @Test
-    public void pingHealthCheck_IntMax_disabled() throws Exception {
+    public void pingHealthCheck_0_disabled() throws Exception {
         expected.expect(TimeoutException.class);
-        CompletableFuture<Void> requestFuture = makeRequest(Duration.ofMillis(Integer.MAX_VALUE));
+        CompletableFuture<Void> requestFuture = makeRequest(Duration.ofMillis(0));
         try {
             requestFuture.get(8, TimeUnit.SECONDS);
         } finally {
