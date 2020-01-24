@@ -28,6 +28,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ScheduledFuture;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,7 +80,7 @@ public class MultiplexedChannelRecord {
         return false;
     }
 
-    private void acquireClaimedStream(Promise<Channel> promise) {
+    void acquireClaimedStream(Promise<Channel> promise) {
         doInEventLoop(connection.eventLoop(), () -> {
             if (state != RecordState.OPEN) {
                 String message;
@@ -91,7 +92,7 @@ public class MultiplexedChannelRecord {
                     message = String.format("Connection %s was closed while acquiring new stream.", connection);
                 }
                 log.warn(() -> message);
-                promise.setFailure(new IllegalStateException(message));
+                promise.setFailure(new IOException(message));
                 return;
             }
 
@@ -201,7 +202,7 @@ public class MultiplexedChannelRecord {
         });
     }
 
-    public void closeAndReleaseChild(Channel childChannel) {
+    void closeAndReleaseChild(Channel childChannel) {
         childChannel.close();
         doInEventLoop(connection.eventLoop(), () -> {
             childChannels.remove(childChannel.id());
@@ -248,9 +249,10 @@ public class MultiplexedChannelRecord {
         return connection;
     }
 
-    public boolean claimStream() {
+    private boolean claimStream() {
         lastReserveAttemptTimeMillis = System.currentTimeMillis();
         for (int attempt = 0; attempt < 5; ++attempt) {
+
             if (state != RecordState.OPEN) {
                 return false;
             }
