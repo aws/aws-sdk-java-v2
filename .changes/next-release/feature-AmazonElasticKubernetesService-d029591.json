@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "description": "Adding new error codes for Nodegroups in EKS"
+}
