@@ -48,7 +48,6 @@ import org.junit.rules.ExpectedException;
 
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attribute.AttributeSupplier;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
@@ -980,8 +979,8 @@ public class StaticTableSchemaTest {
         Set<String> valueSet = new HashSet<>(asList("one", "two", "three"));
         List<String> expectedList = valueSet.stream().map(Objects::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.stringAttributeSet("value", FakeMappedItem::getAStringSet,
-                                                     FakeMappedItem::setAStringSet),
+        verifyNullableAttribute(Attributes.stringSetAttribute("value", FakeMappedItem::getAStringSet,
+                                                              FakeMappedItem::setAStringSet),
                                 FakeMappedItem.builder().aStringSet(valueSet).build(),
                                 AttributeValue.builder().ss(expectedList).build());
     }
@@ -1047,9 +1046,9 @@ public class StaticTableSchemaTest {
         Set<ByteBuffer> byteBuffer = new HashSet<>(asList(byteBuffer1, byteBuffer2, byteBuffer3));
         List<SdkBytes> sdkBytes = byteBuffer.stream().map(SdkBytes::fromByteBuffer).collect(toList());
 
-        verifyNullableAttribute(Attributes.binaryAttributeSet("value",
-                                                    FakeMappedItem::getAByteBufferSet,
-                                                    FakeMappedItem::setAByteBufferSet),
+        verifyNullableAttribute(Attributes.binarySetAttribute("value",
+                                                              FakeMappedItem::getAByteBufferSet,
+                                                              FakeMappedItem::setAByteBufferSet),
                                 FakeMappedItem.builder().aByteBufferSet(byteBuffer).build(),
                                 AttributeValue.builder().bs(sdkBytes).build());
     }

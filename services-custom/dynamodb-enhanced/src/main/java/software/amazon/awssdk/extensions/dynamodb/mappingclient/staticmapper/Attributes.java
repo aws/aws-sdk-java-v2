@@ -33,8 +33,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> binaryAttribute(String attributeName,
-                                                      Function<T, ByteBuffer> getAttributeMethod,
-                                                      BiConsumer<T, ByteBuffer> updateItemMethod) {
+                                                           Function<T, ByteBuffer> getAttributeMethod,
+                                                           BiConsumer<T, ByteBuffer> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -42,9 +42,9 @@ public final class Attributes {
             AttributeTypes.binaryType());
     }
 
-    public static <T> AttributeSupplier<T> binaryAttributeSet(String attributeName,
-                                                         Function<T, Set<ByteBuffer>> getAttributeMethod,
-                                                         BiConsumer<T, Set<ByteBuffer>> updateItemMethod) {
+    public static <T> AttributeSupplier<T> binarySetAttribute(String attributeName,
+                                                              Function<T, Set<ByteBuffer>> getAttributeMethod,
+                                                              BiConsumer<T, Set<ByteBuffer>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -53,8 +53,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> boolAttribute(String attributeName,
-                                                    Function<T, Boolean> getAttributeMethod,
-                                                    BiConsumer<T, Boolean> updateItemMethod) {
+                                                         Function<T, Boolean> getAttributeMethod,
+                                                         BiConsumer<T, Boolean> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -63,8 +63,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> stringAttribute(String attributeName,
-                                                      Function<T, String> getAttributeMethod,
-                                                      BiConsumer<T, String> updateItemMethod) {
+                                                           Function<T, String> getAttributeMethod,
+                                                           BiConsumer<T, String> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -72,9 +72,9 @@ public final class Attributes {
             AttributeTypes.stringType());
     }
 
-    public static <T> AttributeSupplier<T> stringAttributeSet(String attributeName,
-                                                         Function<T, Set<String>> getAttributeMethod,
-                                                         BiConsumer<T, Set<String>> updateItemMethod) {
+    public static <T> AttributeSupplier<T> stringSetAttribute(String attributeName,
+                                                              Function<T, Set<String>> getAttributeMethod,
+                                                              BiConsumer<T, Set<String>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -83,8 +83,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> integerNumberAttribute(String attributeName,
-                                                             Function<T, Integer> getAttributeMethod,
-                                                             BiConsumer<T, Integer> updateItemMethod) {
+                                                                  Function<T, Integer> getAttributeMethod,
+                                                                  BiConsumer<T, Integer> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -93,8 +93,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> longNumberAttribute(String attributeName,
-                                                          Function<T, Long> getAttributeMethod,
-                                                          BiConsumer<T, Long> updateItemMethod) {
+                                                               Function<T, Long> getAttributeMethod,
+                                                               BiConsumer<T, Long> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -103,8 +103,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> shortNumberAttribute(String attributeName,
-                                                           Function<T, Short> getAttributeMethod,
-                                                           BiConsumer<T, Short> updateItemMethod) {
+                                                                Function<T, Short> getAttributeMethod,
+                                                                BiConsumer<T, Short> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -113,8 +113,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> doubleNumberAttribute(String attributeName,
-                                                            Function<T, Double> getAttributeMethod,
-                                                            BiConsumer<T, Double> updateItemMethod) {
+                                                                 Function<T, Double> getAttributeMethod,
+                                                                 BiConsumer<T, Double> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -123,8 +123,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> floatNumberAttribute(String attributeName,
-                                                           Function<T, Float> getAttributeMethod,
-                                                           BiConsumer<T, Float> updateItemMethod) {
+                                                                Function<T, Float> getAttributeMethod,
+                                                                BiConsumer<T, Float> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -133,8 +133,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> byteNumberAttribute(String attributeName,
-                                                          Function<T, Byte> getAttributeMethod,
-                                                          BiConsumer<T, Byte> updateItemMethod) {
+                                                               Function<T, Byte> getAttributeMethod,
+                                                               BiConsumer<T, Byte> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -143,8 +143,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> integerSetAttribute(String attributeName,
-                                                          Function<T, Set<Integer>> getAttributeMethod,
-                                                          BiConsumer<T, Set<Integer>> updateItemMethod) {
+                                                               Function<T, Set<Integer>> getAttributeMethod,
+                                                               BiConsumer<T, Set<Integer>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -153,8 +153,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> longSetAttribute(String attributeName,
-                                                       Function<T, Set<Long>> getAttributeMethod,
-                                                       BiConsumer<T, Set<Long>> updateItemMethod) {
+                                                            Function<T, Set<Long>> getAttributeMethod,
+                                                            BiConsumer<T, Set<Long>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -163,8 +163,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> shortSetAttribute(String attributeName,
-                                                        Function<T, Set<Short>> getAttributeMethod,
-                                                        BiConsumer<T, Set<Short>> updateItemMethod) {
+                                                             Function<T, Set<Short>> getAttributeMethod,
+                                                             BiConsumer<T, Set<Short>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -173,8 +173,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> doubleSetAttribute(String attributeName,
-                                                         Function<T, Set<Double>> getAttributeMethod,
-                                                         BiConsumer<T, Set<Double>> updateItemMethod) {
+                                                              Function<T, Set<Double>> getAttributeMethod,
+                                                              BiConsumer<T, Set<Double>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -183,8 +183,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> floatSetAttribute(String attributeName,
-                                                        Function<T, Set<Float>> getAttributeMethod,
-                                                        BiConsumer<T, Set<Float>> updateItemMethod) {
+                                                             Function<T, Set<Float>> getAttributeMethod,
+                                                             BiConsumer<T, Set<Float>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -193,8 +193,8 @@ public final class Attributes {
     }
 
     public static <T> AttributeSupplier<T> byteSetAttribute(String attributeName,
-                                                       Function<T, Set<Byte>> getAttributeMethod,
-                                                       BiConsumer<T, Set<Byte>> updateItemMethod) {
+                                                            Function<T, Set<Byte>> getAttributeMethod,
+                                                            BiConsumer<T, Set<Byte>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -203,9 +203,9 @@ public final class Attributes {
     }
 
     public static <T, K> AttributeSupplier<T> documentMapAttribute(String attributeName,
-                                                              Function<T, K> getAttributeMethod,
-                                                              BiConsumer<T, K> updateItemMethod,
-                                                              TableSchema<K> documentSchema) {
+                                                                   Function<T, K> getAttributeMethod,
+                                                                   BiConsumer<T, K> updateItemMethod,
+                                                                   TableSchema<K> documentSchema) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -214,9 +214,9 @@ public final class Attributes {
     }
 
     public static <T, K> AttributeSupplier<T> mapAttribute(String attributeName,
-                                                      Function<T, Map<String, K>> getAttributeMethod,
-                                                      BiConsumer<T, Map<String, K>> updateItemMethod,
-                                                      AttributeType<K> mappedValueType) {
+                                                           Function<T, Map<String, K>> getAttributeMethod,
+                                                           BiConsumer<T, Map<String, K>> updateItemMethod,
+                                                           AttributeType<K> mappedValueType) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -225,9 +225,9 @@ public final class Attributes {
     }
 
     public static <T, K> AttributeSupplier<T> listAttribute(String attributeName,
-                                                       Function<T, List<K>> getAttributeMethod,
-                                                       BiConsumer<T, List<K>> updateItemMethod,
-                                                       AttributeType<K> listElementsType) {
+                                                            Function<T, List<K>> getAttributeMethod,
+                                                            BiConsumer<T, List<K>> updateItemMethod,
+                                                            AttributeType<K> listElementsType) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
