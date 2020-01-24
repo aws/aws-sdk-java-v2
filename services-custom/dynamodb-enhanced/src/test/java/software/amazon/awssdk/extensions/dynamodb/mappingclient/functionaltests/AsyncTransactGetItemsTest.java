@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +42,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutIt
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ReadTransaction;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItems;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
 public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
@@ -98,17 +99,17 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
-        TableSchema.builder()
+        StaticTableSchema.builder()
                    .newItemSupplier(Record1::new)
                    .attributes(
-                       integerNumber("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
+                       integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
                    .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
-        TableSchema.builder()
+        StaticTableSchema.builder()
                    .newItemSupplier(Record2::new)
                    .attributes(
-                       integerNumber("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
+                       integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
                    .build();
 
     private AsyncMappedDatabase mappedDatabase = DynamoDbAsyncMappedDatabase.builder()
@@ -132,8 +133,8 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.execute(CreateTable.of(getDefaultProvisionedThroughput())).join();
-        mappedTable2.execute(CreateTable.of(getDefaultProvisionedThroughput())).join();
+        mappedTable1.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
+        mappedTable2.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After
@@ -147,8 +148,8 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.execute(PutItem.of(record)).join());
-        RECORDS_2.forEach(record -> mappedTable2.execute(PutItem.of(record)).join());
+        RECORDS_1.forEach(record -> mappedTable1.execute(PutItem.create(record)).join());
+        RECORDS_2.forEach(record -> mappedTable2.execute(PutItem.create(record)).join());
     }
 
     @Test
@@ -156,11 +157,11 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.of(
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(0)))),                  
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(0)))),
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(1)))),
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(1)))))).join();
+            mappedDatabase.execute(TransactGetItems.create(
+                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),                  
+                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
+                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
+                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))).join();
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
@@ -174,11 +175,11 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.of(
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(0)))),
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(0)))),
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(5)))),
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(1)))))).join();
+            mappedDatabase.execute(TransactGetItems.create(
+                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
+                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
+                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),
+                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))).join();
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));

@@ -40,11 +40,11 @@ public class TransactWriteItems
         this.writeTransactions = writeTransactions;
     }
 
-    public static TransactWriteItems of(List<WriteTransaction> writeTransactions) {
+    public static TransactWriteItems create(List<WriteTransaction> writeTransactions) {
         return new TransactWriteItems(writeTransactions);
     }
 
-    public static TransactWriteItems of(WriteTransaction... writeTransactions) {
+    public static TransactWriteItems create(WriteTransaction... writeTransactions) {
         return new TransactWriteItems(Arrays.asList(writeTransactions));
     }
 

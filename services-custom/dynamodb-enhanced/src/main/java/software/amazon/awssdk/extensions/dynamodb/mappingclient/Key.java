@@ -46,7 +46,7 @@ public class Key {
      * @param partitionKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the partition key.
      * @return A key.
      */
-    public static Key of(AttributeValue partitionKeyValue) {
+    public static Key create(AttributeValue partitionKeyValue) {
         return new Key(partitionKeyValue, null);
     }
 
@@ -56,7 +56,7 @@ public class Key {
      * @param sortKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the sort key.
      * @return A key.
      */
-    public static Key of(AttributeValue partitionKeyValue, AttributeValue sortKeyValue) {
+    public static Key create(AttributeValue partitionKeyValue, AttributeValue sortKeyValue) {
         return new Key(partitionKeyValue, sortKeyValue);
     }
 

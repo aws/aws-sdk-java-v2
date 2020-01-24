@@ -42,7 +42,7 @@ public class Page<T> {
      * @param <T> The modelled type of the object that has been read.
      * @return A newly constructed {@link Page} object.
      */
-    public static <T> Page<T> of(List<T> items, Map<String, AttributeValue> lastEvaluatedKey) {
+    public static <T> Page<T> create(List<T> items, Map<String, AttributeValue> lastEvaluatedKey) {
         return new Page<>(items, lastEvaluatedKey);
     }
 
@@ -53,7 +53,7 @@ public class Page<T> {
      * @param <T> The modelled type of the object that has been read.
      * @return A newly constructed {@link Page} object.
      */
-    public static <T> Page<T> of(List<T> items) {
+    public static <T> Page<T> create(List<T> items) {
         return new Page<>(items, null);
     }
 

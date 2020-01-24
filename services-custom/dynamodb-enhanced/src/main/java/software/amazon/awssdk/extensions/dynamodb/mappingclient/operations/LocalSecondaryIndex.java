@@ -28,8 +28,8 @@ public class LocalSecondaryIndex {
         this.projection = projection;
     }
 
-    public static LocalSecondaryIndex of(String indexName,
-                                         Projection projection) {
+    public static LocalSecondaryIndex create(String indexName,
+                                             Projection projection) {
 
         return new LocalSecondaryIndex(indexName, projection);
     }

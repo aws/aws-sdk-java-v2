@@ -16,7 +16,6 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 
 /**
  * Synchronous interface for running commands against a DynamoDb database. See {@link DynamoDbMappedDatabase} for an
@@ -43,12 +42,4 @@ public interface MappedDatabase {
      * @param <T> THe modelled object type being mapped to this table.
      */
     <T> MappedTable<T> table(String tableName, TableSchema<T> tableSchema);
-
-    /**
-     * Constructs a builder for the default approved implementation of this interface.
-     * @return A builder for a {@link DynamoDbMappedDatabase}.
-     */
-    static DynamoDbMappedDatabase.Builder builder() {
-        return DynamoDbMappedDatabase.builder();
-    }
 }

@@ -67,7 +67,7 @@ public class UpdateItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> UpdateItem<T> of(T item) {
+    public static <T> UpdateItem<T> create(T item) {
         return UpdateItem.builder().item(item).build();
     }
 

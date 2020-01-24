@@ -62,9 +62,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class DeleteItemTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.of(TABLE_NAME, "gsi_1");
+        OperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
 
     static {
@@ -90,7 +90,7 @@ public class DeleteItemTest {
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue(keyItem.getId())));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue(keyItem.getId())));
         DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder().tableName(TABLE_NAME).build();
         DeleteItemResponse expectedResponse = DeleteItemResponse.builder().build();
         when(mockDynamoDbClient.deleteItem(any(DeleteItemRequest.class))).thenReturn(expectedResponse);
@@ -104,7 +104,7 @@ public class DeleteItemTest {
     @Test
     public void generateRequest_partitionKeyOnly() {
         FakeItem keyItem = createUniqueFakeItem();
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue(keyItem.getId())));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue(keyItem.getId())));
 
         DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -123,7 +123,7 @@ public class DeleteItemTest {
     @Test
     public void generateRequest_partitionAndSortKey() {
         FakeItemWithSort keyItem = createUniqueFakeItemWithSort();
-        DeleteItem<FakeItemWithSort> deleteItemOperation = DeleteItem.of(Key.of(stringValue(keyItem.getId()),
+        DeleteItem<FakeItemWithSort> deleteItemOperation = DeleteItem.create(Key.create(stringValue(keyItem.getId()),
                                                                                 stringValue(keyItem.getSort())));
 
         DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
@@ -146,7 +146,7 @@ public class DeleteItemTest {
         FakeItem keyItem = createUniqueFakeItem();
         DeleteItem<FakeItem> deleteItemOperation =
             DeleteItem.builder()
-                      .key(Key.of(stringValue(keyItem.getId())))
+                      .key(Key.create(stringValue(keyItem.getId())))
                       .conditionExpression(CONDITION_EXPRESSION)
                       .build();
 
@@ -161,14 +161,14 @@ public class DeleteItemTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_noPartitionKey_throwsIllegalArgumentException() {
-        DeleteItem<FakeItemComposedClass> deleteItemOperation = DeleteItem.of(Key.of(stringValue("whatever")));
+        DeleteItem<FakeItemComposedClass> deleteItemOperation = DeleteItem.create(Key.create(stringValue("whatever")));
 
         deleteItemOperation.generateRequest(FakeItemComposedClass.getTableSchema(), PRIMARY_CONTEXT, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_withIndex_throwsIllegalArgumentException() {
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue("whatever")));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue("whatever")));
 
         deleteItemOperation.generateRequest(FakeItem.getTableSchema(), GSI_1_CONTEXT, null);
     }
@@ -176,7 +176,7 @@ public class DeleteItemTest {
     @Test
     public void transformResponse_correctlyTransformsIntoAnItem() {
         FakeItem keyItem = createUniqueFakeItem();
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue(keyItem.getId())));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue(keyItem.getId())));
         Map<String, AttributeValue> responseMap = new HashMap<>();
         responseMap.put("id", AttributeValue.builder().s(keyItem.getId()).build());
         responseMap.put("subclass_attribute", AttributeValue.builder().s("test-value").build());
@@ -196,7 +196,7 @@ public class DeleteItemTest {
     @Test
     public void transformResponse_noResults_returnsNull() {
         FakeItem keyItem = createUniqueFakeItem();
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue(keyItem.getId())));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue(keyItem.getId())));
         DeleteItemResponse response = DeleteItemResponse.builder()
                                                         .build();
 
@@ -212,7 +212,7 @@ public class DeleteItemTest {
     public void generateRequest_withExtension_doesNotModifyKey() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, singletonList("id"));
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue(baseFakeItem.getId())));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue(baseFakeItem.getId())));
 
 
         DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
@@ -229,7 +229,7 @@ public class DeleteItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false);
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
-        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.of(Key.of(stringValue(baseFakeItem.getId())));
+        DeleteItem<FakeItem> deleteItemOperation = DeleteItem.create(Key.create(stringValue(baseFakeItem.getId())));
 
         DeleteItemResponse response = DeleteItemResponse.builder()
                                                         .attributes(baseFakeItemMap)
@@ -250,8 +250,8 @@ public class DeleteItemTest {
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        DeleteItem<FakeItem> deleteItemOperation = spy(DeleteItem.of(Key.of(stringValue(fakeItem.getId()))));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        DeleteItem<FakeItem> deleteItemOperation = spy(DeleteItem.create(Key.create(stringValue(fakeItem.getId()))));
+        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
                                                                .tableName(TABLE_NAME)
@@ -277,8 +277,8 @@ public class DeleteItemTest {
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        DeleteItem<FakeItem> deleteItemOperation = spy(DeleteItem.of(Key.of(stringValue(fakeItem.getId()))));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        DeleteItem<FakeItem> deleteItemOperation = spy(DeleteItem.create(Key.create(stringValue(fakeItem.getId()))));
+        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
