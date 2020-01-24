@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
@@ -32,12 +31,10 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functiona
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,33 +43,40 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.services.dynamodb.paginators.ScanPublisher;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ScanTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.of(TABLE_NAME, "gsi_1");
+        OperationContext.create(TABLE_NAME, "gsi_1");
 
     private final Scan<FakeItem> scanOperation = Scan.create();
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
+
+    @Mock
+    private DynamoDbAsyncClient mockDynamoDbAsyncClient;
 
     @Mock
     private MapperExtension mockMapperExtension;
@@ -83,10 +87,23 @@ public class ScanTest {
         ScanIterable mockScanIterable = mock(ScanIterable.class);
         when(mockDynamoDbClient.scanPaginator(any(ScanRequest.class))).thenReturn(mockScanIterable);
 
-        ScanIterable response = scanOperation.serviceCall(mockDynamoDbClient).apply(scanRequest);
+        SdkIterable<ScanResponse> response = scanOperation.serviceCall(mockDynamoDbClient).apply(scanRequest);
 
         assertThat(response, is(mockScanIterable));
         verify(mockDynamoDbClient).scanPaginator(scanRequest);
+    }
+
+    @Test
+    public void getAsyncServiceCall_makesTheRightCallAndReturnsResponse() {
+        ScanRequest scanRequest = ScanRequest.builder().build();
+        ScanPublisher mockScanPublisher = mock(ScanPublisher.class);
+        when(mockDynamoDbAsyncClient.scanPaginator(any(ScanRequest.class))).thenReturn(mockScanPublisher);
+
+        SdkPublisher<ScanResponse> response = scanOperation.asyncServiceCall(mockDynamoDbAsyncClient)
+                                                           .apply(scanRequest);
+
+        assertThat(response, is(mockScanPublisher));
+        verify(mockDynamoDbAsyncClient).scanPaginator(scanRequest);
     }
 
     @Test
@@ -206,89 +223,47 @@ public class ScanTest {
     }
 
     @Test
-    public void transformResults_firstPageMultipleItems_iteratesAndReturnsCorrectItems() {
+    public void transformResults_multipleItems_returnsCorrectItems() {
         List<FakeItem> scanResultItems = generateFakeItemList();
         List<Map<String, AttributeValue>> scanResultMaps =
             scanResultItems.stream().map(ScanTest::getAttributeValueMap).collect(toList());
 
-        ScanIterable scanIterable = generateFakeScanResults(singletonList(scanResultMaps));
+        ScanResponse scanResponse = generateFakeScanResults(scanResultMaps);
 
-        Iterable<Page<FakeItem>> scanResultPages = scanOperation.transformResponse(scanIterable,
-                                                                                   FakeItem.getTableSchema(),
-                                                                                   PRIMARY_CONTEXT,
-                                                                                   null);
-        Iterator<Page<FakeItem>> scanResultPageIterator = scanResultPages.iterator();
-
-        assertThat(scanResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page = scanResultPageIterator.next();
-        assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page.items(), is(scanResultItems));
+        Page<FakeItem> scanResultPage = scanOperation.transformResponse(scanResponse,
+                                                                        FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
+        assertThat(scanResultPage.items(), is(scanResultItems));
     }
 
     @Test
-    public void transformResults_firstPageMultipleItems_setsLastEvaluatedKey() {
+    public void transformResults_multipleItems_setsLastEvaluatedKey() {
         List<FakeItem> scanResultItems = generateFakeItemList();
         FakeItem lastEvaluatedKey = createUniqueFakeItem();
         List<Map<String, AttributeValue>> scanResultMaps =
             scanResultItems.stream().map(ScanTest::getAttributeValueMap).collect(toList());
 
-        ScanIterable scanIterable = generateFakeScanResults(singletonList(scanResultMaps),
-                                                               getAttributeValueMap(lastEvaluatedKey));
+        ScanResponse scanResponse = generateFakeScanResults(scanResultMaps, getAttributeValueMap(lastEvaluatedKey));
 
-        Iterable<Page<FakeItem>> scanResultPages = scanOperation.transformResponse(scanIterable,
-                                                                                   FakeItem.getTableSchema(),
-                                                                                   PRIMARY_CONTEXT,
-                                                                                   null);
-        Iterator<Page<FakeItem>> scanResultPageIterator = scanResultPages.iterator();
+        Page<FakeItem> scanResultPage = scanOperation.transformResponse(scanResponse,
+                                                                        FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        null);
 
-        assertThat(scanResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page = scanResultPageIterator.next();
-        assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page.items(), is(scanResultItems));
-        assertThat(page.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
-    }
-
-    @Test
-    public void scanItem_twoPagesMultipleItems_iteratesAndReturnsCorrectItems() {
-        List<FakeItem> scanResultItems1 = generateFakeItemList();
-        List<FakeItem> scanResultItems2 = generateFakeItemList();
-
-        List<Map<String, AttributeValue>> scanResultMaps1 =
-            scanResultItems1.stream().map(ScanTest::getAttributeValueMap).collect(toList());
-        List<Map<String, AttributeValue>> scanResultMaps2 =
-            scanResultItems2.stream().map(ScanTest::getAttributeValueMap).collect(toList());
-
-        ScanIterable scanIterable = generateFakeScanResults(asList(scanResultMaps1, scanResultMaps2));
-
-        Iterable<Page<FakeItem>> scanResultPages = scanOperation.transformResponse(scanIterable,
-                                                                                   FakeItem.getTableSchema(),
-                                                                                   PRIMARY_CONTEXT,
-                                                                                   null);
-        Iterator<Page<FakeItem>> scanResultPageIterator = scanResultPages.iterator();
-
-        assertThat(scanResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page1 = scanResultPageIterator.next();
-        assertThat(scanResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page2 = scanResultPageIterator.next();
-        assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page1.items(), is(scanResultItems1));
-        assertThat(page2.items(), is(scanResultItems2));
+        assertThat(scanResultPage.lastEvaluatedKey(), is(getAttributeValueMap(lastEvaluatedKey)));
     }
 
     @Test
     public void scanItem_withExtension_correctlyTransformsItems() {
-        List<FakeItem> scanResultItems1 = generateFakeItemList();
-        List<FakeItem> scanResultItems2 = generateFakeItemList();
-        List<FakeItem> modifiedResultItems1 = generateFakeItemList();
-        List<FakeItem> modifiedResultItems2 = generateFakeItemList();
+        List<FakeItem> scanResultItems = generateFakeItemList();
+        List<FakeItem> modifiedResultItems = generateFakeItemList();
 
-        List<Map<String, AttributeValue>> scanResultMaps1 =
-            scanResultItems1.stream().map(ScanTest::getAttributeValueMap).collect(toList());
-        List<Map<String, AttributeValue>> scanResultMaps2 =
-            scanResultItems2.stream().map(ScanTest::getAttributeValueMap).collect(toList());
+        List<Map<String, AttributeValue>> scanResultMaps =
+            scanResultItems.stream().map(ScanTest::getAttributeValueMap).collect(toList());
 
         ReadModification[] readModifications =
-            Stream.concat(modifiedResultItems1.stream(), modifiedResultItems2.stream())
+            modifiedResultItems.stream()
                   .map(ScanTest::getAttributeValueMap)
                   .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
                   .collect(Collectors.toList())
@@ -296,52 +271,32 @@ public class ScanTest {
         when(mockMapperExtension.afterRead(anyMap(), any(), any()))
             .thenReturn(readModifications[0], Arrays.copyOfRange(readModifications, 1, readModifications.length));
 
-        ScanIterable scanIterable = generateFakeScanResults(asList(scanResultMaps1, scanResultMaps2));
+        ScanResponse scanResponse = generateFakeScanResults(scanResultMaps);
 
-        Iterable<Page<FakeItem>> scanResultPages = scanOperation.transformResponse(scanIterable,
-                                                                                   FakeItem.getTableSchema(),
-                                                                                   PRIMARY_CONTEXT,
-                                                                                   mockMapperExtension);
-        Iterator<Page<FakeItem>> scanResultPageIterator = scanResultPages.iterator();
+        Page<FakeItem> scanResultPage = scanOperation.transformResponse(scanResponse,
+                                                                        FakeItem.getTableSchema(),
+                                                                        PRIMARY_CONTEXT,
+                                                                        mockMapperExtension);
 
-        assertThat(scanResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page1 = scanResultPageIterator.next();
-        assertThat(scanResultPageIterator.hasNext(), is(true));
-        Page<FakeItem> page2 = scanResultPageIterator.next();
-        assertThat(scanResultPageIterator.hasNext(), is(false));
-        assertThat(page1.items(), is(modifiedResultItems1));
-        assertThat(page2.items(), is(modifiedResultItems2));
+        assertThat(scanResultPage.items(), is(modifiedResultItems));
 
         InOrder inOrder = Mockito.inOrder(mockMapperExtension);
-        Stream.concat(scanResultMaps1.stream(), scanResultMaps2.stream())
-              .forEach(attributeMap ->
-                    inOrder.verify(mockMapperExtension).afterRead(attributeMap,
-                                                                  PRIMARY_CONTEXT,
-                                                                  FakeItem.getTableMetadata()));
+        scanResultMaps.forEach(
+            attributeMap -> inOrder.verify(mockMapperExtension).afterRead(attributeMap,
+                                                                          PRIMARY_CONTEXT,
+                                                                          FakeItem.getTableMetadata()));
     }
 
-    private static ScanIterable generateFakeScanResults(List<List<Map<String, AttributeValue>>> scanItemMapsPages) {
-        List<ScanResponse> scanResponses =
-            scanItemMapsPages.stream().map(page -> ScanResponse.builder().items(page).build()).collect(toList());
-
-        ScanIterable mockScanIterable = mock(ScanIterable.class);
-        when(mockScanIterable.iterator()).thenReturn(scanResponses.iterator());
-        return mockScanIterable;
+    private static ScanResponse generateFakeScanResults(List<Map<String, AttributeValue>> scanItemMapsPage) {
+        return ScanResponse.builder().items(scanItemMapsPage).build();
     }
 
-    private static ScanIterable generateFakeScanResults(List<List<Map<String, AttributeValue>>> scanItemMapsPages,
-                                                          Map<String, AttributeValue> lastEvaluatedKey) {
-        List<ScanResponse> scanResponses =
-            scanItemMapsPages.stream()
-                              .map(page -> ScanResponse.builder()
-                                                        .items(page)
-                                                        .lastEvaluatedKey(lastEvaluatedKey)
-                                                        .build())
-                              .collect(toList());
-
-        ScanIterable mockScanIterable = mock(ScanIterable.class);
-        when(mockScanIterable.iterator()).thenReturn(scanResponses.iterator());
-        return mockScanIterable;
+    private static ScanResponse generateFakeScanResults(List<Map<String, AttributeValue>> scanItemMapsPage,
+                                                        Map<String, AttributeValue> lastEvaluatedKey) {
+        return ScanResponse.builder()
+                           .items(scanItemMapsPage)
+                           .lastEvaluatedKey(lastEvaluatedKey)
+                           .build();
     }
 
     private static List<FakeItem> generateFakeItemList() {

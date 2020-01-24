@@ -17,12 +17,14 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
@@ -38,11 +40,11 @@ public class TransactWriteItems
         this.writeTransactions = writeTransactions;
     }
 
-    public static TransactWriteItems of(List<WriteTransaction> writeTransactions) {
+    public static TransactWriteItems create(List<WriteTransaction> writeTransactions) {
         return new TransactWriteItems(writeTransactions);
     }
 
-    public static TransactWriteItems of(WriteTransaction... writeTransactions) {
+    public static TransactWriteItems create(WriteTransaction... writeTransactions) {
         return new TransactWriteItems(Arrays.asList(writeTransactions));
     }
 
@@ -75,6 +77,13 @@ public class TransactWriteItems
         DynamoDbClient dynamoDbClient) {
 
         return dynamoDbClient::transactWriteItems;
+    }
+
+    @Override
+    public Function<TransactWriteItemsRequest, CompletableFuture<TransactWriteItemsResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::transactWriteItems;
     }
 
     public List<WriteTransaction> writeTransactions() {

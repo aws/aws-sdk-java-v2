@@ -30,8 +30,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
 
 public class KeyTest {
-    private final Key key = Key.of(stringValue("id123"), stringValue("id456"));
-    private final Key partitionOnlyKey = Key.of(stringValue("id123"));
+    private final Key key = Key.create(stringValue("id123"), stringValue("id456"));
+    private final Key partitionOnlyKey = Key.create(stringValue("id123"));
 
     @Test
     public void getKeyMap() {

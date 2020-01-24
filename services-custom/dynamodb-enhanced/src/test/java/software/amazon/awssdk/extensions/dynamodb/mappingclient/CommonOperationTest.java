@@ -64,7 +64,7 @@ public class CommonOperationTest {
 
     @Test
     public void execute_defaultImplementation_behavesCorrectlyAndReturnsCorrectResult() {
-        OperationContext operationContext = OperationContext.of(FAKE_TABLE_NAME, FAKE_INDEX_NAME);
+        OperationContext operationContext = OperationContext.create(FAKE_TABLE_NAME, FAKE_INDEX_NAME);
         String result = spyCommonOperation.execute(FakeItem.getTableSchema(),
                                                    operationContext,
                                                    mockMapperExtension,

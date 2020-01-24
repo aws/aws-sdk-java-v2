@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "description": "Fix issue where DNS resolution for a host is only made once for the initial request to the host. If the DNS entries change for a hostname, the client will resolve the new address until the client is closed and recreated."
+}

@@ -17,8 +17,8 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.VersionedRecordExtension.AttributeTags.version;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -35,8 +35,8 @@ public class FakeItem extends FakeItemAbstractSubclass {
                                   FakeItem::getComposedObject,
                                   FakeItem::setComposedObject)
                          .extend(FakeItemAbstractSubclass.getSubclassTableSchema())
-                         .attributes(string("id", FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
-                                     integerNumber("version", FakeItem::getVersion, FakeItem::setVersion).as(version()))
+                         .attributes(stringAttribute("id", FakeItem::getId, FakeItem::setId).as(primaryPartitionKey()),
+                                     integerNumberAttribute("version", FakeItem::getVersion, FakeItem::setVersion).as(version()))
                          .build();
 
     private String id;

@@ -17,7 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -30,10 +30,10 @@ public class FakeItemWithSort {
         StaticTableSchema.builder()
                          .newItemSupplier(FakeItemWithSort::new)
                          .attributes(
-                string("id", FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
-                string("sort", FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
-                string("other_attribute_1", FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
-                string("other_attribute_2", FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
+                stringAttribute("id", FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),
+                stringAttribute("sort", FakeItemWithSort::getSort, FakeItemWithSort::setSort).as(primarySortKey()),
+                stringAttribute("other_attribute_1", FakeItemWithSort::getOtherAttribute1, FakeItemWithSort::setOtherAttribute1),
+                stringAttribute("other_attribute_2", FakeItemWithSort::getOtherAttribute2, FakeItemWithSort::setOtherAttribute2))
                          .build();
 
     private String id;

@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.readAndTransformSingleItem;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableReadOperation;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.Get;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -47,7 +49,7 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
         this.consistentRead = consistentRead;
     }
 
-    public static <T> GetItem<T> of(Key key) {
+    public static <T> GetItem<T> create(Key key) {
         return new GetItem<>(key, null);
     }
 
@@ -95,6 +97,13 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
     @Override
     public Function<GetItemRequest, GetItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::getItem;
+    }
+
+    @Override
+    public Function<GetItemRequest, CompletableFuture<GetItemResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::getItem;
     }
 
     @Override

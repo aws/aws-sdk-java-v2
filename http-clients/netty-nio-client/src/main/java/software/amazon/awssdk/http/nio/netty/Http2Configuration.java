@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
+import java.time.Duration;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -27,10 +29,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class Http2Configuration implements ToCopyableBuilder<Http2Configuration.Builder, Http2Configuration> {
     private final Long maxStreams;
     private final Integer initialWindowSize;
+    private final Duration healthCheckPingPeriod;
 
     private Http2Configuration(DefaultBuilder builder) {
         this.maxStreams = builder.maxStreams;
         this.initialWindowSize = builder.initialWindowSize;
+        this.healthCheckPingPeriod = builder.healthCheckPingPeriod;
     }
 
     /**
@@ -45,6 +49,13 @@ public final class Http2Configuration implements ToCopyableBuilder<Http2Configur
      */
     public Integer initialWindowSize() {
         return initialWindowSize;
+    }
+
+    /**
+     * @return The health check period for an HTTP/2 connection.
+     */
+    public Duration healthCheckPingPeriod() {
+        return healthCheckPingPeriod;
     }
 
     @Override
@@ -106,11 +117,23 @@ public final class Http2Configuration implements ToCopyableBuilder<Http2Configur
          * @return This builder for method chaining.
          */
         Builder initialWindowSize(Integer initialWindowSize);
+
+        /**
+         * Sets the period that the Netty client will send {@code PING} frames to the remote endpoint to check the
+         * health of the connection. The default value is {@link
+         * software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration#HTTP2_CONNECTION_PING_TIMEOUT_SECONDS}. To
+         * disable this feature, set a duration of 0.
+         *
+         * @param healthCheckPingPeriod The ping period.
+         * @return This builder for method chaining.
+         */
+        Builder healthCheckPingPeriod(Duration healthCheckPingPeriod);
     }
 
     private static final class DefaultBuilder implements Builder {
         private Long maxStreams;
         private Integer initialWindowSize;
+        private Duration healthCheckPingPeriod;
 
         private DefaultBuilder() {
         }
@@ -118,6 +141,7 @@ public final class Http2Configuration implements ToCopyableBuilder<Http2Configur
         private DefaultBuilder(Http2Configuration http2Configuration) {
             this.maxStreams = http2Configuration.maxStreams;
             this.initialWindowSize = http2Configuration.initialWindowSize;
+            this.healthCheckPingPeriod = http2Configuration.healthCheckPingPeriod;
         }
 
         @Override
@@ -138,6 +162,16 @@ public final class Http2Configuration implements ToCopyableBuilder<Http2Configur
 
         public void setInitialWindowSize(Integer initialWindowSize) {
             initialWindowSize(initialWindowSize);
+        }
+
+        @Override
+        public Builder healthCheckPingPeriod(Duration healthCheckPingPeriod) {
+            this.healthCheckPingPeriod = healthCheckPingPeriod;
+            return this;
+        }
+
+        public void setHealthCheckPingPeriod(Duration healthCheckPingPeriod) {
+            healthCheckPingPeriod(healthCheckPingPeriod);
         }
 
         @Override

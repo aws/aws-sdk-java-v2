@@ -20,6 +20,7 @@ import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+// TODO: Consider moving to SDK core
 @SdkInternalApi
 public class TransformIterator<T, R> implements Iterator<R> {
     private final Iterator<T> wrappedIterator;
@@ -30,7 +31,7 @@ public class TransformIterator<T, R> implements Iterator<R> {
         this.transformFunction = transformFunction;
     }
 
-    public static <T, R> TransformIterator<T, R> of(Iterator<T> iterator, Function<T, R> transformFunction) {
+    public static <T, R> TransformIterator<T, R> create(Iterator<T> iterator, Function<T, R> transformFunction) {
         return new TransformIterator<>(iterator, transformFunction);
     }
 

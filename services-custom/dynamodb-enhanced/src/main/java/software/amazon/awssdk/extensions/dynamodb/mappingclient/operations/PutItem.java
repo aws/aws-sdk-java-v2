@@ -16,6 +16,7 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
@@ -51,7 +53,7 @@ public class PutItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> PutItem<T> of(T item) {
+    public static <T> PutItem<T> create(T item) {
         return PutItem.builder().item(item).build();
     }
 
@@ -131,6 +133,13 @@ public class PutItem<T>
     @Override
     public Function<PutItemRequest, PutItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::putItem;
+    }
+
+    @Override
+    public Function<PutItemRequest, CompletableFuture<PutItemResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::putItem;
     }
 
     @Override

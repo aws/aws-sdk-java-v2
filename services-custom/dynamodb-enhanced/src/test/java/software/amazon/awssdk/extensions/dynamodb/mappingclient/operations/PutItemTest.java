@@ -56,9 +56,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class PutItemTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
-        OperationContext.of(TABLE_NAME, "gsi_1");
+        OperationContext.create(TABLE_NAME, "gsi_1");
     private static final Expression CONDITION_EXPRESSION;
     private static final Expression CONDITION_EXPRESSION_2;
 
@@ -98,7 +98,7 @@ public class PutItemTest {
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
-        PutItem<FakeItem> putItemOperation = PutItem.of(keyItem);
+        PutItem<FakeItem> putItemOperation = PutItem.create(keyItem);
         PutItemRequest getItemRequest = PutItemRequest.builder().tableName(TABLE_NAME).build();
         PutItemResponse expectedResponse = PutItemResponse.builder().build();
         when(mockDynamoDbClient.putItem(any(PutItemRequest.class))).thenReturn(expectedResponse);
@@ -112,7 +112,7 @@ public class PutItemTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_withIndex_throwsIllegalArgumentException() {
         FakeItem item = createUniqueFakeItem();
-        PutItem<FakeItem> putItemOperation = PutItem.of(item);
+        PutItem<FakeItem> putItemOperation = PutItem.create(item);
 
         putItemOperation.generateRequest(FakeItem.getTableSchema(), GSI_1_CONTEXT, null);
     }
@@ -121,7 +121,7 @@ public class PutItemTest {
     public void generateRequest_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setSubclassAttribute("subclass-value");
-        PutItem<FakeItem> putItemOperation = PutItem.of(fakeItem);
+        PutItem<FakeItem> putItemOperation = PutItem.create(fakeItem);
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -186,7 +186,7 @@ public class PutItemTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_noPartitionKey_throwsIllegalArgumentException() {
         FakeItemComposedClass keyItem = FakeItemComposedClass.builder().composedAttribute("whatever").build();
-        PutItem<FakeItemComposedClass> putItemOperation = PutItem.of(keyItem);
+        PutItem<FakeItemComposedClass> putItemOperation = PutItem.create(keyItem);
 
         putItemOperation.generateRequest(FakeItemComposedClass.getTableSchema(), PRIMARY_CONTEXT, null);
     }
@@ -194,7 +194,7 @@ public class PutItemTest {
     @Test
     public void transformResponse_doesNotBlowUp() {
         FakeItem fakeItem = createUniqueFakeItem();
-        PutItem<FakeItem> putItemOperation = PutItem.of(fakeItem);
+        PutItem<FakeItem> putItemOperation = PutItem.create(fakeItem);
         PutItemResponse response = PutItemResponse.builder()
                                                   .build();
 
@@ -209,7 +209,7 @@ public class PutItemTest {
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
-        PutItem<FakeItem> putItemOperation = PutItem.of(baseFakeItem);
+        PutItem<FakeItem> putItemOperation = PutItem.create(baseFakeItem);
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -227,7 +227,7 @@ public class PutItemTest {
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
-        PutItem<FakeItem> putItemOperation = PutItem.of(baseFakeItem);
+        PutItem<FakeItem> putItemOperation = PutItem.create(baseFakeItem);
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -242,7 +242,7 @@ public class PutItemTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().build());
-        PutItem<FakeItem> putItemOperation = PutItem.of(baseFakeItem);
+        PutItem<FakeItem> putItemOperation = PutItem.create(baseFakeItem);
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -255,8 +255,8 @@ public class PutItemTest {
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        PutItem<FakeItem> putItemOperation = spy(PutItem.of(fakeItem));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        PutItem<FakeItem> putItemOperation = spy(PutItem.create(fakeItem));
+        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         PutItemRequest putItemRequest = PutItemRequest.builder()
                                                       .tableName(TABLE_NAME)
@@ -282,8 +282,8 @@ public class PutItemTest {
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        PutItem<FakeItem> putItemOperation = spy(PutItem.of(fakeItem));
-        OperationContext context = OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        PutItem<FakeItem> putItemOperation = spy(PutItem.create(fakeItem));
+        OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));

@@ -16,24 +16,15 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 
 /**
- * Interface for running commands against a DynamoDb database.
- *
- * An implementation for this interface can be instantiated by using the default builder:
- *
- * MappedDatabase.builder()
- *               .dynamoDbClient(dynamoDbClient)
- *               .extendWith(mapperExtension)       // Optional. See 'extensions' package.
- *               .build();
+ * Synchronous interface for running commands against a DynamoDb database. See {@link DynamoDbMappedDatabase} for an
+ * implementation of this interface that can statically created.
  */
 @SdkPublicApi
 public interface MappedDatabase {
     /**
      * Executes a command against the database.
-     *
-     * Example: mappedDatabase.execute(BatchGetItem.of(...));
      *
      * @param operation The operation to be performed in the context of the database.
      * @param <T> The expected return type from the operation. This is typically inferred by the compiler.
@@ -51,12 +42,4 @@ public interface MappedDatabase {
      * @param <T> THe modelled object type being mapped to this table.
      */
     <T> MappedTable<T> table(String tableName, TableSchema<T> tableSchema);
-
-    /**
-     * Constructs a builder for the default approved implementation of this interface.
-     * @return A builder for a {@link DynamoDbMappedDatabase}.
-     */
-    static DynamoDbMappedDatabase.Builder builder() {
-        return DynamoDbMappedDatabase.builder();
-    }
 }

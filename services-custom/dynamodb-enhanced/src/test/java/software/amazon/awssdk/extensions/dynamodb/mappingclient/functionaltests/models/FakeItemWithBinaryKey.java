@@ -16,7 +16,7 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.binary;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.binaryAttribute;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -28,7 +28,7 @@ public class FakeItemWithBinaryKey {
         StaticTableSchema.builder()
                          .newItemSupplier(FakeItemWithBinaryKey::new)
                          .attributes(
-                            binary("id", FakeItemWithBinaryKey::getId, FakeItemWithBinaryKey::setId)
+                            binaryAttribute("id", FakeItemWithBinaryKey::getId, FakeItemWithBinaryKey::setId)
                                 .as(primaryPartitionKey()))
                          .build();
 
