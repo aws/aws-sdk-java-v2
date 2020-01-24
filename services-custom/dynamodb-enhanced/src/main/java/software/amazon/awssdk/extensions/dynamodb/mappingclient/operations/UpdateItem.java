@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -65,7 +67,7 @@ public class UpdateItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> UpdateItem<T> of(T item) {
+    public static <T> UpdateItem<T> create(T item) {
         return UpdateItem.builder().item(item).build();
     }
 
@@ -174,6 +176,13 @@ public class UpdateItem<T>
     @Override
     public Function<UpdateItemRequest, UpdateItemResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::updateItem;
+    }
+
+    @Override
+    public Function<UpdateItemRequest, CompletableFuture<UpdateItemResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::updateItem;
     }
 
     @Override

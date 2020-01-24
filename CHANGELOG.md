@@ -1,3 +1,22 @@
+# __2.10.55__ __2020-01-23__
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release enables the Identity and Access Management policy simulator to simulate permissions boundary policies.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added ServiceMetadata.servicePartitions() to get partition metadata for a specific service
+    - Improved error messages on UnknownHostExceptions
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Support for non-blocking asynchronous calling of all mapper operations
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This SDK release introduces APIs that automate the export of Amazon RDS snapshot data to Amazon S3. The new APIs include: StartExportTask, CancelExportTask, DescribeExportTasks. These APIs automate the extraction of data from an RDS snapshot and export it to an Amazon S3 bucket. The data is stored in a compressed, consistent, and query-able format. After the data is exported, you can query it directly using tools such as Amazon Athena or Redshift Spectrum. You can also consume the data as part of a data lake solution. If you archive the data in S3 Infrequent Access or Glacier, you can reduce long term data storage costs by applying data lifecycle policies.
+
 # __2.10.54__ __2020-01-21__
 ## __AWS Application Discovery Service__
   - ### Features

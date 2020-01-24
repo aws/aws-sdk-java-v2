@@ -16,27 +16,29 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableReadOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
 @SdkPublicApi
 public class ReadTransaction<T> {
-    private final MappedTable<T> mappedTable;
+    private final MappedTableResource<T> mappedTableResource;
     private final TransactableReadOperation<T> readOperation;
 
-    private ReadTransaction(MappedTable<T> mappedTable, TransactableReadOperation<T> readOperation) {
-        this.mappedTable = mappedTable;
+    private ReadTransaction(MappedTableResource<T> mappedTableResource, TransactableReadOperation<T> readOperation) {
+        this.mappedTableResource = mappedTableResource;
         this.readOperation = readOperation;
     }
 
-    public static <T> ReadTransaction<T> of(MappedTable<T> mappedTable, TransactableReadOperation<T> readOperation) {
-        return new ReadTransaction<>(mappedTable, readOperation);
+    public static <T> ReadTransaction<T> create(MappedTableResource<T> mappedTableResource,
+                                            TransactableReadOperation<T> readOperation) {
+
+        return new ReadTransaction<>(mappedTableResource, readOperation);
     }
 
-    public MappedTable<T> mappedTable() {
-        return mappedTable;
+    public MappedTableResource<T> mappedTableResource() {
+        return mappedTableResource;
     }
 
     public TransactableReadOperation<T> readOperation() {
@@ -44,9 +46,9 @@ public class ReadTransaction<T> {
     }
 
     TransactGetItem generateTransactGetItem() {
-        return readOperation.generateTransactGetItem(mappedTable.tableSchema(),
-                                                     OperationContext.of(mappedTable.tableName()),
-                                                     mappedTable.mapperExtension());
+        return readOperation.generateTransactGetItem(mappedTableResource.tableSchema(),
+                                                     OperationContext.create(mappedTableResource.tableName()),
+                                                     mappedTableResource.mapperExtension());
     }
 
     @Override
@@ -60,7 +62,9 @@ public class ReadTransaction<T> {
 
         ReadTransaction<?> that = (ReadTransaction<?>) o;
 
-        if (mappedTable != null ? ! mappedTable.equals(that.mappedTable) : that.mappedTable != null) {
+        if (mappedTableResource != null ? !mappedTableResource.equals(that.mappedTableResource)
+            : that.mappedTableResource != null) {
+
             return false;
         }
         return readOperation != null ? readOperation.equals(that.readOperation) : that.readOperation == null;
@@ -68,7 +72,7 @@ public class ReadTransaction<T> {
 
     @Override
     public int hashCode() {
-        int result = mappedTable != null ? mappedTable.hashCode() : 0;
+        int result = mappedTableResource != null ? mappedTableResource.hashCode() : 0;
         result = 31 * result + (readOperation != null ? readOperation.hashCode() : 0);
         return result;
     }

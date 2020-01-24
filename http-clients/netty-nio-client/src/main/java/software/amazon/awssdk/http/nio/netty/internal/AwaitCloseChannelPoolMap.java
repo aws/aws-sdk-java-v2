@@ -31,6 +31,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -81,6 +82,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private final NettyConfiguration configuration;
     private final Protocol protocol;
     private final long maxStreams;
+    private final Duration healthCheckPingPeriod;
     private final int initialWindowSize;
     private final SslProvider sslProvider;
     private final ProxyConfiguration proxyConfiguration;
@@ -91,6 +93,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         this.configuration = builder.configuration;
         this.protocol = builder.protocol;
         this.maxStreams = builder.maxStreams;
+        this.healthCheckPingPeriod = builder.healthCheckPingPeriod;
         this.initialWindowSize = builder.initialWindowSize;
         this.sslProvider = builder.sslProvider;
         this.proxyConfiguration = builder.proxyConfiguration;
@@ -118,6 +121,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                                                                                         sslContext,
                                                                                         maxStreams,
                                                                                         initialWindowSize,
+                                                                                        healthCheckPingPeriod,
                                                                                         channelPoolRef,
                                                                                         configuration,
                                                                                         key);
@@ -174,7 +178,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
                         .channelFactory(sdkEventLoopGroup.channelFactory())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
                         // TODO run some performance tests with and without this.
-                        .remoteAddress(new InetSocketAddress(host, port));
+                        .remoteAddress(InetSocketAddress.createUnresolved(host, port));
         sdkChannelOptions.channelOptions().forEach(bootstrap::option);
 
         return bootstrap;
@@ -297,6 +301,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         private Protocol protocol;
         private long maxStreams;
         private int initialWindowSize;
+        private Duration healthCheckPingPeriod;
         private SslProvider sslProvider;
         private ProxyConfiguration proxyConfiguration;
 
@@ -330,6 +335,11 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         public Builder initialWindowSize(int initialWindowSize) {
             this.initialWindowSize = initialWindowSize;
+            return this;
+        }
+
+        public Builder healthCheckPingPeriod(Duration healthCheckPingPeriod) {
+            this.healthCheckPingPeriod = healthCheckPingPeriod;
             return this;
         }
 

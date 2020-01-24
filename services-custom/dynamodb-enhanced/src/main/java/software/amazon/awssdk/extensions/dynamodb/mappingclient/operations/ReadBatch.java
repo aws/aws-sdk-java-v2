@@ -26,29 +26,29 @@ import java.util.stream.Stream;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableReadOperation;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
 @SdkPublicApi
 public class ReadBatch<T> {
-    private final MappedTable<T> mappedTable;
+    private final MappedTableResource<T> mappedTableResource;
     private final Collection<BatchableReadOperation> readOperations;
 
-    private ReadBatch(MappedTable<T> mappedTable, Collection<BatchableReadOperation> readOperations) {
-        this.mappedTable = mappedTable;
+    private ReadBatch(MappedTableResource<T> mappedTableResource, Collection<BatchableReadOperation> readOperations) {
+        this.mappedTableResource = mappedTableResource;
         this.readOperations = readOperations;
     }
 
-    public static <T> ReadBatch<T> of(MappedTable<T> mappedTable,
+    public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       Collection<BatchableReadOperation> readOperations) {
-        return new ReadBatch<>(mappedTable, readOperations);
+        return new ReadBatch<>(mappedTableResource, readOperations);
     }
 
-    public static <T> ReadBatch<T> of(MappedTable<T> mappedTable,
+    public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       BatchableReadOperation... readOperations) {
-        return new ReadBatch<>(mappedTable, Arrays.asList(readOperations));
+        return new ReadBatch<>(mappedTableResource, Arrays.asList(readOperations));
     }
 
     void addReadRequestsToMap(Map<String, KeysAndAttributes> readRequestMap) {
@@ -67,7 +67,7 @@ public class ReadBatch<T> {
     }
 
     String tableName() {
-        return mappedTable.tableName();
+        return mappedTableResource.tableName();
     }
 
     private KeysAndAttributes generateKeysAndAttributes() {
@@ -91,7 +91,7 @@ public class ReadBatch<T> {
                               }
                           })
                           .map(BatchableReadOperation::key)
-                          .map(key -> key.keyMap(mappedTable.tableSchema(),
+                          .map(key -> key.keyMap(mappedTableResource.tableSchema(),
                                                  TableMetadata.primaryIndexName()))
                           .collect(Collectors.toList());
 
@@ -101,8 +101,8 @@ public class ReadBatch<T> {
                                 .build();
     }
 
-    public MappedTable<T> mappedTable() {
-        return mappedTable;
+    public MappedTableResource<T> mappedTableResource() {
+        return mappedTableResource;
     }
 
     public Collection<BatchableReadOperation> readOperations() {
@@ -120,7 +120,9 @@ public class ReadBatch<T> {
 
         ReadBatch<?> readBatch = (ReadBatch<?>) o;
 
-        if (mappedTable != null ? ! mappedTable.equals(readBatch.mappedTable) : readBatch.mappedTable != null) {
+        if (mappedTableResource != null ? !mappedTableResource.equals(readBatch.mappedTableResource) :
+            readBatch.mappedTableResource != null) {
+
             return false;
         }
         return readOperations != null ? readOperations.equals(readBatch.readOperations) : readBatch.readOperations == null;
@@ -128,7 +130,7 @@ public class ReadBatch<T> {
 
     @Override
     public int hashCode() {
-        int result = mappedTable != null ? mappedTable.hashCode() : 0;
+        int result = mappedTableResource != null ? mappedTableResource.hashCode() : 0;
         result = 31 * result + (readOperations != null ? readOperations.hashCode() : 0);
         return result;
     }

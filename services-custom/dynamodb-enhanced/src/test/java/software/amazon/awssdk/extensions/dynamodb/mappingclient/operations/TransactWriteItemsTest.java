@@ -80,7 +80,7 @@ public class TransactWriteItemsTest {
 
     @Test
     public void generateRequest_multipleTransactions() {
-        TransactWriteItems operation = TransactWriteItems.of(Arrays.asList(mockWriteTransaction1,
+        TransactWriteItems operation = TransactWriteItems.create(Arrays.asList(mockWriteTransaction1,
                                                                            mockWriteTransaction2));
 
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockMapperExtension);
@@ -95,7 +95,7 @@ public class TransactWriteItemsTest {
 
     @Test
     public void generateRequest_singleTransaction() {
-        TransactWriteItems operation = TransactWriteItems.of(mockWriteTransaction1);
+        TransactWriteItems operation = TransactWriteItems.create(mockWriteTransaction1);
 
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockMapperExtension);
 
@@ -109,7 +109,7 @@ public class TransactWriteItemsTest {
 
     @Test
     public void generateRequest_noTransactions() {
-        TransactWriteItems operation = TransactWriteItems.of();
+        TransactWriteItems operation = TransactWriteItems.create();
 
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockMapperExtension);
 
@@ -122,7 +122,7 @@ public class TransactWriteItemsTest {
 
     @Test
     public void getServiceCall_callsServiceAndReturnsResult() {
-        TransactWriteItems operation = TransactWriteItems.of();
+        TransactWriteItems operation = TransactWriteItems.create();
         TransactWriteItemsRequest request =
             TransactWriteItemsRequest.builder()
                                      .transactItems(Collections.singletonList(fakeTransactWriteItem1))
@@ -140,7 +140,7 @@ public class TransactWriteItemsTest {
 
     @Test
     public void transformResponse_doesNothing() {
-        TransactWriteItems operation = TransactWriteItems.of();
+        TransactWriteItems operation = TransactWriteItems.create();
         TransactWriteItemsResponse response = TransactWriteItemsResponse.builder().build();
 
         operation.transformResponse(response, mockMapperExtension);

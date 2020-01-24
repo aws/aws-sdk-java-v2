@@ -106,6 +106,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                              .protocol(protocol)
                                              .maxStreams(maxStreams)
                                              .initialWindowSize(initialWindowSize)
+                                             .healthCheckPingPeriod(resolveHealthCheckPingPeriod(http2Configuration))
                                              .sdkEventLoopGroup(sdkEventLoopGroup)
                                              .sslProvider(resolveSslProvider(builder))
                                              .proxyConfiguration(builder.proxyConfiguration)
@@ -174,6 +175,13 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             return DEFAULT_INITIAL_WINDOW_SIZE;
         }
         return http2Configuration.initialWindowSize();
+    }
+
+    private Duration resolveHealthCheckPingPeriod(Http2Configuration http2Configuration) {
+        if (http2Configuration != null) {
+            return http2Configuration.healthCheckPingPeriod();
+        }
+        return null;
     }
 
     private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {

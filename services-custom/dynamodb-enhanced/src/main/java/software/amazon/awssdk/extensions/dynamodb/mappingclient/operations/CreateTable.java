@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.BillingMode;
@@ -54,7 +56,7 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
         this.globalSecondaryIndices = globalSecondaryIndices;
     }
 
-    public static <T> CreateTable<T> of(ProvisionedThroughput provisionedThroughput) {
+    public static <T> CreateTable<T> create(ProvisionedThroughput provisionedThroughput) {
         return new CreateTable<>(provisionedThroughput, null, null);
     }
 
@@ -157,6 +159,13 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
     @Override
     public Function<CreateTableRequest, CreateTableResponse> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::createTable;
+    }
+
+    @Override
+    public Function<CreateTableRequest, CompletableFuture<CreateTableResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::createTable;
     }
 
     @Override

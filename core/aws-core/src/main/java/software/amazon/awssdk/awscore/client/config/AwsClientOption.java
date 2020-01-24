@@ -45,6 +45,14 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      */
     public static final AwsClientOption<String> SERVICE_SIGNING_NAME = new AwsClientOption<>(String.class);
 
+    /**
+     * The first part of the URL in the DNS name for the service. Eg. in the endpoint "dynamodb.amazonaws.com", this is the
+     * "dynamodb".
+     *
+     * For standard services, this should match the "endpointPrefix" field in the AWS model.
+     */
+    public static final AwsClientOption<String> ENDPOINT_PREFIX = new AwsClientOption<>(String.class);
+
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);
     }

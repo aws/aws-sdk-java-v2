@@ -20,7 +20,6 @@ import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
 public class LocalDynamoDbTestBase {
@@ -32,7 +31,6 @@ public class LocalDynamoDbTestBase {
                              .build();
 
     private String uniqueTableSuffix = UUID.randomUUID().toString();
-    private DynamoDbClient dynamoDbClient = localDynamoDb.createClient();
 
     @BeforeClass
     public static void initializeLocalDynamoDb() {
@@ -43,14 +41,14 @@ public class LocalDynamoDbTestBase {
     public static void stopLocalDynamoDb() {
         localDynamoDb.stop();
     }
+
+    protected static LocalDynamoDb localDynamoDb() {
+        return localDynamoDb;
+    }
     
     protected String getConcreteTableName(String logicalTableName) {
         return logicalTableName + "_" + uniqueTableSuffix;
 
-    }
-
-    protected DynamoDbClient getDynamoDbClient() {
-        return dynamoDbClient;
     }
 
     protected ProvisionedThroughput getDefaultProvisionedThroughput() {

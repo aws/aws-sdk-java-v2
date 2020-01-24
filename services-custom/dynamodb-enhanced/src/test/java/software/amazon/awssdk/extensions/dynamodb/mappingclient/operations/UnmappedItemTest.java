@@ -31,10 +31,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -51,18 +51,18 @@ public class UnmappedItemTest {
     MapperExtension mockMapperExtension;
 
     private MappedTable<FakeItem> createMappedTable(MapperExtension mapperExtension) {
-        return MappedDatabase.builder()
-                             .dynamoDbClient(mockDynamoDbClient)
-                             .extendWith(mapperExtension)
-                             .build()
-                             .table(TABLE_NAME, FakeItem.getTableSchema());
+        return DynamoDbMappedDatabase.builder()
+                                     .dynamoDbClient(mockDynamoDbClient)
+                                     .extendWith(mapperExtension)
+                                     .build()
+                                     .table(TABLE_NAME, FakeItem.getTableSchema());
     }
 
     @Test
     public void noExtension_mapsToItem() {
         FakeItem fakeItem = FakeItem.createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        UnmappedItem unmappedItem = UnmappedItem.of(fakeItemMap);
+        UnmappedItem unmappedItem = UnmappedItem.create(fakeItemMap);
 
         assertThat(unmappedItem.getItem(createMappedTable(null)), is(fakeItem));
     }
@@ -76,25 +76,25 @@ public class UnmappedItemTest {
         when(mockMapperExtension.afterRead(anyMap(), any(), any()))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap2).build());
 
-        UnmappedItem unmappedItem = UnmappedItem.of(fakeItemMap);
+        UnmappedItem unmappedItem = UnmappedItem.create(fakeItemMap);
 
         MappedTable<FakeItem> mappedTable = createMappedTable(mockMapperExtension);
         assertThat(unmappedItem.getItem(mappedTable), is(fakeItem2));
         verify(mockMapperExtension).afterRead(fakeItemMap,
-                                              OperationContext.of(mappedTable.tableName()),
+                                              OperationContext.create(mappedTable.tableName()),
                                               FakeItem.getTableMetadata());
     }
 
     @Test
     public void nullMapReturnsNullItem() {
-        UnmappedItem unmappedItem = UnmappedItem.of(null);
+        UnmappedItem unmappedItem = UnmappedItem.create(null);
 
         assertThat(unmappedItem.getItem(createMappedTable(null)), is(nullValue()));
     }
 
     @Test
     public void emptyMapReturnsNullItem() {
-        UnmappedItem unmappedItem = UnmappedItem.of(emptyMap());
+        UnmappedItem unmappedItem = UnmappedItem.create(emptyMap());
 
         assertThat(unmappedItem.getItem(createMappedTable(null)), is(nullValue()));
     }

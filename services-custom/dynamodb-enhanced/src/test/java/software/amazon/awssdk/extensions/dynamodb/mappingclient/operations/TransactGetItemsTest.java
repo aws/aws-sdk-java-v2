@@ -45,6 +45,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -67,7 +68,7 @@ public class TransactGetItemsTest {
                   .map(item -> FakeItem.getTableSchema().itemToMap(item, FakeItem.getTableMetadata().primaryKeys()))
                   .collect(toList());
     private static final List<Key> FAKE_ITEM_KEYS =
-        FAKE_ITEMS.stream().map(fakeItem -> Key.of(stringValue(fakeItem.getId()))).collect(toList());
+        FAKE_ITEMS.stream().map(fakeItem -> Key.create(stringValue(fakeItem.getId()))).collect(toList());
 
     private static final List<FakeItemWithSort> FAKESORT_ITEMS =
         IntStream.range(0, 6)
@@ -79,7 +80,7 @@ public class TransactGetItemsTest {
                                                    .itemToMap(item, FakeItemWithSort.getTableMetadata().primaryKeys()))
                       .collect(toList());
     private static final List<Key> FAKESORT_ITEM_KEYS =
-        FAKESORT_ITEMS.stream().map(fakeItemWithSort -> Key.of(stringValue(fakeItemWithSort.getId()),
+        FAKESORT_ITEMS.stream().map(fakeItemWithSort -> Key.create(stringValue(fakeItemWithSort.getId()),
                                                                stringValue(fakeItemWithSort.getSort()))).collect(toList());
 
     @Mock
@@ -94,7 +95,7 @@ public class TransactGetItemsTest {
 
     @Before
     public void setupMappedTables() {
-        mappedDatabase = MappedDatabase.builder().dynamoDbClient(mockDynamoDbClient).build();
+        mappedDatabase = DynamoDbMappedDatabase.builder().dynamoDbClient(mockDynamoDbClient).build();
         fakeItemMappedTable = mappedDatabase.table(TABLE_NAME, FakeItem.getTableSchema());
         fakeItemWithSortMappedTable = mappedDatabase.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
     }
@@ -102,10 +103,10 @@ public class TransactGetItemsTest {
     @Test
     public void generateRequest_getsFromMultipleTables() {
         TransactGetItems operation =
-            TransactGetItems.of(ReadTransaction.of(fakeItemMappedTable, GetItem.of(FAKE_ITEM_KEYS.get(0))),
-                                ReadTransaction.of(fakeItemWithSortMappedTable, GetItem.of(FAKESORT_ITEM_KEYS.get(0))),
-                                ReadTransaction.of(fakeItemWithSortMappedTable, GetItem.of(FAKESORT_ITEM_KEYS.get(1))),
-                                ReadTransaction.of(fakeItemMappedTable, GetItem.of(FAKE_ITEM_KEYS.get(1))));
+            TransactGetItems.create(ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))),
+                                ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(0))),
+                                ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(1))),
+                                ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(1))));
 
         List<TransactGetItem> transactGetItems = Arrays.asList(
             TransactGetItem.builder()
@@ -133,7 +134,7 @@ public class TransactGetItemsTest {
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         TransactGetItems operation =
-            TransactGetItems.of(ReadTransaction.of(fakeItemMappedTable, GetItem.of(FAKE_ITEM_KEYS.get(0))));
+            TransactGetItems.create(ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))));
 
         TransactGetItem transactGetItem =
             TransactGetItem.builder()
@@ -156,7 +157,7 @@ public class TransactGetItemsTest {
 
     @Test
     public void transformResponse_noExtension_returnsItemsFromDifferentTables() {
-        TransactGetItems operation = TransactGetItems.of();
+        TransactGetItems operation = TransactGetItems.create();
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -169,15 +170,15 @@ public class TransactGetItemsTest {
 
         List<UnmappedItem> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.of(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.of(FAKESORT_ITEM_MAPS.get(0)),
-                                    UnmappedItem.of(FAKESORT_ITEM_MAPS.get(1)),
-                                    UnmappedItem.of(FAKE_ITEM_MAPS.get(1))));
+        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
+                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(1)),
+                                    UnmappedItem.create(FAKE_ITEM_MAPS.get(1))));
     }
 
     @Test
     public void transformResponse_doesNotInteractWithExtension() {
-        TransactGetItems operation = TransactGetItems.of();
+        TransactGetItems operation = TransactGetItems.create();
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -195,7 +196,7 @@ public class TransactGetItemsTest {
 
     @Test
     public void transformResponse_noExtension_returnsNullsAsNulls() {
-        TransactGetItems operation = TransactGetItems.of();
+        TransactGetItems operation = TransactGetItems.create();
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -207,14 +208,14 @@ public class TransactGetItemsTest {
 
         List<UnmappedItem> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.of(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.of(FAKESORT_ITEM_MAPS.get(0)),
+        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
+                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
                                     null));
     }
 
     @Test
     public void transformResponse_noExtension_returnsEmptyAsNull() {
-        TransactGetItems operation = TransactGetItems.of();
+        TransactGetItems operation = TransactGetItems.create();
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -226,8 +227,8 @@ public class TransactGetItemsTest {
 
         List<UnmappedItem> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.of(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.of(FAKESORT_ITEM_MAPS.get(0)),
-                                    UnmappedItem.of(emptyMap())));
+        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
+                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    UnmappedItem.create(emptyMap())));
     }
 }

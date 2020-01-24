@@ -21,24 +21,26 @@ import java.util.Map;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedIndexOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedTableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.TransformIterable;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
-import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
 
 @SdkPublicApi
-public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Iterable<Page<T>>>,
-                                IndexOperation<T, ScanRequest, ScanIterable, Iterable<Page<T>>> {
+public class Scan<T> implements PaginatedTableOperation<T, ScanRequest, ScanResponse, Page<T>>,
+                                PaginatedIndexOperation<T, ScanRequest, ScanResponse, Page<T>> {
+
     private final Map<String, AttributeValue> exclusiveStartKey;
     private final Integer limit;
     private final Boolean consistentRead;
@@ -92,16 +94,27 @@ public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Ite
     }
 
     @Override
-    public Iterable<Page<T>> transformResponse(ScanIterable response,
-                                               TableSchema<T> tableSchema,
-                                               OperationContext operationContext,
-                                               MapperExtension mapperExtension) {
-        return TransformIterable.of(response, getScanResponseIterator(tableSchema, operationContext, mapperExtension));
+    public Page<T> transformResponse(ScanResponse response,
+                                     TableSchema<T> tableSchema,
+                                     OperationContext context,
+                                     MapperExtension mapperExtension) {
+
+        return readAndTransformPaginatedItems(response,
+                                              tableSchema,
+                                              context,
+                                              mapperExtension,
+                                              ScanResponse::items,
+                                              ScanResponse::lastEvaluatedKey);
     }
 
     @Override
-    public Function<ScanRequest, ScanIterable> serviceCall(DynamoDbClient dynamoDbClient) {
+    public Function<ScanRequest, SdkIterable<ScanResponse>> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::scanPaginator;
+    }
+
+    @Override
+    public Function<ScanRequest, SdkPublisher<ScanResponse>> asyncServiceCall(DynamoDbAsyncClient dynamoDbAsyncClient) {
+        return dynamoDbAsyncClient::scanPaginator;
     }
 
     public Map<String, AttributeValue> exclusiveStartKey() {
@@ -151,16 +164,6 @@ public class Scan<T> implements TableOperation<T, ScanRequest, ScanIterable, Ite
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         return result;
-    }
-
-    private Function<ScanResponse, Page<T>> getScanResponseIterator(TableSchema<T> tableSchema,
-                                                                    OperationContext operationContext,
-                                                                    MapperExtension mapperExtension) {
-        return readAndTransformPaginatedItems(tableSchema,
-                                              operationContext,
-                                              mapperExtension,
-                                              ScanResponse::items,
-                                              ScanResponse::lastEvaluatedKey);
     }
 
     public static final class Builder {
