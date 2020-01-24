@@ -16,6 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertFalse;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -26,8 +28,10 @@ import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Promise;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -175,6 +179,20 @@ public class MultiplexedChannelRecordTest {
         MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 0, Duration.ofSeconds(10));
 
         assertThat(record.acquireStream(null)).isFalse();
+    }
+
+    @Test
+    public void acquireClaimedConnection_channelClosed_shouldThrowIOException() {
+        loopGroup.register(channel).awaitUninterruptibly();
+        Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 1, Duration.ofSeconds(10));
+
+        record.closeChildChannels();
+
+        record.acquireClaimedStream(channelPromise);
+
+        assertThatThrownBy(() -> channelPromise.get()).hasCauseInstanceOf(IOException.class);
     }
 
     private EmbeddedChannel newHttp2Channel() {
