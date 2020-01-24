@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "description": "AWS DataSync now supports FSx for Windows File Server Locations"
-}

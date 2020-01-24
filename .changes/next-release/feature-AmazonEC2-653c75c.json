@@ -1,5 +1,0 @@
-{
-    "category": "Amazon EC2", 
-    "type": "feature", 
-    "description": "Adds EC2ThrottledException as a recognized throttling exception to be retried"
-}
