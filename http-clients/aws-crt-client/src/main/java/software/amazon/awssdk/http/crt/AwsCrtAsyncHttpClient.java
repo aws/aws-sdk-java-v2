@@ -100,11 +100,13 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         this.bootstrap = own(new ClientBootstrap(builder.eventLoopGroup, builder.hostResolver));
         this.socketOptions = own(new SocketOptions());
 
-        try (TlsContextOptions defaultClientOptions = TlsContextOptions.createDefaultClient()
+        /**
+         * Sonar raises a false-positive that the TlsContextOptions created here will not be closed.  Using a "NOSONAR"
+         * comment so that Sonar will ignore that false-positive.
+         */
+        this.tlsContextOptions = own(TlsContextOptions.createDefaultClient() // NOSONAR
                 .withCipherPreference(builder.cipherPreference)
-                .withVerifyPeer(builder.verifyPeer)) {
-            this.tlsContextOptions = own(defaultClientOptions);
-        }
+                .withVerifyPeer(builder.verifyPeer));
 
         this.tlsContext = own(new TlsContext(this.tlsContextOptions));
         this.windowSize = builder.windowSize;
