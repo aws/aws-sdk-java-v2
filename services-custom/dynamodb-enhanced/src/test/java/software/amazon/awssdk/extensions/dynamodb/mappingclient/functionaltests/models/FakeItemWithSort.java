@@ -27,7 +27,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Sta
 
 public class FakeItemWithSort {
     private static final StaticTableSchema<FakeItemWithSort> FAKE_ITEM_MAPPER =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeItemWithSort.class)
                          .newItemSupplier(FakeItemWithSort::new)
                          .attributes(
                 stringAttribute("id", FakeItemWithSort::getId, FakeItemWithSort::setId).as(primaryPartitionKey()),

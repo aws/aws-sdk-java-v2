@@ -27,7 +27,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Sta
 
 public class FakeItemWithIndices {
     private static final StaticTableSchema<FakeItemWithIndices> FAKE_ITEM_MAPPER =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeItemWithIndices.class)
                          .newItemSupplier(FakeItemWithIndices::new)
                          .attributes(
                 stringAttribute("id", FakeItemWithIndices::getId, FakeItemWithIndices::setId).as(primaryPartitionKey()),

@@ -171,7 +171,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
                              stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
@@ -186,7 +186,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                          .build();
 
     private static final TableSchema<ShortRecord> SHORT_TABLE_SCHEMA =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(ShortRecord.class)
                              .newItemSupplier(ShortRecord::new)
                              .attributes(
                                  stringAttribute("id", ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
@@ -325,7 +325,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(PutItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
 
         Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value"))));
         assertThat(result, is(record));
@@ -352,7 +352,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(PutItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
     }
 
     @Test
@@ -488,7 +488,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four");
-        Record result = mappedTable.execute(UpdateItem.builder().item(record2).ignoreNulls(true).build());
+        Record result = mappedTable.execute(UpdateItem.builder(Record.class).item(record2).ignoreNulls(true).build());
 
         Record expectedResult = new Record()
                                .setId("id-value")
@@ -539,7 +539,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         mappedTable.execute(PutItem.create(record));
         Record updateRecord = new Record().setId("id-value").setSort("sort-value");
 
-        Record result = mappedTable.execute(UpdateItem.builder().item(updateRecord).ignoreNulls(true).build());
+        Record result = mappedTable.execute(UpdateItem.builder(Record.class).item(updateRecord).ignoreNulls(true).build());
 
         assertThat(result, is(record));
     }
@@ -564,7 +564,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(UpdateItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
 
         Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value"))));
         assertThat(result, is(record));
@@ -591,7 +591,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(UpdateItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
     }
 
     @Test

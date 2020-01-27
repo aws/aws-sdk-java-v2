@@ -96,7 +96,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
                              stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
@@ -166,7 +166,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":v1", stringValue("one"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -187,7 +187,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(2))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -204,7 +204,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -220,7 +220,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":v1", stringValue("one"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                       .conditionExpression(conditionExpression)
                                       .build());
@@ -241,7 +241,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(2))
                                       .conditionExpression(conditionExpression)
                                       .build());
@@ -258,7 +258,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                       .conditionExpression(conditionExpression)
                                       .build());

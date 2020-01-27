@@ -125,7 +125,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final StaticTableSchema<Document> DOCUMENT_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Document.class)
                          .newItemSupplier(Document::new)
                          .attributes(
                              stringAttribute("documentAttribute1",
@@ -140,7 +140,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                          .build();
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()))
                          .flatten(DOCUMENT_SCHEMA, Record::getDocument, Record::setDocument)

@@ -105,7 +105,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                    .newItemSupplier(Record::new)
                    .attributes(
                        stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),

@@ -142,7 +142,7 @@ public class PutItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setSubclassAttribute("subclass-value");
 
-        PutItem<FakeItem> putItemOperation = PutItem.builder()
+        PutItem<FakeItem> putItemOperation = PutItem.builder(FakeItem.class)
                                                     .conditionExpression(CONDITION_EXPRESSION)
                                                     .item(fakeItem)
                                                     .build();
@@ -171,7 +171,7 @@ public class PutItemTest {
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(CONDITION_EXPRESSION_2).build());
         PutItem<FakeItem> putItemOperation =
-            PutItem.builder().item(baseFakeItem).conditionExpression(CONDITION_EXPRESSION).build();
+            PutItem.builder(FakeItem.class).item(baseFakeItem).conditionExpression(CONDITION_EXPRESSION).build();
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
