@@ -58,7 +58,7 @@ public class PutItem<T>
     }
 
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
-        return new Builder<T>();
+        return new Builder<>();
     }
 
     public Builder<T> toBuilder() {

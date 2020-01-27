@@ -61,7 +61,7 @@ public class StaticTableSchema<T> implements TableSchema<T> {
     }
 
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
-        return new Builder<T>();
+        return new Builder<>();
     }
 
     public static final class Builder<T> {
