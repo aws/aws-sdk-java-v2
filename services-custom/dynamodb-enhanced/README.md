@@ -41,7 +41,7 @@ values used are also completely arbitrary.
    class itself, or somewhere else :-
    ```java
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-     StaticTableSchema.builder()
+     StaticTableSchema.builder(Customer.class)
        .newItemSupplier(Customer::new)       // Tells the mapper how to make new objects when reading items
        .attributes(
          stringAttribute("account_id", 
@@ -243,7 +243,7 @@ public abstract class GenericRecord {
 }
 
 private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
-  StaticTableSchema.builder()
+  StaticTableSchema.builder(GenericRecord.class)
     .attributes(
           // The partition key will be inherited by the top level mapper
       stringAttribute("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
@@ -251,7 +251,7 @@ private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
     .build();
     
 private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-  StaticTableSchema.builder()
+  StaticTableSchema.builder(Customer.class)
     .newItemSupplier(Customer::new)
     .attributes(
       stringAttribute("name", Customer::getName, Customer::setName))
@@ -274,7 +274,7 @@ public class GenericRecord {
 }
 
 private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
-  StaticTableSchema.builder()
+  StaticTableSchema.builder(GenericRecord.class)
     .newItemSupplier(GenericRecord::new)
     .attributes(
       stringAttribute("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
@@ -282,7 +282,7 @@ private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
     .build();
     
 private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-  StaticTableSchema.builder()
+  StaticTableSchema.builder(Customer.class)
     .newItemSupplier(Customer::new)
     .attributes(stringAttribute("name", Customer::getName, Customer::setName))
     // Because we are flattening a component object, we supply a getter and setter so the
