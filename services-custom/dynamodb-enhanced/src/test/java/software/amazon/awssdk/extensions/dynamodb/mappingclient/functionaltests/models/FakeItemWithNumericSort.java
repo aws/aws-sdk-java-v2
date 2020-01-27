@@ -29,7 +29,7 @@ public class FakeItemWithNumericSort {
     private static final Random RANDOM = new Random();
 
     private static final StaticTableSchema<FakeItemWithNumericSort> FAKE_ITEM_MAPPER =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeItemWithNumericSort.class)
                          .newItemSupplier(FakeItemWithNumericSort::new)
                          .attributes(
                             stringAttribute("id", FakeItemWithNumericSort::getId, FakeItemWithNumericSort::setId)

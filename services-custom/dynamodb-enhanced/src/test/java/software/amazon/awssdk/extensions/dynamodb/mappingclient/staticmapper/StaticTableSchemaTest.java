@@ -61,7 +61,7 @@ public class StaticTableSchemaTest {
     private static final AttributeValue ATTRIBUTE_VALUE_S = AttributeValue.builder().s("test-string").build();
 
     private static final StaticTableSchema<FakeDocument> FAKE_DOCUMENT_TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeDocument.class)
                          .newItemSupplier(FakeDocument::new)
                          .attributes(
                              stringAttribute("documentString", FakeDocument::getDocumentString, FakeDocument::setDocumentString),
@@ -680,7 +680,7 @@ public class StaticTableSchemaTest {
         stringAttribute("a_string", FakeMappedItem::getAString, FakeMappedItem::setAString));
 
     private StaticTableSchema<FakeMappedItem> createSimpleTableSchema() {
-        return StaticTableSchema.builder()
+        return StaticTableSchema.builder(FakeMappedItem.class)
                                 .newItemSupplier(FakeMappedItem::new)
                                 .attributes(ATTRIBUTES)
                                 .build();
@@ -1111,7 +1111,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void buildAbstractTableSchema() {
-        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder()
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(FakeMappedItem.class)
                                                                          .attributes(stringAttribute("aString",
                                                                                      FakeMappedItem::getAString,
                                                                                      FakeMappedItem::setAString))
@@ -1127,7 +1127,7 @@ public class StaticTableSchemaTest {
     @Test
     public void buildAbstractWithFlatten() {
         StaticTableSchema<FakeMappedItem> tableSchema =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(FakeMappedItem.class)
                              .flatten(FAKE_DOCUMENT_TABLE_SCHEMA,
                                       FakeMappedItem::getAFakeDocument,
                                       FakeMappedItem::setAFakeDocument)
@@ -1143,14 +1143,14 @@ public class StaticTableSchemaTest {
     @Test
     public void buildAbstractExtends() {
         StaticTableSchema<FakeAbstractSuperclass> superclassTableSchema =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(FakeAbstractSuperclass.class)
                              .attributes(Attributes.stringAttribute("aString",
                                                            FakeAbstractSuperclass::getAString,
                                                            FakeAbstractSuperclass::setAString))
                              .build();
 
         StaticTableSchema<FakeAbstractSubclass> subclassTableSchema =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(FakeAbstractSubclass.class)
                              .<FakeAbstractSubclass>extend(superclassTableSchema)
                              .build();
 
@@ -1166,7 +1166,7 @@ public class StaticTableSchemaTest {
 
         StaticTableSchema<FakeDocument> abstractTableSchema =
             StaticTableSchema
-                .builder()
+                .builder(FakeDocument.class)
                 .tagWith(new TestTableTag())
                 .build();
 
@@ -1179,7 +1179,7 @@ public class StaticTableSchemaTest {
 
         StaticTableSchema<FakeDocument> concreteTableSchema =
             StaticTableSchema
-                .builder()
+                .builder(FakeDocument.class)
                 .newItemSupplier(FakeDocument::new)
                 .tagWith(new TestTableTag())
                 .build();
@@ -1191,7 +1191,7 @@ public class StaticTableSchemaTest {
     @Test
     public void instantiateFlattenedAbstractClassShouldThrowException() {
         StaticTableSchema<FakeAbstractSuperclass> superclassTableSchema =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(FakeAbstractSuperclass.class)
                              .attributes(Attributes.stringAttribute("aString",
                                                            FakeAbstractSuperclass::getAString,
                                                            FakeAbstractSuperclass::setAString))
@@ -1199,7 +1199,7 @@ public class StaticTableSchemaTest {
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("abstract");
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeBrokenClass.class)
                          .newItemSupplier(FakeBrokenClass::new)
                          .flatten(superclassTableSchema,
                                   FakeBrokenClass::getAbstractObject,
@@ -1210,7 +1210,7 @@ public class StaticTableSchemaTest {
                                  FakeMappedItem fakeMappedItem,
                                  AttributeValue attributeValue) {
 
-        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder()
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(FakeMappedItem.class)
                                                                          .newItemSupplier(FakeMappedItem::new)
                                                                          .attributes(mappedAttribute)
                                                                          .build();
@@ -1226,7 +1226,7 @@ public class StaticTableSchemaTest {
     private void verifyNullAttribute(AttributeSupplier<FakeMappedItem> mappedAttribute,
                                      FakeMappedItem fakeMappedItem) {
 
-        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder()
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(FakeMappedItem.class)
                                                                          .newItemSupplier(FakeMappedItem::new)
                                                                          .attributes(mappedAttribute)
                                                                          .build();

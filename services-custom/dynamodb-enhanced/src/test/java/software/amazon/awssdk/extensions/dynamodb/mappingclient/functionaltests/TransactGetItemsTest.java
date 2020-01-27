@@ -99,14 +99,14 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record1.class)
                          .newItemSupplier(Record1::new)
                          .attributes(
                              integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
                          .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(Record2.class)
                              .newItemSupplier(Record2::new)
                              .attributes(
                                  integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))

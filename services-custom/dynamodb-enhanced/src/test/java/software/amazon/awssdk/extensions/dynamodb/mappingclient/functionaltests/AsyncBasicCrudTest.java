@@ -173,7 +173,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                    .newItemSupplier(Record::new)
                    .attributes(
                        stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
@@ -188,7 +188,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                    .build();
 
     private static final TableSchema<ShortRecord> SHORT_TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(ShortRecord.class)
                    .newItemSupplier(ShortRecord::new)
                    .attributes(
                        stringAttribute("id", ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
@@ -332,7 +332,10 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build()).join();
+        mappedTable.execute(PutItem.builder(Record.class)
+                                   .item(record)
+                                   .conditionExpression(conditionExpression)
+                                   .build()).join();
 
         Record result =
             mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
@@ -361,7 +364,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
-        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build()).join();
+        mappedTable.execute(PutItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build()).join();
     }
 
     @Test
@@ -499,7 +502,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four");
-        Record result = mappedTable.execute(UpdateItem.builder().item(record2).ignoreNulls(true).build()).join();
+        Record result = mappedTable.execute(UpdateItem.builder(Record.class).item(record2).ignoreNulls(true).build()).join();
 
         Record expectedResult = new Record()
                                .setId("id-value")
@@ -550,7 +553,11 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
         mappedTable.execute(PutItem.create(record)).join();
         Record updateRecord = new Record().setId("id-value").setSort("sort-value");
 
-        Record result = mappedTable.execute(UpdateItem.builder().item(updateRecord).ignoreNulls(true).build()).join();
+        Record result = mappedTable.execute(UpdateItem.builder(Record.class)
+                                                      .item(updateRecord)
+                                                      .ignoreNulls(true)
+                                                      .build())
+                                   .join();
 
         assertThat(result, is(record));
     }
@@ -575,7 +582,11 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build()).join();
+        mappedTable.execute(UpdateItem.builder(Record.class)
+                                      .item(record)
+                                      .conditionExpression(conditionExpression)
+                                      .build())
+                   .join();
 
         Record result =
             mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
@@ -604,7 +615,11 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
-        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build()).join();
+        mappedTable.execute(UpdateItem.builder(Record.class)
+                                      .item(record)
+                                      .conditionExpression(conditionExpression)
+                                      .build())
+                   .join();
     }
 
     @Test

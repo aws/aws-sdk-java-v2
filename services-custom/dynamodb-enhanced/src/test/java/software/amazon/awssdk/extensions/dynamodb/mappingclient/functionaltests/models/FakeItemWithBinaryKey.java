@@ -25,7 +25,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Sta
 
 public class FakeItemWithBinaryKey {
     private static final StaticTableSchema<FakeItemWithBinaryKey> FAKE_ITEM_WITH_BINARY_KEY_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeItemWithBinaryKey.class)
                          .newItemSupplier(FakeItemWithBinaryKey::new)
                          .attributes(
                             binaryAttribute("id", FakeItemWithBinaryKey::getId, FakeItemWithBinaryKey::setId)
