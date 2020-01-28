@@ -37,18 +37,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GlobalSecondaryIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
@@ -162,11 +159,11 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
                                     .setGsiSort(record.gsiSort))
                .collect(Collectors.toList());
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
     private MappedIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {

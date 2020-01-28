@@ -26,19 +26,16 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
@@ -195,12 +192,12 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                              .build();
 
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-    private MappedTable<ShortRecord> mappedShortTable = mappedDatabase.table(getConcreteTableName("table-name"),
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<ShortRecord> mappedShortTable = enhancedClient.table(getConcreteTableName("table-name"),
                                                                              SHORT_TABLE_SCHEMA);
 
     @Rule

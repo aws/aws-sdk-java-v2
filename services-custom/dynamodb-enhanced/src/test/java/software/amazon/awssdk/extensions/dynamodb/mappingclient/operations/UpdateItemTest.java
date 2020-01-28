@@ -51,6 +51,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -58,8 +60,6 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateItemTest {

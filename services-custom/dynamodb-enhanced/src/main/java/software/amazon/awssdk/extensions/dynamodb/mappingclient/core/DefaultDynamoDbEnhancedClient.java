@@ -15,23 +15,21 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
-import java.util.concurrent.CompletableFuture;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-@SdkPublicApi
+@SdkInternalApi
 @ThreadSafe
-public final class DynamoDbAsyncMappedDatabase implements AsyncMappedDatabase {
-    private final DynamoDbAsyncClient dynamoDbClient;
+public class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
+    private final DynamoDbClient dynamoDbClient;
     private final MapperExtension mapperExtension;
 
-    private DynamoDbAsyncMappedDatabase(DynamoDbAsyncClient dynamoDbClient, MapperExtension mapperExtension) {
+    private DefaultDynamoDbEnhancedClient(DynamoDbClient dynamoDbClient, MapperExtension mapperExtension) {
         this.dynamoDbClient = dynamoDbClient;
         this.mapperExtension = mapperExtension;
     }
@@ -41,16 +39,16 @@ public final class DynamoDbAsyncMappedDatabase implements AsyncMappedDatabase {
     }
 
     @Override
-    public <T> CompletableFuture<T> execute(DatabaseOperation<?, ?, T> operation) {
-        return operation.executeAsync(dynamoDbClient, mapperExtension);
+    public <T> T execute(DatabaseOperation<?, ?, T> operation) {
+        return operation.execute(dynamoDbClient, mapperExtension);
     }
 
     @Override
-    public <T> DynamoDbAsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
-        return new DynamoDbAsyncMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    public <T> DynamoDbMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
+        return new DynamoDbMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
     }
 
-    public DynamoDbAsyncClient dynamoDbAsyncClient() {
+    public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
 
@@ -71,11 +69,9 @@ public final class DynamoDbAsyncMappedDatabase implements AsyncMappedDatabase {
             return false;
         }
 
-        DynamoDbAsyncMappedDatabase that = (DynamoDbAsyncMappedDatabase) o;
+        DefaultDynamoDbEnhancedClient that = (DefaultDynamoDbEnhancedClient) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient)
-            : that.dynamoDbClient != null) {
-
+        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
             return false;
         }
         return mapperExtension != null ? mapperExtension.equals(that.mapperExtension) : that.mapperExtension == null;
@@ -88,30 +84,27 @@ public final class DynamoDbAsyncMappedDatabase implements AsyncMappedDatabase {
         return result;
     }
 
-    public static final class Builder {
-        private DynamoDbAsyncClient dynamoDbClient;
+    public static final class Builder implements DynamoDbEnhancedClient.Builder {
+        private DynamoDbClient dynamoDbClient;
         private MapperExtension mapperExtension;
 
-        private Builder() {
-        }
-
-        public DynamoDbAsyncMappedDatabase build() {
+        public DefaultDynamoDbEnhancedClient build() {
             if (dynamoDbClient == null) {
                 throw new IllegalArgumentException("You must provide a DynamoDbClient to build a "
-                                                   + "DynamoDbMappedDatabase.");
+                                                   + "DefaultDynamoDbEnhancedClient.");
             }
 
-            return new DynamoDbAsyncMappedDatabase(dynamoDbClient, mapperExtension);
+            return new DefaultDynamoDbEnhancedClient(dynamoDbClient, mapperExtension);
         }
 
-        public Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbAsyncClient) {
-            this.dynamoDbClient = dynamoDbAsyncClient;
+        public Builder dynamoDbClient(DynamoDbClient dynamoDbClient) {
+            this.dynamoDbClient = dynamoDbClient;
             return this;
         }
 
         public Builder extendWith(MapperExtension mapperExtension) {
             if (mapperExtension != null && this.mapperExtension != null) {
-                throw new IllegalArgumentException("You may only extend a DynamoDbMappedDatabase with a single "
+                throw new IllegalArgumentException("You may only extend a DefaultDynamoDbEnhancedClient with a single "
                                                    + "extension. To combine multiple extensions, use the "
                                                    + "ChainMapperExtension.");
             }

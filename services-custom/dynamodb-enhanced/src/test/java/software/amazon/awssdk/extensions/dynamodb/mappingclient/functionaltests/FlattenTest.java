@@ -26,12 +26,10 @@ import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
@@ -147,11 +145,11 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                          .build();
 
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     @Before
     public void createTable() {

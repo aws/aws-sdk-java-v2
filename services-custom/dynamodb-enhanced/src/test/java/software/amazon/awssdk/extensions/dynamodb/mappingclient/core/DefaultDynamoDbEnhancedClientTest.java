@@ -23,8 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,12 +32,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DynamoDbAsyncMappedDatabaseTest {
+public class DefaultDynamoDbEnhancedClientTest {
     @Mock
-    private DynamoDbAsyncClient mockDynamoDbAsyncClient;
+    private DynamoDbClient mockDynamoDbClient;
     @Mock
     private MapperExtension mockMapperExtension;
     @Mock
@@ -48,23 +46,23 @@ public class DynamoDbAsyncMappedDatabaseTest {
     private TableSchema<Object> mockTableSchema;
 
     @InjectMocks
-    private DynamoDbAsyncMappedDatabase dynamoDbAsyncMappedDatabase;
+    private DefaultDynamoDbEnhancedClient dynamoDbEnhancedClient;
 
     @Test
     public void execute() {
-        when(mockDatabaseOperation.executeAsync(any(), any())).thenReturn(CompletableFuture.completedFuture("test"));
+        when(mockDatabaseOperation.execute(any(), any())).thenReturn("test");
 
-        String result = dynamoDbAsyncMappedDatabase.execute(mockDatabaseOperation).join();
+        String result = dynamoDbEnhancedClient.execute(mockDatabaseOperation);
 
         assertThat(result, is("test"));
-        verify(mockDatabaseOperation).executeAsync(mockDynamoDbAsyncClient, mockMapperExtension);
+        verify(mockDatabaseOperation).execute(mockDynamoDbClient, mockMapperExtension);
     }
 
     @Test
     public void table() {
-        DynamoDbAsyncMappedTable<Object> mappedTable = dynamoDbAsyncMappedDatabase.table("table-name", mockTableSchema);
+        DynamoDbMappedTable<Object> mappedTable = dynamoDbEnhancedClient.table("table-name", mockTableSchema);
 
-        assertThat(mappedTable.dynamoDbClient(), is(mockDynamoDbAsyncClient));
+        assertThat(mappedTable.dynamoDbClient(), is(mockDynamoDbClient));
         assertThat(mappedTable.mapperExtension(), is(mockMapperExtension));
         assertThat(mappedTable.tableSchema(), is(mockTableSchema));
         assertThat(mappedTable.tableName(), is("table-name"));
@@ -72,45 +70,43 @@ public class DynamoDbAsyncMappedDatabaseTest {
 
     @Test
     public void builder_minimal() {
-        DynamoDbAsyncMappedDatabase builtObject =
-            DynamoDbAsyncMappedDatabase.builder()
-                                       .dynamoDbClient(mockDynamoDbAsyncClient)
-                                       .build();
+        DefaultDynamoDbEnhancedClient builtObject = DefaultDynamoDbEnhancedClient.builder()
+                                                                                 .dynamoDbClient(mockDynamoDbClient)
+                                                                                 .build();
 
-        assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
+        assertThat(builtObject.dynamoDbClient(), is(mockDynamoDbClient));
         assertThat(builtObject.mapperExtension(), is(nullValue()));
     }
 
     @Test
     public void builder_maximal() {
-        DynamoDbAsyncMappedDatabase builtObject =
-            DynamoDbAsyncMappedDatabase.builder()
-                                       .dynamoDbClient(mockDynamoDbAsyncClient)
-                                       .extendWith(mockMapperExtension)
-                                       .build();
+        DefaultDynamoDbEnhancedClient builtObject = DefaultDynamoDbEnhancedClient.builder()
+                                                                                 .dynamoDbClient(mockDynamoDbClient)
+                                                                                 .extendWith(mockMapperExtension)
+                                                                                 .build();
 
-        assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
+        assertThat(builtObject.dynamoDbClient(), is(mockDynamoDbClient));
         assertThat(builtObject.mapperExtension(), is(mockMapperExtension));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void builder_missingDynamoDbClient() {
-        DynamoDbAsyncMappedDatabase.builder().extendWith(mockMapperExtension).build();
+        DefaultDynamoDbEnhancedClient.builder().extendWith(mockMapperExtension).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void builder_extraExtension() {
-        DynamoDbAsyncMappedDatabase.builder()
-                                   .dynamoDbClient(mockDynamoDbAsyncClient)
-                                   .extendWith(mockMapperExtension)
-                                   .extendWith(mock(MapperExtension.class))
-                                   .build();
+        DefaultDynamoDbEnhancedClient.builder()
+                                     .dynamoDbClient(mockDynamoDbClient)
+                                     .extendWith(mockMapperExtension)
+                                     .extendWith(mock(MapperExtension.class))
+                                     .build();
     }
 
     @Test
     public void toBuilder() {
-        DynamoDbAsyncMappedDatabase copiedObject = dynamoDbAsyncMappedDatabase.toBuilder().build();
+        DefaultDynamoDbEnhancedClient copiedObject = dynamoDbEnhancedClient.toBuilder().build();
 
-        assertThat(copiedObject, is(dynamoDbAsyncMappedDatabase));
+        assertThat(copiedObject, is(dynamoDbEnhancedClient));
     }
 }

@@ -26,16 +26,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbAsyncMappedDatabase;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
@@ -112,14 +110,15 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
                        integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
                    .build();
 
-    private AsyncMappedDatabase mappedDatabase = DynamoDbAsyncMappedDatabase.builder()
-                                                                            .dynamoDbClient(getDynamoDbAsyncClient())
-                                                                            .build();
+    private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
+        DefaultDynamoDbEnhancedAsyncClient.builder()
+                                          .dynamoDbClient(getDynamoDbAsyncClient())
+                                          .build();
 
-    private AsyncMappedTable<Record1> mappedTable1 = mappedDatabase.table(getConcreteTableName("table-name-1"),
-                                                                          TABLE_SCHEMA_1);
-    private AsyncMappedTable<Record2> mappedTable2 = mappedDatabase.table(getConcreteTableName("table-name-2"),
-                                                                     TABLE_SCHEMA_2);
+    private AsyncMappedTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
+                                                                               TABLE_SCHEMA_1);
+    private AsyncMappedTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
+                                                                               TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
@@ -157,7 +156,7 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.create(
+            enhancedAsyncClient.execute(TransactGetItems.create(
                 ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),                  
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
@@ -175,7 +174,7 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.create(
+            enhancedAsyncClient.execute(TransactGetItems.create(
                 ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),

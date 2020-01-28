@@ -28,19 +28,17 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 
 import java.util.Objects;
 import java.util.concurrent.CompletionException;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbAsyncMappedDatabase;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
@@ -197,14 +195,15 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                    .build();
 
 
-    private AsyncMappedDatabase mappedDatabase =
-        DynamoDbAsyncMappedDatabase.builder()
-                                   .dynamoDbClient(getDynamoDbAsyncClient())
-                                   .build();
+    private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
+        DefaultDynamoDbEnhancedAsyncClient.builder()
+                                          .dynamoDbClient(getDynamoDbAsyncClient())
+                                          .build();
 
-    private AsyncMappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-    private AsyncMappedTable<ShortRecord> mappedShortTable = mappedDatabase.table(getConcreteTableName("table-name"),
-                                                                             SHORT_TABLE_SCHEMA);
+    private AsyncMappedTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
+                                                                             TABLE_SCHEMA);
+    private AsyncMappedTable<ShortRecord> mappedShortTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
+                                                                                       SHORT_TABLE_SCHEMA);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();

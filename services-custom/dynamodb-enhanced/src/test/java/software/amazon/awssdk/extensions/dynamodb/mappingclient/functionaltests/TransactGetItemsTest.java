@@ -30,12 +30,10 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
@@ -101,25 +99,21 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
         StaticTableSchema.builder(Record1.class)
                          .newItemSupplier(Record1::new)
-                         .attributes(
-                             integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
+                         .attributes(integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
                          .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
             StaticTableSchema.builder(Record2.class)
                              .newItemSupplier(Record2::new)
-                             .attributes(
-                                 integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
+                             .attributes(integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
                              .build();
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record1> mappedTable1 = mappedDatabase.table(getConcreteTableName("table-name-1"),
-                                                                     TABLE_SCHEMA_1);
-    private MappedTable<Record2> mappedTable2 = mappedDatabase.table(getConcreteTableName("table-name-2"),
-                                                                     TABLE_SCHEMA_2);
+    private MappedTable<Record1> mappedTable1 = enhancedClient.table(getConcreteTableName("table-name-1"), TABLE_SCHEMA_1);
+    private MappedTable<Record2> mappedTable2 = enhancedClient.table(getConcreteTableName("table-name-2"), TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
@@ -157,7 +151,7 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.create(
+            enhancedClient.execute(TransactGetItems.create(
                 ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
@@ -175,7 +169,7 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.create(
+            enhancedClient.execute(TransactGetItems.create(
                 ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
                 ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),
