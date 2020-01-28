@@ -34,17 +34,15 @@ import java.util.Objects;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbAsyncMappedDatabase;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ConditionCheck;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
@@ -148,14 +146,15 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                        stringAttribute("attribute", Record2::getAttribute, Record2::setAttribute))
                    .build();
 
-    private AsyncMappedDatabase mappedDatabase = DynamoDbAsyncMappedDatabase.builder()
-                                                                            .dynamoDbClient(getDynamoDbAsyncClient())
-                                                                            .build();
+    private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
+        DefaultDynamoDbEnhancedAsyncClient.builder()
+                                          .dynamoDbClient(getDynamoDbAsyncClient())
+                                          .build();
 
-    private AsyncMappedTable<Record1> mappedTable1 = mappedDatabase.table(getConcreteTableName("table-name-1"),
-                                                                          TABLE_SCHEMA_1);
-    private AsyncMappedTable<Record2> mappedTable2 = mappedDatabase.table(getConcreteTableName("table-name-2"),
-                                                                     TABLE_SCHEMA_2);
+    private AsyncMappedTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
+                                                                               TABLE_SCHEMA_1);
+    private AsyncMappedTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
+                                                                               TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
@@ -188,7 +187,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         List<WriteTransaction> writeTransactions =
             singletonList(WriteTransaction.create(mappedTable1, PutItem.create(RECORDS_1.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
@@ -200,7 +199,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
             asList(WriteTransaction.create(mappedTable1, PutItem.create(RECORDS_1.get(0))),
                    WriteTransaction.create(mappedTable2, PutItem.create(RECORDS_2.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
@@ -213,7 +212,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         List<WriteTransaction> writeTransactions =
             singletonList(WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
@@ -225,7 +224,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
             asList(WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(0))),
                    WriteTransaction.create(mappedTable2, UpdateItem.create(RECORDS_2.get(0))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
@@ -240,7 +239,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         List<WriteTransaction> writeTransactions =
             singletonList(WriteTransaction.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(nullValue()));
@@ -255,7 +254,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
             asList(WriteTransaction.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))),
                    WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
         Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
@@ -277,7 +276,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         List<WriteTransaction> writeTransactions =
             singletonList(WriteTransaction.create(mappedTable1, ConditionCheck.create(key1, conditionExpression1)));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
     }
 
     @Test
@@ -298,7 +297,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
             asList(WriteTransaction.create(mappedTable1, ConditionCheck.create(key1, conditionExpression1)),
                    WriteTransaction.create(mappedTable2, ConditionCheck.create(key2, conditionExpression1)));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
     }
 
     @Test
@@ -320,7 +319,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                    WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(1))),
                    WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
 
-        mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+        enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
 
         assertThat(mappedTable1.execute(GetItem.create(Key.create(numberValue(1)))).join(), is(RECORDS_1.get(1)));
         assertThat(mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join(), is(nullValue()));
@@ -347,7 +346,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
                    WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
 
         try {
-            mappedDatabase.execute(TransactWriteItems.create(writeTransactions)).join();
+            enhancedAsyncClient.execute(TransactWriteItems.create(writeTransactions)).join();
             fail("Expected CompletionException to be thrown");
         } catch (CompletionException e) {
             assertThat(e.getCause(), instanceOf(TransactionCanceledException.class));

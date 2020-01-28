@@ -25,20 +25,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UnmappedItemTest {
@@ -51,7 +49,7 @@ public class UnmappedItemTest {
     MapperExtension mockMapperExtension;
 
     private MappedTable<FakeItem> createMappedTable(MapperExtension mapperExtension) {
-        return DynamoDbMappedDatabase.builder()
+        return DynamoDbEnhancedClient.builder()
                                      .dynamoDbClient(mockDynamoDbClient)
                                      .extendWith(mapperExtension)
                                      .build()

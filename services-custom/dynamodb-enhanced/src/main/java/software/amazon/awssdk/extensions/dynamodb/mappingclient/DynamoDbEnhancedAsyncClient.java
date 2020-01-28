@@ -18,14 +18,14 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 import java.util.concurrent.CompletableFuture;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbAsyncMappedDatabase;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 /**
- * Asynchronous interface for running commands against a DynamoDb database. See {@link DynamoDbAsyncMappedDatabase} for
- * an implementation of this interface that can statically created.
+ * Asynchronous interface for running commands against a DynamoDb database.
  */
 @SdkPublicApi
-public interface AsyncMappedDatabase {
+public interface DynamoDbEnhancedAsyncClient {
     /**
      * Executes a command against the database.
      *
@@ -46,4 +46,22 @@ public interface AsyncMappedDatabase {
      * @param <T> THe modelled object type being mapped to this table.
      */
     <T> AsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema);
+
+    /**
+     * Creates a default builder for {@link DynamoDbEnhancedAsyncClient}.
+     */
+    static DynamoDbEnhancedAsyncClient.Builder builder() {
+        return DefaultDynamoDbEnhancedAsyncClient.builder();
+    }
+
+    /**
+     * The builder definition for a {@link DynamoDbEnhancedAsyncClient}.
+     */
+    interface Builder {
+        Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbAsyncClient);
+
+        Builder extendWith(MapperExtension mapperExtension);
+
+        DynamoDbEnhancedAsyncClient build();
+    }
 }
