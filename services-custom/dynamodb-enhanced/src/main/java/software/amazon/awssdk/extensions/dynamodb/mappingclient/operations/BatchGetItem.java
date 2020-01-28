@@ -28,34 +28,34 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.TransformIterable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedDatabaseOperation;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
-import software.amazon.awssdk.services.dynamodb.paginators.BatchGetItemIterable;
 
 @SdkPublicApi
 public class BatchGetItem
-    implements DatabaseOperation<BatchGetItemRequest,
-                                 BatchGetItemIterable,
-                                 Iterable<BatchGetItem.ResultsPage>> {
+    implements PaginatedDatabaseOperation<BatchGetItemRequest, BatchGetItemResponse, BatchGetItem.ResultsPage> {
+
     private final Collection<ReadBatch> readBatches;
 
     private BatchGetItem(Collection<ReadBatch> readBatches) {
         this.readBatches = readBatches;
     }
 
-    public static BatchGetItem of(Collection<ReadBatch> readBatches) {
+    public static BatchGetItem create(Collection<ReadBatch> readBatches) {
         return new BatchGetItem(readBatches);
     }
 
-    public static BatchGetItem of(ReadBatch... readBatches) {
+    public static BatchGetItem create(ReadBatch... readBatches) {
         return new BatchGetItem(Arrays.asList(readBatches));
     }
 
@@ -78,15 +78,20 @@ public class BatchGetItem
     }
 
     @Override
-    public Iterable<ResultsPage> transformResponse(BatchGetItemIterable response,
-                                                   MapperExtension mapperExtension) {
-        return TransformIterable.of(response,
-            batchGetItemResponse -> new ResultsPage(batchGetItemResponse, mapperExtension));
+    public ResultsPage transformResponse(BatchGetItemResponse response, MapperExtension mapperExtension) {
+        return new ResultsPage(response, mapperExtension);
     }
 
     @Override
-    public Function<BatchGetItemRequest, BatchGetItemIterable> serviceCall(DynamoDbClient dynamoDbClient) {
+    public Function<BatchGetItemRequest, SdkIterable<BatchGetItemResponse>> serviceCall(DynamoDbClient dynamoDbClient) {
         return dynamoDbClient::batchGetItemPaginator;
+    }
+
+    @Override
+    public Function<BatchGetItemRequest, SdkPublisher<BatchGetItemResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::batchGetItemPaginator;
     }
 
     public Collection<ReadBatch> readBatches() {
@@ -145,7 +150,7 @@ public class BatchGetItem
             return results.stream()
                           .map(itemMap -> readAndTransformSingleItem(itemMap,
                                                                      mappedTable.tableSchema(),
-                                                                     OperationContext.of(mappedTable.tableName()),
+                                                                     OperationContext.create(mappedTable.tableName()),
                                                                      mapperExtension))
                           .collect(Collectors.toList());
         }

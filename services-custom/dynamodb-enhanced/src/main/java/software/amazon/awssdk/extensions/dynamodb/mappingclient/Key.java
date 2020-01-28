@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An object that represents a key that can be used to either identify a specific record or form part of a query
  * conditional. Keys are literal and hence not typed, and can be re-used in commands for different modelled types if
  * the literal values are to be the same.
- *
+ * <p>
  * A key will always have a single partition key value associated with it, and optionally will have a sort key value.
  * The names of the keys themselves are not part of this object.
  */
@@ -46,7 +46,7 @@ public class Key {
      * @param partitionKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the partition key.
      * @return A key.
      */
-    public static Key of(AttributeValue partitionKeyValue) {
+    public static Key create(AttributeValue partitionKeyValue) {
         return new Key(partitionKeyValue, null);
     }
 
@@ -56,7 +56,7 @@ public class Key {
      * @param sortKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the sort key.
      * @return A key.
      */
-    public static Key of(AttributeValue partitionKeyValue, AttributeValue sortKeyValue) {
+    public static Key create(AttributeValue partitionKeyValue, AttributeValue sortKeyValue) {
         return new Key(partitionKeyValue, sortKeyValue);
     }
 

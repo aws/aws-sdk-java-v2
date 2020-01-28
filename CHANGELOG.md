@@ -1,3 +1,55 @@
+# __2.10.56__ __2020-01-24__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports FSx for Windows File Server Locations
+
+## __AWS OpsWorks CM__
+  - ### Features
+    - AWS OpsWorks for Chef Automate now supports in-place upgrade to Chef Automate 2. Eligible servers can be updated through the management console, CLI and APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon EC2__
+  - ### Features
+    - Adds EC2ThrottledException as a recognized throttling exception to be retried
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release provides support for tagging Amazon ECS task sets for services using external deployment controllers.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding new error codes for Nodegroups in EKS
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation updates for WorkSpaces
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix issue where DNS resolution for a host is only made once for the initial request to the host. If the DNS entries change for a hostname, the client will resolve the new address until the client is closed and recreated.
+
+# __2.10.55__ __2020-01-23__
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release enables the Identity and Access Management policy simulator to simulate permissions boundary policies.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added ServiceMetadata.servicePartitions() to get partition metadata for a specific service
+    - Improved error messages on UnknownHostExceptions
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Support for non-blocking asynchronous calling of all mapper operations
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This SDK release introduces APIs that automate the export of Amazon RDS snapshot data to Amazon S3. The new APIs include: StartExportTask, CancelExportTask, DescribeExportTasks. These APIs automate the extraction of data from an RDS snapshot and export it to an Amazon S3 bucket. The data is stored in a compressed, consistent, and query-able format. After the data is exported, you can query it directly using tools such as Amazon Athena or Redshift Spectrum. You can also consume the data as part of a data lake solution. If you archive the data in S3 Infrequent Access or Glacier, you can reduce long term data storage costs by applying data lifecycle policies.
+
 # __2.10.54__ __2020-01-21__
 ## __AWS Application Discovery Service__
   - ### Features

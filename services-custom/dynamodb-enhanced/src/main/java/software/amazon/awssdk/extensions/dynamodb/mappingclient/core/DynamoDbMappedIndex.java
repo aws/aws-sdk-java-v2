@@ -19,10 +19,12 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Util
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedIndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -49,6 +51,15 @@ public class DynamoDbMappedIndex<T> implements MappedIndex<T> {
 
     @Override
     public <R> R execute(IndexOperation<T, ?, ?, R> operationToPerform) {
+        return operationToPerform.executeOnSecondaryIndex(tableSchema,
+                                                          tableName,
+                                                          indexName,
+                                                          mapperExtension,
+                                                          dynamoDbClient);
+    }
+
+    @Override
+    public <R> SdkIterable<R> execute(PaginatedIndexOperation<T, ?, ?, R> operationToPerform) {
         return operationToPerform.executeOnSecondaryIndex(tableSchema,
                                                           tableName,
                                                           indexName,

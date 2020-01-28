@@ -60,73 +60,17 @@ public class StaticTableSchema<T> implements TableSchema<T> {
                                 .collect(Collectors.toMap(Attribute::attributeName, Function.identity())));
     }
 
-    public static GenericBuilder builder() {
-        return new GenericBuilder();
-    }
-
-    public static class GenericBuilder {
-        private final StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
-
-        public <T> StaticTableSchema<T> build() {
-            Builder<T> newBuilder = new Builder<>(tableMetadataBuilder);
-            return newBuilder.build();
-        }
-
-        public <T> Builder<T> newItemSupplier(Supplier<T> newItemSupplier) {
-            Builder<T> newBuilder = new Builder<>(tableMetadataBuilder);
-            return newBuilder.newItemSupplier(newItemSupplier);
-        }
-
-        public <T, R> Builder<T> flatten(StaticTableSchema<R> otherTableSchema,
-                                         Function<T, R> otherItemGetter,
-                                         BiConsumer<T, R> otherItemSetter) {
-            Builder<T> newBuilder = new Builder<>(tableMetadataBuilder);
-            return newBuilder.flatten(otherTableSchema, otherItemGetter, otherItemSetter);
-        }
-
-        /**
-         * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by
-         * the super-class into the {@link StaticTableSchema} of the sub-class. If you are extending an abstract
-         * table schema that has no inferred type (due to having no attributes or a newItemSupplier) the compiler
-         * will not be able to correctly infer the type of the sub-class. To overcome this, specify the type
-         * explicitly as this example illustrates:
-         *
-         * {@code StaticTableSchema.builder().<Subclass>extend(superclassTableSchema).build(); }
-         *
-         * @param superTableSchema The {@link StaticTableSchema} of the super-class object.
-         * @param <T> The sub-class type of the {@link StaticTableSchema} being built.
-         * @return A strongly typed builder for the {@link StaticTableSchema} under construction.
-         */
-        public <T> Builder<T> extend(StaticTableSchema<? super T> superTableSchema) {
-            Builder<T> newBuilder = new Builder<>(tableMetadataBuilder);
-            return newBuilder.extend(superTableSchema);
-        }
-
-        @SafeVarargs
-        public final <T> Builder<T> attributes(AttributeSupplier<T>... mappedAttributes) {
-            Builder<T> newBuilder = new Builder<>(tableMetadataBuilder);
-            return newBuilder.attributes(mappedAttributes);
-        }
-
-        public final <T> Builder<T> attributes(Collection<AttributeSupplier<T>> mappedAttributes) {
-            Builder<T> newBuilder = new Builder<>(tableMetadataBuilder);
-            return newBuilder.attributes(mappedAttributes);
-        }
-
-        public GenericBuilder tagWith(TableTag... tableTags) {
-            Arrays.stream(tableTags).forEach(tableTag -> tableTag.setTableMetadata(tableMetadataBuilder));
-            return this;
-        }
+    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
+        return new Builder<>();
     }
 
     public static final class Builder<T> {
         private Supplier<T> newItemSupplier;
-        private final StaticTableMetadata.Builder tableMetadataBuilder;
+        private StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
         private final List<Attribute<T>> mappedAttributes = new ArrayList<>();
         private final Map<String, Attribute<T>> indexedMappers = new HashMap<>();
 
-        private Builder(StaticTableMetadata.Builder tableMetadataBuilder) {
-            this.tableMetadataBuilder = tableMetadataBuilder;
+        private Builder() {
         }
 
         public Builder<T> newItemSupplier(Supplier<T> newItemSupplier) {
@@ -170,6 +114,18 @@ public class StaticTableSchema<T> implements TableSchema<T> {
             return this;
         }
 
+        /**
+         * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by
+         * the super-class into the {@link StaticTableSchema} of the sub-class. If you are extending an abstract
+         * table schema that has no inferred type (due to having no attributes or a newItemSupplier) the compiler
+         * will not be able to correctly infer the type of the sub-class. To overcome this, specify the type
+         * explicitly as this example illustrates:
+         *
+         * {@code StaticTableSchema.builder().<Subclass>extend(superclassTableSchema).build(); }
+         *
+         * @param superTableSchema The {@link StaticTableSchema} of the super-class object.
+         * @return A strongly typed builder for the {@link StaticTableSchema} under construction.
+         */
         public Builder<T> extend(StaticTableSchema<? super T> superTableSchema) {
             // Upcast transform and merge attributes
             Stream<Attribute<T>> transformedAttributes =

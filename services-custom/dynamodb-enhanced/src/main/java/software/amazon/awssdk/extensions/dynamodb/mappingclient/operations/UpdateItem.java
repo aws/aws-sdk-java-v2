@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -65,12 +67,12 @@ public class UpdateItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> UpdateItem<T> of(T item) {
-        return UpdateItem.builder().item(item).build();
+    public static <T> UpdateItem<T> create(T item) {
+        return new Builder<T>().item(item).build();
     }
 
-    public static GenericBuilder builder() {
-        return new GenericBuilder();
+    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
+        return new Builder<>();
     }
 
     public Builder<T> toBuilder() {
@@ -177,6 +179,13 @@ public class UpdateItem<T>
     }
 
     @Override
+    public Function<UpdateItemRequest, CompletableFuture<UpdateItemResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::updateItem;
+    }
+
+    @Override
     public TransactWriteItem generateTransactWriteItem(TableSchema<T> tableSchema, OperationContext operationContext,
                                                        MapperExtension mapperExtension) {
         UpdateItemRequest updateItemRequest = generateRequest(tableSchema, operationContext, mapperExtension);
@@ -271,32 +280,6 @@ public class UpdateItem<T>
                          .expressionValues(Collections.unmodifiableMap(expressionAttributeValues))
                          .expressionNames(expressionAttributeNames)
                          .build();
-    }
-
-    public static class GenericBuilder {
-        private Boolean ignoreNulls;
-        private Expression conditionExpression;
-
-        private GenericBuilder() {
-        }
-
-        public GenericBuilder ignoreNulls(Boolean ignoreNulls) {
-            this.ignoreNulls = ignoreNulls;
-            return this;
-        }
-
-        public GenericBuilder conditionExpression(Expression conditionExpression) {
-            this.conditionExpression = conditionExpression;
-            return this;
-        }
-
-        public <T> Builder<T> item(T item) {
-            return new Builder<T>().item(item).ignoreNulls(ignoreNulls).conditionExpression(conditionExpression);
-        }
-
-        public UpdateItem<?> build() {
-            throw new UnsupportedOperationException("Cannot construct a UpdateItem operation without an item to put.");
-        }
     }
 
     public static final class Builder<T> {

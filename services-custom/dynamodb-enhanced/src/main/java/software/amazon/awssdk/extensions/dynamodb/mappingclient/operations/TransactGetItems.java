@@ -17,12 +17,14 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsResponse;
@@ -37,11 +39,11 @@ public class TransactGetItems
         this.readTransactions = readTransactions;
     }
 
-    public static TransactGetItems of(List<ReadTransaction> transactGetRequests) {
+    public static TransactGetItems create(List<ReadTransaction> transactGetRequests) {
         return new TransactGetItems(transactGetRequests);
     }
 
-    public static TransactGetItems of(ReadTransaction... readTransactions) {
+    public static TransactGetItems create(ReadTransaction... readTransactions) {
         return new TransactGetItems(Arrays.asList(readTransactions));
     }
 
@@ -68,10 +70,17 @@ public class TransactGetItems
     }
 
     @Override
+    public Function<TransactGetItemsRequest, CompletableFuture<TransactGetItemsResponse>> asyncServiceCall(
+        DynamoDbAsyncClient dynamoDbAsyncClient) {
+
+        return dynamoDbAsyncClient::transactGetItems;
+    }
+
+    @Override
     public List<UnmappedItem> transformResponse(TransactGetItemsResponse response, MapperExtension mapperExtension) {
         return response.responses()
                        .stream()
-                       .map(r -> r == null ? null : UnmappedItem.of(r.item()))
+                       .map(r -> r == null ? null : UnmappedItem.create(r.item()))
                        .collect(Collectors.toList());
     }
 

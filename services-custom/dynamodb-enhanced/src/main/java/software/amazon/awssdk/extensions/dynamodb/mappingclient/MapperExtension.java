@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Interface for extending the mapper. Two hooks are provided, one that is called just before a record is written to
  * the database, and one called just after a record is read from the database. This gives the extension the
  * opportunity to act as an invisible layer between the application and the database and transform the data accordingly.
- *
+ * <p>
  * Only one extension can be loaded with a mapped table. In order to combine multiple extensions, the
  * {@link ChainMapperExtension} should be used and initialized with all the component extensions to combine together
  * into a chain.

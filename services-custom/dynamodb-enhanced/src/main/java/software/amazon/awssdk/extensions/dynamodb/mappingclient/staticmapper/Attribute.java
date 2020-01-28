@@ -49,7 +49,7 @@ public class Attribute<T> {
         this.attributeValueType = attributeValueType;
     }
 
-    public static <T, R> AttributeSupplier<T> of(
+    public static <T, R> AttributeSupplier<T> create(
         String attributeName,
         Function<T, R> getAttributeMethod,
         BiConsumer<T, R> updateItemMethod,

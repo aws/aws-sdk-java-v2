@@ -57,6 +57,13 @@ public interface ServiceMetadata {
     List<Region> regions();
 
     /**
+     * Retrieve the service-specific partition configuration of each partition in which this service is currently available.
+     *
+     * @return The list of service-specific service metadata for each partition in which this service is available.
+     */
+    List<ServicePartitionMetadata> servicePartitions();
+
+    /**
      * Load the service metadata for the provided service endpoint prefix. This should only be used when you do not wish to have
      * a dependency on the service for which you are retrieving the metadata. When you have a dependency on the service client,
      * the metadata should instead be loaded using the service client's {@code serviceMetadata()} method.

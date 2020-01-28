@@ -34,7 +34,7 @@ public class ConditionCheck<T> implements TransactableWriteOperation<T> {
         this.conditionExpression = conditionExpression;
     }
 
-    public static <T> ConditionCheck<T> of(Key key, Expression conditionExpression) {
+    public static <T> ConditionCheck<T> create(Key key, Expression conditionExpression) {
         return new ConditionCheck<>(key, conditionExpression);
     }
 

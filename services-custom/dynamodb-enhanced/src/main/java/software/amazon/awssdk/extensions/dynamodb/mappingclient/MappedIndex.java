@@ -16,35 +16,36 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedTable;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 
 /**
- * Interface for running commands against an object that is linked to a specific DynamoDb secondary index and knows
- * how to map records from the table that index is linked to into a modelled object. This interface is extended by the
- * {@link DynamoDbMappedTable} interface as all commands that can be made against a secondary index can also be made
- * against the primary index.
- *
- * Typically an implementation for this interface can be obtained from a {@link MappedTable} which in turn can be
- * obtained from a {@link MappedDatabase}:
- *
- * mappedIndex = mappedDatabase.table(tableSchema).index("gsi_1");
+ * Synchronous interface for running commands against an object that is linked to a specific DynamoDb secondary index
+ * and knows how to map records from the table that index is linked to into a modelled object.
  *
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
 public interface MappedIndex<T> {
     /**
-     * Executes a command against the database with the context of the specific table and secondary index this object
-     * is linked to.
-     *
-     * Example: mappedIndex.execute(Scan.create());
+     * Executes a command that is expected to return a single data item against the database with the context of the
+     * specific table and secondary index this object is linked to.
      *
      * @param operationToPerform The operation to be performed in the context of the secondary index.
      * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
-     * @return The result of the operation being executed. The documentation on the operation itself should have more
-     * information.
+     * @return the result of the operation being executed. The documentation on the operation itself should have
+     * more information.
      */
     <R> R execute(IndexOperation<T, ?, ?, R> operationToPerform);
+
+    /**
+     * Executes a command that is expected to return a paginated list of data items against the database with the
+     * context of the specific table and secondary index this object is linked to.
+     *
+     * @param operationToPerform The operation to be performed in the context of the secondary index.
+     * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
+     * @return An {@link SdkIterable} that will return successive pages of result data items as it is iterated over.
+     */
+    <R> SdkIterable<R> execute(PaginatedIndexOperation<T, ?, ?, R> operationToPerform);
 
     /**
      * Gets the {@link MapperExtension} associated with this mapped resource.
