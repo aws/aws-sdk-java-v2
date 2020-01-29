@@ -14,9 +14,11 @@
  */
 
 
-package software.amazon.awssdk.http.nio.netty.internal.http2;
+package software.amazon.awssdk.http.nio.netty.fault;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -42,6 +44,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -67,7 +70,11 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.EmptyPublisher;
 import software.amazon.awssdk.http.nio.netty.Http2Configuration;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.internal.http2.PingFailedException;
 
+/**
+ * Testing the scenario where the server never acks PING
+ */
 public class PingTimeoutTest {
     @Rule
     public ExpectedException expected = ExpectedException.none();
@@ -93,21 +100,26 @@ public class PingTimeoutTest {
     }
 
     @Test
-    public void pingHealthCheck_null_defaultTo5Sec() {
+    public void pingHealthCheck_null_shouldThrowExceptionAfter5Sec() {
         Instant a = Instant.now();
-        makeRequest(null).join();
+        assertThatThrownBy(() -> makeRequest(null).join())
+            .hasMessageContaining("An error occurred on the connection")
+            .hasCauseInstanceOf(IOException.class)
+            .hasRootCauseInstanceOf(PingFailedException.class);
         assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(5), Duration.ofSeconds(7));
     }
 
     @Test
-    public void pingHealthCheck_10sec() {
+    public void pingHealthCheck_10sec_shouldThrowExceptionAfter10Secs() {
         Instant a = Instant.now();
-        makeRequest(Duration.ofSeconds(10)).join();
+        assertThatThrownBy(() -> makeRequest(Duration.ofSeconds(10)).join()).hasCauseInstanceOf(IOException.class)
+                                                                            .hasMessageContaining("An error occurred on the connection")
+                                                                            .hasRootCauseInstanceOf(PingFailedException.class);
         assertThat(Duration.between(a, Instant.now())).isBetween(Duration.ofSeconds(10), Duration.ofSeconds(12));
     }
 
     @Test
-    public void pingHealthCheck_0_disabled() throws Exception {
+    public void pingHealthCheck_0_disabled_shouldNotThrowException() throws Exception {
         expected.expect(TimeoutException.class);
         CompletableFuture<Void> requestFuture = makeRequest(Duration.ofMillis(0));
         try {

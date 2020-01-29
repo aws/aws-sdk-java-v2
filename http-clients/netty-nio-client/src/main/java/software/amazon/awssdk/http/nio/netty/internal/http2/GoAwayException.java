@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Exception thrown when a GOAWAY frame is sent by the service.
  */
 @SdkInternalApi
-class GoAwayException extends IOException {
+public class GoAwayException extends IOException {
     private final String message;
 
     GoAwayException(long errorCode, ByteBuf debugData) {
