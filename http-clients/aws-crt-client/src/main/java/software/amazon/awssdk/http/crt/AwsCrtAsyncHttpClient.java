@@ -145,13 +145,13 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.notNull(uri, "URI must not be null");
         log.debug(() -> "Creating ConnectionPool for: URI:" + uri + ", MaxConns: " + maxConnectionsPerEndpoint);
 
-        HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions();
-        options.withClientBootstrap(bootstrap)
-               .withSocketOptions(socketOptions)
-               .withTlsContext(tlsContext)
-               .withUri(uri)
-               .withWindowSize(windowSize)
-               .withMaxConnections(maxConnectionsPerEndpoint);
+        HttpClientConnectionManagerOptions options = new HttpClientConnectionManagerOptions()
+                .withClientBootstrap(bootstrap)
+                .withSocketOptions(socketOptions)
+                .withTlsContext(tlsContext)
+                .withUri(uri)
+                .withWindowSize(windowSize)
+                .withMaxConnections(maxConnectionsPerEndpoint);
 
         return HttpClientConnectionManager.create(options);
     }
@@ -244,7 +244,6 @@ public class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         crtConnPool.acquireConnection()
             .whenComplete((crtConn, throwable) -> {
-
                 // If we didn't get a connection for some reason, fail the request
                 if (throwable != null) {
                     requestFuture.completeExceptionally(throwable);
