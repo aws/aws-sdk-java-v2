@@ -13,9 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.internal.http2;
+package software.amazon.awssdk.http.nio.netty.fault;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -67,7 +68,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.EmptyPublisher;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.http2.GoAwayException;
 
 /**
  * Tests to ensure that the client behaves as expected when it receives GOAWAY messages.
@@ -130,11 +131,14 @@ public class GoAwayTest {
             }
         });
 
-        waitForFuture(request1);
-        waitForFuture(request2);
+        assertThatThrownBy(() -> request1.join())
+            .hasMessageContaining("GOAWAY received from service")
+            .hasCauseInstanceOf(GoAwayException.class);
 
-        assertThat(request1.isCompletedExceptionally()).isTrue();
-        assertThat(request2.isCompletedExceptionally()).isTrue();
+        assertThatThrownBy(() -> request2.join())
+            .hasMessageContaining("GOAWAY received from service")
+            .hasCauseInstanceOf(GoAwayException.class);
+
         assertThat(endpointDriver.currentConnectionCount.get()).isEqualTo(0);
     }
 
