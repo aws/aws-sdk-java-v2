@@ -83,7 +83,7 @@ public class BatchWriteItemOperation implements DatabaseOperation<BatchWriteItem
     // exfiltrate the objects from a raw-typed WriteBatch.
     private void addWriteRequestsToMap(WriteBatch writeBatch, Map<String, Collection<WriteRequest>> writeRequestMap) {
         MappedTableResource mappedTableResource = writeBatch.mappedTableResource();
-        Collection<BatchableWriteOperation> writeBatchOperations = writeBatch.writeOperations();
+        Collection<BatchableWriteOperation> writeBatchOperations = writeBatchOperations(writeBatch);
 
         Collection<WriteRequest> writeRequestsForTable = writeRequestMap
             .computeIfAbsent(mappedTableResource.tableName(), ignored -> new ArrayList<>());
@@ -94,5 +94,12 @@ public class BatchWriteItemOperation implements DatabaseOperation<BatchWriteItem
                                                                  OperationContext.create(mappedTableResource.tableName()),
                                                                  mappedTableResource.mapperExtension()))
                                                          .collect(Collectors.toList()));
+    }
+
+    // Extracting the unchecked call into a separate method for safety
+
+    @SuppressWarnings("unchecked")
+    private Collection<BatchableWriteOperation> writeBatchOperations(WriteBatch writeBatch) {
+        return writeBatch.writeOperations();
     }
 }

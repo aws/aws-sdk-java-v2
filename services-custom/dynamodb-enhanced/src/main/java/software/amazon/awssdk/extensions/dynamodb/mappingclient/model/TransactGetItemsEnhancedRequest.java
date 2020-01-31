@@ -17,6 +17,8 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -25,12 +27,12 @@ public class TransactGetItemsEnhancedRequest {
 
     private final List<ReadTransaction> readTransactions;
 
-    private TransactGetItemsEnhancedRequest(List<ReadTransaction> readTransactions) {
-        this.readTransactions = readTransactions;
+    private TransactGetItemsEnhancedRequest(Builder builder) {
+        this.readTransactions = Collections.unmodifiableList(builder.readTransactions);
     }
 
-    public static TransactGetItemsEnhancedRequest create(List<ReadTransaction> transactGetRequests) {
-        return new TransactGetItemsEnhancedRequest(transactGetRequests);
+    public static TransactGetItemsEnhancedRequest create(Collection<ReadTransaction> transactGetRequests) {
+        return builder().readTransactions(transactGetRequests).build();
     }
 
     public static Builder builder() {
@@ -70,8 +72,13 @@ public class TransactGetItemsEnhancedRequest {
         private Builder() {
         }
 
-        public Builder readTransactions(List<ReadTransaction> readTransactions) {
-            this.readTransactions = readTransactions;
+        public Builder readTransactions(Collection<ReadTransaction> readTransactions) {
+            this.readTransactions = new ArrayList<>(readTransactions);
+            return this;
+        }
+
+        public Builder readTransactions(ReadTransaction... readTransactions) {
+            this.readTransactions = Arrays.asList(readTransactions);
             return this;
         }
 
@@ -83,13 +90,8 @@ public class TransactGetItemsEnhancedRequest {
             return this;
         }
 
-        public Builder readTransactions(ReadTransaction... readTransactions) {
-            this.readTransactions = Arrays.asList(readTransactions);
-            return this;
-        }
-
         public TransactGetItemsEnhancedRequest build() {
-            return new TransactGetItemsEnhancedRequest(readTransactions);
+            return new TransactGetItemsEnhancedRequest(this);
         }
     }
 }

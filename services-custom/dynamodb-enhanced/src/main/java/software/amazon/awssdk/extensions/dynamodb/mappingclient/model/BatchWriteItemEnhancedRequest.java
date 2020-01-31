@@ -18,15 +18,21 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 @SdkPublicApi
 public class BatchWriteItemEnhancedRequest {
 
-    private final Collection<WriteBatch> writeBatches;
+    private final List<WriteBatch> writeBatches;
 
     private BatchWriteItemEnhancedRequest(Builder builder) {
-        this.writeBatches = builder.writeBatches;
+        this.writeBatches = Collections.unmodifiableList(builder.writeBatches);
+    }
+
+    public static BatchWriteItemEnhancedRequest create(Collection<WriteBatch> writeBatches) {
+        return builder().writeBatches(writeBatches).build();
     }
 
     public static Builder builder() {
@@ -61,13 +67,18 @@ public class BatchWriteItemEnhancedRequest {
     }
 
     public static final class Builder {
-        private Collection<WriteBatch> writeBatches;
+        private List<WriteBatch> writeBatches;
 
         private Builder() {
         }
 
         public Builder writeBatches(Collection<WriteBatch> writeBatches) {
-            this.writeBatches = writeBatches;
+            this.writeBatches = new ArrayList<>(writeBatches);
+            return this;
+        }
+
+        public Builder writeBatches(WriteBatch... writeBatches) {
+            this.writeBatches = Arrays.asList(writeBatches);
             return this;
         }
 
@@ -76,11 +87,6 @@ public class BatchWriteItemEnhancedRequest {
                 writeBatches = new ArrayList<>();
             }
             writeBatches.add(writeBatch);
-            return this;
-        }
-
-        public Builder writeBatches(WriteBatch... writeBatches) {
-            this.writeBatches = Arrays.asList(writeBatches);
             return this;
         }
 
