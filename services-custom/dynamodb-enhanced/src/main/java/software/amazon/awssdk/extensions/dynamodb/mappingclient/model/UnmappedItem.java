@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.readAndTransformSingleItem;
 

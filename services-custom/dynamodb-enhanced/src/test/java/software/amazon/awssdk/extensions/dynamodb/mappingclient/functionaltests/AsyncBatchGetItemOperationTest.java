@@ -29,21 +29,25 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ReadTransaction;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItems;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UnmappedItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncBatchGetItemOperationTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
         private Integer id;
 
@@ -130,6 +134,18 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
                  .mapToObj(i -> new Record2().setId(i))
                  .collect(Collectors.toList());
 
+    private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+        BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
+        publisher.subscribe(subscriber);
+        subscriber.waitForCompletion(1000L);
+
+        assertThat(subscriber.isCompleted(), is(true));
+        assertThat(subscriber.bufferedError(), is(nullValue()));
+        assertThat(subscriber.bufferedItems().size(), is(expectedNumberOfResults));
+
+        return subscriber.bufferedItems();
+    }
+
     @Before
     public void createTable() {
         mappedTable1.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
@@ -155,30 +171,36 @@ public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
     public void getRecordsFromMultipleTables() {
         insertRecords();
 
-        List<UnmappedItem> results =
-            enhancedAsyncClient.execute(TransactGetItems.create(
-                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),                  
-                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
-                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))).join();
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
+            BatchGetItemEnhancedRequest.builder()
+                                       .readBatches(
+                                           ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
+                                           ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
+                                           ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
+                                           ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))
+                                       .build();
 
-        assertThat(results.size(), is(4));
-        assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
-        assertThat(results.get(1).getItem(mappedTable2), is(RECORDS_2.get(0)));
-        assertThat(results.get(2).getItem(mappedTable2), is(RECORDS_2.get(1)));
-        assertThat(results.get(3).getItem(mappedTable1), is(RECORDS_1.get(1)));
+        SdkPublisher<BatchGetResultPage> publisher = enhancedAsyncClient.batchGetItem(batchGetItemEnhancedRequest);
+
+        List<BatchGetResultPage> results = drainPublisher(publisher, 1);
+        assertThat(results.size(), is(1));
     }
 
     @Test
     public void notFoundRecordReturnsNull() {
         insertRecords();
 
-        List<UnmappedItem> results =
-            enhancedAsyncClient.execute(TransactGetItems.create(
-                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),
-                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))).join();
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .readTransactions(
+                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
+                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
+                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),
+                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1))))
+                                           )
+                                           .build();
+
+        List<UnmappedItem> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
