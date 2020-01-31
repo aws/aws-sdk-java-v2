@@ -15,10 +15,18 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 /**
@@ -26,16 +34,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
  */
 @SdkPublicApi
 public interface DynamoDbEnhancedAsyncClient {
-    /**
-     * Executes a command against the database.
-     *
-     * @param operation The operation to be performed in the context of the database.
-     * @param <T> The expected return type from the operation. This is typically inferred by the compiler.
-     *
-     * @return A {@link CompletableFuture} of the result of the operation being executed. The documentation on the
-     * operation itself should have more information.
-     */
-    <T> CompletableFuture<T> execute(DatabaseOperation<?, ?, T> operation);
 
     /**
      * Returns a mapped table that can be used to execute commands that work with mapped items against that table.
@@ -46,6 +44,22 @@ public interface DynamoDbEnhancedAsyncClient {
      * @param <T> THe modelled object type being mapped to this table.
      */
     <T> AsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema);
+
+    default SdkPublisher<BatchGetResultPage> batchGetItem(BatchGetItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default CompletableFuture<BatchWriteResult> batchWriteItem(BatchWriteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default CompletableFuture<List<UnmappedItem>> transactGetItems(TransactGetItemsEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default CompletableFuture<Void> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Creates a default builder for {@link DynamoDbEnhancedAsyncClient}.

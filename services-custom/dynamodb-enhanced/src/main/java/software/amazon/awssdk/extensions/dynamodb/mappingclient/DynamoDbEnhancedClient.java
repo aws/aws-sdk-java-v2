@@ -15,8 +15,17 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
@@ -24,15 +33,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  */
 @SdkPublicApi
 public interface DynamoDbEnhancedClient {
-    /**
-     * Executes a command against the database.
-     *
-     * @param operation The operation to be performed in the context of the database.
-     * @param <T> The expected return type from the operation. This is typically inferred by the compiler.
-     * @return The result of the operation being executed. The documentation on the operation itself should have more
-     * information.
-     */
-    <T> T execute(DatabaseOperation<?, ?, T> operation);
 
     /**
      * Returns a mapped table that can be used to execute commands that work with mapped items against that table.
@@ -43,6 +43,22 @@ public interface DynamoDbEnhancedClient {
      * @param <T> THe modelled object type being mapped to this table.
      */
     <T> MappedTable<T> table(String tableName, TableSchema<T> tableSchema);
+
+    default SdkIterable<BatchGetResultPage> batchGetItem(BatchGetItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default BatchWriteResult batchWriteItem(BatchWriteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default List<UnmappedItem> transactGetItems(TransactGetItemsEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Creates a default builder for {@link DynamoDbEnhancedClient}.

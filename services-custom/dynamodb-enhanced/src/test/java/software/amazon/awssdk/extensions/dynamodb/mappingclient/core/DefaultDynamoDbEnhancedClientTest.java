@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -32,7 +33,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItemOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultDynamoDbEnhancedClientTest {
@@ -41,22 +47,12 @@ public class DefaultDynamoDbEnhancedClientTest {
     @Mock
     private MapperExtension mockMapperExtension;
     @Mock
-    private DatabaseOperation<?, ?, String> mockDatabaseOperation;
+    private DatabaseOperation<?, ?, BatchWriteResult> mockDatabaseOperation;
     @Mock
     private TableSchema<Object> mockTableSchema;
 
     @InjectMocks
     private DefaultDynamoDbEnhancedClient dynamoDbEnhancedClient;
-
-    @Test
-    public void execute() {
-        when(mockDatabaseOperation.execute(any(), any())).thenReturn("test");
-
-        String result = dynamoDbEnhancedClient.execute(mockDatabaseOperation);
-
-        assertThat(result, is("test"));
-        verify(mockDatabaseOperation).execute(mockDynamoDbClient, mockMapperExtension);
-    }
 
     @Test
     public void table() {

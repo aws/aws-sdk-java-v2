@@ -15,14 +15,25 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchGetItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItemsOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactWriteItemsOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkInternalApi
@@ -41,13 +52,32 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public <T> CompletableFuture<T> execute(DatabaseOperation<?, ?, T> operation) {
+    public <T> DynamoDbAsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
+        return new DynamoDbAsyncMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    }
+
+    @Override
+    public SdkPublisher<BatchGetResultPage> batchGetItem(BatchGetItemEnhancedRequest request) {
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
         return operation.executeAsync(dynamoDbClient, mapperExtension);
     }
 
     @Override
-    public <T> DynamoDbAsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
-        return new DynamoDbAsyncMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    public CompletableFuture<BatchWriteResult> batchWriteItem(BatchWriteItemEnhancedRequest request) {
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(request);
+        return operation.executeAsync(dynamoDbClient, mapperExtension);
+    }
+
+    @Override
+    public CompletableFuture<List<UnmappedItem>> transactGetItems(TransactGetItemsEnhancedRequest request) {
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(request);
+        return operation.executeAsync(dynamoDbClient, mapperExtension);
+    }
+
+    @Override
+    public CompletableFuture<Void> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
+        return operation.executeAsync(dynamoDbClient, mapperExtension);
     }
 
     public DynamoDbAsyncClient dynamoDbAsyncClient() {

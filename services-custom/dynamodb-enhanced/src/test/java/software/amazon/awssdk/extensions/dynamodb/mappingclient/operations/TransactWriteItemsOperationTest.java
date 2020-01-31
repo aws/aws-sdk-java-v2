@@ -15,37 +15,39 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TransactWriteItemsTest {
+public class TransactWriteItemsOperationTest {
+    private static final String TABLE_NAME = "table-name";
+
     private final FakeItem fakeItem1 = FakeItem.createUniqueFakeItem();
     private final FakeItem fakeItem2 = FakeItem.createUniqueFakeItem();
     private final Map<String, AttributeValue> fakeItemMap1 = FakeItem.getTableSchema().itemToMap(fakeItem1, true);
@@ -63,69 +65,82 @@ public class TransactWriteItemsTest {
     private TransactWriteItem fakeTransactWriteItem1 = TransactWriteItem.builder()
                                                                         .put(Put.builder()
                                                                                 .item(fakeItemMap1)
+                                                                                .tableName(TABLE_NAME)
                                                                                 .build())
                                                                         .build();
 
     private TransactWriteItem fakeTransactWriteItem2 = TransactWriteItem.builder()
-                                                                        .delete(Delete.builder()
-                                                                                      .key(fakeItemMap2)
-                                                                                      .build())
+                                                                        .put(Put.builder()
+                                                                                .item(fakeItemMap2)
+                                                                                .tableName(TABLE_NAME)
+                                                                                .build())
                                                                         .build();
 
+    private DynamoDbEnhancedClient enhancedClient;
+    private MappedTable<FakeItem> fakeItemMappedTable;
+    private MappedTable<FakeItemWithSort> fakeItemWithSortMappedTable;
+
     @Before
-    public void stubMocks() {
-        lenient().when(mockWriteTransaction1.generateRequest()).thenReturn(fakeTransactWriteItem1);
-        lenient().when(mockWriteTransaction2.generateRequest()).thenReturn(fakeTransactWriteItem2);
+    public void setupMappedTables() {
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).build();
+        fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
     }
 
     @Test
-    public void generateRequest_multipleTransactions() {
-        TransactWriteItems operation = TransactWriteItems.create(Arrays.asList(mockWriteTransaction1,
-                                                                           mockWriteTransaction2));
+    public void generateRequest_singleTransaction() {
+        TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactWriteItemsEnhancedRequest.builder()
+                                             .writeTransactions(
+                                                 WriteTransaction.create(fakeItemMappedTable, PutItem.create(fakeItem1)))
+                                             .build();
 
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockMapperExtension);
+        TransactWriteItemsRequest expectedRequest = TransactWriteItemsRequest.builder()
+                                                                             .transactItems(fakeTransactWriteItem1)
+                                                                             .build();
 
-        TransactWriteItemsRequest expectedRequest =
-            TransactWriteItemsRequest.builder()
-                                     .transactItems(Arrays.asList(fakeTransactWriteItem1, fakeTransactWriteItem2))
-                                     .build();
         assertThat(actualRequest, is(expectedRequest));
         verifyZeroInteractions(mockMapperExtension);
     }
 
     @Test
-    public void generateRequest_singleTransaction() {
-        TransactWriteItems operation = TransactWriteItems.create(mockWriteTransaction1);
+    public void generateRequest_multipleTransactions() {
+        TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactWriteItemsEnhancedRequest.builder()
+                                             .writeTransactions(
+                                                 WriteTransaction.create(fakeItemMappedTable, PutItem.create(fakeItem1)),
+                                                 WriteTransaction.create(fakeItemMappedTable, PutItem.create(fakeItem2)))
+                                             .build();
 
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockMapperExtension);
-
         TransactWriteItemsRequest expectedRequest =
             TransactWriteItemsRequest.builder()
-                                     .transactItems(Collections.singletonList(fakeTransactWriteItem1))
+                                     .transactItems(fakeTransactWriteItem1, fakeTransactWriteItem2)
                                      .build();
+
         assertThat(actualRequest, is(expectedRequest));
         verifyZeroInteractions(mockMapperExtension);
     }
 
     @Test
     public void generateRequest_noTransactions() {
-        TransactWriteItems operation = TransactWriteItems.create();
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(emptyRequest());
 
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockMapperExtension);
 
-        TransactWriteItemsRequest expectedRequest =
-            TransactWriteItemsRequest.builder()
-                                     .build();
+        TransactWriteItemsRequest expectedRequest = TransactWriteItemsRequest.builder().build();
         assertThat(actualRequest, is(expectedRequest));
         verifyZeroInteractions(mockMapperExtension);
     }
 
     @Test
     public void getServiceCall_callsServiceAndReturnsResult() {
-        TransactWriteItems operation = TransactWriteItems.create();
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(emptyRequest());
         TransactWriteItemsRequest request =
             TransactWriteItemsRequest.builder()
-                                     .transactItems(Collections.singletonList(fakeTransactWriteItem1))
+                                     .transactItems(singletonList(fakeTransactWriteItem1))
                                      .build();
         TransactWriteItemsResponse expectedResponse = TransactWriteItemsResponse.builder()
                                                                                 .build();
@@ -140,11 +155,15 @@ public class TransactWriteItemsTest {
 
     @Test
     public void transformResponse_doesNothing() {
-        TransactWriteItems operation = TransactWriteItems.create();
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(emptyRequest());
         TransactWriteItemsResponse response = TransactWriteItemsResponse.builder().build();
 
         operation.transformResponse(response, mockMapperExtension);
 
         verifyZeroInteractions(mockMapperExtension);
+    }
+
+    private static TransactWriteItemsEnhancedRequest emptyRequest() {
+        return TransactWriteItemsEnhancedRequest.builder().writeTransactions().build();
     }
 }

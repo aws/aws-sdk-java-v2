@@ -15,52 +15,43 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
 
-@SdkPublicApi
-public class TransactWriteItems
+@SdkInternalApi
+public class TransactWriteItemsOperation
     implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, Void> {
 
-    private final List<WriteTransaction> writeTransactions;
+    private TransactWriteItemsEnhancedRequest request;
 
-    private TransactWriteItems(List<WriteTransaction> writeTransactions) {
-        this.writeTransactions = writeTransactions;
+    private TransactWriteItemsOperation(TransactWriteItemsEnhancedRequest request) {
+        this.request = request;
     }
 
-    public static TransactWriteItems create(List<WriteTransaction> writeTransactions) {
-        return new TransactWriteItems(writeTransactions);
-    }
-
-    public static TransactWriteItems create(WriteTransaction... writeTransactions) {
-        return new TransactWriteItems(Arrays.asList(writeTransactions));
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public Builder toBuilder() {
-        return new Builder().writeTransactions(this.writeTransactions);
+    public static TransactWriteItemsOperation create(TransactWriteItemsEnhancedRequest request) {
+        return new TransactWriteItemsOperation(request);
     }
 
     @Override
     public TransactWriteItemsRequest generateRequest(MapperExtension mapperExtension) {
-        List<TransactWriteItem> requestItems = writeTransactions.stream()
-                                                                .map(WriteTransaction::generateRequest)
-                                                                .collect(Collectors.toList());
+
+        List<TransactWriteItem> requestItems = request.writeTransactions().stream()
+                                                      .map(this::generateRequest)
+                                                      .collect(Collectors.toList());
 
         return TransactWriteItemsRequest.builder()
                                         .transactItems(requestItems)
@@ -86,42 +77,13 @@ public class TransactWriteItems
         return dynamoDbAsyncClient::transactWriteItems;
     }
 
-    public List<WriteTransaction> writeTransactions() {
-        return writeTransactions;
+    private TransactWriteItem generateRequest(WriteTransaction writeTransaction) {
+        MappedTableResource mappedTableResource = writeTransaction.mappedTableResource();
+
+        return writeTransaction.writeOperation().generateTransactWriteItem(
+            mappedTableResource.tableSchema(),
+            OperationContext.create(mappedTableResource.tableName()),
+            mappedTableResource.mapperExtension());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        TransactWriteItems that = (TransactWriteItems) o;
-
-        return writeTransactions != null ? writeTransactions.equals(that.writeTransactions) : that.writeTransactions == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return writeTransactions != null ? writeTransactions.hashCode() : 0;
-    }
-
-    public static final class Builder {
-        private List<WriteTransaction> writeTransactions;
-
-        private Builder() {
-        }
-
-        public Builder writeTransactions(List<WriteTransaction> writeTransactions) {
-            this.writeTransactions = writeTransactions;
-            return this;
-        }
-
-        public TransactWriteItems build() {
-            return new TransactWriteItems(this.writeTransactions);
-        }
-    }
 }

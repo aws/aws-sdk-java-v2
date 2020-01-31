@@ -13,42 +13,43 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableReadOperation;
-import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
 @SdkPublicApi
-public class ReadTransaction<T> {
+public class WriteBatch<T> {
     private final MappedTableResource<T> mappedTableResource;
-    private final TransactableReadOperation<T> readOperation;
+    private final Collection<BatchableWriteOperation<T>> writeOperations;
 
-    private ReadTransaction(MappedTableResource<T> mappedTableResource, TransactableReadOperation<T> readOperation) {
+    private WriteBatch(MappedTableResource<T> mappedTableResource,
+                       Collection<BatchableWriteOperation<T>> writeOperations) {
         this.mappedTableResource = mappedTableResource;
-        this.readOperation = readOperation;
+        this.writeOperations = writeOperations;
     }
 
-    public static <T> ReadTransaction<T> create(MappedTableResource<T> mappedTableResource,
-                                            TransactableReadOperation<T> readOperation) {
+    public static <T> WriteBatch<T> create(MappedTableResource<T> mappedTableResource,
+                                       Collection<BatchableWriteOperation<T>> writeOperations) {
+        return new WriteBatch<>(mappedTableResource, writeOperations);
+    }
 
-        return new ReadTransaction<>(mappedTableResource, readOperation);
+    @SafeVarargs
+    public static <T> WriteBatch<T> create(MappedTableResource<T> mappedTableResource,
+                                       BatchableWriteOperation<T>... writeOperations) {
+        return new WriteBatch<>(mappedTableResource, Arrays.asList(writeOperations));
     }
 
     public MappedTableResource<T> mappedTableResource() {
         return mappedTableResource;
     }
 
-    public TransactableReadOperation<T> readOperation() {
-        return readOperation;
-    }
-
-    TransactGetItem generateTransactGetItem() {
-        return readOperation.generateTransactGetItem(mappedTableResource.tableSchema(),
-                                                     OperationContext.create(mappedTableResource.tableName()),
-                                                     mappedTableResource.mapperExtension());
+    public Collection<BatchableWriteOperation<T>> writeOperations() {
+        return writeOperations;
     }
 
     @Override
@@ -60,20 +61,21 @@ public class ReadTransaction<T> {
             return false;
         }
 
-        ReadTransaction<?> that = (ReadTransaction<?>) o;
+        WriteBatch<?> that = (WriteBatch<?>) o;
 
         if (mappedTableResource != null ? !mappedTableResource.equals(that.mappedTableResource)
             : that.mappedTableResource != null) {
 
             return false;
         }
-        return readOperation != null ? readOperation.equals(that.readOperation) : that.readOperation == null;
+        return writeOperations != null ? writeOperations.equals(that.writeOperations) : that.writeOperations == null;
     }
 
     @Override
     public int hashCode() {
         int result = mappedTableResource != null ? mappedTableResource.hashCode() : 0;
-        result = 31 * result + (readOperation != null ? readOperation.hashCode() : 0);
+        result = 31 * result + (writeOperations != null ? writeOperations.hashCode() : 0);
         return result;
     }
+
 }

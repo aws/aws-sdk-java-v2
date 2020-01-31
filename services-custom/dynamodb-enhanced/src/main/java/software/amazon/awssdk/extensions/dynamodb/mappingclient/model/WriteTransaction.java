@@ -13,13 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
-import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 /**
  * Encapsulates a single write transaction that can form a list of transactions that go into a TransactWriteItems
@@ -82,9 +80,4 @@ public class WriteTransaction<T> {
         return result;
     }
 
-    TransactWriteItem generateRequest() {
-        return writeOperation.generateTransactWriteItem(mappedTableResource.tableSchema(),
-                                                        OperationContext.create(mappedTableResource.tableName()),
-                                                        mappedTableResource.mapperExtension());
-    }
 }
