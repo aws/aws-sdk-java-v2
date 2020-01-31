@@ -47,7 +47,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -178,12 +178,12 @@ public class TransactGetItemsOperationTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<UnmappedItem> result = operation.transformResponse(response, null);
+        List<TransactGetResultPage> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(1)),
-                                    UnmappedItem.create(FAKE_ITEM_MAPS.get(1))));
+        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(1)),
+                                    TransactGetResultPage.create(FAKE_ITEM_MAPS.get(1))));
     }
 
     @Test
@@ -216,10 +216,10 @@ public class TransactGetItemsOperationTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<UnmappedItem> result = operation.transformResponse(response, null);
+        List<TransactGetResultPage> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
+        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
                                     null));
     }
 
@@ -235,11 +235,11 @@ public class TransactGetItemsOperationTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<UnmappedItem> result = operation.transformResponse(response, null);
+        List<TransactGetResultPage> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(emptyMap())));
+        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(emptyMap())));
     }
 
 

@@ -29,7 +29,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWrite
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchGetItemOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItemOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItemsOperation;
@@ -37,7 +37,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Trans
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkInternalApi
-@ThreadSafe
 public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhancedAsyncClient {
     private final DynamoDbAsyncClient dynamoDbClient;
     private final MapperExtension mapperExtension;
@@ -69,7 +68,7 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public CompletableFuture<List<UnmappedItem>> transactGetItems(TransactGetItemsEnhancedRequest request) {
+    public CompletableFuture<List<TransactGetResultPage>> transactGetItems(TransactGetItemsEnhancedRequest request) {
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(request);
         return operation.executeAsync(dynamoDbClient, mapperExtension);
     }

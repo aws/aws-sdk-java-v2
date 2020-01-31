@@ -104,7 +104,7 @@ public class BatchGetItemOperation
     // for any given table. The logic here uses the setting of the first getItem in a table batch and then checks
     // the rest are identical or throws an exception.
     private KeysAndAttributes generateKeysAndAttributes(ReadBatch readBatch) {
-        Collection<BatchableReadOperation> readOperations = readBatch.readOperations();
+        Collection<BatchableReadOperation> readOperations = readOperations(readBatch);
 
         AtomicReference<Boolean> consistentRead = new AtomicReference<>();
         AtomicBoolean firstRecord = new AtomicBoolean(true);
@@ -159,6 +159,13 @@ public class BatchGetItemOperation
         } else {
             return false;
         }
+    }
+
+    // Extracting the unchecked call into a separate method for safety
+
+    @SuppressWarnings("unchecked")
+    private Collection<BatchableReadOperation> readOperations(ReadBatch readBatch) {
+        return readBatch.readOperations();
     }
 
 }

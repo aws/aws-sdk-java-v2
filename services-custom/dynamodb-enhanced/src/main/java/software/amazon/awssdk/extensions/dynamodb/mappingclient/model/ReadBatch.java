@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableReadOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
@@ -25,16 +28,16 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResou
 @SdkPublicApi
 public class ReadBatch<T> {
     private final MappedTableResource<T> mappedTableResource;
-    private final Collection<BatchableReadOperation> readOperations;
+    private final List<BatchableReadOperation> readOperations;
 
-    private ReadBatch(MappedTableResource<T> mappedTableResource, Collection<BatchableReadOperation> readOperations) {
+    private ReadBatch(MappedTableResource<T> mappedTableResource, List<BatchableReadOperation> readOperations) {
         this.mappedTableResource = mappedTableResource;
-        this.readOperations = readOperations;
+        this.readOperations = Collections.unmodifiableList(readOperations);
     }
 
     public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       Collection<BatchableReadOperation> readOperations) {
-        return new ReadBatch<>(mappedTableResource, readOperations);
+        return new ReadBatch<>(mappedTableResource, new ArrayList<>(readOperations));
     }
 
     public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,

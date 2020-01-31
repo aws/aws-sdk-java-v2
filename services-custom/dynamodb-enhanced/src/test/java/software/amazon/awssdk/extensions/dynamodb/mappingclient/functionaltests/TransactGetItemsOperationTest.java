@@ -35,7 +35,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
@@ -158,7 +158,7 @@ public class TransactGetItemsOperationTest extends LocalDynamoDbSyncTestBase {
                                                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))
                                            .build();
 
-        List<UnmappedItem> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
+        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
@@ -180,7 +180,7 @@ public class TransactGetItemsOperationTest extends LocalDynamoDbSyncTestBase {
                                                ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))
                                            .build();
 
-        List<UnmappedItem> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
+        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));

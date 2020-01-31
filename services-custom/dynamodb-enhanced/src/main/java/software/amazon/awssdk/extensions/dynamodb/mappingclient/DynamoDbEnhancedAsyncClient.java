@@ -26,7 +26,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWrite
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 /**
@@ -53,7 +53,7 @@ public interface DynamoDbEnhancedAsyncClient {
         throw new UnsupportedOperationException();
     }
 
-    default CompletableFuture<List<UnmappedItem>> transactGetItems(TransactGetItemsEnhancedRequest request) {
+    default CompletableFuture<List<TransactGetResultPage>> transactGetItems(TransactGetItemsEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 

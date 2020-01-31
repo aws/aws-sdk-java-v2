@@ -18,15 +18,21 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 @SdkPublicApi
 public class BatchGetItemEnhancedRequest {
 
-    private final Collection<ReadBatch> readBatches;
+    private final List<ReadBatch> readBatches;
 
     private BatchGetItemEnhancedRequest(Builder builder) {
-        this.readBatches = builder.readBatches;
+        this.readBatches = Collections.unmodifiableList(builder.readBatches);
+    }
+
+    public static BatchGetItemEnhancedRequest create(Collection<ReadBatch> readBatches) {
+        return builder().readBatches(readBatches).build();
     }
 
     public static Builder builder() {
@@ -61,13 +67,18 @@ public class BatchGetItemEnhancedRequest {
     }
 
     public static final class Builder {
-        private Collection<ReadBatch> readBatches;
+        private List<ReadBatch> readBatches;
 
         private Builder() {
         }
 
         public Builder readBatches(Collection<ReadBatch> readBatches) {
-            this.readBatches = readBatches;
+            this.readBatches = new ArrayList<>(readBatches);
+            return this;
+        }
+
+        public Builder readBatches(ReadBatch... readBatches) {
+            this.readBatches = Arrays.asList(readBatches);
             return this;
         }
 
@@ -76,11 +87,6 @@ public class BatchGetItemEnhancedRequest {
                 readBatches = new ArrayList<>();
             }
             readBatches.add(readBatch);
-            return this;
-        }
-
-        public Builder readBatches(ReadBatch... readBatches) {
-            this.readBatches = Arrays.asList(readBatches);
             return this;
         }
 

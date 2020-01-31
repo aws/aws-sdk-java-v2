@@ -17,6 +17,8 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -25,8 +27,12 @@ public class TransactWriteItemsEnhancedRequest {
 
     private final List<WriteTransaction> writeTransactions;
 
-    private TransactWriteItemsEnhancedRequest(List<WriteTransaction> writeTransactions) {
-        this.writeTransactions = writeTransactions;
+    private TransactWriteItemsEnhancedRequest(Builder builder) {
+        this.writeTransactions = Collections.unmodifiableList(builder.writeTransactions);
+    }
+
+    public static TransactWriteItemsEnhancedRequest create(Collection<WriteTransaction> writeTransactions) {
+        return builder().writeTransactions(writeTransactions).build();
     }
 
     public static Builder builder() {
@@ -66,8 +72,13 @@ public class TransactWriteItemsEnhancedRequest {
         private Builder() {
         }
 
-        public Builder writeTransactions(List<WriteTransaction> writeTransactions) {
-            this.writeTransactions = writeTransactions;
+        public Builder writeTransactions(Collection<WriteTransaction> writeTransactions) {
+            this.writeTransactions = new ArrayList<>(writeTransactions);
+            return this;
+        }
+
+        public Builder writeTransactions(WriteTransaction... writeTransactions) {
+            this.writeTransactions = Arrays.asList(writeTransactions);
             return this;
         }
 
@@ -79,13 +90,8 @@ public class TransactWriteItemsEnhancedRequest {
             return this;
         }
 
-        public Builder writeTransactions(WriteTransaction... writeTransactions) {
-            this.writeTransactions = Arrays.asList(writeTransactions);
-            return this;
-        }
-
         public TransactWriteItemsEnhancedRequest build() {
-            return new TransactWriteItemsEnhancedRequest(this.writeTransactions);
+            return new TransactWriteItemsEnhancedRequest(this);
         }
     }
 }
