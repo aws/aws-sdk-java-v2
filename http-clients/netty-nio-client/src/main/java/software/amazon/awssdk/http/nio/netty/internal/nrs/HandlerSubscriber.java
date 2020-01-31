@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.utils.OrderedWriteChannelHandlerContext;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Subscriber that publishes received messages to the handler pipeline.
@@ -111,6 +113,10 @@ public class HandlerSubscriber<T> extends ChannelDuplexHandler implements Subscr
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         verifyRegisteredWithRightExecutor(ctx);
+
+        // Ensure that writes to the context happen consecutively, even if they're performed from within the event loop.
+        // See https://github.com/netty/netty/issues/7783
+        ctx = OrderedWriteChannelHandlerContext.wrap(ctx);
 
         switch (state) {
             case NO_SUBSCRIPTION_OR_CONTEXT:
@@ -238,11 +244,11 @@ public class HandlerSubscriber<T> extends ChannelDuplexHandler implements Subscr
     @Override
     public void onNext(T t) {
         // Publish straight to the context.
+        Validate.notNull(t, "Event must not be null.");
         lastWriteFuture = ctx.writeAndFlush(t);
         lastWriteFuture.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-
                 outstandingDemand--;
                 maybeRequestMore();
             }
