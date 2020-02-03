@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.protocolrestjson.model.InputEvent;
@@ -46,10 +47,12 @@ public class EventTransformTest {
     @BeforeClass
     public static void setup() {
         protocolFactory = AwsJsonProtocolFactory.builder()
-                .clientConfiguration(SdkClientConfiguration.builder()
-                        .option(SdkClientOption.ENDPOINT, URI.create("http://foo.amazonaws.com"))
-                        .build())
-                .build();
+                                                .clientConfiguration(
+                                                    SdkClientConfiguration.builder()
+                                                                          .option(SdkClientOption.ENDPOINT, URI.create("http://foo.amazonaws.com"))
+                                                                          .build())
+                                                .protocol(AwsJsonProtocol.AWS_JSON)
+                                                .build();
     }
 
     @Test
