@@ -201,9 +201,12 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             }
 
             byte[] content = jsonGenerator.getBytes();
-            request.contentStreamProvider(() -> new ByteArrayInputStream(content));
-            if (content.length > 0) {
-                request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+
+            if (content != null) {
+                request.contentStreamProvider(() -> new ByteArrayInputStream(content));
+                if (content.length > 0) {
+                    request.putHeader(CONTENT_LENGTH, Integer.toString(content.length));
+                }
             }
         }
 
@@ -214,7 +217,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         if (!request.headers().containsKey(CONTENT_TYPE) && !hasEvent) {
             if (hasEventStreamingInput) {
                 request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
-            } else if (contentType != null && !hasStreamingInput) {
+            } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
         }

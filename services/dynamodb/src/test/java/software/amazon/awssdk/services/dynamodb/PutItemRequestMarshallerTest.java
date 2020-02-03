@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -44,6 +45,7 @@ public class PutItemRequestMarshallerTest {
                                                         .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
                                                         .build())
                               .protocolVersion("1.1")
+                              .protocol(AwsJsonProtocol.AWS_JSON)
                               .build());
 
     /**l
