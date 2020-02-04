@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "description": "Updated ThrottlingException documentation to report that the error code is 400, and not 429, to reflect actual system behaviour."
+}
