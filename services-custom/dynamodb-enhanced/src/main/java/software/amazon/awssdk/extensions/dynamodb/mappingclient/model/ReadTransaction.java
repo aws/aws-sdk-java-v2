@@ -50,7 +50,7 @@ public class ReadTransaction<T> {
         return new Builder<T>().mappedTableResource(mappedTableResource).readOperation(readOperation).build();
     }
 
-    public static <T> Builder builder() {
+    public static <T> Builder<T> builder() {
         return new Builder<>();
     }
 
