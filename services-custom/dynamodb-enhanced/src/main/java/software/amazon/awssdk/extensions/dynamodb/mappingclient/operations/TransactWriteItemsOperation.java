@@ -21,9 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -50,7 +48,7 @@ public class TransactWriteItemsOperation
     public TransactWriteItemsRequest generateRequest(MapperExtension mapperExtension) {
 
         List<TransactWriteItem> requestItems = request.writeTransactions().stream()
-                                                      .map(this::generateRequest)
+                                                      .map(WriteTransaction::generateTransactWriteItem)
                                                       .collect(Collectors.toList());
 
         return TransactWriteItemsRequest.builder()
@@ -75,15 +73,6 @@ public class TransactWriteItemsOperation
         DynamoDbAsyncClient dynamoDbAsyncClient) {
 
         return dynamoDbAsyncClient::transactWriteItems;
-    }
-
-    private TransactWriteItem generateRequest(WriteTransaction writeTransaction) {
-        MappedTableResource mappedTableResource = writeTransaction.mappedTableResource();
-
-        return writeTransaction.writeOperation().generateTransactWriteItem(
-            mappedTableResource.tableSchema(),
-            OperationContext.create(mappedTableResource.tableName()),
-            mappedTableResource.mapperExtension());
     }
 
 }

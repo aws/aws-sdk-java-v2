@@ -17,15 +17,19 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 /**
- * Encapsulates a single write transaction that can form a list of transactions that go into a TransactWriteItems
- * operation. Example:
+ * Encapsulates a single write transaction that can form a list of transactions that go into a
+ * {@link TransactWriteItemsEnhancedRequest}.
+ * Example:
  *
  * {@code
- * WriteTransaction.of(myTable, putItem(myItem));
- * WriteTransaction.of(myTable, deleteItem(Key.of(stringValue("id123"))));
+ * WriteTransaction.create(myTable, putItem.create(myItem));
+ * WriteTransaction.create(myTable, deleteItem.create(Key.create(stringValue("id123"))));
  * }
  *
  * @param <T> The type of object this transaction applies to. Can be safely erased as it's not needed outside the
@@ -36,14 +40,22 @@ public class WriteTransaction<T> {
     private final MappedTableResource<T> mappedTableResource;
     private final TransactableWriteOperation<T> writeOperation;
 
-    private WriteTransaction(MappedTableResource<T> mappedTableResource, TransactableWriteOperation<T> writeOperation) {
-        this.mappedTableResource = mappedTableResource;
-        this.writeOperation = writeOperation;
+    private WriteTransaction(Builder<T> builder) {
+        this.mappedTableResource = builder.mappedTableResource;
+        this.writeOperation = builder.writeOperation;
     }
 
     public static <T> WriteTransaction<T> create(MappedTableResource<T> mappedTableResource,
                                              TransactableWriteOperation<T> writeOperation) {
-        return new WriteTransaction<>(mappedTableResource, writeOperation);
+        return new Builder<T>().mappedTableResource(mappedTableResource).writeOperation(writeOperation).build();
+    }
+
+    public static <T> Builder builder() {
+        return new Builder<>();
+    }
+
+    public Builder<T> toBuilder() {
+        return new Builder<T>().mappedTableResource(mappedTableResource).writeOperation(writeOperation);
     }
 
     public MappedTableResource<T> mappedTableResource() {
@@ -52,6 +64,20 @@ public class WriteTransaction<T> {
 
     public TransactableWriteOperation<T> writeOperation() {
         return writeOperation;
+    }
+
+    /**
+     * This method is used by the internal transactWriteItems operation to generate a transact write item used in the call to
+     * DynamoDb. Each {@link TransactableWriteOperation}, such as {@link PutItem}, creates a transact write item corresponding to
+     * that operation. The method should only be called from the transactWriteItems operation and should not be used for other
+     * purposes.
+     *
+     * @return A {@link TransactWriteItem} that will be used in calls to DynamoDb.
+     */
+    public TransactWriteItem generateTransactWriteItem() {
+        return writeOperation.generateTransactWriteItem(mappedTableResource.tableSchema(),
+                                                        OperationContext.create(mappedTableResource.tableName()),
+                                                        mappedTableResource.mapperExtension());
     }
 
     @Override
@@ -80,4 +106,25 @@ public class WriteTransaction<T> {
         return result;
     }
 
+    public static final class Builder<T> {
+        private MappedTableResource<T> mappedTableResource;
+        private TransactableWriteOperation<T> writeOperation;
+
+        private Builder() {
+        }
+
+        public Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource) {
+            this.mappedTableResource = mappedTableResource;
+            return this;
+        }
+
+        public Builder<T> writeOperation(TransactableWriteOperation<T> writeOperation) {
+            this.writeOperation = writeOperation;
+            return this;
+        }
+
+        public WriteTransaction<T> build() {
+            return new WriteTransaction<>(this);
+        }
+    }
 }

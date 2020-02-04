@@ -17,7 +17,6 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
@@ -27,8 +26,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetRe
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchGetItemOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItemOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItemsOperation;
