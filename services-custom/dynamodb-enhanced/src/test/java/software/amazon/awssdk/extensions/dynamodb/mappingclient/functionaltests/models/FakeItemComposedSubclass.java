@@ -23,7 +23,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Sta
 
 public class FakeItemComposedSubclass extends FakeItemComposedAbstractSubclass {
     private static final StaticTableSchema<FakeItemComposedSubclass> ITEM_MAPPER =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeItemComposedSubclass.class)
                          .newItemSupplier(FakeItemComposedSubclass::new)
                          .attributes(stringAttribute("composed_subclass",
                                             FakeItemComposedSubclass::getComposedAttribute,

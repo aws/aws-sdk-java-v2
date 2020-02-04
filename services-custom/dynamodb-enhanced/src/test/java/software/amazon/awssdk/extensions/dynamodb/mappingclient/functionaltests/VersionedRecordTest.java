@@ -24,19 +24,16 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
@@ -96,7 +93,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
                              stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
@@ -104,12 +101,12 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                              integerNumberAttribute("version", Record::getVersion, Record::setVersion).as(version()))
                          .build();
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .extendWith(VersionedRecordExtension.builder().build())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .extendWith(VersionedRecordExtension.builder().build())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -166,7 +163,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":v1", stringValue("one"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -187,7 +184,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(2))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -204,7 +201,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -220,7 +217,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":v1", stringValue("one"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                       .conditionExpression(conditionExpression)
                                       .build());
@@ -241,7 +238,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(2))
                                       .conditionExpression(conditionExpression)
                                       .build());
@@ -258,7 +255,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                       .conditionExpression(conditionExpression)
                                       .build());

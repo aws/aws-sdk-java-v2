@@ -32,25 +32,23 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.functiona
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemComposedClass;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PutItemTest {
@@ -142,7 +140,7 @@ public class PutItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setSubclassAttribute("subclass-value");
 
-        PutItem<FakeItem> putItemOperation = PutItem.builder()
+        PutItem<FakeItem> putItemOperation = PutItem.builder(FakeItem.class)
                                                     .conditionExpression(CONDITION_EXPRESSION)
                                                     .item(fakeItem)
                                                     .build();
@@ -171,7 +169,7 @@ public class PutItemTest {
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(CONDITION_EXPRESSION_2).build());
         PutItem<FakeItem> putItemOperation =
-            PutItem.builder().item(baseFakeItem).conditionExpression(CONDITION_EXPRESSION).build();
+            PutItem.builder(FakeItem.class).item(baseFakeItem).conditionExpression(CONDITION_EXPRESSION).build();
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,

@@ -42,20 +42,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
@@ -93,15 +90,15 @@ public class BatchGetItemTest {
     @Mock
     private MapperExtension mockExtension;
 
-    private MappedDatabase mappedDatabase;
+    private DynamoDbEnhancedClient enhancedClient;
     private MappedTable<FakeItem> fakeItemMappedTable;
     private MappedTable<FakeItemWithSort> fakeItemWithSortMappedTable;
 
     @Before
     public void setupMappedTables() {
-        mappedDatabase = DynamoDbMappedDatabase.builder().dynamoDbClient(mockDynamoDbClient).build();
-        fakeItemMappedTable = mappedDatabase.table(TABLE_NAME, FakeItem.getTableSchema());
-        fakeItemWithSortMappedTable = mappedDatabase.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).build();
+        fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
+        fakeItemWithSortMappedTable = enhancedClient.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
     }
 
     @Test

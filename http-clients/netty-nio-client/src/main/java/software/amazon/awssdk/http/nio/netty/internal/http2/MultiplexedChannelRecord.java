@@ -28,6 +28,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.ScheduledFuture;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -79,7 +81,7 @@ public class MultiplexedChannelRecord {
         return false;
     }
 
-    private void acquireClaimedStream(Promise<Channel> promise) {
+    void acquireClaimedStream(Promise<Channel> promise) {
         doInEventLoop(connection.eventLoop(), () -> {
             if (state != RecordState.OPEN) {
                 String message;
@@ -91,7 +93,7 @@ public class MultiplexedChannelRecord {
                     message = String.format("Connection %s was closed while acquiring new stream.", connection);
                 }
                 log.warn(() -> message);
-                promise.setFailure(new IllegalStateException(message));
+                promise.setFailure(new IOException(message));
                 return;
             }
 
@@ -105,6 +107,7 @@ public class MultiplexedChannelRecord {
                 }
 
                 Http2StreamChannel channel = future.getNow();
+                channel.pipeline().addLast(UnusedChannelExceptionHandler.getInstance());
                 childChannels.put(channel.id(), channel);
                 promise.setSuccess(channel);
 
@@ -183,7 +186,16 @@ public class MultiplexedChannelRecord {
      * Delivers the exception to all registered child channels, and prohibits new streams being created on this connection.
      */
     void closeChildChannels(Throwable t) {
-        closeAndExecuteOnChildChannels(ch -> ch.pipeline().fireExceptionCaught(t));
+        closeAndExecuteOnChildChannels(ch -> ch.pipeline().fireExceptionCaught(decorateConnectionException(t)));
+    }
+
+    private Throwable decorateConnectionException(Throwable t) {
+        String message = "An error occurred on the connection: " + t.getMessage();
+        if (t instanceof IOException) {
+            return new IOException(message, t);
+        }
+
+        return new Throwable(message, t);
     }
 
     private void closeAndExecuteOnChildChannels(Consumer<Channel> childChannelConsumer) {
@@ -201,7 +213,7 @@ public class MultiplexedChannelRecord {
         });
     }
 
-    public void closeAndReleaseChild(Channel childChannel) {
+    void closeAndReleaseChild(Channel childChannel) {
         childChannel.close();
         doInEventLoop(connection.eventLoop(), () -> {
             childChannels.remove(childChannel.id());
@@ -248,9 +260,10 @@ public class MultiplexedChannelRecord {
         return connection;
     }
 
-    public boolean claimStream() {
+    private boolean claimStream() {
         lastReserveAttemptTimeMillis = System.currentTimeMillis();
         for (int attempt = 0; attempt < 5; ++attempt) {
+
             if (state != RecordState.OPEN) {
                 return false;
             }

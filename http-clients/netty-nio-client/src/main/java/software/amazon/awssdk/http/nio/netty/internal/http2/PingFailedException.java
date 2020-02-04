@@ -19,7 +19,7 @@ import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-final class PingFailedException extends IOException {
+public final class PingFailedException extends IOException {
     PingFailedException(String msg) {
         super(msg);
     }

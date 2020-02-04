@@ -51,6 +51,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
@@ -58,8 +60,6 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateItemTest {
@@ -170,7 +170,7 @@ public class UpdateItemTest {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
         UpdateItem<FakeItemWithSort> updateItemOperation =
-            UpdateItem.builder().item(item).conditionExpression(CONDITION_EXPRESSION).build();
+            UpdateItem.builder(FakeItemWithSort.class).item(item).conditionExpression(CONDITION_EXPRESSION).build();
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -203,7 +203,7 @@ public class UpdateItemTest {
     public void generateRequest_explicitlyUnsetIgnoreNulls() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
-        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder().item(item).ignoreNulls(false).build();
+        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder(FakeItemWithSort.class).item(item).ignoreNulls(false).build();
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -235,7 +235,7 @@ public class UpdateItemTest {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
         item.setOtherAttribute2("value-2");
-        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder().item(item).ignoreNulls(false).build();
+        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder(FakeItemWithSort.class).item(item).ignoreNulls(false).build();
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -270,7 +270,10 @@ public class UpdateItemTest {
     @Test
     public void generateRequest_multipleDeletes() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
-        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder().item(item).ignoreNulls(false).build();
+        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder(FakeItemWithSort.class)
+                                                                   .item(item)
+                                                                   .ignoreNulls(false)
+                                                                   .build();
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -300,7 +303,7 @@ public class UpdateItemTest {
     public void generateRequest_canIgnoreNullValues() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
-        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder().item(item).ignoreNulls(true).build();
+        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder(FakeItemWithSort.class).item(item).ignoreNulls(true).build();
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -327,7 +330,10 @@ public class UpdateItemTest {
     @Test
     public void generateRequest_keyOnlyItem() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
-        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder().item(item).ignoreNulls(true).build();
+        UpdateItem<FakeItemWithSort> updateItemOperation = UpdateItem.builder(FakeItemWithSort.class)
+                .item(item)
+                .ignoreNulls(true)
+                .build();
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -379,7 +385,7 @@ public class UpdateItemTest {
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
 
 
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -419,7 +425,7 @@ public class UpdateItemTest {
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -443,7 +449,7 @@ public class UpdateItemTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition1).build());
 
 
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -467,7 +473,7 @@ public class UpdateItemTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition1).build());
 
 
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -492,7 +498,7 @@ public class UpdateItemTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
 
 
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -514,7 +520,7 @@ public class UpdateItemTest {
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
 
 
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -531,7 +537,7 @@ public class UpdateItemTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().build());
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -563,7 +569,7 @@ public class UpdateItemTest {
                                                                                     .build())
                                          .build());
 
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -586,7 +592,7 @@ public class UpdateItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true);
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();
@@ -608,7 +614,7 @@ public class UpdateItemTest {
     public void transformResponse_withNoOpExtension_returnsCorrectItem() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true);
-        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder()
+        UpdateItem<FakeItem> updateItemOperation = UpdateItem.builder(FakeItem.class)
                                                              .item(baseFakeItem)
                                                              .ignoreNulls(true)
                                                              .build();

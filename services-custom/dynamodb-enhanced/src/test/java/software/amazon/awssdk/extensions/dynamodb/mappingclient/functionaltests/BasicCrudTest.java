@@ -26,19 +26,16 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
@@ -171,7 +168,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
                              stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
@@ -186,7 +183,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                          .build();
 
     private static final TableSchema<ShortRecord> SHORT_TABLE_SCHEMA =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(ShortRecord.class)
                              .newItemSupplier(ShortRecord::new)
                              .attributes(
                                  stringAttribute("id", ShortRecord::getId, ShortRecord::setId).as(primaryPartitionKey()),
@@ -195,12 +192,12 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                              .build();
 
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-    private MappedTable<ShortRecord> mappedShortTable = mappedDatabase.table(getConcreteTableName("table-name"),
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<ShortRecord> mappedShortTable = enhancedClient.table(getConcreteTableName("table-name"),
                                                                              SHORT_TABLE_SCHEMA);
 
     @Rule
@@ -325,7 +322,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(PutItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
 
         Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value"))));
         assertThat(result, is(record));
@@ -352,7 +349,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(PutItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
     }
 
     @Test
@@ -488,7 +485,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four");
-        Record result = mappedTable.execute(UpdateItem.builder().item(record2).ignoreNulls(true).build());
+        Record result = mappedTable.execute(UpdateItem.builder(Record.class).item(record2).ignoreNulls(true).build());
 
         Record expectedResult = new Record()
                                .setId("id-value")
@@ -539,7 +536,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         mappedTable.execute(PutItem.create(record));
         Record updateRecord = new Record().setId("id-value").setSort("sort-value");
 
-        Record result = mappedTable.execute(UpdateItem.builder().item(updateRecord).ignoreNulls(true).build());
+        Record result = mappedTable.execute(UpdateItem.builder(Record.class).item(updateRecord).ignoreNulls(true).build());
 
         assertThat(result, is(record));
     }
@@ -564,7 +561,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(UpdateItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
 
         Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value"))));
         assertThat(result, is(record));
@@ -591,7 +588,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder().item(record).conditionExpression(conditionExpression).build());
+        mappedTable.execute(UpdateItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build());
     }
 
     @Test

@@ -26,12 +26,10 @@ import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
@@ -125,7 +123,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final StaticTableSchema<Document> DOCUMENT_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Document.class)
                          .newItemSupplier(Document::new)
                          .attributes(
                              stringAttribute("documentAttribute1",
@@ -140,18 +138,18 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                          .build();
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()))
                          .flatten(DOCUMENT_SCHEMA, Record::getDocument, Record::setDocument)
                          .build();
 
 
-    private MappedDatabase mappedDatabase = DynamoDbMappedDatabase.builder()
-                                                                  .dynamoDbClient(getDynamoDbClient())
-                                                                  .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     @Before
     public void createTable() {

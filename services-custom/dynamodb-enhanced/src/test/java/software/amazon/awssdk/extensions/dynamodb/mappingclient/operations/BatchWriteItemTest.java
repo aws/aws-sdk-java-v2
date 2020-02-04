@@ -41,22 +41,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItem.BatchWriteItemResults;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -65,8 +64,6 @@ import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BatchWriteItemTest {
@@ -94,7 +91,7 @@ public class BatchWriteItemTest {
     @Mock
     private MapperExtension mockExtension;
 
-    private MappedDatabase mappedDatabase;
+    private DynamoDbEnhancedClient enhancedClient;
     private MappedTable<FakeItem> fakeItemMappedTable;
     private MappedTable<FakeItem> fakeItemMappedTableWithExtension;
     private MappedTable<FakeItemWithSort> fakeItemWithSortMappedTable;
@@ -102,14 +99,14 @@ public class BatchWriteItemTest {
 
     @Before
     public void setupMappedTables() {
-        mappedDatabase = DynamoDbMappedDatabase.builder().dynamoDbClient(mockDynamoDbClient).build();
-        fakeItemMappedTable = mappedDatabase.table(TABLE_NAME, FakeItem.getTableSchema());
-        fakeItemWithSortMappedTable = mappedDatabase.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
-        MappedDatabase mappedDatabaseWithExtension =
-            DynamoDbMappedDatabase.builder().dynamoDbClient(mockDynamoDbClient).extendWith(mockExtension).build();
-        fakeItemMappedTableWithExtension = mappedDatabaseWithExtension.table(TABLE_NAME, FakeItem.getTableSchema());
-        fakeItemWithSortMappedTableWithExtension = mappedDatabaseWithExtension.table(TABLE_NAME_2,
-                                                                                     FakeItemWithSort.getTableSchema());
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).build();
+        fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
+        fakeItemWithSortMappedTable = enhancedClient.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
+        DynamoDbEnhancedClient dynamoDbEnhancedClientWithExtension =
+            DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extendWith(mockExtension).build();
+        fakeItemMappedTableWithExtension = dynamoDbEnhancedClientWithExtension.table(TABLE_NAME, FakeItem.getTableSchema());
+        fakeItemWithSortMappedTableWithExtension = dynamoDbEnhancedClientWithExtension.table(TABLE_NAME_2,
+                                                                                             FakeItemWithSort.getTableSchema());
     }
 
     @Test
