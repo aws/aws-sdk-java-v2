@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client [Preview]",
-    "description": "Adds specific operation methods to the enhanced client inteface, which take a request object as parameter. The execute() method is removed. There will be a corresponding refactoring for all enhanced table operations."
-}

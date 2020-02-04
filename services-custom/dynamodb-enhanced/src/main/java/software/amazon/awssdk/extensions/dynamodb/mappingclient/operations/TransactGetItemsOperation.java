@@ -21,16 +21,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableReadOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsResponse;
 
@@ -52,8 +48,8 @@ public class TransactGetItemsOperation
     public TransactGetItemsRequest generateRequest(MapperExtension mapperExtension) {
         return TransactGetItemsRequest.builder()
                                       .transactItems(request.readTransactions().stream()
-                                                                     .map(this::generateTransactGetItem)
-                                                                     .collect(Collectors.toList()))
+                                                            .map(ReadTransaction::generateTransactGetItem)
+                                                            .collect(Collectors.toList()))
                                       .build();
     }
 
@@ -75,15 +71,6 @@ public class TransactGetItemsOperation
                        .stream()
                        .map(r -> r == null ? null : TransactGetResultPage.create(r.item()))
                        .collect(Collectors.toList());
-    }
-
-    private TransactGetItem generateTransactGetItem(ReadTransaction readTransaction) {
-        MappedTableResource mappedTableResource = readTransaction.mappedTableResource();
-        TransactableReadOperation readOperation = readTransaction.readOperation();
-
-        return readOperation.generateTransactGetItem(mappedTableResource.tableSchema(),
-                                                     OperationContext.create(mappedTableResource.tableName()),
-                                                     mappedTableResource.mapperExtension());
     }
 
 }

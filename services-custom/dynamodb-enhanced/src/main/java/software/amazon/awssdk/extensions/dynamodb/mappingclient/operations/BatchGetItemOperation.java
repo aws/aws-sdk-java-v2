@@ -15,23 +15,18 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableReadOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedDatabaseOperation;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
@@ -86,7 +81,7 @@ public class BatchGetItemOperation
     private void addReadRequestsToMap(ReadBatch readBatch, Map<String, KeysAndAttributes> readRequestMap) {
         String tableName = readBatch.mappedTableResource().tableName();
 
-        KeysAndAttributes newKeysAndAttributes = generateKeysAndAttributes(readBatch);
+        KeysAndAttributes newKeysAndAttributes = readBatch.generateKeysAndAttributes();
         KeysAndAttributes existingKeysAndAttributes = readRequestMap.get(tableName);
 
         if (existingKeysAndAttributes == null) {
@@ -94,43 +89,8 @@ public class BatchGetItemOperation
             return;
         }
 
-        KeysAndAttributes mergedKeysAndAttributes = mergeKeysAndAttributes(existingKeysAndAttributes,
-                                                                           newKeysAndAttributes);
-
+        KeysAndAttributes mergedKeysAndAttributes = mergeKeysAndAttributes(existingKeysAndAttributes, newKeysAndAttributes);
         readRequestMap.put(tableName, mergedKeysAndAttributes);
-    }
-
-    // DynamoDB requires all component GetItem requests in a BatchGetItem to have the same consistentRead setting
-    // for any given table. The logic here uses the setting of the first getItem in a table batch and then checks
-    // the rest are identical or throws an exception.
-    private KeysAndAttributes generateKeysAndAttributes(ReadBatch readBatch) {
-        Collection<BatchableReadOperation> readOperations = readOperations(readBatch);
-
-        AtomicReference<Boolean> consistentRead = new AtomicReference<>();
-        AtomicBoolean firstRecord = new AtomicBoolean(true);
-
-        List<Map<String, AttributeValue>> keys =
-            readOperations.stream()
-                          .peek(operation -> {
-                              if (firstRecord.getAndSet(false)) {
-                                  consistentRead.set(operation.consistentRead());
-                              } else {
-                                  if (!compareNullableBooleans(consistentRead.get(), operation.consistentRead())) {
-                                      throw new IllegalArgumentException("All batchable read requests for the same "
-                                                                         + "table must have the same 'consistentRead' "
-                                                                         + "setting.");
-                                  }
-                              }
-                          })
-                          .map(BatchableReadOperation::key)
-                          .map(key -> key.keyMap(readBatch.mappedTableResource().tableSchema(),
-                                                 TableMetadata.primaryIndexName()))
-                          .collect(Collectors.toList());
-
-        return KeysAndAttributes.builder()
-                                .keys(keys)
-                                .consistentRead(consistentRead.get())
-                                .build();
     }
 
     private static KeysAndAttributes mergeKeysAndAttributes(KeysAndAttributes first, KeysAndAttributes second) {
@@ -159,13 +119,6 @@ public class BatchGetItemOperation
         } else {
             return false;
         }
-    }
-
-    // Extracting the unchecked call into a separate method for safety
-
-    @SuppressWarnings("unchecked")
-    private Collection<BatchableReadOperation> readOperations(ReadBatch readBatch) {
-        return readBatch.readOperations();
     }
 
 }
