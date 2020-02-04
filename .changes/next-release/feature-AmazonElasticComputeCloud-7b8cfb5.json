@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "Amazon VPC Flow Logs adds support for 1-minute aggregation intervals."
+}
