@@ -1,3 +1,50 @@
+# __2.10.57__ __2020-02-04__
+## __AWS IoT__
+  - ### Features
+    - Updated ThrottlingException documentation to report that the error code is 400, and not 429, to reflect actual system behaviour.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding KVM as a support hypervisor
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation updates for CloudFront
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Changing usage of typed builders for PutItem, UpdateItem and StaticTableSchema to explicitly provide class type.
+    - Renames top level sync/async MappedDatabase interfaces as DynamoDbEnhancedClient interfaces. Also adds builder definitions to the interfaces together with a static method that returns the default implementation of the builder.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC Flow Logs adds support for 1-minute aggregation intervals.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where fields in `ListObjectVersionsResponse` and `ListMultipartUploadsResponse` are not decoded correctly when encodingType is specified as url. See [#1601](https://github.com/aws/aws-sdk-java-v2/issues/1601)
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This feature ensures that an instance is patched up to the available patches on a particular date. It can be enabled by selecting the 'ApproveUntilDate' option as the auto-approval rule while creating the patch baseline. ApproveUntilDate - The cutoff date for auto approval of released patches. Any patches released on or before this date will be installed automatically.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for tagging Amazon WorkMail organizations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - This release enables AWS MSK customers to list Apache Kafka versions that are supported on AWS MSK clusters. Also includes changes to expose additional details of a cluster's state in DescribeCluster and ListClusters APIs.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Deliver exceptions to stream channels correctly if there's an exception thrown on connection. This also fixes a bug where publisher signals onComplete if the stream is closed as a result of outbound GOAWAY.
+    - Throws `IOException` for the race condition where an HTTP2 connection gets reused at the same time it gets inactive so that failed requests can be retried
+
 # __2.10.56__ __2020-01-24__
 ## __AWS DataSync__
   - ### Features

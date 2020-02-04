@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client [Preview]",
-    "description": "Changing usage of typed builders for PutItem, UpdateItem and StaticTableSchema to explicitly provide class type."
-}

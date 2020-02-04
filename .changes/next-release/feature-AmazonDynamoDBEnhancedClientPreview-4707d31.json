@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client [Preview]",
-    "description": "Renames top level sync/async MappedDatabase interfaces as DynamoDbEnhancedClient interfaces. Also adds builder definitions to the interfaces together with a static method that returns the default implementation of the builder."
-}
