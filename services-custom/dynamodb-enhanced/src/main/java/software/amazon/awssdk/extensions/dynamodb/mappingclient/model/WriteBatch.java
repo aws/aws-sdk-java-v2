@@ -62,7 +62,7 @@ public class WriteBatch<T> {
         return new Builder<T>().mappedTableResource(mappedTableResource).writeOperations(writeOperations).build();
     }
 
-    public static <T> Builder builder() {
+    public static <T> Builder<T> builder() {
         return new Builder<>();
     }
 

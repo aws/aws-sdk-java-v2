@@ -65,6 +65,14 @@ public class ReadBatch<T> {
         return new Builder<T>().mappedTableResource(mappedTableResource).readOperations(readOperations).build();
     }
 
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
+
+    public Builder<T> toBuilder() {
+        return new Builder<T>().mappedTableResource(mappedTableResource).readOperations(readOperations);
+    }
+
     public MappedTableResource<T> mappedTableResource() {
         return mappedTableResource;
     }
@@ -182,7 +190,7 @@ public class ReadBatch<T> {
         }
 
         public ReadBatch<T> build() {
-            return new ReadBatch<T>(this);
+            return new ReadBatch<>(this);
         }
     }
 }
