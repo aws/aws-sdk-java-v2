@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "description": "Adds dataflowEndpointRegion property to DataflowEndpointConfig. The dateCreated, lastUpdated, and tags properties on GetSatellite have been deprecated."
+}
