@@ -67,9 +67,9 @@ values used are also completely arbitrary.
 3. Create a DynamoDbEnhancedClient object that you will use to repeatedly
    execute operations against all your tables :- 
    ```java
-   DynamoDbEnhancedClient enhancedClient = DefaultDynamoDbEnhancedClient.builder()
-                                                                        .dynamoDbClient(dynamoDbClient)
-                                                                        .build();
+   DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                 .dynamoDbClient(dynamoDbClient)
+                                                                 .build();
    ```
 4. Create a MappedTable object that you will use to repeatedly execute
   operations against a specific table :-
@@ -155,9 +155,9 @@ key differences:
    of the library instead of the synchronous one (you will need to use
    an asynchronous DynamoDb client from the SDK as well):
    ```java
-    DynamoDbEnhancedAsyncClient enhancedClient = DefaultDynamoDbEnhancedAsyncClient.builder()
-                                                              .dynamoDbClient(dynamoDbAsyncClient)
-                                                              .build();
+    DynamoDbEnhancedAsyncClient enhancedClient = DynamoDbEnhancedAsyncClient.builder()
+                                                                            .dynamoDbClient(dynamoDbAsyncClient)
+                                                                            .build();
    ```
 
 2. Operations that return a single data item will return a
@@ -205,8 +205,7 @@ that write will fail.
 
 To load the extension:
 ```java
-DynamoDbEnhancedClient enhancedClient = 
-  DefaultDynamoDbEnhancedClient.builder()
+DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                         .dynamoDbClient(dynamoDbClient)
                         .extendWith(VersionedRecordExtension.builder().build())
                         .build();

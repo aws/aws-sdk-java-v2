@@ -18,7 +18,6 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.readAndTransformSingleItem;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -77,7 +76,12 @@ public class BatchWriteResult {
         }
 
         public Builder unprocessedRequests(Map<String, List<WriteRequest>> unprocessedRequests) {
-            this.unprocessedRequests = new HashMap<>(unprocessedRequests);
+            this.unprocessedRequests =
+                unprocessedRequests.entrySet()
+                                   .stream()
+                                   .collect(Collectors.toMap(
+                                       Map.Entry::getKey,
+                                       entry -> Collections.unmodifiableList(entry.getValue())));
             return this;
         }
 
