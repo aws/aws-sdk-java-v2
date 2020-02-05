@@ -1,3 +1,79 @@
+# __2.10.58__ __2020-02-05__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for fine-tuned QVBR quality level.
+
+## __AWS Ground Station__
+  - ### Features
+    - Adds dataflowEndpointRegion property to DataflowEndpointConfig. The dateCreated, lastUpdated, and tags properties on GetSatellite have been deprecated.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation-only update that adds services to the list of supported services.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Additional resource types are now supported in the AWS Security Finding Format (ASFF). The following new resource types are added, each having an accompanying resource details object with fields for security finding providers to populate: AwsCodeBuildProject, AwsEc2NetworkInterface, AwsEc2SecurityGroup, AwsElasticsearchDomain, AwsLambdaLayerVersion, AwsRdsDbInstance, and AwsWafWebAcl. The following resource types are added without an accompanying details object: AutoscalingAutoscalingGroup, AwsDynamoDbTable, AwsEc2Eip, AwsEc2Snapshot, AwsEc2Volume, AwsRdsDbSnapshot, AwsRedshiftCluster, and AwsS3Object. The number of allowed resources per finding is increased from 10 to 32. A new field is added in the Compliance object, RelatedRequirements. To learn more, visit our documentation on the ASFF.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Updated the maximum number of tags that can be added to a snapshot using DLM to 45.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release provides support for tagging when you create a VPC endpoint, or VPC endpoint service.
+
+## __Amazon Forecast Query Service__
+  - ### Features
+    - Documentation updates for Amazon Forecast.
+
+# __2.10.57__ __2020-02-04__
+## __AWS IoT__
+  - ### Features
+    - Updated ThrottlingException documentation to report that the error code is 400, and not 429, to reflect actual system behaviour.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adding KVM as a support hypervisor
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation updates for CloudFront
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Changing usage of typed builders for PutItem, UpdateItem and StaticTableSchema to explicitly provide class type.
+    - Renames top level sync/async MappedDatabase interfaces as DynamoDbEnhancedClient interfaces. Also adds builder definitions to the interfaces together with a static method that returns the default implementation of the builder.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC Flow Logs adds support for 1-minute aggregation intervals.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where fields in `ListObjectVersionsResponse` and `ListMultipartUploadsResponse` are not decoded correctly when encodingType is specified as url. See [#1601](https://github.com/aws/aws-sdk-java-v2/issues/1601)
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This feature ensures that an instance is patched up to the available patches on a particular date. It can be enabled by selecting the 'ApproveUntilDate' option as the auto-approval rule while creating the patch baseline. ApproveUntilDate - The cutoff date for auto approval of released patches. Any patches released on or before this date will be installed automatically.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for tagging Amazon WorkMail organizations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - This release enables AWS MSK customers to list Apache Kafka versions that are supported on AWS MSK clusters. Also includes changes to expose additional details of a cluster's state in DescribeCluster and ListClusters APIs.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Deliver exceptions to stream channels correctly if there's an exception thrown on connection. This also fixes a bug where publisher signals onComplete if the stream is closed as a result of outbound GOAWAY.
+    - Throws `IOException` for the race condition where an HTTP2 connection gets reused at the same time it gets inactive so that failed requests can be retried
+
 # __2.10.56__ __2020-01-24__
 ## __AWS DataSync__
   - ### Features
