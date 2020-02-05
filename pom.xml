@@ -409,6 +409,7 @@
                     <ignoredUnusedDeclaredDependencies>
                         <!-- TODO: fix this when we've re-merged with netty-reactive-streams -->
                         <ignoredUnusedDeclaredDependency>com.typesafe.netty:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
