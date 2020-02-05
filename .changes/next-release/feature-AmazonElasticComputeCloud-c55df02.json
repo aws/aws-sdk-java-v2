@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "description": "This release provides support for tagging when you create a VPC endpoint, or VPC endpoint service."
-}
