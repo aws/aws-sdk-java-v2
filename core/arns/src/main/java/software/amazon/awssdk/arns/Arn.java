@@ -169,12 +169,18 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
             throw new IllegalArgumentException("Malformed ARN - no AWS region partition specified");
         }
         String region = arn.substring(serviceColonIndex + 1, regionColonIndex);
+        if ("".equals(region)) {
+            region = null;
+        }
 
         int accountColonIndex = arn.indexOf(':', regionColonIndex + 1);
         if (accountColonIndex < 0) {
             throw new IllegalArgumentException("Malformed ARN - no AWS account specified");
         }
         String accountId = arn.substring(regionColonIndex + 1, accountColonIndex);
+        if ("".equals(accountId)) {
+            accountId = null;
+        }
 
         String resource = arn.substring(accountColonIndex + 1);
         if (resource.isEmpty()) {
