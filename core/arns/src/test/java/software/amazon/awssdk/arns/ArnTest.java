@@ -40,6 +40,8 @@ public class ArnTest {
         Arn arn = Arn.fromString("arn:aws:foobar:::myresource");
         assertThat(arn.partition()).isEqualTo("aws");
         assertThat(arn.service()).isEqualTo("foobar");
+        assertThat(arn.accountId()).isEqualTo(Optional.empty());
+        assertThat(arn.region()).isEqualTo(Optional.empty());
         assertThat(arn.resourceAsString()).isEqualTo("myresource");
     }
 
@@ -191,9 +193,9 @@ public class ArnTest {
                         .resource("bucket:foobar:1")
                         .build();
 
-        Arn anotherArn = oneArn.toBuilder().region("somethingelse").build();
-        assertThat(oneArn).isNotEqualTo(anotherArn);
-        assertThat(oneArn.hashCode()).isNotEqualTo(anotherArn.hashCode());
+        Arn anotherArn = Arn.fromString("arn:aws:s3:us-east-1:123456789012:bucket:foobar:1");
+        assertThat(oneArn).isEqualTo(anotherArn);
+        assertThat(oneArn.hashCode()).isEqualTo(anotherArn.hashCode());
     }
 
     @Test
@@ -203,7 +205,7 @@ public class ArnTest {
                      .service("foobar")
                      .resource("resource")
                      .build();
-        Arn anotherArn = arn.toBuilder().build();
+        Arn anotherArn = Arn.fromString("arn:aws:foobar:::resource");
         assertThat(arn.hashCode()).isEqualTo(anotherArn.hashCode());
         assertThat(arn.equals(anotherArn)).isTrue();
     }
