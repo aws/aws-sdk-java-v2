@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building Service",
+    "description": "Amazon Lex now supports AMAZON.AlphaNumeric with regular expressions."
+}
