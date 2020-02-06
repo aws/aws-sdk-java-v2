@@ -107,7 +107,7 @@ public final class S3ArnConverter implements ArnConverter<S3Resource> {
 
     private S3ObjectResource parseS3ObjectArn(Arn arn) {
         String resourceString = arn.resource().resource();
-        String [] splitResourceString = resourceString.split("/");
+        String [] splitResourceString = resourceString.split("/", 2);
 
         if (splitResourceString.length < 2) {
             throw new IllegalArgumentException("Invalid format for S3 object resource ARN");
