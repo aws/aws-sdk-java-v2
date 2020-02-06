@@ -16,7 +16,6 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
@@ -35,7 +34,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  * <p>
  * This interface is extended by {@link PaginatedTableOperation} and {@link PaginatedIndexOperation} which contain
  * implementations of the behavior to actually execute the operation in the context of a table or secondary index and
- * are used by {@link MappedTable} or {@link AsyncMappedTable} and {@link MappedIndex} or {@link AsyncMappedIndex}
+ * are used by {@link DynamoDbTable} or {@link DynamoDbAsyncTable} and {@link DynamoDbIndex} or {@link DynamoDbAsyncIndex}
  * respectively. By sharing this common interface operations are able to re-use code regardless of whether they are
  * executed in the context of a primary or secondary index or whether they are being executed in a synchronous or
  * non-blocking asynchronous fashion.

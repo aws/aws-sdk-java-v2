@@ -21,8 +21,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryConditional.between;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryConditional.equalTo;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.between;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.equalTo;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondaryPartitionKey;
@@ -31,7 +31,6 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,23 +39,26 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedIndex;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Query;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
-public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
+public class AsyncIndexQueryOperationTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -159,47 +161,64 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
                                     .setGsiSort(record.gsiSort))
                .collect(Collectors.toList());
 
-    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-                                                                          .dynamoDbClient(getDynamoDbClient())
-                                                                          .build();
+    private DynamoDbEnhancedAsyncClient enhancedAsyncClient = DefaultDynamoDbEnhancedAsyncClient.builder()
+                                                                                                .dynamoDbClient(getDynamoDbAsyncClient())
+                                                                                                .build();
 
-    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-    private MappedIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
+    private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbAsyncIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)));
+        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)).join());
+    }
+
+    private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+        BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
+        publisher.subscribe(subscriber);
+        subscriber.waitForCompletion(1000L);
+
+        assertThat(subscriber.isCompleted(), is(true));
+        assertThat(subscriber.bufferedError(), is(nullValue()));
+        assertThat(subscriber.bufferedItems().size(), is(expectedNumberOfResults));
+
+        return subscriber.bufferedItems();
     }
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.builder()
-                                       .provisionedThroughput(getDefaultProvisionedThroughput())
-                                       .globalSecondaryIndices(
-                                           GlobalSecondaryIndex.create("gsi_keys_only",
-                                                                   Projection.builder()
-                                                                             .projectionType(ProjectionType.KEYS_ONLY)
-                                                                             .build(),
-                                                                   getDefaultProvisionedThroughput()))
-                           .build());
+        mappedTable.createTable(CreateTableEnhancedRequest.builder()
+                                                          .provisionedThroughput(getDefaultProvisionedThroughput())
+                                                          .globalSecondaryIndices(
+                                                              GlobalSecondaryIndex.create(
+                                                                  "gsi_keys_only",
+                                                                  Projection.builder()
+                                                                            .projectionType(ProjectionType.KEYS_ONLY)
+                                                                            .build(),
+                                                                  getDefaultProvisionedThroughput()))
+                                                      .build())
+                   .join();
     }
 
     @After
     public void deleteTable() {
-        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
-                                                          .tableName(getConcreteTableName("table-name"))
-                                                          .build());
+        getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
+                                                               .tableName(getConcreteTableName("table-name"))
+                                                               .build())
+                                .join();
     }
 
     @Test
     public void queryAllRecordsDefaultSettings() {
         insertRecords();
 
-        Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.create(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
+        Record result =
+            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), numberValue(3)))).join();
 
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page = results.next();
-        assertThat(results.hasNext(), is(false));
+        SdkPublisher<Page<Record>> publisher =
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value")))));
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
 
         assertThat(page.items(), is(KEYS_ONLY_RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
@@ -210,11 +229,11 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Key fromKey = Key.create(stringValue("gsi-id-value"), numberValue(3));
         Key toKey = Key.create(stringValue("gsi-id-value"), numberValue(5));
-        Iterator<Page<Record>> results = keysOnlyMappedIndex.execute(Query.create(between(fromKey, toKey))).iterator();
 
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page = results.next();
-        assertThat(results.hasNext(), is(false));
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(QueryEnhancedRequest.create(between(fromKey, toKey)));
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
 
         assertThat(page.items(),
                    is(KEYS_ONLY_RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
@@ -224,19 +243,16 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryLimit() {
         insertRecords();
-        Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.builder()
-                                             .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
-                                             .limit(5)
-                                             .build())
-                               .iterator();
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page1 = results.next();
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page2 = results.next();
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page3 = results.next();
-        assertThat(results.hasNext(), is(false));
+        SdkPublisher<Page<Record>> publisher =
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
+                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .limit(5)
+                                                          .build());
+
+        List<Page<Record>> results = drainPublisher(publisher, 3);
+        Page<Record> page1 = results.get(0);
+        Page<Record> page2 = results.get(1);
+        Page<Record> page3 = results.get(2);
 
         Map<String, AttributeValue> expectedLastEvaluatedKey1 = new HashMap<>();
         expectedLastEvaluatedKey1.put("id", stringValue(KEYS_ONLY_RECORDS.get(4).getId()));
@@ -259,11 +275,12 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void queryEmpty() {
-        Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.create(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page = results.next();
-        assertThat(results.hasNext(), is(false));
+        SdkPublisher<Page<Record>> publisher =
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value")))));
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
+
         assertThat(page.items(), is(empty()));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
@@ -276,15 +293,15 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         expectedLastEvaluatedKey.put("sort", numberValue(KEYS_ONLY_RECORDS.get(7).getSort()));
         expectedLastEvaluatedKey.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(7).getGsiId()));
         expectedLastEvaluatedKey.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(7).getGsiSort()));
-        Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.builder()
-                                             .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
-                                             .exclusiveStartKey(expectedLastEvaluatedKey).build())
-                               .iterator();
 
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page = results.next();
-        assertThat(results.hasNext(), is(false));
+        SdkPublisher<Page<Record>> publisher =
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
+                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .exclusiveStartKey(expectedLastEvaluatedKey)
+                                                          .build());
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
         assertThat(page.items(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
@@ -25,17 +25,25 @@ public class GlobalSecondaryIndex {
     private final Projection projection;
     private final ProvisionedThroughput provisionedThroughput;
 
-    private GlobalSecondaryIndex(String indexName, Projection projection, ProvisionedThroughput provisionedThroughput) {
-        this.indexName = indexName;
-        this.projection = projection;
-        this.provisionedThroughput = provisionedThroughput;
+    private GlobalSecondaryIndex(Builder builder) {
+        this.indexName = builder.indexName;
+        this.projection = builder.projection;
+        this.provisionedThroughput = builder.provisionedThroughput;
     }
 
     public static GlobalSecondaryIndex create(String indexName,
                                               Projection projection,
                                               ProvisionedThroughput provisionedThroughput) {
 
-        return new GlobalSecondaryIndex(indexName, projection, provisionedThroughput);
+        return builder().indexName(indexName).projection(projection).provisionedThroughput(provisionedThroughput).build();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public Builder toBuilder() {
+        return new Builder().indexName(indexName).projection(projection).provisionedThroughput(provisionedThroughput);
     }
 
     public String indexName() {
@@ -103,7 +111,7 @@ public class GlobalSecondaryIndex {
         }
 
         public GlobalSecondaryIndex build() {
-            return new GlobalSecondaryIndex(indexName, projection, provisionedThroughput);
+            return new GlobalSecondaryIndex(this);
         }
     }
 }

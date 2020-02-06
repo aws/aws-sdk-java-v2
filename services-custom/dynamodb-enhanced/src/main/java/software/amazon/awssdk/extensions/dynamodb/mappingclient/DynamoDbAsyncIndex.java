@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
-import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb secondary index
@@ -27,28 +27,15 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
-public interface AsyncMappedIndex<T> {
-    /**
-     * Executes a command that is expected to return a single data item against the database with the context of the
-     * specific table and secondary index this object is linked to.
-     *
-     * @param operationToPerform The operation to be performed in the context of the secondary index.
-     * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
-     * @return A {@link CompletableFuture} of the result of the operation being executed. The documentation on the
-     * operation itself should have more information.
-     */
-    <R> CompletableFuture<R> execute(IndexOperation<T, ?, ?, R> operationToPerform);
+public interface DynamoDbAsyncIndex<T> {
 
-    /**
-     * Executes a command that is expected to return a paginated list of data items against the database with the
-     * context of the specific table and secondary index this object is linked to.
-     *
-     * @param operationToPerform The operation to be performed in the context of the secondary index.
-     * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
-     * @return An {@link SdkPublisher} that will publish successive pages of result data items to any subscriber with
-     * demand for them.
-     */
-    <R> SdkPublisher<R> execute(PaginatedIndexOperation<T, ?, ?, R> operationToPerform);
+    default SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Gets the {@link MapperExtension} associated with this mapped resource.

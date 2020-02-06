@@ -49,8 +49,8 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     @Override
-    public <T> DynamoDbMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
-        return new DynamoDbMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    public <T> DefaultDynamoDbTable<T> table(String tableName, TableSchema<T> tableSchema) {
+        return new DefaultDynamoDbTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
     }
 
     @Override

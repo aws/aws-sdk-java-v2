@@ -18,31 +18,37 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedTableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTableOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ScanOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkPublicApi
 @ThreadSafe
-public final class DynamoDbAsyncMappedTable<T> implements AsyncMappedTable<T> {
+public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T> {
     private final DynamoDbAsyncClient dynamoDbClient;
     private final MapperExtension mapperExtension;
     private final TableSchema<T> tableSchema;
     private final String tableName;
 
-    DynamoDbAsyncMappedTable(DynamoDbAsyncClient dynamoDbClient,
-                             MapperExtension mapperExtension,
-                             TableSchema<T> tableSchema,
-                             String tableName) {
+    DefaultDynamoDbAsyncTable(DynamoDbAsyncClient dynamoDbClient,
+                              MapperExtension mapperExtension,
+                              TableSchema<T> tableSchema,
+                              String tableName) {
         this.dynamoDbClient = dynamoDbClient;
         this.mapperExtension = mapperExtension;
         this.tableSchema = tableSchema;
@@ -84,11 +90,29 @@ public final class DynamoDbAsyncMappedTable<T> implements AsyncMappedTable<T> {
     }
 
     @Override
-    public DynamoDbAsyncMappedIndex<T> index(String indexName) {
+    public DefaultDynamoDbAsyncIndex<T> index(String indexName) {
         // Force a check for the existence of the index
         tableSchema.tableMetadata().indexPartitionKey(indexName);
 
-        return new DynamoDbAsyncMappedIndex<>(dynamoDbClient, mapperExtension, tableSchema, tableName, indexName);
+        return new DefaultDynamoDbAsyncIndex<>(dynamoDbClient, mapperExtension, tableSchema, tableName, indexName);
+    }
+
+    @Override
+    public CompletableFuture<Void> createTable(CreateTableEnhancedRequest request) {
+        TableOperation<T, ?, ?, Void> operation = CreateTableOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
+        PaginatedTableOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
+        PaginatedTableOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+        return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
     }
 
     @Override
@@ -105,7 +129,7 @@ public final class DynamoDbAsyncMappedTable<T> implements AsyncMappedTable<T> {
             return false;
         }
 
-        DynamoDbAsyncMappedTable<?> that = (DynamoDbAsyncMappedTable<?>) o;
+        DefaultDynamoDbAsyncTable<?> that = (DefaultDynamoDbAsyncTable<?>) o;
 
         if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient)
             : that.dynamoDbClient != null) {

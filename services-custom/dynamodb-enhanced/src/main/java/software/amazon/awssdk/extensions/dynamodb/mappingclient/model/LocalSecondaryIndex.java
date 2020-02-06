@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
@@ -23,15 +23,23 @@ public class LocalSecondaryIndex {
     private final String indexName;
     private final Projection projection;
 
-    private LocalSecondaryIndex(String indexName, Projection projection) {
-        this.indexName = indexName;
-        this.projection = projection;
+    private LocalSecondaryIndex(Builder builder) {
+        this.indexName = builder.indexName;
+        this.projection = builder.projection;
     }
 
     public static LocalSecondaryIndex create(String indexName,
                                              Projection projection) {
 
-        return new LocalSecondaryIndex(indexName, projection);
+        return builder().indexName(indexName).projection(projection).build();
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public Builder toBuilder() {
+        return new Builder().indexName(indexName).projection(projection);
     }
 
     public String indexName() {
@@ -84,7 +92,7 @@ public class LocalSecondaryIndex {
         }
 
         public LocalSecondaryIndex build() {
-            return new LocalSecondaryIndex(indexName, projection);
+            return new LocalSecondaryIndex(this);
         }
     }
 }

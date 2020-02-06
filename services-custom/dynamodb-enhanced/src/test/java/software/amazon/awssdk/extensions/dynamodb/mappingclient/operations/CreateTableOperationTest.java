@@ -29,6 +29,7 @@ import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
@@ -42,6 +43,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithBinaryKey;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithNumericSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.LocalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.BillingMode;
@@ -54,7 +58,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateTableTest {
+public class CreateTableOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
         OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
@@ -100,12 +104,8 @@ public class CreateTableTest {
 
     @Test
     public void generateRequest_withLsiAndGsi() {
-        Projection projection1 = Projection.builder()
-                                           .projectionType(ProjectionType.ALL)
-                                           .build();
-        Projection projection2 = Projection.builder()
-                                           .projectionType(ProjectionType.KEYS_ONLY)
-                                           .build();
+        Projection projection1 = Projection.builder().projectionType(ProjectionType.ALL).build();
+        Projection projection2 = Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build();
         Projection projection3 = Projection.builder()
                                            .projectionType(ProjectionType.INCLUDE)
                                            .nonKeyAttributes("key1", "key2")
@@ -119,14 +119,17 @@ public class CreateTableTest {
                                                                             .writeCapacityUnits(4L)
                                                                             .build();
 
-        CreateTable<FakeItemWithIndices> operation =
-            CreateTable.builder()
-                       .globalSecondaryIndices(Arrays.asList(GlobalSecondaryIndex.create("gsi_1", projection1,
-                                                                                     provisionedThroughput1),
-                                                             GlobalSecondaryIndex.create("gsi_2", projection2,
-                                                                                     provisionedThroughput2)))
-                       .localSecondaryIndices(Collections.singletonList(LocalSecondaryIndex.create("lsi_1", projection3)))
-                       .build();
+
+        List<GlobalSecondaryIndex> globalSecondaryIndexList = Arrays.asList(
+            GlobalSecondaryIndex.create("gsi_1", projection1, provisionedThroughput1),
+            GlobalSecondaryIndex.create("gsi_2", projection2, provisionedThroughput2));
+
+        CreateTableOperation<FakeItemWithIndices> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                                                                  .globalSecondaryIndices(globalSecondaryIndexList)
+                                                                  .localSecondaryIndices(Collections.singletonList(
+                                                                      LocalSecondaryIndex.create("lsi_1", projection3)))
+                                                                  .build());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -208,39 +211,44 @@ public class CreateTableTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_invalidGsi() {
-        CreateTable<FakeItem> operation =
-            CreateTable.builder()
-                       .globalSecondaryIndices(Collections.singletonList(
-                           GlobalSecondaryIndex.create("invalid",
-                                                   Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                                   ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build())))
-                       .build();
+        ProvisionedThroughput provisionedThroughput = ProvisionedThroughput.builder()
+                                                                           .readCapacityUnits(1L)
+                                                                           .writeCapacityUnits(1L)
+                                                                           .build();
+
+        List<GlobalSecondaryIndex> invalidGsiList = Collections.singletonList(
+            GlobalSecondaryIndex.create("invalid",
+                                        Projection.builder().projectionType(ProjectionType.ALL).build(),
+                                        provisionedThroughput));
+
+        CreateTableOperation<FakeItem> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder().globalSecondaryIndices(invalidGsiList).build());
 
         operation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_invalidGsiAsLsiReference() {
-        CreateTable<FakeItemWithIndices> operation =
-            CreateTable.builder()
-                       .localSecondaryIndices(Collections.singletonList(
-                           LocalSecondaryIndex.create("gsi_1", Projection.builder().projectionType(ProjectionType.ALL).build())))
-                       .build();
+        List<LocalSecondaryIndex> invalidGsiList = Collections.singletonList(
+            LocalSecondaryIndex.create("gsi_1", Projection.builder().projectionType(ProjectionType.ALL).build()));
+
+        CreateTableOperation<FakeItemWithIndices> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder().localSecondaryIndices(invalidGsiList).build());
 
         operation.generateRequest(FakeItemWithIndices.getTableSchema(), PRIMARY_CONTEXT, null);
     }
 
     @Test
     public void generateRequest_validLsiAsGsiReference() {
-        CreateTable<FakeItemWithIndices> operation =
-            CreateTable.builder()
-                       .globalSecondaryIndices(Collections.singletonList(
-                           GlobalSecondaryIndex.create("lsi_1",
-                                                   Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                                   ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build())))
-                       .build();
-        CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
-                                                               PRIMARY_CONTEXT, null);
+        List<GlobalSecondaryIndex> validLsiList = Collections.singletonList(
+            GlobalSecondaryIndex.create("lsi_1",
+                                        Projection.builder().projectionType(ProjectionType.ALL).build(),
+                                        ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build()));
+
+        CreateTableOperation<FakeItemWithIndices> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder().globalSecondaryIndices(validLsiList).build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(), PRIMARY_CONTEXT, null);
 
         assertThat(request.globalSecondaryIndexes().size(), is(1));
         software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex globalSecondaryIndex =
@@ -251,7 +259,7 @@ public class CreateTableTest {
 
     @Test
     public void generateRequest_nonReferencedIndicesDoNotCreateExtraAttributeDefinitions() {
-        CreateTable<FakeItemWithIndices> operation = CreateTable.create();
+        CreateTableOperation<FakeItemWithIndices> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
@@ -270,12 +278,11 @@ public class CreateTableTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_invalidLsi() {
-        CreateTable<FakeItem> operation =
-            CreateTable.builder()
-                       .localSecondaryIndices(Collections.singletonList(
-                           LocalSecondaryIndex.create("invalid",
-                                                   Projection.builder().projectionType(ProjectionType.ALL).build())))
-                       .build();
+        List<LocalSecondaryIndex> invalidLsiList = Collections.singletonList(
+            LocalSecondaryIndex.create("invalid", Projection.builder().projectionType(ProjectionType.ALL).build()));
+
+        CreateTableOperation<FakeItem> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder().localSecondaryIndices(invalidLsiList).build());
 
         operation.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
     }
@@ -287,7 +294,7 @@ public class CreateTableTest {
                                                                           .readCapacityUnits(2L)
                                                                           .build();
 
-        CreateTable<FakeItem> operation = CreateTable.create(provisionedThroughput);
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create(provisionedThroughput));
 
         CreateTableRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -299,7 +306,7 @@ public class CreateTableTest {
 
     @Test
     public void generateRequest_withNoProvisionedThroughput() {
-        CreateTable<FakeItem> operation = CreateTable.create();
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
 
         CreateTableRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -311,7 +318,7 @@ public class CreateTableTest {
 
     @Test
     public void generateRequest_withNumericKey() {
-        CreateTable<FakeItemWithNumericSort> operation = CreateTable.create();
+        CreateTableOperation<FakeItemWithNumericSort> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithNumericSort.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -343,7 +350,7 @@ public class CreateTableTest {
 
     @Test
     public void generateRequest_withBinaryKey() {
-        CreateTable<FakeItemWithBinaryKey> operation = CreateTable.create();
+        CreateTableOperation<FakeItemWithBinaryKey> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithBinaryKey.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -367,14 +374,14 @@ public class CreateTableTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_doesNotWorkForIndex() {
-        CreateTable<FakeItemWithIndices> operation = CreateTable.create();
+        CreateTableOperation<FakeItemWithIndices> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
 
         operation.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
     }
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
-        CreateTable<FakeItem> operation = CreateTable.create();
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
         CreateTableRequest createTableRequest = CreateTableRequest.builder().build();
         CreateTableResponse expectedResponse = CreateTableResponse.builder().build();
         when(mockDynamoDbClient.createTable(any(CreateTableRequest.class))).thenReturn(expectedResponse);
@@ -387,7 +394,7 @@ public class CreateTableTest {
 
     @Test
     public void transformResults_doesNothing() {
-        CreateTable<FakeItem> operation = CreateTable.create();
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
         CreateTableResponse response = CreateTableResponse.builder().build();
 
         operation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);

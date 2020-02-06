@@ -17,33 +17,35 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
-import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedIndex;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.IndexOperation;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedIndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ScanOperation;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @SdkPublicApi
 @ThreadSafe
-public final class DynamoDbAsyncMappedIndex<T> implements AsyncMappedIndex<T> {
-    private final DynamoDbAsyncClient dynamoDbClient;
+public class DefaultDynamoDbIndex<T> implements DynamoDbIndex<T> {
+    private final DynamoDbClient dynamoDbClient;
     private final MapperExtension mapperExtension;
     private final TableSchema<T> tableSchema;
     private final String tableName;
     private final String indexName;
 
-    DynamoDbAsyncMappedIndex(DynamoDbAsyncClient dynamoDbClient,
-                             MapperExtension mapperExtension,
-                             TableSchema<T> tableSchema,
-                             String tableName,
-                             String indexName) {
+    DefaultDynamoDbIndex(DynamoDbClient dynamoDbClient,
+                         MapperExtension mapperExtension,
+                         TableSchema<T> tableSchema,
+                         String tableName,
+                         String indexName) {
         this.dynamoDbClient = dynamoDbClient;
         this.mapperExtension = mapperExtension;
         this.tableSchema = tableSchema;
@@ -52,21 +54,15 @@ public final class DynamoDbAsyncMappedIndex<T> implements AsyncMappedIndex<T> {
     }
 
     @Override
-    public <R> CompletableFuture<R> execute(IndexOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.executeOnSecondaryIndexAsync(tableSchema,
-                                                               tableName,
-                                                               indexName,
-                                                               mapperExtension,
-                                                               dynamoDbClient);
+    public SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
+        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        return operation.executeOnSecondaryIndex(tableSchema, tableName, indexName, mapperExtension, dynamoDbClient);
     }
 
     @Override
-    public <R> SdkPublisher<R> execute(PaginatedIndexOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.executeOnSecondaryIndexAsync(tableSchema,
-                                                               tableName,
-                                                               indexName,
-                                                               mapperExtension,
-                                                               dynamoDbClient);
+    public SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
+        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+        return operation.executeOnSecondaryIndex(tableSchema, tableName, indexName, mapperExtension, dynamoDbClient);
     }
 
     @Override
@@ -79,7 +75,7 @@ public final class DynamoDbAsyncMappedIndex<T> implements AsyncMappedIndex<T> {
         return tableSchema;
     }
 
-    public DynamoDbAsyncClient dynamoDbClient() {
+    public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
 
@@ -105,11 +101,9 @@ public final class DynamoDbAsyncMappedIndex<T> implements AsyncMappedIndex<T> {
             return false;
         }
 
-        DynamoDbAsyncMappedIndex<?> that = (DynamoDbAsyncMappedIndex<?>) o;
+        DefaultDynamoDbIndex<?> that = (DefaultDynamoDbIndex<?>) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient)
-            : that.dynamoDbClient != null) {
-
+        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
             return false;
         }
         if (mapperExtension != null ? ! mapperExtension.equals(that.mapperExtension) : that.mapperExtension != null) {
