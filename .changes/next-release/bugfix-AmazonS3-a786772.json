@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "bugfix", 
+    "description": "The S3ArnConverter now stores the entire key of an object in an S3ObjectResource regardless of how many '/' characters exists in the key."
+}
