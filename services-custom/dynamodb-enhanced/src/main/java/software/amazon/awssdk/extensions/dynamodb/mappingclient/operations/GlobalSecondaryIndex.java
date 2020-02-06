@@ -31,9 +31,9 @@ public class GlobalSecondaryIndex {
         this.provisionedThroughput = provisionedThroughput;
     }
 
-    public static GlobalSecondaryIndex of(String indexName,
-                                          Projection projection,
-                                          ProvisionedThroughput provisionedThroughput) {
+    public static GlobalSecondaryIndex create(String indexName,
+                                              Projection projection,
+                                              ProvisionedThroughput provisionedThroughput) {
 
         return new GlobalSecondaryIndex(indexName, projection, provisionedThroughput);
     }

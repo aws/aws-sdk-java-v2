@@ -31,7 +31,7 @@ public class TransformIterator<T, R> implements Iterator<R> {
         this.transformFunction = transformFunction;
     }
 
-    public static <T, R> TransformIterator<T, R> of(Iterator<T> iterator, Function<T, R> transformFunction) {
+    public static <T, R> TransformIterator<T, R> create(Iterator<T> iterator, Function<T, R> transformFunction) {
         return new TransformIterator<>(iterator, transformFunction);
     }
 

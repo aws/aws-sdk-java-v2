@@ -56,7 +56,7 @@ public class TableOperationTest {
         assertThat(fakeTableOperation.lastMapperExtension, sameInstance(mockMapperExtension));
         assertThat(fakeTableOperation.lastTableSchema, sameInstance(FakeItem.getTableSchema()));
         assertThat(fakeTableOperation.lastOperationContext, is(
-            OperationContext.of(FAKE_TABLE_NAME, TableMetadata.primaryIndexName())));
+            OperationContext.create(FAKE_TABLE_NAME, TableMetadata.primaryIndexName())));
     }
 
     private static class FakeTableOperation implements TableOperation<FakeItem, String, String, String> {

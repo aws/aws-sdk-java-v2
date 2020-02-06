@@ -20,20 +20,18 @@ import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.VersionedRecordExtension.AttributeTags.version;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.VersionedRecordExtension;
@@ -41,6 +39,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Creat
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -94,27 +93,27 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        TableSchema.builder()
-                   .newItemSupplier(Record::new)
-                   .attributes(
-                       string("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       string("attribute", Record::getAttribute, Record::setAttribute),
-                       integerNumber("version", Record::getVersion, Record::setVersion).as(version()))
-                   .build();
+        StaticTableSchema.builder(Record.class)
+                         .newItemSupplier(Record::new)
+                         .attributes(
+                             stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
+                             stringAttribute("attribute", Record::getAttribute, Record::setAttribute),
+                             integerNumberAttribute("version", Record::getVersion, Record::setVersion).as(version()))
+                         .build();
 
-    private MappedDatabase mappedDatabase = MappedDatabase.builder()
-                                                          .dynamoDbClient(getDynamoDbClient())
-                                                          .extendWith(VersionedRecordExtension.builder().build())
-                                                          .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .extendWith(VersionedRecordExtension.builder().build())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.of(getDefaultProvisionedThroughput()));
+        mappedTable.execute(CreateTable.create(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -126,9 +125,9 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putNewRecordSetsInitialVersion() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
 
-        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
+        Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id"))));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(1);
 
         assertThat(result, is(expectedResult));
@@ -136,7 +135,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateNewRecordSetsInitialVersion() {
-        Record result = mappedTable.execute(UpdateItem.of(new Record().setId("id").setAttribute("one")));
+        Record result = mappedTable.execute(UpdateItem.create(new Record().setId("id").setAttribute("one")));
 
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(1);
 
@@ -145,18 +144,18 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putExistingRecordVersionMatches() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
 
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one").setVersion(1)));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one").setVersion(1)));
 
-        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
+        Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id"))));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
     }
 
     @Test
     public void putExistingRecordVersionMatchesConditionExpressionMatches() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
         Expression conditionExpression = Expression.builder()
                                                    .expression("#k = :v OR #k = :v1")
                                                    .putExpressionName("#k", "attribute")
@@ -164,19 +163,19 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":v1", stringValue("one"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                    .conditionExpression(conditionExpression)
                                    .build());
 
-        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
+        Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id"))));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
     }
 
     @Test
     public void putExistingRecordVersionDoesNotMatchConditionExpressionMatches() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
         Expression conditionExpression = Expression.builder()
                                                    .expression("#k = :v OR #k = :v1")
                                                    .putExpressionName("#k", "attribute")
@@ -185,7 +184,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(2))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -193,7 +192,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putExistingRecordVersionMatchesConditionExpressionDoesNotMatch() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
         Expression conditionExpression = Expression.builder()
                                                    .expression("#k = :v OR #k = :v1")
                                                    .putExpressionName("#k", "attribute")
@@ -202,7 +201,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(PutItem.builder()
+        mappedTable.execute(PutItem.builder(Record.class)
                                    .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                    .conditionExpression(conditionExpression)
                                    .build());
@@ -210,7 +209,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateExistingRecordVersionMatchesConditionExpressionMatches() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
         Expression conditionExpression = Expression.builder()
                                                    .expression("#k = :v OR #k = :v1")
                                                    .putExpressionName("#k", "attribute")
@@ -218,19 +217,19 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .putExpressionValue(":v1", stringValue("one"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                       .conditionExpression(conditionExpression)
                                       .build());
 
-        Record result = mappedTable.execute(GetItem.of(Key.of(stringValue("id"))));
+        Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id"))));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
     }
 
     @Test
     public void updateExistingRecordVersionDoesNotMatchConditionExpressionMatches() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
         Expression conditionExpression = Expression.builder()
                                                    .expression("#k = :v OR #k = :v1")
                                                    .putExpressionName("#k", "attribute")
@@ -239,7 +238,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(2))
                                       .conditionExpression(conditionExpression)
                                       .build());
@@ -247,7 +246,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateExistingRecordVersionMatchesConditionExpressionDoesNotMatch() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
         Expression conditionExpression = Expression.builder()
                                                    .expression("#k = :v OR #k = :v1")
                                                    .putExpressionName("#k", "attribute")
@@ -256,7 +255,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                    .build();
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.execute(UpdateItem.builder()
+        mappedTable.execute(UpdateItem.builder(Record.class)
                                       .item(new Record().setId("id").setAttribute("one").setVersion(1))
                                       .conditionExpression(conditionExpression)
                                       .build());
@@ -264,10 +263,10 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateExistingRecordVersionMatches() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
 
         Record result =
-            mappedTable.execute(UpdateItem.of(new Record().setId("id").setAttribute("one").setVersion(1)));
+            mappedTable.execute(UpdateItem.create(new Record().setId("id").setAttribute("one").setVersion(1)));
 
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
@@ -275,19 +274,19 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     @Test(expected = ConditionalCheckFailedException.class)
     public void putNewRecordTwice() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
     }
 
     @Test(expected = ConditionalCheckFailedException.class)
     public void updateNewRecordTwice() {
-        mappedTable.execute(UpdateItem.of(new Record().setId("id").setAttribute("one")));
-        mappedTable.execute(UpdateItem.of(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(UpdateItem.create(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(UpdateItem.create(new Record().setId("id").setAttribute("one")));
     }
 
     @Test(expected = ConditionalCheckFailedException.class)
     public void putRecordWithWrongVersionNumber() {
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one")));
-        mappedTable.execute(PutItem.of(new Record().setId("id").setAttribute("one").setVersion(2)));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one")));
+        mappedTable.execute(PutItem.create(new Record().setId("id").setAttribute("one").setVersion(2)));
     }
 }

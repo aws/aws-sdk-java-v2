@@ -41,33 +41,41 @@ values used are also completely arbitrary.
    class itself, or somewhere else :-
    ```java
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-     TableSchema.builder()
+     StaticTableSchema.builder(Customer.class)
        .newItemSupplier(Customer::new)       // Tells the mapper how to make new objects when reading items
        .attributes(
-         string("account_id", Customer::getAccountId, Customer::setAccountId)
+         stringAttribute("account_id", 
+                         Customer::getAccountId, 
+                         Customer::setAccountId)
             .as(primaryPartitionKey()),                                                  // primary partition key         
-         integerNumber("sub_id", Customer::getSubId, Customer::setSubId)
+         integerNumberAttribute("sub_id", 
+                                Customer::getSubId, 
+                                Customer::setSubId)
             .as(primarySortKey()),                                                       // primary sort key
-         string("name", Customer::getName, Customer::setName)
+         stringAttribute("name", 
+                         Customer::getName, 
+                         Customer::setName)
             .as(secondaryPartitionKey("customers_by_name")),                             // GSI partition key
-         string("created_date", Customer::getCreatedDate, Customer::setCreatedDate)
-            .as(secondarySortKey("customers_by_date"), secondarySortKey("customers_by_name"))    // Sort key for both the LSI and the GSI
-         )
+         stringAttribute("created_date", 
+                         Customer::getCreatedDate, 
+                         Customer::setCreatedDate)
+            .as(secondarySortKey("customers_by_date"), 
+                secondarySortKey("customers_by_name")))              // Sort key for both the LSI and the GSI
        .build();
    ```
    
-3. Create a MappedDatabase object that you will use to repeatedly
+3. Create a DynamoDbEnhancedClient object that you will use to repeatedly
    execute operations against all your tables :- 
    ```java
-   MappedDatabase database = DynamoDbMappedDatabase.builder()
-                                                   .dynamoDbClient(dynamoDbClient)
-                                                   .build();
+   DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                 .dynamoDbClient(dynamoDbClient)
+                                                                 .build();
    ```
 4. Create a MappedTable object that you will use to repeatedly execute
   operations against a specific table :-
    ```java
    // Maps a physical table with the name 'customers_20190205' to the schema
-   MappedTable<Customer> customerTable = database.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
+   MappedTable<Customer> customerTable = enhancedClient.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
    ```
  
 ### Common primitive operations
@@ -82,36 +90,50 @@ available in the low-level DynamoDB SDK client.
    customerTable.execute(CreateTable.create());
    
    // GetItem
-   Customer customer = customerTable.execute(GetItem.of(Key.of(stringValue("a123"))));
+   Customer customer = customerTable.execute(GetItem.create(Key.create(stringValue("a123"))));
    
    // UpdateItem
-   Customer updatedCustomer = customerTable.execute(UpdateItem.of(customer));
+   Customer updatedCustomer = customerTable.execute(UpdateItem.create(customer));
    
    // PutItem
-   customerTable.execute(PutItem.of(customer));
+   customerTable.execute(PutItem.create(customer));
    
    // DeleteItem
-   Customer deletedCustomer = customerTable.execute(DeleteItem.of(Key.of(stringValue("a123"), numberValue(456))));
+   Customer deletedCustomer = customerTable.execute(DeleteItem.create(Key.create(stringValue("a123"), numberValue(456))));
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.execute(Query.of(equalTo(Key.of(stringValue("a123")))));
+   Iterable<Page<Customer>> customers = customerTable.execute(Query.create(equalTo(Key.create(stringValue("a123")))));
    
    // Scan
    Iterable<Page<Customer>> customers = customerTable.execute(Scan.create());
    
    // BatchGetItem
-   batchResults = database.execute(BatchGetItem.of(ReadBatch.of(customerTable, GetItem.of(key1), GetItem.of(key2), GetItem.of(key3)));
+   batchResults = enhancedClient.batchGetItem(
+       BatchGetItemEnhancedRequest.create(
+           ReadBatch.create(customerTable, 
+                            GetItem.create(key1), 
+                            GetItem.create(key2), 
+                            GetItem.create(key3))));
    
    // BatchWriteItem
-   batchResults = database.execute(BatchWriteItem.of(WriteBatch.of(customerTable, PutItem.of(item), DeleteItem.of(key1), DeleteItem.of(key2))));
+   batchResults = enhancedClient.batchWriteItem(
+       BatchWriteItemEnhancedRequest.create(
+           WriteBatch.create(customerTable,
+                             PutItem.create(item),
+                             DeleteItem.create(key1),
+                             DeleteItem.create(key2))));
    
    // TransactGetItems
-   transactResults = mappedDatabase.execute(TransactGetItems.of(ReadTransaction.of(customerTable, GetItem.of(key1)),
-                                                                ReadTransaction.of(orderTable, GetItem.of(key2)));
+    transactResults = enhancedClient.transactGetItems(
+        TransactGetItemsEnhancedRequest.create(
+            ReadTransaction.create(customerTable, GetItem.create(key1)),
+            ReadTransaction.create(orderTable, GetItem.create(key2))));
    
    // TransactWriteItems
-   mappedDatabase.execute(TransactWriteItems.of(WriteTransaction.of(customerTable, UpdateItem.of(customer)),
-                                                WriteTransaction.of(orderTable, ConditionCheck.of(orderKey, conditionExpression)));
+   enhancedClient.transactWriteItems(
+       TransactWriteItemsEnhancedRequest.create(
+           WriteTransaction.create(customerTable, UpdateItem.create(customer)),
+           WriteTransaction.create(orderTable, ConditionCheck.create(orderKey, conditionExpression))));
 ```
    
 ### Using secondary indices
@@ -120,7 +142,7 @@ index. Here's an example of how to do this:
    ```
    MappedIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(equalTo(Key.of(stringValue("Smith"))));
+   Iterable<Page<Customer>> customersWithName = customersByName.query(equalTo(Key.create(stringValue("Smith"))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -133,9 +155,9 @@ key differences:
    of the library instead of the synchronous one (you will need to use
    an asynchronous DynamoDb client from the SDK as well):
    ```java
-    AsyncMappedDatabase database = DynamoDbAsyncMappedDatabase.builder()
-                                                              .dynamoDbAsyncClient(dynamoDbAsyncClient)
-                                                              .build();
+    DynamoDbEnhancedAsyncClient enhancedClient = DynamoDbEnhancedAsyncClient.builder()
+                                                                            .dynamoDbClient(dynamoDbAsyncClient)
+                                                                            .build();
    ```
 
 2. Operations that return a single data item will return a
@@ -143,7 +165,7 @@ key differences:
    application can then do other work without having to block on the
    result:
    ```java
-   CompletableFuture<Customer> result = mappedTable.execute(GetItem.of(customerKey));
+   CompletableFuture<Customer> result = mappedTable.execute(GetItem.create(customerKey));
    // Perform other work here
    return result.join();   // now block and wait for the result
    ```
@@ -162,7 +184,7 @@ key differences:
 ### Using extensions
 The mapper supports plugin extensions to provide enhanced functionality
 beyond the simple primitive mapped operations. Only one extension can be
-loaded into a MappedDatabase. Any number of extensions can be chained
+loaded into a DynamoDbEnhancedClient. Any number of extensions can be chained
 together in a specific order into a single extension using a
 ChainExtension. Extensions have two hooks, beforeWrite() and
 afterRead(); the former can modify a write operation before it happens,
@@ -183,19 +205,20 @@ that write will fail.
 
 To load the extension:
 ```java
-MappedDatabase database = 
-  MappedDatabase.builder()
-                .dynamoDbClient(dynbamoDbClient)
-                .extendWith(VersionedRecordExtension.builder().build())
-                .build();
+DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                        .dynamoDbClient(dynamoDbClient)
+                        .extendWith(VersionedRecordExtension.builder().build())
+                        .build();
 ```
 
 To tell the extension which attribute to use to track the record version
 number tag a numeric attribute in the TableSchema with the version()
 AttributeTag:
 ```java
-    integerNumber("version", Customer::getVersion, Customer::setVersion)
-            .as(version())                               
+    integerNumberAttribute("version", 
+                           Customer::getVersion, 
+                           Customer::setVersion)
+        .as(version())          // Apply the 'version' tag to the attribute                         
 ```
 
 ## Advanced scenarios
@@ -219,18 +242,18 @@ public abstract class GenericRecord {
 }
 
 private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
-  TableSchema.builder()
+  StaticTableSchema.builder(GenericRecord.class)
     .attributes(
           // The partition key will be inherited by the top level mapper
-      string("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
-      string("created_date", GenericRecord::getCreatedDate, GenericRecord::setCreatedDate))
+      stringAttribute("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
+      stringAttribute("created_date", GenericRecord::getCreatedDate, GenericRecord::setCreatedDate))
     .build();
     
 private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-  TableSchema.builder()
+  StaticTableSchema.builder(Customer.class)
     .newItemSupplier(Customer::new)
     .attributes(
-      string("name", Customer::getName, Customer::setName))
+      stringAttribute("name", Customer::getName, Customer::setName))
     .extend(GENERIC_RECORD_SCHEMA)     // All the attributes of the GenericRecord schema are added to Customer
     .build();
 ```
@@ -250,17 +273,17 @@ public class GenericRecord {
 }
 
 private static final StaticTableSchema<GenericRecord> GENERIC_RECORD_SCHEMA =
-  TableSchema.builder()
+  StaticTableSchema.builder(GenericRecord.class)
     .newItemSupplier(GenericRecord::new)
     .attributes(
-      string("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
-      string("created_date", GenericRecord::getCreatedDate, GenericRecord::setCreatedDate))
+      stringAttribute("id", GenericRecord::getId, GenericRecord::setId).as(primaryPartitionKey()),
+      stringAttribute("created_date", GenericRecord::getCreatedDate, GenericRecord::setCreatedDate))
     .build();
     
 private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
-  TableSchema.builder()
+  StaticTableSchema.builder(Customer.class)
     .newItemSupplier(Customer::new)
-    .attributes(string("name", Customer::getName, Customer::setName))
+    .attributes(stringAttribute("name", Customer::getName, Customer::setName))
     // Because we are flattening a component object, we supply a getter and setter so the
     // mapper knows how to access it
     .flatten(CUSTOMER_TABLE_SCHEMA, Customer::getRecordMetadata, Customer::setRecordMetadata)

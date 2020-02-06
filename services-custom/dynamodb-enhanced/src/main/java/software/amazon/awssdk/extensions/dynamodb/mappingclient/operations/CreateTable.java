@@ -56,7 +56,7 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
         this.globalSecondaryIndices = globalSecondaryIndices;
     }
 
-    public static <T> CreateTable<T> of(ProvisionedThroughput provisionedThroughput) {
+    public static <T> CreateTable<T> create(ProvisionedThroughput provisionedThroughput) {
         return new CreateTable<>(provisionedThroughput, null, null);
     }
 

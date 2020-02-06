@@ -27,11 +27,11 @@ public class OperationContext {
         this.indexName = indexName;
     }
 
-    public static OperationContext of(String tableName, String indexName) {
+    public static OperationContext create(String tableName, String indexName) {
         return new OperationContext(tableName, indexName);
     }
 
-    public static OperationContext of(String tableName) {
+    public static OperationContext create(String tableName) {
         return new OperationContext(tableName, TableMetadata.primaryIndexName());
     }
 

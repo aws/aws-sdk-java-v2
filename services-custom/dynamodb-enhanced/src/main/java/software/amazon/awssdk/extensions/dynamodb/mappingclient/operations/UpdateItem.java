@@ -67,12 +67,12 @@ public class UpdateItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> UpdateItem<T> of(T item) {
-        return UpdateItem.builder().item(item).build();
+    public static <T> UpdateItem<T> create(T item) {
+        return new Builder<T>().item(item).build();
     }
 
-    public static GenericBuilder builder() {
-        return new GenericBuilder();
+    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
+        return new Builder<>();
     }
 
     public Builder<T> toBuilder() {
@@ -280,32 +280,6 @@ public class UpdateItem<T>
                          .expressionValues(Collections.unmodifiableMap(expressionAttributeValues))
                          .expressionNames(expressionAttributeNames)
                          .build();
-    }
-
-    public static class GenericBuilder {
-        private Boolean ignoreNulls;
-        private Expression conditionExpression;
-
-        private GenericBuilder() {
-        }
-
-        public GenericBuilder ignoreNulls(Boolean ignoreNulls) {
-            this.ignoreNulls = ignoreNulls;
-            return this;
-        }
-
-        public GenericBuilder conditionExpression(Expression conditionExpression) {
-            this.conditionExpression = conditionExpression;
-            return this;
-        }
-
-        public <T> Builder<T> item(T item) {
-            return new Builder<T>().item(item).ignoreNulls(ignoreNulls).conditionExpression(conditionExpression);
-        }
-
-        public UpdateItem<?> build() {
-            throw new UnsupportedOperationException("Cannot construct a UpdateItem operation without an item to put.");
-        }
     }
 
     public static final class Builder<T> {

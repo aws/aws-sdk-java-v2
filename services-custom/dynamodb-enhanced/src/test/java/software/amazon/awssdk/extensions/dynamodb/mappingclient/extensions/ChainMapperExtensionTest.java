@@ -48,7 +48,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class ChainMapperExtensionTest {
     private static final String TABLE_NAME = "concrete-table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
     private static final Map<String, AttributeValue> ATTRIBUTE_VALUES_1 =
         Collections.unmodifiableMap(Collections.singletonMap("key1", AttributeValue.builder().s("1").build()));
@@ -75,7 +75,7 @@ public class ChainMapperExtensionTest {
         Expression expression1 = Expression.builder().expression("one").expressionValues(ATTRIBUTE_VALUES_1).build();
         Expression expression2 = Expression.builder().expression("two").expressionValues(ATTRIBUTE_VALUES_2).build();
         Expression expression3 = Expression.builder().expression("three").expressionValues(ATTRIBUTE_VALUES_3).build();
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         WriteModification writeModification1 = WriteModification.builder()
                                                                 .additionalConditionalExpression(expression1)
                                                                 .transformedItem(fakeItems.get(1))
@@ -113,7 +113,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void beforeWrite_multipleExtensions_doingNothing() {
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         when(mockExtension1.beforeWrite(anyMap(), any(), any())).thenReturn(WriteModification.builder().build());
         when(mockExtension2.beforeWrite(anyMap(), any(), any())).thenReturn(WriteModification.builder().build());
         when(mockExtension3.beforeWrite(anyMap(), any(), any())).thenReturn(WriteModification.builder().build());
@@ -135,7 +135,7 @@ public class ChainMapperExtensionTest {
     @Test
     public void beforeWrite_multipleExtensions_singleCondition_noTransformations() {
         Expression expression = Expression.builder().expression("one").expressionValues(ATTRIBUTE_VALUES_1).build();
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         WriteModification writeModification1 = WriteModification.builder().build();
         WriteModification writeModification2 = WriteModification.builder()
                                                                 .additionalConditionalExpression(expression)
@@ -165,7 +165,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void beforeWrite_multipleExtensions_noConditions_singleTransformation() {
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         WriteModification writeModification1 = WriteModification.builder().build();
         WriteModification writeModification2 = WriteModification.builder()
                                                                 .transformedItem(fakeItems.get(1))
@@ -191,7 +191,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void beforeWrite_noExtensions() {
-        ChainMapperExtension extension = ChainMapperExtension.of();
+        ChainMapperExtension extension = ChainMapperExtension.create();
 
         WriteModification result = extension.beforeWrite(fakeItems.get(0),
                                                          PRIMARY_CONTEXT,
@@ -203,7 +203,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void afterRead_multipleExtensions_multipleTransformations() {
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         ReadModification readModification1 = ReadModification.builder().transformedItem(fakeItems.get(1)).build();
         ReadModification readModification2 = ReadModification.builder().transformedItem(fakeItems.get(2)).build();
         ReadModification readModification3 = ReadModification.builder().transformedItem(fakeItems.get(3)).build();
@@ -224,7 +224,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void afterRead_multipleExtensions_singleTransformation() {
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         ReadModification readModification1 = ReadModification.builder().build();
         ReadModification readModification2 = ReadModification.builder().transformedItem(fakeItems.get(1)).build();
         ReadModification readModification3 = ReadModification.builder().build();
@@ -245,7 +245,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void afterRead_multipleExtensions_noTransformations() {
-        ChainMapperExtension extension = ChainMapperExtension.of(mockExtension1, mockExtension2, mockExtension3);
+        ChainMapperExtension extension = ChainMapperExtension.create(mockExtension1, mockExtension2, mockExtension3);
         ReadModification readModification1 = ReadModification.builder().build();
         ReadModification readModification2 = ReadModification.builder().build();
         ReadModification readModification3 = ReadModification.builder().build();
@@ -266,7 +266,7 @@ public class ChainMapperExtensionTest {
 
     @Test
     public void afterRead_noExtensions() {
-        ChainMapperExtension extension = ChainMapperExtension.of();
+        ChainMapperExtension extension = ChainMapperExtension.create();
 
         ReadModification result = extension.afterRead(fakeItems.get(0), PRIMARY_CONTEXT, FakeItem.getTableMetadata());
 

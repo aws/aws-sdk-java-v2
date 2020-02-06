@@ -26,9 +26,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.bool;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.boolAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -48,7 +48,6 @@ import org.junit.rules.ExpectedException;
 
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attribute.AttributeSupplier;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
@@ -62,12 +61,12 @@ public class StaticTableSchemaTest {
     private static final AttributeValue ATTRIBUTE_VALUE_S = AttributeValue.builder().s("test-string").build();
 
     private static final StaticTableSchema<FakeDocument> FAKE_DOCUMENT_TABLE_SCHEMA =
-        TableSchema.builder()
-                   .newItemSupplier(FakeDocument::new)
-                   .attributes(
-                       string("documentString", FakeDocument::getDocumentString, FakeDocument::setDocumentString),
-                       integerNumber("documentInteger", FakeDocument::getDocumentInteger, FakeDocument::setDocumentInteger))
-                   .build();
+        StaticTableSchema.builder(FakeDocument.class)
+                         .newItemSupplier(FakeDocument::new)
+                         .attributes(
+                             stringAttribute("documentString", FakeDocument::getDocumentString, FakeDocument::setDocumentString),
+                             integerNumberAttribute("documentInteger", FakeDocument::getDocumentInteger, FakeDocument::setDocumentInteger))
+                         .build();
 
     private static final FakeMappedItem FAKE_ITEM = FakeMappedItem.builder()
                                                                   .aPrimitiveBoolean(true)
@@ -674,14 +673,14 @@ public class StaticTableSchemaTest {
     }
 
     private static final Collection<AttributeSupplier<FakeMappedItem>> ATTRIBUTES = Arrays.asList(
-        bool("a_primitive_boolean", FakeMappedItem::isAPrimitiveBoolean,
+        boolAttribute("a_primitive_boolean", FakeMappedItem::isAPrimitiveBoolean,
              FakeMappedItem::setAPrimitiveBoolean),
-        bool("a_boolean", FakeMappedItem::getABoolean,
+        boolAttribute("a_boolean", FakeMappedItem::getABoolean,
              FakeMappedItem::setABoolean),
-        string("a_string", FakeMappedItem::getAString, FakeMappedItem::setAString));
+        stringAttribute("a_string", FakeMappedItem::getAString, FakeMappedItem::setAString));
 
     private StaticTableSchema<FakeMappedItem> createSimpleTableSchema() {
-        return StaticTableSchema.builder()
+        return StaticTableSchema.builder(FakeMappedItem.class)
                                 .newItemSupplier(FakeMappedItem::new)
                                 .attributes(ATTRIBUTES)
                                 .build();
@@ -782,7 +781,7 @@ public class StaticTableSchemaTest {
         expectedMap.put("documentInteger", AttributeValue.builder().n("123").build());
         expectedMap.put("documentString", AttributeValue.builder().s("test-123").build());
 
-        verifyNullableAttribute(Attributes.documentMap("value",
+        verifyNullableAttribute(Attributes.documentMapAttribute("value",
                                                       FakeMappedItem::getAFakeDocument,
                                                       FakeMappedItem::setAFakeDocument,
                                                       FAKE_DOCUMENT_TABLE_SCHEMA),
@@ -792,7 +791,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleDocumentWithNullValues() {
-        verifyNullAttribute(Attributes.documentMap("value",
+        verifyNullAttribute(Attributes.documentMapAttribute("value",
                                                    FakeMappedItem::getAFakeDocument,
                                                    FakeMappedItem::setAFakeDocument,
                                                    FAKE_DOCUMENT_TABLE_SCHEMA),
@@ -801,7 +800,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleInteger() {
-        verifyNullableAttribute(Attributes.integerNumber("value", FakeMappedItem::getAnInteger,
+        verifyNullableAttribute(Attributes.integerNumberAttribute("value", FakeMappedItem::getAnInteger,
                                                          FakeMappedItem::setAnInteger),
                                 FakeMappedItem.builder().anInteger(123).build(),
                                 AttributeValue.builder().n("123").build());
@@ -809,7 +808,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandlePrimitiveInteger() {
-        verifyAttribute(Attributes.integerNumber("value", FakeMappedItem::getAPrimitiveInteger,
+        verifyAttribute(Attributes.integerNumberAttribute("value", FakeMappedItem::getAPrimitiveInteger,
                                                  FakeMappedItem::setAPrimitiveInteger),
                         FakeMappedItem.builder().aPrimitiveInteger(123).build(),
                         AttributeValue.builder().n("123").build());
@@ -817,14 +816,14 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleBoolean() {
-        verifyNullableAttribute(Attributes.bool("value", FakeMappedItem::getABoolean, FakeMappedItem::setABoolean),
+        verifyNullableAttribute(Attributes.boolAttribute("value", FakeMappedItem::getABoolean, FakeMappedItem::setABoolean),
                                 FakeMappedItem.builder().aBoolean(true).build(),
                                 AttributeValue.builder().bool(true).build());
     }
 
     @Test
     public void mapperCanHandlePrimitiveBoolean() {
-        verifyAttribute(Attributes.bool("value", FakeMappedItem::isAPrimitiveBoolean,
+        verifyAttribute(Attributes.boolAttribute("value", FakeMappedItem::isAPrimitiveBoolean,
                                         FakeMappedItem::setAPrimitiveBoolean),
                         FakeMappedItem.builder().aPrimitiveBoolean(true).build(),
                         AttributeValue.builder().bool(true).build());
@@ -832,21 +831,21 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleString() {
-        verifyNullableAttribute(string("value", FakeMappedItem::getAString, FakeMappedItem::setAString),
+        verifyNullableAttribute(stringAttribute("value", FakeMappedItem::getAString, FakeMappedItem::setAString),
                                 FakeMappedItem.builder().aString("onetwothree").build(),
                                 AttributeValue.builder().s("onetwothree").build());
     }
 
     @Test
     public void mapperCanHandleLong() {
-        verifyNullableAttribute(Attributes.longNumber("value", FakeMappedItem::getALong, FakeMappedItem::setALong),
+        verifyNullableAttribute(Attributes.longNumberAttribute("value", FakeMappedItem::getALong, FakeMappedItem::setALong),
                                 FakeMappedItem.builder().aLong(123L).build(),
                                 AttributeValue.builder().n("123").build());
     }
 
     @Test
     public void mapperCanHandlePrimitiveLong() {
-        verifyAttribute(Attributes.longNumber("value", FakeMappedItem::getAPrimitiveLong,
+        verifyAttribute(Attributes.longNumberAttribute("value", FakeMappedItem::getAPrimitiveLong,
                                               FakeMappedItem::setAPrimitiveLong),
                         FakeMappedItem.builder().aPrimitiveLong(123L).build(),
                         AttributeValue.builder().n("123").build());
@@ -854,14 +853,14 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleShort() {
-        verifyNullableAttribute(Attributes.shortNumber("value", FakeMappedItem::getAShort, FakeMappedItem::setAShort),
+        verifyNullableAttribute(Attributes.shortNumberAttribute("value", FakeMappedItem::getAShort, FakeMappedItem::setAShort),
                                 FakeMappedItem.builder().aShort((short)123).build(),
                                 AttributeValue.builder().n("123").build());
     }
 
     @Test
     public void mapperCanHandlePrimitiveShort() {
-        verifyAttribute(Attributes.shortNumber("value", FakeMappedItem::getAPrimitiveShort,
+        verifyAttribute(Attributes.shortNumberAttribute("value", FakeMappedItem::getAPrimitiveShort,
                                                FakeMappedItem::setAPrimitiveShort),
                         FakeMappedItem.builder().aPrimitiveShort((short)123).build(),
                         AttributeValue.builder().n("123").build());
@@ -869,14 +868,14 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleByte() {
-        verifyNullableAttribute(Attributes.byteNumber("value", FakeMappedItem::getAByte, FakeMappedItem::setAByte),
+        verifyNullableAttribute(Attributes.byteNumberAttribute("value", FakeMappedItem::getAByte, FakeMappedItem::setAByte),
                                 FakeMappedItem.builder().aByte((byte)123).build(),
                                 AttributeValue.builder().n("123").build());
     }
 
     @Test
     public void mapperCanHandlePrimitiveByte() {
-        verifyAttribute(Attributes.byteNumber("value", FakeMappedItem::getAPrimitiveByte,
+        verifyAttribute(Attributes.byteNumberAttribute("value", FakeMappedItem::getAPrimitiveByte,
                                               FakeMappedItem::setAPrimitiveByte),
                         FakeMappedItem.builder().aPrimitiveByte((byte)123).build(),
                         AttributeValue.builder().n("123").build());
@@ -884,7 +883,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleDouble() {
-        verifyNullableAttribute(Attributes.doubleNumber("value", FakeMappedItem::getADouble,
+        verifyNullableAttribute(Attributes.doubleNumberAttribute("value", FakeMappedItem::getADouble,
                                                         FakeMappedItem::setADouble),
                                 FakeMappedItem.builder().aDouble(1.23).build(),
                                 AttributeValue.builder().n("1.23").build());
@@ -892,7 +891,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandlePrimitiveDouble() {
-        verifyAttribute(Attributes.doubleNumber("value", FakeMappedItem::getAPrimitiveDouble,
+        verifyAttribute(Attributes.doubleNumberAttribute("value", FakeMappedItem::getAPrimitiveDouble,
                                                 FakeMappedItem::setAPrimitiveDouble),
                         FakeMappedItem.builder().aPrimitiveDouble(1.23).build(),
                         AttributeValue.builder().n("1.23").build());
@@ -900,14 +899,14 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleFloat() {
-        verifyNullableAttribute(Attributes.floatNumber("value", FakeMappedItem::getAFloat, FakeMappedItem::setAFloat),
+        verifyNullableAttribute(Attributes.floatNumberAttribute("value", FakeMappedItem::getAFloat, FakeMappedItem::setAFloat),
                                 FakeMappedItem.builder().aFloat(1.23f).build(),
                                 AttributeValue.builder().n("1.23").build());
     }
 
     @Test
     public void mapperCanHandlePrimitiveFloat() {
-        verifyAttribute(Attributes.floatNumber("value", FakeMappedItem::getAPrimitiveFloat,
+        verifyAttribute(Attributes.floatNumberAttribute("value", FakeMappedItem::getAPrimitiveFloat,
                                                FakeMappedItem::setAPrimitiveFloat),
                         FakeMappedItem.builder().aPrimitiveFloat(1.23f).build(),
                         AttributeValue.builder().n("1.23").build());
@@ -917,7 +916,7 @@ public class StaticTableSchemaTest {
     @Test
     public void mapperCanHandleByteBuffer() {
         ByteBuffer byteBuffer = ByteBuffer.wrap("test".getBytes(UTF_8));
-        verifyNullableAttribute(Attributes.binary("value",
+        verifyNullableAttribute(Attributes.binaryAttribute("value",
                                                  FakeMappedItem::getABytebuffer,
                                                  FakeMappedItem::setABytebuffer),
                                 FakeMappedItem.builder().aBytebuffer(byteBuffer).build(),
@@ -926,7 +925,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void mapperCanHandleSimpleList() {
-        verifyNullableAttribute(Attributes.list("value",
+        verifyNullableAttribute(Attributes.listAttribute("value",
                                                 FakeMappedItem::getAnIntegerList,
                                                 FakeMappedItem::setAnIntegerList,
                                                 AttributeTypes.integerNumberType()),
@@ -954,7 +953,7 @@ public class StaticTableSchemaTest {
                                                          .build()))
                           .build();
 
-        verifyNullableAttribute(Attributes.list("value",
+        verifyNullableAttribute(Attributes.listAttribute("value",
                                                 FakeMappedItem::getANestedStructure,
                                                 FakeMappedItem::setANestedStructure,
                                                 AttributeTypes.listType(
@@ -968,7 +967,7 @@ public class StaticTableSchemaTest {
         Set<Integer> valueSet = new HashSet<>(asList(1, 2, 3));
         List<String> expectedList = valueSet.stream().map(Objects::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.integerSet("value",
+        verifyNullableAttribute(Attributes.integerSetAttribute("value",
                                                       FakeMappedItem::getAnIntegerSet,
                                                       FakeMappedItem::setAnIntegerSet),
                                 FakeMappedItem.builder().anIntegerSet(valueSet).build(),
@@ -980,8 +979,8 @@ public class StaticTableSchemaTest {
         Set<String> valueSet = new HashSet<>(asList("one", "two", "three"));
         List<String> expectedList = valueSet.stream().map(Objects::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.stringSet("value", FakeMappedItem::getAStringSet,
-                                                     FakeMappedItem::setAStringSet),
+        verifyNullableAttribute(Attributes.stringSetAttribute("value", FakeMappedItem::getAStringSet,
+                                                              FakeMappedItem::setAStringSet),
                                 FakeMappedItem.builder().aStringSet(valueSet).build(),
                                 AttributeValue.builder().ss(expectedList).build());
     }
@@ -991,7 +990,7 @@ public class StaticTableSchemaTest {
         Set<Long> valueSet = new HashSet<>(asList(1L, 2L, 3L));
         List<String> expectedList = valueSet.stream().map(Objects::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.longSet("value", FakeMappedItem::getALongSet, FakeMappedItem::setALongSet),
+        verifyNullableAttribute(Attributes.longSetAttribute("value", FakeMappedItem::getALongSet, FakeMappedItem::setALongSet),
                                 FakeMappedItem.builder().aLongSet(valueSet).build(),
                                 AttributeValue.builder().ns(expectedList).build());
     }
@@ -1001,7 +1000,7 @@ public class StaticTableSchemaTest {
         Set<Short> valueSet = new HashSet<>(asList((short)1, (short)2, (short)3));
         List<String> expectedList = valueSet.stream().map(Objects::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.shortSet("value", FakeMappedItem::getAShortSet,
+        verifyNullableAttribute(Attributes.shortSetAttribute("value", FakeMappedItem::getAShortSet,
                                                     FakeMappedItem::setAShortSet),
                                 FakeMappedItem.builder().aShortSet(valueSet).build(),
                                 AttributeValue.builder().ns(expectedList).build());
@@ -1012,7 +1011,7 @@ public class StaticTableSchemaTest {
         Set<Byte> valueSet = new HashSet<>(asList((byte)1, (byte)2, (byte)3));
         List<String> expectedList = valueSet.stream().map(Objects::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.byteSet("value", FakeMappedItem::getAByteSet, FakeMappedItem::setAByteSet),
+        verifyNullableAttribute(Attributes.byteSetAttribute("value", FakeMappedItem::getAByteSet, FakeMappedItem::setAByteSet),
                                 FakeMappedItem.builder().aByteSet(valueSet).build(),
                                 AttributeValue.builder().ns(expectedList).build());
     }
@@ -1022,7 +1021,7 @@ public class StaticTableSchemaTest {
         Set<Double> valueSet = new HashSet<>(asList(1.2, 3.4, 5.6));
         List<String> expectedList = valueSet.stream().map(Object::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.doubleSet("value", FakeMappedItem::getADoubleSet,
+        verifyNullableAttribute(Attributes.doubleSetAttribute("value", FakeMappedItem::getADoubleSet,
                                                      FakeMappedItem::setADoubleSet),
                                 FakeMappedItem.builder().aDoubleSet(valueSet).build(),
                                 AttributeValue.builder().ns(expectedList).build());
@@ -1033,7 +1032,7 @@ public class StaticTableSchemaTest {
         Set<Float> valueSet = new HashSet<>(asList(1.2f, 3.4f, 5.6f));
         List<String> expectedList = valueSet.stream().map(Object::toString).collect(toList());
 
-        verifyNullableAttribute(Attributes.floatSet("value", FakeMappedItem::getAFloatSet,
+        verifyNullableAttribute(Attributes.floatSetAttribute("value", FakeMappedItem::getAFloatSet,
                                                     FakeMappedItem::setAFloatSet),
                                 FakeMappedItem.builder().aFloatSet(valueSet).build(),
                                 AttributeValue.builder().ns(expectedList).build());
@@ -1047,9 +1046,9 @@ public class StaticTableSchemaTest {
         Set<ByteBuffer> byteBuffer = new HashSet<>(asList(byteBuffer1, byteBuffer2, byteBuffer3));
         List<SdkBytes> sdkBytes = byteBuffer.stream().map(SdkBytes::fromByteBuffer).collect(toList());
 
-        verifyNullableAttribute(Attributes.binarySet("value",
-                                                    FakeMappedItem::getAByteBufferSet,
-                                                    FakeMappedItem::setAByteBufferSet),
+        verifyNullableAttribute(Attributes.binarySetAttribute("value",
+                                                              FakeMappedItem::getAByteBufferSet,
+                                                              FakeMappedItem::setAByteBufferSet),
                                 FakeMappedItem.builder().aByteBufferSet(byteBuffer).build(),
                                 AttributeValue.builder().bs(sdkBytes).build());
     }
@@ -1064,7 +1063,7 @@ public class StaticTableSchemaTest {
         attributeValueMap.put("one", AttributeValue.builder().s("two").build());
         attributeValueMap.put("three", AttributeValue.builder().s("four").build());
 
-        verifyNullableAttribute(Attributes.map("value",
+        verifyNullableAttribute(Attributes.mapAttribute("value",
                                                FakeMappedItem::getAStringMap,
                                                FakeMappedItem::setAStringMap,
                                                AttributeTypes.stringType()),
@@ -1112,8 +1111,8 @@ public class StaticTableSchemaTest {
 
     @Test
     public void buildAbstractTableSchema() {
-        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder()
-                                                                         .attributes(string("aString",
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(FakeMappedItem.class)
+                                                                         .attributes(stringAttribute("aString",
                                                                                      FakeMappedItem::getAString,
                                                                                      FakeMappedItem::setAString))
                                                                          .build();
@@ -1128,7 +1127,7 @@ public class StaticTableSchemaTest {
     @Test
     public void buildAbstractWithFlatten() {
         StaticTableSchema<FakeMappedItem> tableSchema =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(FakeMappedItem.class)
                              .flatten(FAKE_DOCUMENT_TABLE_SCHEMA,
                                       FakeMappedItem::getAFakeDocument,
                                       FakeMappedItem::setAFakeDocument)
@@ -1144,14 +1143,14 @@ public class StaticTableSchemaTest {
     @Test
     public void buildAbstractExtends() {
         StaticTableSchema<FakeAbstractSuperclass> superclassTableSchema =
-            StaticTableSchema.builder()
-                             .attributes(Attributes.string("aString",
+            StaticTableSchema.builder(FakeAbstractSuperclass.class)
+                             .attributes(Attributes.stringAttribute("aString",
                                                            FakeAbstractSuperclass::getAString,
                                                            FakeAbstractSuperclass::setAString))
                              .build();
 
         StaticTableSchema<FakeAbstractSubclass> subclassTableSchema =
-            StaticTableSchema.builder()
+            StaticTableSchema.builder(FakeAbstractSubclass.class)
                              .<FakeAbstractSubclass>extend(superclassTableSchema)
                              .build();
 
@@ -1167,7 +1166,7 @@ public class StaticTableSchemaTest {
 
         StaticTableSchema<FakeDocument> abstractTableSchema =
             StaticTableSchema
-                .builder()
+                .builder(FakeDocument.class)
                 .tagWith(new TestTableTag())
                 .build();
 
@@ -1180,7 +1179,7 @@ public class StaticTableSchemaTest {
 
         StaticTableSchema<FakeDocument> concreteTableSchema =
             StaticTableSchema
-                .builder()
+                .builder(FakeDocument.class)
                 .newItemSupplier(FakeDocument::new)
                 .tagWith(new TestTableTag())
                 .build();
@@ -1192,15 +1191,15 @@ public class StaticTableSchemaTest {
     @Test
     public void instantiateFlattenedAbstractClassShouldThrowException() {
         StaticTableSchema<FakeAbstractSuperclass> superclassTableSchema =
-            StaticTableSchema.builder()
-                             .attributes(Attributes.string("aString",
+            StaticTableSchema.builder(FakeAbstractSuperclass.class)
+                             .attributes(Attributes.stringAttribute("aString",
                                                            FakeAbstractSuperclass::getAString,
                                                            FakeAbstractSuperclass::setAString))
                              .build();
 
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("abstract");
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeBrokenClass.class)
                          .newItemSupplier(FakeBrokenClass::new)
                          .flatten(superclassTableSchema,
                                   FakeBrokenClass::getAbstractObject,
@@ -1211,7 +1210,7 @@ public class StaticTableSchemaTest {
                                  FakeMappedItem fakeMappedItem,
                                  AttributeValue attributeValue) {
 
-        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder()
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(FakeMappedItem.class)
                                                                          .newItemSupplier(FakeMappedItem::new)
                                                                          .attributes(mappedAttribute)
                                                                          .build();
@@ -1227,7 +1226,7 @@ public class StaticTableSchemaTest {
     private void verifyNullAttribute(AttributeSupplier<FakeMappedItem> mappedAttribute,
                                      FakeMappedItem fakeMappedItem) {
 
-        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder()
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(FakeMappedItem.class)
                                                                          .newItemSupplier(FakeMappedItem::new)
                                                                          .attributes(mappedAttribute)
                                                                          .build();

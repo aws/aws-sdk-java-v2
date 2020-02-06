@@ -23,8 +23,8 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.Attribute
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,21 +33,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedDatabase;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DynamoDbAsyncMappedDatabase;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Scan;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -90,11 +89,11 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        TableSchema.builder()
+        StaticTableSchema.builder(Record.class)
                    .newItemSupplier(Record::new)
                    .attributes(
-                       string("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       integerNumber("sort", Record::getSort, Record::setSort).as(primarySortKey()))
+                       stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
+                       integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()))
         .build();
 
     private static final List<Record> RECORDS =
@@ -102,15 +101,16 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
                  .mapToObj(i -> new Record().setId("id-value").setSort(i))
                  .collect(Collectors.toList());
 
-    private AsyncMappedDatabase mappedDatabase = DynamoDbAsyncMappedDatabase.builder()
-                                                                            .dynamoDbClient(getDynamoDbAsyncClient())
-                                                                            .build();
+    private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
+        DefaultDynamoDbEnhancedAsyncClient.builder()
+                                          .dynamoDbClient(getDynamoDbAsyncClient())
+                                          .build();
 
-    private AsyncMappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"),
-                                                                        TABLE_SCHEMA);
+    private AsyncMappedTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
+                                                                             TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.of(record)).join());
+        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)).join());
     }
 
     private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
@@ -127,7 +127,7 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.of(getDefaultProvisionedThroughput())).join();
+        mappedTable.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After

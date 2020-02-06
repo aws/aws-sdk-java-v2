@@ -17,9 +17,7 @@ package software.amazon.awssdk.http.nio.netty.fault;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
-import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -39,7 +37,6 @@ import io.netty.handler.codec.http2.Http2Frame;
 import io.netty.handler.codec.http2.Http2FrameCodec;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
-import io.netty.handler.codec.http2.Http2GoAwayFrame;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.codec.http2.Http2PingFrame;
@@ -50,7 +47,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.Flowable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -74,7 +70,7 @@ import software.amazon.awssdk.utils.Logger;
 
 
 /**
- * Testing the scenario where the server fails to respond
+ * Testing the scenario where the server fails to respond to periodic PING
  */
 public class ServerNotRespondingTest {
     private static final Logger LOGGER = Logger.loggerFor(ServerNotRespondingTest.class);
@@ -89,6 +85,7 @@ public class ServerNotRespondingTest {
         netty = NettyNioAsyncHttpClient.builder()
                                        .readTimeout(Duration.ofMillis(500))
                                        .eventLoopGroup(SdkEventLoopGroup.builder().numberOfThreads(3).build())
+                                       .http2Configuration(h -> h.healthCheckPingPeriod(Duration.ofMillis(200)))
                                        .protocol(Protocol.HTTP2)
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
@@ -107,21 +104,18 @@ public class ServerNotRespondingTest {
     }
 
     @Test
-    public void connectionNotRespond_pingAck_shouldReuse() throws InterruptedException {
-        server.ackPingOnFirstChannel = true;
-        // The first request picks up a non-responding channel and should fail. Channel 1
+    public void connectionNotAckPing_newRequestShouldUseNewConnection() throws InterruptedException {
+        server.ackPingOnFirstChannel = false;
+        server.notRespondOnFirstChannel = false;
         CompletableFuture<Void> firstRequest = sendGetRequest();
-        assertThatThrownBy(() -> firstRequest.join()).hasCauseInstanceOf(IOException.class);
+        // First request should succeed
+        firstRequest.join();
 
-        server.failOnFirstChannel = false;
-
-        // Make sure PING is acked
-        Thread.sleep(1000);
-
-        // The second request should reuse channel 1 because it acks PING.
-        Void secondRequest = sendGetRequest().join();
-
-        assertThat(server.h2ConnectionCount.get()).isEqualTo(1);
+        // Wait for Ping to close the connection
+        Thread.sleep(200);
+        server.notRespondOnFirstChannel = false;
+        sendGetRequest().join();
+        assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
     }
 
     private CompletableFuture<Void> sendGetRequest() {
@@ -164,8 +158,8 @@ public class ServerNotRespondingTest {
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private SslContext sslCtx;
         private AtomicInteger h2ConnectionCount = new AtomicInteger(0);
-        private boolean ackPingOnFirstChannel = false;
-        private boolean failOnFirstChannel = true;
+        private volatile boolean ackPingOnFirstChannel = false;
+        private volatile boolean notRespondOnFirstChannel = true;
 
         void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -206,7 +200,7 @@ public class ServerNotRespondingTest {
 
             pipeline.addLast(http2Codec);
             pipeline.addLast(new MightNotRespondPingFrameHandler());
-            pipeline.addLast(new VerifyGoAwayFrameHandler());
+            //pipeline.addLast(new VerifyGoAwayFrameHandler());
             pipeline.addLast(http2Handler);
         }
 
@@ -231,22 +225,13 @@ public class ServerNotRespondingTest {
             }
         }
 
-        public final class VerifyGoAwayFrameHandler extends SimpleChannelInboundHandler<Http2GoAwayFrame> {
-            @Override
-            protected void channelRead0(ChannelHandlerContext ctx, Http2GoAwayFrame msg) {
-                LOGGER.info(() -> "goaway" + ctx.channel());
-                h2ConnectionCount.decrementAndGet();
-                msg.release();
-            }
-        }
-
         private class MightNotRespondStreamFrameHandler extends SimpleChannelInboundHandler<Http2Frame> {
 
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Http2Frame frame) {
                 if (frame instanceof Http2DataFrame) {
                     // Not respond if this is channel 1
-                    if (channelIds[0].equals(ctx.channel().parent().id().asShortText()) && failOnFirstChannel) {
+                    if (channelIds[0].equals(ctx.channel().parent().id().asShortText()) && notRespondOnFirstChannel) {
                         LOGGER.info(() -> "This is the first request, not responding" + ctx.channel());
                     } else {
                         DefaultHttp2DataFrame dataFrame = new DefaultHttp2DataFrame(false);

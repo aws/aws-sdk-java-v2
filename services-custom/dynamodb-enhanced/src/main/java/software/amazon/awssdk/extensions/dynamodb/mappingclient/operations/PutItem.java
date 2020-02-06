@@ -53,12 +53,12 @@ public class PutItem<T>
         this.conditionExpression = b.conditionExpression;
     }
 
-    public static <T> PutItem<T> of(T item) {
-        return PutItem.builder().item(item).build();
+    public static <T> PutItem<T> create(T item) {
+        return new Builder<T>().item(item).build();
     }
 
-    public static GenericBuilder builder() {
-        return new GenericBuilder();
+    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
+        return new Builder<>();
     }
 
     public Builder<T> toBuilder() {
@@ -204,26 +204,6 @@ public class PutItem<T>
     @Override
     public int hashCode() {
         return item != null ? item.hashCode() : 0;
-    }
-
-    public static class GenericBuilder {
-        private Expression conditionExpression;
-
-        private GenericBuilder() {
-        }
-
-        public <T> Builder<T> item(T item) {
-            return new Builder<T>().item(item).conditionExpression(conditionExpression);
-        }
-
-        public GenericBuilder conditionExpression(Expression conditionExpression) {
-            this.conditionExpression = conditionExpression;
-            return this;
-        }
-
-        public PutItem<?> build() {
-            throw new UnsupportedOperationException("Cannot construct a PutItem operation without an item to put.");
-        }
     }
 
     public static final class Builder<T> {

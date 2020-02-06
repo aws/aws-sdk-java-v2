@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client [Preview]",
+    "description": "In order to make operations more easily discoverable by an IDE, specific operation methods have been added to the enhanced client interface. An operation method takes a corresponding request object as parameter. Meanwhile, the generic execute() method is removed. This change affects only batch and transcribe operations at the database level."
+}
