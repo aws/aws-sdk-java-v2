@@ -1,3 +1,61 @@
+# __2.10.59__ __2020-02-06__
+## __AWS AppSync__
+  - ### Features
+    - AWS AppSync now supports X-Ray
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild adds support for Amazon Elastic File Systems
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - In order to make operations more easily discoverable by an IDE, specific operation methods have been added to the enhanced client interface. An operation method takes a corresponding request object as parameter. Meanwhile, the generic execute() method is removed. This change affects only batch and transcribe operations at the database level.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release contains updated text for the GetAuthorizationToken API.
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - Documentation updates for EBS direct APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds platform details and billing info to the DescribeImages API.
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Amazon Lex now supports AMAZON.AlphaNumeric with regular expressions.
+
+# __2.10.58__ __2020-02-05__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK has added support for fine-tuned QVBR quality level.
+
+## __AWS Ground Station__
+  - ### Features
+    - Adds dataflowEndpointRegion property to DataflowEndpointConfig. The dateCreated, lastUpdated, and tags properties on GetSatellite have been deprecated.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Documentation-only update that adds services to the list of supported services.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Additional resource types are now supported in the AWS Security Finding Format (ASFF). The following new resource types are added, each having an accompanying resource details object with fields for security finding providers to populate: AwsCodeBuildProject, AwsEc2NetworkInterface, AwsEc2SecurityGroup, AwsElasticsearchDomain, AwsLambdaLayerVersion, AwsRdsDbInstance, and AwsWafWebAcl. The following resource types are added without an accompanying details object: AutoscalingAutoscalingGroup, AwsDynamoDbTable, AwsEc2Eip, AwsEc2Snapshot, AwsEc2Volume, AwsRdsDbSnapshot, AwsRedshiftCluster, and AwsS3Object. The number of allowed resources per finding is increased from 10 to 32. A new field is added in the Compliance object, RelatedRequirements. To learn more, visit our documentation on the ASFF.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Updated the maximum number of tags that can be added to a snapshot using DLM to 45.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release provides support for tagging when you create a VPC endpoint, or VPC endpoint service.
+
+## __Amazon Forecast Query Service__
+  - ### Features
+    - Documentation updates for Amazon Forecast.
+
 # __2.10.57__ __2020-02-04__
 ## __AWS IoT__
   - ### Features

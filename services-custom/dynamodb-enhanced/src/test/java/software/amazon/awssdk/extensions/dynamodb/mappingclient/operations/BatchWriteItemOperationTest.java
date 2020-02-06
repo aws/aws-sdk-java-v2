@@ -56,7 +56,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadM
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItem.BatchWriteItemResults;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteBatch;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
@@ -66,7 +68,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BatchWriteItemTest {
+public class BatchWriteItemOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final String TABLE_NAME_2 = "table-name-2";
 
@@ -111,8 +113,12 @@ public class BatchWriteItemTest {
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
-        BatchWriteItem operation =
-            BatchWriteItem.create(WriteBatch.create(fakeItemMappedTable, PutItem.create(FAKE_ITEMS.get(0))));
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+            BatchWriteItemEnhancedRequest.builder()
+                                         .writeBatches(WriteBatch.create(fakeItemMappedTable, PutItem.create(FAKE_ITEMS.get(0))))
+                                         .build();
+
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
 
         WriteRequest writeRequest =
             WriteRequest.builder()
@@ -135,15 +141,20 @@ public class BatchWriteItemTest {
 
     @Test
     public void generateRequest_multipleTables_mixedCommands() {
-        BatchWriteItem operation =
-            BatchWriteItem.create(WriteBatch.create(fakeItemMappedTable,
-                                            PutItem.create(FAKE_ITEMS.get(0)),
-                                            DeleteItem.create(FAKE_ITEM_KEYS.get(1)),
-                                            PutItem.create(FAKE_ITEMS.get(2))),
-                              WriteBatch.create(fakeItemWithSortMappedTable,
-                                            DeleteItem.create(FAKESORT_ITEM_KEYS.get(0)),
-                                            PutItem.create(FAKESORT_ITEMS.get(1)),
-                                            DeleteItem.create(FAKESORT_ITEM_KEYS.get(2))));
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+            BatchWriteItemEnhancedRequest.builder()
+                                         .writeBatches(
+                                             WriteBatch.create(fakeItemMappedTable,
+                                                               PutItem.create(FAKE_ITEMS.get(0)),
+                                                               DeleteItem.create(FAKE_ITEM_KEYS.get(1)),
+                                                               PutItem.create(FAKE_ITEMS.get(2))),
+                                             WriteBatch.create(fakeItemWithSortMappedTable,
+                                                               DeleteItem.create(FAKESORT_ITEM_KEYS.get(0)),
+                                                               PutItem.create(FAKESORT_ITEMS.get(1)),
+                                                               DeleteItem.create(FAKESORT_ITEM_KEYS.get(2))))
+                                         .build();
+
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
 
         BatchWriteItemRequest request = operation.generateRequest(mockExtension);
 
@@ -159,15 +170,20 @@ public class BatchWriteItemTest {
 
     @Test
     public void generateRequest_multipleTables_extensionOnlyTransformsPutsAndNotDeletes() {
-        BatchWriteItem operation =
-            BatchWriteItem.create(WriteBatch.create(fakeItemMappedTableWithExtension,
-                                            PutItem.create(FAKE_ITEMS.get(0)),
-                                            DeleteItem.create(FAKE_ITEM_KEYS.get(1)),
-                                            PutItem.create(FAKE_ITEMS.get(2))),
-                              WriteBatch.create(fakeItemWithSortMappedTableWithExtension,
-                                            DeleteItem.create(FAKESORT_ITEM_KEYS.get(0)),
-                                            PutItem.create(FAKESORT_ITEMS.get(1)),
-                                            DeleteItem.create(FAKESORT_ITEM_KEYS.get(2))));
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+            BatchWriteItemEnhancedRequest.builder()
+                                         .writeBatches(
+                                             WriteBatch.create(fakeItemMappedTableWithExtension,
+                                                               PutItem.create(FAKE_ITEMS.get(0)),
+                                                               DeleteItem.create(FAKE_ITEM_KEYS.get(1)),
+                                                               PutItem.create(FAKE_ITEMS.get(2))),
+                                             WriteBatch.create(fakeItemWithSortMappedTableWithExtension,
+                                                               DeleteItem.create(FAKESORT_ITEM_KEYS.get(0)),
+                                                               PutItem.create(FAKESORT_ITEMS.get(1)),
+                                                               DeleteItem.create(FAKESORT_ITEM_KEYS.get(2))))
+                                         .build();
+
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
 
         // Use the mock extension to transform every item based on table name
         IntStream.range(0, 3).forEach(i -> {
@@ -199,15 +215,20 @@ public class BatchWriteItemTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_extensionTriesToAddConditionalToPutItem() {
-        BatchWriteItem operation =
-            BatchWriteItem.create(WriteBatch.create(fakeItemMappedTableWithExtension,
-                                            PutItem.create(FAKE_ITEMS.get(0)),
-                                            DeleteItem.create(FAKE_ITEM_KEYS.get(1)),
-                                            PutItem.create(FAKE_ITEMS.get(2))),
-                              WriteBatch.create(fakeItemWithSortMappedTableWithExtension,
-                                            DeleteItem.create(FAKESORT_ITEM_KEYS.get(0)),
-                                            PutItem.create(FAKESORT_ITEMS.get(1)),
-                                            DeleteItem.create(FAKESORT_ITEM_KEYS.get(2))));
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+            BatchWriteItemEnhancedRequest.builder()
+                                         .writeBatches(
+                                             WriteBatch.create(fakeItemMappedTableWithExtension,
+                                                               PutItem.create(FAKE_ITEMS.get(0)),
+                                                               DeleteItem.create(FAKE_ITEM_KEYS.get(1)),
+                                                               PutItem.create(FAKE_ITEMS.get(2))),
+                                             WriteBatch.create(fakeItemWithSortMappedTableWithExtension,
+                                                               DeleteItem.create(FAKESORT_ITEM_KEYS.get(0)),
+                                                               PutItem.create(FAKESORT_ITEMS.get(1)),
+                                                               DeleteItem.create(FAKESORT_ITEM_KEYS.get(2))))
+                                         .build();
+
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
 
         Expression expression = Expression.builder().expression("test-expression").build();
 
@@ -220,7 +241,7 @@ public class BatchWriteItemTest {
 
     @Test
     public void transformResults_multipleUnprocessedOperations() {
-        BatchWriteItem operation = BatchWriteItem.create();
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(emptyRequest());
 
         List<WriteRequest> writeRequests1 = Arrays.asList(putRequest(FAKE_ITEM_MAPS.get(0)),
                                                           deleteRequest(FAKE_ITEM_MAPS.get(1)),
@@ -236,7 +257,7 @@ public class BatchWriteItemTest {
                                   .unprocessedItems(writeRequests)
                                   .build();
 
-        BatchWriteItemResults results = operation.transformResponse(response, mockExtension);
+        BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension),
                    containsInAnyOrder(FAKE_ITEMS.get(1), FAKE_ITEMS.get(2)));
@@ -250,7 +271,7 @@ public class BatchWriteItemTest {
 
     @Test
     public void transformResults_multipleUnprocessedOperations_extensionTransformsPutsNotDeletes() {
-        BatchWriteItem operation = BatchWriteItem.create();
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(emptyRequest());
 
         List<WriteRequest> writeRequests1 = Arrays.asList(putRequest(FAKE_ITEM_MAPS.get(0)),
                                                           deleteRequest(FAKE_ITEM_MAPS.get(1)),
@@ -280,7 +301,7 @@ public class BatchWriteItemTest {
                                 any());
         });
 
-        BatchWriteItemResults results = operation.transformResponse(response, mockExtension);
+        BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTableWithExtension),
                    containsInAnyOrder(FAKE_ITEMS.get(1), FAKE_ITEMS.get(2)));
@@ -294,17 +315,22 @@ public class BatchWriteItemTest {
 
     @Test
     public void transformResults_noUnprocessedOperations() {
-        BatchWriteItem operation = BatchWriteItem.create();
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(emptyRequest());
 
         BatchWriteItemResponse response =
             BatchWriteItemResponse.builder()
                                   .unprocessedItems(emptyMap())
                                   .build();
 
-        BatchWriteItemResults results = operation.transformResponse(response, mockExtension);
+        BatchWriteResult results = operation.transformResponse(response, mockExtension);
 
         assertThat(results.unprocessedDeleteItemsForTable(fakeItemMappedTable), is(emptyList()));
         assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTable), is(emptyList()));
+    }
+
+
+    private static BatchWriteItemEnhancedRequest emptyRequest() {
+        return BatchWriteItemEnhancedRequest.builder().writeBatches().build();
     }
 
     private static WriteRequest putRequest(Map<String, AttributeValue> itemMap) {

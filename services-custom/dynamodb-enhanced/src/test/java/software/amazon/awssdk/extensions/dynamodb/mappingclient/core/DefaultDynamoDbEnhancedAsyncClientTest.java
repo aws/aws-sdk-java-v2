@@ -51,16 +51,6 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
     private DefaultDynamoDbEnhancedAsyncClient dynamoDbEnhancedAsyncClient;
 
     @Test
-    public void execute() {
-        when(mockDatabaseOperation.executeAsync(any(), any())).thenReturn(CompletableFuture.completedFuture("test"));
-
-        String result = dynamoDbEnhancedAsyncClient.execute(mockDatabaseOperation).join();
-
-        assertThat(result, is("test"));
-        verify(mockDatabaseOperation).executeAsync(mockDynamoDbAsyncClient, mockMapperExtension);
-    }
-
-    @Test
     public void table() {
         DynamoDbAsyncMappedTable<Object> mappedTable = dynamoDbEnhancedAsyncClient.table("table-name", mockTableSchema);
 

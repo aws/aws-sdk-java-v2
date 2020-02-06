@@ -13,67 +13,87 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableReadOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
+/**
+ * Encapsulates a single write transaction that can form a list of transactions that go into a
+ * {@link BatchGetItemEnhancedRequest}.
+ * Example:
+ *
+ * {@code
+ * ReadBatch.create(myTable, putItem(myItem));
+ * ReadBatch.createf(myTable, deleteItem(Key.create(stringValue("id123"))));
+ * }
+ *
+ * @param <T> The type of object this transaction applies to. Can be safely erased as it's not needed outside the
+ *            class itself.
+ */
 @SdkPublicApi
 public class ReadBatch<T> {
     private final MappedTableResource<T> mappedTableResource;
-    private final Collection<BatchableReadOperation> readOperations;
+    private final List<BatchableReadOperation> readOperations;
 
-    private ReadBatch(MappedTableResource<T> mappedTableResource, Collection<BatchableReadOperation> readOperations) {
-        this.mappedTableResource = mappedTableResource;
-        this.readOperations = readOperations;
+    private ReadBatch(Builder<T> builder) {
+        this.mappedTableResource = builder.mappedTableResource;
+        this.readOperations = Collections.unmodifiableList(builder.readOperations);
     }
 
     public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       Collection<BatchableReadOperation> readOperations) {
-        return new ReadBatch<>(mappedTableResource, readOperations);
+        return new Builder<T>().mappedTableResource(mappedTableResource).readOperations(readOperations).build();
     }
 
     public static <T> ReadBatch<T> create(MappedTableResource<T> mappedTableResource,
                                       BatchableReadOperation... readOperations) {
-        return new ReadBatch<>(mappedTableResource, Arrays.asList(readOperations));
+        return new Builder<T>().mappedTableResource(mappedTableResource).readOperations(readOperations).build();
     }
 
-    void addReadRequestsToMap(Map<String, KeysAndAttributes> readRequestMap) {
-        KeysAndAttributes newKeysAndAttributes = generateKeysAndAttributes();
-        KeysAndAttributes existingKeysAndAttributes = readRequestMap.get(tableName());
-
-        if (existingKeysAndAttributes == null) {
-            readRequestMap.put(tableName(), newKeysAndAttributes);
-            return;
-        }
-
-        KeysAndAttributes mergedKeysAndAttributes = mergeKeysAndAttributes(existingKeysAndAttributes,
-                                                                           newKeysAndAttributes);
-
-        readRequestMap.put(tableName(), mergedKeysAndAttributes);
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
     }
 
-    String tableName() {
-        return mappedTableResource.tableName();
+    public Builder<T> toBuilder() {
+        return new Builder<T>().mappedTableResource(mappedTableResource).readOperations(readOperations);
     }
 
-    private KeysAndAttributes generateKeysAndAttributes() {
-        // DynamoDB requires all component GetItem requests in a BatchGetItem to have the same consistentRead setting
-        // for any given table. The logic here uses the setting of the first getItem in a table batch and then checks
-        // the rest are identical or throws an exception.
+    public MappedTableResource<T> mappedTableResource() {
+        return mappedTableResource;
+    }
+
+    public Collection<BatchableReadOperation> readOperations() {
+        return readOperations;
+    }
+
+    /**
+     * This method is used by the internal batchGetItem operation to generate the keys and attributes used in the call to
+     * DynamoDb. Each {@link BatchableReadOperation}, i.e. {@link GetItem}, creates keys and attributes corresponding to
+     * that operation. The method should only be called from the batchGetItem operation and should not be used for other
+     * purposes.
+     * </p>
+     * DynamoDB requires all component GetItem requests in a BatchGetItem to have the same consistentRead setting
+     * for any given table. The logic here uses the setting of the first getItem in a table batch and then checks
+     * the rest are identical or throws an exception.
+     *
+     * @return A {@link KeysAndAttributes} object that will be used in calls to DynamoDb.
+     */
+    public KeysAndAttributes generateKeysAndAttributes() {
         AtomicReference<Boolean> consistentRead = new AtomicReference<>();
         AtomicBoolean firstRecord = new AtomicBoolean(true);
 
@@ -99,14 +119,6 @@ public class ReadBatch<T> {
                                 .keys(keys)
                                 .consistentRead(consistentRead.get())
                                 .build();
-    }
-
-    public MappedTableResource<T> mappedTableResource() {
-        return mappedTableResource;
-    }
-
-    public Collection<BatchableReadOperation> readOperations() {
-        return readOperations;
     }
 
     @Override
@@ -147,19 +159,38 @@ public class ReadBatch<T> {
         }
     }
 
-    private static KeysAndAttributes mergeKeysAndAttributes(KeysAndAttributes first, KeysAndAttributes second) {
-        if (!compareNullableBooleans(first.consistentRead(), second.consistentRead())) {
-            throw new IllegalArgumentException("All batchable read requests for the same table must have the "
-                                               + "same 'consistentRead' setting.");
+    public static final class Builder<T> {
+        private MappedTableResource<T> mappedTableResource;
+        private List<BatchableReadOperation> readOperations;
+
+        private Builder() {
         }
 
-        Boolean consistentRead = first.consistentRead() == null ? second.consistentRead() : first.consistentRead();
-        List<Map<String, AttributeValue>> keys =
-            Stream.concat(first.keys().stream(), second.keys().stream()).collect(Collectors.toList());
+        public Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource) {
+            this.mappedTableResource = mappedTableResource;
+            return this;
+        }
 
-        return KeysAndAttributes.builder()
-                                .keys(keys)
-                                .consistentRead(consistentRead)
-                                .build();
+        public Builder<T> readOperations(Collection<BatchableReadOperation> readOperations) {
+            this.readOperations = new ArrayList<>(readOperations);
+            return this;
+        }
+
+        public Builder<T> readOperations(BatchableReadOperation ...readOperations) {
+            this.readOperations = Arrays.asList(readOperations);
+            return this;
+        }
+
+        public Builder addReadOperation(BatchableReadOperation readOperation) {
+            if (readOperations == null) {
+                readOperations = new ArrayList<>();
+            }
+            readOperations.add(readOperation);
+            return this;
+        }
+
+        public ReadBatch<T> build() {
+            return new ReadBatch<>(this);
+        }
     }
 }

@@ -56,7 +56,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchGetItem.ResultsPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
@@ -65,7 +67,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.paginators.BatchGetItemIterable;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BatchGetItemTest {
+public class BatchGetItemOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final String TABLE_NAME_2 = "table-name-2";
 
@@ -103,8 +105,13 @@ public class BatchGetItemTest {
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
-        BatchGetItem operation =
-            BatchGetItem.create(ReadBatch.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))));
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
+            BatchGetItemEnhancedRequest.builder()
+                                       .readBatches(ReadBatch.create(fakeItemMappedTable,
+                                                                     GetItem.create(FAKE_ITEM_KEYS.get(0))))
+                                       .build();
+
+        BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
 
         BatchGetItemRequest batchGetItemRequest =
             BatchGetItemRequest.builder()
@@ -126,15 +133,20 @@ public class BatchGetItemTest {
 
     @Test
     public void generateRequest_multipleBatches_multipleTableSchemas() {
-        BatchGetItem operation =
-            BatchGetItem.create(ReadBatch.create(fakeItemMappedTable,
-                                         GetItem.create(FAKE_ITEM_KEYS.get(0)),
-                                         GetItem.create(FAKE_ITEM_KEYS.get(1)),
-                                         GetItem.create(FAKE_ITEM_KEYS.get(2))),
-                            ReadBatch.create(fakeItemWithSortMappedTable,
-                                         GetItem.create(FAKESORT_ITEM_KEYS.get(0)),
-                                         GetItem.create(FAKESORT_ITEM_KEYS.get(1)),
-                                         GetItem.create(FAKESORT_ITEM_KEYS.get(2))));
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
+            BatchGetItemEnhancedRequest.builder()
+                                       .readBatches(
+                                           ReadBatch.create(fakeItemMappedTable,
+                                                            GetItem.create(FAKE_ITEM_KEYS.get(0)),
+                                                            GetItem.create(FAKE_ITEM_KEYS.get(1)),
+                                                            GetItem.create(FAKE_ITEM_KEYS.get(2))),
+                                           ReadBatch.create(fakeItemWithSortMappedTable,
+                                                            GetItem.create(FAKESORT_ITEM_KEYS.get(0)),
+                                                            GetItem.create(FAKESORT_ITEM_KEYS.get(1)),
+                                                            GetItem.create(FAKESORT_ITEM_KEYS.get(2))))
+                                       .build();
+
+        BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
 
         BatchGetItemRequest batchGetItemRequest = operation.generateRequest(mockExtension);
 
@@ -149,16 +161,20 @@ public class BatchGetItemTest {
 
     @Test
     public void generateRequest_multipleBatches_multipleTableSchemas_nonConflictingConsistentRead() {
-        BatchGetItem operation =
-            BatchGetItem.create(
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = BatchGetItemEnhancedRequest
+            .builder()
+            .readBatches(
                 ReadBatch.create(fakeItemMappedTable,
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
                 ReadBatch.create(fakeItemWithSortMappedTable,
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build(),
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(false).build(),
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(false).build()));
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build(),
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(false).build(),
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(false).build()))
+            .build();
+
+        BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
 
         BatchGetItemRequest batchGetItemRequest = operation.generateRequest(mockExtension);
 
@@ -172,32 +188,41 @@ public class BatchGetItemTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_multipleBatches_multipleTableSchemas_ConflictingConsistentReadStartingWithNull() {
-        BatchGetItem operation =
-            BatchGetItem.create(
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = BatchGetItemEnhancedRequest
+            .builder()
+            .readBatches(
                 ReadBatch.create(fakeItemMappedTable,
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
                 ReadBatch.create(fakeItemWithSortMappedTable,
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).build(),
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build()));
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).build(),
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build()))
+            .build();
+
+        BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
 
         operation.generateRequest(mockExtension);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_multipleBatches_multipleTableSchemas_ConflictingConsistentReadStartingWithFalse() {
-        BatchGetItem operation =
-            BatchGetItem.create(
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = BatchGetItemEnhancedRequest
+            .builder()
+            .readBatches(
                 ReadBatch.create(fakeItemMappedTable,
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
                 ReadBatch.create(fakeItemWithSortMappedTable,
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build(),
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                             GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build()));
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build(),
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build(),
+                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build()))
+            .build();
+
+        BatchGetItemOperation operation =
+            BatchGetItemOperation.create(batchGetItemEnhancedRequest);
 
         operation.generateRequest(mockExtension);
     }
@@ -209,9 +234,9 @@ public class BatchGetItemTest {
         page.put(TABLE_NAME_2, singletonList(FAKESORT_ITEM_MAPS.get(0)));
 
         BatchGetItemResponse fakeResults = generateFakeResults(page);
-        BatchGetItem operation = BatchGetItem.create();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(emptyRequest());
 
-        ResultsPage resultsPage = operation.transformResponse(fakeResults, null);
+        BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, null);
 
         List<FakeItem> fakeItemResultsPage = resultsPage.getResultsForTable(fakeItemMappedTable);
         List<FakeItemWithSort> fakeItemWithSortResultsPage =
@@ -227,7 +252,7 @@ public class BatchGetItemTest {
         page.put(TABLE_NAME, Arrays.asList(FAKE_ITEM_MAPS.get(0), FAKE_ITEM_MAPS.get(1)));
         page.put(TABLE_NAME_2, singletonList(FAKESORT_ITEM_MAPS.get(0)));
         BatchGetItemResponse fakeResults = generateFakeResults(page);
-        BatchGetItem operation = BatchGetItem.create();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(emptyRequest());
 
         // Use the mock extension to transform every item based on table name
         IntStream.range(0, 3).forEach(i -> {
@@ -244,7 +269,7 @@ public class BatchGetItemTest {
                            any(TableMetadata.class));
         });
 
-        ResultsPage resultsPage = operation.transformResponse(fakeResults, mockExtension);
+        BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, mockExtension);
 
         List<FakeItem> fakeItemResultsPage = resultsPage.getResultsForTable(fakeItemMappedTable);
         List<FakeItemWithSort> fakeItemWithSortResultsPage =
@@ -258,11 +283,15 @@ public class BatchGetItemTest {
     @Test
     public void transformResponse_queryingEmptyResults() {
         BatchGetItemResponse fakeResults = generateFakeResults(emptyMap());
-        BatchGetItem operation = BatchGetItem.create();
+        BatchGetItemOperation operation = BatchGetItemOperation.create(emptyRequest());
 
-        ResultsPage resultsPage = operation.transformResponse(fakeResults, null);
+        BatchGetResultPage resultsPage = operation.transformResponse(fakeResults, null);
 
         assertThat(resultsPage.getResultsForTable(fakeItemMappedTable), is(emptyList()));
+    }
+
+    private static BatchGetItemEnhancedRequest emptyRequest() {
+        return BatchGetItemEnhancedRequest.builder().readBatches().build();
     }
 
     private static BatchGetItemResponse generateFakeResults(
@@ -272,4 +301,5 @@ public class BatchGetItemTest {
                                    .responses(itemMapsPage)
                                    .build();
     }
+
 }

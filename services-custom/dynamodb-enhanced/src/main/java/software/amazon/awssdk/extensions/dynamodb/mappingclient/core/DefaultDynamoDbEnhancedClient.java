@@ -15,17 +15,27 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchGetItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItemsOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactWriteItemsOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @SdkInternalApi
-@ThreadSafe
-public class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
+public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
     private final DynamoDbClient dynamoDbClient;
     private final MapperExtension mapperExtension;
 
@@ -39,13 +49,32 @@ public class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
     }
 
     @Override
-    public <T> T execute(DatabaseOperation<?, ?, T> operation) {
+    public <T> DynamoDbMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
+        return new DynamoDbMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    }
+
+    @Override
+    public SdkIterable<BatchGetResultPage> batchGetItem(BatchGetItemEnhancedRequest request) {
+        BatchGetItemOperation operation = BatchGetItemOperation.create(request);
         return operation.execute(dynamoDbClient, mapperExtension);
     }
 
     @Override
-    public <T> DynamoDbMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
-        return new DynamoDbMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    public BatchWriteResult batchWriteItem(BatchWriteItemEnhancedRequest request) {
+        BatchWriteItemOperation operation = BatchWriteItemOperation.create(request);
+        return operation.execute(dynamoDbClient, mapperExtension);
+    }
+
+    @Override
+    public List<TransactGetResultPage> transactGetItems(TransactGetItemsEnhancedRequest request) {
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(request);
+        return operation.execute(dynamoDbClient, mapperExtension);
+    }
+
+    @Override
+    public Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
+        return operation.execute(dynamoDbClient, mapperExtension);
     }
 
     public DynamoDbClient dynamoDbClient() {

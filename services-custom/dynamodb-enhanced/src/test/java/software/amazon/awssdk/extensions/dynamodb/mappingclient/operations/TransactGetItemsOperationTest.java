@@ -45,6 +45,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -54,7 +57,7 @@ import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsResponse;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TransactGetItemsTest {
+public class TransactGetItemsOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final String TABLE_NAME_2 = "table-name-2";
 
@@ -99,11 +102,16 @@ public class TransactGetItemsTest {
 
     @Test
     public void generateRequest_getsFromMultipleTables() {
-        TransactGetItems operation =
-            TransactGetItems.create(ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))),
-                                ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(0))),
-                                ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(1))),
-                                ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(1))));
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .readTransactions(
+                                               ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))),
+                                               ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(0))),
+                                               ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(1))),
+                                               ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(1))))
+                                           .build();
+
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
 
         List<TransactGetItem> transactGetItems = Arrays.asList(
             TransactGetItem.builder()
@@ -130,8 +138,13 @@ public class TransactGetItemsTest {
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
-        TransactGetItems operation =
-            TransactGetItems.create(ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))));
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .readTransactions(
+                                               ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))))
+                                           .build();
+
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
 
         TransactGetItem transactGetItem =
             TransactGetItem.builder()
@@ -154,7 +167,7 @@ public class TransactGetItemsTest {
 
     @Test
     public void transformResponse_noExtension_returnsItemsFromDifferentTables() {
-        TransactGetItems operation = TransactGetItems.create();
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(emptyRequest());
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -165,17 +178,17 @@ public class TransactGetItemsTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<UnmappedItem> result = operation.transformResponse(response, null);
+        List<TransactGetResultPage> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(1)),
-                                    UnmappedItem.create(FAKE_ITEM_MAPS.get(1))));
+        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(1)),
+                                    TransactGetResultPage.create(FAKE_ITEM_MAPS.get(1))));
     }
 
     @Test
     public void transformResponse_doesNotInteractWithExtension() {
-        TransactGetItems operation = TransactGetItems.create();
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(emptyRequest());
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -193,7 +206,7 @@ public class TransactGetItemsTest {
 
     @Test
     public void transformResponse_noExtension_returnsNullsAsNulls() {
-        TransactGetItems operation = TransactGetItems.create();
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(emptyRequest());
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -203,16 +216,16 @@ public class TransactGetItemsTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<UnmappedItem> result = operation.transformResponse(response, null);
+        List<TransactGetResultPage> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
+        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
                                     null));
     }
 
     @Test
     public void transformResponse_noExtension_returnsEmptyAsNull() {
-        TransactGetItems operation = TransactGetItems.create();
+        TransactGetItemsOperation operation = TransactGetItemsOperation.create(emptyRequest());
 
         List<ItemResponse> itemResponses = Arrays.asList(
             ItemResponse.builder().item(FAKE_ITEM_MAPS.get(0)).build(),
@@ -222,10 +235,15 @@ public class TransactGetItemsTest {
                                                                     .responses(itemResponses)
                                                                     .build();
 
-        List<UnmappedItem> result = operation.transformResponse(response, null);
+        List<TransactGetResultPage> result = operation.transformResponse(response, null);
 
-        assertThat(result, contains(UnmappedItem.create(FAKE_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(FAKESORT_ITEM_MAPS.get(0)),
-                                    UnmappedItem.create(emptyMap())));
+        assertThat(result, contains(TransactGetResultPage.create(FAKE_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(FAKESORT_ITEM_MAPS.get(0)),
+                                    TransactGetResultPage.create(emptyMap())));
+    }
+
+
+    private static TransactGetItemsEnhancedRequest emptyRequest() {
+        return TransactGetItemsEnhancedRequest.builder().readTransactions().build();
     }
 }

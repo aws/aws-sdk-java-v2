@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.readAndTransformSingleItem;
 
@@ -25,15 +25,15 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkPublicApi
-public class UnmappedItem {
+public class TransactGetResultPage {
     private final Map<String, AttributeValue> itemMap;
 
-    private UnmappedItem(Map<String, AttributeValue> itemMap) {
+    private TransactGetResultPage(Map<String, AttributeValue> itemMap) {
         this.itemMap = itemMap;
     }
 
-    public static UnmappedItem create(Map<String, AttributeValue> itemMap) {
-        return new UnmappedItem(itemMap);
+    public static TransactGetResultPage create(Map<String, AttributeValue> itemMap) {
+        return new TransactGetResultPage(itemMap);
     }
 
     public <T> T getItem(MappedTableResource<T> mappedTableResource) {
@@ -52,7 +52,7 @@ public class UnmappedItem {
             return false;
         }
 
-        UnmappedItem that = (UnmappedItem) o;
+        TransactGetResultPage that = (TransactGetResultPage) o;
 
         return itemMap != null ? itemMap.equals(that.itemMap) : that.itemMap == null;
     }

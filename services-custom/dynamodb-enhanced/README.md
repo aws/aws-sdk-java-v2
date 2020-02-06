@@ -64,18 +64,18 @@ values used are also completely arbitrary.
        .build();
    ```
    
-3. Create a MappedDatabase object that you will use to repeatedly
+3. Create a DynamoDbEnhancedClient object that you will use to repeatedly
    execute operations against all your tables :- 
    ```java
-   MappedDatabase database = DynamoDbMappedDatabase.builder()
-                                                   .dynamoDbClient(dynamoDbClient)
-                                                   .build();
+   DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                 .dynamoDbClient(dynamoDbClient)
+                                                                 .build();
    ```
 4. Create a MappedTable object that you will use to repeatedly execute
   operations against a specific table :-
    ```java
    // Maps a physical table with the name 'customers_20190205' to the schema
-   MappedTable<Customer> customerTable = database.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
+   MappedTable<Customer> customerTable = enhancedClient.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
    ```
  
 ### Common primitive operations
@@ -108,30 +108,30 @@ available in the low-level DynamoDB SDK client.
    Iterable<Page<Customer>> customers = customerTable.execute(Scan.create());
    
    // BatchGetItem
-   batchResults = database.execute(
-       BatchGetItem.create(
+   batchResults = enhancedClient.batchGetItem(
+       BatchGetItemEnhancedRequest.create(
            ReadBatch.create(customerTable, 
                             GetItem.create(key1), 
-                            GetItem.create(key2),
+                            GetItem.create(key2), 
                             GetItem.create(key3))));
    
    // BatchWriteItem
-   batchResults = database.execute(
-       BatchWriteItem.create(
-           WriteBatch.create(customerTable, 
+   batchResults = enhancedClient.batchWriteItem(
+       BatchWriteItemEnhancedRequest.create(
+           WriteBatch.create(customerTable,
                              PutItem.create(item),
-                             DeleteItem.create(key1), 
+                             DeleteItem.create(key1),
                              DeleteItem.create(key2))));
    
    // TransactGetItems
-   transactResults = mappedDatabase.execute(
-       TransactGetItems.create(
-           ReadTransaction.create(customerTable, GetItem.create(key1)),
-           ReadTransaction.create(orderTable, GetItem.create(key2))));
+    transactResults = enhancedClient.transactGetItems(
+        TransactGetItemsEnhancedRequest.create(
+            ReadTransaction.create(customerTable, GetItem.create(key1)),
+            ReadTransaction.create(orderTable, GetItem.create(key2))));
    
    // TransactWriteItems
-   mappedDatabase.execute(
-       TransactWriteItems.create(
+   enhancedClient.transactWriteItems(
+       TransactWriteItemsEnhancedRequest.create(
            WriteTransaction.create(customerTable, UpdateItem.create(customer)),
            WriteTransaction.create(orderTable, ConditionCheck.create(orderKey, conditionExpression))));
 ```
@@ -155,9 +155,9 @@ key differences:
    of the library instead of the synchronous one (you will need to use
    an asynchronous DynamoDb client from the SDK as well):
    ```java
-    AsyncMappedDatabase database = DynamoDbAsyncMappedDatabase.builder()
-                                                              .dynamoDbClient(dynamoDbAsyncClient)
-                                                              .build();
+    DynamoDbEnhancedAsyncClient enhancedClient = DynamoDbEnhancedAsyncClient.builder()
+                                                                            .dynamoDbClient(dynamoDbAsyncClient)
+                                                                            .build();
    ```
 
 2. Operations that return a single data item will return a
@@ -184,7 +184,7 @@ key differences:
 ### Using extensions
 The mapper supports plugin extensions to provide enhanced functionality
 beyond the simple primitive mapped operations. Only one extension can be
-loaded into a MappedDatabase. Any number of extensions can be chained
+loaded into a DynamoDbEnhancedClient. Any number of extensions can be chained
 together in a specific order into a single extension using a
 ChainExtension. Extensions have two hooks, beforeWrite() and
 afterRead(); the former can modify a write operation before it happens,
@@ -205,9 +205,8 @@ that write will fail.
 
 To load the extension:
 ```java
-MappedDatabase database = 
-  DynamoDbMappedDatabase.builder()
-                        .dynamoDbClient(dynbamoDbClient)
+DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                        .dynamoDbClient(dynamoDbClient)
                         .extendWith(VersionedRecordExtension.builder().build())
                         .build();
 ```

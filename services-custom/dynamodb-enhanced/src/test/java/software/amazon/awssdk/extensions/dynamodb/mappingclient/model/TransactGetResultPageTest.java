@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UnmappedItemTest {
+public class TransactGetResultPageTest {
     private static final String TABLE_NAME = "table-name";
 
     @Mock
@@ -60,9 +60,9 @@ public class UnmappedItemTest {
     public void noExtension_mapsToItem() {
         FakeItem fakeItem = FakeItem.createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        UnmappedItem unmappedItem = UnmappedItem.create(fakeItemMap);
+        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(fakeItemMap);
 
-        assertThat(unmappedItem.getItem(createMappedTable(null)), is(fakeItem));
+        assertThat(transactGetResultPage.getItem(createMappedTable(null)), is(fakeItem));
     }
 
     @Test
@@ -74,10 +74,10 @@ public class UnmappedItemTest {
         when(mockMapperExtension.afterRead(anyMap(), any(), any()))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap2).build());
 
-        UnmappedItem unmappedItem = UnmappedItem.create(fakeItemMap);
+        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(fakeItemMap);
 
         MappedTable<FakeItem> mappedTable = createMappedTable(mockMapperExtension);
-        assertThat(unmappedItem.getItem(mappedTable), is(fakeItem2));
+        assertThat(transactGetResultPage.getItem(mappedTable), is(fakeItem2));
         verify(mockMapperExtension).afterRead(fakeItemMap,
                                               OperationContext.create(mappedTable.tableName()),
                                               FakeItem.getTableMetadata());
@@ -85,16 +85,16 @@ public class UnmappedItemTest {
 
     @Test
     public void nullMapReturnsNullItem() {
-        UnmappedItem unmappedItem = UnmappedItem.create(null);
+        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(null);
 
-        assertThat(unmappedItem.getItem(createMappedTable(null)), is(nullValue()));
+        assertThat(transactGetResultPage.getItem(createMappedTable(null)), is(nullValue()));
     }
 
     @Test
     public void emptyMapReturnsNullItem() {
-        UnmappedItem unmappedItem = UnmappedItem.create(emptyMap());
+        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(emptyMap());
 
-        assertThat(unmappedItem.getItem(createMappedTable(null)), is(nullValue()));
+        assertThat(transactGetResultPage.getItem(createMappedTable(null)), is(nullValue()));
     }
 
 }
