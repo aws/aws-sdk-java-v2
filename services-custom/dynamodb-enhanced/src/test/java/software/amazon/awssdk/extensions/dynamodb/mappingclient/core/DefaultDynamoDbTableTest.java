@@ -24,22 +24,20 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 
 import java.util.Optional;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DynamoDbMappedTableTest {
+public class DefaultDynamoDbTableTest {
     private static final String TABLE_NAME = "table-name";
 
     @Mock
@@ -55,10 +53,10 @@ public class DynamoDbMappedTableTest {
     public void execute_callsOperationCorrectly() {
         FakeItem expectedOutput = FakeItem.createUniqueFakeItem();
         when(mockTableOperation.executeOnPrimaryIndex(any(), any(), any(), any())).thenReturn(expectedOutput);
-        DynamoDbMappedTable<FakeItem> dynamoDbMappedTable = new DynamoDbMappedTable<>(mockDynamoDbClient,
-                                                                                      mockMapperExtension,
-                                                                                      FakeItem.getTableSchema(),
-                                                                                      TABLE_NAME);
+        DefaultDynamoDbTable<FakeItem> dynamoDbMappedTable = new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                                                                        mockMapperExtension,
+                                                                                        FakeItem.getTableSchema(),
+                                                                                        TABLE_NAME);
 
         FakeItem actualOutput = dynamoDbMappedTable.execute(mockTableOperation);
 
@@ -71,13 +69,13 @@ public class DynamoDbMappedTableTest {
 
     @Test
     public void index_constructsCorrectMappedIndex() {
-        DynamoDbMappedTable<FakeItemWithIndices> dynamoDbMappedTable =
-            new DynamoDbMappedTable<>(mockDynamoDbClient,
-                                      mockMapperExtension,
-                                      FakeItemWithIndices.getTableSchema(),
-                                      TABLE_NAME);
+        DefaultDynamoDbTable<FakeItemWithIndices> dynamoDbMappedTable =
+            new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                       mockMapperExtension,
+                                       FakeItemWithIndices.getTableSchema(),
+                                       TABLE_NAME);
 
-        DynamoDbMappedIndex<FakeItemWithIndices> dynamoDbMappedIndex = dynamoDbMappedTable.index("gsi_1");
+        DefaultDynamoDbIndex<FakeItemWithIndices> dynamoDbMappedIndex = dynamoDbMappedTable.index("gsi_1");
 
         assertThat(dynamoDbMappedIndex.dynamoDbClient(), is(sameInstance(mockDynamoDbClient)));
         assertThat(dynamoDbMappedIndex.mapperExtension(), is(sameInstance(mockMapperExtension)));
@@ -87,11 +85,11 @@ public class DynamoDbMappedTableTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void index_invalidIndex_throwsIllegalArgumentException() {
-        DynamoDbMappedTable<FakeItemWithIndices> dynamoDbMappedTable =
-            new DynamoDbMappedTable<>(mockDynamoDbClient,
-                                      mockMapperExtension,
-                                      FakeItemWithIndices.getTableSchema(),
-                                      TABLE_NAME);
+        DefaultDynamoDbTable<FakeItemWithIndices> dynamoDbMappedTable =
+            new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                       mockMapperExtension,
+                                       FakeItemWithIndices.getTableSchema(),
+                                       TABLE_NAME);
 
         dynamoDbMappedTable.index("invalid");
     }
@@ -99,11 +97,11 @@ public class DynamoDbMappedTableTest {
     @Test
     public void keyFrom_primaryIndex_partitionAndSort() {
         FakeItemWithSort item = FakeItemWithSort.createUniqueFakeItemWithSort();
-        DynamoDbMappedTable<FakeItemWithSort> dynamoDbMappedIndex =
-            new DynamoDbMappedTable<>(mockDynamoDbClient,
-                                      mockMapperExtension,
-                                      FakeItemWithSort.getTableSchema(),
-                                      "test_table");
+        DefaultDynamoDbTable<FakeItemWithSort> dynamoDbMappedIndex =
+            new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                       mockMapperExtension,
+                                       FakeItemWithSort.getTableSchema(),
+                                       "test_table");
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
@@ -114,11 +112,11 @@ public class DynamoDbMappedTableTest {
     @Test
     public void keyFrom_primaryIndex_partitionOnly() {
         FakeItem item = FakeItem.createUniqueFakeItem();
-        DynamoDbMappedTable<FakeItem> dynamoDbMappedIndex =
-            new DynamoDbMappedTable<>(mockDynamoDbClient,
-                                      mockMapperExtension,
-                                      FakeItem.getTableSchema(),
-                                      "test_table");
+        DefaultDynamoDbTable<FakeItem> dynamoDbMappedIndex =
+            new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                       mockMapperExtension,
+                                       FakeItem.getTableSchema(),
+                                       "test_table");
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
@@ -129,11 +127,11 @@ public class DynamoDbMappedTableTest {
     @Test
     public void keyFrom_primaryIndex_partitionAndNullSort() {
         FakeItemWithSort item = FakeItemWithSort.createUniqueFakeItemWithoutSort();
-        DynamoDbMappedTable<FakeItemWithSort> dynamoDbMappedIndex =
-            new DynamoDbMappedTable<>(mockDynamoDbClient,
-                                      mockMapperExtension,
-                                      FakeItemWithSort.getTableSchema(),
-                                      "test_table");
+        DefaultDynamoDbTable<FakeItemWithSort> dynamoDbMappedIndex =
+            new DefaultDynamoDbTable<>(mockDynamoDbClient,
+                                       mockMapperExtension,
+                                       FakeItemWithSort.getTableSchema(),
+                                       "test_table");
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 

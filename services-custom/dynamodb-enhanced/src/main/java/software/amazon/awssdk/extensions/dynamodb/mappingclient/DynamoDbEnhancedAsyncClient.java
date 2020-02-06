@@ -40,10 +40,10 @@ public interface DynamoDbEnhancedAsyncClient {
      *
      * @param tableName The name of the physical table persisted by DynamoDb.
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
-     * @return A {@link AsyncMappedTable} object that can be used to execute table operations against.
+     * @return A {@link DynamoDbAsyncTable} object that can be used to execute table operations against.
      * @param <T> THe modelled object type being mapped to this table.
      */
-    <T> AsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema);
+    <T> DynamoDbAsyncTable<T> table(String tableName, TableSchema<T> tableSchema);
 
     default SdkPublisher<BatchGetResultPage> batchGetItem(BatchGetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();

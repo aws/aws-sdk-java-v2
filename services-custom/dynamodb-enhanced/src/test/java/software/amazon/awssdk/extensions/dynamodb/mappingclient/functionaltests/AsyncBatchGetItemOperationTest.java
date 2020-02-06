@@ -30,18 +30,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
@@ -119,10 +119,10 @@ public class AsyncBatchGetItemOperationTest extends LocalDynamoDbAsyncTestBase {
                                           .dynamoDbClient(getDynamoDbAsyncClient())
                                           .build();
 
-    private AsyncMappedTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
-                                                                               TABLE_SCHEMA_1);
-    private AsyncMappedTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
-                                                                               TABLE_SCHEMA_2);
+    private DynamoDbAsyncTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
+                                                                                 TABLE_SCHEMA_1);
+    private DynamoDbAsyncTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
+                                                                                 TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
@@ -148,8 +148,8 @@ public class AsyncBatchGetItemOperationTest extends LocalDynamoDbAsyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
-        mappedTable2.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
+        mappedTable1.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
+        mappedTable2.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After

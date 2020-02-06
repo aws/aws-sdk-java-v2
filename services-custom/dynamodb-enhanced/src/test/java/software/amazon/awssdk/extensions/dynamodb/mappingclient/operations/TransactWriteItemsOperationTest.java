@@ -31,7 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
@@ -77,8 +77,8 @@ public class TransactWriteItemsOperationTest {
                                                                         .build();
 
     private DynamoDbEnhancedClient enhancedClient;
-    private MappedTable<FakeItem> fakeItemMappedTable;
-    private MappedTable<FakeItemWithSort> fakeItemWithSortMappedTable;
+    private DynamoDbTable<FakeItem> fakeItemMappedTable;
+    private DynamoDbTable<FakeItemWithSort> fakeItemWithSortMappedTable;
 
     @Before
     public void setupMappedTables() {

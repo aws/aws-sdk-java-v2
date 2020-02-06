@@ -16,9 +16,11 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -27,16 +29,16 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
-public interface AsyncMappedTable<T> extends MappedTableResource<T> {
+public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     /**
      * Returns a mapped index that can be used to execute commands against a secondary index belonging to the table
      * being mapped by this object. Note that only a subset of the commands that work against a table will work
      * against a secondary index.
      *
      * @param indexName The name of the secondary index to build the command interface for.
-     * @return An {@link AsyncMappedIndex} object that can be used to execute database commands against.
+     * @return An {@link DynamoDbAsyncIndex} object that can be used to execute database commands against.
      */
-    AsyncMappedIndex<T> index(String indexName);
+    DynamoDbAsyncIndex<T> index(String indexName);
 
     /**
      * Executes a command that is expected to return a single data item against the database with the context of the
@@ -61,4 +63,16 @@ public interface AsyncMappedTable<T> extends MappedTableResource<T> {
      * demand for them.
      */
     <R> SdkPublisher<R> execute(PaginatedTableOperation<T, ?, ?, R> operationToPerform);
+
+    default CompletableFuture<Void> createTable(CreateTableEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
 }

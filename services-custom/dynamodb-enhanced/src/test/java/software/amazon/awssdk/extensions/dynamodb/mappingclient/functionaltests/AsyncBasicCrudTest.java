@@ -33,16 +33,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GlobalSecondaryIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
@@ -200,25 +200,24 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                           .dynamoDbClient(getDynamoDbAsyncClient())
                                           .build();
 
-    private AsyncMappedTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
-                                                                             TABLE_SCHEMA);
-    private AsyncMappedTable<ShortRecord> mappedShortTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
-                                                                                       SHORT_TABLE_SCHEMA);
+    private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
+                                                                               TABLE_SCHEMA);
+    private DynamoDbAsyncTable<ShortRecord> mappedShortTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
+                                                                                         SHORT_TABLE_SCHEMA);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.builder()
-                                           .provisionedThroughput(getDefaultProvisionedThroughput())
-                                           .globalSecondaryIndices(
-                                               GlobalSecondaryIndex.create("gsi_1",
-                                                                       Projection.builder()
-                                                                                 .projectionType(ProjectionType.ALL)
-                                                                                 .build(),
-                                                                       getDefaultProvisionedThroughput()))
-                                           .build()).join();
+        mappedTable.createTable(CreateTableEnhancedRequest.builder()
+                                                          .provisionedThroughput(getDefaultProvisionedThroughput())
+                                                          .globalSecondaryIndices(
+                                                              GlobalSecondaryIndex.create(
+                                                                  "gsi_1",
+                                                                  Projection.builder().projectionType(ProjectionType.ALL).build(),
+                                                                  getDefaultProvisionedThroughput()))
+                                                          .build()).join();
     }
 
     @After
