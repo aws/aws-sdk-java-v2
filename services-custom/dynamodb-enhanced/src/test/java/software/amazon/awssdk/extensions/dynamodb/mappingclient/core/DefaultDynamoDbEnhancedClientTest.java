@@ -18,27 +18,18 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.BatchWriteItemOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultDynamoDbEnhancedClientTest {
@@ -56,7 +47,7 @@ public class DefaultDynamoDbEnhancedClientTest {
 
     @Test
     public void table() {
-        DynamoDbMappedTable<Object> mappedTable = dynamoDbEnhancedClient.table("table-name", mockTableSchema);
+        DefaultDynamoDbTable<Object> mappedTable = dynamoDbEnhancedClient.table("table-name", mockTableSchema);
 
         assertThat(mappedTable.dynamoDbClient(), is(mockDynamoDbClient));
         assertThat(mappedTable.mapperExtension(), is(mockMapperExtension));

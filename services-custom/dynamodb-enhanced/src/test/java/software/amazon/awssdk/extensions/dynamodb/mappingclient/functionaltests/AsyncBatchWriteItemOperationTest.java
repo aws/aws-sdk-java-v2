@@ -17,43 +17,35 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.AsyncMappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ConditionCheck;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 public class AsyncBatchWriteItemOperationTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
@@ -151,10 +143,10 @@ public class AsyncBatchWriteItemOperationTest extends LocalDynamoDbAsyncTestBase
                                           .dynamoDbClient(getDynamoDbAsyncClient())
                                           .build();
 
-    private AsyncMappedTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
-                                                                               TABLE_SCHEMA_1);
-    private AsyncMappedTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
-                                                                               TABLE_SCHEMA_2);
+    private DynamoDbAsyncTable<Record1> mappedTable1 = enhancedAsyncClient.table(getConcreteTableName("table-name-1"),
+                                                                                 TABLE_SCHEMA_1);
+    private DynamoDbAsyncTable<Record2> mappedTable2 = enhancedAsyncClient.table(getConcreteTableName("table-name-2"),
+                                                                                 TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
@@ -168,8 +160,8 @@ public class AsyncBatchWriteItemOperationTest extends LocalDynamoDbAsyncTestBase
 
     @Before
     public void createTable() {
-        mappedTable1.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
-        mappedTable2.execute(CreateTable.create(getDefaultProvisionedThroughput())).join();
+        mappedTable1.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
+        mappedTable2.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After

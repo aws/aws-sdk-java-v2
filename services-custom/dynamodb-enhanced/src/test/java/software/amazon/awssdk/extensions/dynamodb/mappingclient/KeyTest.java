@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -22,12 +22,9 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.Attribute
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
 import org.junit.Test;
-
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class KeyTest {
     private final Key key = Key.create(stringValue("id123"), stringValue("id456"));

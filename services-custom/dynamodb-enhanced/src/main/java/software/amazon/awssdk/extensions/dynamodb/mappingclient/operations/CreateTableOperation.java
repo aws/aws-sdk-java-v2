@@ -25,13 +25,13 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -40,38 +40,18 @@ import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
-@SdkPublicApi
-public class CreateTable<T> implements TableOperation<T, CreateTableRequest, CreateTableResponse, Void> {
-    private final ProvisionedThroughput provisionedThroughput;
-    private final Collection<LocalSecondaryIndex> localSecondaryIndices;
-    private final Collection<GlobalSecondaryIndex> globalSecondaryIndices;
+@SdkInternalApi
+public class CreateTableOperation<T> implements TableOperation<T, CreateTableRequest, CreateTableResponse, Void> {
 
-    private CreateTable(ProvisionedThroughput provisionedThroughput,
-                        Collection<LocalSecondaryIndex> localSecondaryIndices,
-                        Collection<GlobalSecondaryIndex> globalSecondaryIndices) {
-        this.provisionedThroughput = provisionedThroughput;
-        this.localSecondaryIndices = localSecondaryIndices;
-        this.globalSecondaryIndices = globalSecondaryIndices;
+    private final CreateTableEnhancedRequest request;
+
+    private CreateTableOperation(CreateTableEnhancedRequest request) {
+        this.request = request;
     }
 
-    public static <T> CreateTable<T> create(ProvisionedThroughput provisionedThroughput) {
-        return new CreateTable<>(provisionedThroughput, null, null);
-    }
-
-    public static <T> CreateTable<T> create() {
-        return new CreateTable<>(null, null, null);
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public Builder toBuilder() {
-        return new Builder().provisionedThroughput(provisionedThroughput)
-                            .localSecondaryIndices(localSecondaryIndices)
-                            .globalSecondaryIndices(globalSecondaryIndices);
+    public static <T> CreateTableOperation<T> create(CreateTableEnhancedRequest request) {
+        return new CreateTableOperation<>(request);
     }
 
     @Override
@@ -90,9 +70,9 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
         List<software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex> sdkGlobalSecondaryIndices = null;
         List<software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex> sdkLocalSecondaryIndices = null;
 
-        if (globalSecondaryIndices != null) {
+        if (this.request.globalSecondaryIndices() != null) {
             sdkGlobalSecondaryIndices =
-                this.globalSecondaryIndices.stream().map(gsi -> {
+                this.request.globalSecondaryIndices().stream().map(gsi -> {
                     String indexPartitionKey = tableSchema.tableMetadata().indexPartitionKey(gsi.indexName());
                     Optional<String> indexSortKey = tableSchema.tableMetadata().indexSortKey(gsi.indexName());
                     dedupedIndexKeys.add(indexPartitionKey);
@@ -108,9 +88,9 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
                 }).collect(Collectors.toList());
         }
 
-        if (localSecondaryIndices != null) {
+        if (this.request.localSecondaryIndices() != null) {
             sdkLocalSecondaryIndices =
-                this.localSecondaryIndices.stream().map(lsi -> {
+                this.request.localSecondaryIndices().stream().map(lsi -> {
                     Optional<String> indexSortKey = tableSchema.tableMetadata().indexSortKey(lsi.indexName());
                     indexSortKey.ifPresent(dedupedIndexKeys::add);
 
@@ -143,7 +123,9 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
                                                         .build())
                             .collect(Collectors.toList());
 
-        BillingMode billingMode = provisionedThroughput == null ? BillingMode.PAY_PER_REQUEST : BillingMode.PROVISIONED;
+        BillingMode billingMode = this.request.provisionedThroughput() == null ?
+                                  BillingMode.PAY_PER_REQUEST :
+                                  BillingMode.PROVISIONED;
 
         return CreateTableRequest.builder()
                                  .tableName(operationContext.tableName())
@@ -152,7 +134,7 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
                                  .localSecondaryIndexes(sdkLocalSecondaryIndices)
                                  .attributeDefinitions(attributeDefinitions)
                                  .billingMode(billingMode)
-                                 .provisionedThroughput(provisionedThroughput)
+                                 .provisionedThroughput(this.request.provisionedThroughput())
                                  .build();
     }
 
@@ -177,87 +159,6 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
         return null;
     }
 
-    public ProvisionedThroughput provisionedThroughput() {
-        return provisionedThroughput;
-    }
-
-    public Collection<LocalSecondaryIndex> localSecondaryIndices() {
-        return localSecondaryIndices;
-    }
-
-    public Collection<GlobalSecondaryIndex> globalSecondaryIndices() {
-        return globalSecondaryIndices;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        CreateTable<?> that = (CreateTable<?>) o;
-
-        if (provisionedThroughput != null ? ! provisionedThroughput.equals(that.provisionedThroughput) :
-            that.provisionedThroughput != null) {
-            return false;
-        }
-        if (localSecondaryIndices != null ? ! localSecondaryIndices.equals(that.localSecondaryIndices) :
-            that.localSecondaryIndices != null) {
-            return false;
-        }
-        return globalSecondaryIndices != null ? globalSecondaryIndices.equals(that.globalSecondaryIndices) :
-            that.globalSecondaryIndices == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = provisionedThroughput != null ? provisionedThroughput.hashCode() : 0;
-        result = 31 * result + (localSecondaryIndices != null ? localSecondaryIndices.hashCode() : 0);
-        result = 31 * result + (globalSecondaryIndices != null ? globalSecondaryIndices.hashCode() : 0);
-        return result;
-    }
-
-    public static final class Builder {
-        private ProvisionedThroughput provisionedThroughput;
-        private Collection<LocalSecondaryIndex> localSecondaryIndices;
-        private Collection<GlobalSecondaryIndex> globalSecondaryIndices;
-
-        private Builder() {
-        }
-
-        public Builder provisionedThroughput(ProvisionedThroughput provisionedThroughput) {
-            this.provisionedThroughput = provisionedThroughput;
-            return this;
-        }
-
-        public Builder localSecondaryIndices(Collection<LocalSecondaryIndex> localSecondaryIndices) {
-            this.localSecondaryIndices = localSecondaryIndices;
-            return this;
-        }
-
-        public Builder localSecondaryIndices(LocalSecondaryIndex... localSecondaryIndices) {
-            this.localSecondaryIndices = Arrays.asList(localSecondaryIndices);
-            return this;
-        }
-
-        public Builder globalSecondaryIndices(Collection<GlobalSecondaryIndex> globalSecondaryIndices) {
-            this.globalSecondaryIndices = globalSecondaryIndices;
-            return this;
-        }
-
-        public Builder globalSecondaryIndices(GlobalSecondaryIndex... globalSecondaryIndices) {
-            this.globalSecondaryIndices = Arrays.asList(globalSecondaryIndices);
-            return this;
-        }
-
-        public <T> CreateTable<T> build() {
-            return new CreateTable<>(provisionedThroughput, localSecondaryIndices, globalSecondaryIndices);
-        }
-    }
-
     private static Collection<KeySchemaElement> generateKeySchema(String partitionKey, String sortKey) {
         if (sortKey == null) {
             return generateKeySchema(partitionKey);
@@ -279,4 +180,5 @@ public class CreateTable<T> implements TableOperation<T, CreateTableRequest, Cre
                                                          .keyType(KeyType.HASH)
                                                          .build());
     }
+
 }

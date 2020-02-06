@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
@@ -40,7 +40,7 @@ public class BatchWriteResult {
         return new Builder();
     }
 
-    public <T> List<T> unprocessedPutItemsForTable(MappedTable<T> mappedTable) {
+    public <T> List<T> unprocessedPutItemsForTable(DynamoDbTable<T> mappedTable) {
         List<WriteRequest> writeRequests =
             unprocessedRequests.getOrDefault(mappedTable.tableName(),
                                              Collections.emptyList());
@@ -56,7 +56,7 @@ public class BatchWriteResult {
                             .collect(Collectors.toList());
     }
 
-    public <T> List<T> unprocessedDeleteItemsForTable(MappedTable<T> mappedTable) {
+    public <T> List<T> unprocessedDeleteItemsForTable(DynamoDbTable<T> mappedTable) {
         List<WriteRequest> writeRequests =
             unprocessedRequests.getOrDefault(mappedTable.tableName(),
                                              Collections.emptyList());

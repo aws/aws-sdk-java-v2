@@ -17,6 +17,9 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 
 /**
  * Synchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -25,16 +28,16 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
-public interface MappedTable<T> extends MappedTableResource<T> {
+public interface DynamoDbTable<T> extends MappedTableResource<T> {
     /**
      * Returns a mapped index that can be used to execute commands against a secondary index belonging to the table
      * being mapped by this object. Note that only a subset of the commands that work against a table will work
      * against a secondary index.
      *
      * @param indexName The name of the secondary index to build the command interface for.
-     * @return A {@link MappedIndex} object that can be used to execute database commands against.
+     * @return A {@link DynamoDbIndex} object that can be used to execute database commands against.
      */
-    MappedIndex<T> index(String indexName);
+    DynamoDbIndex<T> index(String indexName);
 
     /**
      * Executes a command that is expected to return a single data item against the database with the context of the
@@ -58,4 +61,16 @@ public interface MappedTable<T> extends MappedTableResource<T> {
      * @return An {@link SdkIterable} that will return successive pages of result data items as it is iterated over.
      */
     <R> SdkIterable<R> execute(PaginatedTableOperation<T, ?, ?, R> operationToPerform);
+
+    default Void createTable(CreateTableEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
 }

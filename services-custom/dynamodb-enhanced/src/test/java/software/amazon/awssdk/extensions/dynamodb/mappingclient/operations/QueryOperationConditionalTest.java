@@ -31,9 +31,10 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithNumericSort;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class QueryConditionalTest {
+public class QueryOperationConditionalTest {
     private static final String ID_KEY = "#AMZN_MAPPED_id";
     private static final String ID_VALUE = ":AMZN_MAPPED_id";
     private static final String SORT_KEY = "#AMZN_MAPPED_sort";

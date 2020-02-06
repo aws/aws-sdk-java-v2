@@ -19,42 +19,50 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Util
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedTableOperation;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.PaginatedIndexOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ScanOperation;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkPublicApi
 @ThreadSafe
-public class DynamoDbMappedTable<T> implements MappedTable<T> {
-    private final DynamoDbClient dynamoDbClient;
+public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T> {
+    private final DynamoDbAsyncClient dynamoDbClient;
     private final MapperExtension mapperExtension;
     private final TableSchema<T> tableSchema;
     private final String tableName;
+    private final String indexName;
 
-    DynamoDbMappedTable(DynamoDbClient dynamoDbClient,
-                        MapperExtension mapperExtension,
-                        TableSchema<T> tableSchema,
-                        String tableName) {
+    DefaultDynamoDbAsyncIndex(DynamoDbAsyncClient dynamoDbClient,
+                              MapperExtension mapperExtension,
+                              TableSchema<T> tableSchema,
+                              String tableName,
+                              String indexName) {
         this.dynamoDbClient = dynamoDbClient;
         this.mapperExtension = mapperExtension;
         this.tableSchema = tableSchema;
         this.tableName = tableName;
+        this.indexName = indexName;
     }
 
     @Override
-    public <R> R execute(TableOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    public SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
+        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, mapperExtension, dynamoDbClient);
     }
 
     @Override
-    public <R> SdkIterable<R> execute(PaginatedTableOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
+        PaginatedIndexOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
+        return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, mapperExtension, dynamoDbClient);
     }
 
     @Override
@@ -64,10 +72,10 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
 
     @Override
     public TableSchema<T> tableSchema() {
-        return this.tableSchema;
+        return tableSchema;
     }
 
-    public DynamoDbClient dynamoDbClient() {
+    public DynamoDbAsyncClient dynamoDbClient() {
         return dynamoDbClient;
     }
 
@@ -75,17 +83,13 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
         return tableName;
     }
 
-    @Override
-    public DynamoDbMappedIndex<T> index(String indexName) {
-        // Force a check for the existence of the index
-        tableSchema.tableMetadata().indexPartitionKey(indexName);
-
-        return new DynamoDbMappedIndex<>(dynamoDbClient, mapperExtension, tableSchema, tableName, indexName);
+    public String indexName() {
+        return indexName;
     }
 
     @Override
     public Key keyFrom(T item) {
-        return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
+        return createKeyFromItem(item, tableSchema, indexName);
     }
 
     @Override
@@ -97,9 +101,11 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
             return false;
         }
 
-        DynamoDbMappedTable<?> that = (DynamoDbMappedTable<?>) o;
+        DefaultDynamoDbAsyncIndex<?> that = (DefaultDynamoDbAsyncIndex<?>) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
+        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient)
+            : that.dynamoDbClient != null) {
+
             return false;
         }
         if (mapperExtension != null ? ! mapperExtension.equals(that.mapperExtension) : that.mapperExtension != null) {
@@ -108,7 +114,10 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
         if (tableSchema != null ? ! tableSchema.equals(that.tableSchema) : that.tableSchema != null) {
             return false;
         }
-        return tableName != null ? tableName.equals(that.tableName) : that.tableName == null;
+        if (tableName != null ? ! tableName.equals(that.tableName) : that.tableName != null) {
+            return false;
+        }
+        return indexName != null ? indexName.equals(that.indexName) : that.indexName == null;
     }
 
     @Override
@@ -117,6 +126,7 @@ public class DynamoDbMappedTable<T> implements MappedTable<T> {
         result = 31 * result + (mapperExtension != null ? mapperExtension.hashCode() : 0);
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
         result = 31 * result + (tableName != null ? tableName.hashCode() : 0);
+        result = 31 * result + (indexName != null ? indexName.hashCode() : 0);
         return result;
     }
 }
