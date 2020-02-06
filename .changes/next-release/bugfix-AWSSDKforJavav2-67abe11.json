@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "bugfix", 
+    "description": "Change the Arn.fromString() method to store empty Optionals in the accountId and region fields when those fields are not specified in an resource ARN. This matches the behavior of the Arn.Builder class when those fields are not specified."
+}
