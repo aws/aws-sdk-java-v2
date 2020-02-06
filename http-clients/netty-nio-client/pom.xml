@@ -98,6 +98,12 @@
 
         <!--Test Dependencies-->
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-client-tests</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
             <scope>test</scope>
