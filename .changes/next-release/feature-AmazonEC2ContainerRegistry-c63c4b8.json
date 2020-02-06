@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Registry",
+    "description": "This release contains updated text for the GetAuthorizationToken API."
+}
