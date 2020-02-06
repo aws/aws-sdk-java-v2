@@ -41,14 +41,14 @@ public class S3ArnConverterTest {
                                                           .service("s3")
                                                           .region("us-east-1")
                                                           .accountId("123456789012")
-                                                          .resource("object:bucket/key")
+                                                          .resource("object:bucket/and/a/key")
                                                           .build());
 
         assertThat(resource, instanceOf(S3ObjectResource.class));
 
         S3ObjectResource s3ObjectResource = (S3ObjectResource) resource;
         assertThat(s3ObjectResource.bucketName(), is("bucket"));
-        assertThat(s3ObjectResource.key(), is("key"));
+        assertThat(s3ObjectResource.key(), is("and/a/key"));
         assertThat(s3ObjectResource.accountId(), is(Optional.of("123456789012")));
         assertThat(s3ObjectResource.partition(), is(Optional.of("aws")));
         assertThat(s3ObjectResource.region(), is(Optional.of("us-east-1")));
@@ -60,14 +60,14 @@ public class S3ArnConverterTest {
         S3Resource resource = S3_ARN_PARSER.convertArn(Arn.builder()
                                                           .partition("aws")
                                                           .service("s3")
-                                                          .resource("bucket/key")
+                                                          .resource("bucket/and/a/key")
                                                           .build());
 
         assertThat(resource, instanceOf(S3ObjectResource.class));
 
         S3ObjectResource s3ObjectResource = (S3ObjectResource) resource;
         assertThat(s3ObjectResource.bucketName(), is("bucket"));
-        assertThat(s3ObjectResource.key(), is("key"));
+        assertThat(s3ObjectResource.key(), is("and/a/key"));
         assertThat(s3ObjectResource.accountId(), is(Optional.empty()));
         assertThat(s3ObjectResource.partition(), is(Optional.of("aws")));
         assertThat(s3ObjectResource.region(), is(Optional.empty()));
