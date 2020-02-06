@@ -1,0 +1,41 @@
+{
+    "version": "2.10.59",
+    "date": "2020-02-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "description": "AWS CodeBuild adds support for Amazon Elastic File Systems"
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "description": "AWS AppSync now supports X-Ray"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Block Store",
+            "description": "Documentation updates for EBS direct APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "In order to make operations more easily discoverable by an IDE, specific operation methods have been added to the enhanced client interface. An operation method takes a corresponding request object as parameter. Meanwhile, the generic execute() method is removed. This change affects only batch and transcribe operations at the database level."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "description": "This release contains updated text for the GetAuthorizationToken API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "description": "Amazon Lex now supports AMAZON.AlphaNumeric with regular expressions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "This release adds platform details and billing info to the DescribeImages API."
+        }
+    ]
+}
