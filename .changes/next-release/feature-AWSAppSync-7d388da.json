@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "description": "AWS AppSync now supports X-Ray"
+}
