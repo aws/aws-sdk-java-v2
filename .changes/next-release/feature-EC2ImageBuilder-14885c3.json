@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "description": "This version of the SDK includes bug fixes and documentation updates."
+}
