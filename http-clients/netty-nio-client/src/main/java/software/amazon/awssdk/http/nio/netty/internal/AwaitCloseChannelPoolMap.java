@@ -51,6 +51,7 @@ import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
@@ -280,7 +281,20 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     }
 
     private TrustManagerFactory getTrustManager() {
-        return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
+        Validate.isTrue(configuration.tlsTrustManagersProvider() == null || !configuration.trustAllCertificates(),
+                        "A TlsTrustManagerProvider can't be provided if TrustAllCertificates is also set");
+
+        if (configuration.tlsTrustManagersProvider() != null) {
+            return StaticTrustManagerFactory.create(configuration.tlsTrustManagersProvider().trustManagers());
+        }
+
+        if (configuration.trustAllCertificates()) {
+            log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
+                           + "used for testing.");
+            return InsecureTrustManagerFactory.INSTANCE;
+        }
+
+        return null;
     }
 
     private KeyManagerFactory getKeyManager() {
