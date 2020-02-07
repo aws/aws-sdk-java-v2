@@ -18,19 +18,13 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.concurrent.CompletableFuture;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
@@ -52,7 +46,7 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
 
     @Test
     public void table() {
-        DynamoDbAsyncMappedTable<Object> mappedTable = dynamoDbEnhancedAsyncClient.table("table-name", mockTableSchema);
+        DefaultDynamoDbAsyncTable<Object> mappedTable = dynamoDbEnhancedAsyncClient.table("table-name", mockTableSchema);
 
         assertThat(mappedTable.dynamoDbClient(), is(mockDynamoDbAsyncClient));
         assertThat(mappedTable.mapperExtension(), is(mockMapperExtension));

@@ -39,10 +39,10 @@ public interface DynamoDbEnhancedClient {
      *
      * @param tableName The name of the physical table persisted by DynamoDb.
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
-     * @return A {@link MappedTable} object that can be used to execute table operations against.
+     * @return A {@link DynamoDbTable} object that can be used to execute table operations against.
      * @param <T> THe modelled object type being mapped to this table.
      */
-    <T> MappedTable<T> table(String tableName, TableSchema<T> tableSchema);
+    <T> DynamoDbTable<T> table(String tableName, TableSchema<T> tableSchema);
 
     default SdkIterable<BatchGetResultPage> batchGetItem(BatchGetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.cleanAttributeName;
@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
@@ -32,11 +32,11 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkPublicApi
 public abstract class QueryConditional {
-    private static final Function<String, String> EXPRESSION_KEY_MAPPER =
+    private static final UnaryOperator<String> EXPRESSION_KEY_MAPPER =
         key -> "#AMZN_MAPPED_" + cleanAttributeName(key);
-    private static final Function<String, String> EXPRESSION_VALUE_KEY_MAPPER =
+    private static final UnaryOperator<String> EXPRESSION_VALUE_KEY_MAPPER =
         key -> ":AMZN_MAPPED_" + cleanAttributeName(key);
-    private static final Function<String, String> EXPRESSION_OTHER_VALUE_KEY_MAPPER =
+    private static final UnaryOperator<String> EXPRESSION_OTHER_VALUE_KEY_MAPPER =
         key -> ":AMZN_MAPPED_" + cleanAttributeName(key) + "2";
 
     public static QueryConditional equalTo(Key key) {

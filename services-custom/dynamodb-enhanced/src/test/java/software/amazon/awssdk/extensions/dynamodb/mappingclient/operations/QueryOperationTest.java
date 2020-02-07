@@ -38,14 +38,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
@@ -58,6 +56,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadM
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -67,7 +67,7 @@ import software.amazon.awssdk.services.dynamodb.paginators.QueryIterable;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 
 @RunWith(MockitoJUnitRunner.class)
-public class QueryTest {
+public class QueryOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
         OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
@@ -75,8 +75,8 @@ public class QueryTest {
         OperationContext.create(TABLE_NAME, "gsi_1");
 
     private final FakeItem keyItem = createUniqueFakeItem();
-    private final Query<FakeItem> queryOperation =
-        Query.create(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))));
+    private final QueryOperation<FakeItem> queryOperation =
+        QueryOperation.create(QueryEnhancedRequest.create(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId())))));
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -118,7 +118,7 @@ public class QueryTest {
         Expression expression = Expression.builder().expression("test-expression").expressionValues(keyItemMap).build();
         when(mockQueryConditional.expression(any(), anyString())).thenReturn(expression);
 
-        Query<FakeItem> query = Query.create(mockQueryConditional);
+        QueryOperation<FakeItem> query = QueryOperation.create(QueryEnhancedRequest.create(mockQueryConditional));
         QueryRequest queryRequest = query.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
 
         QueryRequest expectedQueryRequest = QueryRequest.builder()
@@ -149,8 +149,9 @@ public class QueryTest {
     @Test
     public void generateRequest_knowsHowToUseAnIndex() {
         FakeItemWithIndices fakeItem = createUniqueFakeItemWithIndices();
-        Query<FakeItemWithIndices> queryToTest =
-            Query.create(QueryConditional.equalTo(Key.create(stringValue(fakeItem.getGsiId()))));
+        QueryOperation<FakeItemWithIndices> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.create(QueryConditional
+                                                                  .equalTo(Key.create(stringValue(fakeItem.getGsiId())))));
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
 
         assertThat(queryRequest.indexName(), is("gsi_1"));
@@ -158,11 +159,12 @@ public class QueryTest {
 
     @Test
     public void generateRequest_ascending() {
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .scanIndexForward(true)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .scanIndexForward(true)
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
                                                                 null);
@@ -172,11 +174,12 @@ public class QueryTest {
 
     @Test
     public void generateRequest_descending() {
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .scanIndexForward(false)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .scanIndexForward(false)
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
                                                                 null);
@@ -186,11 +189,12 @@ public class QueryTest {
 
     @Test
     public void generateRequest_limit() {
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .limit(123)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .limit(123)
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
                                                                 null);
@@ -206,11 +210,12 @@ public class QueryTest {
                                                 .expressionValues(expressionValues)
                                                 .build();
 
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .filterExpression(filterExpression)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .filterExpression(filterExpression)
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
                                                                 null);
@@ -223,11 +228,12 @@ public class QueryTest {
     public void generateRequest_filterExpression_withoutValues() {
         Expression filterExpression = Expression.builder().expression("test-expression").build();
 
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .filterExpression(filterExpression)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .filterExpression(filterExpression)
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
                                                                 null);
@@ -244,21 +250,23 @@ public class QueryTest {
                                                 .expressionNames(expressionNames)
                                                 .expressionValues(expressionValues)
                                                 .build();
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .filterExpression(filterExpression)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .filterExpression(filterExpression)
+                                                      .build());
         queryToTest.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
     }
 
     @Test
     public void generateRequest_consistentRead() {
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .consistentRead(true)
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .consistentRead(true)
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
                                                                 null);
@@ -269,12 +277,15 @@ public class QueryTest {
     @Test
     public void generateRequest_hashKeyOnly_withExclusiveStartKey() {
         FakeItem exclusiveStartKey = createUniqueFakeItem();
-        Query<FakeItem> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .exclusiveStartKey(FakeItem.getTableSchema().itemToMap(exclusiveStartKey,
-                                                                        FakeItem.getTableMetadata().primaryKeys()))
-                 .build();
+        QueryOperation<FakeItem> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .exclusiveStartKey(FakeItem.getTableSchema()
+                                                                                 .itemToMap(exclusiveStartKey,
+                                                                                            FakeItem.getTableMetadata()
+                                                                                                    .primaryKeys()))
+                                                      .build());
 
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
@@ -290,11 +301,14 @@ public class QueryTest {
         Set<String> keyFields = new HashSet<>(FakeItemWithIndices.getTableSchema().tableMetadata().primaryKeys());
         keyFields.addAll(FakeItemWithIndices.getTableSchema().tableMetadata().indexKeys("gsi_1"));
 
-        Query<FakeItemWithIndices> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .exclusiveStartKey(FakeItemWithIndices.getTableSchema().itemToMap(exclusiveStartKey, keyFields))
-                 .build();
+        QueryOperation<FakeItemWithIndices> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional
+                                                                            .equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .exclusiveStartKey(FakeItemWithIndices.getTableSchema()
+                                                                                            .itemToMap(exclusiveStartKey,
+                                                                                                       keyFields))
+                                                      .build());
 
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithIndices.getTableSchema(),
                                                                 GSI_1_CONTEXT,
@@ -313,15 +327,17 @@ public class QueryTest {
     @Test
     public void generateRequest_hashAndSortKey_withExclusiveStartKey() {
         FakeItemWithSort exclusiveStartKey = createUniqueFakeItemWithSort();
-        Query<FakeItemWithSort> queryToTest =
-            Query.builder()
-                 .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
-                 .exclusiveStartKey(
-                     FakeItemWithSort.getTableSchema()
-                                        .itemToMap(
-                                            exclusiveStartKey,
-                                            FakeItemWithSort.getTableSchema().tableMetadata().primaryKeys()))
-                 .build();
+        QueryOperation<FakeItemWithSort> queryToTest =
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                      .exclusiveStartKey(
+                                                          FakeItemWithSort.getTableSchema()
+                                                                          .itemToMap(
+                                                                              exclusiveStartKey,
+                                                                              FakeItemWithSort.getTableSchema()
+                                                                                              .tableMetadata()
+                                                                                              .primaryKeys()))
+                          .build());
 
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithSort.getTableSchema(),
                                                                 PRIMARY_CONTEXT,
@@ -337,7 +353,7 @@ public class QueryTest {
     public void transformResults_multipleItems_returnsCorrectItems() {
         List<FakeItem> queryResultItems = generateFakeItemList();
         List<Map<String, AttributeValue>> queryResultMaps =
-            queryResultItems.stream().map(QueryTest::getAttributeValueMap).collect(toList());
+            queryResultItems.stream().map(QueryOperationTest::getAttributeValueMap).collect(toList());
 
         QueryResponse queryResponse = generateFakeQueryResults(queryResultMaps);
 
@@ -354,7 +370,7 @@ public class QueryTest {
         List<FakeItem> queryResultItems = generateFakeItemList();
         FakeItem lastEvaluatedKey = createUniqueFakeItem();
         List<Map<String, AttributeValue>> queryResultMaps =
-            queryResultItems.stream().map(QueryTest::getAttributeValueMap).collect(toList());
+            queryResultItems.stream().map(QueryOperationTest::getAttributeValueMap).collect(toList());
 
         QueryResponse queryResponse = generateFakeQueryResults(queryResultMaps,
                                                                getAttributeValueMap(lastEvaluatedKey));
@@ -373,11 +389,11 @@ public class QueryTest {
         List<FakeItem> modifiedResultItems = generateFakeItemList();
 
         List<Map<String, AttributeValue>> queryResultMap =
-            queryResultItems.stream().map(QueryTest::getAttributeValueMap).collect(toList());
+            queryResultItems.stream().map(QueryOperationTest::getAttributeValueMap).collect(toList());
 
         ReadModification[] readModifications =
             modifiedResultItems.stream()
-                              .map(QueryTest::getAttributeValueMap)
+                              .map(QueryOperationTest::getAttributeValueMap)
                               .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
                               .collect(Collectors.toList())
                               .toArray(new ReadModification[]{});

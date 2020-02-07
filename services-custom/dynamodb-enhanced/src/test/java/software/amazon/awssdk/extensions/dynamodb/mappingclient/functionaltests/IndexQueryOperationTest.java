@@ -21,8 +21,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryConditional.between;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryConditional.equalTo;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.between;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.equalTo;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondaryPartitionKey;
@@ -41,22 +41,22 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedIndex;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Query;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
-public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
+public class IndexQueryOperationTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -163,8 +163,8 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .build();
 
-    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-    private MappedIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
+    private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
         RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)));
@@ -172,15 +172,16 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.builder()
-                                       .provisionedThroughput(getDefaultProvisionedThroughput())
-                                       .globalSecondaryIndices(
-                                           GlobalSecondaryIndex.create("gsi_keys_only",
-                                                                   Projection.builder()
-                                                                             .projectionType(ProjectionType.KEYS_ONLY)
-                                                                             .build(),
-                                                                   getDefaultProvisionedThroughput()))
-                           .build());
+        mappedTable.createTable(CreateTableEnhancedRequest.builder()
+                                                          .provisionedThroughput(getDefaultProvisionedThroughput())
+                                                          .globalSecondaryIndices(
+                                                              GlobalSecondaryIndex.create(
+                                                                  "gsi_keys_only",
+                                                                  Projection.builder()
+                                                                            .projectionType(ProjectionType.KEYS_ONLY)
+                                                                            .build(),
+                                                                  getDefaultProvisionedThroughput()))
+                                                          .build());
     }
 
     @After
@@ -195,7 +196,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.create(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -210,7 +211,8 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Key fromKey = Key.create(stringValue("gsi-id-value"), numberValue(3));
         Key toKey = Key.create(stringValue("gsi-id-value"), numberValue(5));
-        Iterator<Page<Record>> results = keysOnlyMappedIndex.execute(Query.create(between(fromKey, toKey))).iterator();
+        Iterator<Page<Record>> results =
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(between(fromKey, toKey))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -225,11 +227,12 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     public void queryLimit() {
         insertRecords();
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.builder()
-                                             .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
-                                             .limit(5)
-                                             .build())
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
+                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .limit(5)
+                                                          .build())
                                .iterator();
+
         assertThat(results.hasNext(), is(true));
         Page<Record> page1 = results.next();
         assertThat(results.hasNext(), is(true));
@@ -260,7 +263,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryEmpty() {
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.create(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -277,9 +280,9 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         expectedLastEvaluatedKey.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(7).getGsiId()));
         expectedLastEvaluatedKey.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(7).getGsiSort()));
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.execute(Query.builder()
-                                             .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
-                                             .exclusiveStartKey(expectedLastEvaluatedKey).build())
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
+                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .exclusiveStartKey(expectedLastEvaluatedKey).build())
                                .iterator();
 
         assertThat(results.hasNext(), is(true));

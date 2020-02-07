@@ -35,14 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
@@ -54,6 +52,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadM
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -63,14 +62,14 @@ import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
 import software.amazon.awssdk.services.dynamodb.paginators.ScanPublisher;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ScanTest {
+public class ScanOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
         OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.create(TABLE_NAME, "gsi_1");
 
-    private final Scan<FakeItem> scanOperation = Scan.create();
+    private final ScanOperation<FakeItem> scanOperation = ScanOperation.create(ScanEnhancedRequest.create());
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -120,16 +119,16 @@ public class ScanTest {
 
     @Test
     public void generateRequest_knowsHowToUseAnIndex() {
-        Scan<FakeItemWithIndices> scanToTest = Scan.create();
-        ScanRequest scanRequest = scanToTest.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
+        ScanOperation<FakeItemWithIndices> operation = ScanOperation.create(ScanEnhancedRequest.create());
+        ScanRequest scanRequest = operation.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
         assertThat(scanRequest.indexName(), is("gsi_1"));
     }
 
 
     @Test
     public void generateRequest_limit() {
-        Scan<FakeItem> operationToTest = Scan.builder().limit(10).build();
-        ScanRequest request = operationToTest.generateRequest(FakeItem.getTableSchema(),
+        ScanOperation<FakeItem> operation = ScanOperation.create(ScanEnhancedRequest.builder().limit(10).build());
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                               PRIMARY_CONTEXT,
                                                               null);
 
@@ -145,10 +144,10 @@ public class ScanTest {
         Map<String, AttributeValue> expressionValues = singletonMap(":test-key", stringValue("test-value"));
         Expression filterExpression =
             Expression.builder().expression("test-expression").expressionValues(expressionValues).build();
-        Scan<FakeItem> operationToTest =
-            Scan.builder().filterExpression(filterExpression).build();
+        ScanOperation<FakeItem> operation =
+            ScanOperation.create(ScanEnhancedRequest.builder().filterExpression(filterExpression).build());
 
-        ScanRequest request = operationToTest.generateRequest(FakeItem.getTableSchema(),
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                               PRIMARY_CONTEXT,
                                                               null);
         ScanRequest expectedRequest = ScanRequest.builder()
@@ -162,10 +161,10 @@ public class ScanTest {
     @Test
     public void generateRequest_filterCondition_expressionOnly() {
         Expression filterExpression = Expression.builder().expression("test-expression").build();
-        Scan<FakeItem> operationToTest =
-            Scan.builder().filterExpression(filterExpression).build();
+        ScanOperation<FakeItem> operation =
+            ScanOperation.create(ScanEnhancedRequest.builder().filterExpression(filterExpression).build());
 
-        ScanRequest request = operationToTest.generateRequest(FakeItem.getTableSchema(),
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                               PRIMARY_CONTEXT,
                                                               null);
         ScanRequest expectedRequest = ScanRequest.builder()
@@ -177,8 +176,8 @@ public class ScanTest {
 
     @Test
     public void generateRequest_consistentRead() {
-        Scan<FakeItem> operationToTest = Scan.builder().consistentRead(true).build();
-        ScanRequest request = operationToTest.generateRequest(FakeItem.getTableSchema(),
+        ScanOperation<FakeItem> operation = ScanOperation.create(ScanEnhancedRequest.builder().consistentRead(true).build());
+        ScanRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                               PRIMARY_CONTEXT,
                                                               null);
 
@@ -193,9 +192,10 @@ public class ScanTest {
     public void generateRequest_hashKeyOnly_exclusiveStartKey() {
         FakeItem exclusiveStartKey = createUniqueFakeItem();
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(exclusiveStartKey, singletonList("id"));
-        Scan<FakeItem> scanToTest = Scan.builder().exclusiveStartKey(keyMap).build();
+        ScanOperation<FakeItem> operation =
+            ScanOperation.create(ScanEnhancedRequest.builder().exclusiveStartKey(keyMap).build());
 
-        ScanRequest scanRequest = scanToTest.generateRequest(FakeItem.getTableSchema(),
+        ScanRequest scanRequest = operation.generateRequest(FakeItem.getTableSchema(),
                                                              PRIMARY_CONTEXT,
                                                              null);
 
@@ -210,9 +210,10 @@ public class ScanTest {
             FakeItemWithSort.getTableSchema().itemToMap(exclusiveStartKey,
                                                         FakeItemWithSort.getTableMetadata().primaryKeys());
 
-        Scan<FakeItemWithSort> scanToTest = Scan.builder().exclusiveStartKey(keyMap).build();
+        ScanOperation<FakeItemWithSort> operation =
+            ScanOperation.create(ScanEnhancedRequest.builder().exclusiveStartKey(keyMap).build());
 
-        ScanRequest scanRequest = scanToTest.generateRequest(FakeItemWithSort.getTableSchema(),
+        ScanRequest scanRequest = operation.generateRequest(FakeItemWithSort.getTableSchema(),
                                                              PRIMARY_CONTEXT,
                                                              null);
 
@@ -226,7 +227,7 @@ public class ScanTest {
     public void transformResults_multipleItems_returnsCorrectItems() {
         List<FakeItem> scanResultItems = generateFakeItemList();
         List<Map<String, AttributeValue>> scanResultMaps =
-            scanResultItems.stream().map(ScanTest::getAttributeValueMap).collect(toList());
+            scanResultItems.stream().map(ScanOperationTest::getAttributeValueMap).collect(toList());
 
         ScanResponse scanResponse = generateFakeScanResults(scanResultMaps);
 
@@ -242,7 +243,7 @@ public class ScanTest {
         List<FakeItem> scanResultItems = generateFakeItemList();
         FakeItem lastEvaluatedKey = createUniqueFakeItem();
         List<Map<String, AttributeValue>> scanResultMaps =
-            scanResultItems.stream().map(ScanTest::getAttributeValueMap).collect(toList());
+            scanResultItems.stream().map(ScanOperationTest::getAttributeValueMap).collect(toList());
 
         ScanResponse scanResponse = generateFakeScanResults(scanResultMaps, getAttributeValueMap(lastEvaluatedKey));
 
@@ -260,11 +261,11 @@ public class ScanTest {
         List<FakeItem> modifiedResultItems = generateFakeItemList();
 
         List<Map<String, AttributeValue>> scanResultMaps =
-            scanResultItems.stream().map(ScanTest::getAttributeValueMap).collect(toList());
+            scanResultItems.stream().map(ScanOperationTest::getAttributeValueMap).collect(toList());
 
         ReadModification[] readModifications =
             modifiedResultItems.stream()
-                  .map(ScanTest::getAttributeValueMap)
+                  .map(ScanOperationTest::getAttributeValueMap)
                   .map(attributeMap -> ReadModification.builder().transformedItem(attributeMap).build())
                   .collect(Collectors.toList())
                   .toArray(new ReadModification[]{});
