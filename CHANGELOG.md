@@ -301,10 +301,6 @@
   - ### Features
     - Document updates for Patch Manager 'NoReboot' feature.
 
-## __Amazon Transcribe Service__
-  - ### Bugfixes
-    - Fixed an issue where streaming transcriptions would fail with signature validation errors if the date changed during the request.
-
 # __2.10.49__ __2020-01-14__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
