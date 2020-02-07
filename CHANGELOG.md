@@ -15,10 +15,6 @@
   - ### Features
     - Documentation updates for RDS: when restoring a DB cluster from a snapshot, must create DB instances
 
-## __Amazon Transcribe Streaming__
-  - ### Bugfixes
-    - Fixed an issue that could cause signature mismatch exceptions for start-streaming-transaction requests under high load.
-
 ## __EC2 Image Builder__
   - ### Features
     - This version of the SDK includes bug fixes and documentation updates.
@@ -301,6 +297,10 @@
   - ### Features
     - Document updates for Patch Manager 'NoReboot' feature.
 
+## __Amazon Transcribe Service__
+  - ### Bugfixes
+    - Fixed an issue where streaming transcriptions would fail with signature validation errors if the date changed during the request.
+     
 # __2.10.49__ __2020-01-14__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
