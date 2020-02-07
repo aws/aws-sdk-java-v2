@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS RoboMaker",
+    "description": "This release adds support for simulation job batches"
+}
