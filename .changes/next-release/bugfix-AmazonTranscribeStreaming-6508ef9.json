@@ -1,5 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon Transcribe Streaming",
-    "description": "Fixed an issue that could cause signature mismatch exceptions for start-streaming-transaction requests under high load."
-}

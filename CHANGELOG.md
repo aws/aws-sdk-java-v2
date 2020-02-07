@@ -1,3 +1,28 @@
+# __2.10.60__ __2020-02-07__
+## __AWS RoboMaker__
+  - ### Features
+    - This release adds support for simulation job batches
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by renaming the table and index interfaces to be consistent with the client interface naming, and by adding operation methods for createTable(), scan() and query(), as applicable. These methods take a request object as parameter. Execute() methods for the index interface is removed since they are no longer needed.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates for RDS: when restoring a DB cluster from a snapshot, must create DB instances
+
+## __Amazon Transcribe Streaming__
+  - ### Bugfixes
+    - Fixed an issue that could cause signature mismatch exceptions for start-streaming-transaction requests under high load.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This version of the SDK includes bug fixes and documentation updates.
+
 # __2.10.59__ __2020-02-06__
 ## __AWS AppSync__
   - ### Features
