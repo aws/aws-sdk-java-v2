@@ -23,6 +23,8 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
+import com.typesafe.netty.http.HttpStreamsClientHandler;
+import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -63,8 +65,6 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
-import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
-import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpRequest;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 
 @SdkInternalApi
