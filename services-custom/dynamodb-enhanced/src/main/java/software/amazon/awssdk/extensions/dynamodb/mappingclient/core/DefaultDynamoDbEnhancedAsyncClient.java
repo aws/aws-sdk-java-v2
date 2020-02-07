@@ -50,8 +50,8 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public <T> DynamoDbAsyncMappedTable<T> table(String tableName, TableSchema<T> tableSchema) {
-        return new DynamoDbAsyncMappedTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
+    public <T> DefaultDynamoDbAsyncTable<T> table(String tableName, TableSchema<T> tableSchema) {
+        return new DefaultDynamoDbAsyncTable<>(dynamoDbClient, mapperExtension, tableSchema, tableName);
     }
 
     @Override

@@ -71,11 +71,11 @@ values used are also completely arbitrary.
                                                                  .dynamoDbClient(dynamoDbClient)
                                                                  .build();
    ```
-4. Create a MappedTable object that you will use to repeatedly execute
+4. Create a DynamoDbTable object that you will use to repeatedly execute
   operations against a specific table :-
    ```java
    // Maps a physical table with the name 'customers_20190205' to the schema
-   MappedTable<Customer> customerTable = enhancedClient.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
+   DynamoDbTable<Customer> customerTable = enhancedClient.table("customers_20190205", CUSTOMER_TABLE_SCHEMA);
    ```
  
 ### Common primitive operations
@@ -87,7 +87,7 @@ available in the low-level DynamoDB SDK client.
 
    ```java
    // CreateTable
-   customerTable.execute(CreateTable.create());
+   customerTable.createTable(CreateTableEnhancedRequest.create());
    
    // GetItem
    Customer customer = customerTable.execute(GetItem.create(Key.create(stringValue("a123"))));
@@ -102,10 +102,10 @@ available in the low-level DynamoDB SDK client.
    Customer deletedCustomer = customerTable.execute(DeleteItem.create(Key.create(stringValue("a123"), numberValue(456))));
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.execute(Query.create(equalTo(Key.create(stringValue("a123")))));
+   Iterable<Page<Customer>> customers = customerTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("a123")))));
    
    // Scan
-   Iterable<Page<Customer>> customers = customerTable.execute(Scan.create());
+   Iterable<Page<Customer>> customers = customerTable.scan(ScanEnhancedRequest.create());
    
    // BatchGetItem
    batchResults = enhancedClient.batchGetItem(
@@ -140,9 +140,9 @@ available in the low-level DynamoDB SDK client.
 Certain operations (Query and Scan) may be executed against a secondary
 index. Here's an example of how to do this:
    ```
-   MappedIndex<Customer> customersByName = customerTable.index("customers_by_name");
+   DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(equalTo(Key.create(stringValue("Smith"))));
+   Iterable<Page<Customer>> customersWithName = customersByName.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("Smith")))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -175,7 +175,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   SdkPublisher<Customer> results = mappedTable.execute(myQueryCommand);
+   SdkPublisher<Customer> results = mappedTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("a123")))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```

@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
@@ -48,7 +48,7 @@ public class TransactGetResultPageTest {
     @Mock
     MapperExtension mockMapperExtension;
 
-    private MappedTable<FakeItem> createMappedTable(MapperExtension mapperExtension) {
+    private DynamoDbTable<FakeItem> createMappedTable(MapperExtension mapperExtension) {
         return DynamoDbEnhancedClient.builder()
                                      .dynamoDbClient(mockDynamoDbClient)
                                      .extendWith(mapperExtension)
@@ -76,7 +76,7 @@ public class TransactGetResultPageTest {
 
         TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(fakeItemMap);
 
-        MappedTable<FakeItem> mappedTable = createMappedTable(mockMapperExtension);
+        DynamoDbTable<FakeItem> mappedTable = createMappedTable(mockMapperExtension);
         assertThat(transactGetResultPage.getItem(mappedTable), is(fakeItem2));
         verify(mockMapperExtension).afterRead(fakeItemMap,
                                               OperationContext.create(mappedTable.tableName()),

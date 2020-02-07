@@ -32,14 +32,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GlobalSecondaryIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
@@ -196,24 +196,23 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .build();
 
-    private MappedTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-    private MappedTable<ShortRecord> mappedShortTable = enhancedClient.table(getConcreteTableName("table-name"),
-                                                                             SHORT_TABLE_SCHEMA);
+    private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbTable<ShortRecord> mappedShortTable = enhancedClient.table(getConcreteTableName("table-name"),
+                                                                               SHORT_TABLE_SCHEMA);
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.builder()
-                                           .provisionedThroughput(getDefaultProvisionedThroughput())
-                                           .globalSecondaryIndices(
-                                               GlobalSecondaryIndex.create("gsi_1",
-                                                                       Projection.builder()
-                                                                                 .projectionType(ProjectionType.ALL)
-                                                                                 .build(),
-                                                                       getDefaultProvisionedThroughput()))
-                                           .build());
+        mappedTable.createTable(CreateTableEnhancedRequest.builder()
+                                                          .provisionedThroughput(getDefaultProvisionedThroughput())
+                                                          .globalSecondaryIndices(
+                                                              GlobalSecondaryIndex.create(
+                                                                  "gsi_1",
+                                                                  Projection.builder().projectionType(ProjectionType.ALL).build(),
+                                                                  getDefaultProvisionedThroughput()))
+                                                          .build());
     }
 
     @After

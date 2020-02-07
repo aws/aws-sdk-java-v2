@@ -18,7 +18,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Interface for a resource object that is part of either a {@link MappedTable} or {@link AsyncMappedTable}. This
+ * Interface for a resource object that is part of either a {@link DynamoDbTable} or {@link DynamoDbAsyncTable}. This
  * part of the interface is common between both of those higher order interfaces and has methods to access the
  * metadata associated with the mapped entity, such as the schema and the table name, but knows nothing about how to
  * actually execute operations against it.

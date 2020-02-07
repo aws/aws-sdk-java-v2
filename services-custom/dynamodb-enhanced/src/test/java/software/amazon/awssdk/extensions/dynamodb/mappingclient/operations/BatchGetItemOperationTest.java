@@ -49,8 +49,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.ReadModification;
@@ -93,8 +93,8 @@ public class BatchGetItemOperationTest {
     private MapperExtension mockExtension;
 
     private DynamoDbEnhancedClient enhancedClient;
-    private MappedTable<FakeItem> fakeItemMappedTable;
-    private MappedTable<FakeItemWithSort> fakeItemWithSortMappedTable;
+    private DynamoDbTable<FakeItem> fakeItemMappedTable;
+    private DynamoDbTable<FakeItemWithSort> fakeItemWithSortMappedTable;
 
     @Before
     public void setupMappedTables() {
