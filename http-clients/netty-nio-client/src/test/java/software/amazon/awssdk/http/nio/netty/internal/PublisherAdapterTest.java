@@ -25,8 +25,8 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 
-import com.typesafe.netty.http.DefaultStreamedHttpResponse;
-import com.typesafe.netty.http.StreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.DefaultStreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.channel.ChannelHandlerContext;
