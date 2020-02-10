@@ -23,7 +23,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 @SdkPublicApi
-public class BatchGetItemEnhancedRequest {
+public final class BatchGetItemEnhancedRequest {
 
     private final List<ReadBatch> readBatches;
 

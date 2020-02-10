@@ -22,7 +22,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkPublicApi
-public class ScanEnhancedRequest {
+public final class ScanEnhancedRequest {
 
     private final Map<String, AttributeValue> exclusiveStartKey;
     private final Integer limit;

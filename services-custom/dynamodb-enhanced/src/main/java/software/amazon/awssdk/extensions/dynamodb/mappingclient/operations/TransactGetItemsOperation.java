@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -47,9 +46,7 @@ public class TransactGetItemsOperation
     @Override
     public TransactGetItemsRequest generateRequest(MapperExtension mapperExtension) {
         return TransactGetItemsRequest.builder()
-                                      .transactItems(request.readTransactions().stream()
-                                                            .map(ReadTransaction::generateTransactGetItem)
-                                                            .collect(Collectors.toList()))
+                                      .transactItems(this.request.transactGetItems())
                                       .build();
     }
 

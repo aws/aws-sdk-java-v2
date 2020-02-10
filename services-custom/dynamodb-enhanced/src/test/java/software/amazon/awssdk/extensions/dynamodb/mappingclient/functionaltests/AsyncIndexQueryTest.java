@@ -25,10 +25,11 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.Que
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.equalTo;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondaryPartitionKey;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondarySortKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,50 +40,74 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Projection;
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
-public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
         private Integer value;
+        private String gsiId;
+        private Integer gsiSort;
 
-        public String getId() {
+        private String getId() {
             return id;
         }
 
-        public Record setId(String id) {
+        private Record setId(String id) {
             this.id = id;
             return this;
         }
 
-        public Integer getSort() {
+        private Integer getSort() {
             return sort;
         }
 
-        public Record setSort(Integer sort) {
+        private Record setSort(Integer sort) {
             this.sort = sort;
             return this;
         }
 
-        public Integer getValue() {
+        private Integer getValue() {
             return value;
         }
 
-        public Record setValue(Integer value) {
+        private Record setValue(Integer value) {
             this.value = value;
+            return this;
+        }
+
+        private String getGsiId() {
+            return gsiId;
+        }
+
+        private Record setGsiId(String gsiId) {
+            this.gsiId = gsiId;
+            return this;
+        }
+
+        private Integer getGsiSort() {
+            return gsiSort;
+        }
+
+        private Record setGsiSort(Integer gsiSort) {
+            this.gsiSort = gsiSort;
             return this;
         }
 
@@ -93,37 +118,58 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
             Record record = (Record) o;
             return Objects.equals(id, record.id) &&
                    Objects.equals(sort, record.sort) &&
-                   Objects.equals(value, record.value);
+                   Objects.equals(value, record.value) &&
+                   Objects.equals(gsiId, record.gsiId) &&
+                   Objects.equals(gsiSort, record.gsiSort);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, sort, value);
+            return Objects.hash(id, sort, value, gsiId, gsiSort);
         }
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
         StaticTableSchema.builder(Record.class)
-                   .newItemSupplier(Record::new)
-                   .attributes(
-                       stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()),
-                       integerNumberAttribute("value", Record::getValue, Record::setValue))
-        .build();
+                         .newItemSupplier(Record::new)
+                         .attributes(
+                             stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
+                             integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()),
+                             integerNumberAttribute("value", Record::getValue, Record::setValue),
+                             stringAttribute("gsi_id", Record::getGsiId, Record::setGsiId)
+                                 .as(secondaryPartitionKey("gsi_keys_only")),
+                             integerNumberAttribute("gsi_sort", Record::getGsiSort, Record::setGsiSort)
+                                 .as(secondarySortKey("gsi_keys_only")))
+                         .build();
 
     private static final List<Record> RECORDS =
         IntStream.range(0, 10)
-                 .mapToObj(i -> new Record().setId("id-value").setSort(i).setValue(i))
+                 .mapToObj(i -> new Record()
+                                      .setId("id-value")
+                                      .setSort(i)
+                                      .setValue(i)
+                                      .setGsiId("gsi-id-value")
+                                      .setGsiSort(i))
                  .collect(Collectors.toList());
+
+    private static final List<Record> KEYS_ONLY_RECORDS =
+        RECORDS.stream()
+               .map(record -> new Record()
+                                    .setId(record.id)
+                                    .setSort(record.sort)
+                                    .setGsiId(record.gsiId)
+                                    .setGsiSort(record.gsiSort))
+               .collect(Collectors.toList());
 
     private DynamoDbEnhancedAsyncClient enhancedAsyncClient = DefaultDynamoDbEnhancedAsyncClient.builder()
                                                                                                 .dynamoDbClient(getDynamoDbAsyncClient())
                                                                                                 .build();
 
     private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbAsyncIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)).join());
     }
 
     private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
@@ -137,10 +183,20 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
 
         return subscriber.bufferedItems();
     }
-    
+
     @Before
     public void createTable() {
-        mappedTable.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
+        mappedTable.createTable(CreateTableEnhancedRequest.builder()
+                                                          .provisionedThroughput(getDefaultProvisionedThroughput())
+                                                          .globalSecondaryIndices(
+                                                              GlobalSecondaryIndex.create(
+                                                                  "gsi_keys_only",
+                                                                  Projection.builder()
+                                                                            .projectionType(ProjectionType.KEYS_ONLY)
+                                                                            .build(),
+                                                                  getDefaultProvisionedThroughput()))
+                                                          .build())
+                   .join();
     }
 
     @After
@@ -155,54 +211,32 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
     public void queryAllRecordsDefaultSettings() {
         insertRecords();
 
-        SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("id-value")))));
-        
-        List<Page<Record>> results = drainPublisher(publisher, 1);
-        Page<Record> page = results.get(0);
-        
-        assertThat(page.items(), is(RECORDS));
-        assertThat(page.lastEvaluatedKey(), is(nullValue()));
-    }
-
-    @Test
-    public void queryAllRecordsWithFilter() {
-        insertRecords();
-        Map<String, AttributeValue> expressionValues = new HashMap<>();
-        expressionValues.put(":min_value", numberValue(3));
-        expressionValues.put(":max_value", numberValue(5));
-        Expression expression = Expression.builder()
-                                          .expression("#value >= :min_value AND #value <= :max_value")
-                                          .expressionValues(expressionValues)
-                                          .expressionNames(Collections.singletonMap("#value", "value"))
-                                          .build();
+        Record result =
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"), numberValue(3)))).join();
 
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
-                                                  .filterExpression(expression)
-                                                  .build());
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value")))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
 
-        assertThat(page.items(),
-                   is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
+        assertThat(page.items(), is(KEYS_ONLY_RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
     public void queryBetween() {
         insertRecords();
-        Key fromKey = Key.create(stringValue("id-value"), numberValue(3));
-        Key toKey = Key.create(stringValue("id-value"), numberValue(5));
-        SdkPublisher<Page<Record>> publisher = mappedTable.query(QueryEnhancedRequest.create(between(fromKey, toKey)));
+        Key fromKey = Key.create(stringValue("gsi-id-value"), numberValue(3));
+        Key toKey = Key.create(stringValue("gsi-id-value"), numberValue(5));
+
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(QueryEnhancedRequest.create(between(fromKey, toKey)));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
 
         assertThat(page.items(),
-                   is(RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
+                   is(KEYS_ONLY_RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -210,10 +244,10 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
     public void queryLimit() {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
-                                                  .limit(5)
-                                                  .build());
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
+                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .limit(5)
+                                                          .build());
 
         List<Page<Record>> results = drainPublisher(publisher, 3);
         Page<Record> page1 = results.get(0);
@@ -221,14 +255,19 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
         Page<Record> page3 = results.get(2);
 
         Map<String, AttributeValue> expectedLastEvaluatedKey1 = new HashMap<>();
-        expectedLastEvaluatedKey1.put("id", stringValue("id-value"));
-        expectedLastEvaluatedKey1.put("sort", numberValue(4));
+        expectedLastEvaluatedKey1.put("id", stringValue(KEYS_ONLY_RECORDS.get(4).getId()));
+        expectedLastEvaluatedKey1.put("sort", numberValue(KEYS_ONLY_RECORDS.get(4).getSort()));
+        expectedLastEvaluatedKey1.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(4).getGsiId()));
+        expectedLastEvaluatedKey1.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(4).getGsiSort()));
         Map<String, AttributeValue> expectedLastEvaluatedKey2 = new HashMap<>();
-        expectedLastEvaluatedKey2.put("id", stringValue("id-value"));
-        expectedLastEvaluatedKey2.put("sort", numberValue(9));
-        assertThat(page1.items(), is(RECORDS.subList(0, 5)));
+        expectedLastEvaluatedKey2.put("id", stringValue(KEYS_ONLY_RECORDS.get(9).getId()));
+        expectedLastEvaluatedKey2.put("sort", numberValue(KEYS_ONLY_RECORDS.get(9).getSort()));
+        expectedLastEvaluatedKey2.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(9).getGsiId()));
+        expectedLastEvaluatedKey2.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(9).getGsiSort()));
+
+        assertThat(page1.items(), is(KEYS_ONLY_RECORDS.subList(0, 5)));
         assertThat(page1.lastEvaluatedKey(), is(expectedLastEvaluatedKey1));
-        assertThat(page2.items(), is(RECORDS.subList(5, 10)));
+        assertThat(page2.items(), is(KEYS_ONLY_RECORDS.subList(5, 10)));
         assertThat(page2.lastEvaluatedKey(), is(expectedLastEvaluatedKey2));
         assertThat(page3.items(), is(empty()));
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
@@ -237,7 +276,7 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("id-value")))));
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value")))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -248,19 +287,22 @@ public class AsyncBasicQueryOperationTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void queryExclusiveStartKey() {
-        Map<String, AttributeValue> exclusiveStartKey = new HashMap<>();
-        exclusiveStartKey.put("id", stringValue("id-value"));
-        exclusiveStartKey.put("sort", numberValue(7));
         insertRecords();
+        Map<String, AttributeValue> expectedLastEvaluatedKey = new HashMap<>();
+        expectedLastEvaluatedKey.put("id", stringValue(KEYS_ONLY_RECORDS.get(7).getId()));
+        expectedLastEvaluatedKey.put("sort", numberValue(KEYS_ONLY_RECORDS.get(7).getSort()));
+        expectedLastEvaluatedKey.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(7).getGsiId()));
+        expectedLastEvaluatedKey.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(7).getGsiSort()));
+
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
-                                                  .exclusiveStartKey(exclusiveStartKey)
-                                                  .build());
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
+                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .exclusiveStartKey(expectedLastEvaluatedKey)
+                                                          .build());
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
-        assertThat(page.items(), is(RECORDS.subList(8, 10)));
+        assertThat(page.items(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 }

@@ -17,8 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
@@ -29,15 +28,22 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTableOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItemOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.QueryOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ScanOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItemOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-@SdkPublicApi
-@ThreadSafe
+@SdkInternalApi
 public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     private final DynamoDbClient dynamoDbClient;
     private final MapperExtension mapperExtension;
@@ -52,16 +58,6 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         this.mapperExtension = mapperExtension;
         this.tableSchema = tableSchema;
         this.tableName = tableName;
-    }
-
-    @Override
-    public <R> R execute(TableOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
-    }
-
-    @Override
-    public <R> SdkIterable<R> execute(PaginatedTableOperation<T, ?, ?, R> operationToPerform) {
-        return operationToPerform.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
     }
 
     @Override
@@ -97,8 +93,32 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public T deleteItem(DeleteItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, T> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public T getItem(GetItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, T> operation = GetItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
     public SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
         PaginatedTableOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public Void putItem(PutItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public T updateItem(UpdateItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
     }
 

@@ -37,17 +37,16 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhanced
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteBatch;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class AsyncBatchWriteItemOperationTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
         private Integer id;
         private String attribute;
@@ -176,98 +175,73 @@ public class AsyncBatchWriteItemOperationTest extends LocalDynamoDbAsyncTestBase
 
     @Test
     public void singlePut() {
-        List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.create(mappedTable1, PutItem.create(RECORDS_1.get(0))));
+        List<WriteBatch> writeBatches =
+            singletonList(WriteBatch.builder(Record1.class)
+                                    .mappedTableResource(mappedTable1)
+                                    .addPutItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)))
+                                    .build());
 
-        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
-            TransactWriteItemsEnhancedRequest.builder().writeTransactions(writeTransactions).build();
+        enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).build()).join();
 
-        enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
-
-        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
     @Test
     public void multiplePut() {
-        List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.create(mappedTable1, PutItem.create(RECORDS_1.get(0))),
-                   WriteTransaction.create(mappedTable2, PutItem.create(RECORDS_2.get(0))));
+        List<WriteBatch> writeBatches =
+            asList(WriteBatch.builder(Record1.class)
+                             .mappedTableResource(mappedTable1)
+                             .addPutItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)))
+                             .build(),
+                   WriteBatch.builder(Record2.class)
+                             .mappedTableResource(mappedTable2)
+                             .addPutItem(PutItemEnhancedRequest.create(RECORDS_2.get(0)))
+                             .build());
 
-        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
-            TransactWriteItemsEnhancedRequest.builder().writeTransactions(writeTransactions).build();
+        enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).build()).join();
 
-        enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
-
-        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
-        assertThat(record1, is(RECORDS_1.get(0)));
-        assertThat(record2, is(RECORDS_2.get(0)));
-    }
-
-    @Test
-    public void singleUpdate() {
-        List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(0))));
-
-        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
-            TransactWriteItemsEnhancedRequest.builder().writeTransactions(writeTransactions).build();
-
-        enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
-
-        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
-        assertThat(record, is(RECORDS_1.get(0)));
-    }
-
-    @Test
-    public void multipleUpdate() {
-        List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.create(mappedTable1, UpdateItem.create(RECORDS_1.get(0))),
-                   WriteTransaction.create(mappedTable2, UpdateItem.create(RECORDS_2.get(0))));
-
-        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
-            TransactWriteItemsEnhancedRequest.builder().writeTransactions(writeTransactions).build();
-
-        enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
-
-        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
 
     @Test
     public void singleDelete() {
-        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
 
-        List<WriteTransaction> writeTransactions =
-            singletonList(WriteTransaction.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))));
+        List<WriteBatch> writeBatches =
+            singletonList(WriteBatch.builder(Record1.class)
+                                    .mappedTableResource(mappedTable1)
+                                    .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                    .build());
 
-        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
-            TransactWriteItemsEnhancedRequest.builder().writeTransactions(writeTransactions).build();
+        enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).build()).join();
 
-        enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
-
-        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
         assertThat(record, is(nullValue()));
     }
 
     @Test
     public void multipleDelete() {
-        mappedTable1.execute(PutItem.create(RECORDS_1.get(0))).join();
-        mappedTable2.execute(PutItem.create(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0))).join();
 
-        List<WriteTransaction> writeTransactions =
-            asList(WriteTransaction.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))),
-                   WriteTransaction.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))));
+        List<WriteBatch> writeBatches =
+            asList(WriteBatch.builder(Record1.class)
+                             .mappedTableResource(mappedTable1)
+                             .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                             .build(),
+                   WriteBatch.builder(Record2.class)
+                             .mappedTableResource(mappedTable2)
+                             .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                             .build());
 
-        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
-            TransactWriteItemsEnhancedRequest.builder().writeTransactions(writeTransactions).build();
+        enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).build()).join();
 
-        enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
-
-        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
     }

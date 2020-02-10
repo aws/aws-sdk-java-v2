@@ -22,14 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 
 @SdkPublicApi
-public class BatchGetResultPage {
+public final class BatchGetResultPage {
     private final BatchGetItemResponse batchGetItemResponse;
     private final MapperExtension mapperExtension;
 
@@ -42,7 +42,7 @@ public class BatchGetResultPage {
         return new Builder();
     }
 
-    public <T> List<T> getResultsForTable(DynamoDbTable<T> mappedTable) {
+    public <T> List<T> getResultsForTable(MappedTableResource<T> mappedTable) {
         List<Map<String, AttributeValue>> results =
             batchGetItemResponse.responses()
                                 .getOrDefault(mappedTable.tableName(), emptyList());

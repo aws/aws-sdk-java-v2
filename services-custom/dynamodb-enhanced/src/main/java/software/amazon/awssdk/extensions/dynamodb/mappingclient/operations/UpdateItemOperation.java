@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
@@ -37,6 +36,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -46,8 +46,8 @@ import software.amazon.awssdk.services.dynamodb.model.Update;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
-@SdkPublicApi
-public class UpdateItem<T>
+@SdkInternalApi
+public class UpdateItemOperation<T>
     implements TableOperation<T, UpdateItemRequest, UpdateItemResponse, T>,
                TransactableWriteOperation<T> {
 
@@ -57,26 +57,14 @@ public class UpdateItem<T>
     private static final Function<String, String> EXPRESSION_KEY_MAPPER =
         key -> "#AMZN_MAPPED_" + cleanAttributeName(key);
 
-    private final T item;
-    private final Boolean ignoreNulls;
-    private final Expression conditionExpression;
+    private final UpdateItemEnhancedRequest<T> request;
 
-    private UpdateItem(Builder<T> b) {
-        this.item = b.item;
-        this.ignoreNulls = b.ignoreNulls;
-        this.conditionExpression = b.conditionExpression;
+    private UpdateItemOperation(UpdateItemEnhancedRequest<T> request) {
+        this.request = request;
     }
 
-    public static <T> UpdateItem<T> create(T item) {
-        return new Builder<T>().item(item).build();
-    }
-
-    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
-        return new Builder<>();
-    }
-
-    public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).ignoreNulls(ignoreNulls);
+    public static <T> UpdateItemOperation<T> create(UpdateItemEnhancedRequest<T> request) {
+        return new UpdateItemOperation<>(request);
     }
 
     @Override
@@ -87,11 +75,10 @@ public class UpdateItem<T>
             throw new IllegalArgumentException("UpdateItem cannot be executed against a secondary index.");
         }
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item,  Boolean.TRUE.equals(ignoreNulls));
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(this.request.item(),
+                                                                    Boolean.TRUE.equals(this.request.ignoreNulls()));
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
-        // Allow a command mapperExtension to modify the attribute values of the item in the PutItemRequest and add
-        // a conditional statement
         WriteModification transformation =
             mapperExtension != null ? mapperExtension.beforeWrite(itemMap, operationContext, tableMetadata) : null;
 
@@ -100,60 +87,23 @@ public class UpdateItem<T>
         }
 
         Collection<String> primaryKeys = tableSchema.tableMetadata().primaryKeys();
-        Map<String, AttributeValue> filteredAttributeValues = itemMap.entrySet().stream()
-            .filter(entry -> !primaryKeys.contains(entry.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         Map<String, AttributeValue> keyAttributeValues = itemMap.entrySet().stream()
             .filter(entry -> primaryKeys.contains(entry.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        UpdateItemRequest.Builder baseUpdateItemRequest = UpdateItemRequest.builder()
+        UpdateItemRequest.Builder requestBuilder = UpdateItemRequest.builder()
             .tableName(operationContext.tableName())
             .key(keyAttributeValues)
             .returnValues(ReturnValue.ALL_NEW);
 
-        Map<String, String> expressionNames = null;
-        Map<String, AttributeValue> expressionValues = null;
-        String conditionExpressionString = null;
+        Map<String, AttributeValue> filteredAttributeValues = itemMap.entrySet().stream()
+            .filter(entry -> !primaryKeys.contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        /* Add update expression for transformed non-key attributes if applicable */
-        if (!filteredAttributeValues.isEmpty()) {
-            Expression fullUpdateExpression = generateUpdateExpression(filteredAttributeValues);
-            expressionNames = fullUpdateExpression.expressionNames();
-            expressionValues = fullUpdateExpression.expressionValues();
-            baseUpdateItemRequest = baseUpdateItemRequest.updateExpression(fullUpdateExpression.expression());
-        }
+        requestBuilder = addExpressionsIfExist(transformation, filteredAttributeValues, requestBuilder);
 
-        /* Merge in conditional expression from extension WriteModification if applicable */
-        if (transformation != null && transformation.additionalConditionalExpression() != null) {
-            expressionNames =
-                Expression.coalesceNames(expressionNames,
-                                         transformation.additionalConditionalExpression().expressionNames());
-            expressionValues =
-                Expression.coalesceValues(expressionValues,
-                                          transformation.additionalConditionalExpression().expressionValues());
-            conditionExpressionString = transformation.additionalConditionalExpression().expression();
-        }
-
-        /* Merge in conditional expression from specified 'conditionExpression' if applicable */
-        if (conditionExpression != null) {
-            expressionNames = Expression.coalesceNames(expressionNames, conditionExpression.expressionNames());
-            expressionValues = Expression.coalesceValues(expressionValues, conditionExpression.expressionValues());
-            conditionExpressionString = Expression.coalesceExpressions(conditionExpressionString,
-                                                                       conditionExpression.expression(), " AND ");
-        }
-
-        // The SDK handles collections a little weirdly. Avoiding adding empty collections
-        if (expressionNames != null && !expressionNames.isEmpty()) {
-            baseUpdateItemRequest = baseUpdateItemRequest.expressionAttributeNames(expressionNames);
-        }
-
-        if (expressionValues != null && !expressionValues.isEmpty()) {
-            baseUpdateItemRequest = baseUpdateItemRequest.expressionAttributeValues(expressionValues);
-        }
-
-        return baseUpdateItemRequest.conditionExpression(conditionExpressionString)
-                                    .build();
+        return requestBuilder.build();
     }
 
     @Override
@@ -204,38 +154,6 @@ public class UpdateItem<T>
                                 .build();
     }
 
-    public T item() {
-        return item;
-    }
-
-    public Boolean ignoreNulls() {
-        return ignoreNulls;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        UpdateItem<?> that = (UpdateItem<?>) o;
-
-        if (item != null ? ! item.equals(that.item) : that.item != null) {
-            return false;
-        }
-        return ignoreNulls != null ? ignoreNulls.equals(that.ignoreNulls) : that.ignoreNulls == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = item != null ? item.hashCode() : 0;
-        result = 31 * result + (ignoreNulls != null ? ignoreNulls.hashCode() : 0);
-        return result;
-    }
-
     private static Expression generateUpdateExpression(Map<String, AttributeValue> attributeValuesToUpdate) {
         // Sort the updates into 'SET' or 'REMOVE' based on null value
         List<String> updateSetActions = new ArrayList<>();
@@ -282,31 +200,50 @@ public class UpdateItem<T>
                          .build();
     }
 
-    public static final class Builder<T> {
-        private T item;
-        private Boolean ignoreNulls;
-        private Expression conditionExpression;
+    private UpdateItemRequest.Builder addExpressionsIfExist(WriteModification transformation,
+                                                            Map<String, AttributeValue> filteredAttributeValues,
+                                                            UpdateItemRequest.Builder requestBuilder) {
+        Map<String, String> expressionNames = null;
+        Map<String, AttributeValue> expressionValues = null;
+        String conditionExpressionString = null;
 
-        private Builder() {
+        /* Add update expression for transformed non-key attributes if applicable */
+        if (!filteredAttributeValues.isEmpty()) {
+            Expression fullUpdateExpression = generateUpdateExpression(filteredAttributeValues);
+            expressionNames = fullUpdateExpression.expressionNames();
+            expressionValues = fullUpdateExpression.expressionValues();
+            requestBuilder = requestBuilder.updateExpression(fullUpdateExpression.expression());
         }
 
-        public Builder<T> ignoreNulls(Boolean ignoreNulls) {
-            this.ignoreNulls = ignoreNulls;
-            return this;
+        /* Merge in conditional expression from extension WriteModification if applicable */
+        if (transformation != null && transformation.additionalConditionalExpression() != null) {
+            expressionNames =
+                Expression.coalesceNames(expressionNames,
+                                         transformation.additionalConditionalExpression().expressionNames());
+            expressionValues =
+                Expression.coalesceValues(expressionValues,
+                                          transformation.additionalConditionalExpression().expressionValues());
+            conditionExpressionString = transformation.additionalConditionalExpression().expression();
         }
 
-        public Builder<T> conditionExpression(Expression conditionExpression) {
-            this.conditionExpression = conditionExpression;
-            return this;
+        /* Merge in conditional expression from specified 'conditionExpression' if applicable */
+        if (this.request.conditionExpression() != null) {
+            expressionNames = Expression.coalesceNames(expressionNames, this.request.conditionExpression().expressionNames());
+            expressionValues = Expression.coalesceValues(expressionValues, this.request.conditionExpression().expressionValues());
+            conditionExpressionString = Expression.coalesceExpressions(conditionExpressionString,
+                                                                       this.request.conditionExpression().expression(), " AND ");
         }
 
-        public Builder<T> item(T item) {
-            this.item = item;
-            return this;
+        // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+        if (expressionNames != null && !expressionNames.isEmpty()) {
+            requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
         }
 
-        public UpdateItem<T> build() {
-            return new UpdateItem<>(this);
+        if (expressionValues != null && !expressionValues.isEmpty()) {
+            requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
         }
+
+        return requestBuilder.conditionExpression(conditionExpressionString);
     }
+
 }

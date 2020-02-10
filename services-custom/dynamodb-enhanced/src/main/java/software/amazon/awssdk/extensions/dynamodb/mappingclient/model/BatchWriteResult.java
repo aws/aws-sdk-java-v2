@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 @SdkPublicApi
-public class BatchWriteResult {
+public final class BatchWriteResult {
     private final Map<String, List<WriteRequest>> unprocessedRequests;
 
     private BatchWriteResult(Builder builder) {
