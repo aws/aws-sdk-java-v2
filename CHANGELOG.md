@@ -1,3 +1,16 @@
+# __2.10.61__ __2020-02-10__
+## __AWS Key Management Service__
+  - ### Features
+    - The ConnectCustomKeyStore API now provides a new error code (SUBNET_NOT_FOUND) for customers to better troubleshoot if their "connect-custom-key-store" operation fails.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Added clarifying information that Amazon DocumentDB shares operational technology with Amazon RDS and Amazon Neptune.
+
 # __2.10.60__ __2020-02-07__
 ## __AWS RoboMaker__
   - ### Features
@@ -300,7 +313,7 @@
 ## __Amazon Transcribe Service__
   - ### Bugfixes
     - Fixed an issue where streaming transcriptions would fail with signature validation errors if the date changed during the request.
-     
+
 # __2.10.49__ __2020-01-14__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
