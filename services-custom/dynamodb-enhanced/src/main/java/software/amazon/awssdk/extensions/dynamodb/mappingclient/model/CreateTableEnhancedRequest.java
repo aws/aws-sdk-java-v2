@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
 @SdkPublicApi
-public class CreateTableEnhancedRequest {
+public final class CreateTableEnhancedRequest {
     private final ProvisionedThroughput provisionedThroughput;
     private final Collection<LocalSecondaryIndex> localSecondaryIndices;
     private final Collection<GlobalSecondaryIndex> globalSecondaryIndices;

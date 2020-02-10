@@ -25,7 +25,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkPublicApi
-public class TransactGetResultPage {
+public final class TransactGetResultPage {
     private final Map<String, AttributeValue> itemMap;
 
     private TransactGetResultPage(Map<String, AttributeValue> itemMap) {

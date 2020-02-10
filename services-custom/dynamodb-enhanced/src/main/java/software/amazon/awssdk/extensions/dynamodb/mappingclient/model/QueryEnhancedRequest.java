@@ -22,7 +22,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkPublicApi
-public class QueryEnhancedRequest {
+public final class QueryEnhancedRequest {
 
     private final QueryConditional queryConditional;
     private final Map<String, AttributeValue> exclusiveStartKey;

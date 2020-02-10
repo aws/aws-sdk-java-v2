@@ -44,13 +44,13 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class AsyncBasicScanOperationTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -110,7 +110,7 @@ public class AsyncBasicScanOperationTest extends LocalDynamoDbAsyncTestBase {
                                                                                TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)).join());
     }
 
     private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {

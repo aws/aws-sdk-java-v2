@@ -19,8 +19,7 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Util
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableReadOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
@@ -29,6 +28,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableReadOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -36,39 +36,29 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 
-@SdkPublicApi
-public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResponse, T>,
-                                   BatchableReadOperation,
-                                   TransactableReadOperation<T> {
+@SdkInternalApi
+public class GetItemOperation<T> implements TableOperation<T, GetItemRequest, GetItemResponse, T>,
+                                            BatchableReadOperation,
+                                            TransactableReadOperation<T> {
 
-    private final Key key;
-    private final Boolean consistentRead;
+    private final GetItemEnhancedRequest request;
 
-    private GetItem(Key key, Boolean consistentRead) {
-        this.key = key;
-        this.consistentRead = consistentRead;
+    private GetItemOperation(GetItemEnhancedRequest request) {
+        this.request = request;
     }
 
-    public static <T> GetItem<T> create(Key key) {
-        return new GetItem<>(key, null);
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public Builder toBuilder() {
-        return new Builder().key(key).consistentRead(consistentRead);
+    public static <T> GetItemOperation<T> create(GetItemEnhancedRequest request) {
+        return new GetItemOperation<>(request);
     }
 
     @Override
     public Boolean consistentRead() {
-        return this.consistentRead;
+        return this.request.consistentRead();
     }
 
     @Override
     public Key key() {
-        return this.key;
+        return this.request.key();
     }
 
     @Override
@@ -81,8 +71,8 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
 
         return GetItemRequest.builder()
                              .tableName(context.tableName())
-                             .key(key.keyMap(tableSchema, context.indexName()))
-                             .consistentRead(consistentRead)
+                             .key(this.request.key().keyMap(tableSchema, context.indexName()))
+                             .consistentRead(this.request.consistentRead())
                              .build();
     }
 
@@ -113,54 +103,9 @@ public class GetItem<T> implements TableOperation<T, GetItemRequest, GetItemResp
         return TransactGetItem.builder()
                               .get(Get.builder()
                                       .tableName(operationContext.tableName())
-                                      .key(key.keyMap(tableSchema, operationContext.indexName()))
+                                      .key(this.request.key().keyMap(tableSchema, operationContext.indexName()))
                                       .build())
                               .build();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        GetItem<?> getItem = (GetItem<?>) o;
-
-        if (key != null ? ! key.equals(getItem.key) : getItem.key != null) {
-            return false;
-        }
-        return consistentRead != null ? consistentRead.equals(getItem.consistentRead) : getItem.consistentRead == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
-        return result;
-    }
-
-    public static final class Builder {
-        private Key key;
-        private Boolean consistentRead;
-
-        private Builder() {
-        }
-
-        public Builder consistentRead(Boolean consistentRead) {
-            this.consistentRead = consistentRead;
-            return this;
-        }
-
-        public Builder key(Key key) {
-            this.key = key;
-            return this;
-        }
-
-        public <T> GetItem<T> build() {
-            return new GetItem<>(this.key, this.consistentRead);
-        }
-    }
 }

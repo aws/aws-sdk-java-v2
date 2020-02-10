@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
 @SdkPublicApi
-public class GlobalSecondaryIndex {
+public final class GlobalSecondaryIndex {
     private final String indexName;
     private final Projection projection;
     private final ProvisionedThroughput provisionedThroughput;

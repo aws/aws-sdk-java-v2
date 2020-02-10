@@ -43,10 +43,10 @@ public class TransactGetResultPageTest {
     private static final String TABLE_NAME = "table-name";
 
     @Mock
-    DynamoDbClient mockDynamoDbClient;
+    private DynamoDbClient mockDynamoDbClient;
 
     @Mock
-    MapperExtension mockMapperExtension;
+    private MapperExtension mockMapperExtension;
 
     private DynamoDbTable<FakeItem> createMappedTable(MapperExtension mapperExtension) {
         return DynamoDbEnhancedClient.builder()

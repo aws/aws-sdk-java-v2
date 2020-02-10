@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
 public class BatchWriteItemOperation implements DatabaseOperation<BatchWriteItemRequest,
@@ -48,11 +51,17 @@ public class BatchWriteItemOperation implements DatabaseOperation<BatchWriteItem
 
     @Override
     public BatchWriteItemRequest generateRequest(MapperExtension mapperExtension) {
-        Map<String, Collection<WriteRequest>> requestItems = new HashMap<>();
-        request.writeBatches().forEach(writeBatch -> writeBatch.addWriteRequestsToMap(requestItems));
+        Map<String, List<WriteRequest>> allRequestItems = new HashMap<>();
+
+        request.writeBatches().forEach(writeBatch -> {
+            Collection<WriteRequest> writeRequestsForTable = allRequestItems.computeIfAbsent(
+                writeBatch.tableName(),
+                ignored -> new ArrayList<>());
+            writeRequestsForTable.addAll(writeBatch.writeRequests());
+        });
 
         return BatchWriteItemRequest.builder()
-                                    .requestItems(Collections.unmodifiableMap(requestItems))
+                                    .requestItems(Collections.unmodifiableMap(CollectionUtils.deepCopyMap(allRequestItems)))
                                     .build();
     }
 
