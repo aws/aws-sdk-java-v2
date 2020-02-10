@@ -150,4 +150,13 @@
         <Method name="createKeyStore"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+
+    <!-- If we're not sure about the RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT, skip the warning. -->
+    <Match>
+        <Package name="~software.amazon.awssdk.http.nio.netty.*"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+        <Not>
+            <Confidence value="1"/>
+        </Not>
+    </Match>
 </FindBugsFilter>
