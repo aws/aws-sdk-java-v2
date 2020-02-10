@@ -18,11 +18,6 @@
             "description": "Updated service endpoint metadata."
         },
         {
-            "type": "bugfix",
-            "category": "Amazon Transcribe Streaming",
-            "description": "Fixed an issue that could cause signature mismatch exceptions for start-streaming-transaction requests under high load."
-        },
-        {
             "type": "feature",
             "category": "EC2 Image Builder",
             "description": "This version of the SDK includes bug fixes and documentation updates."

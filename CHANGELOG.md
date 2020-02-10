@@ -1,3 +1,16 @@
+# __2.10.61__ __2020-02-10__
+## __AWS Key Management Service__
+  - ### Features
+    - The ConnectCustomKeyStore API now provides a new error code (SUBNET_NOT_FOUND) for customers to better troubleshoot if their "connect-custom-key-store" operation fails.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Added clarifying information that Amazon DocumentDB shares operational technology with Amazon RDS and Amazon Neptune.
+
 # __2.10.60__ __2020-02-07__
 ## __AWS RoboMaker__
   - ### Features
@@ -14,10 +27,6 @@
 ## __Amazon Relational Database Service__
   - ### Features
     - Documentation updates for RDS: when restoring a DB cluster from a snapshot, must create DB instances
-
-## __Amazon Transcribe Streaming__
-  - ### Bugfixes
-    - Fixed an issue that could cause signature mismatch exceptions for start-streaming-transaction requests under high load.
 
 ## __EC2 Image Builder__
   - ### Features
