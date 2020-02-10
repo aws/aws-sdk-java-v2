@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon DocumentDB with MongoDB compatibility",
+    "description": "Added clarifying information that Amazon DocumentDB shares operational technology with Amazon RDS and Amazon Neptune."
+}
