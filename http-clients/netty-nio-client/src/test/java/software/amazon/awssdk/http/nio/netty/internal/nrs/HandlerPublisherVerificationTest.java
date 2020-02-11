@@ -93,16 +93,12 @@ public class HandlerPublisherVerificationTest extends PublisherVerification<Long
 
     @BeforeClass
     public void startExecutor() {
-        if (scheduled) {
-            executor = Executors.newSingleThreadScheduledExecutor();
-        }
+        executor = Executors.newSingleThreadScheduledExecutor();
     }
 
     @AfterClass
     public void stopExecutor() {
-        if (scheduled) {
-            executor.shutdown();
-        }
+        executor.shutdown();
     }
 
     @Override
@@ -111,7 +107,7 @@ public class HandlerPublisherVerificationTest extends PublisherVerification<Long
         if (scheduled) {
             out = new ScheduledBatchedProducer(elements, batchSize, publishInitial, executor, 5);
         } else {
-            out = new BatchedProducer(elements, batchSize, publishInitial);
+            out = new BatchedProducer(elements, batchSize, publishInitial, executor);
         }
 
         final ClosedLoopChannel channel = new ClosedLoopChannel();

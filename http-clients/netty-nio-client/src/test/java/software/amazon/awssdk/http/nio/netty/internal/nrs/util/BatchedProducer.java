@@ -20,7 +20,7 @@ package software.amazon.awssdk.http.nio.netty.internal.nrs.util;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.Executor;
 
 /**
  * A batched producer.
@@ -39,12 +39,14 @@ public class BatchedProducer extends ChannelOutboundHandlerAdapter {
 
     protected final long eofOn;
     protected final int batchSize;
-    protected final AtomicLong sequence;
+    private final Executor executor;
+    protected long sequence;
 
-    public BatchedProducer(long eofOn, int batchSize, long sequence) {
+    public BatchedProducer(long eofOn, int batchSize, long sequence, Executor executor) {
         this.eofOn = eofOn;
         this.batchSize = batchSize;
-        this.sequence = new AtomicLong(sequence);
+        this.sequence = sequence;
+        this.executor = executor;
     }
 
     private boolean cancelled = false;
@@ -55,17 +57,14 @@ public class BatchedProducer extends ChannelOutboundHandlerAdapter {
         if (cancelled) {
             throw new IllegalStateException("Received demand after being cancelled");
         }
-        ctx.pipeline().channel().eventLoop().parent().execute(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < batchSize && sequence.get() != eofOn; i++) {
-                    ctx.fireChannelRead(sequence.getAndIncrement());
-                }
-                if (eofOn == sequence.get()) {
-                    ctx.fireChannelInactive();
-                } else {
-                    ctx.fireChannelReadComplete();
-                }
+        executor.execute(() -> {
+            for (int i = 0; i < batchSize && sequence != eofOn; i++) {
+                ctx.fireChannelRead(sequence++);
+            }
+            if (eofOn == sequence) {
+                ctx.fireChannelInactive();
+            } else {
+                ctx.fireChannelReadComplete();
             }
         });
     }
