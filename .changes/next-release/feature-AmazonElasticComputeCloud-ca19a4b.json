@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "Amazon EC2 Now Supports Tagging Spot Fleet."
+}
