@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "description": "Added support for presigning `CreateMultipartUpload`, `UploadPart`, `CompleteMultipartUpload`, and `AbortMultipartUpload` requests."
+}
