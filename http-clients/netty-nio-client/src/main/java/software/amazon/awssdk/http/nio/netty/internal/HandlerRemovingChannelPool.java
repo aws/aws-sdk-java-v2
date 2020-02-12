@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.removeIfExists;
 
-import com.typesafe.netty.http.HttpStreamsClientHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.pool.ChannelPool;
@@ -28,6 +27,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler;
+import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 
 /**
  * Removes any per request {@link ChannelHandler} from the pipeline prior to releasing
