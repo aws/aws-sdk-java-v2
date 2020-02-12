@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.nio.netty.fault;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -37,6 +38,7 @@ import io.netty.handler.codec.http2.Http2Frame;
 import io.netty.handler.codec.http2.Http2FrameCodec;
 import io.netty.handler.codec.http2.Http2FrameCodecBuilder;
 import io.netty.handler.codec.http2.Http2FrameLogger;
+import io.netty.handler.codec.http2.Http2GoAwayFrame;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.codec.http2.Http2PingFrame;
@@ -46,6 +48,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -83,7 +86,7 @@ public class ServerNotRespondingTest {
         server.init();
 
         netty = NettyNioAsyncHttpClient.builder()
-                                       .readTimeout(Duration.ofMillis(500))
+                                       .readTimeout(Duration.ofMillis(1000))
                                        .eventLoopGroup(SdkEventLoopGroup.builder().numberOfThreads(3).build())
                                        .http2Configuration(h -> h.healthCheckPingPeriod(Duration.ofMillis(200)))
                                        .protocol(Protocol.HTTP2)
@@ -116,6 +119,24 @@ public class ServerNotRespondingTest {
         server.notRespondOnFirstChannel = false;
         sendGetRequest().join();
         assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
+        assertThat(server.closedByClientH2ConnectionCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    public void connectionNotRespond_newRequestShouldUseNewConnection() throws Exception {
+        server.ackPingOnFirstChannel = true;
+        server.notRespondOnFirstChannel = true;
+
+        // The first request picks up a non-responding channel and should fail. Channel 1
+        CompletableFuture<Void> firstRequest = sendGetRequest();
+
+        assertThatThrownBy(() -> firstRequest.join()).hasRootCauseInstanceOf(ReadTimeoutException.class);
+
+        // The second request should pick up a new healthy channel - Channel 2
+        sendGetRequest().join();
+
+        assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
+        assertThat(server.closedByClientH2ConnectionCount.get()).isEqualTo(1);
     }
 
     private CompletableFuture<Void> sendGetRequest() {
@@ -158,6 +179,7 @@ public class ServerNotRespondingTest {
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private SslContext sslCtx;
         private AtomicInteger h2ConnectionCount = new AtomicInteger(0);
+        private AtomicInteger closedByClientH2ConnectionCount = new AtomicInteger(0);
         private volatile boolean ackPingOnFirstChannel = false;
         private volatile boolean notRespondOnFirstChannel = true;
 
@@ -200,7 +222,7 @@ public class ServerNotRespondingTest {
 
             pipeline.addLast(http2Codec);
             pipeline.addLast(new MightNotRespondPingFrameHandler());
-            //pipeline.addLast(new VerifyGoAwayFrameHandler());
+            pipeline.addLast(new VerifyGoAwayFrameHandler());
             pipeline.addLast(http2Handler);
         }
 
@@ -222,6 +244,16 @@ public class ServerNotRespondingTest {
                 } else {
                     ctx.writeAndFlush(new DefaultHttp2PingFrame(msg.content(), true));
                 }
+            }
+        }
+
+
+        public final class VerifyGoAwayFrameHandler extends SimpleChannelInboundHandler<Http2GoAwayFrame> {
+            @Override
+            protected void channelRead0(ChannelHandlerContext ctx, Http2GoAwayFrame msg) {
+                LOGGER.info(() -> "goaway" + ctx.channel());
+                closedByClientH2ConnectionCount.incrementAndGet();
+                msg.release();
             }
         }
 
