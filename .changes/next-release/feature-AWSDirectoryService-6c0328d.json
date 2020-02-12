@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Directory Service",
+    "description": "Release to add the ExpirationDateTime as an output to ListCertificates so as to ease customers to look into their certificate lifetime and make timely decisions about renewing them."
+}
