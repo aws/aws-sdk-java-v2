@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "Adding ability to add arguments that cannot be overridden to AWS Glue jobs"
-}
