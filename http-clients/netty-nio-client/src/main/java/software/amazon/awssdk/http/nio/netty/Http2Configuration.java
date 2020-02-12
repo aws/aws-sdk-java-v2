@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import java.time.Duration;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;

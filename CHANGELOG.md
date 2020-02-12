@@ -1,3 +1,45 @@
+# __2.10.63__ __2020-02-12__
+## __AWS Directory Service__
+  - ### Features
+    - Release to add the ExpirationDateTime as an output to ListCertificates so as to ease customers to look into their certificate lifetime and make timely decisions about renewing them.
+
+## __AWS Glue__
+  - ### Features
+    - Adding ability to add arguments that cannot be overridden to AWS Glue jobs
+
+## __Amazon Chime__
+  - ### Features
+    - Documentation updates for Amazon Chime
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for tagging public IPv4 pools.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon Elasticsearch Service now offers fine-grained access control, which adds multiple capabilities to give tighter control over data. New features include the ability to use roles to define granular permissions for indices, documents, or fields and to extend Kibana with read-only views and secure multi-tenant support.
+
+## __Amazon Neptune__
+  - ### Features
+    - This launch enables Neptune start-db-cluster and stop-db-cluster. Stopping and starting Amazon Neptune clusters helps you manage costs for development and test environments. You can temporarily stop all the DB instances in your cluster, instead of setting up and tearing down all the DB instances each time that you use the cluster.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for access control rules management in Amazon WorkMail.
+
+# __2.10.62__ __2020-02-11__
+## __AWS CloudFormation__
+  - ### Features
+    - This release of AWS CloudFormation StackSets allows you to centrally manage deployments to all the accounts in your organization or specific organizational units (OUs) in AWS Organizations. You will also be able to enable automatic deployments to any new accounts added to your organization or OUs. The permissions needed to deploy across accounts will automatically be taken care of by the StackSets service.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Features:This release adds a new setting for a user pool to allow if customer wants their user signup/signin with case insensitive username. The current default setting is case sensitive, and for our next release we will change it to case insensitive.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Now Supports Tagging Spot Fleet.
+
 # __2.10.61__ __2020-02-10__
 ## __AWS Key Management Service__
   - ### Features
