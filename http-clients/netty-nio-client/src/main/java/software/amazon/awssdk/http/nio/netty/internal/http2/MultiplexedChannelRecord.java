@@ -176,6 +176,17 @@ public class MultiplexedChannelRecord {
     }
 
     /**
+     * Prevent new streams from being acquired from the existing connection.
+     */
+    void closeToNewStreams() {
+        doInEventLoop(connection.eventLoop(), () -> {
+            if (state == RecordState.OPEN) {
+                state = RecordState.CLOSED_TO_NEW;
+            }
+        });
+    }
+
+    /**
      * Close all registered child channels, and prohibit new streams from being created on this connection.
      */
     void closeChildChannels() {

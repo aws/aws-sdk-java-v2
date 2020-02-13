@@ -16,6 +16,7 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
@@ -38,16 +39,13 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDyna
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class AsyncBatchGetItemOperationTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
         private Integer id;
 
@@ -163,8 +161,8 @@ public class AsyncBatchGetItemOperationTest extends LocalDynamoDbAsyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.execute(PutItem.create(record)).join());
-        RECORDS_2.forEach(record -> mappedTable2.execute(PutItem.create(record)).join());
+        RECORDS_1.forEach(record -> mappedTable1.putItem(PutItemEnhancedRequest.create(record)).join());
+        RECORDS_2.forEach(record -> mappedTable2.putItem(PutItemEnhancedRequest.create(record)).join());
     }
 
     @Test
@@ -174,39 +172,75 @@ public class AsyncBatchGetItemOperationTest extends LocalDynamoDbAsyncTestBase {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
             BatchGetItemEnhancedRequest.builder()
                                        .readBatches(
-                                           ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                                           ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                                           ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
-                                           ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))
+                                           ReadBatch.builder(Record1.class)
+                                                    .mappedTableResource(mappedTable1)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                    .build(),
+                                           ReadBatch.builder(Record2.class)
+                                                    .mappedTableResource(mappedTable2)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                    .build(),
+                                           ReadBatch.builder(Record2.class)
+                                                    .mappedTableResource(mappedTable2)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                                    .build(),
+                                           ReadBatch.builder(Record1.class)
+                                                    .mappedTableResource(mappedTable1)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                                    .build())
                                        .build();
 
         SdkPublisher<BatchGetResultPage> publisher = enhancedAsyncClient.batchGetItem(batchGetItemEnhancedRequest);
 
         List<BatchGetResultPage> results = drainPublisher(publisher, 1);
         assertThat(results.size(), is(1));
+
+        List<Record1> record1List = results.get(0).getResultsForTable(mappedTable1);
+        assertThat(record1List.size(), is(2));
+        assertThat(record1List, containsInAnyOrder(RECORDS_1.get(0), RECORDS_1.get(1)));
+
+        List<Record2> record2List = results.get(0).getResultsForTable(mappedTable2);
+        assertThat(record2List.size(), is(2));
+        assertThat(record2List, containsInAnyOrder(RECORDS_2.get(0), RECORDS_2.get(1)));
     }
 
     @Test
     public void notFoundRecordReturnsNull() {
         insertRecords();
 
-        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
-            TransactGetItemsEnhancedRequest.builder()
-                                           .readTransactions(
-                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),
-                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1))))
-                                           )
-                                           .build();
+        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
+            BatchGetItemEnhancedRequest.builder()
+                                       .readBatches(
+                                           ReadBatch.builder(Record1.class)
+                                                    .mappedTableResource(mappedTable1)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                    .build(),
+                                           ReadBatch.builder(Record2.class)
+                                                    .mappedTableResource(mappedTable2)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                    .build(),
+                                           ReadBatch.builder(Record2.class)
+                                                    .mappedTableResource(mappedTable2)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                                    .build(),
+                                           ReadBatch.builder(Record1.class)
+                                                    .mappedTableResource(mappedTable1)
+                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(5))))
+                                                    .build())
+                                       .build();
 
-        List<TransactGetResultPage> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
+        SdkPublisher<BatchGetResultPage> publisher = enhancedAsyncClient.batchGetItem(batchGetItemEnhancedRequest);
 
-        assertThat(results.size(), is(4));
-        assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
-        assertThat(results.get(1).getItem(mappedTable2), is(RECORDS_2.get(0)));
-        assertThat(results.get(2).getItem(mappedTable2), is(nullValue()));
-        assertThat(results.get(3).getItem(mappedTable1), is(RECORDS_1.get(1)));
+        List<BatchGetResultPage> results = drainPublisher(publisher, 1);
+        assertThat(results.size(), is(1));
+
+        List<Record1> record1List = results.get(0).getResultsForTable(mappedTable1);
+        assertThat(record1List.size(), is(1));
+        assertThat(record1List.get(0).getId(), is(0));
+
+        List<Record2> record2List = results.get(0).getResultsForTable(mappedTable2);
+        assertThat(record2List.size(), is(2));
+        assertThat(record2List, containsInAnyOrder(RECORDS_2.get(0), RECORDS_2.get(1)));
     }
 }
 

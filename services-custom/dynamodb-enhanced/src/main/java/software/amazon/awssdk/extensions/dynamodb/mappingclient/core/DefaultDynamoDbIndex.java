@@ -17,8 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
@@ -32,8 +31,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Query
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ScanOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
-@SdkPublicApi
-@ThreadSafe
+@SdkInternalApi
 public class DefaultDynamoDbIndex<T> implements DynamoDbIndex<T> {
     private final DynamoDbClient dynamoDbClient;
     private final MapperExtension mapperExtension;

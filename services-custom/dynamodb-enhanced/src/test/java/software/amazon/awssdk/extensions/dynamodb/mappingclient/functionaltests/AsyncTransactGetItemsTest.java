@@ -35,15 +35,14 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class AsyncTransactGetItemsOperationTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncTransactGetItemsTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
         private Integer id;
 
@@ -147,8 +146,8 @@ public class AsyncTransactGetItemsOperationTest extends LocalDynamoDbAsyncTestBa
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.execute(PutItem.create(record)).join());
-        RECORDS_2.forEach(record -> mappedTable2.execute(PutItem.create(record)).join());
+        RECORDS_1.forEach(record -> mappedTable1.putItem(PutItemEnhancedRequest.create(record)).join());
+        RECORDS_2.forEach(record -> mappedTable2.putItem(PutItemEnhancedRequest.create(record)).join());
     }
 
     @Test
@@ -157,11 +156,10 @@ public class AsyncTransactGetItemsOperationTest extends LocalDynamoDbAsyncTestBa
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .readTransactions(
-                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
-                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
                                            .build();
 
         List<TransactGetResultPage> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();
@@ -179,12 +177,10 @@ public class AsyncTransactGetItemsOperationTest extends LocalDynamoDbAsyncTestBa
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .readTransactions(
-                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadTransaction.create(mappedTable2, GetItem.create(Key.create(numberValue(5)))),
-                                               ReadTransaction.create(mappedTable1, GetItem.create(Key.create(numberValue(1))))
-                                           )
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(5))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
                                            .build();
 
         List<TransactGetResultPage> results = enhancedAsyncClient.transactGetItems(transactGetItemsEnhancedRequest).join();

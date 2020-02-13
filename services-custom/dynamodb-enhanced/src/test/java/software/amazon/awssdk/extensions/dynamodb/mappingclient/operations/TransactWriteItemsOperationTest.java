@@ -35,8 +35,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
@@ -53,10 +53,6 @@ public class TransactWriteItemsOperationTest {
     private final Map<String, AttributeValue> fakeItemMap1 = FakeItem.getTableSchema().itemToMap(fakeItem1, true);
     private final Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true);
 
-    @Mock
-    private WriteTransaction mockWriteTransaction1;
-    @Mock
-    private WriteTransaction mockWriteTransaction2;
     @Mock
     private MapperExtension mockMapperExtension;
     @Mock
@@ -90,8 +86,7 @@ public class TransactWriteItemsOperationTest {
     public void generateRequest_singleTransaction() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .writeTransactions(
-                                                 WriteTransaction.create(fakeItemMappedTable, PutItem.create(fakeItem1)))
+                                             .addPutItem(fakeItemMappedTable, PutItemEnhancedRequest.create(fakeItem1))
                                              .build();
 
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -108,9 +103,8 @@ public class TransactWriteItemsOperationTest {
     public void generateRequest_multipleTransactions() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .writeTransactions(
-                                                 WriteTransaction.create(fakeItemMappedTable, PutItem.create(fakeItem1)),
-                                                 WriteTransaction.create(fakeItemMappedTable, PutItem.create(fakeItem2)))
+                                             .addPutItem(fakeItemMappedTable, PutItemEnhancedRequest.create(fakeItem1))
+                                             .addPutItem(fakeItemMappedTable, PutItemEnhancedRequest.create(fakeItem2))
                                              .build();
 
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -163,7 +157,7 @@ public class TransactWriteItemsOperationTest {
         verifyZeroInteractions(mockMapperExtension);
     }
 
-    private static TransactWriteItemsEnhancedRequest emptyRequest() {
-        return TransactWriteItemsEnhancedRequest.builder().writeTransactions().build();
+    private TransactWriteItemsEnhancedRequest emptyRequest() {
+        return TransactWriteItemsEnhancedRequest.builder().build();
     }
 }

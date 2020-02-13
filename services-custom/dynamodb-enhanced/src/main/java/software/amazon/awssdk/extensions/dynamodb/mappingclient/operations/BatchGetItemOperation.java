@@ -79,18 +79,17 @@ public class BatchGetItemOperation
     }
 
     private void addReadRequestsToMap(ReadBatch readBatch, Map<String, KeysAndAttributes> readRequestMap) {
-        String tableName = readBatch.mappedTableResource().tableName();
 
-        KeysAndAttributes newKeysAndAttributes = readBatch.generateKeysAndAttributes();
-        KeysAndAttributes existingKeysAndAttributes = readRequestMap.get(tableName);
+        KeysAndAttributes newKeysAndAttributes = readBatch.keysAndAttributes();
+        KeysAndAttributes existingKeysAndAttributes = readRequestMap.get(readBatch.tableName());
 
         if (existingKeysAndAttributes == null) {
-            readRequestMap.put(tableName, newKeysAndAttributes);
+            readRequestMap.put(readBatch.tableName(), newKeysAndAttributes);
             return;
         }
 
         KeysAndAttributes mergedKeysAndAttributes = mergeKeysAndAttributes(existingKeysAndAttributes, newKeysAndAttributes);
-        readRequestMap.put(tableName, mergedKeysAndAttributes);
+        readRequestMap.put(readBatch.tableName(), mergedKeysAndAttributes);
     }
 
     private static KeysAndAttributes mergeKeysAndAttributes(KeysAndAttributes first, KeysAndAttributes second) {

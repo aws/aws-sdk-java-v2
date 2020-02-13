@@ -43,6 +43,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemComposedClass;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
@@ -51,7 +52,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PutItemTest {
+public class PutItemOperationTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
         OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
@@ -96,7 +97,7 @@ public class PutItemTest {
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
-        PutItem<FakeItem> putItemOperation = PutItem.create(keyItem);
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(keyItem));
         PutItemRequest getItemRequest = PutItemRequest.builder().tableName(TABLE_NAME).build();
         PutItemResponse expectedResponse = PutItemResponse.builder().build();
         when(mockDynamoDbClient.putItem(any(PutItemRequest.class))).thenReturn(expectedResponse);
@@ -109,8 +110,8 @@ public class PutItemTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_withIndex_throwsIllegalArgumentException() {
-        FakeItem item = createUniqueFakeItem();
-        PutItem<FakeItem> putItemOperation = PutItem.create(item);
+        FakeItem fakeItem = createUniqueFakeItem();
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(fakeItem));
 
         putItemOperation.generateRequest(FakeItem.getTableSchema(), GSI_1_CONTEXT, null);
     }
@@ -119,7 +120,7 @@ public class PutItemTest {
     public void generateRequest_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setSubclassAttribute("subclass-value");
-        PutItem<FakeItem> putItemOperation = PutItem.create(fakeItem);
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(fakeItem));
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -140,10 +141,11 @@ public class PutItemTest {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setSubclassAttribute("subclass-value");
 
-        PutItem<FakeItem> putItemOperation = PutItem.builder(FakeItem.class)
-                                                    .conditionExpression(CONDITION_EXPRESSION)
-                                                    .item(fakeItem)
-                                                    .build();
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .conditionExpression(CONDITION_EXPRESSION)
+                                                          .item(fakeItem)
+                                                          .build());
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -168,8 +170,11 @@ public class PutItemTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(CONDITION_EXPRESSION_2).build());
-        PutItem<FakeItem> putItemOperation =
-            PutItem.builder(FakeItem.class).item(baseFakeItem).conditionExpression(CONDITION_EXPRESSION).build();
+        PutItemOperation<FakeItem> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                          .conditionExpression(CONDITION_EXPRESSION)
+                                                          .item(baseFakeItem)
+                                                          .build());
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -184,7 +189,8 @@ public class PutItemTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_noPartitionKey_throwsIllegalArgumentException() {
         FakeItemComposedClass keyItem = FakeItemComposedClass.builder().composedAttribute("whatever").build();
-        PutItem<FakeItemComposedClass> putItemOperation = PutItem.create(keyItem);
+        PutItemOperation<FakeItemComposedClass> putItemOperation =
+            PutItemOperation.create(PutItemEnhancedRequest.create(keyItem));
 
         putItemOperation.generateRequest(FakeItemComposedClass.getTableSchema(), PRIMARY_CONTEXT, null);
     }
@@ -192,7 +198,7 @@ public class PutItemTest {
     @Test
     public void transformResponse_doesNotBlowUp() {
         FakeItem fakeItem = createUniqueFakeItem();
-        PutItem<FakeItem> putItemOperation = PutItem.create(fakeItem);
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(fakeItem));
         PutItemResponse response = PutItemResponse.builder()
                                                   .build();
 
@@ -207,7 +213,7 @@ public class PutItemTest {
         Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
-        PutItem<FakeItem> putItemOperation = PutItem.create(baseFakeItem);
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(baseFakeItem));
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -225,7 +231,7 @@ public class PutItemTest {
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
-        PutItem<FakeItem> putItemOperation = PutItem.create(baseFakeItem);
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(baseFakeItem));
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -240,7 +246,7 @@ public class PutItemTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         when(mockMapperExtension.beforeWrite(anyMap(), any(), any()))
             .thenReturn(WriteModification.builder().build());
-        PutItem<FakeItem> putItemOperation = PutItem.create(baseFakeItem);
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.create(baseFakeItem));
 
         PutItemRequest request = putItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -253,7 +259,7 @@ public class PutItemTest {
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        PutItem<FakeItem> putItemOperation = spy(PutItem.create(fakeItem));
+        PutItemOperation<FakeItem> putItemOperation = spy(PutItemOperation.create(PutItemEnhancedRequest.create(fakeItem)));
         OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         PutItemRequest putItemRequest = PutItemRequest.builder()
@@ -280,7 +286,7 @@ public class PutItemTest {
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        PutItem<FakeItem> putItemOperation = spy(PutItem.create(fakeItem));
+        PutItemOperation<FakeItem> putItemOperation = spy(PutItemOperation.create(PutItemEnhancedRequest.create(fakeItem)));
         OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";

@@ -19,17 +19,15 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Util
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableWriteOperation;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
@@ -40,30 +38,20 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
-@SdkPublicApi
-public class DeleteItem<T>
+@SdkInternalApi
+public class DeleteItemOperation<T>
     implements TableOperation<T, DeleteItemRequest, DeleteItemResponse, T>,
                TransactableWriteOperation<T>,
                BatchableWriteOperation<T> {
 
-    private final Key key;
-    private final Expression conditionExpression;
+    private final DeleteItemEnhancedRequest request;
 
-    private DeleteItem(Builder b) {
-        this.key = b.key;
-        this.conditionExpression = b.conditionExpression;
+    private DeleteItemOperation(DeleteItemEnhancedRequest request) {
+        this.request = request;
     }
 
-    public static <T> DeleteItem<T> create(Key key) {
-        return DeleteItem.builder().key(key).build();
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public Builder toBuilder() {
-        return new Builder().key(key);
+    public static <T> DeleteItemOperation<T> create(DeleteItemEnhancedRequest request) {
+        return new DeleteItemOperation<>(request);
     }
 
     @Override
@@ -78,21 +66,10 @@ public class DeleteItem<T>
         DeleteItemRequest.Builder requestBuilder =
             DeleteItemRequest.builder()
                              .tableName(operationContext.tableName())
-                             .key(key.keyMap(tableSchema, operationContext.indexName()))
+                             .key(this.request.key().keyMap(tableSchema, operationContext.indexName()))
                              .returnValues(ReturnValue.ALL_OLD);
 
-        if (conditionExpression != null) {
-            requestBuilder = requestBuilder.conditionExpression(conditionExpression.expression());
-
-            // Avoid adding empty collections
-            if (!conditionExpression.expressionNames().isEmpty()) {
-                requestBuilder = requestBuilder.expressionAttributeNames(conditionExpression.expressionNames());
-            }
-
-            if (!conditionExpression.expressionValues().isEmpty()) {
-                requestBuilder = requestBuilder.expressionAttributeValues(conditionExpression.expressionValues());
-            }
-        }
+        requestBuilder = addExpressionsIfExist(requestBuilder);
 
         return requestBuilder.build();
     }
@@ -147,48 +124,20 @@ public class DeleteItem<T>
                                 .build();
     }
 
-    public Key key() {
-        return key;
+    private DeleteItemRequest.Builder addExpressionsIfExist(DeleteItemRequest.Builder requestBuilder) {
+        if (this.request.conditionExpression() != null) {
+            requestBuilder = requestBuilder.conditionExpression(this.request.conditionExpression().expression());
+
+            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+            if (!this.request.conditionExpression().expressionNames().isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeNames(this.request.conditionExpression().expressionNames());
+            }
+
+            if (!this.request.conditionExpression().expressionValues().isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeValues(this.request.conditionExpression().expressionValues());
+            }
+        }
+        return requestBuilder;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DeleteItem<?> that = (DeleteItem<?>) o;
-
-        return key != null ? key.equals(that.key) : that.key == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return key != null ? key.hashCode() : 0;
-    }
-
-    public static final class Builder {
-        private Key key;
-        private Expression conditionExpression;
-
-        private Builder() {
-        }
-
-        public Builder key(Key key) {
-            this.key = key;
-            return this;
-        }
-
-        public Builder conditionExpression(Expression conditionExpression) {
-            this.conditionExpression = conditionExpression;
-            return this;
-        }
-
-        public <T> DeleteItem<T> build() {
-            return new DeleteItem<>(this);
-        }
-    }
 }

@@ -15,18 +15,14 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteTransaction;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
 
@@ -46,13 +42,8 @@ public class TransactWriteItemsOperation
 
     @Override
     public TransactWriteItemsRequest generateRequest(MapperExtension mapperExtension) {
-
-        List<TransactWriteItem> requestItems = request.writeTransactions().stream()
-                                                      .map(WriteTransaction::generateTransactWriteItem)
-                                                      .collect(Collectors.toList());
-
         return TransactWriteItemsRequest.builder()
-                                        .transactItems(requestItems)
+                                        .transactItems(this.request.transactWriteItems())
                                         .build();
     }
 

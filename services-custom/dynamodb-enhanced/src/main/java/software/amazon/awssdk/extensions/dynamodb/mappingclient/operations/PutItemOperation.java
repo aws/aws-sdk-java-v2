@@ -18,8 +18,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
@@ -29,6 +28,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -39,49 +39,39 @@ import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
-@SdkPublicApi
-public class PutItem<T>
+@SdkInternalApi
+public class PutItemOperation<T>
     implements BatchableWriteOperation<T>,
                TransactableWriteOperation<T>,
                TableOperation<T, PutItemRequest, PutItemResponse, Void> {
 
-    private final T item;
-    private final Expression conditionExpression;
+    private final PutItemEnhancedRequest<T> request;
 
-    private PutItem(Builder<T> b) {
-        this.item = b.item;
-        this.conditionExpression = b.conditionExpression;
+    private PutItemOperation(PutItemEnhancedRequest<T> request) {
+        this.request = request;
     }
 
-    public static <T> PutItem<T> create(T item) {
-        return new Builder<T>().item(item).build();
-    }
-
-    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
-        return new Builder<>();
-    }
-
-    public Builder<T> toBuilder() {
-        return new Builder<T>().item(item).conditionExpression(conditionExpression);
+    public static <T> PutItemOperation<T> create(PutItemEnhancedRequest<T> request) {
+        return new PutItemOperation<>(request);
     }
 
     @Override
     public PutItemRequest generateRequest(TableSchema<T> tableSchema,
                                           OperationContext operationContext,
                                           MapperExtension mapperExtension) {
+
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             throw new IllegalArgumentException("PutItem cannot be executed against a secondary index.");
         }
 
-        // Redundant check for the existence of a partition key to avoid the call to DynamoDb and having it complain
-        // instead
-        tableSchema.tableMetadata().primaryPartitionKey();
-
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, true);     // always ignore nulls for putItem
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
-        // Allow a command mapperExtension to modify the attribute values of the item in the PutItemRequest and
-        // add a conditional statement
+        // Fail fast if required primary partition key does not exist and avoid the call to DynamoDb
+        tableMetadata.primaryPartitionKey();
+
+        boolean alwaysIgnoreNulls = true;
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(this.request.item(), alwaysIgnoreNulls);
+
         WriteModification transformation =
             mapperExtension != null ? mapperExtension.beforeWrite(itemMap, operationContext, tableMetadata) : null;
 
@@ -89,36 +79,13 @@ public class PutItem<T>
             itemMap = transformation.transformedItem();
         }
 
-        PutItemRequest.Builder baseRequest = PutItemRequest.builder()
-                             .tableName(operationContext.tableName())
-                             .item(itemMap);
+        PutItemRequest.Builder requestBuilder = PutItemRequest.builder()
+                                                              .tableName(operationContext.tableName())
+                                                              .item(itemMap);
 
-        Expression mergedConditionExpression;
+        requestBuilder = addExpressionsIfExist(requestBuilder, transformation);
 
-        if (transformation != null && transformation.additionalConditionalExpression() != null) {
-            mergedConditionExpression = Expression.coalesce(conditionExpression,
-                                                            transformation.additionalConditionalExpression(), " AND ");
-        } else {
-            mergedConditionExpression = conditionExpression;
-        }
-
-        if (mergedConditionExpression != null) {
-            baseRequest = baseRequest.conditionExpression(mergedConditionExpression.expression());
-
-            // Avoid adding empty collections
-            if (mergedConditionExpression.expressionValues() != null &&
-                !mergedConditionExpression.expressionValues().isEmpty()) {
-                baseRequest = baseRequest.expressionAttributeValues(mergedConditionExpression.expressionValues());
-
-            }
-
-            if (mergedConditionExpression.expressionNames() != null &&
-                !mergedConditionExpression.expressionNames().isEmpty()) {
-                baseRequest = baseRequest.expressionAttributeNames(mergedConditionExpression.expressionNames());
-            }
-        }
-
-        return baseRequest.build();
+        return requestBuilder.build();
     }
 
     @Override
@@ -146,9 +113,8 @@ public class PutItem<T>
     public WriteRequest generateWriteRequest(TableSchema<T> tableSchema,
                                              OperationContext operationContext,
                                              MapperExtension mapperExtension) {
-        PutItemRequest putItemRequest = generateRequest(tableSchema,
-                                                        operationContext,
-                                                        mapperExtension);
+
+        PutItemRequest putItemRequest = generateRequest(tableSchema, operationContext, mapperExtension);
 
         if (putItemRequest.conditionExpression() != null) {
             throw new IllegalArgumentException("A mapper extension inserted a conditionExpression in a PutItem "
@@ -179,52 +145,31 @@ public class PutItem<T>
                                 .build();
     }
 
-    public T item() {
-        return item;
+    private PutItemRequest.Builder addExpressionsIfExist(PutItemRequest.Builder requestBuilder,
+                                                         WriteModification transformation) {
+        Expression mergedConditionExpression;
+
+        if (transformation != null && transformation.additionalConditionalExpression() != null) {
+            mergedConditionExpression = Expression.coalesce(this.request.conditionExpression(),
+                                                            transformation.additionalConditionalExpression(), " AND ");
+        } else {
+            mergedConditionExpression = this.request.conditionExpression();
+        }
+
+        if (mergedConditionExpression != null) {
+            requestBuilder = requestBuilder.conditionExpression(mergedConditionExpression.expression());
+
+            // Avoiding adding empty collections that the low level SDK will propagate to DynamoDB where it causes error.
+            if (mergedConditionExpression.expressionValues() != null && !mergedConditionExpression.expressionValues().isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeValues(mergedConditionExpression.expressionValues());
+
+            }
+
+            if (mergedConditionExpression.expressionNames() != null && !mergedConditionExpression.expressionNames().isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeNames(mergedConditionExpression.expressionNames());
+            }
+        }
+        return requestBuilder;
     }
 
-    public Expression conditionExpression() {
-        return conditionExpression;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        PutItem<?> putItem = (PutItem<?>) o;
-
-        return item != null ? item.equals(putItem.item) : putItem.item == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return item != null ? item.hashCode() : 0;
-    }
-
-    public static final class Builder<T> {
-        private T item;
-        private Expression conditionExpression;
-
-        private Builder() {
-        }
-
-        public Builder<T> item(T item) {
-            this.item = item;
-            return this;
-        }
-
-        public Builder<T> conditionExpression(Expression conditionExpression) {
-            this.conditionExpression = conditionExpression;
-            return this;
-        }
-
-        public PutItem<T> build() {
-            return new PutItem<>(this);
-        }
-    }
 }

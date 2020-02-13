@@ -19,8 +19,12 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 
 /**
  * Asynchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -40,31 +44,15 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      */
     DynamoDbAsyncIndex<T> index(String indexName);
 
-    /**
-     * Executes a command that is expected to return a single data item against the database with the context of the
-     * primary index of the specific table this object is linked to.
-     **
-     * @param operationToPerform The operation to be performed in the context of the primary index of the table.
-     * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
-     *
-     * @return A {@link CompletableFuture} that will return the result of the operation being executed. The
-     * documentation on the operation itself should have more information.
-     */
-    <R> CompletableFuture<R> execute(TableOperation<T, ?, ?, R> operationToPerform);
-
-    /**
-     * Executes a command that is expected to return a paginated list of data items against the database with the
-     * context of the primary index of the specific table this object is linked to.
-     **
-     * @param operationToPerform The operation to be performed in the context of the primary index of the table.
-     * @param <R> The expected return type from the operation. This is typically inferred by the compiler.
-     *
-     * @return An {@link SdkPublisher} that will publish successive pages of result data items to any subscriber with
-     * demand for them.
-     */
-    <R> SdkPublisher<R> execute(PaginatedTableOperation<T, ?, ?, R> operationToPerform);
-
     default CompletableFuture<Void> createTable(CreateTableEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    default CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
@@ -72,7 +60,16 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
+    default CompletableFuture<Void> putItem(PutItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
     default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
+
+    default CompletableFuture<T> updateItem(UpdateItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
 }
