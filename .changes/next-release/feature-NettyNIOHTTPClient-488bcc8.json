@@ -1,5 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "type": "feature", 
-    "description": "When there is an I/O error on an http2 request, the SDK will start shutting down the connection - stopping using the http2 connection for new requests and closing it after all streams are finished."
-}
