@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 
 @SdkPublicApi
-public class LocalSecondaryIndex {
+public final class LocalSecondaryIndex {
     private final String indexName;
     private final Projection projection;
 

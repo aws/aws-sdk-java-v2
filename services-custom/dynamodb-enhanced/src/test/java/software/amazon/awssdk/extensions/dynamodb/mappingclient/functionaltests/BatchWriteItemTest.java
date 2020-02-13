@@ -36,14 +36,17 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteBatch;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItemOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class BatchWriteItemOperationTest extends LocalDynamoDbSyncTestBase {
+public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
     private static class Record1 {
         private Integer id;
         private String attribute;
@@ -171,12 +174,16 @@ public class BatchWriteItemOperationTest extends LocalDynamoDbSyncTestBase {
     public void singlePut() {
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
-                                         .addWriteBatch(WriteBatch.create(mappedTable1, PutItem.create(RECORDS_1.get(0))))
+                                         .addWriteBatch(
+                                             WriteBatch.builder(Record1.class)
+                                                       .mappedTableResource(mappedTable1)
+                                                       .addPutItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)))
+                                                       .build())
                                          .build();
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))));
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
@@ -185,23 +192,32 @@ public class BatchWriteItemOperationTest extends LocalDynamoDbSyncTestBase {
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
                                          .writeBatches(
-                                             WriteBatch.create(mappedTable1, PutItem.create(RECORDS_1.get(0))),
-                                             WriteBatch.create(mappedTable2, PutItem.create(RECORDS_2.get(0))))
+                                             WriteBatch.builder(Record1.class)
+                                                       .mappedTableResource(mappedTable1)
+                                                       .addPutItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)))
+                                                       .build(),
+                                             WriteBatch.builder(Record2.class)
+                                                       .mappedTableResource(mappedTable2)
+                                                       .addPutItem(PutItemEnhancedRequest.create(RECORDS_2.get(0)))
+                                                       .build())
                                          .build();
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))));
+        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))));
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
 
     @Test
     public void singleDelete() {
-        mappedTable1.execute(PutItem.create(RECORDS_1.get(0)));
+        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)));
 
-        WriteBatch singleDeleteBatch = WriteBatch.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0))));
+        WriteBatch singleDeleteBatch = WriteBatch.builder(Record1.class)
+                                                 .mappedTableResource(mappedTable1)
+                                                 .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                 .build();
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
@@ -210,26 +226,32 @@ public class BatchWriteItemOperationTest extends LocalDynamoDbSyncTestBase {
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record = mappedTable1.execute(GetItem.create(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))));
         assertThat(record, is(nullValue()));
     }
 
     @Test
     public void multipleDelete() {
-        mappedTable1.execute(PutItem.create(RECORDS_1.get(0)));
-        mappedTable2.execute(PutItem.create(RECORDS_2.get(0)));
+        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)));
+        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0)));
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
                                          .writeBatches(
-                                             WriteBatch.create(mappedTable1, DeleteItem.create(Key.create(numberValue(0)))),
-                                             WriteBatch.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))))
+                                             WriteBatch.builder(Record1.class)
+                                                       .mappedTableResource(mappedTable1)
+                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                       .build(),
+                                             WriteBatch.builder(Record2.class)
+                                                       .mappedTableResource(mappedTable2)
+                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                       .build())
                                          .build();
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record1 = mappedTable1.execute(GetItem.create(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.execute(GetItem.create(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))));
+        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))));
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
     }
@@ -237,21 +259,27 @@ public class BatchWriteItemOperationTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void mixedCommands() {
-        mappedTable1.execute(PutItem.create(RECORDS_1.get(0)));
-        mappedTable2.execute(PutItem.create(RECORDS_2.get(0)));
+        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0)));
+        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0)));
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
             BatchWriteItemEnhancedRequest.builder()
                                          .writeBatches(
-                                             WriteBatch.create(mappedTable1, PutItem.create(RECORDS_1.get(1))),
-                                             WriteBatch.create(mappedTable2, DeleteItem.create(Key.create(numberValue(0)))))
+                                             WriteBatch.builder(Record1.class)
+                                                       .mappedTableResource(mappedTable1)
+                                                       .addPutItem(PutItemEnhancedRequest.create(RECORDS_1.get(1)))
+                                                       .build(),
+                                             WriteBatch.builder(Record2.class)
+                                                       .mappedTableResource(mappedTable2)
+                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                       .build())
                                          .build();
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        assertThat(mappedTable1.execute(GetItem.create(Key.create(numberValue(0)))), is(RECORDS_1.get(0)));
-        assertThat(mappedTable1.execute(GetItem.create(Key.create(numberValue(1)))), is(RECORDS_1.get(1)));
-        assertThat(mappedTable2.execute(GetItem.create(Key.create(numberValue(0)))), is(nullValue()));
+        assertThat(mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))), is(RECORDS_1.get(0)));
+        assertThat(mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(1)))), is(RECORDS_1.get(1)));
+        assertThat(mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))), is(nullValue()));
     }
 
 }

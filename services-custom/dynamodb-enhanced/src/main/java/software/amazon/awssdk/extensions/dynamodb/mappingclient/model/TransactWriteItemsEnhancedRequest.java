@@ -16,35 +16,36 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWriteOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItemOperation;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 @SdkPublicApi
-public class TransactWriteItemsEnhancedRequest {
+public final class TransactWriteItemsEnhancedRequest {
 
-    private final List<WriteTransaction> writeTransactions;
+    private final List<TransactWriteItem> transactWriteItems;
 
     private TransactWriteItemsEnhancedRequest(Builder builder) {
-        this.writeTransactions = Collections.unmodifiableList(builder.writeTransactions);
-    }
-
-    public static TransactWriteItemsEnhancedRequest create(Collection<WriteTransaction> writeTransactions) {
-        return builder().writeTransactions(writeTransactions).build();
+        this.transactWriteItems = Collections.unmodifiableList(builder.itemSupplierList.stream()
+                                                                                       .map(Supplier::get)
+                                                                                       .collect(Collectors.toList()));
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public Builder toBuilder() {
-        return new Builder().writeTransactions(this.writeTransactions);
-    }
-
-    public List<WriteTransaction> writeTransactions() {
-        return writeTransactions;
+    public List<TransactWriteItem> transactWriteItems() {
+        return transactWriteItems;
     }
 
     @Override
@@ -58,40 +59,49 @@ public class TransactWriteItemsEnhancedRequest {
 
         TransactWriteItemsEnhancedRequest that = (TransactWriteItemsEnhancedRequest) o;
 
-        return writeTransactions != null ? writeTransactions.equals(that.writeTransactions) : that.writeTransactions == null;
+        return transactWriteItems != null ? transactWriteItems.equals(that.transactWriteItems) : that.transactWriteItems == null;
     }
 
     @Override
     public int hashCode() {
-        return writeTransactions != null ? writeTransactions.hashCode() : 0;
+        return transactWriteItems != null ? transactWriteItems.hashCode() : 0;
     }
 
     public static final class Builder {
-        private List<WriteTransaction> writeTransactions;
+        private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
 
         private Builder() {
         }
 
-        public Builder writeTransactions(Collection<WriteTransaction> writeTransactions) {
-            this.writeTransactions = new ArrayList<>(writeTransactions);
+        public <T> Builder addConditionCheck(MappedTableResource<T> mappedTableResource, ConditionCheck<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, request));
             return this;
         }
 
-        public Builder writeTransactions(WriteTransaction... writeTransactions) {
-            this.writeTransactions = Arrays.asList(writeTransactions);
+        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, DeleteItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, DeleteItemOperation.create(request)));
             return this;
         }
 
-        public Builder addWriteBatch(WriteTransaction writeTransaction) {
-            if (writeTransactions == null) {
-                writeTransactions = new ArrayList<>();
-            }
-            writeTransactions.add(writeTransaction);
+        public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, PutItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, PutItemOperation.create(request)));
+            return this;
+        }
+
+        public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource, UpdateItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, UpdateItemOperation.create(request)));
             return this;
         }
 
         public TransactWriteItemsEnhancedRequest build() {
             return new TransactWriteItemsEnhancedRequest(this);
+        }
+
+        private <T> TransactWriteItem generateTransactWriteItem(MappedTableResource<T> mappedTableResource,
+                                                                TransactableWriteOperation<T> generator) {
+            return generator.generateTransactWriteItem(mappedTableResource.tableSchema(),
+                                                       OperationContext.create(mappedTableResource.tableName()),
+                                                       mappedTableResource.mapperExtension());
         }
     }
 }

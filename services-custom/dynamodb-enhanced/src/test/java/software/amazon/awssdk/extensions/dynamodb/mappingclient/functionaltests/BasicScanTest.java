@@ -43,13 +43,13 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class BasicScanOperationTest extends LocalDynamoDbSyncTestBase {
+public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -107,7 +107,7 @@ public class BasicScanOperationTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)));
     }
 
     @Before

@@ -45,7 +45,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadTransaction;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -104,32 +104,25 @@ public class TransactGetItemsOperationTest {
     public void generateRequest_getsFromMultipleTables() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .readTransactions(
-                                               ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))),
-                                               ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(0))),
-                                               ReadTransaction.create(fakeItemWithSortMappedTable, GetItem.create(FAKESORT_ITEM_KEYS.get(1))),
-                                               ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(1))))
+                                           .addGetItem(fakeItemMappedTable, GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
+                                           .addGetItem(fakeItemWithSortMappedTable,
+                                                       GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
+                                           .addGetItem(fakeItemWithSortMappedTable,
+                                                       GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(1)))
+                                           .addGetItem(fakeItemMappedTable, GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
 
         List<TransactGetItem> transactGetItems = Arrays.asList(
-            TransactGetItem.builder()
-                           .get(Get.builder().tableName(TABLE_NAME).key(FAKE_ITEM_MAPS.get(0)).build())
-                           .build(),
-            TransactGetItem.builder()
-                           .get(Get.builder().tableName(TABLE_NAME_2).key(FAKESORT_ITEM_MAPS.get(0)).build())
-                           .build(),
-            TransactGetItem.builder()
-                           .get(Get.builder().tableName(TABLE_NAME_2).key(FAKESORT_ITEM_MAPS.get(1)).build())
-                           .build(),
-            TransactGetItem.builder()
-                           .get(Get.builder().tableName(TABLE_NAME).key(FAKE_ITEM_MAPS.get(1)).build())
-                           .build());
-        TransactGetItemsRequest expectedRequest =
-            TransactGetItemsRequest.builder()
-                                   .transactItems(transactGetItems)
-                                   .build();
+            TransactGetItem.builder().get(Get.builder().tableName(TABLE_NAME).key(FAKE_ITEM_MAPS.get(0)).build()).build(),
+            TransactGetItem.builder().get(Get.builder().tableName(TABLE_NAME_2).key(FAKESORT_ITEM_MAPS.get(0)).build()).build(),
+            TransactGetItem.builder().get(Get.builder().tableName(TABLE_NAME_2).key(FAKESORT_ITEM_MAPS.get(1)).build()).build(),
+            TransactGetItem.builder().get(Get.builder().tableName(TABLE_NAME).key(FAKE_ITEM_MAPS.get(1)).build()).build());
+
+        TransactGetItemsRequest expectedRequest = TransactGetItemsRequest.builder()
+                                                                         .transactItems(transactGetItems)
+                                                                         .build();
 
         TransactGetItemsRequest actualRequest = operation.generateRequest(null);
 
@@ -140,21 +133,17 @@ public class TransactGetItemsOperationTest {
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .readTransactions(
-                                               ReadTransaction.create(fakeItemMappedTable, GetItem.create(FAKE_ITEM_KEYS.get(0))))
+                                           .addGetItem(fakeItemMappedTable, GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
 
         TransactGetItem transactGetItem =
-            TransactGetItem.builder()
-                           .get(Get.builder().tableName(TABLE_NAME).key(FAKE_ITEM_MAPS.get(0)).build())
-                           .build();
+            TransactGetItem.builder().get(Get.builder().tableName(TABLE_NAME).key(FAKE_ITEM_MAPS.get(0)).build()).build();
 
-        TransactGetItemsRequest transactGetItemsRequest =
-            TransactGetItemsRequest.builder()
-                                   .transactItems(singletonList(transactGetItem))
-                                   .build();
+        TransactGetItemsRequest transactGetItemsRequest = TransactGetItemsRequest.builder()
+                                                                                 .transactItems(singletonList(transactGetItem))
+                                                                                 .build();
 
         TransactGetItemsResponse expectedResponse = TransactGetItemsResponse.builder().build();
         when(mockDynamoDbClient.transactGetItems(any(TransactGetItemsRequest.class))).thenReturn(expectedResponse);
@@ -242,8 +231,7 @@ public class TransactGetItemsOperationTest {
                                     TransactGetResultPage.create(emptyMap())));
     }
 
-
     private static TransactGetItemsEnhancedRequest emptyRequest() {
-        return TransactGetItemsEnhancedRequest.builder().readTransactions().build();
+        return TransactGetItemsEnhancedRequest.builder().build();
     }
 }

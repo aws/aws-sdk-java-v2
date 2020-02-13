@@ -90,16 +90,16 @@ available in the low-level DynamoDB SDK client.
    customerTable.createTable(CreateTableEnhancedRequest.create());
    
    // GetItem
-   Customer customer = customerTable.execute(GetItem.create(Key.create(stringValue("a123"))));
+   Customer customer = customerTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("a123"))));
    
    // UpdateItem
-   Customer updatedCustomer = customerTable.execute(UpdateItem.create(customer));
+   Customer updatedCustomer = customerTable.updateItem(UpdateItemEnhancedRequest.create(customer));
    
    // PutItem
-   customerTable.execute(PutItem.create(customer));
+   customerTable.putItem(PutItemEnhancedRequest.create(customer));
    
    // DeleteItem
-   Customer deletedCustomer = customerTable.execute(DeleteItem.create(Key.create(stringValue("a123"), numberValue(456))));
+   Customer deletedCustomer = customerTable.deleteItem(DeleteItemEnhancedRequest.create(Key.create(stringValue("a123"), numberValue(456))));
    
    // Query
    Iterable<Page<Customer>> customers = customerTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("a123")))));
@@ -109,31 +109,38 @@ available in the low-level DynamoDB SDK client.
    
    // BatchGetItem
    batchResults = enhancedClient.batchGetItem(
-       BatchGetItemEnhancedRequest.create(
-           ReadBatch.create(customerTable, 
-                            GetItem.create(key1), 
-                            GetItem.create(key2), 
-                            GetItem.create(key3))));
+       BatchGetItemEnhancedRequest.builder().addReadBatch(ReadBatch.builder(Customer.class)
+                                                                   .mappedTableResource(customerTable)
+                                                                   .addGetItem(GetItemEnhancedRequest.create(key1))
+                                                                   .addGetItem(GetItemEnhancedRequest.create(key2))
+                                                                   .addGetItem(GetItemEnhancedRequest.create(key3))
+                                                                   .build())
+                                  .build());
    
    // BatchWriteItem
    batchResults = enhancedClient.batchWriteItem(
-       BatchWriteItemEnhancedRequest.create(
-           WriteBatch.create(customerTable,
-                             PutItem.create(item),
-                             DeleteItem.create(key1),
-                             DeleteItem.create(key2))));
+       BatchWriteItemEnhancedRequest.builder().addWriteBatch(WriteBatch.builder(Customer.class)
+                                                                       .mappedTableResource(customerTable)
+                                                                       .putItem(PutItemEnhancedRequest.create(item))
+                                                                       .deleteItem(DeleteItemEnhancedRequest.create(key1))
+                                                                       .deleteItem(DeleteItemEnhancedRequest.create(key2))
+                                                                       .build())
+                                    .build());
    
    // TransactGetItems
-    transactResults = enhancedClient.transactGetItems(
-        TransactGetItemsEnhancedRequest.create(
-            ReadTransaction.create(customerTable, GetItem.create(key1)),
-            ReadTransaction.create(orderTable, GetItem.create(key2))));
+   transactResults = enhancedClient.transactGetItems(
+       TransactGetItemsEnhancedRequest.builder()
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.create(Key.create(key1)))
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.create(Key.create(key2)))
+                                      .build());
    
    // TransactWriteItems
    enhancedClient.transactWriteItems(
-       TransactWriteItemsEnhancedRequest.create(
-           WriteTransaction.create(customerTable, UpdateItem.create(customer)),
-           WriteTransaction.create(orderTable, ConditionCheck.create(orderKey, conditionExpression))));
+       TransactWriteItemsEnhancedRequest.builder()
+                                        .addConditionCheck(customerTable, ConditionCheck.create(orderKey, conditionExpression))
+                                        .addUpdateItem(customerTable, UpdateItemEnhancedRequest.create(customer))
+                                        .addDeleteItem(customerTable, DeleteItemEnhancedRequest.create(key))
+                                        .build());
 ```
    
 ### Using secondary indices
@@ -165,7 +172,7 @@ key differences:
    application can then do other work without having to block on the
    result:
    ```java
-   CompletableFuture<Customer> result = mappedTable.execute(GetItem.create(customerKey));
+   CompletableFuture<Customer> result = mappedTable.getItem(GetItemEnhancedRequest.create(customerKey));
    // Perform other work here
    return result.join();   // now block and wait for the result
    ```

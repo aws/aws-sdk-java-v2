@@ -16,88 +16,41 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.BatchableWriteOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItemOperation;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItemOperation;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
-/**
- * Encapsulates a single write batch that can form a list of write batches that go into a {@link BatchWriteItemEnhancedRequest}.
- * Example:
- *
- * {@code
- * WriteBatch.create(myTable, putItem.create(myItem));
- * WriteBatch.create(myTable, deleteItem(Key.of(stringValue("id123"))));
- * }
- *
- * @param <T> The type of object this batch applies to. Can be safely erased as it's not needed outside the
- *            class itself.
- */
 @SdkPublicApi
-public class WriteBatch<T> {
-    private final MappedTableResource<T> mappedTableResource;
-    private final List<BatchableWriteOperation<T>> writeOperations;
+public final class WriteBatch {
+    private final String tableName;
+    private final List<WriteRequest> writeRequests;
 
-    private WriteBatch(Builder<T> builder) {
-        this.mappedTableResource = builder.mappedTableResource;
-        this.writeOperations = Collections.unmodifiableList(builder.writeOperations);
+    private WriteBatch(BuilderImpl<?> builder) {
+        this.tableName = builder.mappedTableResource.tableName();
+        this.writeRequests = Collections.unmodifiableList(builder.itemSupplierList.stream()
+                                                                                  .map(Supplier::get)
+                                                                                  .collect(Collectors.toList()));
     }
 
-    public static <T> WriteBatch<T> create(MappedTableResource<T> mappedTableResource,
-                                       Collection<BatchableWriteOperation<T>> writeOperations) {
-        return new Builder<T>().mappedTableResource(mappedTableResource).writeOperations(writeOperations).build();
+    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
+        return new BuilderImpl<>();
     }
 
-    @SafeVarargs
-    public static <T> WriteBatch<T> create(MappedTableResource<T> mappedTableResource,
-                                       BatchableWriteOperation<T>... writeOperations) {
-        return new Builder<T>().mappedTableResource(mappedTableResource).writeOperations(writeOperations).build();
+    public String tableName() {
+        return tableName;
     }
 
-    public static <T> Builder<T> builder() {
-        return new Builder<>();
-    }
-
-    public Builder<T> toBuilder() {
-        return new Builder<T>().mappedTableResource(mappedTableResource).writeOperations(writeOperations);
-    }
-
-    public MappedTableResource<T> mappedTableResource() {
-        return mappedTableResource;
-    }
-
-    public Collection<BatchableWriteOperation<T>> writeOperations() {
-        return writeOperations;
-    }
-
-    /**
-     * This method is used by the internal batchWriteItem operation to generate list of batch write requests used in the call to
-     * DynamoDb. Each {@link BatchableWriteOperation}, such as {@link PutItem}, creates a batch write request corresponding to
-     * that operation. The method should only be called from the batchWriteItem operation and should not be used for other
-     * purposes.
-     *
-     * @param writeRequestMap An empty map to store the batch write requests in. Due to raw-type erasure, it's necessary to
-     * pass a map in to be mutated rather than try and extract the write requests which would be more straight forward,
-     * but Collection<WriteRequest> becomes Collection when you try and exfiltrate the objects from a raw-typed WriteBatch.
-     */
-    public void addWriteRequestsToMap(Map<String, Collection<WriteRequest>> writeRequestMap) {
-        Collection<WriteRequest> writeRequestsForTable = writeRequestMap
-            .computeIfAbsent(mappedTableResource.tableName(), ignored -> new ArrayList<>());
-
-        writeRequestsForTable.addAll(writeOperations.stream()
-                                                    .map(operation -> operation.generateWriteRequest(
-                                                        mappedTableResource.tableSchema(),
-                                                        OperationContext.create(mappedTableResource.tableName()),
-                                                        mappedTableResource.mapperExtension()))
-                                                    .collect(Collectors.toList()));
+    public Collection<WriteRequest> writeRequests() {
+        return writeRequests;
     }
 
     @Override
@@ -109,28 +62,39 @@ public class WriteBatch<T> {
             return false;
         }
 
-        WriteBatch<?> that = (WriteBatch<?>) o;
+        WriteBatch that = (WriteBatch) o;
 
-        if (mappedTableResource != null ? !mappedTableResource.equals(that.mappedTableResource)
-            : that.mappedTableResource != null) {
+        if (tableName != null ? !tableName.equals(that.tableName)
+                              : that.tableName != null) {
 
             return false;
         }
-        return writeOperations != null ? writeOperations.equals(that.writeOperations) : that.writeOperations == null;
+        return writeRequests != null ? writeRequests.equals(that.writeRequests) : that.writeRequests == null;
     }
 
     @Override
     public int hashCode() {
-        int result = mappedTableResource != null ? mappedTableResource.hashCode() : 0;
-        result = 31 * result + (writeOperations != null ? writeOperations.hashCode() : 0);
+        int result = tableName != null ? tableName.hashCode() : 0;
+        result = 31 * result + (writeRequests != null ? writeRequests.hashCode() : 0);
         return result;
     }
 
-    public static final class Builder<T> {
-        private MappedTableResource<T> mappedTableResource;
-        private List<BatchableWriteOperation<T>> writeOperations;
+    public interface Builder<T> {
+        Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource);
 
-        private Builder() {
+        Builder<T> addDeleteItem(DeleteItemEnhancedRequest<T> request);
+
+        Builder<T> addPutItem(PutItemEnhancedRequest<T> request);
+
+        WriteBatch build();
+    }
+
+    private static final class BuilderImpl<T> implements Builder<T> {
+
+        private List<Supplier<WriteRequest>> itemSupplierList = new ArrayList<>();
+        private MappedTableResource<T> mappedTableResource;
+
+        private BuilderImpl() {
         }
 
         public Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource) {
@@ -138,26 +102,25 @@ public class WriteBatch<T> {
             return this;
         }
 
-        public Builder<T> writeOperations(Collection<BatchableWriteOperation<T>> writeOperations) {
-            this.writeOperations = new ArrayList<>(writeOperations);
+        public Builder<T> addDeleteItem(DeleteItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, DeleteItemOperation.create(request)));
             return this;
         }
 
-        public Builder<T> writeOperations(BatchableWriteOperation<T> ...writeOperations) {
-            this.writeOperations = Arrays.asList(writeOperations);
+        public Builder<T> addPutItem(PutItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateWriteRequest(() -> mappedTableResource, PutItemOperation.create(request)));
             return this;
         }
 
-        public Builder addWriteOperation(BatchableWriteOperation<T> writeOperation) {
-            if (writeOperations == null) {
-                writeOperations = new ArrayList<>();
-            }
-            writeOperations.add(writeOperation);
-            return this;
+        public WriteBatch build() {
+            return new WriteBatch(this);
         }
 
-        public WriteBatch<T> build() {
-            return new WriteBatch<>(this);
+        private WriteRequest generateWriteRequest(Supplier<MappedTableResource<T>> mappedTableResourceSupplier,
+                                                  BatchableWriteOperation<T> operation) {
+            return operation.generateWriteRequest(mappedTableResourceSupplier.get().tableSchema(),
+                                                  OperationContext.create(mappedTableResourceSupplier.get().tableName()),
+                                                  mappedTableResourceSupplier.get().mapperExtension());
         }
     }
 }

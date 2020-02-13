@@ -58,6 +58,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -107,8 +108,10 @@ public class BatchGetItemOperationTest {
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
             BatchGetItemEnhancedRequest.builder()
-                                       .readBatches(ReadBatch.create(fakeItemMappedTable,
-                                                                     GetItem.create(FAKE_ITEM_KEYS.get(0))))
+                                       .readBatches(ReadBatch.builder(FakeItem.class)
+                                                             .mappedTableResource(fakeItemMappedTable)
+                                                             .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
+                                                             .build())
                                        .build();
 
         BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
@@ -136,14 +139,18 @@ public class BatchGetItemOperationTest {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
             BatchGetItemEnhancedRequest.builder()
                                        .readBatches(
-                                           ReadBatch.create(fakeItemMappedTable,
-                                                            GetItem.create(FAKE_ITEM_KEYS.get(0)),
-                                                            GetItem.create(FAKE_ITEM_KEYS.get(1)),
-                                                            GetItem.create(FAKE_ITEM_KEYS.get(2))),
-                                           ReadBatch.create(fakeItemWithSortMappedTable,
-                                                            GetItem.create(FAKESORT_ITEM_KEYS.get(0)),
-                                                            GetItem.create(FAKESORT_ITEM_KEYS.get(1)),
-                                                            GetItem.create(FAKESORT_ITEM_KEYS.get(2))))
+                                           ReadBatch.builder(FakeItem.class)
+                                                     .mappedTableResource(fakeItemMappedTable)
+                                                     .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
+                                                     .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
+                                                     .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(2)))
+                                                     .build(),
+                                           ReadBatch.builder(FakeItemWithSort.class)
+                                                     .mappedTableResource(fakeItemWithSortMappedTable)
+                                                     .addGetItem(GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
+                                                     .addGetItem(GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(1)))
+                                                     .addGetItem(GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(2)))
+                                                     .build())
                                        .build();
 
         BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
@@ -164,14 +171,18 @@ public class BatchGetItemOperationTest {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = BatchGetItemEnhancedRequest
             .builder()
             .readBatches(
-                ReadBatch.create(fakeItemMappedTable,
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
-                ReadBatch.create(fakeItemWithSortMappedTable,
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build(),
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(false).build(),
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(false).build()))
+                ReadBatch.builder(FakeItem.class)
+                         .mappedTableResource(fakeItemMappedTable)
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build())
+                         .build(),
+                ReadBatch.builder(FakeItemWithSort.class)
+                         .mappedTableResource(fakeItemWithSortMappedTable)
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(false).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(false).build())
+                         .build())
             .build();
 
         BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
@@ -191,14 +202,18 @@ public class BatchGetItemOperationTest {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = BatchGetItemEnhancedRequest
             .builder()
             .readBatches(
-                ReadBatch.create(fakeItemMappedTable,
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
-                ReadBatch.create(fakeItemWithSortMappedTable,
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).build(),
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build()))
+                ReadBatch.builder(FakeItem.class)
+                         .mappedTableResource(fakeItemMappedTable)
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build())
+                         .build(),
+                ReadBatch.builder(FakeItemWithSort.class)
+                         .mappedTableResource(fakeItemWithSortMappedTable)
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(0)).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build())
+                         .build())
             .build();
 
         BatchGetItemOperation operation = BatchGetItemOperation.create(batchGetItemEnhancedRequest);
@@ -211,14 +226,18 @@ public class BatchGetItemOperationTest {
         BatchGetItemEnhancedRequest batchGetItemEnhancedRequest = BatchGetItemEnhancedRequest
             .builder()
             .readBatches(
-                ReadBatch.create(fakeItemMappedTable,
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build()),
-                ReadBatch.create(fakeItemWithSortMappedTable,
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build(),
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build(),
-                                 GetItem.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build()))
+                ReadBatch.builder(FakeItem.class)
+                         .mappedTableResource(fakeItemMappedTable)
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(0)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(1)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKE_ITEM_KEYS.get(2)).consistentRead(true).build())
+                         .build(),
+                ReadBatch.builder(FakeItemWithSort.class)
+                         .mappedTableResource(fakeItemWithSortMappedTable)
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(0)).consistentRead(false).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(1)).consistentRead(true).build())
+                         .addGetItem(GetItemEnhancedRequest.builder().key(FAKESORT_ITEM_KEYS.get(2)).consistentRead(true).build())
+                         .build())
             .build();
 
         BatchGetItemOperation operation =

@@ -40,11 +40,11 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.DeleteItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UpdateItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -237,8 +237,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
-        Record result = mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value"))))
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
+        Record result = mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                                     stringValue("sort-value"))))
                                    .join();
 
         assertThat(result, is(record));
@@ -253,9 +254,10 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record result =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                         stringValue("sort-value")))).join();
 
         assertThat(result, is(record));
     }
@@ -263,7 +265,8 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void getNonExistentItem() {
         Record result =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                         stringValue("sort-value")))).join();
         assertThat(result, is(nullValue()));
     }
 
@@ -276,7 +279,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
@@ -284,9 +287,10 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                .setAttribute2("five")
                                .setAttribute3("six");
 
-        mappedTable.execute(PutItem.create(record2)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record2)).join();
         Record result =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                         stringValue("sort-value")))).join();
 
         assertThat(result, is(record2));
     }
@@ -300,11 +304,13 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record beforeDeleteResult =
-            mappedTable.execute(DeleteItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.deleteItem(DeleteItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                               stringValue("sort-value")))).join();
         Record afterDeleteResult =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                         stringValue("sort-value")))).join();
 
         assertThat(beforeDeleteResult, is(record));
         assertThat(afterDeleteResult, is(nullValue()));
@@ -319,7 +325,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -330,13 +336,14 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(PutItem.builder(Record.class)
-                                   .item(record)
-                                   .conditionExpression(conditionExpression)
-                                   .build()).join();
+        mappedTable.putItem(PutItemEnhancedRequest.builder(Record.class)
+                                            .item(record)
+                                            .conditionExpression(conditionExpression)
+                                            .build()).join();
 
         Record result =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                         stringValue("sort-value")))).join();
         assertThat(result, is(record));
     }
 
@@ -349,7 +356,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -362,13 +369,18 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
-        mappedTable.execute(PutItem.builder(Record.class).item(record).conditionExpression(conditionExpression).build()).join();
+        mappedTable.putItem(PutItemEnhancedRequest.builder(Record.class)
+                                                  .item(record)
+                                                  .conditionExpression(conditionExpression)
+                                                  .build())
+                   .join();
     }
 
     @Test
     public void deleteNonExistentItem() {
         Record result =
-            mappedTable.execute(DeleteItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.deleteItem(DeleteItemEnhancedRequest.create(Key.create(stringValue("id-value"),
+                                                                               stringValue("sort-value")))).join();
         assertThat(result, is(nullValue()));
     }
 
@@ -381,7 +393,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -392,9 +404,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .build();
 
         Key key = mappedTable.keyFrom(record);
-        mappedTable.execute(DeleteItem.builder().key(key).conditionExpression(conditionExpression).build()).join();
+        mappedTable.deleteItem(DeleteItemEnhancedRequest.builder().key(key).conditionExpression(conditionExpression).build()).join();
 
-        Record result = mappedTable.execute(GetItem.create(key)).join();
+        Record result = mappedTable.getItem(GetItemEnhancedRequest.create(key)).join();
         assertThat(result, is(nullValue()));
     }
 
@@ -407,7 +419,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -419,9 +431,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
-        mappedTable.execute(DeleteItem.builder().key(mappedTable.keyFrom(record))
-                                      .conditionExpression(conditionExpression)
-                                      .build()).join();
+        mappedTable.deleteItem(DeleteItemEnhancedRequest.builder().key(mappedTable.keyFrom(record))
+                                               .conditionExpression(conditionExpression)
+                                               .build()).join();
     }
 
     @Test
@@ -433,14 +445,14 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four")
                                .setAttribute2("five")
                                .setAttribute3("six");
-        Record result = mappedTable.execute(UpdateItem.create(record2)).join();
+        Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record2)).join();
 
         assertThat(result, is(record2));
     }
@@ -452,7 +464,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setSort("sort-value")
                               .setAttribute("one");
 
-        Record result = mappedTable.execute(UpdateItem.create(record)).join();
+        Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record)).join();
 
         assertThat(result, is(record));
     }
@@ -463,7 +475,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setId("id-value")
                               .setSort("sort-value");
 
-        Record result = mappedTable.execute(UpdateItem.create(record)).join();
+        Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record)).join();
         assertThat(result, is(record));
     }
 
@@ -476,12 +488,12 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four");
-        Record result = mappedTable.execute(UpdateItem.create(record2)).join();
+        Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record2)).join();
 
         assertThat(result, is(record2));
     }
@@ -495,12 +507,16 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record record2 = new Record()
                                .setId("id-value")
                                .setSort("sort-value")
                                .setAttribute("four");
-        Record result = mappedTable.execute(UpdateItem.builder(Record.class).item(record2).ignoreNulls(true).build()).join();
+        Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
+                                                                        .item(record2)
+                                                                        .ignoreNulls(true)
+                                                                        .build())
+                                   .join();
 
         Record expectedResult = new Record()
                                .setId("id-value")
@@ -520,14 +536,14 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         ShortRecord record2 = new ShortRecord()
                                          .setId("id-value")
                                          .setSort("sort-value")
                                          .setAttribute("four");
-        ShortRecord shortResult = mappedShortTable.execute(UpdateItem.create(record2)).join();
-        Record result = mappedTable.execute(GetItem.create(Key.create(stringValue(record.getId()),
-                                                              stringValue(record.getSort())))).join();
+        ShortRecord shortResult = mappedShortTable.updateItem(UpdateItemEnhancedRequest.create(record2)).join();
+        Record result = mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue(record.getId()),
+                                                                               stringValue(record.getSort())))).join();
 
         Record expectedResult = new Record()
                                       .setId("id-value")
@@ -548,13 +564,13 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute2("two")
                               .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         Record updateRecord = new Record().setId("id-value").setSort("sort-value");
 
-        Record result = mappedTable.execute(UpdateItem.builder(Record.class)
-                                                      .item(updateRecord)
-                                                      .ignoreNulls(true)
-                                                      .build())
+        Record result = mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
+                                                               .item(updateRecord)
+                                                               .ignoreNulls(true)
+                                                               .build())
                                    .join();
 
         assertThat(result, is(record));
@@ -569,7 +585,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -580,14 +596,15 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                    .putExpressionValue(":value1", stringValue("three"))
                                                    .build();
 
-        mappedTable.execute(UpdateItem.builder(Record.class)
-                                      .item(record)
-                                      .conditionExpression(conditionExpression)
-                                      .build())
+        mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
+                                               .item(record)
+                                               .conditionExpression(conditionExpression)
+                                               .build())
                    .join();
 
         Record result =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest
+                                    .create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
         assertThat(result, is(record));
     }
 
@@ -600,7 +617,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
             .setAttribute2("two")
             .setAttribute3("three");
 
-        mappedTable.execute(PutItem.create(record)).join();
+        mappedTable.putItem(PutItemEnhancedRequest.create(record)).join();
         record.setAttribute("four");
 
         Expression conditionExpression = Expression.builder()
@@ -613,10 +630,10 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
         exception.expect(CompletionException.class);
         exception.expectCause(instanceOf(ConditionalCheckFailedException.class));
-        mappedTable.execute(UpdateItem.builder(Record.class)
-                                      .item(record)
-                                      .conditionExpression(conditionExpression)
-                                      .build())
+        mappedTable.updateItem(UpdateItemEnhancedRequest.builder(Record.class)
+                                               .item(record)
+                                               .conditionExpression(conditionExpression)
+                                               .build())
                    .join();
     }
 
@@ -626,14 +643,15 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                          .setId("id-value")
                                          .setSort("sort-value")
                                          .setAttribute("one");
-        mappedShortTable.execute(PutItem.create(shortRecord)).join();
+        mappedShortTable.putItem(PutItemEnhancedRequest.create(shortRecord)).join();
         Record expectedRecord = new Record()
                                       .setId("id-value")
                                       .setSort("sort-value")
                                       .setAttribute("one");
 
         Record result =
-            mappedTable.execute(GetItem.create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(GetItemEnhancedRequest
+                                    .create(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
         assertThat(result, is(expectedRecord));
     }
 }

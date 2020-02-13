@@ -32,6 +32,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ConditionCheck;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 

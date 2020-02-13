@@ -48,15 +48,15 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
-public class IndexQueryOperationTest extends LocalDynamoDbSyncTestBase {
+public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -167,7 +167,7 @@ public class IndexQueryOperationTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.create(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)));
     }
 
     @Before
