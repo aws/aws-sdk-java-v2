@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
@@ -28,21 +29,19 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class BatchGetItemOperationTest extends LocalDynamoDbSyncTestBase {
+public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
     private static class Record1 {
         private Integer id;
 
@@ -141,59 +140,50 @@ public class BatchGetItemOperationTest extends LocalDynamoDbSyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.execute(PutItem.create(record)));
-        RECORDS_2.forEach(record -> mappedTable2.execute(PutItem.create(record)));
+        RECORDS_1.forEach(record -> mappedTable1.putItem(PutItemEnhancedRequest.create(record)));
+        RECORDS_2.forEach(record -> mappedTable2.putItem(PutItemEnhancedRequest.create(record)));
     }
 
     @Test
     public void getRecordsFromMultipleTables() {
         insertRecords();
 
-        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
-            BatchGetItemEnhancedRequest.builder()
-                                           .readBatches(
-                                               ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                                               ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
-                                               ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(1)))))
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
                                            .build();
 
-        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(batchGetItemEnhancedRequest);
+        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
-        assertThat(results.stream().count(), is(1L));
-
-        results.iterator().forEachRemaining((page) -> {
-            List<Record1> table1Results = page.getResultsForTable(mappedTable1);
-            assertThat(table1Results.size(), is(2));
-            assertThat(table1Results.get(0).id, is(0));
-            assertThat(table1Results.get(1).id, is(1));
-            assertThat(page.getResultsForTable(mappedTable2).size(), is(2));
-        });
+        assertThat(results.size(), is(4));
+        assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
+        assertThat(results.get(1).getItem(mappedTable2), is(RECORDS_2.get(0)));
+        assertThat(results.get(2).getItem(mappedTable2), is(RECORDS_2.get(1)));
+        assertThat(results.get(3).getItem(mappedTable1), is(RECORDS_1.get(1)));
     }
 
     @Test
-    public void notFoundRecordIgnored() {
+    public void notFoundRecordReturnsNull() {
         insertRecords();
 
-        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
-            BatchGetItemEnhancedRequest.builder()
-                                       .readBatches(
-                                           ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(0)))),
-                                           ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(0)))),
-                                           ReadBatch.create(mappedTable2, GetItem.create(Key.create(numberValue(1)))),
-                                           ReadBatch.create(mappedTable1, GetItem.create(Key.create(numberValue(5)))))
-                                       .build();
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(5))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .build();
 
-        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(batchGetItemEnhancedRequest);
+        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
-        assertThat(results.stream().count(), is(1L));
-
-        results.iterator().forEachRemaining((page) -> {
-            List<Record1> mappedTable1Results = page.getResultsForTable(mappedTable1);
-            assertThat(mappedTable1Results.size(), is(1));
-            assertThat(mappedTable1Results.get(0).id, is(0));
-            assertThat(page.getResultsForTable(mappedTable2).size(), is(2));
-        });
+        assertThat(results.size(), is(4));
+        assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
+        assertThat(results.get(1).getItem(mappedTable2), is(RECORDS_2.get(0)));
+        assertThat(results.get(2).getItem(mappedTable2), is(nullValue()));
+        assertThat(results.get(3).getItem(mappedTable1), is(RECORDS_1.get(1)));
     }
 }
 

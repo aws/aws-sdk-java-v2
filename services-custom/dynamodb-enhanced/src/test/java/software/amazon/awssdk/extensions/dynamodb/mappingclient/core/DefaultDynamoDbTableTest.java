@@ -18,9 +18,6 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 
 import java.util.Optional;
@@ -30,7 +27,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
@@ -45,27 +41,6 @@ public class DefaultDynamoDbTableTest {
 
     @Mock
     private MapperExtension mockMapperExtension;
-
-    @Mock
-    private TableOperation<FakeItem, Object, Object, FakeItem> mockTableOperation;
-
-    @Test
-    public void execute_callsOperationCorrectly() {
-        FakeItem expectedOutput = FakeItem.createUniqueFakeItem();
-        when(mockTableOperation.executeOnPrimaryIndex(any(), any(), any(), any())).thenReturn(expectedOutput);
-        DefaultDynamoDbTable<FakeItem> dynamoDbMappedTable = new DefaultDynamoDbTable<>(mockDynamoDbClient,
-                                                                                        mockMapperExtension,
-                                                                                        FakeItem.getTableSchema(),
-                                                                                        TABLE_NAME);
-
-        FakeItem actualOutput = dynamoDbMappedTable.execute(mockTableOperation);
-
-        assertThat(actualOutput, is(expectedOutput));
-        verify(mockTableOperation).executeOnPrimaryIndex(FakeItem.getTableSchema(),
-                                           dynamoDbMappedTable.tableName(),
-                                           mockMapperExtension,
-                                           mockDynamoDbClient);
-    }
 
     @Test
     public void index_constructsCorrectMappedIndex() {

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.operations;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
@@ -25,7 +25,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.TransactableWrit
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 @SdkPublicApi
-public class ConditionCheck<T> implements TransactableWriteOperation<T> {
+public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
     private final Key key;
     private final Expression conditionExpression;
 
