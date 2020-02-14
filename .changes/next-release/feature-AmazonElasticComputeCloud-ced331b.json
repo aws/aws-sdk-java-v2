@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "You can now enable Multi-Attach on Provisioned IOPS io1 volumes through the create-volume API."
+}
