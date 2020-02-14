@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Shield",
+    "description": "This release adds support for associating Amazon Route 53 health checks to AWS Shield Advanced protected resources."
+}
