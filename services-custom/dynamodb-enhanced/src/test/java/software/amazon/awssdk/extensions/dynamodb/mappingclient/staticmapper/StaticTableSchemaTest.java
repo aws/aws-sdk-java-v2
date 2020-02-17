@@ -30,6 +30,7 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -90,6 +91,7 @@ public class StaticTableSchemaTest {
         private double aPrimitiveDouble;
         private Float aFloat;
         private float aPrimitiveFloat;
+        private BigDecimal aBigDecimal;
         private ByteBuffer aBytebuffer;
         private FakeDocument aFakeDocument;
         private Set<String> aStringSet;
@@ -110,7 +112,7 @@ public class StaticTableSchemaTest {
         FakeMappedItem(boolean aPrimitiveBoolean, Boolean aBoolean, String aString, Integer anInteger,
                        int aPrimitiveInteger, Byte aByte, byte aPrimitiveByte, Long aLong, long aPrimitiveLong,
                        Short aShort, short aPrimitiveShort, Double aDouble, double aPrimitiveDouble, Float aFloat,
-                       float aPrimitiveFloat, ByteBuffer aBytebuffer, FakeDocument aFakeDocument,
+                       float aPrimitiveFloat, BigDecimal aBigDecimal, ByteBuffer aBytebuffer, FakeDocument aFakeDocument,
                        Set<String> aStringSet, Set<Integer> anIntegerSet, Set<Byte> aByteSet,
                        Set<Long> aLongSet, Set<Short> aShortSet, Set<Double> aDoubleSet, Set<Float> aFloatSet,
                        Set<ByteBuffer> aByteBufferSet, List<Integer> anIntegerList,
@@ -130,6 +132,7 @@ public class StaticTableSchemaTest {
             this.aPrimitiveDouble = aPrimitiveDouble;
             this.aFloat = aFloat;
             this.aPrimitiveFloat = aPrimitiveFloat;
+            this.aBigDecimal = aBigDecimal;
             this.aBytebuffer = aBytebuffer;
             this.aFakeDocument = aFakeDocument;
             this.aStringSet = aStringSet;
@@ -259,6 +262,14 @@ public class StaticTableSchemaTest {
 
         void setAFloat(Float aFloat) {
             this.aFloat = aFloat;
+        }
+
+        BigDecimal aBigDecimal() {
+            return aBigDecimal;
+        }
+
+        void setABigDecimal(BigDecimal aBigDecimal) {
+            this.aBigDecimal = aBigDecimal;
         }
 
         float getAPrimitiveFloat() {
@@ -433,6 +444,7 @@ public class StaticTableSchemaTest {
             private double aPrimitiveDouble;
             private Float aFloat;
             private float aPrimitiveFloat;
+            private BigDecimal aBigDecimal;
             private ByteBuffer aBytebuffer;
             private FakeDocument aFakeDocument;
             private Set<String> aStringSet;
@@ -522,6 +534,11 @@ public class StaticTableSchemaTest {
                 return this;
             }
 
+            Builder aBigDecimal(BigDecimal aBigDecimal) {
+                this.aBigDecimal = aBigDecimal;
+                return this;
+            }
+
             Builder aBytebuffer(ByteBuffer aBytebuffer) {
                 this.aBytebuffer = aBytebuffer;
                 return this;
@@ -590,7 +607,7 @@ public class StaticTableSchemaTest {
             public FakeMappedItem build() {
                 return new FakeMappedItem(aPrimitiveBoolean, aBoolean, aString, anInteger, aPrimitiveInteger, aByte,
                                           aPrimitiveByte, aLong, aPrimitiveLong, aShort, aPrimitiveShort, aDouble,
-                                          aPrimitiveDouble, aFloat, aPrimitiveFloat, aBytebuffer, aFakeDocument,
+                                          aPrimitiveDouble, aFloat, aPrimitiveFloat, aBigDecimal, aBytebuffer, aFakeDocument,
                                           aStringSet, anIntegerSet, aByteSet, aLongSet, aShortSet, aDoubleSet,
                                           aFloatSet, aByteBufferSet, anIntegerList, aNestedStructure, aStringMap);
             }

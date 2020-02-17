@@ -28,7 +28,8 @@ public enum AttributeValueType {
     N(ScalarAttributeType.N),        // number
     NS,                              // number set
     S(ScalarAttributeType.S),        // string
-    SS;                              // string set
+    SS,                              // string set
+    NULL;                            // null
 
     private final ScalarAttributeType scalarAttributeType;
 
