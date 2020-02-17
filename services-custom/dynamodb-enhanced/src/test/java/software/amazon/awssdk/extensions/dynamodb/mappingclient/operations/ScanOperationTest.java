@@ -69,7 +69,7 @@ public class ScanOperationTest {
     private static final OperationContext GSI_1_CONTEXT =
         OperationContext.create(TABLE_NAME, "gsi_1");
 
-    private final ScanOperation<FakeItem> scanOperation = ScanOperation.create(ScanEnhancedRequest.create());
+    private final ScanOperation<FakeItem> scanOperation = ScanOperation.create(ScanEnhancedRequest.builder().build());
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -119,7 +119,7 @@ public class ScanOperationTest {
 
     @Test
     public void generateRequest_knowsHowToUseAnIndex() {
-        ScanOperation<FakeItemWithIndices> operation = ScanOperation.create(ScanEnhancedRequest.create());
+        ScanOperation<FakeItemWithIndices> operation = ScanOperation.create(ScanEnhancedRequest.builder().build());
         ScanRequest scanRequest = operation.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
         assertThat(scanRequest.indexName(), is("gsi_1"));
     }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
@@ -93,9 +94,28 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public Void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
+        CreateTableEnhancedRequest.Builder builder = CreateTableEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return createTable(builder.build());
+    }
+
+    @Override
+    public Void createTable() {
+        return createTable(CreateTableEnhancedRequest.builder().build());
+    }
+
+    @Override
     public T deleteItem(DeleteItemEnhancedRequest request) {
         TableOperation<T, ?, ?, T> operation = DeleteItemOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
+        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return deleteItem(builder.build());
     }
 
     @Override
@@ -105,9 +125,23 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public T getItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
+        GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return getItem(builder.build());
+    }
+
+    @Override
     public SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
         PaginatedTableOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public SdkIterable<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+        QueryEnhancedRequest.Builder builder = QueryEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return query(builder.build());
     }
 
     @Override
@@ -117,15 +151,41 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
-    public T updateItem(UpdateItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    public Void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
+        requestConsumer.accept(builder);
+        return putItem(builder.build());
     }
 
     @Override
     public SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
         PaginatedTableOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public SdkIterable<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
+        ScanEnhancedRequest.Builder builder = ScanEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return scan(builder.build());
+    }
+
+    @Override
+    public SdkIterable<Page<T>> scan() {
+        return scan(ScanEnhancedRequest.builder().build());
+    }
+
+    @Override
+    public T updateItem(UpdateItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public T updateItem(Class<? extends T> itemClass, Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
+        requestConsumer.accept(builder);
+        return updateItem(builder.build());
     }
 
     @Override

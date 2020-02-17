@@ -28,11 +28,7 @@ public final class BatchGetItemEnhancedRequest {
     private final List<ReadBatch> readBatches;
 
     private BatchGetItemEnhancedRequest(Builder builder) {
-        this.readBatches = Collections.unmodifiableList(builder.readBatches);
-    }
-
-    public static BatchGetItemEnhancedRequest create(Collection<ReadBatch> readBatches) {
-        return builder().readBatches(readBatches).build();
+        this.readBatches = getListIfExist(builder.readBatches);
     }
 
     public static Builder builder() {
@@ -66,6 +62,10 @@ public final class BatchGetItemEnhancedRequest {
         return readBatches != null ? readBatches.hashCode() : 0;
     }
 
+    private static List<ReadBatch> getListIfExist(List<ReadBatch> readBatches) {
+        return readBatches != null ? Collections.unmodifiableList(readBatches) : null;
+    }
+
     public static final class Builder {
         private List<ReadBatch> readBatches;
 
@@ -73,7 +73,7 @@ public final class BatchGetItemEnhancedRequest {
         }
 
         public Builder readBatches(Collection<ReadBatch> readBatches) {
-            this.readBatches = new ArrayList<>(readBatches);
+            this.readBatches = readBatches != null ? new ArrayList<>(readBatches) : null;
             return this;
         }
 

@@ -18,11 +18,11 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 
@@ -32,8 +32,8 @@ public final class ReadBatch {
     private final KeysAndAttributes keysAndAttributes;
 
     private ReadBatch(BuilderImpl<?> builder) {
-        this.tableName = builder.mappedTableResource.tableName();
-        this.keysAndAttributes = generateKeysAndAttributes(builder.requests, builder.mappedTableResource.tableSchema());
+        this.tableName = builder.mappedTableResource != null ? builder.mappedTableResource.tableName() : null;
+        this.keysAndAttributes = generateKeysAndAttributes(builder.requests, builder.mappedTableResource);
     }
 
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
@@ -81,19 +81,23 @@ public final class ReadBatch {
 
         Builder<T> addGetItem(GetItemEnhancedRequest request);
 
+        Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer);
+
         ReadBatch build();
     }
 
     private static <T> KeysAndAttributes generateKeysAndAttributes(List<GetItemEnhancedRequest> readRequests,
-                                                                   TableSchema<T> tableSchema) {
-
+                                                                   MappedTableResource<T> mappedTableResource) {
+        if (readRequests == null || readRequests.isEmpty()) {
+            return null;
+        }
 
         Boolean firstRecordConsistentRead = validateAndGetConsistentRead(readRequests);
 
         List<Map<String, AttributeValue>> keys =
             readRequests.stream()
                         .map(GetItemEnhancedRequest::key)
-                        .map(key -> key.keyMap(tableSchema, TableMetadata.primaryIndexName()))
+                        .map(key -> key.keyMap(mappedTableResource.tableSchema(), TableMetadata.primaryIndexName()))
                         .collect(Collectors.toList());
 
         return KeysAndAttributes.builder()
@@ -149,6 +153,12 @@ public final class ReadBatch {
         public Builder<T> addGetItem(GetItemEnhancedRequest request) {
             requests.add(request);
             return this;
+        }
+
+        public Builder<T> addGetItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
+            GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
+            requestConsumer.accept(builder);
+            return addGetItem(builder.build());
         }
 
         public ReadBatch build() {
