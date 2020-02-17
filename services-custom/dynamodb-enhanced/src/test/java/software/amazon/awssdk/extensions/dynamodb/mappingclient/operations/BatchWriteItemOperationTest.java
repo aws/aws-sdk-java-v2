@@ -58,8 +58,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.WriteBatch;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -118,7 +116,7 @@ public class BatchWriteItemOperationTest {
 
         WriteBatch batch = WriteBatch.builder(FakeItem.class)
                                      .mappedTableResource(fakeItemMappedTable)
-                                     .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(0)))
+                                     .addPutItem(r -> r.item(FAKE_ITEMS.get(0)))
                                      .build();
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
@@ -154,15 +152,15 @@ public class BatchWriteItemOperationTest {
                                          .writeBatches(
                                              WriteBatch.builder(FakeItem.class)
                                                        .mappedTableResource(fakeItemMappedTable)
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(0)))
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(2)))
+                                                       .addPutItem(r -> r.item(FAKE_ITEMS.get(0)))
+                                                       .addDeleteItem(r -> r.key(FAKE_ITEM_KEYS.get(1)))
+                                                       .addPutItem(r -> r.item(FAKE_ITEMS.get(2)))
                                                        .build(),
                                              WriteBatch.builder(FakeItemWithSort.class)
                                                        .mappedTableResource(fakeItemWithSortMappedTable)
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKESORT_ITEMS.get(1)))
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(2)))
+                                                       .addDeleteItem(r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
+                                                       .addPutItem(r -> r.item(FAKESORT_ITEMS.get(1)))
+                                                       .addDeleteItem(r -> r.key(FAKESORT_ITEM_KEYS.get(2)))
                                                        .build())
                                          .build();
 
@@ -202,15 +200,15 @@ public class BatchWriteItemOperationTest {
                                          .writeBatches(
                                              WriteBatch.builder(FakeItem.class)
                                                        .mappedTableResource(fakeItemMappedTableWithExtension)
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(0)))
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(2)))
+                                                       .addPutItem(r -> r.item(FAKE_ITEMS.get(0)))
+                                                       .addDeleteItem(r -> r.key(FAKE_ITEM_KEYS.get(1)))
+                                                       .addPutItem(r -> r.item(FAKE_ITEMS.get(2)))
                                                        .build(),
                                              WriteBatch.builder(FakeItemWithSort.class)
                                                        .mappedTableResource(fakeItemWithSortMappedTableWithExtension)
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKESORT_ITEMS.get(1)))
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(2)))
+                                                       .addDeleteItem(r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
+                                                       .addPutItem(r -> r.item(FAKESORT_ITEMS.get(1)))
+                                                       .addDeleteItem(r -> r.key(FAKESORT_ITEM_KEYS.get(2)))
                                                        .build())
                                          .build();
 
@@ -243,15 +241,15 @@ public class BatchWriteItemOperationTest {
                                          .writeBatches(
                                              WriteBatch.builder(FakeItem.class)
                                                        .mappedTableResource(fakeItemMappedTableWithExtension)
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(0)))
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKE_ITEMS.get(2)))
+                                                       .addPutItem(r -> r.item(FAKE_ITEMS.get(0)))
+                                                       .addDeleteItem(r -> r.key(FAKE_ITEM_KEYS.get(1)))
+                                                       .addPutItem(r -> r.item(FAKE_ITEMS.get(2)))
                                                        .build(),
                                              WriteBatch.builder(FakeItemWithSort.class)
                                                        .mappedTableResource(fakeItemWithSortMappedTableWithExtension)
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
-                                                       .addPutItem(PutItemEnhancedRequest.create(FAKESORT_ITEMS.get(1)))
-                                                       .addDeleteItem(DeleteItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(2)))
+                                                       .addDeleteItem(r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
+                                                       .addPutItem(r -> r.item(FAKESORT_ITEMS.get(1)))
+                                                       .addDeleteItem(r -> r.key(FAKESORT_ITEM_KEYS.get(2)))
                                                        .build())
                                          .build();
 

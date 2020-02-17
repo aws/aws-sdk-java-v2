@@ -42,12 +42,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ConditionCheck;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.DeleteItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
@@ -165,8 +160,8 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
-        mappedTable2.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
+        mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
+        mappedTable2.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
     }
 
     @After
@@ -183,10 +178,10 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     public void singlePut() {
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(mappedTable1, PutItemEnhancedRequest.create(RECORDS_1.get(0)))
+                                             .addPutItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(0)))
                                              .build()).join();
 
-        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
@@ -194,12 +189,12 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     public void multiplePut() {
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(mappedTable1, PutItemEnhancedRequest.create(RECORDS_1.get(0)))
-                                             .addPutItem(mappedTable2, PutItemEnhancedRequest.create(RECORDS_2.get(0)))
+                                             .addPutItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(0)))
+                                             .addPutItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(0)))
                                              .build()).join();
 
-        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))).join();
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
@@ -208,10 +203,10 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     public void singleUpdate() {
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addUpdateItem(mappedTable1, UpdateItemEnhancedRequest.create(RECORDS_1.get(0)))
+                                             .addUpdateItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(0)))
                                              .build()).join();
 
-        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))).join();
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
@@ -219,52 +214,49 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     public void multipleUpdate() {
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addUpdateItem(mappedTable1, UpdateItemEnhancedRequest.create(RECORDS_1.get(0)))
-                                             .addUpdateItem(mappedTable2, UpdateItemEnhancedRequest.create(RECORDS_2.get(0)))
+                                             .addUpdateItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(0)))
+                                             .addUpdateItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(0)))
                                              .build()).join();
 
-        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))).join();
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
 
     @Test
     public void singleDelete() {
-        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
 
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addDeleteItem(mappedTable1,
-                                                            DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
                                              .build()).join();
 
-        Record1 record = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))).join();
         assertThat(record, is(nullValue()));
     }
 
     @Test
     public void multipleDelete() {
-        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
 
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addDeleteItem(mappedTable1,
-                                                            DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                             .addDeleteItem(mappedTable2,
-                                                            DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
                                              .build()).join();
 
-        Record1 record1 = mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
-        Record2 record2 = mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join();
+        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))).join();
+        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))).join();
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
     }
 
     @Test
     public void singleConditionCheck() {
-        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
+        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -276,14 +268,17 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addConditionCheck(mappedTable1, ConditionCheck.create(key, conditionExpression))
+                                             .addConditionCheck(mappedTable1, ConditionCheck.builder()
+                                                                                            .key(key)
+                                                                                            .conditionExpression(conditionExpression)
+                                                                                            .build())
                                              .build()).join();
     }
 
     @Test
     public void multiConditionCheck() {
-        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -296,15 +291,21 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addConditionCheck(mappedTable1, ConditionCheck.create(key1, conditionExpression))
-                                             .addConditionCheck(mappedTable2, ConditionCheck.create(key2, conditionExpression))
+                                             .addConditionCheck(mappedTable1, ConditionCheck.builder()
+                                                                                            .key(key1)
+                                                                                            .conditionExpression(conditionExpression)
+                                                                                            .build())
+                                             .addConditionCheck(mappedTable2, ConditionCheck.builder()
+                                                                                            .key(key2)
+                                                                                            .conditionExpression(conditionExpression)
+                                                                                            .build())
                                              .build()).join();
     }
 
     @Test
     public void mixedCommands() {
-        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -316,23 +317,25 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
         TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addConditionCheck(mappedTable1, ConditionCheck.create(key, conditionExpression))
-                                             .addPutItem(mappedTable2, PutItemEnhancedRequest.create(RECORDS_2.get(1)))
-                                             .addUpdateItem(mappedTable1, UpdateItemEnhancedRequest.create(RECORDS_1.get(1)))
-                                             .addDeleteItem(mappedTable2,
-                                                            DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                             .addConditionCheck(mappedTable1, ConditionCheck.builder()
+                                                                                            .key(key)
+                                                                                            .conditionExpression(conditionExpression)
+                                                                                            .build())
+                                             .addPutItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(1)))
+                                             .addUpdateItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(1)))
+                                             .addDeleteItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
                                              .build();
         enhancedAsyncClient.transactWriteItems(transactWriteItemsEnhancedRequest).join();
 
-        assertThat(mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(1)))).join(), is(RECORDS_1.get(1)));
-        assertThat(mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join(), is(nullValue()));
-        assertThat(mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(1)))).join(), is(RECORDS_2.get(1)));
+        assertThat(mappedTable1.getItem(r -> r.key(Key.create(numberValue(1)))).join(), is(RECORDS_1.get(1)));
+        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))).join(), is(nullValue()));
+        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(1)))).join(), is(RECORDS_2.get(1)));
     }
 
     @Test
     public void mixedCommands_conditionCheckFailsTransaction() {
-        mappedTable1.putItem(PutItemEnhancedRequest.create(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(PutItemEnhancedRequest.create(RECORDS_2.get(0))).join();
+        mappedTable1.putItem(Record1.class, r -> r.item(RECORDS_1.get(0))).join();
+        mappedTable2.putItem(Record2.class, r -> r.item(RECORDS_2.get(0))).join();
 
         Expression conditionExpression = Expression.builder()
                                                     .expression("#attribute = :attribute")
@@ -344,11 +347,13 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
         TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(mappedTable2, PutItemEnhancedRequest.create(RECORDS_2.get(1)))
-                                             .addUpdateItem(mappedTable1, UpdateItemEnhancedRequest.create(RECORDS_1.get(1)))
-                                             .addConditionCheck(mappedTable1, ConditionCheck.create(key, conditionExpression))
-                                             .addDeleteItem(mappedTable2,
-                                                            DeleteItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                             .addPutItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(1)))
+                                             .addUpdateItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(1)))
+                                             .addConditionCheck(mappedTable1, ConditionCheck.builder()
+                                                                                            .key(key)
+                                                                                            .conditionExpression(conditionExpression)
+                                                                                            .build())
+                                             .addDeleteItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
                                              .build();
 
         try {
@@ -358,9 +363,9 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
             assertThat(e.getCause(), instanceOf(TransactionCanceledException.class));
         }
 
-        assertThat(mappedTable1.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(1)))).join(), is(nullValue()));
-        assertThat(mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(0)))).join(), is(RECORDS_2.get(0)));
-        assertThat(mappedTable2.getItem(GetItemEnhancedRequest.create(Key.create(numberValue(1)))).join(), is(nullValue()));
+        assertThat(mappedTable1.getItem(r -> r.key(Key.create(numberValue(1)))).join(), is(nullValue()));
+        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))).join(), is(RECORDS_2.get(0)));
+        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(1)))).join(), is(nullValue()));
     }
 }
 
