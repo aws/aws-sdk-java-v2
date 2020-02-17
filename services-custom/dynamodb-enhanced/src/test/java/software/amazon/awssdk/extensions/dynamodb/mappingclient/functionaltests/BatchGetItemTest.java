@@ -35,9 +35,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchGetResultPage;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ReadBatch;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -126,8 +123,8 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
-        mappedTable2.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
+        mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        mappedTable2.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -141,36 +138,31 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.putItem(PutItemEnhancedRequest.create(record)));
-        RECORDS_2.forEach(record -> mappedTable2.putItem(PutItemEnhancedRequest.create(record)));
+        RECORDS_1.forEach(record -> mappedTable1.putItem(Record1.class, r -> r.item(record)));
+        RECORDS_2.forEach(record -> mappedTable2.putItem(Record2.class, r-> r.item(record)));
     }
 
     @Test
     public void getRecordsFromMultipleTables() {
         insertRecords();
 
-        BatchGetItemEnhancedRequest batchGetItemEnhancedRequest =
-            BatchGetItemEnhancedRequest.builder()
-                                           .readBatches(
-                                               ReadBatch.builder(Record1.class)
-                                                        .mappedTableResource(mappedTable1)
-                                                        .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                                        .build(),
-                                               ReadBatch.builder(Record2.class)
-                                                        .mappedTableResource(mappedTable2)
-                                                        .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                                        .build(),
-                                               ReadBatch.builder(Record2.class)
-                                                        .mappedTableResource(mappedTable2)
-                                                        .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(1))))
-                                                        .build(),
-                                               ReadBatch.builder(Record1.class)
-                                                        .mappedTableResource(mappedTable1)
-                                                        .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(1))))
-                                                        .build())
-                                           .build();
-
-        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(batchGetItemEnhancedRequest);
+        SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(r -> r.readBatches(
+            ReadBatch.builder(Record1.class)
+                     .mappedTableResource(mappedTable1)
+                     .addGetItem(i -> i.key(Key.create(numberValue(0))))
+                     .build(),
+            ReadBatch.builder(Record2.class)
+                     .mappedTableResource(mappedTable2)
+                     .addGetItem(i -> i.key(Key.create(numberValue(0))))
+                     .build(),
+            ReadBatch.builder(Record2.class)
+                     .mappedTableResource(mappedTable2)
+                     .addGetItem(i -> i.key(Key.create(numberValue(1))))
+                     .build(),
+            ReadBatch.builder(Record1.class)
+                     .mappedTableResource(mappedTable1)
+                     .addGetItem(i -> i.key(Key.create(numberValue(1))))
+                     .build()));
 
         assertThat(results.stream().count(), is(1L));
 
@@ -192,19 +184,19 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
                                        .readBatches(
                                            ReadBatch.builder(Record1.class)
                                                     .mappedTableResource(mappedTable1)
-                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                    .addGetItem(r -> r.key(Key.create(numberValue(0))))
                                                     .build(),
                                            ReadBatch.builder(Record2.class)
                                                     .mappedTableResource(mappedTable2)
-                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                                    .addGetItem(r -> r.key(Key.create(numberValue(0))))
                                                     .build(),
                                            ReadBatch.builder(Record2.class)
                                                     .mappedTableResource(mappedTable2)
-                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                                    .addGetItem(r -> r.key(Key.create(numberValue(1))))
                                                     .build(),
                                            ReadBatch.builder(Record1.class)
                                                     .mappedTableResource(mappedTable1)
-                                                    .addGetItem(GetItemEnhancedRequest.create(Key.create(numberValue(5))))
+                                                    .addGetItem(r -> r.key(Key.create(numberValue(5))))
                                                     .build())
                                        .build();
 

@@ -114,7 +114,8 @@ public class UpdateItemOperationTest {
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem item = createUniqueFakeItem();
-        UpdateItemOperation<FakeItem> updateItemOperation = UpdateItemOperation.create(UpdateItemEnhancedRequest.create(item));
+        UpdateItemOperation<FakeItem> updateItemOperation = UpdateItemOperation.create(
+            UpdateItemEnhancedRequest.builder(FakeItem.class).item(item).build());
         UpdateItemRequest updateItemRequest = UpdateItemRequest.builder().tableName(TABLE_NAME).build();
         UpdateItemResponse expectedResponse = UpdateItemResponse.builder().build();
         when(mockDynamoDbClient.updateItem(any(UpdateItemRequest.class))).thenReturn(expectedResponse);
@@ -128,7 +129,8 @@ public class UpdateItemOperationTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_withIndex_throwsIllegalArgumentException() {
         FakeItem item = createUniqueFakeItem();
-        UpdateItemOperation<FakeItem> updateItemOperation = UpdateItemOperation.create(UpdateItemEnhancedRequest.create(item));
+        UpdateItemOperation<FakeItem> updateItemOperation = UpdateItemOperation.create(
+            UpdateItemEnhancedRequest.builder(FakeItem.class).item(item).build());
 
         updateItemOperation.generateRequest(FakeItem.getTableSchema(), GSI_1_CONTEXT, null);
     }
@@ -137,7 +139,8 @@ public class UpdateItemOperationTest {
     public void generateRequest_nullValuesNotIgnoredByDefault() {
         FakeItemWithSort item = createUniqueFakeItemWithSort();
         item.setOtherAttribute1("value-1");
-        UpdateItemOperation<FakeItemWithSort> updateItemOperation = UpdateItemOperation.create(UpdateItemEnhancedRequest.create(item));
+        UpdateItemOperation<FakeItemWithSort> updateItemOperation = UpdateItemOperation.create(
+            UpdateItemEnhancedRequest.builder(FakeItemWithSort.class).item(item).build());
         Map<String, AttributeValue> expectedKey = new HashMap<>();
         expectedKey.put("id", AttributeValue.builder().s(item.getId()).build());
         expectedKey.put("sort", AttributeValue.builder().s(item.getSort()).build());
@@ -380,7 +383,7 @@ public class UpdateItemOperationTest {
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.create(baseFakeItem));
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(baseFakeItem).build());
 
         UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -425,7 +428,7 @@ public class UpdateItemOperationTest {
         Map<String, AttributeValue> fakeItem2Attributes = FakeItem.getTableSchema().itemToMap(fakeItem2, true);
 
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.create(fakeItem1));
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem1).build());
 
         FakeItem result = updateItemOperation.transformResponse(
             UpdateItemResponse.builder().attributes(fakeItem2Attributes).build(),
@@ -664,7 +667,7 @@ public class UpdateItemOperationTest {
     public void transformResponse_afterReadThrowsException_throwsIllegalStateException() {
         when(mockMapperExtension.afterRead(anyMap(), any(), any())).thenThrow(RuntimeException.class);
         UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.create(createUniqueFakeItem()));
+            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(createUniqueFakeItem()).build());
 
         UpdateItemResponse response =
             UpdateItemResponse.builder()
@@ -679,7 +682,7 @@ public class UpdateItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
-            spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.create(fakeItem)));
+            spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
         OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
         String updateExpression = "update-expression";
         Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
@@ -716,7 +719,7 @@ public class UpdateItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         UpdateItemOperation<FakeItem> updateItemOperation =
-            spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.create(fakeItem)));
+            spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
         OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
         String updateExpression = "update-expression";
         String conditionExpression = "condition-expression";
