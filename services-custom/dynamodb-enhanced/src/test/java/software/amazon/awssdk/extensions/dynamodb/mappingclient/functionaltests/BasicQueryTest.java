@@ -45,8 +45,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -122,12 +120,12 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)));
     }
 
     @Before
     public void createTable() {
-        mappedTable.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
+        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -142,7 +140,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            mappedTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("id-value"))))).iterator();
+            mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("id-value"))))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -185,7 +183,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Key fromKey = Key.create(stringValue("id-value"), numberValue(3));
         Key toKey = Key.create(stringValue("id-value"), numberValue(5));
-        Iterator<Page<Record>> results = mappedTable.query(QueryEnhancedRequest.create(between(fromKey, toKey))).iterator();
+        Iterator<Page<Record>> results = mappedTable.query(r -> r.queryConditional(between(fromKey, toKey))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -230,7 +228,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryEmpty() {
         Iterator<Page<Record>> results =
-            mappedTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("id-value"))))).iterator();
+            mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("id-value"))))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));

@@ -17,6 +17,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncIndex;
@@ -58,9 +59,28 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
     }
 
     @Override
+    public SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
+        QueryEnhancedRequest.Builder builder = QueryEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return query(builder.build());
+    }
+
+    @Override
     public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
         PaginatedIndexOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, mapperExtension, dynamoDbClient);
+    }
+
+    @Override
+    public SdkPublisher<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
+        ScanEnhancedRequest.Builder builder = ScanEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return scan(builder.build());
+    }
+
+    @Override
+    public SdkPublisher<Page<T>> scan() {
+        return scan(ScanEnhancedRequest.builder().build());
     }
 
     @Override
