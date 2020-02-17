@@ -21,8 +21,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.between;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryConditional.equalTo;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondaryPartitionKey;
@@ -30,6 +28,7 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,20 +42,19 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncIndex;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
-public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
+public class AsyncIndexScanTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -143,25 +141,26 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     private static final List<Record> RECORDS =
         IntStream.range(0, 10)
                  .mapToObj(i -> new Record()
-                                      .setId("id-value")
-                                      .setSort(i)
-                                      .setValue(i)
-                                      .setGsiId("gsi-id-value")
-                                      .setGsiSort(i))
+                     .setId("id-value")
+                     .setSort(i)
+                     .setValue(i)
+                     .setGsiId("gsi-id-value")
+                     .setGsiSort(i))
                  .collect(Collectors.toList());
 
     private static final List<Record> KEYS_ONLY_RECORDS =
         RECORDS.stream()
                .map(record -> new Record()
-                                    .setId(record.id)
-                                    .setSort(record.sort)
-                                    .setGsiId(record.gsiId)
-                                    .setGsiSort(record.gsiSort))
+                   .setId(record.id)
+                   .setSort(record.sort)
+                   .setGsiId(record.gsiId)
+                   .setGsiSort(record.gsiSort))
                .collect(Collectors.toList());
 
-    private DynamoDbEnhancedAsyncClient enhancedAsyncClient = DefaultDynamoDbEnhancedAsyncClient.builder()
-                                                                                                .dynamoDbClient(getDynamoDbAsyncClient())
-                                                                                                .build();
+    private DynamoDbEnhancedAsyncClient enhancedAsyncClient =
+        DefaultDynamoDbEnhancedAsyncClient.builder()
+                                          .dynamoDbClient(getDynamoDbAsyncClient())
+                                          .build();
 
     private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
     private DynamoDbAsyncIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
@@ -172,34 +171,25 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable.createTable(CreateTableEnhancedRequest.builder()
-                                                          .provisionedThroughput(getDefaultProvisionedThroughput())
-                                                          .globalSecondaryIndices(
-                                                              GlobalSecondaryIndex.create(
-                                                                  "gsi_keys_only",
-                                                                  Projection.builder()
-                                                                            .projectionType(ProjectionType.KEYS_ONLY)
-                                                                            .build(),
-                                                                  getDefaultProvisionedThroughput()))
-                                                          .build())
-                   .join();
+        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())
+                                      .globalSecondaryIndices(GlobalSecondaryIndex.create(
+                                          "gsi_keys_only",
+                                          Projection.builder().projectionType(ProjectionType.KEYS_ONLY).build(),
+                                          getDefaultProvisionedThroughput()))).join();
     }
 
     @After
     public void deleteTable() {
         getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
                                                                .tableName(getConcreteTableName("table-name"))
-                                                               .build())
-                                .join();
+                                                               .build()).join();
     }
 
     @Test
-    public void queryAllRecordsDefaultSettings() {
+    public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
-        SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(Key.create(stringValue("gsi-id-value")))));
-
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.scan(ScanEnhancedRequest.builder().build());
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
 
@@ -208,12 +198,19 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void queryBetween() {
+    public void scanAllRecordsWithFilter() {
         insertRecords();
-        Key fromKey = Key.create(stringValue("gsi-id-value"), numberValue(3));
-        Key toKey = Key.create(stringValue("gsi-id-value"), numberValue(5));
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("sort >= :min_value AND sort <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .build();
 
-        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(r -> r.queryConditional(between(fromKey, toKey)));
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.scan(ScanEnhancedRequest.builder()
+                                                                                           .filterExpression(expression)
+                                                                                           .build());
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -224,43 +221,28 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void queryLimit() {
+    public void scanLimit() {
         insertRecords();
-        SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
-                                                          .limit(5)
-                                                          .build());
+
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.scan(r -> r.limit(5));
 
         List<Page<Record>> results = drainPublisher(publisher, 3);
+
         Page<Record> page1 = results.get(0);
         Page<Record> page2 = results.get(1);
         Page<Record> page3 = results.get(2);
 
-        Map<String, AttributeValue> expectedLastEvaluatedKey1 = new HashMap<>();
-        expectedLastEvaluatedKey1.put("id", stringValue(KEYS_ONLY_RECORDS.get(4).getId()));
-        expectedLastEvaluatedKey1.put("sort", numberValue(KEYS_ONLY_RECORDS.get(4).getSort()));
-        expectedLastEvaluatedKey1.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(4).getGsiId()));
-        expectedLastEvaluatedKey1.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(4).getGsiSort()));
-        Map<String, AttributeValue> expectedLastEvaluatedKey2 = new HashMap<>();
-        expectedLastEvaluatedKey2.put("id", stringValue(KEYS_ONLY_RECORDS.get(9).getId()));
-        expectedLastEvaluatedKey2.put("sort", numberValue(KEYS_ONLY_RECORDS.get(9).getSort()));
-        expectedLastEvaluatedKey2.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(9).getGsiId()));
-        expectedLastEvaluatedKey2.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(9).getGsiSort()));
-
         assertThat(page1.items(), is(KEYS_ONLY_RECORDS.subList(0, 5)));
-        assertThat(page1.lastEvaluatedKey(), is(expectedLastEvaluatedKey1));
+        assertThat(page1.lastEvaluatedKey(), is(getKeyMap(4)));
         assertThat(page2.items(), is(KEYS_ONLY_RECORDS.subList(5, 10)));
-        assertThat(page2.lastEvaluatedKey(), is(expectedLastEvaluatedKey2));
+        assertThat(page2.lastEvaluatedKey(), is(getKeyMap(9)));
         assertThat(page3.items(), is(empty()));
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test
-    public void queryEmpty() {
-        SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(Key.create(stringValue("gsi-id-value")))));
-
+    public void scanEmpty() {
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.scan();
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
 
@@ -269,23 +251,24 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void queryExclusiveStartKey() {
+    public void scanExclusiveStartKey() {
         insertRecords();
-        Map<String, AttributeValue> expectedLastEvaluatedKey = new HashMap<>();
-        expectedLastEvaluatedKey.put("id", stringValue(KEYS_ONLY_RECORDS.get(7).getId()));
-        expectedLastEvaluatedKey.put("sort", numberValue(KEYS_ONLY_RECORDS.get(7).getSort()));
-        expectedLastEvaluatedKey.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(7).getGsiId()));
-        expectedLastEvaluatedKey.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(7).getGsiSort()));
-
         SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
-                                                          .exclusiveStartKey(expectedLastEvaluatedKey)
-                                                          .build());
+            keysOnlyMappedIndex.scan(ScanEnhancedRequest.builder().exclusiveStartKey(getKeyMap(7)).build());
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
+
         assertThat(page.items(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    private Map<String, AttributeValue> getKeyMap(int sort) {
+        Map<String, AttributeValue> result = new HashMap<>();
+        result.put("id", stringValue(KEYS_ONLY_RECORDS.get(sort).getId()));
+        result.put("sort", numberValue(KEYS_ONLY_RECORDS.get(sort).getSort()));
+        result.put("gsi_id", stringValue(KEYS_ONLY_RECORDS.get(sort).getGsiId()));
+        result.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(sort).getGsiSort()));
+        return Collections.unmodifiableMap(result);
     }
 }

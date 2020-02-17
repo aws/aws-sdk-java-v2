@@ -31,10 +31,6 @@ public final class UpdateItemEnhancedRequest<T> {
         this.conditionExpression = builder.conditionExpression;
     }
 
-    public static <T> UpdateItemEnhancedRequest<T> create(T item) {
-        return new Builder<T>().item(item).build();
-    }
-
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
         return new Builder<>();
     }

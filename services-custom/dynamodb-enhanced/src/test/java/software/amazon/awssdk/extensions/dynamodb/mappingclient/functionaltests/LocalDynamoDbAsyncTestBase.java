@@ -15,6 +15,12 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+
+import java.util.List;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 public class LocalDynamoDbAsyncTestBase extends LocalDynamoDbTestBase {
@@ -22,5 +28,17 @@ public class LocalDynamoDbAsyncTestBase extends LocalDynamoDbTestBase {
 
     protected DynamoDbAsyncClient getDynamoDbAsyncClient() {
         return dynamoDbAsyncClient;
+    }
+
+    protected static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+        BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
+        publisher.subscribe(subscriber);
+        subscriber.waitForCompletion(1000L);
+
+        assertThat(subscriber.isCompleted(), is(true));
+        assertThat(subscriber.bufferedError(), is(nullValue()));
+        assertThat(subscriber.bufferedItems().size(), is(expectedNumberOfResults));
+
+        return subscriber.bufferedItems();
     }
 }

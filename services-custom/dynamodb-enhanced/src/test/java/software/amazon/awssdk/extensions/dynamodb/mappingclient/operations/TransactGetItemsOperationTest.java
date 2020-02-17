@@ -45,7 +45,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -104,12 +103,10 @@ public class TransactGetItemsOperationTest {
     public void generateRequest_getsFromMultipleTables() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
-                                           .addGetItem(fakeItemWithSortMappedTable,
-                                                       GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
-                                           .addGetItem(fakeItemWithSortMappedTable,
-                                                       GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(1)))
-                                           .addGetItem(fakeItemMappedTable, GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
+                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(0)))
+                                           .addGetItem(fakeItemWithSortMappedTable, r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
+                                           .addGetItem(fakeItemWithSortMappedTable, r -> r.key(FAKESORT_ITEM_KEYS.get(1)))
+                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(1)))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -133,7 +130,7 @@ public class TransactGetItemsOperationTest {
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(fakeItemMappedTable, GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
+                                           .addGetItem(fakeItemMappedTable, r -> r.key(FAKE_ITEM_KEYS.get(0)))
                                            .build();
 
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);

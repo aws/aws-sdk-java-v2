@@ -16,6 +16,7 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import java.util.List;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
@@ -60,9 +61,23 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     @Override
+    public SdkIterable<BatchGetResultPage> batchGetItem(Consumer<BatchGetItemEnhancedRequest.Builder> requestConsumer) {
+        BatchGetItemEnhancedRequest.Builder builder = BatchGetItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return batchGetItem(builder.build());
+    }
+
+    @Override
     public BatchWriteResult batchWriteItem(BatchWriteItemEnhancedRequest request) {
         BatchWriteItemOperation operation = BatchWriteItemOperation.create(request);
         return operation.execute(dynamoDbClient, mapperExtension);
+    }
+
+    @Override
+    public BatchWriteResult batchWriteItem(Consumer<BatchWriteItemEnhancedRequest.Builder> requestConsumer) {
+        BatchWriteItemEnhancedRequest.Builder builder = BatchWriteItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return batchWriteItem(builder.build());
     }
 
     @Override
@@ -72,9 +87,23 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     @Override
+    public List<TransactGetResultPage> transactGetItems(Consumer<TransactGetItemsEnhancedRequest.Builder> requestConsumer) {
+        TransactGetItemsEnhancedRequest.Builder builder = TransactGetItemsEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return transactGetItems(builder.build());
+    }
+
+    @Override
     public Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
         return operation.execute(dynamoDbClient, mapperExtension);
+    }
+
+    @Override
+    public Void transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+        TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return transactWriteItems(builder.build());
     }
 
     public DynamoDbClient dynamoDbClient() {

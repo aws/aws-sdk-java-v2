@@ -259,7 +259,7 @@ public class CreateTableOperationTest {
 
     @Test
     public void generateRequest_nonReferencedIndicesDoNotCreateExtraAttributeDefinitions() {
-        CreateTableOperation<FakeItemWithIndices> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItemWithIndices> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
                                                                PRIMARY_CONTEXT, null);
@@ -294,7 +294,8 @@ public class CreateTableOperationTest {
                                                                           .readCapacityUnits(2L)
                                                                           .build();
 
-        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create(provisionedThroughput));
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(
+            CreateTableEnhancedRequest.builder().provisionedThroughput(provisionedThroughput).build());
 
         CreateTableRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -306,7 +307,7 @@ public class CreateTableOperationTest {
 
     @Test
     public void generateRequest_withNoProvisionedThroughput() {
-        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
 
         CreateTableRequest request = operation.generateRequest(FakeItem.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -318,7 +319,8 @@ public class CreateTableOperationTest {
 
     @Test
     public void generateRequest_withNumericKey() {
-        CreateTableOperation<FakeItemWithNumericSort> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItemWithNumericSort> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                                                                                                                        .build());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithNumericSort.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -350,7 +352,8 @@ public class CreateTableOperationTest {
 
     @Test
     public void generateRequest_withBinaryKey() {
-        CreateTableOperation<FakeItemWithBinaryKey> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItemWithBinaryKey> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                                                                                                                      .build());
 
         CreateTableRequest request = operation.generateRequest(FakeItemWithBinaryKey.getTableSchema(),
                                                                PRIMARY_CONTEXT,
@@ -374,14 +377,15 @@ public class CreateTableOperationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_doesNotWorkForIndex() {
-        CreateTableOperation<FakeItemWithIndices> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItemWithIndices> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                                                                                                                    .build());
 
         operation.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
     }
 
     @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
-        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
         CreateTableRequest createTableRequest = CreateTableRequest.builder().build();
         CreateTableResponse expectedResponse = CreateTableResponse.builder().build();
         when(mockDynamoDbClient.createTable(any(CreateTableRequest.class))).thenReturn(expectedResponse);
@@ -394,7 +398,7 @@ public class CreateTableOperationTest {
 
     @Test
     public void transformResults_doesNothing() {
-        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.create());
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
         CreateTableResponse response = CreateTableResponse.builder().build();
 
         operation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);

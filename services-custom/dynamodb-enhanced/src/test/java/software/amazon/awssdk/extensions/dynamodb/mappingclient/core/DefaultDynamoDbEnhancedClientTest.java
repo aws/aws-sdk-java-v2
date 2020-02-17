@@ -25,20 +25,18 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.DatabaseOperation;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.BatchWriteResult;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultDynamoDbEnhancedClientTest {
     @Mock
     private DynamoDbClient mockDynamoDbClient;
+
     @Mock
     private MapperExtension mockMapperExtension;
-    @Mock
-    private DatabaseOperation<?, ?, BatchWriteResult> mockDatabaseOperation;
+
     @Mock
     private TableSchema<Object> mockTableSchema;
 

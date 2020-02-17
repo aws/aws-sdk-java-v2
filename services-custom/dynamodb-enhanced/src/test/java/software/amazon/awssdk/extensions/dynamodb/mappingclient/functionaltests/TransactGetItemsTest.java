@@ -33,9 +33,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhanced
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
@@ -125,8 +122,8 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
-        mappedTable2.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
+        mappedTable1.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        mappedTable2.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -140,8 +137,8 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.putItem(PutItemEnhancedRequest.create(record)));
-        RECORDS_2.forEach(record -> mappedTable2.putItem(PutItemEnhancedRequest.create(record)));
+        RECORDS_1.forEach(record -> mappedTable1.putItem(Record1.class, r -> r.item(record)));
+        RECORDS_2.forEach(record -> mappedTable2.putItem(Record2.class, r -> r.item(record)));
     }
 
     @Test
@@ -150,10 +147,10 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
-                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(1))))
                                            .build();
 
         List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
@@ -171,10 +168,10 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(5))))
-                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(5))))
+                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(1))))
                                            .build();
 
         List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);

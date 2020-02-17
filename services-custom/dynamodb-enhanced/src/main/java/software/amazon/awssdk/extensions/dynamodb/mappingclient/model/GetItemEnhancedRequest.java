@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 
 @SdkPublicApi
-public final class GetItemEnhancedRequest<T> {
+public final class GetItemEnhancedRequest {
 
     private final Key key;
     private final Boolean consistentRead;
@@ -27,10 +27,6 @@ public final class GetItemEnhancedRequest<T> {
     private GetItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.consistentRead = builder.consistentRead;
-    }
-
-    public static <T> GetItemEnhancedRequest<T> create(Key key) {
-        return builder().key(key).build();
     }
 
     public static Builder builder() {
@@ -58,7 +54,7 @@ public final class GetItemEnhancedRequest<T> {
             return false;
         }
 
-        GetItemEnhancedRequest<?> getItem = (GetItemEnhancedRequest<?>) o;
+        GetItemEnhancedRequest getItem = (GetItemEnhancedRequest) o;
 
         if (key != null ? ! key.equals(getItem.key) : getItem.key != null) {
             return false;
@@ -90,8 +86,8 @@ public final class GetItemEnhancedRequest<T> {
             return this;
         }
 
-        public <T> GetItemEnhancedRequest<T> build() {
-            return new GetItemEnhancedRequest<>(this);
+        public GetItemEnhancedRequest build() {
+            return new GetItemEnhancedRequest(this);
         }
     }
 }

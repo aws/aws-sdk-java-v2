@@ -76,7 +76,9 @@ public class QueryOperationTest {
 
     private final FakeItem keyItem = createUniqueFakeItem();
     private final QueryOperation<FakeItem> queryOperation =
-        QueryOperation.create(QueryEnhancedRequest.create(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId())))));
+        QueryOperation.create(QueryEnhancedRequest.builder()
+                                                  .queryConditional(QueryConditional.equalTo(Key.create(stringValue(keyItem.getId()))))
+                                                  .build());
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -118,7 +120,9 @@ public class QueryOperationTest {
         Expression expression = Expression.builder().expression("test-expression").expressionValues(keyItemMap).build();
         when(mockQueryConditional.expression(any(), anyString())).thenReturn(expression);
 
-        QueryOperation<FakeItem> query = QueryOperation.create(QueryEnhancedRequest.create(mockQueryConditional));
+        QueryOperation<FakeItem> query = QueryOperation.create(QueryEnhancedRequest.builder()
+                                                                                   .queryConditional(mockQueryConditional)
+                                                                                   .build());
         QueryRequest queryRequest = query.generateRequest(FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
 
         QueryRequest expectedQueryRequest = QueryRequest.builder()
@@ -150,8 +154,9 @@ public class QueryOperationTest {
     public void generateRequest_knowsHowToUseAnIndex() {
         FakeItemWithIndices fakeItem = createUniqueFakeItemWithIndices();
         QueryOperation<FakeItemWithIndices> queryToTest =
-            QueryOperation.create(QueryEnhancedRequest.create(QueryConditional
-                                                                  .equalTo(Key.create(stringValue(fakeItem.getGsiId())))));
+            QueryOperation.create(QueryEnhancedRequest.builder()
+                                                      .queryConditional(QueryConditional.equalTo(Key.create(stringValue(fakeItem.getGsiId()))))
+                                                      .build());
         QueryRequest queryRequest = queryToTest.generateRequest(FakeItemWithIndices.getTableSchema(), GSI_1_CONTEXT, null);
 
         assertThat(queryRequest.indexName(), is("gsi_1"));
