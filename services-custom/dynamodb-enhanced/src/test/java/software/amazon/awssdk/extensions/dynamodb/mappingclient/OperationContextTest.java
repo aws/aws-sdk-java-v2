@@ -23,7 +23,7 @@ import org.junit.Test;
 public class OperationContextTest {
     @Test
     public void createWithTableNameAndIndexName() {
-        OperationContext context = OperationContext.of("table_name", "index_name");
+        OperationContext context = OperationContext.create("table_name", "index_name");
 
         assertThat(context.tableName(), is("table_name"));
         assertThat(context.indexName(), is("index_name"));
@@ -31,7 +31,7 @@ public class OperationContextTest {
 
     @Test
     public void createWithTableName() {
-        OperationContext context = OperationContext.of("table_name");
+        OperationContext context = OperationContext.create("table_name");
 
         assertThat(context.tableName(), is("table_name"));
         assertThat(context.indexName(), is(TableMetadata.primaryIndexName()));

@@ -20,30 +20,28 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.numberValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.GetItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.ReadTransaction;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.TransactGetItems;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.UnmappedItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactGetResultPage;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class TransactGetItemsTest extends LocalDynamoDbTestBase {
+public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
     private static class Record1 {
         private Integer id;
 
@@ -97,27 +95,23 @@ public class TransactGetItemsTest extends LocalDynamoDbTestBase {
     }
 
     private static final TableSchema<Record1> TABLE_SCHEMA_1 =
-        TableSchema.builder()
-                   .newItemSupplier(Record1::new)
-                   .attributes(
-                       integerNumber("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
-                   .build();
+        StaticTableSchema.builder(Record1.class)
+                         .newItemSupplier(Record1::new)
+                         .attributes(integerNumberAttribute("id_1", Record1::getId, Record1::setId).as(primaryPartitionKey()))
+                         .build();
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
-        TableSchema.builder()
-                   .newItemSupplier(Record2::new)
-                   .attributes(
-                       integerNumber("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
-                   .build();
+            StaticTableSchema.builder(Record2.class)
+                             .newItemSupplier(Record2::new)
+                             .attributes(integerNumberAttribute("id_2", Record2::getId, Record2::setId).as(primaryPartitionKey()))
+                             .build();
 
-    private MappedDatabase mappedDatabase = MappedDatabase.builder()
-                                                          .dynamoDbClient(getDynamoDbClient())
-                                                          .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record1> mappedTable1 = mappedDatabase.table(getConcreteTableName("table-name-1"),
-                                                                     TABLE_SCHEMA_1);
-    private MappedTable<Record2> mappedTable2 = mappedDatabase.table(getConcreteTableName("table-name-2"),
-                                                                     TABLE_SCHEMA_2);
+    private DynamoDbTable<Record1> mappedTable1 = enhancedClient.table(getConcreteTableName("table-name-1"), TABLE_SCHEMA_1);
+    private DynamoDbTable<Record2> mappedTable2 = enhancedClient.table(getConcreteTableName("table-name-2"), TABLE_SCHEMA_2);
 
     private static final List<Record1> RECORDS_1 =
         IntStream.range(0, 2)
@@ -131,8 +125,8 @@ public class TransactGetItemsTest extends LocalDynamoDbTestBase {
 
     @Before
     public void createTable() {
-        mappedTable1.execute(CreateTable.of(getDefaultProvisionedThroughput()));
-        mappedTable2.execute(CreateTable.of(getDefaultProvisionedThroughput()));
+        mappedTable1.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
+        mappedTable2.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -146,20 +140,23 @@ public class TransactGetItemsTest extends LocalDynamoDbTestBase {
     }
 
     private void insertRecords() {
-        RECORDS_1.forEach(record -> mappedTable1.execute(PutItem.of(record)));
-        RECORDS_2.forEach(record -> mappedTable2.execute(PutItem.of(record)));
+        RECORDS_1.forEach(record -> mappedTable1.putItem(PutItemEnhancedRequest.create(record)));
+        RECORDS_2.forEach(record -> mappedTable2.putItem(PutItemEnhancedRequest.create(record)));
     }
 
     @Test
     public void getRecordsFromMultipleTables() {
         insertRecords();
 
-        List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.of(
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(0)))),                  
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(0)))),
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(1)))),
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(1))))));
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .build();
+
+        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
@@ -172,12 +169,15 @@ public class TransactGetItemsTest extends LocalDynamoDbTestBase {
     public void notFoundRecordReturnsNull() {
         insertRecords();
 
-        List<UnmappedItem> results =
-            mappedDatabase.execute(TransactGetItems.of(
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(0)))),
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(0)))),
-                ReadTransaction.of(mappedTable2, GetItem.of(Key.of(numberValue(5)))),
-                ReadTransaction.of(mappedTable1, GetItem.of(Key.of(numberValue(1))))));
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactGetItemsEnhancedRequest.builder()
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(0))))
+                                           .addGetItem(mappedTable2, GetItemEnhancedRequest.create(Key.create(numberValue(5))))
+                                           .addGetItem(mappedTable1, GetItemEnhancedRequest.create(Key.create(numberValue(1))))
+                                           .build();
+
+        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));

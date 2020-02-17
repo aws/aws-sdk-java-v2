@@ -102,6 +102,17 @@ public class AwsRetryPolicyTest {
         assertFalse(shouldRetry(applyErrorCode("ValidationError")));
     }
 
+    @Test
+    public void retriesOnEC2ThrottledException() {
+        AwsServiceException ex = AwsServiceException.builder()
+                                                    .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                    .errorCode("EC2ThrottledException")
+                                                                                    .build())
+                                                    .build();
+
+        assertTrue(shouldRetry(b -> b.exception(ex)));
+    }
+
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
         return defaultRetryCondition().shouldRetry(RetryPolicyContext.builder().applyMutation(builder).build());
     }

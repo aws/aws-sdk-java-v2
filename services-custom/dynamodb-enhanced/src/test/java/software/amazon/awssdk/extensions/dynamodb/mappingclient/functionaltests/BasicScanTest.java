@@ -23,8 +23,8 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.Attribute
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumber;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,23 +34,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedDatabase;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.CreateTable;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.PutItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.operations.Scan;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-public class BasicScanTest extends LocalDynamoDbTestBase {
+public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
         private String id;
         private Integer sort;
@@ -89,31 +88,31 @@ public class BasicScanTest extends LocalDynamoDbTestBase {
     }
 
     private static final TableSchema<Record> TABLE_SCHEMA =
-        TableSchema.builder()
-                   .newItemSupplier(Record::new)
-                   .attributes(
-                       string("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       integerNumber("sort", Record::getSort, Record::setSort).as(primarySortKey()))
-        .build();
+        StaticTableSchema.builder(Record.class)
+                         .newItemSupplier(Record::new)
+                         .attributes(
+                             stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
+                             integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()))
+                         .build();
 
     private static final List<Record> RECORDS =
         IntStream.range(0, 10)
                  .mapToObj(i -> new Record().setId("id-value").setSort(i))
                  .collect(Collectors.toList());
 
-    private MappedDatabase mappedDatabase = MappedDatabase.builder()
-                                                          .dynamoDbClient(getDynamoDbClient())
-                                                          .build();
+    private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .build();
 
-    private MappedTable<Record> mappedTable = mappedDatabase.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.execute(PutItem.of(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)));
     }
 
     @Before
     public void createTable() {
-        mappedTable.execute(CreateTable.of(getDefaultProvisionedThroughput()));
+        mappedTable.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -127,7 +126,7 @@ public class BasicScanTest extends LocalDynamoDbTestBase {
     public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
-        Iterator<Page<Record>> results = mappedTable.execute(Scan.create()).iterator();
+        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.create()).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -149,7 +148,7 @@ public class BasicScanTest extends LocalDynamoDbTestBase {
                                           .build();
 
         Iterator<Page<Record>> results =
-            mappedTable.execute(Scan.builder().filterExpression(expression).build()).iterator();
+            mappedTable.scan(ScanEnhancedRequest.builder().filterExpression(expression).build()).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -163,7 +162,7 @@ public class BasicScanTest extends LocalDynamoDbTestBase {
     @Test
     public void scanLimit() {
         insertRecords();
-        Iterator<Page<Record>> results = mappedTable.execute(Scan.builder().limit(5).build()).iterator();
+        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.builder().limit(5).build()).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page1 = results.next();
         assertThat(results.hasNext(), is(true));
@@ -182,7 +181,7 @@ public class BasicScanTest extends LocalDynamoDbTestBase {
 
     @Test
     public void scanEmpty() {
-        Iterator<Page<Record>> results = mappedTable.execute(Scan.create()).iterator();
+        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.create()).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -194,7 +193,7 @@ public class BasicScanTest extends LocalDynamoDbTestBase {
     public void scanExclusiveStartKey() {
         insertRecords();
         Iterator<Page<Record>> results =
-            mappedTable.execute(Scan.builder().exclusiveStartKey(getKeyMap(7)).build()).iterator();
+            mappedTable.scan(ScanEnhancedRequest.builder().exclusiveStartKey(getKeyMap(7)).build()).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();

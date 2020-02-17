@@ -15,16 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
@@ -52,6 +42,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.AwaitCloseChannelPoolMap;
@@ -82,9 +73,10 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     // Override connection idle timeout for Netty http client to reduce the frequency of "server failed to complete the
     // response error". see https://github.com/aws/aws-sdk-java-v2/issues/1122
-    private static final AttributeMap NETTY_HTTP_DEFAULTS = AttributeMap.builder()
-                                                                        .put(CONNECTION_MAX_IDLE_TIMEOUT, Duration.ofSeconds(5))
-                                                                        .build();
+    private static final AttributeMap NETTY_HTTP_DEFAULTS =
+        AttributeMap.builder()
+                    .put(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT, Duration.ofSeconds(5))
+                    .build();
 
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final SdkChannelPoolMap<URI, ? extends ChannelPool> pools;
@@ -106,6 +98,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                              .protocol(protocol)
                                              .maxStreams(maxStreams)
                                              .initialWindowSize(initialWindowSize)
+                                             .healthCheckPingPeriod(resolveHealthCheckPingPeriod(http2Configuration))
                                              .sdkEventLoopGroup(sdkEventLoopGroup)
                                              .sslProvider(resolveSslProvider(builder))
                                              .proxyConfiguration(builder.proxyConfiguration)
@@ -174,6 +167,13 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             return DEFAULT_INITIAL_WINDOW_SIZE;
         }
         return http2Configuration.initialWindowSize();
+    }
+
+    private Duration resolveHealthCheckPingPeriod(Http2Configuration http2Configuration) {
+        if (http2Configuration != null) {
+            return http2Configuration.healthCheckPingPeriod();
+        }
+        return null;
     }
 
     private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
@@ -372,7 +372,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return This builder for method chaining.
          *
          * @deprecated Use {@link #http2Configuration(Http2Configuration)} along with
-         * {@link Http2Configuration.Builder#maxStreams(Integer)} instead.
+         * {@link Http2Configuration.Builder#maxStreams(Long)} instead.
          */
         Builder maxHttp2Streams(Integer maxHttp2Streams);
 
@@ -410,6 +410,15 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return The builder for method chaining.
          */
         Builder tlsKeyManagersProvider(TlsKeyManagersProvider keyManagersProvider);
+
+        /**
+         * Configure the {@link TlsTrustManagersProvider} that will provide the {@link javax.net.ssl.TrustManager}s to use
+         * when constructing the SSL context.
+         *
+         * @param trustManagersProvider The {@code TlsKeyManagersProvider}.
+         * @return The builder for method chaining.
+         */
+        Builder tlsTrustManagersProvider(TlsTrustManagersProvider trustManagersProvider);
 
         /**
          * Set the HTTP/2 specific configuration for this client.
@@ -455,7 +464,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder maxConcurrency(Integer maxConcurrency) {
-            standardOptions.put(MAX_CONNECTIONS, maxConcurrency);
+            standardOptions.put(SdkHttpConfigurationOption.MAX_CONNECTIONS, maxConcurrency);
             return this;
         }
 
@@ -465,7 +474,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder maxPendingConnectionAcquires(Integer maxPendingAcquires) {
-            standardOptions.put(MAX_PENDING_CONNECTION_ACQUIRES, maxPendingAcquires);
+            standardOptions.put(SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES, maxPendingAcquires);
             return this;
         }
 
@@ -476,7 +485,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder readTimeout(Duration readTimeout) {
             Validate.isNotNegative(readTimeout, "readTimeout");
-            standardOptions.put(READ_TIMEOUT, readTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.READ_TIMEOUT, readTimeout);
             return this;
         }
 
@@ -487,7 +496,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
             Validate.isNotNegative(writeTimeout, "writeTimeout");
-            standardOptions.put(WRITE_TIMEOUT, writeTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.WRITE_TIMEOUT, writeTimeout);
             return this;
         }
 
@@ -498,7 +507,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder connectionTimeout(Duration timeout) {
             Validate.isPositive(timeout, "connectionTimeout");
-            standardOptions.put(CONNECTION_TIMEOUT, timeout);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, timeout);
             return this;
         }
 
@@ -509,7 +518,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
             Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
-            standardOptions.put(CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
             return this;
         }
 
@@ -520,7 +529,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder connectionTimeToLive(Duration connectionTimeToLive) {
             Validate.isPositive(connectionTimeToLive, "connectionTimeToLive");
-            standardOptions.put(CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE, connectionTimeToLive);
             return this;
         }
 
@@ -531,7 +540,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
             Validate.isPositive(connectionMaxIdleTime, "connectionMaxIdleTime");
-            standardOptions.put(CONNECTION_MAX_IDLE_TIMEOUT, connectionMaxIdleTime);
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT, connectionMaxIdleTime);
             return this;
         }
 
@@ -541,7 +550,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder useIdleConnectionReaper(Boolean useIdleConnectionReaper) {
-            standardOptions.put(REAP_IDLE_CONNECTIONS, useIdleConnectionReaper);
+            standardOptions.put(SdkHttpConfigurationOption.REAP_IDLE_CONNECTIONS, useIdleConnectionReaper);
             return this;
         }
 
@@ -617,8 +626,22 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder tlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
-            this.standardOptions.put(TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
+            this.standardOptions.put(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER, tlsKeyManagersProvider);
             return this;
+        }
+
+        public void setTlsKeyManagersProvider(TlsKeyManagersProvider tlsKeyManagersProvider) {
+            tlsKeyManagersProvider(tlsKeyManagersProvider);
+        }
+
+        @Override
+        public Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            standardOptions.put(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER, tlsTrustManagersProvider);
+            return this;
+        }
+
+        public void setTlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
+            tlsTrustManagersProvider(tlsTrustManagersProvider);
         }
 
         @Override

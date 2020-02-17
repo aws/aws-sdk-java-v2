@@ -22,20 +22,19 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
 
 import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ConditionCheck;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConditionCheckTest {
@@ -52,8 +51,8 @@ public class ConditionCheckTest {
                                                    .expressionValues(singletonMap("key2", stringValue("value2")))
                                                    .build();
         ConditionCheck<FakeItem> operation =
-            ConditionCheck.of(Key.of(stringValue(fakeItem.getId())), conditionExpression);
-        OperationContext context = OperationContext.of("table-name", TableMetadata.primaryIndexName());
+            ConditionCheck.create(Key.create(stringValue(fakeItem.getId())), conditionExpression);
+        OperationContext context = OperationContext.create("table-name", TableMetadata.primaryIndexName());
 
         TransactWriteItem result = operation.generateTransactWriteItem(FakeItem.getTableSchema(), context,
                                                                                   mockMapperExtension);

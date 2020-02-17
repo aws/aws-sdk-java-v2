@@ -25,6 +25,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -65,10 +66,6 @@ public final class NettyConfiguration {
         return configuration.get(MAX_PENDING_CONNECTION_ACQUIRES);
     }
 
-    public boolean trustAllCertificates() {
-        return configuration.get(TRUST_ALL_CERTIFICATES);
-    }
-
     public int readTimeoutMillis() {
         return saturatedCast(configuration.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis());
     }
@@ -91,5 +88,13 @@ public final class NettyConfiguration {
 
     public TlsKeyManagersProvider tlsKeyManagersProvider() {
         return configuration.get(SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER);
+    }
+
+    public TlsTrustManagersProvider tlsTrustManagersProvider() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_TRUST_MANAGERS_PROVIDER);
+    }
+
+    public boolean trustAllCertificates() {
+        return configuration.get(TRUST_ALL_CERTIFICATES);
     }
 }

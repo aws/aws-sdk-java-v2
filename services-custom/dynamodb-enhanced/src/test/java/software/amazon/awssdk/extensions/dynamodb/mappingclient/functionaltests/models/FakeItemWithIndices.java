@@ -19,7 +19,7 @@ import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmap
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.secondarySortKey;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.string;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
 
 import java.util.UUID;
 
@@ -27,16 +27,16 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Sta
 
 public class FakeItemWithIndices {
     private static final StaticTableSchema<FakeItemWithIndices> FAKE_ITEM_MAPPER =
-        StaticTableSchema.builder()
+        StaticTableSchema.builder(FakeItemWithIndices.class)
                          .newItemSupplier(FakeItemWithIndices::new)
                          .attributes(
-                string("id", FakeItemWithIndices::getId, FakeItemWithIndices::setId).as(primaryPartitionKey()),
-                string("sort", FakeItemWithIndices::getSort, FakeItemWithIndices::setSort).as(primarySortKey()),
-                string("gsi_id", FakeItemWithIndices::getGsiId, FakeItemWithIndices::setGsiId)
+                stringAttribute("id", FakeItemWithIndices::getId, FakeItemWithIndices::setId).as(primaryPartitionKey()),
+                stringAttribute("sort", FakeItemWithIndices::getSort, FakeItemWithIndices::setSort).as(primarySortKey()),
+                stringAttribute("gsi_id", FakeItemWithIndices::getGsiId, FakeItemWithIndices::setGsiId)
                     .as(secondaryPartitionKey("gsi_1"), secondaryPartitionKey("gsi_2")),
-                string("gsi_sort", FakeItemWithIndices::getGsiSort, FakeItemWithIndices::setGsiSort)
+                stringAttribute("gsi_sort", FakeItemWithIndices::getGsiSort, FakeItemWithIndices::setGsiSort)
                     .as(secondarySortKey("gsi_1")),
-                string("lsi_sort", FakeItemWithIndices::getLsiSort, FakeItemWithIndices::setLsiSort)
+                stringAttribute("lsi_sort", FakeItemWithIndices::getLsiSort, FakeItemWithIndices::setLsiSort)
                     .as(secondarySortKey("lsi_1")))
                          .build();
 

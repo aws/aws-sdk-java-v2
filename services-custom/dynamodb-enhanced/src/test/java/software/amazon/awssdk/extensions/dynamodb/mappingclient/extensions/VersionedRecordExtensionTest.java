@@ -36,7 +36,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.
 public class VersionedRecordExtensionTest {
     private static final String TABLE_NAME = "table-name";
     private static final OperationContext PRIMARY_CONTEXT =
-        OperationContext.of(TABLE_NAME, TableMetadata.primaryIndexName());
+        OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
     private final VersionedRecordExtension versionedRecordExtension = VersionedRecordExtension.builder().build();
 

@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -34,7 +33,7 @@ public interface TableSchema<T> {
     /**
      * Takes a raw DynamoDb SDK representation of a record in a table and maps it to a Java object. A new object is
      * created to fulfil this operation.
-     *
+     * <p>
      * If attributes are missing from the map, that will not cause an error, however if attributes are found in the
      * map which the mapper does not know how to map, an exception will be thrown.
      *
@@ -84,14 +83,4 @@ public interface TableSchema<T> {
      * @return A {@link TableMetadata} object that contains structural information about the table being modelled.
      */
     TableMetadata tableMetadata();
-
-    /**
-     * Returns a builder for the default implementation of this interface which is an immutable, declarative, type-safe
-     * mapper.
-     * See {@link StaticTableSchema} for more information.
-     * @return A default builder for a {@link StaticTableSchema}.
-     */
-    static StaticTableSchema.GenericBuilder builder() {
-        return StaticTableSchema.builder();
-    }
 }

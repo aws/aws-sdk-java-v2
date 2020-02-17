@@ -1,0 +1,41 @@
+{
+    "version": "2.10.54",
+    "date": "2020-01-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "description": "AWS CodePipeline enables an ability to stop pipeline executions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "description": "Documentation updates for the AWS Application Discovery Service."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "description": "Documentation updates for iotcolumbo"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "description": "Add an enum value to the result of DescribeByoipCidrs to support CIDRs that are not publicly advertisable."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO Http Client",
+            "description": "Fixed a bug where an inactive http2 connection without `GOAWAY` frame received might get reused in a new request, causing `ClosedChannelException`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Commerce Analytics",
+            "description": "Remove 4 deprecated data sets, change some data sets available dates to 2017-09-15"
+        }
+    ]
+}
