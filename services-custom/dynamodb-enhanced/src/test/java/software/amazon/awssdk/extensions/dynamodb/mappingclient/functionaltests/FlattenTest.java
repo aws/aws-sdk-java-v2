@@ -29,9 +29,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhanced
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -152,7 +149,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
 
     @Before
     public void createTable() {
-        mappedTable.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
+        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -172,8 +169,8 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setDocument(document);
 
-        Record updatedRecord = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record));
-        Record fetchedRecord = mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"))));
+        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record fetchedRecord = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"))));
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));
@@ -188,8 +185,8 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value")
                               .setDocument(document);
 
-        Record updatedRecord = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record));
-        Record fetchedRecord = mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"))));
+        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record fetchedRecord = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"))));
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));
@@ -200,8 +197,8 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
         Record record = new Record()
                               .setId("id-value");
 
-        Record updatedRecord = mappedTable.updateItem(UpdateItemEnhancedRequest.create(record));
-        Record fetchedRecord = mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"))));
+        Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
+        Record fetchedRecord = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"))));
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));

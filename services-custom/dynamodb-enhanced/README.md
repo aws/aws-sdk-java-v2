@@ -80,66 +80,109 @@ values used are also completely arbitrary.
  
 ### Common primitive operations
 These all strongly map to the primitive DynamoDB operations they are
-named after. These examples are the most simple variants of each
-operation possible. These commands can be customized by using the
-builders provided for each command and offer most of the features
-available in the low-level DynamoDB SDK client.
+named after. The examples below are the most simple variants of each
+operation possible, using the the two styles available for constructing
+requests with either builder or consumers. These commands can be 
+customized by using the builders provided for each command and offer 
+most of the features available in the low-level DynamoDB SDK client.
 
    ```java
    // CreateTable
-   customerTable.createTable(CreateTableEnhancedRequest.create());
+   customerTable.createTable();
+   customerTable.createTable(CreateTableEnhancedRequest.builder().build());
    
    // GetItem
-   Customer customer = customerTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("a123"))));
-   
+   Customer customer = customerTable.getItem(r -> r.key(Key.create(stringValue("a123"))));
+   Customer customer = customerTable.getItem(GetItemEnhancedRequest.builder()
+                                                                   .key(Key.create(stringValue("a123")))
+                                                                   .build()); 
    // UpdateItem
-   Customer updatedCustomer = customerTable.updateItem(UpdateItemEnhancedRequest.create(customer));
+   Customer updatedCustomer = customerTable.updateItem(Customer.class, r -> r.item(customer));
+   Customer updatedCustomer = customerTable.updateItem(UpdateItemEnhancedRequest.builder(Customer.class)
+                                                                                .item(customer)
+                                                                                .build());
    
    // PutItem
-   customerTable.putItem(PutItemEnhancedRequest.create(customer));
+   customerTable.putItem(Customer.class, r -> r.item(customer));
+   customerTable.putItem(PutItemEnhancedRequest.builder(Customer.class)
+                                               .item(customer)
+                                               .build());
    
    // DeleteItem
-   Customer deletedCustomer = customerTable.deleteItem(DeleteItemEnhancedRequest.create(Key.create(stringValue("a123"), numberValue(456))));
+   Customer deletedCustomer = customerTable.deleteItem(r -> r.key(Key.create(stringValue("a123"), numberValue(456))));
+   Customer deletedCustomer = customerTable.deleteItem(DeleteItemEnhancedRequest.builder()
+                                                                                     .key(Key.create(stringValue("a123"), numberValue(456)))
+                                                                                     .build());
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("a123")))));
-   
+   Iterable<Page<Customer>> customers = customerTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("a123")))));
+   Iterable<Page<Customer>> customers = customerTable.query(QueryEnhancedRequest.builder()
+                                                                                .queryConditional(equalTo(Key.create(stringValue("a123"))))
+                                                                                .build());
    // Scan
-   Iterable<Page<Customer>> customers = customerTable.scan(ScanEnhancedRequest.create());
+   Iterable<Page<Customer>> customers = customerTable.scan();
+   Iterable<Page<Customer>> customers = customerTable.scan(ScanEnhancedRequest.builder().build());
    
    // BatchGetItem
+   batchResults = enhancedClient.batchGetItem(r -> r.addReadBatch(ReadBatch.builder(Customer.class)
+                                                                           .mappedTableResource(customerTable)
+                                                                           .addGetItem(i -> i.key(key1))
+                                                                           .addGetItem(i -> i.key(key2))
+                                                                           .addGetItem(i -> i.key(key3))
+                                                                           .build()));
    batchResults = enhancedClient.batchGetItem(
-       BatchGetItemEnhancedRequest.builder().addReadBatch(ReadBatch.builder(Customer.class)
-                                                                   .mappedTableResource(customerTable)
-                                                                   .addGetItem(GetItemEnhancedRequest.create(key1))
-                                                                   .addGetItem(GetItemEnhancedRequest.create(key2))
-                                                                   .addGetItem(GetItemEnhancedRequest.create(key3))
-                                                                   .build())
+       BatchGetItemEnhancedRequest.builder()
+                                  .readBatches(ReadBatch.builder(Customer.class)
+                                                        .mappedTableResource(customerTable)
+                                                        .addGetItem(GetItemEnhancedRequest.builder().key(key1).build())
+                                                        .addGetItem(GetItemEnhancedRequest.builder().key(key2).build())
+                                                        .addGetItem(GetItemEnhancedRequest.builder().key(key3).build())
+                                                        .build())
                                   .build());
    
    // BatchWriteItem
+   batchResults = enhancedClient.batchWriteItem(r -> r.addWriteBatch(WriteBatch.builder(Customer.class)
+                                                                               .mappedTableResource(customerTable)
+                                                                               .addPutItem(i -> i.item(customer))
+                                                                               .addDeleteItem(i -> i.key(key1))
+                                                                               .addDeleteItem(i -> i.key(key1))
+                                                                               .build()));
    batchResults = enhancedClient.batchWriteItem(
-       BatchWriteItemEnhancedRequest.builder().addWriteBatch(WriteBatch.builder(Customer.class)
-                                                                       .mappedTableResource(customerTable)
-                                                                       .putItem(PutItemEnhancedRequest.create(item))
-                                                                       .deleteItem(DeleteItemEnhancedRequest.create(key1))
-                                                                       .deleteItem(DeleteItemEnhancedRequest.create(key2))
-                                                                       .build())
+       BatchWriteItemEnhancedRequest.builder()
+                                    .addWriteBatch(WriteBatch.builder(Customer.class)
+                                                             .mappedTableResource(customerTable)
+                                                             .addPutItem(PutItemEnhancedRequest.builder(Customer.class).item(customer).build())
+                                                             .addDeleteItem(DeleteItemEnhancedRequest.builder().key(key1).build())
+                                                             .addDeleteItem(DeleteItemEnhancedRequest.builder().key(key2).build())
+                                                             .build())
                                     .build());
    
    // TransactGetItems
+   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, r -> r.key(Key.create(key1)))
+                                                           .addGetItem(customerTable, r -> r.key(Key.create(key2))));
    transactResults = enhancedClient.transactGetItems(
        TransactGetItemsEnhancedRequest.builder()
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.create(Key.create(key1)))
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.create(Key.create(key2)))
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(Key.create(key1)).build())
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(Key.create(key2)).build())
                                       .build());
    
    // TransactWriteItems
+   enhancedClient.transactWriteItems(r -> r.addConditionCheck(customerTable, i -> i.key(orderKey).conditionExpression(conditionExpression))
+                                           .addUpdateItem(customerTable, Customer.class, i -> i.item(customer))
+                                           .addDeleteItem(customerTable, i -> i.key(key)));
+
    enhancedClient.transactWriteItems(
        TransactWriteItemsEnhancedRequest.builder()
-                                        .addConditionCheck(customerTable, ConditionCheck.create(orderKey, conditionExpression))
-                                        .addUpdateItem(customerTable, UpdateItemEnhancedRequest.create(customer))
-                                        .addDeleteItem(customerTable, DeleteItemEnhancedRequest.create(key))
+                                        .addConditionCheck(customerTable, ConditionCheck.builder()
+                                                                                        .key(orderKey)
+                                                                                        .conditionExpression(conditionExpression)
+                                                                                        .build())
+                                        .addUpdateItem(customerTable, UpdateItemEnhancedRequest.builder(Customer.class)
+                                                                                               .item(customer)
+                                                                                               .build())
+                                        .addDeleteItem(customerTable, DeleteItemEnhancedRequest.builder()
+                                                                                               .key(key)
+                                                                                               .build())
                                         .build());
 ```
    
@@ -149,7 +192,7 @@ index. Here's an example of how to do this:
    ```
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("Smith")))));
+   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(Key.create(stringValue("Smith")))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -172,7 +215,7 @@ key differences:
    application can then do other work without having to block on the
    result:
    ```java
-   CompletableFuture<Customer> result = mappedTable.getItem(GetItemEnhancedRequest.create(customerKey));
+   CompletableFuture<Customer> result = mappedTable.getItem(r -> r.key(customerKey));
    // Perform other work here
    return result.join();   // now block and wait for the result
    ```
@@ -182,7 +225,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   SdkPublisher<Customer> results = mappedTable.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("a123")))));
+   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("a123")))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```

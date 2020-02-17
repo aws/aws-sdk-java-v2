@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client [Preview]",
+    "description": "Improves discoverability by adding consumer-style methods for all client, table and index operations."
+}
