@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud9",
+    "description": "AWS Cloud9 now supports the ability to tag Cloud9 development environments."
+}
