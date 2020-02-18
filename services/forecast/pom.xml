@@ -24,9 +24,9 @@
         <version>2.10.72-SNAPSHOT</version>
     </parent>
     <artifactId>forecast</artifactId>
-    <name>AWS Java SDK :: Services :: forecast</name>
-    <description>The AWS Java SDK for forecast module holds the client classes that are used for
-        communicating with forecast.
+    <name>AWS Java SDK :: Services :: Forecast</name>
+    <description>The AWS Java SDK for Forecast module holds the client classes that are used for
+        communicating with Forecast.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>
