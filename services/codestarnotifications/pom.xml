@@ -24,9 +24,9 @@
         <version>2.10.72-SNAPSHOT</version>
     </parent>
     <artifactId>codestarnotifications</artifactId>
-    <name>AWS Java SDK :: Services :: codestar notifications</name>
-    <description>The AWS Java SDK for codestar notifications module holds the client classes that are used for
-        communicating with codestar notifications.
+    <name>AWS Java SDK :: Services :: Codestar Notifications</name>
+    <description>The AWS Java SDK for Codestar Notifications module holds the client classes that are used for
+        communicating with Codestar Notifications.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>

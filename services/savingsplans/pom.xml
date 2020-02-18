@@ -24,9 +24,9 @@
         <version>2.10.72-SNAPSHOT</version>
     </parent>
     <artifactId>savingsplans</artifactId>
-    <name>AWS Java SDK :: Services :: savingsplans</name>
-    <description>The AWS Java SDK for savingsplans module holds the client classes that are used for
-        communicating with savingsplans.
+    <name>AWS Java SDK :: Services :: Savingsplans</name>
+    <description>The AWS Java SDK for Savingsplans module holds the client classes that are used for
+        communicating with Savingsplans.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>

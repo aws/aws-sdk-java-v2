@@ -24,9 +24,9 @@
         <version>2.10.72-SNAPSHOT</version>
     </parent>
     <artifactId>kendra</artifactId>
-    <name>AWS Java SDK :: Services :: kendra</name>
-    <description>The AWS Java SDK for kendra module holds the client classes that are used for
-        communicating with kendra.
+    <name>AWS Java SDK :: Services :: Kendra</name>
+    <description>The AWS Java SDK for Kendra module holds the client classes that are used for
+        communicating with Kendra.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>
