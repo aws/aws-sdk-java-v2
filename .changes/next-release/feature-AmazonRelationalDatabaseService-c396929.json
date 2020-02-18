@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "description": "This release supports Microsoft Active Directory authentication for Amazon Aurora."
-}
