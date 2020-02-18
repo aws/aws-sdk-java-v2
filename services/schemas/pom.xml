@@ -24,9 +24,9 @@
         <version>2.10.67-SNAPSHOT</version>
     </parent>
     <artifactId>schemas</artifactId>
-    <name>AWS Java SDK :: Services :: schemas</name>
-    <description>The AWS Java SDK for schemas module holds the client classes that are used for
-        communicating with schemas.
+    <name>AWS Java SDK :: Services :: Schemas</name>
+    <description>The AWS Java SDK for Schemas module holds the client classes that are used for
+        communicating with Schemas.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>

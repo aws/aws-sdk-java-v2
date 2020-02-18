@@ -24,9 +24,9 @@
         <version>2.10.67-SNAPSHOT</version>
     </parent>
     <artifactId>forecastquery</artifactId>
-    <name>AWS Java SDK :: Services :: forecastquery</name>
-    <description>The AWS Java SDK for forecastquery module holds the client classes that are used for
-        communicating with forecastquery.
+    <name>AWS Java SDK :: Services :: Forecastquery</name>
+    <description>The AWS Java SDK for Forecastquery module holds the client classes that are used for
+        communicating with Forecastquery.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>

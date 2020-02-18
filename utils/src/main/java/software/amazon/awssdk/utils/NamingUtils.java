@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.utils;
+package software.amazon.awssdk.utils;
 
 import static java.util.stream.Collectors.joining;
 
 import java.util.stream.Stream;
-import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class NamingUtils {
 
     private NamingUtils() {
@@ -37,7 +37,7 @@ public final class NamingUtils {
                        .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1 V$2 "); // TestV4 -> "Test V4 "
 
         // Add a space between camelCased words
-        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> "Acm Success"
+        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> // "Acm Success"
 
         // Add a space after acronyms
         result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2"); // ACMSuccess -> "ACM Success"
@@ -53,10 +53,10 @@ public final class NamingUtils {
     }
 
     public static String pascalCase(String word) {
-        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(StringUtils::capitalize).collect(joining());
     }
 
     public static String pascalCase(String... words) {
-        return Stream.of(words).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+        return Stream.of(words).map(StringUtils::lowerCase).map(StringUtils::capitalize).collect(joining());
     }
 }

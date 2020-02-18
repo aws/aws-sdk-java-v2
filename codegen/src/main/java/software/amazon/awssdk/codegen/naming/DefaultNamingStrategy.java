@@ -23,6 +23,8 @@ import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFI
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
+import static software.amazon.awssdk.utils.NamingUtils.pascalCase;
+import static software.amazon.awssdk.utils.NamingUtils.splitOnWordBoundaries;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -181,10 +183,6 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     private String screamCase(String word) {
         return Stream.of(splitOnWordBoundaries(word)).map(s -> s.toUpperCase(Locale.US)).collect(joining("_"));
-    }
-
-    private String pascalCase(String word) {
-        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
     }
 
     private String getCustomizedPackageName(String serviceName, String defaultPattern) {
@@ -357,31 +355,4 @@ public class DefaultNamingStrategy implements NamingStrategy {
             return RESERVED_STRUCTURE_METHOD_NAMES.contains(name);
         }
     }
-
-    private String[] splitOnWordBoundaries(String toSplit) {
-        String result = toSplit;
-
-        // All non-alphanumeric characters are spaces
-        result = result.replaceAll("[^A-Za-z0-9]+", " "); // acm-success -> "acm success"
-
-        // If a number has a standalone v in front of it, separate it out (version).
-        result = result.replaceAll("([^a-z]{2,})v([0-9]+)", "$1 v$2 ") // TESTv4 -> "TEST v4 "
-                       .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1 V$2 "); // TestV4 -> "Test V4 "
-
-        // Add a space between camelCased words
-        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> "Acm Success"
-
-        // Add a space after acronyms
-        result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2"); // ACMSuccess -> "ACM Success"
-
-        // Add space after a number in the middle of a word
-        result = result.replaceAll("([0-9])([a-zA-Z])", "$1 $2"); // s3ec2 -> "s3 ec2"
-
-        // Remove extra spaces - multiple consecutive ones or those and the beginning/end of words
-        result = result.replaceAll(" +", " ") // "Foo  Bar" -> "Foo Bar"
-                       .trim(); // " Foo " -> Foo
-
-        return result.split(" ");
-    }
-
 }
