@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime",
+    "description": "Added AudioFallbackUrl to support Chime SDK client."
+}
