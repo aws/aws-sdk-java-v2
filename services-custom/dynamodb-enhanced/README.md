@@ -13,54 +13,69 @@ values used are also completely arbitrary.
 
 ### Initialization
 1. Create or use a java class for mapping records to and from the
-   database table. The class does not need to conform to Java bean
-   standards but you will need getters and setters to all the attributes
-   you want to map. Here's an example :-
+   database table. At a minimum you must annotate the class so that
+   it can be used as a DynamoDb bean, and also the property that
+   represents the primary partition key of the table. Here's an example:-
    ```java
+   @DynamoDbBean
    public class Customer {
        private String accountId;
-       private int subId;            // you could also use Integer here
+       private int subId;            // primitive types are supported
        private String name;
        private String createdDate;
        
+       @DynamoDbPartitionKey
        public String getAccountId() { return this.accountId; }
        public void setAccountId(String accountId) { this.accountId = accountId; }
        
+       @DynamoDbSortKey
        public int getSubId() { return this.subId; }
        public void setSubId(int subId) { this.subId = subId; }
        
+       // Defines a GSI (customers_by_name) with a partition key of 'name'
+       @DynamoDbSecondaryPartitionKey(indexNames = "customers_by_name")
        public String getName() { return this.name; }
        public void setName(String name) { this.name = name; }
        
+       // Defines an LSI (customers_by_date) with a sort key of 'createdDate' and also declares the 
+       // same attribute as a sort key for the GSI named 'customers_by_name'
+       @DynamoDbSecondarySortKey(indexNames = {"customers_by_date", "customers_by_name"})
        public String getCreatedDate() { return this.createdDate; }
        public void setCreatedDate(String createdDate) { this.createdDate = createdDate; }
    }
    ```
    
-2. Create a static TableSchema for your class. You could put this in the
-   class itself, or somewhere else :-
+2. Create a TableSchema for your class. For this example we are using the 'BeanTableSchema' that will scan your bean
+   class and use the annotations to infer the table structure and attributes :
+   ```java
+   static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = BeanTableSchema.create(Customer.class);
+   ```
+   
+   If you would prefer to skip the slightly costly bean inference for a faster solution, you can instead declare your 
+   schema directly and let the compiler do the heavy lifting. If you do it this way, your class does not need to follow
+   bean naming standards nor does it need to be annotated. This example is equivalent to the bean example : 
    ```java
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
      StaticTableSchema.builder(Customer.class)
-       .newItemSupplier(Customer::new)       // Tells the mapper how to make new objects when reading items
+       .newItemSupplier(Customer::new)
        .attributes(
          stringAttribute("account_id", 
                          Customer::getAccountId, 
                          Customer::setAccountId)
-            .as(primaryPartitionKey()),                                                  // primary partition key         
+            .as(primaryPartitionKey()),
          integerNumberAttribute("sub_id", 
                                 Customer::getSubId, 
                                 Customer::setSubId)
-            .as(primarySortKey()),                                                       // primary sort key
+            .as(primarySortKey()),
          stringAttribute("name", 
                          Customer::getName, 
                          Customer::setName)
-            .as(secondaryPartitionKey("customers_by_name")),                             // GSI partition key
+            .as(secondaryPartitionKey("customers_by_name")),
          stringAttribute("created_date", 
                          Customer::getCreatedDate, 
                          Customer::setCreatedDate)
             .as(secondarySortKey("customers_by_date"), 
-                secondarySortKey("customers_by_name")))              // Sort key for both the LSI and the GSI
+                secondarySortKey("customers_by_name")))
        .build();
    ```
    
@@ -262,8 +277,13 @@ DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
 ```
 
 To tell the extension which attribute to use to track the record version
-number tag a numeric attribute in the TableSchema with the version()
-AttributeTag:
+number tag a numeric attribute in the TableSchema:
+```java
+    @DynamoDbVersionAttribute
+    public Integer getVersion() {...};
+    public void setVersion(Integer version) {...};
+```
+Or using a StaticTableSchema:
 ```java
     integerNumberAttribute("version", 
                            Customer::getVersion, 
@@ -271,7 +291,7 @@ AttributeTag:
         .as(version())          // Apply the 'version' tag to the attribute                         
 ```
 
-## Advanced scenarios
+## Advanced StaticTableSchema scenarios
 ### Flat map attributes from another class
 If the attributes for your table record are spread across several
 different Java objects, either through inheritance or composition, the
