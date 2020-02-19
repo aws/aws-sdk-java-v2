@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions;
+package software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.versionedrecord;
 
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.isNullAttributeValue;
 
@@ -29,6 +29,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableMetadata;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.AttributeValueType;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.WriteModification;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTag;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
