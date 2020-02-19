@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -59,6 +60,24 @@ public final class AttributeTags {
                                     tableMetadataBuilder.addIndexSortKey(indexName,
                                                                          attribute.getAttributeName(),
                                                                          attribute.getAttributeValueType()));
+    }
+
+    public static AttributeTag secondaryPartitionKey(Collection<String> indexNames) {
+        return new KeyAttribute(
+            (tableMetadataBuilder, attribute) ->
+                indexNames.forEach(
+                    indexName -> tableMetadataBuilder.addIndexPartitionKey(indexName,
+                                                                           attribute.getAttributeName(),
+                                                                           attribute.getAttributeValueType())));
+    }
+
+    public static AttributeTag secondarySortKey(Collection<String> indexNames) {
+        return new KeyAttribute(
+            (tableMetadataBuilder, attribute) ->
+                indexNames.forEach(
+                    indexName -> tableMetadataBuilder.addIndexSortKey(indexName,
+                                                                      attribute.getAttributeName(),
+                                                                      attribute.getAttributeValueType())));
     }
 
     private static class KeyAttribute extends AttributeTag {

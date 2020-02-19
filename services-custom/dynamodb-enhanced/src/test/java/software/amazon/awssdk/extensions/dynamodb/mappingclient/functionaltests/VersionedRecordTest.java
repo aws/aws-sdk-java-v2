@@ -18,7 +18,7 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.AttributeValues.stringValue;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.VersionedRecordExtension.AttributeTags.version;
+import static software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.versionedrecord.VersionedRecordExtension.AttributeTags.version;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.Attributes.stringAttribute;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.VersionedRecordExtension;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.extensions.versionedrecord.VersionedRecordExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
