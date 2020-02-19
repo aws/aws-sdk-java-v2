@@ -68,7 +68,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.extensions.dynamodb.mappingclient</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.enhanced.dynamodb</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
