@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "description": "AWS Lambda now supports Ruby 2.7"
+}
