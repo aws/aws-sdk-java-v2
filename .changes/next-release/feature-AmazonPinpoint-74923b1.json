@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint",
+    "description": "As of this release of the Amazon Pinpoint API, the Title property is optional for the CampaignEmailMessage object."
+}
