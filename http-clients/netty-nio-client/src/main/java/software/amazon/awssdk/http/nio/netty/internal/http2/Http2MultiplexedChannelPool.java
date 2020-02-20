@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_CONNECTION;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_INITIAL_WINDOW_SIZE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
 import io.netty.channel.Channel;
@@ -24,6 +27,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
+import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.Http2Exception;
+import io.netty.handler.codec.http2.Http2LocalFlowController;
+import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
@@ -147,7 +154,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
 
     private void acquireStreamOnFreshConnection(Promise<Channel> promise, Channel parentChannel, Protocol protocol) {
         try {
-            Long maxStreams = parentChannel.attr(ChannelAttributeKey.MAX_CONCURRENT_STREAMS).get();
+            Long maxStreams = parentChannel.attr(MAX_CONCURRENT_STREAMS).get();
 
             Validate.isTrue(protocol == Protocol.HTTP2,
                             "Protocol negotiated on connection (%s) was expected to be HTTP/2, but it "
@@ -202,7 +209,37 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         promise.setSuccess(stream);
     }
 
+    /**
+     * By default, connection window size is a constant value:
+     * connectionWindowSize = 65535 + (configureInitialWindowSize - 65535) * 2.
+     * See https://github.com/netty/netty/blob/5c458c9a98d4d3d0345e58495e017175156d624f/codec-http2/src/main/java/io/netty
+     * /handler/codec/http2/Http2FrameCodec.java#L255
+     * We should expand connection window so that the window size proportional to the number of concurrent streams within the
+     * connection.
+     * Note that when {@code WINDOW_UPDATE} will be sent depends on the processedWindow in DefaultHttp2LocalFlowController.
+     */
+    private void tryExpandConnectionWindow(Channel parentChannel) {
+        doInEventLoop(parentChannel.eventLoop(), () -> {
+            Http2Connection http2Connection = parentChannel.attr(HTTP2_CONNECTION).get();
+            Integer initialWindowSize = parentChannel.attr(HTTP2_INITIAL_WINDOW_SIZE).get();
+
+            Validate.notNull(http2Connection, "http2Connection should not be null on channel " + parentChannel);
+            Validate.notNull(http2Connection, "initialWindowSize should not be null on channel " + parentChannel);
+
+            Http2Stream connectionStream = http2Connection.connectionStream();
+            log.debug(() -> "Expanding connection window size for " + parentChannel + " by " + initialWindowSize);
+            try {
+                Http2LocalFlowController localFlowController = http2Connection.local().flowController();
+                localFlowController.incrementWindowSize(connectionStream, initialWindowSize);
+
+            } catch (Http2Exception e) {
+                log.warn(() -> "Failed to increment windowSize of connection " + parentChannel, e);
+            }
+        });
+    }
+
     private Void failAndCloseParent(Promise<Channel> promise, Channel parentChannel, Throwable exception) {
+        log.debug(() -> "Channel acquiring failed, closing connection " + parentChannel, exception);
         promise.setFailure(exception);
         closeAndReleaseParent(parentChannel);
         return null;
@@ -233,6 +270,8 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
                 channel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL).set(this);
                 channel.attr(MULTIPLEXED_CHANNEL).set(channelRecord);
                 promise.setSuccess(channel);
+
+                tryExpandConnectionWindow(channel.parent());
             } catch (Exception e) {
                 promise.setFailure(e);
             }
@@ -324,7 +363,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
                 multiplexedChannel.handleGoAway(lastStreamId, exception);
             } else {
                 // If we don't have a multiplexed channel, the parent channel hasn't been fully initialized. Close it now.
-                closeAndReleaseParent(parentChannel);
+                closeAndReleaseParent(parentChannel, exception);
             }
         } catch (Exception e) {
             log.error(() -> "Failed to handle GOAWAY frame on channel " + parentChannel, e);
