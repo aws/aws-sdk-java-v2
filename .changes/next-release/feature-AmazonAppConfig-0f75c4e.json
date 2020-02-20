@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppConfig",
-    "description": "This release adds exponential growth type support for deployment strategies."
-}
