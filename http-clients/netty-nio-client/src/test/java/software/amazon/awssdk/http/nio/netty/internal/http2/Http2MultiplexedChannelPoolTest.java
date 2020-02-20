@@ -20,6 +20,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_CONNECTION;
+import static software.amazon.awssdk.http.nio.netty.internal.http2.utils.Http2TestUtils.newHttp2Channel;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -28,6 +30,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.Http2FrameCodec;
+import io.netty.handler.codec.http2.Http2LocalFlowController;
+import io.netty.handler.codec.http2.Http2Stream;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.FailedFuture;
 import io.netty.util.concurrent.Future;
@@ -35,12 +41,14 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 
 /**
  * Tests for {@link Http2MultiplexedChannelPool}.
@@ -199,6 +207,55 @@ public class Http2MultiplexedChannelPoolTest {
             assertThat(interrupteFlagPreserved.join()).isTrue();
         } finally {
             channel.close().awaitUninterruptibly();
+        }
+    }
+
+    @Test
+    public void acquire_shouldExpandConnectionWindowSizeProportionally() {
+        int maxConcurrentStream = 3;
+        EmbeddedChannel channel = newHttp2Channel();
+        channel.attr(ChannelAttributeKey.MAX_CONCURRENT_STREAMS).set((long) maxConcurrentStream);
+
+        try {
+            ChannelPool connectionPool = Mockito.mock(ChannelPool.class);
+
+            loopGroup.register(channel).awaitUninterruptibly();
+            Promise<Channel> channelPromise = new DefaultPromise<>(loopGroup.next());
+            channelPromise.setSuccess(channel);
+
+            Mockito.when(connectionPool.acquire()).thenReturn(channelPromise);
+
+            Http2MultiplexedChannelPool h2Pool = new Http2MultiplexedChannelPool(connectionPool, loopGroup,
+                                                                                 Collections.emptySet(), null);
+
+            Future<Channel> acquire = h2Pool.acquire();
+            acquire.awaitUninterruptibly();
+            channel.runPendingTasks();
+
+            Http2Connection http2Connection = channel.attr(HTTP2_CONNECTION).get();
+            Http2LocalFlowController flowController =
+                http2Connection.local().flowController();
+
+            System.out.println(flowController.initialWindowSize());
+            Http2Stream connectionStream = http2Connection.stream(0);
+
+            // 1_048_576 (initial configured window size), 65535 (configured initial window size)
+            // (1048576 - 65535) *2 + 65535 = 2031617
+            assertThat(flowController.windowSize(connectionStream)).isEqualTo(2031617);
+
+            // 2031617 + 1048576 (configured initial window size) = 3080193
+            assertThat(flowController.initialWindowSize(connectionStream)).isEqualTo(3080193);
+
+            // acquire again
+            h2Pool.acquire().awaitUninterruptibly();
+            channel.runPendingTasks();
+
+            // 3080193 + 1048576 (configured initial window size) = 4128769
+            assertThat(flowController.initialWindowSize(connectionStream)).isEqualTo(4128769);
+
+            Mockito.verify(connectionPool, Mockito.times(1)).acquire();
+        } finally {
+            channel.close();
         }
     }
 }
