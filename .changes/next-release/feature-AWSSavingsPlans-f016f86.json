@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Savings Plans",
+    "description": "Added support for AWS Lambda in Compute Savings Plans"
+}
