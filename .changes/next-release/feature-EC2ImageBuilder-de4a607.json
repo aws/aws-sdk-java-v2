@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "description": "This release of EC2 Image Builder increases the maximum policy document size for Image Builder resource-based policy APIs."
-}

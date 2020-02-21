@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "description": "Extend elastic resize to support resizing clusters to different instance types."
-}
