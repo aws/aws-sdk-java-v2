@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -224,6 +224,16 @@ public class MultiplexedChannelRecordTest {
 
         // should be closed by UnusedChannelExceptionHandler
         assertThat(childChannel.isOpen()).isFalse();
+    }
+
+    @Test
+    public void closeToNewStreams_AcquireStreamShouldReturnFalse() {
+        MultiplexedChannelRecord record = new MultiplexedChannelRecord(channel, 2, Duration.ofSeconds(10));
+        Promise<Channel> streamPromise = channel.eventLoop().newPromise();
+        assertThat(record.acquireStream(streamPromise)).isTrue();
+
+        record.closeToNewStreams();
+        assertThat(record.acquireStream(streamPromise)).isFalse();
     }
 
     private static final class VerifyExceptionHandler extends ChannelInboundHandlerAdapter {

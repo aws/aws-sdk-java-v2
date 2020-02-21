@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -315,7 +315,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         return resultPromise.setSuccess(null);
     }
 
-    public void handleGoAway(Channel parentChannel, int lastStreamId, GoAwayException exception) {
+    void handleGoAway(Channel parentChannel, int lastStreamId, GoAwayException exception) {
         log.debug(() -> "Received GOAWAY on " + parentChannel + " with lastStreamId of " + lastStreamId);
         try {
             MultiplexedChannelRecord multiplexedChannel = parentChannel.attr(MULTIPLEXED_CHANNEL).get();
@@ -387,7 +387,20 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            closeAndReleaseParent(ctx, cause);
+            if (cause instanceof Http2StreamExceptionHandler.Http2StreamIoException) {
+                closeConnectionToNewRequests(ctx, cause);
+            } else {
+                closeAndReleaseParent(ctx, cause);
+            }
+        }
+
+        void closeConnectionToNewRequests(ChannelHandlerContext ctx, Throwable cause) {
+            MultiplexedChannelRecord multiplexedChannel = ctx.channel().attr(MULTIPLEXED_CHANNEL).get();
+            if (multiplexedChannel != null) {
+                multiplexedChannel.closeToNewStreams();
+            } else {
+                closeAndReleaseParent(ctx, cause);
+            }
         }
 
         private void closeAndReleaseParent(ChannelHandlerContext ctx, Throwable cause) {

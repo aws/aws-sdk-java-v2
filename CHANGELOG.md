@@ -1,3 +1,105 @@
+# __2.10.69__ __2020-02-20__
+## __AWS Savings Plans__
+  - ### Features
+    - Added support for AWS Lambda in Compute Savings Plans
+
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds exponential growth type support for deployment strategies.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - As of this release of the Amazon Pinpoint API, the Title property is optional for the CampaignEmailMessage object.
+
+# __2.10.68__ __2020-02-19__
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports Ruby 2.7
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - "ListPortfolioAccess" API now has a new optional parameter "OrganizationParentId". When it is provided and if the portfolio with the "PortfolioId" given was shared with an organization or organizational unit with "OrganizationParentId", all accounts in the organization sub-tree under parent which inherit an organizational portfolio share will be listed, rather than all accounts with external shares. To accommodate long lists returned from the new option, the API now supports pagination.
+
+## __Auto Scaling__
+  - ### Features
+    - Doc update for EC2 Auto Scaling: Add Enabled parameter for PutScalingPolicy
+
+# __2.10.67__ __2020-02-18__
+## __Amazon Chime__
+  - ### Features
+    - Added AudioFallbackUrl to support Chime SDK client.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release supports Microsoft Active Directory authentication for Amazon Aurora.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports the ability to enable/disable target tracking, step scaling, and simple scaling policies.
+
+# __2.10.66__ __2020-02-17__
+## __AWS Cloud9__
+  - ### Features
+    - AWS Cloud9 now supports the ability to tag Cloud9 development environments.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Amazon DynamoDB enables you to restore your DynamoDB backup or table data across AWS Regions such that the restored table is created in a different AWS Region from where the source table or backup resides. You can do cross-region restores between AWS commercial Regions, AWS China Regions, and AWS GovCloud (US) Regions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2
+
+## __Amazon Rekognition__
+  - ### Features
+    - This update adds the ability to detect text in videos and adds filters to image and video text detection.
+
+# __2.10.65__ __2020-02-14__
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor SDK now allows configuration of Personalization Threshold for HLS and DASH streams.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub has released a new DescribeStandards API action. This API action allows a customer to list all of the standards available in an account. For each standard, the list provides the customer with the standard name, description, and ARN. Customers can use the ARN as an input to the BatchEnableStandards API action. To learn more, visit our API documentation.
+
+## __AWS Shield__
+  - ### Features
+    - This release adds support for associating Amazon Route 53 health checks to AWS Shield Advanced protected resources.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - You can now enable Multi-Attach on Provisioned IOPS io1 volumes through the create-volume API.
+
+## __Amazon S3__
+  - ### Features
+    - Added support for presigning `CreateMultipartUpload`, `UploadPart`, `CompleteMultipartUpload`, and `AbortMultipartUpload` requests.
+
+# __2.10.64__ __2020-02-13__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Adds support for DASH with multiple media presentation description periods triggered by presence of SCTE-35 ad markers in the manifest.Also adds optional configuration for DASH SegmentTemplateFormat to refer to segments by Number with Duration, Number with Timeline or Time with Timeline and compact the manifest by combining duplicate SegmentTemplate tags.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by adding operation methods for deleteItem(), getItem(), putItem and updateItem(), as applicable. These methods take a request object as parameter. Execute() methods for the table interface is removed since they are no longer needed.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - When there is an I/O error on an http2 request, the SDK will start shutting down the connection - stopping using the http2 connection for new requests and closing it after all streams are finished.
+
 # __2.10.63__ __2020-02-12__
 ## __AWS Directory Service__
   - ### Features

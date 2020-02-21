@@ -1,0 +1,21 @@
+{
+    "version": "2.10.67",
+    "date": "2020-02-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "description": "This release supports Microsoft Active Directory authentication for Amazon Aurora."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "description": "Amazon EC2 Auto Scaling now supports the ability to enable/disable target tracking, step scaling, and simple scaling policies."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "description": "Added AudioFallbackUrl to support Chime SDK client."
+        }
+    ]
+}
