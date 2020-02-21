@@ -28,7 +28,11 @@ public final class BatchWriteItemEnhancedRequest {
     private final List<WriteBatch> writeBatches;
 
     private BatchWriteItemEnhancedRequest(Builder builder) {
-        this.writeBatches = getListIfExist(builder.writeBatches);
+        this.writeBatches = Collections.unmodifiableList(builder.writeBatches);
+    }
+
+    public static BatchWriteItemEnhancedRequest create(Collection<WriteBatch> writeBatches) {
+        return builder().writeBatches(writeBatches).build();
     }
 
     public static Builder builder() {
@@ -62,10 +66,6 @@ public final class BatchWriteItemEnhancedRequest {
         return writeBatches != null ? writeBatches.hashCode() : 0;
     }
 
-    private static List<WriteBatch> getListIfExist(List<WriteBatch> writeBatches) {
-        return writeBatches != null ? Collections.unmodifiableList(writeBatches) : null;
-    }
-
     public static final class Builder {
         private List<WriteBatch> writeBatches;
 
@@ -73,7 +73,7 @@ public final class BatchWriteItemEnhancedRequest {
         }
 
         public Builder writeBatches(Collection<WriteBatch> writeBatches) {
-            this.writeBatches = writeBatches != null ? new ArrayList<>(writeBatches) : null;
+            this.writeBatches = new ArrayList<>(writeBatches);
             return this;
         }
 

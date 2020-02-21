@@ -51,10 +51,7 @@ public class ConditionCheckTest {
                                                    .expressionValues(singletonMap("key2", stringValue("value2")))
                                                    .build();
         ConditionCheck<FakeItem> operation =
-            ConditionCheck.builder()
-                          .key(Key.create(stringValue(fakeItem.getId())))
-                          .conditionExpression(conditionExpression)
-                          .build();
+            ConditionCheck.create(Key.create(stringValue(fakeItem.getId())), conditionExpression);
         OperationContext context = OperationContext.create("table-name", TableMetadata.primaryIndexName());
 
         TransactWriteItem result = operation.generateTransactWriteItem(FakeItem.getTableSchema(), context,

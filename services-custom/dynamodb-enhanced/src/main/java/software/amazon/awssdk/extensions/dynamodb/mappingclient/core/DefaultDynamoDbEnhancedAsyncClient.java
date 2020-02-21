@@ -17,7 +17,6 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbEnhancedAsyncClient;
@@ -62,23 +61,9 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public SdkPublisher<BatchGetResultPage> batchGetItem(Consumer<BatchGetItemEnhancedRequest.Builder> requestConsumer) {
-        BatchGetItemEnhancedRequest.Builder builder = BatchGetItemEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return batchGetItem(builder.build());
-    }
-
-    @Override
     public CompletableFuture<BatchWriteResult> batchWriteItem(BatchWriteItemEnhancedRequest request) {
         BatchWriteItemOperation operation = BatchWriteItemOperation.create(request);
         return operation.executeAsync(dynamoDbClient, mapperExtension);
-    }
-
-    @Override
-    public CompletableFuture<BatchWriteResult> batchWriteItem(Consumer<BatchWriteItemEnhancedRequest.Builder> requestConsumer) {
-        BatchWriteItemEnhancedRequest.Builder builder = BatchWriteItemEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return batchWriteItem(builder.build());
     }
 
     @Override
@@ -87,24 +72,10 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
         return operation.executeAsync(dynamoDbClient, mapperExtension);
     }
 
-    public CompletableFuture<List<TransactGetResultPage>> transactGetItems(
-        Consumer<TransactGetItemsEnhancedRequest.Builder> requestConsumer) {
-        TransactGetItemsEnhancedRequest.Builder builder = TransactGetItemsEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return transactGetItems(builder.build());
-    }
-
     @Override
     public CompletableFuture<Void> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
         return operation.executeAsync(dynamoDbClient, mapperExtension);
-    }
-
-    @Override
-    public CompletableFuture<Void> transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
-        TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return transactWriteItems(builder.build());
     }
 
     public DynamoDbAsyncClient dynamoDbAsyncClient() {

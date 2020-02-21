@@ -43,6 +43,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -104,15 +106,28 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
                                           .dynamoDbClient(getDynamoDbAsyncClient())
                                           .build();
 
-    private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    private DynamoDbAsyncTable<Record> mappedTable = enhancedAsyncClient.table(getConcreteTableName("table-name"),
+                                                                               TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)).join());
+    }
+
+    private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+        BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
+        publisher.subscribe(subscriber);
+        subscriber.waitForCompletion(1000L);
+
+        assertThat(subscriber.isCompleted(), is(true));
+        assertThat(subscriber.bufferedError(), is(nullValue()));
+        assertThat(subscriber.bufferedItems().size(), is(expectedNumberOfResults));
+
+        return subscriber.bufferedItems();
     }
 
     @Before
     public void createTable() {
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
+        mappedTable.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput())).join();
     }
 
     @After
@@ -126,7 +141,7 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
-        SdkPublisher<Page<Record>> publisher = mappedTable.scan(ScanEnhancedRequest.builder().build());
+        SdkPublisher<Page<Record>> publisher = mappedTable.scan(ScanEnhancedRequest.create());
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
 
@@ -145,8 +160,9 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
                                           .expressionValues(expressionValues)
                                           .build();
 
-        SdkPublisher<Page<Record>> publisher =
-            mappedTable.scan(ScanEnhancedRequest.builder().filterExpression(expression).build());
+        SdkPublisher<Page<Record>> publisher = mappedTable.scan(ScanEnhancedRequest.builder()
+                                                                                   .filterExpression(expression)
+                                                                                   .build());
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -159,8 +175,9 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void scanLimit() {
         insertRecords();
-
-        SdkPublisher<Page<Record>> publisher = mappedTable.scan(r -> r.limit(5));
+        SdkPublisher<Page<Record>> publisher = mappedTable.scan(ScanEnhancedRequest.builder()
+                                                                                   .limit(5)
+                                                                                   .build());
 
         List<Page<Record>> results = drainPublisher(publisher, 3);
 
@@ -178,7 +195,7 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void scanEmpty() {
-        SdkPublisher<Page<Record>> publisher = mappedTable.scan();
+        SdkPublisher<Page<Record>> publisher = mappedTable.scan(ScanEnhancedRequest.create());
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
 
@@ -189,8 +206,9 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void scanExclusiveStartKey() {
         insertRecords();
-        SdkPublisher<Page<Record>> publisher =
-            mappedTable.scan(ScanEnhancedRequest.builder().exclusiveStartKey(getKeyMap(7)).build());
+        SdkPublisher<Page<Record>> publisher = mappedTable.scan(ScanEnhancedRequest.builder()
+                                                                                   .exclusiveStartKey(getKeyMap(7))
+                                                                                   .build());
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);

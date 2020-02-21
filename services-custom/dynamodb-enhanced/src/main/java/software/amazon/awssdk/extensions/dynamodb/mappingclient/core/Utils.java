@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -118,14 +116,5 @@ public final class Utils {
 
         return sortKeyValue.map(attributeValue -> Key.create(partitionKeyValue, attributeValue))
                            .orElseGet(() -> Key.create(partitionKeyValue));
-    }
-
-    public static <T> List<T> getItemsFromSupplier(List<Supplier<T>> itemSupplierList) {
-        if (itemSupplierList == null || itemSupplierList.isEmpty()) {
-            return null;
-        }
-        return Collections.unmodifiableList(itemSupplierList.stream()
-                                                            .map(Supplier::get)
-                                                            .collect(Collectors.toList()));
     }
 }

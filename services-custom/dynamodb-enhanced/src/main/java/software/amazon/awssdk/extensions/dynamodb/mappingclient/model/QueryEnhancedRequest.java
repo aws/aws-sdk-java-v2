@@ -40,6 +40,10 @@ public final class QueryEnhancedRequest {
         this.filterExpression = builder.filterExpression;
     }
 
+    public static QueryEnhancedRequest create(QueryConditional queryConditional) {
+        return builder().queryConditional(queryConditional).build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -142,7 +146,7 @@ public final class QueryEnhancedRequest {
         }
 
         public Builder exclusiveStartKey(Map<String, AttributeValue> exclusiveStartKey) {
-            this.exclusiveStartKey = exclusiveStartKey != null ? new HashMap<>(exclusiveStartKey) : null;
+            this.exclusiveStartKey = new HashMap<>(exclusiveStartKey);
             return this;
         }
 
