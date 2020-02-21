@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
@@ -48,19 +47,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
-    default Void createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
-    default Void createTable() {
-        throw new UnsupportedOperationException();
-    }
-
-    default T deleteItem(DeleteItemEnhancedRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    default T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
+    default T deleteItem(DeleteItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 
@@ -68,15 +55,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
-    default T getItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
     default SdkIterable<Page<T>> query(QueryEnhancedRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    default SdkIterable<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -84,19 +63,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
-    default Void putItem(Class<? extends T> itemClass, Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
     default SdkIterable<Page<T>> scan(ScanEnhancedRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    default SdkIterable<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
-    default SdkIterable<Page<T>> scan() {
         throw new UnsupportedOperationException();
     }
 
@@ -104,7 +71,4 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
         throw new UnsupportedOperationException();
     }
 
-    default T updateItem(Class<? extends T> itemClass, Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
 }

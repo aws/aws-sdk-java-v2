@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.getItemsFromSupplier;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
@@ -36,7 +35,9 @@ public final class TransactWriteItemsEnhancedRequest {
     private final List<TransactWriteItem> transactWriteItems;
 
     private TransactWriteItemsEnhancedRequest(Builder builder) {
-        this.transactWriteItems = getItemsFromSupplier(builder.itemSupplierList);
+        this.transactWriteItems = Collections.unmodifiableList(builder.itemSupplierList.stream()
+                                                                                       .map(Supplier::get)
+                                                                                       .collect(Collectors.toList()));
     }
 
     public static Builder builder() {
@@ -77,23 +78,9 @@ public final class TransactWriteItemsEnhancedRequest {
             return this;
         }
 
-        public <T> Builder addConditionCheck(MappedTableResource<T> mappedTableResource,
-                                             Consumer<ConditionCheck.Builder> requestConsumer) {
-            ConditionCheck.Builder builder = ConditionCheck.builder();
-            requestConsumer.accept(builder);
-            return addConditionCheck(mappedTableResource, builder.build());
-        }
-
-        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, DeleteItemEnhancedRequest request) {
+        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, DeleteItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, DeleteItemOperation.create(request)));
             return this;
-        }
-
-        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource,
-                                      Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
-            DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
-            requestConsumer.accept(builder);
-            return addDeleteItem(mappedTableResource, builder.build());
         }
 
         public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, PutItemEnhancedRequest<T> request) {
@@ -101,23 +88,9 @@ public final class TransactWriteItemsEnhancedRequest {
             return this;
         }
 
-        public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, Class<? extends T> itemClass,
-                                      Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
-            PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
-            requestConsumer.accept(builder);
-            return addPutItem(mappedTableResource, builder.build());
-        }
-
         public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource, UpdateItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, UpdateItemOperation.create(request)));
             return this;
-        }
-
-        public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource, Class<? extends T> itemClass,
-                                         Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
-            UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
-            requestConsumer.accept(builder);
-            return addUpdateItem(mappedTableResource, builder.build());
         }
 
         public TransactWriteItemsEnhancedRequest build() {

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
 import java.util.List;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedClient;
@@ -49,15 +48,7 @@ public interface DynamoDbEnhancedClient {
         throw new UnsupportedOperationException();
     }
 
-    default SdkIterable<BatchGetResultPage> batchGetItem(Consumer<BatchGetItemEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
     default BatchWriteResult batchWriteItem(BatchWriteItemEnhancedRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    default BatchWriteResult batchWriteItem(Consumer<BatchWriteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -65,15 +56,7 @@ public interface DynamoDbEnhancedClient {
         throw new UnsupportedOperationException();
     }
 
-    default List<TransactGetResultPage> transactGetItems(Consumer<TransactGetItemsEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
     default Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    default Void transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

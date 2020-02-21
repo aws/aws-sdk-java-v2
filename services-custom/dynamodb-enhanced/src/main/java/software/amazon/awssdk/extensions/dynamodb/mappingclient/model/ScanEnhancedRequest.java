@@ -36,6 +36,10 @@ public final class ScanEnhancedRequest {
         this.filterExpression = builder.filterExpression;
     }
 
+    public static ScanEnhancedRequest create() {
+        return builder().build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -106,7 +110,7 @@ public final class ScanEnhancedRequest {
         }
 
         public Builder exclusiveStartKey(Map<String, AttributeValue> exclusiveStartKey) {
-            this.exclusiveStartKey = exclusiveStartKey != null ? new HashMap<>(exclusiveStartKey) : null;
+            this.exclusiveStartKey = new HashMap<>(exclusiveStartKey);
             return this;
         }
 

@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient.model;
 
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.getItemsFromSupplier;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MappedTableResource;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.OperationContext;
@@ -34,7 +33,9 @@ public final class TransactGetItemsEnhancedRequest {
     private final List<TransactGetItem> transactGetItems;
 
     private TransactGetItemsEnhancedRequest(Builder builder) {
-        this.transactGetItems = getItemsFromSupplier(builder.itemSupplierList);
+        this.transactGetItems = Collections.unmodifiableList(builder.itemSupplierList.stream()
+                                                                    .map(Supplier::get)
+                                                                    .collect(Collectors.toList()));
     }
 
     public static Builder builder() {
@@ -70,16 +71,9 @@ public final class TransactGetItemsEnhancedRequest {
         private Builder() {
         }
 
-        public <T> Builder addGetItem(MappedTableResource<T> mappedTableResource, GetItemEnhancedRequest request) {
+        public <T> Builder addGetItem(MappedTableResource<T> mappedTableResource, GetItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, GetItemOperation.create(request)));
             return this;
-        }
-
-        public <T> Builder addGetItem(MappedTableResource<T> mappedTableResource,
-                                      Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
-            GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
-            requestConsumer.accept(builder);
-            return addGetItem(mappedTableResource, builder.build());
         }
 
         public TransactGetItemsEnhancedRequest build() {

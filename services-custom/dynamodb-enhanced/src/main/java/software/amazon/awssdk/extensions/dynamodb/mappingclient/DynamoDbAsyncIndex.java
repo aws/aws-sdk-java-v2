@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.extensions.dynamodb.mappingclient;
 
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
@@ -34,19 +33,7 @@ public interface DynamoDbAsyncIndex<T> {
         throw new UnsupportedOperationException();
     }
 
-    default SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
     default SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    default SdkPublisher<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
-        throw new UnsupportedOperationException();
-    }
-
-    default SdkPublisher<Page<T>> scan() {
         throw new UnsupportedOperationException();
     }
 
