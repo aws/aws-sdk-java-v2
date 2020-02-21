@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "description": "Documentation updates for AWS WAF (wafv2) to correct the guidance for associating a web ACL to a CloudFront distribution."
-}
