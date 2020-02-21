@@ -34,10 +34,6 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         this.conditionExpression = conditionExpression;
     }
 
-    public static <T> ConditionCheck<T> create(Key key, Expression conditionExpression) {
-        return new ConditionCheck<>(key, conditionExpression);
-    }
-
     public static Builder builder() {
         return new Builder();
     }

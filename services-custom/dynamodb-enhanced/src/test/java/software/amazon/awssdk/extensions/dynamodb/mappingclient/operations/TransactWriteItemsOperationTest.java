@@ -35,7 +35,6 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.MapperExtension;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItem;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -86,7 +85,7 @@ public class TransactWriteItemsOperationTest {
     public void generateRequest_singleTransaction() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(fakeItemMappedTable, PutItemEnhancedRequest.create(fakeItem1))
+                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem1))
                                              .build();
 
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
@@ -103,8 +102,8 @@ public class TransactWriteItemsOperationTest {
     public void generateRequest_multipleTransactions() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addPutItem(fakeItemMappedTable, PutItemEnhancedRequest.create(fakeItem1))
-                                             .addPutItem(fakeItemMappedTable, PutItemEnhancedRequest.create(fakeItem2))
+                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem1))
+                                             .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem2))
                                              .build();
 
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);

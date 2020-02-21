@@ -1,3 +1,20 @@
+# __2.10.70__ __2020-02-21__
+## __AWS WAFV2__
+  - ### Features
+    - Documentation updates for AWS WAF (wafv2) to correct the guidance for associating a web ACL to a CloudFront distribution.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by adding consumer-style methods for all client, table and index operations.
+
+## __Amazon Redshift__
+  - ### Features
+    - Extend elastic resize to support resizing clusters to different instance types.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release of EC2 Image Builder increases the maximum policy document size for Image Builder resource-based policy APIs.
+
 # __2.10.69__ __2020-02-20__
 ## __AWS Savings Plans__
   - ### Features
