@@ -32,6 +32,14 @@ public final class CreateTableEnhancedRequest {
         this.globalSecondaryIndices = builder.globalSecondaryIndices;
     }
 
+    public static CreateTableEnhancedRequest create(ProvisionedThroughput provisionedThroughput) {
+        return builder().provisionedThroughput(provisionedThroughput).build();
+    }
+
+    public static CreateTableEnhancedRequest create() {
+        return builder().build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }

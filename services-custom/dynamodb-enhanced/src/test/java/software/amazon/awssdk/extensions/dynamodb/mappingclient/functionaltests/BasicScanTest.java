@@ -42,6 +42,8 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbTable;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.ScanEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -105,12 +107,12 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)));
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)));
     }
 
     @Before
     public void createTable() {
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        mappedTable.createTable(CreateTableEnhancedRequest.create(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -124,7 +126,7 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     public void scanAllRecordsDefaultSettings() {
         insertRecords();
 
-        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.builder().build()).iterator();
+        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.create()).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -160,7 +162,7 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void scanLimit() {
         insertRecords();
-        Iterator<Page<Record>> results = mappedTable.scan(r -> r.limit(5)).iterator();
+        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.builder().limit(5).build()).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page1 = results.next();
         assertThat(results.hasNext(), is(true));
@@ -179,7 +181,7 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void scanEmpty() {
-        Iterator<Page<Record>> results = mappedTable.scan().iterator();
+        Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.create()).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -191,7 +193,7 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     public void scanExclusiveStartKey() {
         insertRecords();
         Iterator<Page<Record>> results =
-            mappedTable.scan(r -> r.exclusiveStartKey(getKeyMap(7))).iterator();
+            mappedTable.scan(ScanEnhancedRequest.builder().exclusiveStartKey(getKeyMap(7)).build()).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();

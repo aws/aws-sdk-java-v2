@@ -18,7 +18,6 @@ package software.amazon.awssdk.extensions.dynamodb.mappingclient.core;
 import static software.amazon.awssdk.extensions.dynamodb.mappingclient.core.Utils.createKeyFromItem;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.DynamoDbAsyncTable;
@@ -95,29 +94,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<Void> createTable(Consumer<CreateTableEnhancedRequest.Builder> requestConsumer) {
-        CreateTableEnhancedRequest.Builder builder = CreateTableEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return createTable(builder.build());
-    }
-
-
-    @Override
-    public CompletableFuture<Void> createTable() {
-        return createTable(CreateTableEnhancedRequest.builder().build());
-    }
-
-    @Override
     public CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest request) {
         TableOperation<T, ?, ?, T> operation = DeleteItemOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
-    }
-
-    @Override
-    public CompletableFuture<T> deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
-        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return deleteItem(builder.build());
     }
 
     @Override
@@ -127,23 +106,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<T> getItem(Consumer<GetItemEnhancedRequest.Builder> requestConsumer) {
-        GetItemEnhancedRequest.Builder builder = GetItemEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return getItem(builder.build());
-    }
-
-    @Override
     public SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
         PaginatedTableOperation<T, ?, ?, Page<T>> operation = QueryOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
-    }
-
-    @Override
-    public SdkPublisher<Page<T>> query(Consumer<QueryEnhancedRequest.Builder> requestConsumer) {
-        QueryEnhancedRequest.Builder builder = QueryEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return query(builder.build());
     }
 
     @Override
@@ -153,43 +118,15 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
-    public CompletableFuture<Void> putItem(Class<? extends T> itemClass,
-                                           Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
-        PutItemEnhancedRequest.Builder<T> builder = PutItemEnhancedRequest.builder(itemClass);
-        requestConsumer.accept(builder);
-        return putItem(builder.build());
-    }
-
-    @Override
     public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
         PaginatedTableOperation<T, ?, ?, Page<T>> operation = ScanOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
     }
 
     @Override
-    public SdkPublisher<Page<T>> scan(Consumer<ScanEnhancedRequest.Builder> requestConsumer) {
-        ScanEnhancedRequest.Builder builder = ScanEnhancedRequest.builder();
-        requestConsumer.accept(builder);
-        return scan(builder.build());
-    }
-
-    @Override
-    public SdkPublisher<Page<T>> scan() {
-        return scan(ScanEnhancedRequest.builder().build());
-    }
-
-    @Override
     public CompletableFuture<T> updateItem(UpdateItemEnhancedRequest<T> request) {
         TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, mapperExtension, dynamoDbClient);
-    }
-
-    @Override
-    public CompletableFuture<T> updateItem(Class<? extends T> itemClass,
-                                           Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
-        UpdateItemEnhancedRequest.Builder<T> builder = UpdateItemEnhancedRequest.builder(itemClass);
-        requestConsumer.accept(builder);
-        return updateItem(builder.build());
     }
 
     @Override

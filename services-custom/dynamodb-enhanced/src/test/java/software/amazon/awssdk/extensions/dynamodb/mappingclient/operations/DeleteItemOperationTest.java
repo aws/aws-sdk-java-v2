@@ -90,7 +90,7 @@ public class DeleteItemOperationTest {
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(keyItem.getId()))));
         DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder().tableName(TABLE_NAME).build();
         DeleteItemResponse expectedResponse = DeleteItemResponse.builder().build();
         when(mockDynamoDbClient.deleteItem(any(DeleteItemRequest.class))).thenReturn(expectedResponse);
@@ -105,7 +105,7 @@ public class DeleteItemOperationTest {
     public void generateRequest_partitionKeyOnly() {
         FakeItem keyItem = createUniqueFakeItem();
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(keyItem.getId()))));
 
         DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                         PRIMARY_CONTEXT,
@@ -125,9 +125,7 @@ public class DeleteItemOperationTest {
     public void generateRequest_partitionAndSortKey() {
         FakeItemWithSort keyItem = createUniqueFakeItemWithSort();
         DeleteItemOperation<FakeItemWithSort> deleteItemOperation = DeleteItemOperation.create(
-            DeleteItemEnhancedRequest.builder()
-                                     .key((Key.create(stringValue(keyItem.getId()), stringValue(keyItem.getSort()))))
-                                     .build());
+            DeleteItemEnhancedRequest.create((Key.create(stringValue(keyItem.getId()), stringValue(keyItem.getSort())))));
 
         DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
                                                                        PRIMARY_CONTEXT,
@@ -165,7 +163,7 @@ public class DeleteItemOperationTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_noPartitionKey_throwsIllegalArgumentException() {
         DeleteItemOperation<FakeItemComposedClass> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder().key(Key.create(stringValue("whatever"))).build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue("whatever"))));
 
         deleteItemOperation.generateRequest(FakeItemComposedClass.getTableSchema(), PRIMARY_CONTEXT, null);
     }
@@ -173,7 +171,7 @@ public class DeleteItemOperationTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_withIndex_throwsIllegalArgumentException() {
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder().key(Key.create(stringValue("whatever"))).build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue("whatever"))));
 
         deleteItemOperation.generateRequest(FakeItem.getTableSchema(), GSI_1_CONTEXT, null);
     }
@@ -182,7 +180,7 @@ public class DeleteItemOperationTest {
     public void transformResponse_correctlyTransformsIntoAnItem() {
         FakeItem keyItem = createUniqueFakeItem();
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(keyItem.getId()))));
         Map<String, AttributeValue> responseMap = new HashMap<>();
         responseMap.put("id", AttributeValue.builder().s(keyItem.getId()).build());
         responseMap.put("subclass_attribute", AttributeValue.builder().s("test-value").build());
@@ -203,7 +201,7 @@ public class DeleteItemOperationTest {
     public void transformResponse_noResults_returnsNull() {
         FakeItem keyItem = createUniqueFakeItem();
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(keyItem.getId()))));
         DeleteItemResponse response = DeleteItemResponse.builder()
                                                         .build();
 
@@ -220,9 +218,7 @@ public class DeleteItemOperationTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, singletonList("id"));
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
-                                                                .key(Key.create(stringValue(baseFakeItem.getId())))
-                                                                .build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(baseFakeItem.getId()))));
 
 
         DeleteItemRequest request = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
@@ -240,9 +236,7 @@ public class DeleteItemOperationTest {
         Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false);
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
-                                                                .key(Key.create(stringValue(baseFakeItem.getId())))
-                                                                .build());
+            DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(baseFakeItem.getId()))));
 
         DeleteItemResponse response = DeleteItemResponse.builder()
                                                         .attributes(baseFakeItemMap)
@@ -264,9 +258,7 @@ public class DeleteItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
-                                                                    .key(Key.create(stringValue(fakeItem.getId())))
-                                                                    .build()));
+            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(fakeItem.getId())))));
         OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
@@ -294,9 +286,7 @@ public class DeleteItemOperationTest {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         DeleteItemOperation<FakeItem> deleteItemOperation =
-            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
-                                                                    .key(Key.create(stringValue(fakeItem.getId())))
-                                                                    .build()));
+            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.create(Key.create(stringValue(fakeItem.getId())))));
         OperationContext context = OperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
         String conditionExpression = "condition-expression";

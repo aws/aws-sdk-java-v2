@@ -48,7 +48,9 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Page;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.TableSchema;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.model.QueryEnhancedRequest;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.staticmapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -167,7 +169,19 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     private DynamoDbAsyncIndex<Record> keysOnlyMappedIndex = mappedTable.index("gsi_keys_only");
 
     private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(Record.class, r -> r.item(record)).join());
+        RECORDS.forEach(record -> mappedTable.putItem(PutItemEnhancedRequest.create(record)).join());
+    }
+
+    private static <T> List<T> drainPublisher(SdkPublisher<T> publisher, int expectedNumberOfResults) {
+        BufferingSubscriber<T> subscriber = new BufferingSubscriber<>();
+        publisher.subscribe(subscriber);
+        subscriber.waitForCompletion(1000L);
+
+        assertThat(subscriber.isCompleted(), is(true));
+        assertThat(subscriber.bufferedError(), is(nullValue()));
+        assertThat(subscriber.bufferedItems().size(), is(expectedNumberOfResults));
+
+        return subscriber.bufferedItems();
     }
 
     @Before
@@ -197,8 +211,11 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     public void queryAllRecordsDefaultSettings() {
         insertRecords();
 
+        Record result =
+            mappedTable.getItem(GetItemEnhancedRequest.create(Key.create(stringValue("id-value"), numberValue(3)))).join();
+
         SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(Key.create(stringValue("gsi-id-value")))));
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value")))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -213,7 +230,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
         Key fromKey = Key.create(stringValue("gsi-id-value"), numberValue(3));
         Key toKey = Key.create(stringValue("gsi-id-value"), numberValue(5));
 
-        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(r -> r.queryConditional(between(fromKey, toKey)));
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(QueryEnhancedRequest.create(between(fromKey, toKey)));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -259,7 +276,7 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(Key.create(stringValue("gsi-id-value")))));
+            keysOnlyMappedIndex.query(QueryEnhancedRequest.create(equalTo(Key.create(stringValue("gsi-id-value")))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
