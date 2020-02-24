@@ -110,7 +110,7 @@ public class BatchGetItemOperationTest {
             BatchGetItemEnhancedRequest.builder()
                                        .readBatches(ReadBatch.builder(FakeItem.class)
                                                              .mappedTableResource(fakeItemMappedTable)
-                                                             .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
+                                                             .addGetItem(r -> r.key(FAKE_ITEM_KEYS.get(0)))
                                                              .build())
                                        .build();
 
@@ -141,15 +141,15 @@ public class BatchGetItemOperationTest {
                                        .readBatches(
                                            ReadBatch.builder(FakeItem.class)
                                                      .mappedTableResource(fakeItemMappedTable)
-                                                     .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(0)))
-                                                     .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(1)))
-                                                     .addGetItem(GetItemEnhancedRequest.create(FAKE_ITEM_KEYS.get(2)))
+                                                     .addGetItem(r -> r.key(FAKE_ITEM_KEYS.get(0)))
+                                                     .addGetItem(r -> r.key(FAKE_ITEM_KEYS.get(1)))
+                                                     .addGetItem(r -> r.key(FAKE_ITEM_KEYS.get(2)))
                                                      .build(),
                                            ReadBatch.builder(FakeItemWithSort.class)
                                                      .mappedTableResource(fakeItemWithSortMappedTable)
-                                                     .addGetItem(GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(0)))
-                                                     .addGetItem(GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(1)))
-                                                     .addGetItem(GetItemEnhancedRequest.create(FAKESORT_ITEM_KEYS.get(2)))
+                                                     .addGetItem(r -> r.key(FAKESORT_ITEM_KEYS.get(0)))
+                                                     .addGetItem(r -> r.key(FAKESORT_ITEM_KEYS.get(1)))
+                                                     .addGetItem(r -> r.key(FAKESORT_ITEM_KEYS.get(2)))
                                                      .build())
                                        .build();
 
