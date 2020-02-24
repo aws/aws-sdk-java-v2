@@ -13,17 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utils;
+package software.amazon.awssdk.utils.internal;
 
 import static java.util.stream.Collectors.joining;
 
 import java.util.stream.Stream;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.StringUtils;
 
-@SdkProtectedApi
-public final class NamingUtils {
+/**
+ * Internal class used by the code generator and release scripts to produce sanitized names.
+ *
+ * In the future, we should consider adding a build-utils module for tools used at build time
+ * by multiple modules so that we don't have these at runtime when they aren't needed.
+ */
+@SdkInternalApi
+public final class CodegenNamingUtils {
 
-    private NamingUtils() {
+    private CodegenNamingUtils() {
     }
 
     public static String[] splitOnWordBoundaries(String toSplit) {
