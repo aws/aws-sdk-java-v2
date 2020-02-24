@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Import/Export Snowball",
-    "description": "AWS Snowball adds a field for entering your GSTIN when creating AWS Snowball jobs in the Asia Pacific (Mumbai) region."
-}

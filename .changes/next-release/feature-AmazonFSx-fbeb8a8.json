@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "description": "Announcing persistent file systems for Amazon FSx for Lustre that are ideal for longer-term storage and workloads, and a new generation of scratch file systems that offer higher burst throughput for spiky workloads."
-}
