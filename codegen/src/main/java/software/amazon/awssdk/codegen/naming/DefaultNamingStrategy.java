@@ -23,8 +23,8 @@ import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFI
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
-import static software.amazon.awssdk.utils.NamingUtils.pascalCase;
-import static software.amazon.awssdk.utils.NamingUtils.splitOnWordBoundaries;
+import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.pascalCase;
+import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.splitOnWordBoundaries;
 
 import java.util.Arrays;
 import java.util.Collections;

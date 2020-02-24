@@ -31,8 +31,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.utils.NamingUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 /**
  * A command line application to create a new, empty service.
@@ -146,7 +146,7 @@ public class NewServiceMain extends Cli {
         }
 
         private String mavenName(String serviceId) {
-            return Stream.of(NamingUtils.splitOnWordBoundaries(serviceId))
+            return Stream.of(CodegenNamingUtils.splitOnWordBoundaries(serviceId))
                          .map(StringUtils::capitalize)
                          .collect(Collectors.joining(" "));
         }
