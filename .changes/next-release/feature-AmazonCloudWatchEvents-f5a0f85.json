@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Events",
+    "description": "This release allows you to create and manage tags for event buses."
+}
