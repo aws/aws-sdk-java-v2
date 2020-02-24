@@ -1,0 +1,26 @@
+{
+    "version": "2.10.70",
+    "date": "2020-02-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client [Preview]",
+            "description": "Improves discoverability by adding consumer-style methods for all client, table and index operations."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "description": "This release of EC2 Image Builder increases the maximum policy document size for Image Builder resource-based policy APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "description": "Extend elastic resize to support resizing clusters to different instance types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "description": "Documentation updates for AWS WAF (wafv2) to correct the guidance for associating a web ACL to a CloudFront distribution."
+        }
+    ]
+}
