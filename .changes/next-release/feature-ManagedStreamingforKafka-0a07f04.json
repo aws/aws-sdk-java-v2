@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka",
+    "description": "Amazon MSK has added support for Broker Log delivery to CloudWatch, S3, and Firehose."
+}
