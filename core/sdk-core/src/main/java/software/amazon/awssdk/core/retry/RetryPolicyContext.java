@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.retry;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -49,7 +48,6 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
         this.httpStatusCode = builder.httpStatusCode;
     }
 
-    @SdkInternalApi
     public static Builder builder() {
         return new Builder();
     }
@@ -93,7 +91,7 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
      * @return The total number of requests made thus far.
      */
     public int totalRequests() {
-        return retriesAttempted() + 1;
+        return this.retriesAttempted + 1;
     }
 
     /**
@@ -108,9 +106,8 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
         return new Builder(this);
     }
 
-    @SdkInternalApi
+    @SdkPublicApi
     public static final class Builder implements CopyableBuilder<Builder, RetryPolicyContext> {
-
         private SdkRequest originalRequest;
         private SdkHttpFullRequest request;
         private SdkException exception;

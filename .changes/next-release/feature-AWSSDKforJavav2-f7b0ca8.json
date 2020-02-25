@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "description": "Added support for \"retry modes\". A retry mode allows configuring multiple SDK parameters at once using default retry profiles, some of which are standardized between AWS SDK languages. See RetryMode javadoc for more information."
+}

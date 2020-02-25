@@ -25,13 +25,11 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
@@ -44,7 +42,6 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -66,7 +63,6 @@ public class ApiCallTimeoutTrackingStageTest {
                                                                                                                        (SdkClientOption
                                                                                                                             .SCHEDULED_EXECUTOR_SERVICE, timeoutExecutor)
                                                                                                                    .build())
-                                                                        .capacityManager(mock(CapacityManager.class))
                                                                         .build(),
                                                   wrapped);
     }

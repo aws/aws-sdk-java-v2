@@ -18,12 +18,10 @@ package software.amazon.awssdk.core.retry.conditions;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.retry.RetryUtils;
 
 @SdkPublicApi
 @FunctionalInterface
 public interface RetryCondition {
-
     /**
      * Determine whether a request should or should not be retried.
      *
@@ -32,14 +30,31 @@ public interface RetryCondition {
      */
     boolean shouldRetry(RetryPolicyContext context);
 
+    /**
+     * Called by the SDK to notify this condition that the provided request will not be retried, because some retry condition
+     * determined that it shouldn't be retried.
+     */
+    default void requestWillNotBeRetried(RetryPolicyContext context) {
+    }
+
+    /**
+     * Called by the SDK to notify this condition that the provided request succeeded. This method is invoked even if the
+     * execution never failed before ({@link RetryPolicyContext#retriesAttempted()} is zero).
+     */
+    default void requestSucceeded(RetryPolicyContext context) {
+    }
+
     static RetryCondition defaultRetryCondition() {
         return OrRetryCondition.create(
             RetryOnStatusCodeCondition.create(SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES),
             RetryOnExceptionsCondition.create(SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS),
-            c -> RetryUtils.isClockSkewException(c.exception()),
-            c -> RetryUtils.isThrottlingException(c.exception()));
+            RetryOnClockSkewCondition.create(),
+            RetryOnThrottlingCondition.create());
     }
 
+    /**
+     * A retry condition that will NEVER allow retries.
+     */
     static RetryCondition none() {
         return MaxNumberOfRetriesCondition.create(0);
     }
