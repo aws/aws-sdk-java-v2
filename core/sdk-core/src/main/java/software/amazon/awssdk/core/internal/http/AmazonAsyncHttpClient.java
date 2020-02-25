@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.http;
 import static software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder.async;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Response;
@@ -42,8 +41,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHead
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
-import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -57,14 +54,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
     public AmazonAsyncHttpClient(SdkClientConfiguration clientConfiguration) {
         this.httpClientDependencies = HttpClientDependencies.builder()
                                                             .clientConfiguration(clientConfiguration)
-                                                            .capacityManager(createCapacityManager())
                                                             .build();
-    }
-
-    private CapacityManager createCapacityManager() {
-        // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
-        // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(SdkDefaultRetrySetting.RETRY_THROTTLING_COST * SdkDefaultRetrySetting.THROTTLED_RETRIES);
     }
 
     /**

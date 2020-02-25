@@ -39,6 +39,11 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void baseQueryClientBuilderClass() throws Exception {
+        validateQueryGeneration(BaseClientBuilderClass::new, "test-query-client-builder-class.java");
+    }
+
+    @Test
     public void syncClientBuilderInterface() throws Exception {
         validateGeneration(SyncClientBuilderInterface::new, "test-sync-client-builder-interface.java");
     }
@@ -60,5 +65,9 @@ public class BuilderClassTest {
 
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.jsonServiceModels()), generatesTo(expectedClassName));
+    }
+
+    private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.queryServiceModels()), generatesTo(expectedClassName));
     }
 }

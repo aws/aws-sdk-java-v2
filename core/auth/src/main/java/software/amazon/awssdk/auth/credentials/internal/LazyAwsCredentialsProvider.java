@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
@@ -29,11 +30,10 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkInternalApi
 public class LazyAwsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    private final Supplier<AwsCredentialsProvider> delegateConstructor;
-    private volatile AwsCredentialsProvider delegate;
+    private final Lazy<AwsCredentialsProvider> delegate;
 
     private LazyAwsCredentialsProvider(Supplier<AwsCredentialsProvider> delegateConstructor) {
-        this.delegateConstructor = delegateConstructor;
+        this.delegate = new Lazy<>(delegateConstructor);
     }
 
     public static LazyAwsCredentialsProvider create(Supplier<AwsCredentialsProvider> delegateConstructor) {
@@ -42,14 +42,7 @@ public class LazyAwsCredentialsProvider implements AwsCredentialsProvider, SdkAu
 
     @Override
     public AwsCredentials resolveCredentials() {
-        if (delegate == null) {
-            synchronized (this) {
-                if (delegate == null) {
-                    delegate = delegateConstructor.get();
-                }
-            }
-        }
-        return delegate.resolveCredentials();
+        return delegate.getValue().resolveCredentials();
     }
 
     @Override
@@ -60,7 +53,6 @@ public class LazyAwsCredentialsProvider implements AwsCredentialsProvider, SdkAu
     @Override
     public String toString() {
         return ToString.builder("LazyAwsCredentialsProvider")
-                       .add("delegateConstructor", delegateConstructor)
                        .add("delegate", delegate)
                        .build();
     }

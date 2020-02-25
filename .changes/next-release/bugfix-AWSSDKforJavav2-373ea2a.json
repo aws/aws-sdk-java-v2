@@ -1,0 +1,5 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fixed an issue where specifying your own retry policy would override AWS and service-specific retry conditions. By default, all retry policies now have AWS and service-specific retry conditions added. This can be disabled via the new `RetryPolicy.furtherRefinementsAllowed(false)`."
+}

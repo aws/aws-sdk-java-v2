@@ -31,13 +31,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -46,7 +44,6 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
-import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import utils.ValidSdkObjects;
 
@@ -105,7 +102,6 @@ public class MakeAsyncHttpRequestStageTest {
 
         return HttpClientDependencies.builder()
                                      .clientConfiguration(configuration)
-                                     .capacityManager(new CapacityManager(2))
                                      .build();
     }
 

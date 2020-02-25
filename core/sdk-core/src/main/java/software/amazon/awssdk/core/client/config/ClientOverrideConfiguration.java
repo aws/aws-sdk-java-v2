@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -223,14 +224,23 @@ public final class ClientOverrideConfiguration
          */
         Builder retryPolicy(RetryPolicy retryPolicy);
 
-        RetryPolicy retryPolicy();
-
         /**
          * Configure the retry policy the should be used when handling failure cases.
          */
         default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
             return retryPolicy(RetryPolicy.builder().applyMutation(retryPolicy).build());
         }
+
+        /**
+         * Configure the retry mode used to determine the retry policy that is used when handling failure cases. This is
+         * shorthand for {@code retryPolicy(RetryPolicy.forRetryMode(retryMode))}, and overrides any configured retry policy on
+         * this builder.
+         */
+        default Builder retryPolicy(RetryMode retryMode) {
+            return retryPolicy(RetryPolicy.forRetryMode(retryMode));
+        }
+
+        RetryPolicy retryPolicy();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
