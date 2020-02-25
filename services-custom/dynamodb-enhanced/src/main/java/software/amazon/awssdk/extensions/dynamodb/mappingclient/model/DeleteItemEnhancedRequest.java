@@ -20,7 +20,7 @@ import software.amazon.awssdk.extensions.dynamodb.mappingclient.Expression;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.Key;
 
 @SdkPublicApi
-public final class DeleteItemEnhancedRequest<T> {
+public final class DeleteItemEnhancedRequest {
 
     private final Key key;
     private final Expression conditionExpression;
@@ -28,10 +28,6 @@ public final class DeleteItemEnhancedRequest<T> {
     private DeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.conditionExpression = builder.conditionExpression;
-    }
-
-    public static <T> DeleteItemEnhancedRequest<T> create(Key key) {
-        return builder().key(key).build();
     }
 
     public static Builder builder() {
@@ -59,7 +55,7 @@ public final class DeleteItemEnhancedRequest<T> {
             return false;
         }
 
-        DeleteItemEnhancedRequest<?> that = (DeleteItemEnhancedRequest<?>) o;
+        DeleteItemEnhancedRequest that = (DeleteItemEnhancedRequest) o;
 
         return key != null ? key.equals(that.key) : that.key == null;
     }
@@ -86,8 +82,8 @@ public final class DeleteItemEnhancedRequest<T> {
             return this;
         }
 
-        public <T> DeleteItemEnhancedRequest<T> build() {
-            return new DeleteItemEnhancedRequest<>(this);
+        public DeleteItemEnhancedRequest build() {
+            return new DeleteItemEnhancedRequest(this);
         }
     }
 }

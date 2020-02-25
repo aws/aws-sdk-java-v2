@@ -21,12 +21,12 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.10.71</version>
+        <version>2.10.72</version>
     </parent>
     <artifactId>signer</artifactId>
-    <name>AWS Java SDK :: Services :: signer</name>
-    <description>The AWS Java SDK for signer module holds the client classes that are used for
-        communicating with signer.
+    <name>AWS Java SDK :: Services :: Signer</name>
+    <description>The AWS Java SDK for Signer module holds the client classes that are used for
+        communicating with Signer.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>

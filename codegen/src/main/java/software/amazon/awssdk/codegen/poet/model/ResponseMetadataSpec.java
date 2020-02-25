@@ -30,9 +30,9 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.utils.NamingUtils;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 /**
  * Generate ResponseMetadata class
@@ -108,7 +108,7 @@ public class ResponseMetadataSpec implements ClassSpec {
      * Convert key (UPPER_CASE) to method name.
      */
     private String convertMethodName(String key) {
-        String pascalCase = NamingUtils.pascalCase(key);
+        String pascalCase = CodegenNamingUtils.pascalCase(key);
         return StringUtils.uncapitalize(pascalCase);
     }
 

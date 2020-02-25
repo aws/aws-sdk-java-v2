@@ -24,12 +24,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 /**
  * A command line application to create a new, empty service.
@@ -134,12 +137,18 @@ public class NewServiceMain extends Cli {
                     "{{PROTOCOL}}"
             };
             String[] replaceList = {
-                    serviceModuleName,
-                    serviceId,
-                    mavenProjectVersion,
-                    serviceProtocol
+                serviceModuleName,
+                mavenName(serviceId),
+                mavenProjectVersion,
+                serviceProtocol
             };
             return StringUtils.replaceEach(line, searchList, replaceList);
+        }
+
+        private String mavenName(String serviceId) {
+            return Stream.of(CodegenNamingUtils.splitOnWordBoundaries(serviceId))
+                         .map(StringUtils::capitalize)
+                         .collect(Collectors.joining(" "));
         }
 
         private class AddSubmoduleTransformer extends PomTransformer {

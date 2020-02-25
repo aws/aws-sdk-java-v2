@@ -13,17 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.utils;
+package software.amazon.awssdk.utils.internal;
 
 import static java.util.stream.Collectors.joining;
 
 import java.util.stream.Stream;
-import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.StringUtils;
 
-public final class NamingUtils {
+/**
+ * Internal class used by the code generator and release scripts to produce sanitized names.
+ *
+ * In the future, we should consider adding a build-utils module for tools used at build time
+ * by multiple modules so that we don't have these at runtime when they aren't needed.
+ */
+@SdkInternalApi
+public final class CodegenNamingUtils {
 
-    private NamingUtils() {
+    private CodegenNamingUtils() {
     }
 
     public static String[] splitOnWordBoundaries(String toSplit) {
@@ -37,7 +44,7 @@ public final class NamingUtils {
                        .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1 V$2 "); // TestV4 -> "Test V4 "
 
         // Add a space between camelCased words
-        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> "Acm Success"
+        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> // "Acm Success"
 
         // Add a space after acronyms
         result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2"); // ACMSuccess -> "ACM Success"
@@ -53,10 +60,10 @@ public final class NamingUtils {
     }
 
     public static String pascalCase(String word) {
-        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(StringUtils::capitalize).collect(joining());
     }
 
     public static String pascalCase(String... words) {
-        return Stream.of(words).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+        return Stream.of(words).map(StringUtils::lowerCase).map(StringUtils::capitalize).collect(joining());
     }
 }
