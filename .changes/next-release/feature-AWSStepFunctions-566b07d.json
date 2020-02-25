@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "description": "This release adds support for CloudWatch Logs for Standard Workflows."
+}
