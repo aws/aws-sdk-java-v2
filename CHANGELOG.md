@@ -1,3 +1,28 @@
+# __2.10.72__ __2020-02-25__
+## __AWS Outposts__
+  - ### Features
+    - This release adds DeleteSite and DeleteOutpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - This release increases the maximum allowed size of SecretString or SecretBinary from 10KB to 64KB in the CreateSecret, UpdateSecret, PutSecretValue and GetSecretValue APIs.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for CloudWatch Logs for Standard Workflows.
+
+## __Amazon DynamoDB Enhanced Client [Preview]__
+  - ### Features
+    - Improves discoverability by adding consumer-style methods for all client, table and index operations.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added support for Broker Log delivery to CloudWatch, S3, and Firehose.
+
 # __2.10.71__ __2020-02-24__
 ## __AWS IoT Events__
   - ### Features
