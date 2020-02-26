@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client [Preview]",
-    "description": "Added the BeanTableSchema implementation of TableSchema that allows a TableSchema to be instantiated from an annotated Java bean class which can then be used with the DynamoDB Enhanced Client."
-}

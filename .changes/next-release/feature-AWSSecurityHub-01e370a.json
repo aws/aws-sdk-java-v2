@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "description": "Security Hub has added to the DescribeProducts API operation a new response field called IntegrationTypes. The IntegrationTypes field lists the types of actions that a product performs relative to Security Hub such as send findings to Security Hub and receive findings from Security Hub."
-}
