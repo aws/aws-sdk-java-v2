@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.function.Consumer;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -75,6 +77,12 @@ public final class DeleteItemEnhancedRequest {
         public Builder key(Key key) {
             this.key = key;
             return this;
+        }
+
+        public Builder key(Consumer<Key.Builder> keyConsumer) {
+            Key.Builder builder = Key.builder();
+            keyConsumer.accept(builder);
+            return key(builder.build());
         }
 
         public Builder conditionExpression(Expression conditionExpression) {

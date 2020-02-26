@@ -19,8 +19,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
@@ -141,7 +141,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("id-value"))))).iterator();
+            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value")))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -165,7 +165,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
+                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
                                                   .filterExpression(expression)
                                                   .build())
                        .iterator();
@@ -182,8 +182,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryBetween() {
         insertRecords();
-        Key fromKey = Key.create(stringValue("id-value"), numberValue(3));
-        Key toKey = Key.create(stringValue("id-value"), numberValue(5));
+        Key fromKey = Key.builder().partitionValue("id-value").sortValue(3).build();
+        Key toKey = Key.builder().partitionValue("id-value").sortValue(5).build();
         Iterator<Page<Record>> results = mappedTable.query(r -> r.queryConditional(between(fromKey, toKey))).iterator();
 
         assertThat(results.hasNext(), is(true));
@@ -200,7 +200,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
+                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
                                                   .limit(5)
                                                   .build())
                        .iterator();
@@ -229,7 +229,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryEmpty() {
         Iterator<Page<Record>> results =
-            mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("id-value"))))).iterator();
+            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value")))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -245,7 +245,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
+                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
                                                   .exclusiveStartKey(exclusiveStartKey)
                                                   .build())
                        .iterator();

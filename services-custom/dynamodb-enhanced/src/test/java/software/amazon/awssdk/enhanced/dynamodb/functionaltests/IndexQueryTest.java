@@ -19,8 +19,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondaryPartitionKey;
@@ -196,7 +196,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
 
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
+            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))).iterator();
 
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
@@ -209,8 +209,8 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryBetween() {
         insertRecords();
-        Key fromKey = Key.create(stringValue("gsi-id-value"), numberValue(3));
-        Key toKey = Key.create(stringValue("gsi-id-value"), numberValue(5));
+        Key fromKey = Key.builder().partitionValue("gsi-id-value").sortValue(3).build();
+        Key toKey = Key.builder().partitionValue("gsi-id-value").sortValue(5).build();
         Iterator<Page<Record>> results =
             keysOnlyMappedIndex.query(r -> r.queryConditional(between(fromKey, toKey))).iterator();
 
@@ -228,7 +228,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         insertRecords();
         Iterator<Page<Record>> results =
             keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))
                                                           .limit(5)
                                                           .build())
                                .iterator();
@@ -263,7 +263,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
     @Test
     public void queryEmpty() {
         Iterator<Page<Record>> results =
-            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))).iterator();
+            keysOnlyMappedIndex.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))).iterator();
         assertThat(results.hasNext(), is(true));
         Page<Record> page = results.next();
         assertThat(results.hasNext(), is(false));
@@ -281,7 +281,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         expectedLastEvaluatedKey.put("gsi_sort", numberValue(KEYS_ONLY_RECORDS.get(7).getGsiSort()));
         Iterator<Page<Record>> results =
             keysOnlyMappedIndex.query(QueryEnhancedRequest.builder()
-                                                          .queryConditional(equalTo(Key.create(stringValue("gsi-id-value"))))
+                                                          .queryConditional(equalTo(k -> k.partitionValue("gsi-id-value")))
                                                           .exclusiveStartKey(expectedLastEvaluatedKey).build())
                                .iterator();
 

@@ -19,7 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import java.util.Map;
@@ -31,7 +30,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -71,7 +69,7 @@ public class WriteBatchTest {
         WriteBatch builtObject = WriteBatch.builder(FakeItem.class)
                                            .mappedTableResource(fakeItemMappedTable)
                                            .addPutItem(r -> r.item(fakeItem))
-                                           .addDeleteItem(r -> r.key(Key.create(stringValue(fakeItem.getId()))))
+                                           .addDeleteItem(r -> r.key(k -> k.partitionValue(fakeItem.getId())))
                                            .build();
 
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem,
@@ -87,7 +85,7 @@ public class WriteBatchTest {
 
         PutItemEnhancedRequest<FakeItem> putItem = PutItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build();
         DeleteItemEnhancedRequest deleteItem = DeleteItemEnhancedRequest.builder()
-                                                                        .key(Key.create(stringValue(fakeItem.getId())))
+                                                                        .key(k -> k.partitionValue(fakeItem.getId()))
                                                                         .build();
 
         WriteBatch builtObject = WriteBatch.builder(FakeItem.class)

@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 
 import java.util.Collections;
 
@@ -29,7 +28,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -62,7 +60,7 @@ public class BatchGetItemEnhancedRequestTest {
     public void builder_maximal() {
         ReadBatch readBatch = ReadBatch.builder(FakeItem.class)
                                        .mappedTableResource(fakeItemMappedTable)
-                                       .addGetItem(r -> r.key(Key.create(stringValue("key"))))
+                                       .addGetItem(r -> r.key(k -> k.partitionValue("key")))
                                        .build();
 
         BatchGetItemEnhancedRequest builtObject = BatchGetItemEnhancedRequest.builder()
@@ -76,7 +74,7 @@ public class BatchGetItemEnhancedRequestTest {
     public void builder_add_single() {
         ReadBatch readBatch = ReadBatch.builder(FakeItem.class)
                                        .mappedTableResource(fakeItemMappedTable)
-                                       .addGetItem(r -> r.key(Key.create(stringValue("key"))))
+                                       .addGetItem(r -> r.key(k -> k.partitionValue("key")))
                                        .build();
 
         BatchGetItemEnhancedRequest builtObject = BatchGetItemEnhancedRequest.builder()

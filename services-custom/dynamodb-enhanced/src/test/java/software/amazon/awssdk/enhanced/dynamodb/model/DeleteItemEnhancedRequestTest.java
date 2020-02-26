@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +39,7 @@ public class DeleteItemEnhancedRequestTest {
 
     @Test
     public void builder_maximal() {
-        Key key = Key.create(stringValue("key"));
+        Key key = Key.builder().partitionValue("key").build();
 
         Expression conditionExpression = Expression.builder()
                                                    .expression("#key = :value OR #key1 = :value1")
@@ -60,7 +60,7 @@ public class DeleteItemEnhancedRequestTest {
 
     @Test
     public void toBuilder() {
-        Key key = Key.create(stringValue("key"));
+        Key key = Key.builder().partitionValue("key").build();
 
         DeleteItemEnhancedRequest builtObject = DeleteItemEnhancedRequest.builder().key(key).build();
 

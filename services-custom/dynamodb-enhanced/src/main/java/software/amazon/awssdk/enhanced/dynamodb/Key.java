@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -33,31 +35,20 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkPublicApi
 public final class Key {
-    private final AttributeValue partitionKeyValue;
-    private final AttributeValue sortKeyValue;
+    private final AttributeValue partitionValue;
+    private final AttributeValue sortValue;
 
-    private Key(AttributeValue partitionKeyValue, AttributeValue sortKeyValue) {
-        this.partitionKeyValue = partitionKeyValue;
-        this.sortKeyValue = sortKeyValue;
+    private Key(Builder builder) {
+        this.partitionValue = builder.partitionValue;
+        this.sortValue = builder.sortValue;
     }
 
     /**
-     * Construct a literal key with just a partition key value.
-     * @param partitionKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the partition key.
-     * @return A key.
+     * Returns a new builder that can be used to construct an instance of this class.
+     * @return A newly initialized {@link Builder} object.
      */
-    public static Key create(AttributeValue partitionKeyValue) {
-        return new Key(partitionKeyValue, null);
-    }
-
-    /**
-     * Construct a literal key with both a partition key value and a sort key value.
-     * @param partitionKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the partition key.
-     * @param sortKeyValue A DynamoDb {@link AttributeValue} that is the literal value of the sort key.
-     * @return A key.
-     */
-    public static Key create(AttributeValue partitionKeyValue, AttributeValue sortKeyValue) {
-        return new Key(partitionKeyValue, sortKeyValue);
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -68,12 +59,12 @@ public final class Key {
      */
     public Map<String, AttributeValue> keyMap(TableSchema<?> tableSchema, String index) {
         Map<String, AttributeValue> keyMap = new HashMap<>();
-        keyMap.put(tableSchema.tableMetadata().indexPartitionKey(index), partitionKeyValue);
+        keyMap.put(tableSchema.tableMetadata().indexPartitionKey(index), partitionValue);
 
-        if (sortKeyValue != null) {
+        if (sortValue != null) {
             keyMap.put(tableSchema.tableMetadata().indexSortKey(index).orElseThrow(
                 () -> new IllegalArgumentException("A sort key value was supplied for an index that does not support "
-                                                   + "one. Index: " + index)), sortKeyValue);
+                                                   + "one. Index: " + index)), sortValue);
         }
 
         return Collections.unmodifiableMap(keyMap);
@@ -84,7 +75,7 @@ public final class Key {
      * @return An {@link AttributeValue} representing the literal value of the partition key.
      */
     public AttributeValue partitionKeyValue() {
-        return partitionKeyValue;
+        return partitionValue;
     }
 
     /**
@@ -93,7 +84,7 @@ public final class Key {
      * is no sort key value in this Key.
      */
     public Optional<AttributeValue> sortKeyValue() {
-        return Optional.ofNullable(sortKeyValue);
+        return Optional.ofNullable(sortValue);
     }
 
     /**
@@ -103,6 +94,104 @@ public final class Key {
      */
     public Map<String, AttributeValue> primaryKeyMap(TableSchema<?> tableSchema) {
         return keyMap(tableSchema, TableMetadata.primaryIndexName());
+    }
+
+    /**
+     * Converts an existing key into a builder object that can be used to modify its values and then create a new key.
+     * @return A {@link Builder} initialized with the values of this key.
+     */
+    public Builder toBuilder() {
+        return new Builder().partitionValue(this.partitionValue).sortValue(this.sortValue);
+    }
+
+    /**
+     * Builder for {@link Key}
+     */
+    public static final class Builder {
+        private AttributeValue partitionValue;
+        private AttributeValue sortValue;
+
+        private Builder() {
+        }
+
+        /**
+         * Value to be used for the partition key
+         * @param partitionValue partition key value
+         */
+        public Builder partitionValue(AttributeValue partitionValue) {
+            this.partitionValue = partitionValue;
+            return this;
+        }
+
+        /**
+         * String value to be used for the partition key. The string will be converted into an AttributeValue of type S.
+         * @param partitionValue partition key value
+         */
+        public Builder partitionValue(String partitionValue) {
+            this.partitionValue = AttributeValues.stringValue(partitionValue);
+            return this;
+        }
+
+        /**
+         * Numeric value to be used for the partition key. The number will be converted into an AttributeValue of type N.
+         * @param partitionValue partition key value
+         */
+        public Builder partitionValue(Number partitionValue) {
+            this.partitionValue = AttributeValues.numberValue(partitionValue);
+            return this;
+        }
+
+        /**
+         * Binary value to be used for the partition key. The input will be converted into an AttributeValue of type B.
+         * @param partitionValue the bytes to be used for the binary key value.
+         */
+        public Builder partitionValue(SdkBytes partitionValue) {
+            this.partitionValue = AttributeValues.binaryValue(partitionValue);
+            return this;
+        }
+
+        /**
+         * Value to be used for the sort key
+         * @param sortValue sort key value
+         */
+        public Builder sortValue(AttributeValue sortValue) {
+            this.sortValue = sortValue;
+            return this;
+        }
+
+        /**
+         * String value to be used for the sort key. The string will be converted into an AttributeValue of type S.
+         * @param sortValue sort key value
+         */
+        public Builder sortValue(String sortValue) {
+            this.sortValue = AttributeValues.stringValue(sortValue);
+            return this;
+        }
+
+        /**
+         * Numeric value to be used for the sort key. The number will be converted into an AttributeValue of type N.
+         * @param sortValue sort key value
+         */
+        public Builder sortValue(Number sortValue) {
+            this.sortValue = AttributeValues.numberValue(sortValue);
+            return this;
+        }
+
+        /**
+         * Binary value to be used for the sort key. The input will be converted into an AttributeValue of type B.
+         * @param sortValue the bytes to be used for the binary key value.
+         */
+        public Builder sortValue(SdkBytes sortValue) {
+            this.sortValue = AttributeValues.binaryValue(sortValue);
+            return this;
+        }
+
+        /**
+         * Construct a {@link Key} from this builder.
+         */
+        public Key build() {
+            return new Key(this);
+        }
     }
 
     @Override
@@ -116,17 +205,17 @@ public final class Key {
 
         Key key = (Key) o;
 
-        if (partitionKeyValue != null ? ! partitionKeyValue.equals(key.partitionKeyValue) :
-            key.partitionKeyValue != null) {
+        if (partitionValue != null ? ! partitionValue.equals(key.partitionValue) :
+            key.partitionValue != null) {
             return false;
         }
-        return sortKeyValue != null ? sortKeyValue.equals(key.sortKeyValue) : key.sortKeyValue == null;
+        return sortValue != null ? sortValue.equals(key.sortValue) : key.sortValue == null;
     }
 
     @Override
     public int hashCode() {
-        int result = partitionKeyValue != null ? partitionKeyValue.hashCode() : 0;
-        result = 31 * result + (sortKeyValue != null ? sortKeyValue.hashCode() : 0);
+        int result = partitionValue != null ? partitionValue.hashCode() : 0;
+        result = 31 * result + (sortValue != null ? sortValue.hashCode() : 0);
         return result;
     }
 }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -158,7 +158,7 @@ public class UpdateItemOperation<T>
         List<String> updateRemoveActions = new ArrayList<>();
 
         attributeValuesToUpdate.forEach((key, value) -> {
-            if (!AttributeValues.isNullAttributeValue(value)) {
+            if (!isNullAttributeValue(value)) {
                 updateSetActions.add(EXPRESSION_KEY_MAPPER.apply(key) + " = " + EXPRESSION_VALUE_KEY_MAPPER.apply(key));
             } else {
                 updateRemoveActions.add(EXPRESSION_KEY_MAPPER.apply(key));
@@ -181,7 +181,7 @@ public class UpdateItemOperation<T>
         Map<String, AttributeValue> expressionAttributeValues =
             attributeValuesToUpdate.entrySet()
                                    .stream()
-                                   .filter(entry -> !AttributeValues.isNullAttributeValue(entry.getValue()))
+                                   .filter(entry -> !isNullAttributeValue(entry.getValue()))
                                    .collect(Collectors.toMap(
                                        entry -> EXPRESSION_VALUE_KEY_MAPPER.apply(entry.getKey()),
                                        Map.Entry::getValue));

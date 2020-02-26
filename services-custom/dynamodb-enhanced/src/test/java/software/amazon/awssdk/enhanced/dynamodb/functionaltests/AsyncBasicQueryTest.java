@@ -19,8 +19,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
@@ -143,7 +143,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
 
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("id-value")))));
+            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value"))));
         
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -166,7 +166,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
 
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
+                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
                                                   .filterExpression(expression)
                                                   .build());
 
@@ -181,8 +181,8 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryBetween() {
         insertRecords();
-        Key fromKey = Key.create(stringValue("id-value"), numberValue(3));
-        Key toKey = Key.create(stringValue("id-value"), numberValue(5));
+        Key fromKey = Key.builder().partitionValue("id-value").sortValue(3).build();
+        Key toKey = Key.builder().partitionValue("id-value").sortValue(5).build();
         SdkPublisher<Page<Record>> publisher = mappedTable.query(r -> r.queryConditional(between(fromKey, toKey)));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
@@ -198,7 +198,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
+                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
                                                   .limit(5)
                                                   .build());
 
@@ -224,7 +224,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     @Test
     public void queryEmpty() {
         SdkPublisher<Page<Record>> publisher =
-            mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("id-value")))));
+            mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("id-value"))));
 
         List<Page<Record>> results = drainPublisher(publisher, 1);
         Page<Record> page = results.get(0);
@@ -241,7 +241,7 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
         insertRecords();
         SdkPublisher<Page<Record>> publisher =
             mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(equalTo(Key.create(stringValue("id-value"))))
+                                                  .queryConditional(equalTo(k -> k.partitionValue("id-value")))
                                                   .exclusiveStartKey(exclusiveStartKey)
                                                   .build());
 
