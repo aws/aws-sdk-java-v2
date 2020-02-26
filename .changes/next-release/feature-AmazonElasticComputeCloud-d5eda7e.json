@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "description": "This release changes the RunInstances CLI and SDK's so that if you do not specify a client token, a randomly generated token is used for the request to ensure idempotency."
+}
