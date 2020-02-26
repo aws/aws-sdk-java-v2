@@ -20,6 +20,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
+import static org.apache.commons.lang3.ObjectUtils.min;
+
 @SdkPublicApi
 @FunctionalInterface
 public interface BackoffStrategy {
@@ -32,8 +34,11 @@ public interface BackoffStrategy {
      */
     Duration computeDelayBeforeNextRetry(RetryPolicyContext context);
 
+    int RETRIES_ATTEMPTED_CEILING = (int) Math.floor(Math.log(Integer.MAX_VALUE) / Math.log(2));
+
     default int calculateExponentialDelay(int retriesAttempted, Duration baseDelay, Duration maxBackoffTime) {
-        return (int) Math.min((1L << retriesAttempted) * baseDelay.toMillis(), maxBackoffTime.toMillis());
+        final int cappedRetries = Math.min(retriesAttempted, RETRIES_ATTEMPTED_CEILING);
+        return (int) min(baseDelay.multipliedBy(1L << cappedRetries), maxBackoffTime).toMillis();
     }
 
     static BackoffStrategy defaultStrategy() {
