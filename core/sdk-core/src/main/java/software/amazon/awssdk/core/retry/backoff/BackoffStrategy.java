@@ -24,6 +24,8 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 @FunctionalInterface
 public interface BackoffStrategy {
 
+    int RETRIES_ATTEMPTED_CEILING = (int) Math.floor(Math.log(Integer.MAX_VALUE) / Math.log(2));
+
     /**
      * Compute the delay before the next retry request. This strategy is only consulted when there will be a next retry.
      *
@@ -33,7 +35,8 @@ public interface BackoffStrategy {
     Duration computeDelayBeforeNextRetry(RetryPolicyContext context);
 
     default int calculateExponentialDelay(int retriesAttempted, Duration baseDelay, Duration maxBackoffTime) {
-        return (int) Math.min((1L << retriesAttempted) * baseDelay.toMillis(), maxBackoffTime.toMillis());
+        int cappedRetries = Math.min(retriesAttempted, RETRIES_ATTEMPTED_CEILING);
+        return (int) Math.min(baseDelay.multipliedBy(1L << cappedRetries).toMillis(), maxBackoffTime.toMillis());
     }
 
     static BackoffStrategy defaultStrategy() {
