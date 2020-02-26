@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +24,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -106,7 +107,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         Optional<AttributeValue> existingVersionValue =
             Optional.ofNullable(itemToTransform.get(versionAttributeKey.get()));
 
-        if (!existingVersionValue.isPresent() || AttributeValues.isNullAttributeValue(existingVersionValue.get())) {
+        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
             // First version of the record
             newVersionValue = AttributeValue.builder().n("1").build();
             condition = Expression.builder()

@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
 
@@ -28,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -171,7 +169,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setDocument(document);
 
         Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
-        Record fetchedRecord = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"))));
+        Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));
@@ -187,7 +185,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setDocument(document);
 
         Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
-        Record fetchedRecord = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"))));
+        Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));
@@ -199,7 +197,7 @@ public class FlattenTest extends LocalDynamoDbSyncTestBase {
                               .setId("id-value");
 
         Record updatedRecord = mappedTable.updateItem(Record.class, r -> r.item(record));
-        Record fetchedRecord = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"))));
+        Record fetchedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value")));
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));

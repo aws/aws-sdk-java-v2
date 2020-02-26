@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondaryPartitionKey;
@@ -214,8 +214,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                           GlobalSecondaryIndex.create(
                                               "gsi_1",
                                               Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                              getDefaultProvisionedThroughput()))
-                                      .build()).join();
+                                              getDefaultProvisionedThroughput()))).join();
     }
 
     @After
@@ -236,7 +235,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute3("three");
 
         mappedTable.putItem(Record.class, r -> r.item(record)).join();
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
         assertThat(result, is(record));
     }
@@ -251,14 +250,14 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                               .setAttribute3("three");
 
         mappedTable.putItem(Record.class, r -> r.item(record)).join();
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
         assertThat(result, is(record));
     }
 
     @Test
     public void getNonExistentItem() {
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(nullValue()));
     }
 
@@ -280,7 +279,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                .setAttribute3("six");
 
         mappedTable.putItem(Record.class, r -> r.item(record2)).join();
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
         assertThat(result, is(record2));
     }
@@ -296,9 +295,9 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
         mappedTable.putItem(Record.class, r -> r.item(record)).join();
         Record beforeDeleteResult =
-            mappedTable.deleteItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.deleteItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         Record afterDeleteResult =
-            mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+            mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
 
         assertThat(beforeDeleteResult, is(record));
         assertThat(afterDeleteResult, is(nullValue()));
@@ -329,7 +328,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                             .conditionExpression(conditionExpression)
                                             .build()).join();
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(record));
     }
 
@@ -364,7 +363,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void deleteNonExistentItem() {
-        Record result = mappedTable.deleteItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.deleteItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(nullValue()));
     }
 
@@ -530,8 +529,8 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                          .setSort("sort-value")
                                          .setAttribute("four");
         ShortRecord shortResult = mappedShortTable.updateItem(ShortRecord.class, r -> r.item(record2)).join();
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue(record.getId()),
-                                                                               stringValue(record.getSort())))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue(record.getId())
+                                                             .sortValue(record.getSort()))).join();
 
         Record expectedResult = new Record()
                                       .setId("id-value")
@@ -590,7 +589,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                                .build())
                    .join();
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(record));
     }
 
@@ -635,7 +634,7 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                       .setSort("sort-value")
                                       .setAttribute("one");
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id-value"), stringValue("sort-value")))).join();
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result, is(expectedRecord));
     }
 }

@@ -19,7 +19,7 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Map;
 
@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.ConditionCheck;
@@ -52,7 +51,7 @@ public class ConditionCheckTest {
                                                    .build();
         ConditionCheck<FakeItem> operation =
             ConditionCheck.builder()
-                          .key(Key.create(stringValue(fakeItem.getId())))
+                          .key(k -> k.partitionValue(fakeItem.getId()))
                           .conditionExpression(conditionExpression)
                           .build();
         OperationContext context = OperationContext.create("table-name", TableMetadata.primaryIndexName());

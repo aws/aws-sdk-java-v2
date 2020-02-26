@@ -20,8 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
@@ -176,7 +175,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                              .addPutItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(0)))
                                              .build());
 
-        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
@@ -188,8 +187,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                              .addPutItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(0)))
                                              .build());
 
-        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
+        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
@@ -201,7 +200,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                              .addUpdateItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(0)))
                                              .build());
 
-        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
@@ -213,8 +212,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                              .addUpdateItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(0)))
                                              .build());
 
-        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
+        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
@@ -225,10 +224,10 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
         enhancedClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addDeleteItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable1, r -> r.key(k -> k.partitionValue(0)))
                                              .build());
 
-        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record, is(nullValue()));
     }
 
@@ -239,12 +238,12 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
         enhancedClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
-                                             .addDeleteItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
-                                             .addDeleteItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable1, r -> r.key(k -> k.partitionValue(0)))
+                                             .addDeleteItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
                                              .build());
 
-        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
+        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
     }
@@ -258,7 +257,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                                     .expressionValues(singletonMap(":attribute", stringValue("0")))
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
-        Key key = Key.create(numberValue(0));
+        Key key = Key.builder().partitionValue(0).build();
 
         enhancedClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -280,8 +279,8 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key1 = Key.create(numberValue(0));
-        Key key2 = Key.create(numberValue(0));
+        Key key1 = Key.builder().partitionValue(0).build();
+        Key key2 = Key.builder().partitionValue(0).build();
 
         enhancedClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -307,7 +306,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key = Key.create(numberValue(0));
+        Key key = Key.builder().partitionValue(0).build();
 
         TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
@@ -317,14 +316,14 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                                                                             .build())
                                              .addPutItem(mappedTable2, Record2.class, r -> r.item(RECORDS_2.get(1)))
                                              .addUpdateItem(mappedTable1, Record1.class, r -> r.item(RECORDS_1.get(1)))
-                                             .addDeleteItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
                                              .build();
 
         enhancedClient.transactWriteItems(transactWriteItemsEnhancedRequest);
 
-        assertThat(mappedTable1.getItem(r -> r.key(Key.create(numberValue(1)))), is(RECORDS_1.get(1)));
-        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))), is(nullValue()));
-        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(1)))), is(RECORDS_2.get(1)));
+        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(1))), is(RECORDS_1.get(1)));
+        assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))), is(nullValue()));
+        assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(1))), is(RECORDS_2.get(1)));
     }
 
     @Test
@@ -338,7 +337,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                                     .expressionNames(singletonMap("#attribute", "attribute"))
                                                     .build();
 
-        Key key = Key.create(numberValue(0));
+        Key key = Key.builder().partitionValue(0).build();
 
         TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
@@ -348,7 +347,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
                                                                                             .key(key)
                                                                                             .conditionExpression(conditionExpression)
                                                                                             .build())
-                                             .addDeleteItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
+                                             .addDeleteItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
                                              .build();
 
         try {
@@ -357,9 +356,9 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
         } catch(TransactionCanceledException ignored) {
         }
 
-        assertThat(mappedTable1.getItem(r -> r.key(Key.create(numberValue(1)))), is(nullValue()));
-        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))), is(RECORDS_2.get(0)));
-        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(1)))), is(nullValue()));
+        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(1))), is(nullValue()));
+        assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))), is(RECORDS_2.get(0)));
+        assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(1))), is(nullValue()));
     }
 }
 

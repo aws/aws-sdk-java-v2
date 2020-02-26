@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
+
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -22,7 +25,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -55,14 +57,14 @@ public final class Attribute<T> {
 
         Function<T, AttributeValue> getAttributeValueWithTransform = item -> {
             R value = getAttributeMethod.apply(item);
-            return value == null ? AttributeValues.nullAttributeValue() : attributeType.objectToAttributeValue(value);
+            return value == null ? nullAttributeValue() : attributeType.objectToAttributeValue(value);
         };
 
         // When setting a value on the java object, do not explicitly set nulls as this can cause an NPE to be thrown
         // if the target attribute type is a primitive.
         BiConsumer<T, AttributeValue> updateItemWithTransform = (item, attributeValue) -> {
             // If the attributeValue is nul, do not attempt to marshal
-            if (AttributeValues.isNullAttributeValue(attributeValue)) {
+            if (isNullAttributeValue(attributeValue)) {
                 return;
             }
 
@@ -97,7 +99,7 @@ public final class Attribute<T> {
 
                 // If the containing object is null don't attempt to read attributes from it
                 return otherItem == null ?
-                    AttributeValues.nullAttributeValue() : getAttributeMethod.apply(otherItem);
+                    nullAttributeValue() : getAttributeMethod.apply(otherItem);
             },
             (item, value) -> {
                 if (createComponent != null) {

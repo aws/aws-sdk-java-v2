@@ -17,7 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Optional;
 

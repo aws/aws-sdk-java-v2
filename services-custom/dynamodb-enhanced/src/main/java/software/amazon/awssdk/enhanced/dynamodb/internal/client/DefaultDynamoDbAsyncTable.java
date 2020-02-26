@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -25,7 +27,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
@@ -194,7 +195,7 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public Key keyFrom(T item) {
-        return EnhancedClientUtils.createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
+        return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
     }
 
     @Override

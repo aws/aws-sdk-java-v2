@@ -107,9 +107,9 @@ most of the features available in the low-level DynamoDB SDK client.
    customerTable.createTable(CreateTableEnhancedRequest.builder().build());
    
    // GetItem
-   Customer customer = customerTable.getItem(r -> r.key(Key.create(stringValue("a123"))));
+   Customer customer = customerTable.getItem(r -> r.key(k -> k.partitionValue("a123")));
    Customer customer = customerTable.getItem(GetItemEnhancedRequest.builder()
-                                                                   .key(Key.create(stringValue("a123")))
+                                                                   .key(Key.builder().partitionValue("a123").build())
                                                                    .build()); 
    // UpdateItem
    Customer updatedCustomer = customerTable.updateItem(Customer.class, r -> r.item(customer));
@@ -124,16 +124,18 @@ most of the features available in the low-level DynamoDB SDK client.
                                                .build());
    
    // DeleteItem
-   Customer deletedCustomer = customerTable.deleteItem(r -> r.key(Key.create(stringValue("a123"), numberValue(456))));
-   Customer deletedCustomer = customerTable.deleteItem(DeleteItemEnhancedRequest.builder()
-                                                                                     .key(Key.create(stringValue("a123"), numberValue(456)))
-                                                                                     .build());
+   Customer deletedCustomer = customerTable.deleteItem(r -> r.key(k -> partitionValue("a123").sortValue(456)));
+   Customer deletedCustomer = customerTable.deleteItem(
+        DeleteItemEnhancedRequest.builder()
+                                 .key(Key.builder().partitionValue("a123").sortValue(456).build())
+                                 .build());
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("a123")))));
-   Iterable<Page<Customer>> customers = customerTable.query(QueryEnhancedRequest.builder()
-                                                                                .queryConditional(equalTo(Key.create(stringValue("a123"))))
-                                                                                .build());
+   Iterable<Page<Customer>> customers = customerTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("a123"))));
+   Iterable<Page<Customer>> customers = 
+        customerTable.query(QueryEnhancedRequest.builder()
+                                                .queryConditional(equalTo(Key.builder().partitionValue("a123").build()))
+                                                .build());
    // Scan
    Iterable<Page<Customer>> customers = customerTable.scan();
    Iterable<Page<Customer>> customers = customerTable.scan(ScanEnhancedRequest.builder().build());
@@ -173,12 +175,12 @@ most of the features available in the low-level DynamoDB SDK client.
                                     .build());
    
    // TransactGetItems
-   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, r -> r.key(Key.create(key1)))
-                                                           .addGetItem(customerTable, r -> r.key(Key.create(key2))));
+   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, r -> r.key(key1))
+                                                           .addGetItem(customerTable, r -> r.key(key2));
    transactResults = enhancedClient.transactGetItems(
        TransactGetItemsEnhancedRequest.builder()
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(Key.create(key1)).build())
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(Key.create(key2)).build())
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(key1).build())
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(key2).build())
                                       .build());
    
    // TransactWriteItems
@@ -204,10 +206,10 @@ most of the features available in the low-level DynamoDB SDK client.
 ### Using secondary indices
 Certain operations (Query and Scan) may be executed against a secondary
 index. Here's an example of how to do this:
-   ```
+   ```java
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(Key.create(stringValue("Smith")))));
+   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -240,7 +242,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("a123")))));
+   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```
