@@ -16,6 +16,7 @@ artifact source.
 * [Sample Code](#sample-code)
 * [API Docs][docs-api]
 * [Developer Guide][docs-guide] ([source][docs-guide-source])
+* [Maven Archetypes](archetypes/README.md)
 * [Issues][sdk-issues]
 * [SDK Blog][blog]
 * [Giving Feedback](#giving-feedback)

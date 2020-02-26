@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import json
+import os
+import string
+
+MAPPING_FILE_NAME = 'serviceMapping.vm'
+RESOURCES_ROOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+ARCHETYPE_LAMBDA_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(RESOURCES_ROOT_DIR, "../"))))
+SERVICE_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../../../")))),
+    'services'
+)
+
+def load_all_service_modules():
+    service_mapping = {}
+    for f in [f for f in os.listdir(SERVICE_DIR) if os.path.isdir(os.path.join(SERVICE_DIR, f)) & os.path.exists(os.path.join(SERVICE_DIR, f, 'target'))]:
+        for s in [s for s in os.listdir(os.path.join(SERVICE_DIR, f, 'target', 'generated-sources/sdk/software/amazon/awssdk/services', f)) if s.endswith('AsyncClient.java') & s.startswith('Default')]:
+            service_mapping[f] = find_client_prefix(s)
+    return service_mapping
+
+def find_client_prefix(d):
+    index = d.find('AsyncClient.java')
+    return d[7:index]
+
+def write_to_vm_file(service_mapping):
+    target = os.path.join(ARCHETYPE_LAMBDA_ROOT_DIR, 'target')
+
+    if not os.path.exists(target):
+        os.mkdir(target)
+
+    target = os.path.join(ARCHETYPE_LAMBDA_ROOT_DIR, 'target', 'classes')
+
+    if not os.path.exists(target):
+        os.mkdir(target)
+
+    filename = os.path.join(target, MAPPING_FILE_NAME)
+
+    with open(filename, 'w') as f:
+        f.write('#set ( $serviceMapping =')
+        f.write(json.dumps(service_mapping))
+        f.write(')')
+    return filename
+
+def main():
+    service_mapping = load_all_service_modules()
+    write_to_vm_file(service_mapping)
+
+if __name__ == '__main__':
+    main()
