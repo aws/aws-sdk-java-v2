@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 
@@ -32,7 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
@@ -148,10 +146,10 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(1))))
-                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(0)))
+                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
+                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(1)))
+                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
                                            .build();
 
         List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
@@ -169,10 +167,10 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
 
         TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactGetItemsEnhancedRequest.builder()
-                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(0))))
-                                           .addGetItem(mappedTable2, r -> r.key(Key.create(numberValue(5))))
-                                           .addGetItem(mappedTable1, r -> r.key(Key.create(numberValue(1))))
+                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(0)))
+                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(0)))
+                                           .addGetItem(mappedTable2, r -> r.key(k -> k.partitionValue(5)))
+                                           .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
                                            .build();
 
         List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);

@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 
@@ -33,7 +32,6 @@ import org.junit.Test;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -157,19 +155,19 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
         SdkPublisher<BatchGetResultPage> publisher = enhancedAsyncClient.batchGetItem(r -> r.readBatches(
                 ReadBatch.builder(Record1.class)
                          .mappedTableResource(mappedTable1)
-                         .addGetItem(i -> i.key(Key.create(numberValue(0))))
+                         .addGetItem(i -> i.key(k -> k.partitionValue(0)))
                          .build(),
                 ReadBatch.builder(Record2.class)
                          .mappedTableResource(mappedTable2)
-                         .addGetItem(i -> i.key(Key.create(numberValue(0))))
+                         .addGetItem(i -> i.key(k -> k.partitionValue(0)))
                          .build(),
                 ReadBatch.builder(Record2.class)
                          .mappedTableResource(mappedTable2)
-                         .addGetItem(i -> i.key(Key.create(numberValue(1))))
+                         .addGetItem(i -> i.key(k -> k.partitionValue(1)))
                          .build(),
                 ReadBatch.builder(Record1.class)
                          .mappedTableResource(mappedTable1)
-                         .addGetItem(i -> i.key(Key.create(numberValue(1))))
+                         .addGetItem(i -> i.key(k -> k.partitionValue(1)))
                          .build()));
 
         List<BatchGetResultPage> results = drainPublisher(publisher, 1);
@@ -193,19 +191,19 @@ public class AsyncBatchGetItemTest extends LocalDynamoDbAsyncTestBase {
                                        .readBatches(
                                            ReadBatch.builder(Record1.class)
                                                     .mappedTableResource(mappedTable1)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(0))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(0)))
                                                     .build(),
                                            ReadBatch.builder(Record2.class)
                                                     .mappedTableResource(mappedTable2)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(0))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(0)))
                                                     .build(),
                                            ReadBatch.builder(Record2.class)
                                                     .mappedTableResource(mappedTable2)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(1))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(1)))
                                                     .build(),
                                            ReadBatch.builder(Record1.class)
                                                     .mappedTableResource(mappedTable1)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(5))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(5)))
                                                     .build())
                                        .build();
 

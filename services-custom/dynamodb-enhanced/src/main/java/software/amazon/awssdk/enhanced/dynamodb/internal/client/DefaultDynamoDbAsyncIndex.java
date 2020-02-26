@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
+
 import java.util.function.Consumer;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -23,7 +25,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedIndexOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.QueryOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.ScanOperation;
@@ -107,7 +108,7 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
 
     @Override
     public Key keyFrom(T item) {
-        return EnhancedClientUtils.createKeyFromItem(item, tableSchema, indexName);
+        return createKeyFromItem(item, tableSchema, indexName);
     }
 
     @Override

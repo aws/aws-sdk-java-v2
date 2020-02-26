@@ -116,8 +116,14 @@ public final class EnhancedClientUtils {
         AttributeValue partitionKeyValue = tableSchema.attributeValue(item, partitionKeyName);
         Optional<AttributeValue> sortKeyValue = sortKeyName.map(key -> tableSchema.attributeValue(item, key));
 
-        return sortKeyValue.map(attributeValue -> Key.create(partitionKeyValue, attributeValue))
-                           .orElseGet(() -> Key.create(partitionKeyValue));
+        return sortKeyValue.map(
+            attributeValue -> Key.builder()
+                                 .partitionValue(partitionKeyValue)
+                                 .sortValue(attributeValue)
+                                 .build())
+                           .orElseGet(
+                               () -> Key.builder()
+                                        .partitionValue(partitionKeyValue).build());
     }
 
     public static <T> List<T> getItemsFromSupplier(List<Supplier<T>> itemSupplierList) {
@@ -127,5 +133,15 @@ public final class EnhancedClientUtils {
         return Collections.unmodifiableList(itemSupplierList.stream()
                                                             .map(Supplier::get)
                                                             .collect(Collectors.toList()));
+    }
+
+    /**
+     * A helper method to test if an {@link AttributeValue} is a 'null' constant. This will not test if the
+     * AttributeValue object is null itself, and in fact will throw a NullPointerException if you pass in null.
+     * @param attributeValue An {@link AttributeValue} to test for null.
+     * @return true if the supplied AttributeValue represents a null value, or false if it does not.
+     */
+    public static boolean isNullAttributeValue(AttributeValue attributeValue) {
+        return attributeValue.nul() != null && attributeValue.nul();
     }
 }
