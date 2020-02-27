@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.VersionedRecordExtensionAttributeTags;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.VersionRecordAttributeTags;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 
 /**
@@ -32,6 +32,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSche
 @SdkPublicApi
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@BeanTableSchemaAttributeTag(VersionedRecordExtensionAttributeTags.class)
+@BeanTableSchemaAttributeTag(VersionRecordAttributeTags.class)
 public @interface DynamoDbVersionAttribute {
 }

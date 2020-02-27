@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.Map;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.extensions.ChainExtension;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
@@ -29,9 +28,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * is written to the database, and one called just after a record is read from the database. This gives the extension the
  * opportunity to act as an invisible layer between the application and the database and transform the data accordingly.
  * <p>
- * Only one extension can be loaded with an enhanced client. In order to combine multiple extensions, the
- * {@link ChainExtension} should be used and initialized with all the component extensions to combine together
- * into a chain.
+ * Multiple extensions can be used with the enhanced client, but the order in which they are loaded is important. For
+ * instance one extension may overwrite the value of an attribute that another extension then includes in a checksum
+ * calculation.
  */
 @SdkPublicApi
 public interface DynamoDbEnhancedClientExtension {

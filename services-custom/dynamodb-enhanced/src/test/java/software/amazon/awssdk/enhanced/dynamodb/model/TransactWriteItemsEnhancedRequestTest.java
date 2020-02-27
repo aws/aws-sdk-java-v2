@@ -56,7 +56,7 @@ public class TransactWriteItemsEnhancedRequestTest {
 
     @Before
     public void setupMappedTables() {
-        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).build();
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extensions().build();
         fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
     }
 

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -35,16 +37,18 @@ import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRe
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
     private final DynamoDbClient dynamoDbClient;
     private final DynamoDbEnhancedClientExtension extension;
 
-    private DefaultDynamoDbEnhancedClient(DynamoDbClient dynamoDbClient,
-                                          DynamoDbEnhancedClientExtension extension) {
-        this.dynamoDbClient = dynamoDbClient;
-        this.extension = extension;
+    private DefaultDynamoDbEnhancedClient(Builder builder) {
+        this.dynamoDbClient = Validate.paramNotNull(builder.dynamoDbClient, "You must provide a DynamoDbClient to build " +
+            "a DefaultDynamoDbEnhancedClient.");
+
+        this.extension = ExtensionResolver.resolveExtensions(builder.dynamoDbEnhancedClientExtensions);
     }
 
     public static Builder builder() {
@@ -119,7 +123,7 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     public Builder toBuilder() {
-        return builder().dynamoDbClient(this.dynamoDbClient).extendWith(this.extension);
+        return builder().dynamoDbClient(this.dynamoDbClient).extensions(this.extension);
     }
 
     @Override
@@ -151,30 +155,29 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
 
     public static final class Builder implements DynamoDbEnhancedClient.Builder {
         private DynamoDbClient dynamoDbClient;
-        private DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension;
+        private List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions =
+            new ArrayList<>(ExtensionResolver.defaultExtensions());
 
+        @Override
         public DefaultDynamoDbEnhancedClient build() {
-            if (dynamoDbClient == null) {
-                throw new IllegalArgumentException("You must provide a DynamoDbClient to build a "
-                                                   + "DefaultDynamoDbEnhancedClient.");
-            }
-
-            return new DefaultDynamoDbEnhancedClient(dynamoDbClient, dynamoDbEnhancedClientExtension);
+            return new DefaultDynamoDbEnhancedClient(this);
         }
 
+        @Override
         public Builder dynamoDbClient(DynamoDbClient dynamoDbClient) {
             this.dynamoDbClient = dynamoDbClient;
             return this;
         }
 
-        public Builder extendWith(DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
-            if (dynamoDbEnhancedClientExtension != null && this.dynamoDbEnhancedClientExtension != null) {
-                throw new IllegalArgumentException("You may only extend a DefaultDynamoDbEnhancedClient with a single "
-                                                   + "extension. To combine multiple extensions, use the "
-                                                   + "ChainMapperExtension.");
-            }
+        @Override
+        public Builder extensions(DynamoDbEnhancedClientExtension... dynamoDbEnhancedClientExtensions) {
+            this.dynamoDbEnhancedClientExtensions = Arrays.asList(dynamoDbEnhancedClientExtensions);
+            return this;
+        }
 
-            this.dynamoDbEnhancedClientExtension = dynamoDbEnhancedClientExtension;
+        @Override
+        public Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions) {
+            this.dynamoDbEnhancedClientExtensions = new ArrayList<>(dynamoDbEnhancedClientExtensions);
             return this;
         }
     }
