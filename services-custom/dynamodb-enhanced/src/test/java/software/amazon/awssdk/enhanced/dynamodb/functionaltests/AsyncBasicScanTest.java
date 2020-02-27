@@ -23,8 +23,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberVal
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -91,8 +90,8 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
         StaticTableSchema.builder(Record.class)
                    .newItemSupplier(Record::new)
                    .attributes(
-                       stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                       integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()))
+                       attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                       attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()))
         .build();
 
     private static final List<Record> RECORDS =

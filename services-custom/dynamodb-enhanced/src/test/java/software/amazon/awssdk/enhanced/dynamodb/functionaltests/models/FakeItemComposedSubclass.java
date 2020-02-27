@@ -15,19 +15,20 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
-
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemComposedSubclass extends FakeItemComposedAbstractSubclass {
     private static final StaticTableSchema<FakeItemComposedSubclass> ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemComposedSubclass.class)
                          .newItemSupplier(FakeItemComposedSubclass::new)
-                         .attributes(stringAttribute("composed_subclass",
-                                            FakeItemComposedSubclass::getComposedAttribute,
-                                            FakeItemComposedSubclass::setComposedAttribute))
+                         .attributes(attribute("composed_subclass",
+                                               TypeToken.of(String.class),
+                                               FakeItemComposedSubclass::getComposedAttribute,
+                                               FakeItemComposedSubclass::setComposedAttribute))
                          .extend(FakeItemComposedAbstractSubclass.getSubclassTableSchema())
                          .build();
 
@@ -47,9 +48,15 @@ public class FakeItemComposedSubclass extends FakeItemComposedAbstractSubclass {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (! super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         FakeItemComposedSubclass that = (FakeItemComposedSubclass) o;
         return Objects.equals(composedAttribute, that.composedAttribute);
     }

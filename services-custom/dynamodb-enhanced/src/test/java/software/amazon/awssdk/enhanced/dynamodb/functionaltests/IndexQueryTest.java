@@ -25,8 +25,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.prim
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.secondarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.between;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
 
@@ -37,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +44,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GlobalSecondaryIndex;
@@ -131,12 +130,12 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         StaticTableSchema.builder(Record.class)
                          .newItemSupplier(Record::new)
                          .attributes(
-                             stringAttribute("id", Record::getId, Record::setId).as(primaryPartitionKey()),
-                             integerNumberAttribute("sort", Record::getSort, Record::setSort).as(primarySortKey()),
-                             integerNumberAttribute("value", Record::getValue, Record::setValue),
-                             stringAttribute("gsi_id", Record::getGsiId, Record::setGsiId)
+                             attribute("id", TypeToken.of(String.class), Record::getId, Record::setId).as(primaryPartitionKey()),
+                             attribute("sort", TypeToken.of(Integer.class), Record::getSort, Record::setSort).as(primarySortKey()),
+                             attribute("value", TypeToken.of(Integer.class), Record::getValue, Record::setValue),
+                             attribute("gsi_id",TypeToken.of(String.class),  Record::getGsiId, Record::setGsiId)
                                  .as(secondaryPartitionKey("gsi_keys_only")),
-                             integerNumberAttribute("gsi_sort", Record::getGsiSort, Record::setGsiSort)
+                             attribute("gsi_sort", TypeToken.of(Integer.class), Record::getGsiSort, Record::setGsiSort)
                                  .as(secondarySortKey("gsi_keys_only")))
                          .build();
 

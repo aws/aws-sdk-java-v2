@@ -15,18 +15,19 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.attribute;
 
 import java.util.Objects;
-
+import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 abstract class FakeItemComposedAbstractSubclass2 {
     private static final StaticTableSchema<FakeItemComposedAbstractSubclass2> FAKE_ITEM_MAPPER =
         StaticTableSchema.builder(FakeItemComposedAbstractSubclass2.class)
-                         .attributes(stringAttribute("composed_abstract_subclass_2",
-                                            FakeItemComposedAbstractSubclass2::getComposedSubclassAttribute2,
-                                            FakeItemComposedAbstractSubclass2::setComposedSubclassAttribute2))
+                         .attributes(attribute("composed_abstract_subclass_2",
+                                               TypeToken.of(String.class),
+                                               FakeItemComposedAbstractSubclass2::getComposedSubclassAttribute2,
+                                               FakeItemComposedAbstractSubclass2::setComposedSubclassAttribute2))
                          .build();
 
     private String composedSubclassAttribute2;
@@ -45,8 +46,12 @@ abstract class FakeItemComposedAbstractSubclass2 {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         FakeItemComposedAbstractSubclass2 that = (FakeItemComposedAbstractSubclass2) o;
         return Objects.equals(composedSubclassAttribute2, that.composedSubclassAttribute2);
     }
