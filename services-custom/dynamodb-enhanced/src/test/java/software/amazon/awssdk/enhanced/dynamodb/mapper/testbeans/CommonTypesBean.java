@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
-import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
@@ -31,7 +31,7 @@ public class CommonTypesBean {
     private Byte byteAttribute;
     private Double doubleAttribute;
     private Float floatAttribute;
-    private ByteBuffer byteBufferAttribute;
+    private SdkBytes binaryAttribute;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -98,12 +98,12 @@ public class CommonTypesBean {
         this.floatAttribute = floatAttribute;
     }
 
-    public ByteBuffer getByteBufferAttribute() {
-        return byteBufferAttribute;
+    public SdkBytes getBinaryAttribute() {
+        return binaryAttribute;
     }
 
-    public void setByteBufferAttribute(ByteBuffer byteBufferAttribute) {
-        this.byteBufferAttribute = byteBufferAttribute;
+    public void setBinaryAttribute(SdkBytes binaryAttribute) {
+        this.binaryAttribute = binaryAttribute;
     }
 
     @Override
@@ -119,11 +119,11 @@ public class CommonTypesBean {
             Objects.equals(byteAttribute, that.byteAttribute) &&
             Objects.equals(doubleAttribute, that.doubleAttribute) &&
             Objects.equals(floatAttribute, that.floatAttribute) &&
-            Objects.equals(byteBufferAttribute, that.byteBufferAttribute);
+            Objects.equals(binaryAttribute, that.binaryAttribute);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, booleanAttribute, integerAttribute, longAttribute, shortAttribute, byteAttribute, doubleAttribute, floatAttribute, byteBufferAttribute);
+        return Objects.hash(id, booleanAttribute, integerAttribute, longAttribute, shortAttribute, byteAttribute, doubleAttribute, floatAttribute, binaryAttribute);
     }
 }

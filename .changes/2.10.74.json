@@ -1,0 +1,21 @@
+{
+    "version": "2.10.74",
+    "date": "2020-02-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "description": "This release adds support for adding tags to accelerators and bringing your own IP address to AWS Global Accelerator (BYOIP)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "description": "Adds support to create notification contacts in Amazon Lightsail, and to create instance, database, and load balancer metric alarms that notify you based on the value of a metric relative to a threshold that you specify."
+        }
+    ]
+}
