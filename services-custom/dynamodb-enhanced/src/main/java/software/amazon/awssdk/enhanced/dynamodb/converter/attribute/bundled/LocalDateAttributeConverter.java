@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -72,6 +73,11 @@ public final class LocalDateAttributeConverter implements AttributeConverter<Loc
     @Override
     public TypeToken<LocalDate> type() {
         return TypeToken.of(LocalDate.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     @Override

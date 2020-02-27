@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.PrimitiveConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
 
@@ -75,6 +76,11 @@ public final class ByteAttributeConverter implements AttributeConverter<Byte>, P
     @Override
     public TypeToken<Byte> primitiveType() {
         return TypeToken.of(byte.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.B;
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Byte> {

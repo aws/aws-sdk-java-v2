@@ -23,6 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.internal.TimeConversion;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -70,6 +71,11 @@ public final class InstantAsIntegerAttributeConverter implements AttributeConver
     @Override
     public TypeToken<Instant> type() {
         return TypeToken.of(Instant.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     @Override

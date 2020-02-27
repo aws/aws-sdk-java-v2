@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.BigDecimalStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -60,6 +61,11 @@ public final class BigDecimalAttributeConverter implements AttributeConverter<Bi
     @Override
     public TypeToken<BigDecimal> type() {
         return TypeToken.of(BigDecimal.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     @Override

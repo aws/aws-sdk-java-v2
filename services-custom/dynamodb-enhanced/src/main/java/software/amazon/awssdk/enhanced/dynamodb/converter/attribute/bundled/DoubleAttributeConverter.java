@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeCon
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.DoubleStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -65,6 +66,16 @@ public final class DoubleAttributeConverter implements AttributeConverter<Double
     }
 
     @Override
+    public TypeToken<Double> primitiveType() {
+        return TypeToken.of(double.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
+    }
+
+    @Override
     public AttributeValue transformFrom(Double input) {
         ConverterUtils.validateDouble(input);
         return ItemAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toGeneratedAttributeValue();
@@ -81,11 +92,6 @@ public final class DoubleAttributeConverter implements AttributeConverter<Double
 
         ConverterUtils.validateDouble(result);
         return result;
-    }
-
-    @Override
-    public TypeToken<Double> primitiveType() {
-        return TypeToken.of(double.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Double> {

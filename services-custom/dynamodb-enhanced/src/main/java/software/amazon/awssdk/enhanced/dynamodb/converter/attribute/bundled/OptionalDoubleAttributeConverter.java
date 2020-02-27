@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeCon
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.OptionalDoubleStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -67,6 +68,11 @@ public final class OptionalDoubleAttributeConverter implements AttributeConverte
     @Override
     public TypeToken<OptionalDouble> type() {
         return TypeToken.of(OptionalDouble.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     @Override

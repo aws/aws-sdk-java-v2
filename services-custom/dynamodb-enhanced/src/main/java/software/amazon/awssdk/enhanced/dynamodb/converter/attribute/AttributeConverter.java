@@ -22,7 +22,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.Converter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled.InstantAsIntegerAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled.InstantAsStringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled.StringAttributeConverter;
-import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**

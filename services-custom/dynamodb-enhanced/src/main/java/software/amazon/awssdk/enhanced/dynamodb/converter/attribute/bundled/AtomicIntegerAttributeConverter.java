@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.AtomicIntegerStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -59,6 +60,11 @@ public final class AtomicIntegerAttributeConverter implements AttributeConverter
     @Override
     public TypeToken<AtomicInteger> type() {
         return TypeToken.of(AtomicInteger.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     public static AtomicIntegerAttributeConverter create() {

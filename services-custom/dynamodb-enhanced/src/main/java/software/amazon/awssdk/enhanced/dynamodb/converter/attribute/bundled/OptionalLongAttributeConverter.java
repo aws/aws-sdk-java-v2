@@ -26,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.OptionalLongStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -61,6 +62,11 @@ public final class OptionalLongAttributeConverter implements AttributeConverter<
     @Override
     public TypeToken<OptionalLong> type() {
         return TypeToken.of(OptionalLong.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     public static OptionalLongAttributeConverter create() {

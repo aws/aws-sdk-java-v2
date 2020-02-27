@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.AtomicLongStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -59,6 +60,11 @@ public final class AtomicLongAttributeConverter implements AttributeConverter<At
     @Override
     public TypeToken<AtomicLong> type() {
         return TypeToken.of(AtomicLong.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     public static AtomicLongAttributeConverter create() {

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled;
 
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.converter.internal.ConverterUtils.padLeft2;
+import static software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils.padLeft2;
 
 import java.time.DateTimeException;
 import java.time.MonthDay;
@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
 
@@ -69,6 +70,11 @@ public final class MonthDayAttributeConverter implements AttributeConverter<Mont
     @Override
     public TypeToken<MonthDay> type() {
         return TypeToken.of(MonthDay.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
     }
 
     @Override

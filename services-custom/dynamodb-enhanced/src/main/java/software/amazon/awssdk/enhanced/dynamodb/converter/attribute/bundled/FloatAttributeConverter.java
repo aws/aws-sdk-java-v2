@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeCon
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.FloatStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -65,6 +66,16 @@ public final class FloatAttributeConverter implements AttributeConverter<Float>,
     }
 
     @Override
+    public TypeToken<Float> primitiveType() {
+        return TypeToken.of(float.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
+    }
+
+    @Override
     public AttributeValue transformFrom(Float input) {
         ConverterUtils.validateFloat(input);
         return ItemAttributeValue.fromNumber(STRING_CONVERTER.toString(input)).toGeneratedAttributeValue();
@@ -81,11 +92,6 @@ public final class FloatAttributeConverter implements AttributeConverter<Float>,
 
         ConverterUtils.validateFloat(result);
         return result;
-    }
-
-    @Override
-    public TypeToken<Float> primitiveType() {
-        return TypeToken.of(float.class);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Float> {

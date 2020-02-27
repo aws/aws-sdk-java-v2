@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.converter.attribute.bundled;
 
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.converter.internal.ConverterUtils.padLeft;
-import static software.amazon.awssdk.extensions.dynamodb.mappingclient.converter.internal.ConverterUtils.padLeft2;
+import static software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils.padLeft;
+import static software.amazon.awssdk.enhanced.dynamodb.converter.internal.ConverterUtils.padLeft2;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.converter.TypeConvertingVisitor;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.converter.attribute.ItemAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.converter.string.bundled.IntegerStringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeValueType;
 import software.amazon.awssdk.extensions.dynamodb.mappingclient.core.AttributeValueType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -64,6 +65,16 @@ public final class IntegerAttributeConverter implements AttributeConverter<Integ
     }
 
     @Override
+    public TypeToken<Integer> primitiveType() {
+        return TypeToken.of(int.class);
+    }
+
+    @Override
+    public AttributeValueType attributeValueType() {
+        return AttributeValueType.N;
+    }
+
+    @Override
     public AttributeValue transformFrom(Integer input) {
         return ItemAttributeValue.fromNumber(INTEGER_STRING_CONVERTER.toString(input)).toGeneratedAttributeValue();
     }
@@ -75,16 +86,6 @@ public final class IntegerAttributeConverter implements AttributeConverter<Integ
         }
 
         return ItemAttributeValue.fromGeneratedAttributeValue(input).convert(Visitor.INSTANCE);
-    }
-
-    @Override
-    public TypeToken<Integer> primitiveType() {
-        return TypeToken.of(int.class);
-    }
-
-    @Override
-    public AttributeValueType attributeValueType() {
-        return AttributeValueType.N;
     }
 
     private static final class Visitor extends TypeConvertingVisitor<Integer> {
