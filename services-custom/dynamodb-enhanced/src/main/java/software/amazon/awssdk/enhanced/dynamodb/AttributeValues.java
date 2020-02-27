@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
-import java.nio.ByteBuffer;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTypes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -62,11 +61,11 @@ public final class AttributeValues {
     }
 
     /**
-     * Creates a literal binary {@link AttributeValue} from a Java {@link ByteBuffer}.
-     * @param value A {@link ByteBuffer} to create the literal from.
+     * Creates a literal binary {@link AttributeValue} from raw bytes.
+     * @param value bytes to create the literal from.
      * @return An {@link AttributeValue} of type B that represents the binary literal.
      */
-    public static AttributeValue binaryValue(ByteBuffer value) {
+    public static AttributeValue binaryValue(SdkBytes value) {
         return AttributeTypes.binaryType().objectToAttributeValue(value);
     }
 

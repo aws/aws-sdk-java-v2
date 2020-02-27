@@ -18,9 +18,9 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.binaryAttribute;
 
-import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 public class FakeItemWithBinaryKey {
@@ -32,17 +32,17 @@ public class FakeItemWithBinaryKey {
                                 .as(primaryPartitionKey()))
                          .build();
 
-    private ByteBuffer id;
+    private SdkBytes id;
 
     public static StaticTableSchema<FakeItemWithBinaryKey> getTableSchema() {
         return FAKE_ITEM_WITH_BINARY_KEY_SCHEMA;
     }
 
-    public ByteBuffer getId() {
+    public SdkBytes getId() {
         return id;
     }
 
-    public void setId(ByteBuffer id) {
+    public void setId(SdkBytes id) {
         this.id = id;
     }
 

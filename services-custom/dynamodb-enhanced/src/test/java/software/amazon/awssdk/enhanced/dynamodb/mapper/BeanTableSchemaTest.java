@@ -26,7 +26,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.binaryVal
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -481,31 +480,29 @@ public class BeanTableSchemaTest {
     }
 
     @Test
-    public void setBean_byteBufferSet() {
-        ByteBuffer buffer1 = ByteBuffer.wrap("one".getBytes(StandardCharsets.UTF_8));
-        ByteBuffer buffer2 = ByteBuffer.wrap("two".getBytes(StandardCharsets.UTF_8));
-        ByteBuffer buffer3 = ByteBuffer.wrap("three".getBytes(StandardCharsets.UTF_8));
+    public void setBean_binarySet() {
+        SdkBytes buffer1 = SdkBytes.fromString("one", StandardCharsets.UTF_8);
+        SdkBytes buffer2 = SdkBytes.fromString("two", StandardCharsets.UTF_8);
+        SdkBytes buffer3 = SdkBytes.fromString("three", StandardCharsets.UTF_8);
 
         BeanTableSchema<SetBean> beanTableSchema = BeanTableSchema.create(SetBean.class);
         SetBean setBean = new SetBean();
         setBean.setId("id-value");
-        LinkedHashSet<ByteBuffer> byteBufferSet = new LinkedHashSet<>();
-        byteBufferSet.add(buffer1);
-        byteBufferSet.add(buffer2);
-        byteBufferSet.add(buffer3);
-        setBean.setByteBufferSet(byteBufferSet);
+        LinkedHashSet<SdkBytes> binarySet = new LinkedHashSet<>();
+        binarySet.add(buffer1);
+        binarySet.add(buffer2);
+        binarySet.add(buffer3);
+        setBean.setBinarySet(binarySet);
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
-                                                              .bs(SdkBytes.fromByteBuffer(buffer1),
-                                                                  SdkBytes.fromByteBuffer(buffer2),
-                                                                  SdkBytes.fromByteBuffer(buffer3))
+                                                              .bs(buffer1, buffer2, buffer3)
                                                               .build();
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("byteBufferSet", expectedAttributeValue));
+        assertThat(itemMap, hasEntry("binarySet", expectedAttributeValue));
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
         assertThat(reverse, is(equalTo(setBean)));
@@ -574,7 +571,7 @@ public class BeanTableSchemaTest {
     public void commonTypesBean() {
         BeanTableSchema<CommonTypesBean> beanTableSchema = BeanTableSchema.create(CommonTypesBean.class);
         CommonTypesBean commonTypesBean = new CommonTypesBean();
-        ByteBuffer binaryLiteral = ByteBuffer.wrap("test-string".getBytes(StandardCharsets.UTF_8));
+        SdkBytes binaryLiteral = SdkBytes.fromString("test-string", StandardCharsets.UTF_8);
 
         commonTypesBean.setId("id-value");
         commonTypesBean.setBooleanAttribute(true);
@@ -584,7 +581,7 @@ public class BeanTableSchemaTest {
         commonTypesBean.setByteAttribute((byte) 45);
         commonTypesBean.setDoubleAttribute(56.7);
         commonTypesBean.setFloatAttribute((float) 67.8);
-        commonTypesBean.setByteBufferAttribute(binaryLiteral);
+        commonTypesBean.setBinaryAttribute(binaryLiteral);
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(commonTypesBean, true);
 
@@ -597,7 +594,7 @@ public class BeanTableSchemaTest {
         assertThat(itemMap, hasEntry("byteAttribute", numberValue(45)));
         assertThat(itemMap, hasEntry("doubleAttribute", numberValue(56.7)));
         assertThat(itemMap, hasEntry("floatAttribute", numberValue(67.8)));
-        assertThat(itemMap, hasEntry("byteBufferAttribute", binaryValue(binaryLiteral)));
+        assertThat(itemMap, hasEntry("binaryAttribute", binaryValue(binaryLiteral)));
 
         CommonTypesBean reverse = beanTableSchema.mapToItem(itemMap);
         assertThat(reverse, is(equalTo(commonTypesBean)));
