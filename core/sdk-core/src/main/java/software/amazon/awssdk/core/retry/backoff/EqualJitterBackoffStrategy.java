@@ -15,13 +15,11 @@
 
 package software.amazon.awssdk.core.retry.backoff;
 
-import static org.apache.commons.lang3.ObjectUtils.min;
+import static software.amazon.awssdk.utils.NumericUtils.min;
 import static software.amazon.awssdk.utils.Validate.isNotNegative;
 
 import java.time.Duration;
 import java.util.Random;
-
-import com.google.common.annotations.VisibleForTesting;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.utils.ToString;
@@ -58,7 +56,6 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
         this(builder.baseDelay, builder.maxBackoffTime, new Random());
     }
 
-    @VisibleForTesting
     EqualJitterBackoffStrategy(final Duration baseDelay, final Duration maxBackoffTime, final Random random) {
         this.baseDelay = min(isNotNegative(baseDelay, "baseDelay"), BASE_DELAY_CEILING);
         this.maxBackoffTime = min(isNotNegative(maxBackoffTime, "maxBackoffTime"), MAX_BACKOFF_CEILING);
