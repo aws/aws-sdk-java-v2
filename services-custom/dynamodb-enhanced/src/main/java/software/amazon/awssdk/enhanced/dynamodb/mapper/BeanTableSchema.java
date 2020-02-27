@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -121,7 +121,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         map.put(TypeToken.of(double.class), AttributeTypes.doubleNumberType());
         map.put(TypeToken.of(Float.class), AttributeTypes.floatNumberType());
         map.put(TypeToken.of(float.class), AttributeTypes.floatNumberType());
-        map.put(TypeToken.of(ByteBuffer.class), AttributeTypes.binaryType());
+        map.put(TypeToken.of(SdkBytes.class), AttributeTypes.binaryType());
         map.put(TypeToken.setOf(String.class), AttributeTypes.stringSetType());
         map.put(TypeToken.setOf(Integer.class), AttributeTypes.integerNumberSetType());
         map.put(TypeToken.setOf(Long.class), AttributeTypes.longNumberSetType());
@@ -129,7 +129,7 @@ public final class BeanTableSchema<T> implements TableSchema<T> {
         map.put(TypeToken.setOf(Byte.class), AttributeTypes.byteNumberSetType());
         map.put(TypeToken.setOf(Double.class), AttributeTypes.doubleNumberSetType());
         map.put(TypeToken.setOf(Float.class), AttributeTypes.floatNumberSetType());
-        map.put(TypeToken.setOf(ByteBuffer.class), AttributeTypes.binarySetType());
+        map.put(TypeToken.setOf(SdkBytes.class), AttributeTypes.binarySetType());
 
         ATTRIBUTE_TYPES_MAP = Collections.unmodifiableMap(map);
     }

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -96,18 +95,15 @@ public final class AttributeTypes {
         return numberSetType(Float::parseFloat);
     }
 
-    public static AttributeType<ByteBuffer> binaryType() {
-        return StaticAttributeType.create(byteBuffer -> AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build(),
-            attributeValue -> attributeValue.b().asByteBuffer(),
-            AttributeValueType.B);
+    public static AttributeType<SdkBytes> binaryType() {
+        return StaticAttributeType.create(sdkBytes -> AttributeValue.builder().b(sdkBytes).build(),
+                AttributeValue::b, AttributeValueType.B);
     }
 
-    public static AttributeType<Set<ByteBuffer>> binarySetType() {
+    public static AttributeType<Set<SdkBytes>> binarySetType() {
         return StaticAttributeType.create(
-            bbSet -> AttributeValue.builder()
-                                   .bs(bbSet.stream().map(SdkBytes::fromByteBuffer).collect(Collectors.toList()))
-                                   .build(),
-            attributeValue -> attributeValue.bs().stream().map(SdkBytes::asByteBuffer).collect(Collectors.toSet()),
+            bbSet -> AttributeValue.builder().bs(bbSet).build(),
+            attributeValue -> Collections.unmodifiableSet(new HashSet<>(attributeValue.bs())),
             AttributeValueType.BS);
     }
 
