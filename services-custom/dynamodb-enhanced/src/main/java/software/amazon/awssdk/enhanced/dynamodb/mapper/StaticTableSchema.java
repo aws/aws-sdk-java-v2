@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableMap;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -174,7 +174,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         AtomicReference<T> item = new AtomicReference<>();
 
         attributeMap.forEach((key, value) -> {
-            if (!AttributeValues.isNullAttributeValue(value)) {
+            if (!isNullAttributeValue(value)) {
                 Attribute<T> attributeMapper = indexedMappers.get(key);
 
                 if (attributeMapper != null) {
@@ -198,7 +198,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
             String attributeKey = attributeMapper.attributeName();
             AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
-            if (!ignoreNulls || !AttributeValues.isNullAttributeValue(attributeValue)) {
+            if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
                 attributeValueMap.put(attributeKey, attributeValue);
             }
         });
@@ -213,7 +213,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
         attributes.forEach(key -> {
             AttributeValue attributeValue = attributeValue(item, key);
 
-            if (attributeValue == null || !AttributeValues.isNullAttributeValue(attributeValue)) {
+            if (attributeValue == null || !isNullAttributeValue(attributeValue)) {
                 attributeValueMap.put(key, attributeValue);
             }
         });
@@ -232,7 +232,7 @@ public final class StaticTableSchema<T> implements TableSchema<T> {
 
         AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
-        return AttributeValues.isNullAttributeValue(attributeValue) ? null : attributeValue;
+        return isNullAttributeValue(attributeValue) ? null : attributeValue;
     }
 
     private T constructNewItem() {

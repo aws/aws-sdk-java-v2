@@ -19,8 +19,8 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.equalTo;
 
 import java.util.HashMap;
@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,7 +59,7 @@ public class QueryEnhancedRequestTest {
                                                 .expressionValues(expressionValues)
                                                 .build();
 
-        QueryConditional queryConditional = equalTo(Key.create(stringValue("id-value")));
+        QueryConditional queryConditional = equalTo(k -> k.partitionValue("id-value"));
 
         QueryEnhancedRequest builtObject = QueryEnhancedRequest.builder()
                                                                .exclusiveStartKey(exclusiveStartKey)

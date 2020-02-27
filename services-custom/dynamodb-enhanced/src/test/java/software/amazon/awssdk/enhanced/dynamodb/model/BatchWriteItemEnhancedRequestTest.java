@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 
 import java.util.Collections;
 
@@ -29,7 +28,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -63,7 +61,7 @@ public class BatchWriteItemEnhancedRequestTest {
     public void builder_maximal() {
         WriteBatch writeBatch = WriteBatch.builder(FakeItem.class)
                                          .mappedTableResource(fakeItemMappedTable)
-                                         .addDeleteItem(r -> r.key(Key.create(stringValue("key"))))
+                                         .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
                                          .build();
 
         BatchWriteItemEnhancedRequest builtObject = BatchWriteItemEnhancedRequest.builder()
@@ -77,7 +75,7 @@ public class BatchWriteItemEnhancedRequestTest {
     public void builder_add_single() {
         WriteBatch writeBatch = WriteBatch.builder(FakeItem.class)
                                           .mappedTableResource(fakeItemMappedTable)
-                                          .addDeleteItem(r -> r.key(Key.create(stringValue("key"))))
+                                          .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
                                           .build();
 
         BatchWriteItemEnhancedRequest builtObject = BatchWriteItemEnhancedRequest.builder()

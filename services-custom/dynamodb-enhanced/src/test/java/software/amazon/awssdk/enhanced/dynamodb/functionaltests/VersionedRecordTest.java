@@ -17,8 +17,8 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.version;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
@@ -33,7 +33,6 @@ import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -126,7 +125,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     public void putNewRecordSetsInitialVersion() {
         mappedTable.putItem(Record.class, r -> r.item(new Record().setId("id").setAttribute("one")));
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id"))));
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id")));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(1);
 
         assertThat(result, is(expectedResult));
@@ -147,7 +146,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         mappedTable.putItem(Record.class, r -> r.item(new Record().setId("id").setAttribute("one").setVersion(1)));
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id"))));
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id")));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
     }
@@ -167,7 +166,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                             .conditionExpression(conditionExpression)
                                             .build());
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id"))));
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id")));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
     }
@@ -221,7 +220,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                         .conditionExpression(conditionExpression)
                                                         .build());
 
-        Record result = mappedTable.getItem(r -> r.key(Key.create(stringValue("id"))));
+        Record result = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id")));
         Record expectedResult = new Record().setId("id").setAttribute("one").setVersion(2);
         assertThat(result, is(expectedResult));
     }

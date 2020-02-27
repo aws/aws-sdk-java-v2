@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb;
+package software.amazon.awssdk.enhanced.dynamodb.internal;
 
-import java.nio.ByteBuffer;
-
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTypes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -28,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * {@code Key<?> myKey = Key.create(stringValue("id123"), numberValue(4.23));
  * Expression filterExpression = Expression.of("id = :filter_id", singletonMap(":filter_id", stringValue("id123")); }
  */
-@SdkPublicApi
+@SdkInternalApi
 public final class AttributeValues {
     private static final AttributeValue NULL_ATTRIBUTE_VALUE = AttributeValue.builder().nul(true).build();
 
@@ -62,21 +61,11 @@ public final class AttributeValues {
     }
 
     /**
-     * Creates a literal binary {@link AttributeValue} from a Java {@link ByteBuffer}.
-     * @param value A {@link ByteBuffer} to create the literal from.
+     * Creates a literal binary {@link AttributeValue} from raw bytes.
+     * @param value bytes to create the literal from.
      * @return An {@link AttributeValue} of type B that represents the binary literal.
      */
-    public static AttributeValue binaryValue(ByteBuffer value) {
+    public static AttributeValue binaryValue(SdkBytes value) {
         return AttributeTypes.binaryType().objectToAttributeValue(value);
-    }
-
-    /**
-     * A helper method to test if an {@link AttributeValue} is a 'null' constant. This will not test if the
-     * AttributeValue object is null itself, and in fact will throw a NullPointerException if you pass in null.
-     * @param attributeValue An {@link AttributeValue} to test for null.
-     * @return true if the supplied AttributeValue represents a null value, or false if it does not.
-     */
-    public static boolean isNullAttributeValue(AttributeValue attributeValue) {
-        return attributeValue.nul() != null && attributeValue.nul();
     }
 }

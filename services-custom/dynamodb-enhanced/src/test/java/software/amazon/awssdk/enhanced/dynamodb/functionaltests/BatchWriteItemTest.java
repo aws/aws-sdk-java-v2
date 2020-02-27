@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
@@ -33,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
@@ -177,7 +175,7 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record, is(RECORDS_1.get(0)));
     }
 
@@ -198,8 +196,8 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
+        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
     }
@@ -210,7 +208,7 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
         WriteBatch singleDeleteBatch = WriteBatch.builder(Record1.class)
                                                  .mappedTableResource(mappedTable1)
-                                                 .addDeleteItem(r -> r.key(Key.create(numberValue(0))))
+                                                 .addDeleteItem(r -> r.key(k -> k.partitionValue(0)))
                                                  .build();
 
         BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
@@ -220,7 +218,7 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record, is(nullValue()));
     }
 
@@ -234,18 +232,18 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
                                          .writeBatches(
                                              WriteBatch.builder(Record1.class)
                                                        .mappedTableResource(mappedTable1)
-                                                       .addDeleteItem(r -> r.key(Key.create(numberValue(0))))
+                                                       .addDeleteItem(r -> r.key(k -> k.partitionValue(0)))
                                                        .build(),
                                              WriteBatch.builder(Record2.class)
                                                        .mappedTableResource(mappedTable2)
-                                                       .addDeleteItem(r -> r.key(Key.create(numberValue(0))))
+                                                       .addDeleteItem(r -> r.key(k -> k.partitionValue(0)))
                                                        .build())
                                          .build();
 
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
 
-        Record1 record1 = mappedTable1.getItem(r -> r.key(Key.create(numberValue(0))));
-        Record2 record2 = mappedTable2.getItem(r -> r.key(Key.create(numberValue(0))));
+        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0)));
+        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0)));
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
     }
@@ -262,12 +260,12 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
                       .build(),
             WriteBatch.builder(Record2.class)
                       .mappedTableResource(mappedTable2)
-                      .addDeleteItem(i -> i.key(Key.create(numberValue(0))))
+                      .addDeleteItem(i -> i.key(k -> k.partitionValue(0)))
                       .build()));
 
-        assertThat(mappedTable1.getItem(r -> r.key(Key.create(numberValue(0)))), is(RECORDS_1.get(0)));
-        assertThat(mappedTable1.getItem(r -> r.key(Key.create(numberValue(1)))), is(RECORDS_1.get(1)));
-        assertThat(mappedTable2.getItem(r -> r.key(Key.create(numberValue(0)))), is(nullValue()));
+        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))), is(RECORDS_1.get(0)));
+        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(1))), is(RECORDS_1.get(1)));
+        assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))), is(nullValue()));
     }
 
 }

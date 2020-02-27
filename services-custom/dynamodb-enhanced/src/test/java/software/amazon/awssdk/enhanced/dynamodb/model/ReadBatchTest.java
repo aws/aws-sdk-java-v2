@@ -19,7 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import java.util.Collections;
@@ -32,7 +31,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -68,7 +66,7 @@ public class ReadBatchTest {
 
         ReadBatch builtObject = ReadBatch.builder(FakeItem.class)
                                          .mappedTableResource(fakeItemMappedTable)
-                                         .addGetItem(r -> r.key(Key.create(stringValue(fakeItem.getId()))))
+                                         .addGetItem(r -> r.key(k -> k.partitionValue(fakeItem.getId())))
                                          .build();
 
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem,
@@ -83,7 +81,7 @@ public class ReadBatchTest {
         FakeItem fakeItem = createUniqueFakeItem();
 
         GetItemEnhancedRequest getItem = GetItemEnhancedRequest.builder()
-                                                               .key(Key.create(stringValue(fakeItem.getId())))
+                                                               .key(k -> k.partitionValue(fakeItem.getId()))
                                                                .build();
 
         ReadBatch builtObject = ReadBatch.builder(FakeItem.class)

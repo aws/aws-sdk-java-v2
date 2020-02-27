@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 
@@ -32,7 +31,6 @@ import org.junit.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest;
@@ -150,19 +148,19 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
         SdkIterable<BatchGetResultPage> results = enhancedClient.batchGetItem(r -> r.readBatches(
             ReadBatch.builder(Record1.class)
                      .mappedTableResource(mappedTable1)
-                     .addGetItem(i -> i.key(Key.create(numberValue(0))))
+                     .addGetItem(i -> i.key(k -> k.partitionValue(0)))
                      .build(),
             ReadBatch.builder(Record2.class)
                      .mappedTableResource(mappedTable2)
-                     .addGetItem(i -> i.key(Key.create(numberValue(0))))
+                     .addGetItem(i -> i.key(k -> k.partitionValue(0)))
                      .build(),
             ReadBatch.builder(Record2.class)
                      .mappedTableResource(mappedTable2)
-                     .addGetItem(i -> i.key(Key.create(numberValue(1))))
+                     .addGetItem(i -> i.key(k -> k.partitionValue(1)))
                      .build(),
             ReadBatch.builder(Record1.class)
                      .mappedTableResource(mappedTable1)
-                     .addGetItem(i -> i.key(Key.create(numberValue(1))))
+                     .addGetItem(i -> i.key(k -> k.partitionValue(1)))
                      .build()));
 
         assertThat(results.stream().count(), is(1L));
@@ -185,19 +183,19 @@ public class BatchGetItemTest extends LocalDynamoDbSyncTestBase {
                                        .readBatches(
                                            ReadBatch.builder(Record1.class)
                                                     .mappedTableResource(mappedTable1)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(0))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(0)))
                                                     .build(),
                                            ReadBatch.builder(Record2.class)
                                                     .mappedTableResource(mappedTable2)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(0))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(0)))
                                                     .build(),
                                            ReadBatch.builder(Record2.class)
                                                     .mappedTableResource(mappedTable2)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(1))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(1)))
                                                     .build(),
                                            ReadBatch.builder(Record1.class)
                                                     .mappedTableResource(mappedTable1)
-                                                    .addGetItem(r -> r.key(Key.create(numberValue(5))))
+                                                    .addGetItem(r -> r.key(k -> k.partitionValue(5)))
                                                     .build())
                                        .build();
 

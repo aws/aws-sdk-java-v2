@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 
@@ -68,7 +67,7 @@ public class TransactGetItemsOperationTest {
                   .map(item -> FakeItem.getTableSchema().itemToMap(item, FakeItem.getTableMetadata().primaryKeys()))
                   .collect(toList());
     private static final List<Key> FAKE_ITEM_KEYS =
-        FAKE_ITEMS.stream().map(fakeItem -> Key.create(stringValue(fakeItem.getId()))).collect(toList());
+        FAKE_ITEMS.stream().map(fakeItem -> Key.builder().partitionValue(fakeItem.getId()).build()).collect(toList());
 
     private static final List<FakeItemWithSort> FAKESORT_ITEMS =
         IntStream.range(0, 6)
@@ -80,8 +79,12 @@ public class TransactGetItemsOperationTest {
                                                    .itemToMap(item, FakeItemWithSort.getTableMetadata().primaryKeys()))
                       .collect(toList());
     private static final List<Key> FAKESORT_ITEM_KEYS =
-        FAKESORT_ITEMS.stream().map(fakeItemWithSort -> Key.create(stringValue(fakeItemWithSort.getId()),
-                                                               stringValue(fakeItemWithSort.getSort()))).collect(toList());
+        FAKESORT_ITEMS.stream()
+                      .map(fakeItemWithSort -> Key.builder()
+                                                  .partitionValue(fakeItemWithSort.getId())
+                                                  .sortValue(fakeItemWithSort.getSort())
+                                                  .build())
+                      .collect(toList());
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;

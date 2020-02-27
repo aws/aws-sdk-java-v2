@@ -15,16 +15,18 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -43,28 +45,72 @@ public abstract class QueryConditional {
         return new EqualToConditional(key);
     }
 
+    public static QueryConditional equalTo(Consumer<Key.Builder> keyConsumer) {
+        Key.Builder builder = Key.builder();
+        keyConsumer.accept(builder);
+        return equalTo(builder.build());
+    }
+
     public static QueryConditional greaterThan(Key key) {
         return new SingleKeyItemConditional(key, ">");
+    }
+
+    public static QueryConditional greaterThan(Consumer<Key.Builder> keyConsumer) {
+        Key.Builder builder = Key.builder();
+        keyConsumer.accept(builder);
+        return greaterThan(builder.build());
     }
 
     public static QueryConditional greaterThanOrEqualTo(Key key) {
         return new SingleKeyItemConditional(key, ">=");
     }
 
+    public static QueryConditional greaterThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
+        Key.Builder builder = Key.builder();
+        keyConsumer.accept(builder);
+        return greaterThanOrEqualTo(builder.build());
+    }
+
     public static QueryConditional lessThan(Key key) {
         return new SingleKeyItemConditional(key, "<");
+    }
+
+    public static QueryConditional lessThan(Consumer<Key.Builder> keyConsumer) {
+        Key.Builder builder = Key.builder();
+        keyConsumer.accept(builder);
+        return lessThan(builder.build());
     }
 
     public static QueryConditional lessThanOrEqualTo(Key key) {
         return new SingleKeyItemConditional(key, "<=");
     }
 
-    public static QueryConditional between(Key key1, Key key2) {
-        return new BetweenConditional(key1, key2);
+    public static QueryConditional lessThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
+        Key.Builder builder = Key.builder();
+        keyConsumer.accept(builder);
+        return lessThanOrEqualTo(builder.build());
+    }
+
+    public static QueryConditional between(Key keyFrom, Key keyTo) {
+        return new BetweenConditional(keyFrom, keyTo);
+    }
+
+    public static QueryConditional between(Consumer<Key.Builder> keyFromConsumer, Consumer<Key.Builder> keyToConsumer) {
+        Key.Builder builderFrom = Key.builder();
+        Key.Builder builderTo = Key.builder();
+        keyFromConsumer.accept(builderFrom);
+        keyToConsumer.accept(builderTo);
+        return between(builderFrom.build(), builderTo.build());
     }
 
     public static QueryConditional beginsWith(Key key) {
         return new BeginsWithConditional(key);
+    }
+
+    public static QueryConditional beginsWith(Consumer<Key.Builder> keyConsumer) {
+        Key.Builder builder = Key.builder();
+        keyConsumer.accept(builder);
+        return beginsWith(builder.build());
     }
 
     public abstract Expression expression(TableSchema<?> tableSchema, String indexName);
@@ -81,7 +127,7 @@ public abstract class QueryConditional {
             String partitionKey = tableSchema.tableMetadata().indexPartitionKey(indexName);
             AttributeValue partitionValue = key.partitionKeyValue();
 
-            if (partitionValue == null || partitionValue.equals(AttributeValues.nullAttributeValue())) {
+            if (partitionValue == null || partitionValue.equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Partition key must be a valid scalar value to execute a query "
                     + "against. The provided partition key was set to null.");
             }
@@ -127,7 +173,7 @@ public abstract class QueryConditional {
 
 
             // When a sort key is explicitly provided as null treat as partition only expression
-            if (sortKeyValue.equals(AttributeValues.nullAttributeValue())) {
+            if (isNullAttributeValue(sortKeyValue)) {
                 return partitionOnlyExpression(partitionKey, partitionValue);
             }
 
@@ -217,7 +263,7 @@ public abstract class QueryConditional {
         public Expression expression(TableSchema<?> tableSchema, String indexName) {
             ExpressionParameters expressionParameters = ExpressionParameters.from(key, tableSchema, indexName);
 
-            if (expressionParameters.sortValue().equals(AttributeValues.nullAttributeValue())) {
+            if (expressionParameters.sortValue().equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Attempt to query using a relative condition operator against a "
                                                    + "null sort key.");
             }
@@ -283,7 +329,7 @@ public abstract class QueryConditional {
         public Expression expression(TableSchema<?> tableSchema, String indexName) {
             ExpressionParameters expressionParameters = ExpressionParameters.from(key, tableSchema, indexName);
 
-            if (expressionParameters.sortValue().equals(AttributeValues.nullAttributeValue())) {
+            if (expressionParameters.sortValue().equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Attempt to query using a 'beginsWith' condition operator against a "
                                                    + "null sort key.");
             }
@@ -351,8 +397,8 @@ public abstract class QueryConditional {
             ExpressionParameters expressionParameters1 = ExpressionParameters.from(key1, tableSchema, indexName);
             ExpressionParameters expressionParameters2 = ExpressionParameters.from(key2, tableSchema, indexName);
 
-            if (expressionParameters1.sortValue().equals(AttributeValues.nullAttributeValue()) ||
-                expressionParameters2.sortValue().equals(AttributeValues.nullAttributeValue())) {
+            if (expressionParameters1.sortValue().equals(nullAttributeValue()) ||
+                expressionParameters2.sortValue().equals(nullAttributeValue())) {
                 throw new IllegalArgumentException("Attempt to query using a 'between' condition operator where one "
                                                    + "of the items has a null sort key.");
             }

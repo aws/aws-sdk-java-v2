@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +22,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 @SdkPublicApi
@@ -32,8 +32,8 @@ public final class Attributes {
     }
 
     public static <T> Attribute.AttributeSupplier<T> binaryAttribute(String attributeName,
-                                                                     Function<T, ByteBuffer> getAttributeMethod,
-                                                                     BiConsumer<T, ByteBuffer> updateItemMethod) {
+                                                                     Function<T, SdkBytes> getAttributeMethod,
+                                                                     BiConsumer<T, SdkBytes> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
@@ -42,8 +42,8 @@ public final class Attributes {
     }
 
     public static <T> Attribute.AttributeSupplier<T> binarySetAttribute(String attributeName,
-                                                                        Function<T, Set<ByteBuffer>> getAttributeMethod,
-                                                                        BiConsumer<T, Set<ByteBuffer>> updateItemMethod) {
+                                                                        Function<T, Set<SdkBytes>> getAttributeMethod,
+                                                                        BiConsumer<T, Set<SdkBytes>> updateItemMethod) {
         return Attribute.create(
             attributeName,
             getAttributeMethod,
