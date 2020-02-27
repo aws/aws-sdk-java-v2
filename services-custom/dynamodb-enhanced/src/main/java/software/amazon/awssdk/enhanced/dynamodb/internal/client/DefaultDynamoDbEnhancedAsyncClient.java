@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -36,16 +38,18 @@ import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRe
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhancedAsyncClient {
     private final DynamoDbAsyncClient dynamoDbClient;
     private final DynamoDbEnhancedClientExtension extension;
 
-    private DefaultDynamoDbEnhancedAsyncClient(DynamoDbAsyncClient dynamoDbClient,
-                                               DynamoDbEnhancedClientExtension extension) {
-        this.dynamoDbClient = dynamoDbClient;
-        this.extension = extension;
+    private DefaultDynamoDbEnhancedAsyncClient(Builder builder) {
+        this.dynamoDbClient = Validate.paramNotNull(builder.dynamoDbClient, "You must provide a DynamoDbClient to build " +
+            "a DefaultDynamoDbEnhancedAsyncClient.");
+
+        this.extension = ExtensionResolver.resolveExtensions(builder.dynamoDbEnhancedClientExtensions);
     }
 
     public static Builder builder() {
@@ -125,7 +129,7 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     public Builder toBuilder() {
-        return builder().dynamoDbClient(this.dynamoDbClient).extendWith(this.extension);
+        return builder().dynamoDbClient(this.dynamoDbClient).extensions(this.extension);
     }
 
     @Override
@@ -156,33 +160,29 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
 
     public static final class Builder implements DynamoDbEnhancedAsyncClient.Builder {
         private DynamoDbAsyncClient dynamoDbClient;
-        private DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension;
+        private List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions =
+            new ArrayList<>(ExtensionResolver.defaultExtensions());
 
-        private Builder() {
-        }
-
+        @Override
         public DefaultDynamoDbEnhancedAsyncClient build() {
-            if (dynamoDbClient == null) {
-                throw new IllegalArgumentException("You must provide a DynamoDbClient to build a "
-                                                   + "DefaultDynamoDbEnhancedClient.");
-            }
-
-            return new DefaultDynamoDbEnhancedAsyncClient(dynamoDbClient, dynamoDbEnhancedClientExtension);
+            return new DefaultDynamoDbEnhancedAsyncClient(this);
         }
 
-        public Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbAsyncClient) {
-            this.dynamoDbClient = dynamoDbAsyncClient;
+        @Override
+        public Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbClient) {
+            this.dynamoDbClient = dynamoDbClient;
             return this;
         }
 
-        public Builder extendWith(DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
-            if (dynamoDbEnhancedClientExtension != null && this.dynamoDbEnhancedClientExtension != null) {
-                throw new IllegalArgumentException("You may only extend a DefaultDynamoDbEnhancedClient with a single "
-                                                   + "extension. To combine multiple extensions, use the "
-                                                   + "ChainMapperExtension.");
-            }
+        @Override
+        public Builder extensions(DynamoDbEnhancedClientExtension... dynamoDbEnhancedClientExtensions) {
+            this.dynamoDbEnhancedClientExtensions = Arrays.asList(dynamoDbEnhancedClientExtensions);
+            return this;
+        }
 
-            this.dynamoDbEnhancedClientExtension = dynamoDbEnhancedClientExtension;
+        @Override
+        public Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions) {
+            this.dynamoDbEnhancedClientExtensions = new ArrayList<>(dynamoDbEnhancedClientExtensions);
             return this;
         }
     }

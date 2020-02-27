@@ -52,7 +52,7 @@ public class TransactGetResultPageTest {
     private DynamoDbTable<FakeItem> createMappedTable(DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
         return DynamoDbEnhancedClient.builder()
                                      .dynamoDbClient(mockDynamoDbClient)
-                                     .extendWith(dynamoDbEnhancedClientExtension)
+                                     .extensions(dynamoDbEnhancedClientExtension)
                                      .build()
                                      .table(TABLE_NAME, FakeItem.getTableSchema());
     }

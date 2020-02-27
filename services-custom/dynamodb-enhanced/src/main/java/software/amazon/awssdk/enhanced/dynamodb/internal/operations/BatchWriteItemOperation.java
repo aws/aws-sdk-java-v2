@@ -36,8 +36,8 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
-public class BatchWriteItemOperation implements DatabaseOperation<BatchWriteItemRequest,
-                                 BatchWriteItemResponse, BatchWriteResult> {
+public class BatchWriteItemOperation
+    implements DatabaseOperation<BatchWriteItemRequest, BatchWriteItemResponse, BatchWriteResult> {
 
     private final BatchWriteItemEnhancedRequest request;
 
