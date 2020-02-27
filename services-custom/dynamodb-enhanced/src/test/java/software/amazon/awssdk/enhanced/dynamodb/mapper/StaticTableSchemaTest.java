@@ -30,7 +30,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.boolAtt
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.integerNumberAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.Attributes.stringAttribute;
 
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,7 +89,7 @@ public class StaticTableSchemaTest {
         private double aPrimitiveDouble;
         private Float aFloat;
         private float aPrimitiveFloat;
-        private ByteBuffer aBytebuffer;
+        private SdkBytes aBinaryValue;
         private FakeDocument aFakeDocument;
         private Set<String> aStringSet;
         private Set<Integer> anIntegerSet;
@@ -98,7 +98,7 @@ public class StaticTableSchemaTest {
         private Set<Short> aShortSet;
         private Set<Double> aDoubleSet;
         private Set<Float> aFloatSet;
-        private Set<ByteBuffer> aByteBufferSet;
+        private Set<SdkBytes> aBinarySet;
         private List<Integer> anIntegerList;
         private List<List<FakeDocument>> aNestedStructure;
         private Map<String, String> aStringMap;
@@ -109,10 +109,10 @@ public class StaticTableSchemaTest {
         FakeMappedItem(boolean aPrimitiveBoolean, Boolean aBoolean, String aString, Integer anInteger,
                        int aPrimitiveInteger, Byte aByte, byte aPrimitiveByte, Long aLong, long aPrimitiveLong,
                        Short aShort, short aPrimitiveShort, Double aDouble, double aPrimitiveDouble, Float aFloat,
-                       float aPrimitiveFloat, ByteBuffer aBytebuffer, FakeDocument aFakeDocument,
+                       float aPrimitiveFloat, SdkBytes aBinaryValue, FakeDocument aFakeDocument,
                        Set<String> aStringSet, Set<Integer> anIntegerSet, Set<Byte> aByteSet,
                        Set<Long> aLongSet, Set<Short> aShortSet, Set<Double> aDoubleSet, Set<Float> aFloatSet,
-                       Set<ByteBuffer> aByteBufferSet, List<Integer> anIntegerList,
+                       Set<SdkBytes> aBinarySet, List<Integer> anIntegerList,
                        List<List<FakeDocument>> aNestedStructure, Map<String, String> aStringMap) {
             this.aPrimitiveBoolean = aPrimitiveBoolean;
             this.aBoolean = aBoolean;
@@ -129,7 +129,7 @@ public class StaticTableSchemaTest {
             this.aPrimitiveDouble = aPrimitiveDouble;
             this.aFloat = aFloat;
             this.aPrimitiveFloat = aPrimitiveFloat;
-            this.aBytebuffer = aBytebuffer;
+            this.aBinaryValue = aBinaryValue;
             this.aFakeDocument = aFakeDocument;
             this.aStringSet = aStringSet;
             this.anIntegerSet = anIntegerSet;
@@ -138,7 +138,7 @@ public class StaticTableSchemaTest {
             this.aShortSet = aShortSet;
             this.aDoubleSet = aDoubleSet;
             this.aFloatSet = aFloatSet;
-            this.aByteBufferSet = aByteBufferSet;
+            this.aBinarySet = aBinarySet;
             this.anIntegerList = anIntegerList;
             this.aNestedStructure = aNestedStructure;
             this.aStringMap = aStringMap;
@@ -268,12 +268,12 @@ public class StaticTableSchemaTest {
             this.aPrimitiveFloat = aPrimitiveFloat;
         }
 
-        ByteBuffer getABytebuffer() {
-            return aBytebuffer;
+        SdkBytes getABinaryValue() {
+            return aBinaryValue;
         }
 
-        void setABytebuffer(ByteBuffer aBytebuffer) {
-            this.aBytebuffer = aBytebuffer;
+        void setABinaryValue(SdkBytes aBinaryValue) {
+            this.aBinaryValue = aBinaryValue;
         }
 
         FakeDocument getAFakeDocument() {
@@ -340,12 +340,12 @@ public class StaticTableSchemaTest {
             this.aFloatSet = aFloatSet;
         }
 
-        Set<ByteBuffer> getAByteBufferSet() {
-            return aByteBufferSet;
+        Set<SdkBytes> getABinarySet() {
+            return aBinarySet;
         }
 
-        void setAByteBufferSet(Set<ByteBuffer> aByteBufferSet) {
-            this.aByteBufferSet = aByteBufferSet;
+        void setABinarySet(Set<SdkBytes> aBinarySet) {
+            this.aBinarySet = aBinarySet;
         }
 
         List<Integer> getAnIntegerList() {
@@ -392,7 +392,7 @@ public class StaticTableSchemaTest {
                    Objects.equals(aShort, that.aShort) &&
                    Objects.equals(aDouble, that.aDouble) &&
                    Objects.equals(aFloat, that.aFloat) &&
-                   Objects.equals(aBytebuffer, that.aBytebuffer) &&
+                   Objects.equals(aBinaryValue, that.aBinaryValue) &&
                    Objects.equals(aFakeDocument, that.aFakeDocument) &&
                    Objects.equals(aStringSet, that.aStringSet) &&
                    Objects.equals(anIntegerSet, that.anIntegerSet) &&
@@ -401,7 +401,7 @@ public class StaticTableSchemaTest {
                    Objects.equals(aShortSet, that.aShortSet) &&
                    Objects.equals(aDoubleSet, that.aDoubleSet) &&
                    Objects.equals(aFloatSet, that.aFloatSet) &&
-                   Objects.equals(aByteBufferSet, that.aByteBufferSet) &&
+                   Objects.equals(aBinarySet, that.aBinarySet) &&
                    Objects.equals(anIntegerList, that.anIntegerList) &&
                    Objects.equals(aNestedStructure, that.aNestedStructure) &&
                    Objects.equals(aStringMap, that.aStringMap);
@@ -411,8 +411,8 @@ public class StaticTableSchemaTest {
         public int hashCode() {
             return Objects.hash(aPrimitiveBoolean, aBoolean, aString, anInteger, aPrimitiveInteger, aByte,
                                 aPrimitiveByte, aLong, aPrimitiveLong, aShort, aPrimitiveShort, aDouble,
-                                aPrimitiveDouble, aFloat, aPrimitiveFloat, aBytebuffer, aFakeDocument, aStringSet,
-                                anIntegerSet, aByteSet, aLongSet, aShortSet, aDoubleSet, aFloatSet, aByteBufferSet,
+                                aPrimitiveDouble, aFloat, aPrimitiveFloat, aBinaryValue, aFakeDocument, aStringSet,
+                                anIntegerSet, aByteSet, aLongSet, aShortSet, aDoubleSet, aFloatSet, aBinarySet,
                                 anIntegerList, aNestedStructure, aStringMap);
         }
 
@@ -432,7 +432,7 @@ public class StaticTableSchemaTest {
             private double aPrimitiveDouble;
             private Float aFloat;
             private float aPrimitiveFloat;
-            private ByteBuffer aBytebuffer;
+            private SdkBytes aBinaryValue;
             private FakeDocument aFakeDocument;
             private Set<String> aStringSet;
             private Set<Integer> anIntegerSet;
@@ -441,7 +441,7 @@ public class StaticTableSchemaTest {
             private Set<Short> aShortSet;
             private Set<Double> aDoubleSet;
             private Set<Float> aFloatSet;
-            private Set<ByteBuffer> aByteBufferSet;
+            private Set<SdkBytes> aBinarySet;
             private List<Integer> anIntegerList;
             private List<List<FakeDocument>> aNestedStructure;
             private Map<String, String> aStringMap;
@@ -521,8 +521,8 @@ public class StaticTableSchemaTest {
                 return this;
             }
 
-            Builder aBytebuffer(ByteBuffer aBytebuffer) {
-                this.aBytebuffer = aBytebuffer;
+            Builder aBinaryValue(SdkBytes aBinaryValue) {
+                this.aBinaryValue = aBinaryValue;
                 return this;
             }
 
@@ -566,8 +566,8 @@ public class StaticTableSchemaTest {
                 return this;
             }
 
-            Builder aByteBufferSet(Set<ByteBuffer> aByteBufferSet) {
-                this.aByteBufferSet = aByteBufferSet;
+            Builder aBinarySet(Set<SdkBytes> aBinarySet) {
+                this.aBinarySet = aBinarySet;
                 return this;
             }
 
@@ -589,9 +589,9 @@ public class StaticTableSchemaTest {
             public FakeMappedItem build() {
                 return new FakeMappedItem(aPrimitiveBoolean, aBoolean, aString, anInteger, aPrimitiveInteger, aByte,
                                           aPrimitiveByte, aLong, aPrimitiveLong, aShort, aPrimitiveShort, aDouble,
-                                          aPrimitiveDouble, aFloat, aPrimitiveFloat, aBytebuffer, aFakeDocument,
+                                          aPrimitiveDouble, aFloat, aPrimitiveFloat, aBinaryValue, aFakeDocument,
                                           aStringSet, anIntegerSet, aByteSet, aLongSet, aShortSet, aDoubleSet,
-                                          aFloatSet, aByteBufferSet, anIntegerList, aNestedStructure, aStringMap);
+                                          aFloatSet, aBinarySet, anIntegerList, aNestedStructure, aStringMap);
             }
         }
     }
@@ -913,13 +913,13 @@ public class StaticTableSchemaTest {
 
 
     @Test
-    public void mapperCanHandleByteBuffer() {
-        ByteBuffer byteBuffer = ByteBuffer.wrap("test".getBytes(UTF_8));
+    public void mapperCanHandleBinary() {
+        SdkBytes sdkBytes = SdkBytes.fromString("test", UTF_8);
         verifyNullableAttribute(Attributes.binaryAttribute("value",
-                                                 FakeMappedItem::getABytebuffer,
-                                                 FakeMappedItem::setABytebuffer),
-                                FakeMappedItem.builder().aBytebuffer(byteBuffer).build(),
-                                AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build());
+                                                 FakeMappedItem::getABinaryValue,
+                                                 FakeMappedItem::setABinaryValue),
+                                FakeMappedItem.builder().aBinaryValue(sdkBytes).build(),
+                                AttributeValue.builder().b(sdkBytes).build());
     }
 
     @Test
@@ -1038,18 +1038,18 @@ public class StaticTableSchemaTest {
     }
 
     @Test
-    public void mapperCanHandleByteBufferSet() {
-        ByteBuffer byteBuffer1 = ByteBuffer.wrap("one".getBytes(UTF_8));
-        ByteBuffer byteBuffer2 = ByteBuffer.wrap("two".getBytes(UTF_8));
-        ByteBuffer byteBuffer3 = ByteBuffer.wrap("three".getBytes(UTF_8));
-        Set<ByteBuffer> byteBuffer = new HashSet<>(asList(byteBuffer1, byteBuffer2, byteBuffer3));
-        List<SdkBytes> sdkBytes = byteBuffer.stream().map(SdkBytes::fromByteBuffer).collect(toList());
+    public void mapperCanHandleBinarySet() {
+        SdkBytes sdkBytes1 = SdkBytes.fromString("one", UTF_8);
+        SdkBytes sdkBytes2 = SdkBytes.fromString("two", UTF_8);
+        SdkBytes sdkBytes3 = SdkBytes.fromString("three", UTF_8);
+        Set<SdkBytes> sdkBytesSet = new HashSet<>(asList(sdkBytes1, sdkBytes2, sdkBytes3));
+        List<SdkBytes> sdkBytesList = new ArrayList<>(sdkBytesSet);
 
         verifyNullableAttribute(Attributes.binarySetAttribute("value",
-                                                              FakeMappedItem::getAByteBufferSet,
-                                                              FakeMappedItem::setAByteBufferSet),
-                                FakeMappedItem.builder().aByteBufferSet(byteBuffer).build(),
-                                AttributeValue.builder().bs(sdkBytes).build());
+                                                              FakeMappedItem::getABinarySet,
+                                                              FakeMappedItem::setABinarySet),
+                                FakeMappedItem.builder().aBinarySet(sdkBytesSet).build(),
+                                AttributeValue.builder().bs(sdkBytesList).build());
     }
 
     @Test
