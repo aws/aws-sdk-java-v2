@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "description": "Added a target group attribute to support sticky sessions for Network Load Balancers."
-}

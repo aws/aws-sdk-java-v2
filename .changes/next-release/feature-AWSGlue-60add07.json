@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "description": "AWS Glue adds resource tagging support for Machine Learning Transforms and adds a new API, ListMLTransforms to support tag filtering. With this feature, customers can use tags in AWS Glue to organize and control access to Machine Learning Transforms."
-}

@@ -1,5 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "description": "Accepts a structured query language (SQL) SELECT command and an aggregator name, performs the corresponding search on resources aggregated by the aggregator, and returns resource configurations matching the properties."
-}
