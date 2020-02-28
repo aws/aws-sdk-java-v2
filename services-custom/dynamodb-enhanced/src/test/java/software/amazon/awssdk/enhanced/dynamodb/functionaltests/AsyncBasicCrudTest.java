@@ -213,7 +213,8 @@ public class AsyncBasicCrudTest extends LocalDynamoDbAsyncTestBase {
                                           GlobalSecondaryIndex.create(
                                               "gsi_1",
                                               Projection.builder().projectionType(ProjectionType.ALL).build(),
-                                              getDefaultProvisionedThroughput()))).join();
+                                              getDefaultProvisionedThroughput())))
+                   .join();
     }
 
     @After

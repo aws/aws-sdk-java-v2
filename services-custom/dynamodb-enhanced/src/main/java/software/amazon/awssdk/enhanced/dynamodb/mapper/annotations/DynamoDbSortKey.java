@@ -19,13 +19,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaAttributeTags;
 
 /**
- * Denotes this attribute as being the optional primary sort key of the DynamoDB table. This attribute must map to a
- * DynamoDB scalar type (string, number or binary) to be valid.
+ * Denotes this attribute as being the optional primary sort key of the DynamoDb table. This attribute must map to a
+ * DynamoDb scalar type (string, number or binary) to be valid.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

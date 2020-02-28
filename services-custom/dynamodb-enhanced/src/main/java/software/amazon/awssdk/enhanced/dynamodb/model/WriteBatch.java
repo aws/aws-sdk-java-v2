@@ -22,8 +22,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.BatchableWriteOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
@@ -31,6 +32,14 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationCon
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
+/**
+ * Defines a collection of references to keys for delete actions and items for put actions
+ * for one specific table. A WriteBatch is part of a {@link BatchWriteItemEnhancedRequest}
+ * and used in a batchWriteItem() operation (such as
+ * {@link DynamoDbEnhancedClient#batchWriteItem(BatchWriteItemEnhancedRequest)}).
+ * <p>
+ * A valid write batch should contain one or more delete or put action reference.
+ */
 @SdkPublicApi
 public final class WriteBatch {
     private final String tableName;
@@ -41,14 +50,27 @@ public final class WriteBatch {
         this.writeRequests = getItemsFromSupplier(builder.itemSupplierList);
     }
 
+    /**
+     * Creates a newly initialized builder for a write batch.
+     *
+     * @param itemClass the class that items in this table map to
+     * @param <T> The type of the modelled object, corresponding to itemClass
+     * @return a WriteBatch builder
+     */
     public static <T> Builder<T> builder(Class<? extends T> itemClass) {
         return new BuilderImpl<>(itemClass);
     }
 
+    /**
+     * Returns the table name associated with this batch.
+     */
     public String tableName() {
         return tableName;
     }
 
+    /**
+     * Returns the collection of write requests in this writek batch.
+     */
     public Collection<WriteRequest> writeRequests() {
         return writeRequests;
     }
@@ -79,15 +101,58 @@ public final class WriteBatch {
         return result;
     }
 
+    /**
+     * A builder that is used to create a request with the desired parameters.
+     * <p>
+     * A valid builder must define a {@link MappedTableResource} and add at least one
+     * {@link DeleteItemEnhancedRequest} or {@link PutItemEnhancedRequest}.
+     *
+     * @param <T> the type that items in this table map to
+     */
     public interface Builder<T> {
+
+        /**
+         * Sets the mapped table resource (table) that the items in this write batch should come from.
+         *
+         * @param mappedTableResource the table reference
+         * @return a builder of this type
+         */
         Builder<T> mappedTableResource(MappedTableResource<T> mappedTableResource);
 
+        /**
+         * Adds a {@link DeleteItemEnhancedRequest} to the builder, this request should contain
+         * the primary {@link Key} to an item to be deleted.
+         *
+         * @param request A {@link DeleteItemEnhancedRequest}
+         * @return a builder of this type
+         */
         Builder<T> addDeleteItem(DeleteItemEnhancedRequest request);
 
+        /**
+         * Adds a {@link DeleteItemEnhancedRequest} to the builder, this request should contain
+         * the primary {@link Key} to an item to be deleted.
+         *
+         * @param requestConsumer a {@link Consumer} of {@link DeleteItemEnhancedRequest}
+         * @return a builder of this type
+         */
         Builder<T> addDeleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer);
 
+        /**
+         * Adds a {@link PutItemEnhancedRequest} to the builder, this request should contain the item
+         * to be written.
+         *
+         * @param request A {@link PutItemEnhancedRequest}
+         * @return a builder of this type
+         */
         Builder<T> addPutItem(PutItemEnhancedRequest<T> request);
 
+        /**
+         * Adds a {@link PutItemEnhancedRequest} to the builder, this request should contain the item
+         * to be written.
+         *
+         * @param requestConsumer a {@link Consumer} of {@link PutItemEnhancedRequest}
+         * @return a builder of this type
+         */
         Builder<T> addPutItem(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer);
 
         WriteBatch build();

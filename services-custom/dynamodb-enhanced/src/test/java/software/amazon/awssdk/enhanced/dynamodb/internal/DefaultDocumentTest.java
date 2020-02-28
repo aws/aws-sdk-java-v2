@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.model;
+package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import static java.util.Collections.emptyMap;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -39,7 +40,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TransactGetResultPageTest {
+public class DefaultDocumentTest {
     private static final String TABLE_NAME = "table-name";
 
     @Mock
@@ -60,9 +61,9 @@ public class TransactGetResultPageTest {
     public void noExtension_mapsToItem() {
         FakeItem fakeItem = FakeItem.createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
-        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(fakeItemMap);
+        Document defaultDocument = DefaultDocument.create(fakeItemMap);
 
-        assertThat(transactGetResultPage.getItem(createMappedTable(null)), is(fakeItem));
+        assertThat(defaultDocument.getItem(createMappedTable(null)), is(fakeItem));
     }
 
     @Test
@@ -74,10 +75,10 @@ public class TransactGetResultPageTest {
         when(mockDynamoDbEnhancedClientExtension.afterRead(anyMap(), any(), any()))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap2).build());
 
-        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(fakeItemMap);
+        Document defaultDocument = DefaultDocument.create(fakeItemMap);
 
         DynamoDbTable<FakeItem> mappedTable = createMappedTable(mockDynamoDbEnhancedClientExtension);
-        assertThat(transactGetResultPage.getItem(mappedTable), is(fakeItem2));
+        assertThat(defaultDocument.getItem(mappedTable), is(fakeItem2));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(fakeItemMap,
                                                               OperationContext.create(mappedTable.tableName()),
                                                               FakeItem.getTableMetadata());
@@ -85,16 +86,16 @@ public class TransactGetResultPageTest {
 
     @Test
     public void nullMapReturnsNullItem() {
-        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(null);
+        Document defaultDocument = DefaultDocument.create(null);
 
-        assertThat(transactGetResultPage.getItem(createMappedTable(null)), is(nullValue()));
+        assertThat(defaultDocument.getItem(createMappedTable(null)), is(nullValue()));
     }
 
     @Test
     public void emptyMapReturnsNullItem() {
-        TransactGetResultPage transactGetResultPage = TransactGetResultPage.create(emptyMap());
+        Document defaultDocument = DefaultDocument.create(emptyMap());
 
-        assertThat(transactGetResultPage.getItem(createMappedTable(null)), is(nullValue()));
+        assertThat(defaultDocument.getItem(createMappedTable(null)), is(nullValue()));
     }
 
 }

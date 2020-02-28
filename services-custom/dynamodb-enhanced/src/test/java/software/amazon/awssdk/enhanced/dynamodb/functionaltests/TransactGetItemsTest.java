@@ -28,13 +28,14 @@ import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultDocument;
 import software.amazon.awssdk.enhanced.dynamodb.TypeToken;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
 public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
@@ -152,7 +153,7 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
                                            .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
                                            .build();
 
-        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
+        List<Document> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
@@ -173,7 +174,7 @@ public class TransactGetItemsTest extends LocalDynamoDbSyncTestBase {
                                            .addGetItem(mappedTable1, r -> r.key(k -> k.partitionValue(1)))
                                            .build();
 
-        List<TransactGetResultPage> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
+        List<Document> results = enhancedClient.transactGetItems(transactGetItemsEnhancedRequest);
 
         assertThat(results.size(), is(4));
         assertThat(results.get(0).getItem(mappedTable1), is(RECORDS_1.get(0)));
