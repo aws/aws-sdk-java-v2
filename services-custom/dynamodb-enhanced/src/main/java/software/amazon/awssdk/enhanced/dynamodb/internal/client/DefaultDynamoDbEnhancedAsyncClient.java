@@ -20,9 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -35,7 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetResultPage;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.utils.Validate;
@@ -92,13 +91,13 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public CompletableFuture<List<TransactGetResultPage>> transactGetItems(TransactGetItemsEnhancedRequest request) {
+    public CompletableFuture<List<Document>> transactGetItems(TransactGetItemsEnhancedRequest request) {
         TransactGetItemsOperation operation = TransactGetItemsOperation.create(request);
         return operation.executeAsync(dynamoDbClient, extension);
     }
 
     @Override
-    public CompletableFuture<List<TransactGetResultPage>> transactGetItems(
+    public CompletableFuture<List<Document>> transactGetItems(
         Consumer<TransactGetItemsEnhancedRequest.Builder> requestConsumer) {
         TransactGetItemsEnhancedRequest.Builder builder = TransactGetItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);

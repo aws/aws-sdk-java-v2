@@ -17,10 +17,18 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Arrays;
 import java.util.Collection;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 
+/**
+ * Defines parameters used to create a DynamoDb table using the createTable() operation (such as
+ * {@link DynamoDbTable#createTable(CreateTableEnhancedRequest)} or
+ * {@link DynamoDbAsyncTable#createTable(CreateTableEnhancedRequest)}).
+ * <p>
+ * All parameters are optional.
+ */
 @SdkPublicApi
 public final class CreateTableEnhancedRequest {
     private final ProvisionedThroughput provisionedThroughput;
@@ -33,24 +41,39 @@ public final class CreateTableEnhancedRequest {
         this.globalSecondaryIndices = builder.globalSecondaryIndices;
     }
 
+    /**
+     * Creates a newly initialized builder for a request object.
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Returns a builder initialized with all existing values on the request object.
+     */
     public Builder toBuilder() {
         return builder().provisionedThroughput(provisionedThroughput)
                         .localSecondaryIndices(localSecondaryIndices)
                         .globalSecondaryIndices(globalSecondaryIndices);
     }
 
+    /**
+     * Returns the provisioned throughput value set on this request object, or null if it has not been set.
+     */
     public ProvisionedThroughput provisionedThroughput() {
         return provisionedThroughput;
     }
 
+    /**
+     * Returns the local secondary index set on this request object, or null if it has not been set.
+     */
     public Collection<LocalSecondaryIndex> localSecondaryIndices() {
         return localSecondaryIndices;
     }
 
+    /**
+     * Returns the global secondary index set on this request object, or null if it has not been set.
+     */
     public Collection<GlobalSecondaryIndex> globalSecondaryIndices() {
         return globalSecondaryIndices;
     }
@@ -86,6 +109,9 @@ public final class CreateTableEnhancedRequest {
         return result;
     }
 
+    /**
+     * A builder that is used to create a request with the desired parameters.
+     */
     public static final class Builder {
         private ProvisionedThroughput provisionedThroughput;
         private Collection<LocalSecondaryIndex> localSecondaryIndices;
@@ -94,26 +120,67 @@ public final class CreateTableEnhancedRequest {
         private Builder() {
         }
 
+        /**
+         * Sets the provisioned throughput for this table. Use this parameter to set the table's
+         * read and write capacity units.
+         * <p>
+         * See the DynamoDb documentation for more information on default throughput values.
+         *
+         * @param provisionedThroughput
+         * @return
+         */
         public Builder provisionedThroughput(ProvisionedThroughput provisionedThroughput) {
             this.provisionedThroughput = provisionedThroughput;
             return this;
         }
 
+        /**
+         * Defines a local secondary index for this table.
+         * <p>
+         * See {@link LocalSecondaryIndex} for more information on creating and using a local secondary index.
+         *
+         * @param localSecondaryIndices
+         * @return
+         */
         public Builder localSecondaryIndices(Collection<LocalSecondaryIndex> localSecondaryIndices) {
             this.localSecondaryIndices = localSecondaryIndices;
             return this;
         }
 
+        /**
+         * Defines a local secondary index for this table.
+         * <p>
+         * See {@link LocalSecondaryIndex} for more information on creating and using a local secondary index.
+         *
+         * @param localSecondaryIndices
+         * @return
+         */
         public Builder localSecondaryIndices(LocalSecondaryIndex... localSecondaryIndices) {
             this.localSecondaryIndices = Arrays.asList(localSecondaryIndices);
             return this;
         }
 
+        /**
+         * Defines a global secondary index for this table.
+         * <p>
+         * See {@link GlobalSecondaryIndex} for more information on creating and using a global secondary index.
+         *
+         * @param globalSecondaryIndices
+         * @return
+         */
         public Builder globalSecondaryIndices(Collection<GlobalSecondaryIndex> globalSecondaryIndices) {
             this.globalSecondaryIndices = globalSecondaryIndices;
             return this;
         }
 
+        /**
+         * Defines a global secondary index for this table.
+         * <p>
+         * See {@link GlobalSecondaryIndex} for more information on creating and using a global secondary index.
+         *
+         * @param globalSecondaryIndices
+         * @return
+         */
         public Builder globalSecondaryIndices(GlobalSecondaryIndex... globalSecondaryIndices) {
             this.globalSecondaryIndices = Arrays.asList(globalSecondaryIndices);
             return this;

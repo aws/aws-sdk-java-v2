@@ -19,11 +19,10 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * This annotation is used to flatten all the attributes of a separate DynamoDB bean that is stored in the current bean
+ * This annotation is used to flatten all the attributes of a separate DynamoDb bean that is stored in the current bean
  * object and add them as top level attributes to the record that is read and written to the database. The target bean
  * to flatten must be specified as part of this annotation.
  */
