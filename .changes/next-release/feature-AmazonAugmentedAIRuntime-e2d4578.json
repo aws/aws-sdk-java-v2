@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon Augmented AI Runtime",
+    "description": "This release updates Amazon Augmented AI ListHumanLoops API, DescribeHumanLoop response, StartHumanLoop response and type names of SDK fields."
+}
