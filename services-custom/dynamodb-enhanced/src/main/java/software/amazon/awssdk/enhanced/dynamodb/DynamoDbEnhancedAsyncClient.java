@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
  * Asynchronous interface for running commands against a DynamoDb database.
  */
 @SdkPublicApi
-public interface DynamoDbEnhancedAsyncClient {
+public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Returns a mapped table that can be used to execute commands that work with mapped items against that table.
@@ -90,11 +90,23 @@ public interface DynamoDbEnhancedAsyncClient {
     /**
      * The builder definition for a {@link DynamoDbEnhancedAsyncClient}.
      */
-    interface Builder {
-        Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbAsyncClient);
+    interface Builder extends DynamoDbEnhancedResource.Builder {
+        /**
+         * The regular low-level SDK client to use with the enhanced client.
+         * @param dynamoDbClient an initialized {@link DynamoDbAsyncClient}
+         */
+        Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbClient);
 
-        Builder extendWith(DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension);
+        @Override
+        Builder extensions(DynamoDbEnhancedClientExtension... dynamoDbEnhancedClientExtensions);
 
+        @Override
+        Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions);
+
+        /**
+         * Builds an enhanced client based on the settings supplied to this builder
+         * @return An initialized {@link DynamoDbEnhancedAsyncClient}
+         */
         DynamoDbEnhancedAsyncClient build();
     }
 }

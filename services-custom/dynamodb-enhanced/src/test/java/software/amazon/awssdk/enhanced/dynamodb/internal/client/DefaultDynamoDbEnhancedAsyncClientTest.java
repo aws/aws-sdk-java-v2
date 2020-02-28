@@ -16,17 +16,20 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.mock;
 
+import java.util.Arrays;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -36,10 +39,20 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
     @Mock
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
     @Mock
+    private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension2;
+    @Mock
     private TableSchema<Object> mockTableSchema;
 
-    @InjectMocks
     private DefaultDynamoDbEnhancedAsyncClient dynamoDbEnhancedAsyncClient;
+
+    @Before
+    public void initializeClient() {
+        this.dynamoDbEnhancedAsyncClient =
+            DefaultDynamoDbEnhancedAsyncClient.builder()
+                                              .dynamoDbClient(mockDynamoDbAsyncClient)
+                                              .extensions(mockDynamoDbEnhancedClientExtension)
+                                              .build();
+    }
 
     @Test
     public void table() {
@@ -59,7 +72,7 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
                                               .build();
 
         assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
-        assertThat(builtObject.mapperExtension(), is(nullValue()));
+        assertThat(builtObject.mapperExtension(), instanceOf(VersionedRecordExtension.class));
     }
 
     @Test
@@ -67,25 +80,40 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
         DefaultDynamoDbEnhancedAsyncClient builtObject =
             DefaultDynamoDbEnhancedAsyncClient.builder()
                                               .dynamoDbClient(mockDynamoDbAsyncClient)
-                                              .extendWith(mockDynamoDbEnhancedClientExtension)
+                                              .extensions(mockDynamoDbEnhancedClientExtension)
                                               .build();
 
         assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
         assertThat(builtObject.mapperExtension(), is(mockDynamoDbEnhancedClientExtension));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void builder_missingDynamoDbClient() {
-        DefaultDynamoDbEnhancedAsyncClient.builder().extendWith(mockDynamoDbEnhancedClientExtension).build();
+    @Test
+    public void builder_multipleExtensions_varargs() {
+        DefaultDynamoDbEnhancedAsyncClient builtObject =
+            DefaultDynamoDbEnhancedAsyncClient.builder()
+                                         .dynamoDbClient(mockDynamoDbAsyncClient)
+                                         .extensions(mockDynamoDbEnhancedClientExtension, mockDynamoDbEnhancedClientExtension2)
+                                         .build();
+
+        assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
+        assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void builder_extraExtension() {
-        DefaultDynamoDbEnhancedAsyncClient.builder()
-                                          .dynamoDbClient(mockDynamoDbAsyncClient)
-                                          .extendWith(mockDynamoDbEnhancedClientExtension)
-                                          .extendWith(mock(DynamoDbEnhancedClientExtension.class))
-                                          .build();
+    @Test
+    public void builder_multipleExtensions_list() {
+        DefaultDynamoDbEnhancedAsyncClient builtObject =
+            DefaultDynamoDbEnhancedAsyncClient.builder()
+                                         .dynamoDbClient(mockDynamoDbAsyncClient)
+                                         .extensions(Arrays.asList(mockDynamoDbEnhancedClientExtension, mockDynamoDbEnhancedClientExtension2))
+                                         .build();
+
+        assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
+        assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void builder_missingDynamoDbClient() {
+        DefaultDynamoDbEnhancedAsyncClient.builder().extensions(mockDynamoDbEnhancedClientExtension).build();
     }
 
     @Test

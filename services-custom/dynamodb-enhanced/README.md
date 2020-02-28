@@ -107,9 +107,9 @@ most of the features available in the low-level DynamoDB SDK client.
    customerTable.createTable(CreateTableEnhancedRequest.builder().build());
    
    // GetItem
-   Customer customer = customerTable.getItem(r -> r.key(Key.create(stringValue("a123"))));
+   Customer customer = customerTable.getItem(r -> r.key(k -> k.partitionValue("a123")));
    Customer customer = customerTable.getItem(GetItemEnhancedRequest.builder()
-                                                                   .key(Key.create(stringValue("a123")))
+                                                                   .key(Key.builder().partitionValue("a123").build())
                                                                    .build()); 
    // UpdateItem
    Customer updatedCustomer = customerTable.updateItem(Customer.class, r -> r.item(customer));
@@ -124,16 +124,18 @@ most of the features available in the low-level DynamoDB SDK client.
                                                .build());
    
    // DeleteItem
-   Customer deletedCustomer = customerTable.deleteItem(r -> r.key(Key.create(stringValue("a123"), numberValue(456))));
-   Customer deletedCustomer = customerTable.deleteItem(DeleteItemEnhancedRequest.builder()
-                                                                                     .key(Key.create(stringValue("a123"), numberValue(456)))
-                                                                                     .build());
+   Customer deletedCustomer = customerTable.deleteItem(r -> r.key(k -> partitionValue("a123").sortValue(456)));
+   Customer deletedCustomer = customerTable.deleteItem(
+        DeleteItemEnhancedRequest.builder()
+                                 .key(Key.builder().partitionValue("a123").sortValue(456).build())
+                                 .build());
    
    // Query
-   Iterable<Page<Customer>> customers = customerTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("a123")))));
-   Iterable<Page<Customer>> customers = customerTable.query(QueryEnhancedRequest.builder()
-                                                                                .queryConditional(equalTo(Key.create(stringValue("a123"))))
-                                                                                .build());
+   Iterable<Page<Customer>> customers = customerTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("a123"))));
+   Iterable<Page<Customer>> customers = 
+        customerTable.query(QueryEnhancedRequest.builder()
+                                                .queryConditional(equalTo(Key.builder().partitionValue("a123").build()))
+                                                .build());
    // Scan
    Iterable<Page<Customer>> customers = customerTable.scan();
    Iterable<Page<Customer>> customers = customerTable.scan(ScanEnhancedRequest.builder().build());
@@ -173,12 +175,12 @@ most of the features available in the low-level DynamoDB SDK client.
                                     .build());
    
    // TransactGetItems
-   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, r -> r.key(Key.create(key1)))
-                                                           .addGetItem(customerTable, r -> r.key(Key.create(key2))));
+   transactResults = enhancedClient.transactGetItems(r -> r.addGetItem(customerTable, r -> r.key(key1))
+                                                           .addGetItem(customerTable, r -> r.key(key2));
    transactResults = enhancedClient.transactGetItems(
        TransactGetItemsEnhancedRequest.builder()
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(Key.create(key1)).build())
-                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(Key.create(key2)).build())
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(key1).build())
+                                      .addGetItem(customerTable, GetItemEnhancedRequest.builder().key(key2).build())
                                       .build());
    
    // TransactWriteItems
@@ -204,10 +206,10 @@ most of the features available in the low-level DynamoDB SDK client.
 ### Using secondary indices
 Certain operations (Query and Scan) may be executed against a secondary
 index. Here's an example of how to do this:
-   ```
+   ```java
    DynamoDbIndex<Customer> customersByName = customerTable.index("customers_by_name");
        
-   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(Key.create(stringValue("Smith")))));
+   Iterable<Page<Customer>> customersWithName = customersByName.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    ```
 
 ### Non-blocking asynchronous operations
@@ -240,7 +242,7 @@ key differences:
    application can then subscribe a handler to that publisher and deal
    with the results asynchronously without having to block:
    ```java
-   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(Key.create(stringValue("a123")))));
+   SdkPublisher<Customer> results = mappedTable.query(r -> r.queryConditional(equalTo(k -> k.partitionValue("Smith"))));
    results.subscribe(myCustomerResultsProcessor);
    // Perform other work and let the processor handle the results asynchronously
    ```
@@ -248,18 +250,32 @@ key differences:
 
 ### Using extensions
 The mapper supports plugin extensions to provide enhanced functionality
-beyond the simple primitive mapped operations. Only one extension can be
-loaded into a DynamoDbEnhancedClient. Any number of extensions can be chained
-together in a specific order into a single extension using a
-ChainExtension. Extensions have two hooks, beforeWrite() and
+beyond the simple primitive mapped operations. Extensions have two hooks, beforeWrite() and
 afterRead(); the former can modify a write operation before it happens,
 and the latter can modify the results of a read operation after it
 happens. Some operations such as UpdateItem perform both a write and
 then a read, so call both hooks.
 
+Extensions are loaded in the order they are specified in the enhanced client builder. This load order can be important,
+as one extension can be acting on values that have been transformed by a previous extension. By default, just the
+VersionedRecordExtension will be loaded, however you can override this behavior on the client builder and load any
+extensions you like or specify none if you do not want the default bundled VersionedRecordExtension.
+
+In this example, a custom extension named 'verifyChecksumExtension' is being loaded after the VersionedRecordExtension
+which is usually loaded by default by itself:
+```java
+DynamoDbEnhancedClientExtension versionedRecordExtension = VersionedRecordExtension.builder().build();
+
+DynamoDbEnhancedClient enhancedClient = 
+    DynamoDbEnhancedClient.builder()
+                          .dynamoDbClient(dynamoDbClient)
+                          .extensions(versionedRecordExtension, verifyChecksumExtension)
+                          .build();
+```
+
 #### VersionedRecordExtension
 
-This extension will increment and track a record version number as
+This extension is loaded by default and will increment and track a record version number as
 records are written to the database. A condition will be added to every
 write that will cause the write to fail if the record version number of
 the actual persisted record does not match the value that the
@@ -267,14 +283,6 @@ application last read. This effectively provides optimistic locking for
 record updates, if another process updates a record between the time the
 first process has read the record and is writing an update to it then
 that write will fail. 
-
-To load the extension:
-```java
-DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-                        .dynamoDbClient(dynamoDbClient)
-                        .extendWith(VersionedRecordExtension.builder().build())
-                        .build();
-```
 
 To tell the extension which attribute to use to track the record version
 number tag a numeric attribute in the TableSchema:

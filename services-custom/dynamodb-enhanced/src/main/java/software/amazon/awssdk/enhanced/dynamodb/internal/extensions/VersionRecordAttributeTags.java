@@ -21,8 +21,8 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbV
 import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeTag;
 
 @SdkInternalApi
-public final class VersionedRecordExtensionAttributeTags {
-    private VersionedRecordExtensionAttributeTags() {
+public final class VersionRecordAttributeTags {
+    private VersionRecordAttributeTags() {
     }
 
     public static AttributeTag attributeTagFor(DynamoDbVersionAttribute annotation) {

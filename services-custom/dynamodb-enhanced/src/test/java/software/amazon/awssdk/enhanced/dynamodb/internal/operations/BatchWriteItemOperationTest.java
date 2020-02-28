@@ -32,7 +32,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 
@@ -83,10 +82,14 @@ public class BatchWriteItemOperationTest {
         FakeItemWithSort.getTableSchema().itemToMap(item, FakeItemWithSort.getTableMetadata().primaryKeys()))
                                                                                               .collect(toList());
     private static final List<Key> FAKE_ITEM_KEYS =
-        FAKE_ITEMS.stream().map(fakeItem -> Key.create(stringValue(fakeItem.getId()))).collect(toList());
+        FAKE_ITEMS.stream().map(fakeItem -> Key.builder().partitionValue(fakeItem.getId()).build()).collect(toList());
     private static final List<Key> FAKESORT_ITEM_KEYS =
-        FAKESORT_ITEMS.stream().map(fakeItemWithSort -> Key.create(stringValue(fakeItemWithSort.getId()),
-                                                               stringValue(fakeItemWithSort.getSort()))).collect(toList());
+        FAKESORT_ITEMS.stream()
+                      .map(fakeItemWithSort -> Key.builder()
+                                                  .partitionValue(fakeItemWithSort.getId())
+                                                  .sortValue(fakeItemWithSort.getSort())
+                                                  .build())
+                      .collect(toList());
 
     @Mock
     private DynamoDbClient mockDynamoDbClient;
@@ -102,11 +105,11 @@ public class BatchWriteItemOperationTest {
 
     @Before
     public void setupMappedTables() {
-        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).build();
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extensions().build();
         fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
         fakeItemWithSortMappedTable = enhancedClient.table(TABLE_NAME_2, FakeItemWithSort.getTableSchema());
         DynamoDbEnhancedClient dynamoDbEnhancedClientWithExtension =
-            DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extendWith(mockExtension).build();
+            DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extensions(mockExtension).build();
         fakeItemMappedTableWithExtension = dynamoDbEnhancedClientWithExtension.table(TABLE_NAME, FakeItem.getTableSchema());
         fakeItemWithSortMappedTableWithExtension = dynamoDbEnhancedClientWithExtension.table(TABLE_NAME_2,
                                                                                              FakeItemWithSort.getTableSchema());

@@ -20,8 +20,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +35,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -57,7 +56,7 @@ public class TransactWriteItemsEnhancedRequestTest {
 
     @Before
     public void setupMappedTables() {
-        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).build();
+        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(mockDynamoDbClient).extensions().build();
         fakeItemMappedTable = enhancedClient.table(TABLE_NAME, FakeItem.getTableSchema());
     }
 
@@ -82,9 +81,9 @@ public class TransactWriteItemsEnhancedRequestTest {
         TransactWriteItemsEnhancedRequest builtObject =
             TransactWriteItemsEnhancedRequest.builder()
                                              .addPutItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem))
-                                             .addDeleteItem(fakeItemMappedTable, r -> r.key(Key.create(stringValue(fakeItem.getId()))))
+                                             .addDeleteItem(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId())))
                                              .addUpdateItem(fakeItemMappedTable, FakeItem.class, r -> r.item(fakeItem))
-                                             .addConditionCheck(fakeItemMappedTable, r -> r.key(Key.create(stringValue(fakeItem.getId())))
+                                             .addConditionCheck(fakeItemMappedTable, r -> r.key(k -> k.partitionValue(fakeItem.getId()))
                                                                                            .conditionExpression(conditionExpression))
                                              .build();
 
@@ -105,7 +104,7 @@ public class TransactWriteItemsEnhancedRequestTest {
 
         PutItemEnhancedRequest<FakeItem> putItem = PutItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build();
         DeleteItemEnhancedRequest deleteItem = DeleteItemEnhancedRequest.builder()
-                                                                        .key(Key.create(stringValue(fakeItem.getId())))
+                                                                        .key(k -> k.partitionValue(fakeItem.getId()))
                                                                         .build();
         UpdateItemEnhancedRequest<FakeItem> updateItem = UpdateItemEnhancedRequest.builder(FakeItem.class)
                                                                         .item(fakeItem).build();
@@ -115,7 +114,7 @@ public class TransactWriteItemsEnhancedRequestTest {
                                                    .expressionNames(singletonMap("#attribute", "attribute"))
                                                    .build();
         ConditionCheck<FakeItem> conditionCheck = ConditionCheck.builder()
-                                                      .key(Key.create(stringValue(fakeItem.getId())))
+                                                      .key(k -> k.partitionValue(fakeItem.getId()))
                                                       .conditionExpression(conditionExpression)
                                                       .build();
 

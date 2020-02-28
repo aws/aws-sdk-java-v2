@@ -16,20 +16,22 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class KeyTest {
-    private final Key key = Key.create(stringValue("id123"), stringValue("id456"));
-    private final Key partitionOnlyKey = Key.create(stringValue("id123"));
+    private final Key key = Key.builder().partitionValue("id123").sortValue("id456").build();
+    private final Key partitionOnlyKey = Key.builder().partitionValue("id123").build();
 
     @Test
     public void getKeyMap() {
@@ -81,5 +83,39 @@ public class KeyTest {
     @Test
     public void getSortKeyValue_partitionOnly() {
         assertThat(partitionOnlyKey.sortKeyValue(), is(Optional.empty()));
+    }
+
+    @Test
+    public void numericKeys_convertsToCorrectAttributeValue() {
+        Key key = Key.builder().partitionValue(123).sortValue(45.6).build();
+
+        assertThat(key.partitionKeyValue(), is(AttributeValue.builder().n("123").build()));
+        assertThat(key.sortKeyValue(), is(Optional.of(AttributeValue.builder().n("45.6").build())));
+    }
+
+    @Test
+    public void stringKeys_convertsToCorrectAttributeValue() {
+        Key key = Key.builder().partitionValue("one").sortValue("two").build();
+
+        assertThat(key.partitionKeyValue(), is(AttributeValue.builder().s("one").build()));
+        assertThat(key.sortKeyValue(), is(Optional.of(AttributeValue.builder().s("two").build())));
+    }
+
+    @Test
+    public void binaryKeys_convertsToCorrectAttributeValue() {
+        SdkBytes partition = SdkBytes.fromString("one", StandardCharsets.UTF_8);
+        SdkBytes sort = SdkBytes.fromString("two", StandardCharsets.UTF_8);
+
+        Key key = Key.builder().partitionValue(partition).sortValue(sort).build();
+
+        assertThat(key.partitionKeyValue(), is(AttributeValue.builder().b(partition).build()));
+        assertThat(key.sortKeyValue(), is(Optional.of(AttributeValue.builder().b(sort).build())));
+    }
+
+    @Test
+    public void toBuilder() {
+        Key keyClone = key.toBuilder().build();
+
+        assertThat(key, is(equalTo(keyClone)));
     }
 }

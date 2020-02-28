@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 
@@ -37,7 +36,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
@@ -67,7 +65,7 @@ public class GetItemOperationTest {
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(keyItem.getId())).build());
         GetItemRequest getItemRequest = GetItemRequest.builder().tableName(TABLE_NAME).build();
         GetItemResponse expectedResponse = GetItemResponse.builder().build();
         when(mockDynamoDbClient.getItem(any(GetItemRequest.class))).thenReturn(expectedResponse);
@@ -82,7 +80,7 @@ public class GetItemOperationTest {
     public void generateRequest_withIndex_throwsIllegalArgumentException() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(keyItem.getId())).build());
 
         getItemOperation.generateRequest(FakeItem.getTableSchema(), GSI_1_CONTEXT, null);
     }
@@ -92,7 +90,7 @@ public class GetItemOperationTest {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
             GetItemOperation.create(GetItemEnhancedRequest.builder()
-                                                          .key(Key.create(stringValue(keyItem.getId())))
+                                                          .key(k -> k.partitionValue(keyItem.getId()))
                                                           .consistentRead(true).build());
 
         GetItemRequest request = getItemOperation.generateRequest(FakeItem.getTableSchema(),
@@ -113,7 +111,7 @@ public class GetItemOperationTest {
     public void generateRequest_partitionKeyOnly() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(keyItem.getId())).build());
 
         GetItemRequest request = getItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -133,8 +131,8 @@ public class GetItemOperationTest {
         FakeItemWithSort keyItem = createUniqueFakeItemWithSort();
         GetItemOperation<FakeItemWithSort> getItemOperation =
             GetItemOperation.create(GetItemEnhancedRequest.builder()
-                                                          .key(Key.create(stringValue(keyItem.getId()),
-                                                                          stringValue(keyItem.getSort())))
+                                                          .key(k -> k.partitionValue(keyItem.getId())
+                                                                     .sortValue(keyItem.getSort()))
                                                           .build());
 
         GetItemRequest request = getItemOperation.generateRequest(FakeItemWithSort.getTableSchema(),
@@ -154,7 +152,7 @@ public class GetItemOperationTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateRequest_noPartitionKey_throwsIllegalArgumentException() {
         GetItemOperation<FakeItemComposedClass> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue("whatever"))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue("whatever")).build());
 
         getItemOperation.generateRequest(FakeItemComposedClass.getTableSchema(), PRIMARY_CONTEXT, null);
     }
@@ -163,7 +161,7 @@ public class GetItemOperationTest {
     public void transformResponse_noItem() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(keyItem.getId())).build());
         GetItemResponse response = GetItemResponse.builder().build();
 
         FakeItem result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT,
@@ -176,7 +174,7 @@ public class GetItemOperationTest {
     public void transformResponse_correctlyTransformsIntoAnItem() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(keyItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(keyItem.getId())).build());
         Map<String, AttributeValue> responseMap = new HashMap<>();
         responseMap.put("id", AttributeValue.builder().s(keyItem.getId()).build());
         responseMap.put("subclass_attribute", AttributeValue.builder().s("test-value").build());
@@ -196,7 +194,7 @@ public class GetItemOperationTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, singletonList("id"));
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(baseFakeItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(baseFakeItem.getId())).build());
 
         GetItemRequest request = getItemOperation.generateRequest(FakeItem.getTableSchema(),
                                                                   PRIMARY_CONTEXT,
@@ -213,7 +211,7 @@ public class GetItemOperationTest {
         Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false);
         Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
         GetItemOperation<FakeItem> getItemOperation =
-            GetItemOperation.create(GetItemEnhancedRequest.builder().key(Key.create(stringValue(baseFakeItem.getId()))).build());
+            GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(baseFakeItem.getId())).build());
         GetItemResponse response = GetItemResponse.builder()
                                                   .item(baseFakeItemMap)
                                                   .build();

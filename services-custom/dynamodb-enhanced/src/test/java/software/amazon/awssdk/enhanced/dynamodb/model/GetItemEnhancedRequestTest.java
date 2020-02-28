@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.enhanced.dynamodb.AttributeValues.stringValue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +37,7 @@ public class GetItemEnhancedRequestTest {
 
     @Test
     public void builder_maximal() {
-        Key key = Key.create(stringValue("key"));
+        Key key = Key.builder().partitionValue("key").build();
 
         GetItemEnhancedRequest builtObject = GetItemEnhancedRequest.builder()
                                                                    .key(key)
@@ -51,7 +50,7 @@ public class GetItemEnhancedRequestTest {
 
     @Test
     public void toBuilder() {
-        Key key = Key.create(stringValue("key"));
+        Key key = Key.builder().partitionValue("key").build();
 
         GetItemEnhancedRequest builtObject = GetItemEnhancedRequest.builder()
                                                                    .key(key)
