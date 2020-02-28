@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Access Analyzer",
+    "description": "This release includes improvements and fixes bugs for the IAM Access Analyzer feature."
+}
