@@ -1,0 +1,5 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "description": "Added SearchDashboards API that allows listing of dashboards that a specific user has access to."
+}
