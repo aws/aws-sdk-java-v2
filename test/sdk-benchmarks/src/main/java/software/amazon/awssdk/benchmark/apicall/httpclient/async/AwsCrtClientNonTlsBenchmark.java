@@ -56,7 +56,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class AwsCrtClientNonTLSBenchmark implements SdkHttpClientBenchmark {
+public class AwsCrtClientNonTlsBenchmark implements SdkHttpClientBenchmark {
 
     private MockServer mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
@@ -120,7 +120,7 @@ public class AwsCrtClientNonTLSBenchmark implements SdkHttpClientBenchmark {
 
     public static void main(String... args) throws Exception {
         Options opt = new OptionsBuilder()
-                .include(AwsCrtClientNonTLSBenchmark.class.getSimpleName())
+                .include(AwsCrtClientNonTlsBenchmark.class.getSimpleName())
                 .addProfiler(StackProfiler.class)
                 .build();
         Collection<RunResult> run = new Runner(opt).run();
