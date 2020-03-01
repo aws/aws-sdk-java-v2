@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public class DefaultJsonContentTypeResolver implements JsonContentTypeResolver {
 
+    private static final String REST_JSON_CONTENT_TYPE = "application/json";
+
     private final String prefix;
 
     public DefaultJsonContentTypeResolver(String prefix) {
@@ -32,6 +34,11 @@ public class DefaultJsonContentTypeResolver implements JsonContentTypeResolver {
 
     @Override
     public String resolveContentType(AwsJsonProtocolMetadata protocolMetadata) {
-        return prefix + protocolMetadata.protocolVersion();
+        switch (protocolMetadata.protocol()) {
+            case REST_JSON:
+                return REST_JSON_CONTENT_TYPE;
+            default:
+                return prefix + protocolMetadata.protocolVersion();
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.Channel;
@@ -68,6 +69,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
+import javax.net.ssl.TrustManagerFactory;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -79,6 +81,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.HttpTestUtils;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -374,6 +377,30 @@ public class NettyNioAsyncHttpClientWireMockTest {
         customClient.close();
         eventLoopGroup.eventLoopGroup().shutdownGracefully().awaitUninterruptibly();
     }
+
+    @Test
+    public void builderUsesProvidedTrustManagersProvider() throws Exception {
+        WireMockServer selfSignedServer = HttpTestUtils.createSelfSignedServer();
+
+        TrustManagerFactory managerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        managerFactory.init(HttpTestUtils.getSelfSignedKeyStore());
+
+        try (SdkAsyncHttpClient netty = NettyNioAsyncHttpClient.builder()
+                                                               .tlsTrustManagersProvider(managerFactory::getTrustManagers)
+                                                               .build()) {
+            selfSignedServer.start();
+            URI uri = URI.create("https://localhost:" + selfSignedServer.httpsPort());
+
+            SdkHttpRequest request = createRequest(uri);
+            RecordingResponseHandler recorder = new RecordingResponseHandler();
+            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
+
+            recorder.completeFuture.get(5, TimeUnit.SECONDS);
+        } finally {
+            selfSignedServer.stop();
+        }
+    }
+
 
     /**
      * Make a simple async request and wait for it to fiish.

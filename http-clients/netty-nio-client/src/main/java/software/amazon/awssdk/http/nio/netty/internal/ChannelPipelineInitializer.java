@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -109,7 +109,14 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         }
 
         pipeline.addLast(FutureCancelHandler.getInstance());
-        pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
+
+        // Only add it for h1 channel because it does not apply to
+        // h2 connection channel. It will be attached
+        // to stream channels when they are created.
+        if (protocol == Protocol.HTTP1_1) {
+            pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
+        }
+
         pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -166,15 +165,8 @@ public final class IntermediateModel {
     private String loadDefaultFileHeader() throws IOException {
         try (InputStream inputStream = getClass()
             .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
-            return IoUtils.toUtf8String(inputStream)
-                          .replaceFirst("%COPYRIGHT_DATE_RANGE%", getCopyrightDateRange());
+            return IoUtils.toUtf8String(inputStream);
         }
-    }
-
-    private String getCopyrightDateRange() {
-        int currentYear = ZonedDateTime.now().getYear();
-        int copyrightStartYear = currentYear - 5;
-        return String.format("%d-%d", copyrightStartYear, currentYear);
     }
 
     public String getSdkBaseResponseFqcn() {
