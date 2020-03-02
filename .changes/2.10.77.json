@@ -1,0 +1,21 @@
+{
+    "version": "2.10.77",
+    "date": "2020-03-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "description": "Introducing Amazon CloudWatch Composite Alarms"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "description": "New Time Expression feature, part of DetectEntitiesV2 API will provide temporal relations to existing NERe entities such as Medication, Test, Treatment, Procedure and Medical conditions."
+        }
+    ]
+}

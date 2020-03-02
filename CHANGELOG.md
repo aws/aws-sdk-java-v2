@@ -1,3 +1,16 @@
+# __2.10.77__ __2020-03-02__
+## __AWS Comprehend Medical__
+  - ### Features
+    - New Time Expression feature, part of DetectEntitiesV2 API will provide temporal relations to existing NERe entities such as Medication, Test, Treatment, Procedure and Medical conditions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Introducing Amazon CloudWatch Composite Alarms
+
 # __2.10.76__ __2020-02-28__
 ## __AWS Config__
   - ### Features
