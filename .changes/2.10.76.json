@@ -1,0 +1,11 @@
+{
+    "version": "2.10.76",
+    "date": "2020-02-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "description": "Correcting list of supported resource types."
+        }
+    ]
+}
