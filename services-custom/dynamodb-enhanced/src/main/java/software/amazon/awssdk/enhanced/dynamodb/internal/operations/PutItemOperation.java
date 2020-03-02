@@ -117,7 +117,9 @@ public class PutItemOperation<T>
             throw new IllegalArgumentException("A mapper extension inserted a conditionExpression in a PutItem "
                                                + "request as part of a BatchWriteItemRequest. This is not supported by "
                                                + "DynamoDb. An extension known to do this is the "
-                                               + "VersionedRecordExtension.");
+                                               + "VersionedRecordExtension which is loaded by default unless overridden. "
+                                               + "To fix this use a table schema that does not "
+                                               + "have a versioned attribute in it or do not load the offending extension.");
         }
 
         return WriteRequest.builder().putRequest(PutRequest.builder().item(putItemRequest.item()).build()).build();

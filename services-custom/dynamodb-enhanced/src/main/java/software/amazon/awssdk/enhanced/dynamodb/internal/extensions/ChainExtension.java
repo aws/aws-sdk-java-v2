@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.extensions;
+package software.amazon.awssdk.enhanced.dynamodb.internal.extensions;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -22,10 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -51,7 +53,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * UpdateItem acts as both a write operation and a read operation so the chain will be called both ways within a
  * single operation.
  */
-@SdkPublicApi
+@SdkInternalApi
 public final class ChainExtension implements DynamoDbEnhancedClientExtension {
     private final Deque<DynamoDbEnhancedClientExtension> extensionChain;
 
@@ -66,6 +68,15 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
      */
     public static ChainExtension create(DynamoDbEnhancedClientExtension... extensions) {
         return new ChainExtension(Arrays.asList(extensions));
+    }
+
+    /**
+     * Construct a new instance of {@link ChainExtension}.
+     * @param extensions A list of {@link DynamoDbEnhancedClientExtension} to chain together.
+     * @return A constructed {@link ChainExtension} object.
+     */
+    public static ChainExtension create(List<DynamoDbEnhancedClientExtension> extensions) {
+        return new ChainExtension(extensions);
     }
 
     /**

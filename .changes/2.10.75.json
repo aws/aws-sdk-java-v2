@@ -1,0 +1,51 @@
+{
+    "version": "2.10.75",
+    "date": "2020-02-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "description": "Added SearchDashboards API that allows listing of dashboards that a specific user has access to."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "description": "AWS Glue adds resource tagging support for Machine Learning Transforms and adds a new API, ListMLTransforms to support tag filtering. With this feature, customers can use tags in AWS Glue to organize and control access to Machine Learning Transforms."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "description": "Added a target group attribute to support sticky sessions for Network Load Balancers."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "description": "This release includes improvements and fixes bugs for the IAM Access Analyzer feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Profiler",
+            "description": "Documentation updates for Amazon CodeGuru Profiler"
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Mesh",
+            "description": "App Mesh now supports Transport Layer Security (TLS) between Virtual Nodes in a Mesh. Customers can use managed certificates from an AWS Certificate Manager Private Certificate Authority or bring their own certificates from the local file system to encrypt traffic between their workloads. See https://docs.aws.amazon.com/app-mesh/latest/userguide/virtual-node-tls.html for details."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "description": "Accepts a structured query language (SQL) SELECT command and an aggregator name, performs the corresponding search on resources aggregated by the aggregator, and returns resource configurations matching the properties."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Augmented AI Runtime",
+            "description": "This release updates Amazon Augmented AI ListHumanLoops API, DescribeHumanLoop response, StartHumanLoop response and type names of SDK fields."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkDocs",
+            "description": "Documentation updates for workdocs"
+        }
+    ]
+}

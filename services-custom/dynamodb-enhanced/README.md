@@ -250,18 +250,32 @@ key differences:
 
 ### Using extensions
 The mapper supports plugin extensions to provide enhanced functionality
-beyond the simple primitive mapped operations. Only one extension can be
-loaded into a DynamoDbEnhancedClient. Any number of extensions can be chained
-together in a specific order into a single extension using a
-ChainExtension. Extensions have two hooks, beforeWrite() and
+beyond the simple primitive mapped operations. Extensions have two hooks, beforeWrite() and
 afterRead(); the former can modify a write operation before it happens,
 and the latter can modify the results of a read operation after it
 happens. Some operations such as UpdateItem perform both a write and
 then a read, so call both hooks.
 
+Extensions are loaded in the order they are specified in the enhanced client builder. This load order can be important,
+as one extension can be acting on values that have been transformed by a previous extension. By default, just the
+VersionedRecordExtension will be loaded, however you can override this behavior on the client builder and load any
+extensions you like or specify none if you do not want the default bundled VersionedRecordExtension.
+
+In this example, a custom extension named 'verifyChecksumExtension' is being loaded after the VersionedRecordExtension
+which is usually loaded by default by itself:
+```java
+DynamoDbEnhancedClientExtension versionedRecordExtension = VersionedRecordExtension.builder().build();
+
+DynamoDbEnhancedClient enhancedClient = 
+    DynamoDbEnhancedClient.builder()
+                          .dynamoDbClient(dynamoDbClient)
+                          .extensions(versionedRecordExtension, verifyChecksumExtension)
+                          .build();
+```
+
 #### VersionedRecordExtension
 
-This extension will increment and track a record version number as
+This extension is loaded by default and will increment and track a record version number as
 records are written to the database. A condition will be added to every
 write that will cause the write to fail if the record version number of
 the actual persisted record does not match the value that the
@@ -269,14 +283,6 @@ application last read. This effectively provides optimistic locking for
 record updates, if another process updates a record between the time the
 first process has read the record and is writing an update to it then
 that write will fail. 
-
-To load the extension:
-```java
-DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-                        .dynamoDbClient(dynamoDbClient)
-                        .extendWith(VersionedRecordExtension.builder().build())
-                        .build();
-```
 
 To tell the extension which attribute to use to track the record version
 number tag a numeric attribute in the TableSchema:

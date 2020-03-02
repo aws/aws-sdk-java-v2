@@ -101,7 +101,7 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
-                                                                          .extendWith(VersionedRecordExtension.builder().build())
+                                                                          .extensions(VersionedRecordExtension.builder().build())
                                                                           .build();
 
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
